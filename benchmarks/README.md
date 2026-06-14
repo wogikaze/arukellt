@@ -273,6 +273,16 @@ literals and arithmetic are wired through the emitter.
 | nbody | `nbody.ark` (pending) | Requires `f64` arithmetic — not yet wired in codegen |
 | mandelbrot | `mandelbrot.ark` (pending) | Requires `f64` arithmetic — not yet wired in codegen |
 
+### Grain (Wasm GC) optional hook
+
+`benchmarks/fib.grain` mirrors the legacy fib workload. When the [Grain](https://grain-lang.org/) CLI is installed:
+
+```bash
+bash scripts/compare-benchmarks.sh --compare-lang grain
+```
+
+The runner compiles `fib.grain` to `fib_grain.wasm` and, when `hyperfine` is available, compares wasmtime runs against `benchmarks/legacy/fib.wasm`. Without `grain` or `hyperfine`, the hook prints a skip message and continues — CI is not blocked.
+
 ## Reference Implementations
 
 C and Rust reference implementations are provided for cross-language comparison.

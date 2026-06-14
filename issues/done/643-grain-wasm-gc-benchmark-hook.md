@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-12
-Updated: 2026-06-12
+Updated: 2026-06-14
+Closed: 2026-06-14
 ID: 643
 Track: benchmark
 Depends on: 112
@@ -30,9 +31,9 @@ Grain language feature parity, CI blocking on Grain availability
 
 ## Acceptance
 
-- [ ] Benchmark runner documents Grain hook point (script flag or README section)
-- [ ] Optional benchmarks/*.grain sources or documented skip when grain CLI absent
-- [ ] docs/process/benchmark-results.md updated with Grain comparison status
+- [x] Benchmark runner documents Grain hook point (script flag or README section)
+- [x] Optional benchmarks/*.grain sources or documented skip when grain CLI absent
+- [x] docs/process/benchmark-results.md updated with Grain comparison status
 
 ## Required verification
 

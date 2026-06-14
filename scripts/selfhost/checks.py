@@ -83,8 +83,19 @@ BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "parser.ark",
 )
 
+# ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
+BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
+BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — full MIR opt excluded (ff8f8ded traps in selfhost wasm).
+pub fn optimize_module(m: MirModule, opt_level: i32) -> MirModule {
+    m
+}
+"""
+
 BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — full component model excluded to reduce memory.
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String) -> Vec<i32> {
+    if eq(clone(wasi_version), String_from("p2")) {
+        return wasm_component_p2_emit::emit_p2_command_component(core_wasm)
+    }
     core_wasm
 }
 
@@ -155,7 +166,6 @@ WORKTREE_OVERLAY_NAMESPACES = frozenset({
     "lsp",
     "main",
     "mir",
-    "mir_opt",
     "parser",
     "resolver",
     "typechecker",
@@ -831,6 +841,29 @@ def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
     return text.replace(old_emit, new_emit)
 
 
+def _patch_bootstrap_wasm_mod_p2_emit(text: str) -> str:
+    """Ensure flat wasm facade keeps P2 component emit after overlay dedupe."""
+    if "emit_p2_command_component" in text:
+        return text
+    stub = """
+pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
+    wasm_component_p2_emit::emit_p2_command_component(core_wasm)
+}
+"""
+    if text and not text.endswith("\n"):
+        text = text + "\n"
+    return text + stub
+
+
+def _patch_bootstrap_wasm_ark_p2_emit(compiler_out: Path) -> None:
+    wasm_path = compiler_out / "wasm.ark"
+    if wasm_path.is_file():
+        wasm_path.write_text(
+            _patch_bootstrap_wasm_mod_p2_emit(wasm_path.read_text(encoding="utf-8")),
+            encoding="utf-8",
+        )
+
+
 def _git_compiler_file(root: Path, rev: str, rel_name: str) -> str | None:
     result = subprocess.run(
         ["git", "show", f"{rev}:src/compiler/{rel_name}"],
@@ -847,6 +880,8 @@ def _overlay_namespace_covered_by_monolithic_fallback(rel: Path) -> bool:
     if not rel.parts:
         return False
     ns = rel.parts[0]
+    if ns in BOOTSTRAP_STUB_OVERLAY_NAMESPACES:
+        return True
     if ns in WORKTREE_OVERLAY_NAMESPACES:
         return True
     return ns in MONOLITHIC_OVERLAY_FALLBACK_BY_NS
@@ -890,6 +925,7 @@ def _write_worktree_namespace_overlay(
         rel_name = rel.as_posix()
         if rel_name == "wasm/mod.ark":
             text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
+            text = _patch_bootstrap_wasm_mod_p2_emit(text)
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text)
         text = _promote_top_level_fns_public(text)
@@ -899,6 +935,20 @@ def _write_worktree_namespace_overlay(
         out_path.write_text(_flatten_compiler_imports(text), encoding="utf-8")
         written.add(out_name)
         write_order.append(out_name)
+    return written
+
+
+def _write_bootstrap_stub_namespace_overlays(
+    compiler_out: Path,
+    write_order: list[str],
+) -> set[str]:
+    """Write passthrough stubs for namespaces that trap when fully overlaid."""
+    written: set[str] = set()
+    if "mir_opt" in BOOTSTRAP_STUB_OVERLAY_NAMESPACES:
+        for out_name in ("mir_opt.ark", "mir_opt_optimize_module.ark"):
+            (compiler_out / out_name).write_text(BOOTSTRAP_MIR_OPT_STUB, encoding="utf-8")
+            written.add(out_name)
+            write_order.append(out_name)
     return written
 
 
@@ -1554,6 +1604,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     compiler_out.mkdir(parents=True, exist_ok=True)
     write_order: list[str] = []
     monolithic_written = _write_monolithic_overlay_fallbacks(compiler_out, root, write_order)
+    monolithic_written |= _write_bootstrap_stub_namespace_overlays(compiler_out, write_order)
     for ns in sorted(WORKTREE_OVERLAY_NAMESPACES):
         monolithic_written |= _write_worktree_namespace_overlay(
             ns, compiler_out, source_root, write_order,
@@ -1584,6 +1635,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         write_order.append(out_name)
     _reapply_global_overlay_dedupe(compiler_out, write_order)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
+    _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():

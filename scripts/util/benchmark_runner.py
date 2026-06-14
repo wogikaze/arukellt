@@ -1579,9 +1579,9 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append(
         "Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced "
         "when using `--compare-c-ratio-gate` (on by default via `compare-benchmarks.sh`). "
-        "**Grain** (Wasm GC) is not in this runner yet — no `benchmarks/*.grain` "
-        "sources and no `grain` CLI hook; see "
-        "[`docs/process/roadmap-v4.md`](../process/roadmap-v4.md) and issue #112."
+        "**Grain** (Wasm GC) is optional: `benchmarks/fib.grain` plus "
+        "`bash scripts/compare-benchmarks.sh --compare-lang grain` compile/compare when "
+        "the `grain` CLI is installed; otherwise the hook skips gracefully (issue #643)."
     )
     lines.append("")
     lines.append(CROSS_LANG_COMPARE_START)
