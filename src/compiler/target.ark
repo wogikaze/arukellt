@@ -1,0 +1,41 @@
+// Arukellt Selfhost — compilation target registry (#641).
+
+fn is_native_target(target: String) -> bool {
+    eq(clone(target), String_from("native"))
+}
+
+fn is_freestanding_target(target: String) -> bool {
+    contains(clone(target), String_from("freestanding"))
+}
+
+fn is_wasm_target(target: String) -> bool {
+    if is_native_target(clone(target)) {
+        return false
+    }
+    contains(clone(target), String_from("wasm"))
+}
+
+fn target_run_supported(target: String) -> bool {
+    if is_native_target(clone(target)) {
+        return false
+    }
+    if is_freestanding_target(clone(target)) {
+        return false
+    }
+    true
+}
+
+fn normalize_target(target: String) -> String {
+    if eq(clone(target), String_from("native-x86_64")) {
+        return String_from("native")
+    }
+    target
+}
+
+pub fn is_native_target_pub(target: String) -> bool {
+    is_native_target(target)
+}
+
+pub fn normalize_target_pub(target: String) -> String {
+    normalize_target(target)
+}

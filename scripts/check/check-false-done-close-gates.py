@@ -35,6 +35,7 @@ TRACKED: dict[str, list[str]] = {
     "500": ["playground wasm typecheck export gate"],
     "051": ["stdlib_time monotonic run + clock intrinsic emitter handlers"],
     "123": ["Layer C import string syntax component fixture"],
+    "641": ["T4 native scaffold compile (t4/native_scaffold.ark)"],
 }
 
 
@@ -269,6 +270,29 @@ def gate_123() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_641() -> tuple[int, str]:
+    entry = "t4-compile:t4/native_scaffold.ark"
+    if not _manifest_contains(entry):
+        return 1, f"manifest missing {entry}"
+    fixture = REPO_ROOT / "tests" / "fixtures" / "t4" / "native_scaffold.ark"
+    if not fixture.is_file():
+        return 1, "missing tests/fixtures/t4/native_scaffold.ark"
+    target_ark = REPO_ROOT / "src" / "compiler" / "target.ark"
+    native_ark = REPO_ROOT / "src" / "compiler" / "native.ark"
+    if not target_ark.is_file() or not native_ark.is_file():
+        return 1, "missing src/compiler/target.ark or native.ark"
+    target_text = target_ark.read_text(encoding="utf-8")
+    native_text = native_ark.read_text(encoding="utf-8")
+    if "is_native_target" not in target_text:
+        return 1, "target.ark lacks native registration"
+    if "emit_native_scaffold" not in native_text or "T4 native scaffold" not in native_text:
+        return 1, "native.ark lacks scaffold emitter"
+    contract = (REPO_ROOT / "docs" / "target-contract.md").read_text(encoding="utf-8")
+    if "T4 — native" not in contract or "scaffold" not in contract:
+        return 1, "target-contract.md T4 section not scaffold"
+    return 0, ""
+
+
 GATES: dict[str, callable[[], tuple[int, str]]] = {
     "074": gate_074,
     "510": gate_510,
@@ -276,6 +300,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "500": gate_500,
     "051": gate_051,
     "123": gate_123,
+    "641": gate_641,
 }
 
 

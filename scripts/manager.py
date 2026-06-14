@@ -1161,8 +1161,10 @@ def _compiler_root_layout_violations(root: Path) -> list[str]:
         "main.ark",
         "mir_dump.ark",
         "mir_lower.ark",
+        "native.ark",
         "parser.ark",
         "resolver.ark",
+        "target.ark",
         "typechecker.ark",
     }
     compiler_root = root / "src" / "compiler"
@@ -4477,6 +4479,30 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "orphan/stale file inventory (advisory, #418)",
             "bash scripts/check/check-orphan-inventory.sh",
+        ),
+        (
+            "artifact size budget report (advisory, #422)",
+            "bash scripts/check/check-artifact-size-budget.sh",
+        ),
+        (
+            "host_stub compile gate (#292)",
+            "python3 scripts/check/check-host-stub-gate.py",
+        ),
+        (
+            "WASI P1 syscall registry (#073)",
+            "python3 scripts/check/check-wasi-p1-surface.py",
+        ),
+        (
+            "Wasm micro features (#064/#067/#070/#115)",
+            "python3 scripts/check/check-wasm-micro-features.py",
+        ),
+        (
+            "LSP code actions (#217)",
+            "python3 scripts/check/check-code-actions.py",
+        ),
+        (
+            "LSP standard completeness (#219)",
+            "python3 scripts/check/check-lsp-completeness.py",
         ),
         (
             "opt-equivalence (O0 == O1)",

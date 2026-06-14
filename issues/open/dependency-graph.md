@@ -37,7 +37,6 @@ graph LR
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I637["637 637 — Host capability honesty: fs metadata and read_dir surface"]
   I639["639 639 — HTTP package registry resolution"]
-  I641["641 641 — T4 selfhost-native backend scaffold"]
   I643["643 643 — Grain Wasm GC benchmark comparison hook"]
   I28["28 034-wit-cli-integration"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -91,7 +90,6 @@ graph LR
 - **63** depends on: 074, 137; blocks: none
 - **637** depends on: 051, 076; blocks: none
 - **639** depends on: 487; blocks: none
-- **641** depends on: none; blocks: none
 - **643** depends on: 112; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none

@@ -30,7 +30,7 @@ contract remains the single docs source for target verification status.
 | `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
 | `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
 | `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
-| `native` | T4 | scaffold | not-implemented | No | Not implemented: ark-llvm scaffold removed in #586. Future T4 backend will be selfhost-native (#529 Phase 7). |
+| `native` | T4 | scaffold | scaffold | No | Scaffold: selfhost-native asm stub via `native::emit_native_scaffold`; compile-only proof at `tests/fixtures/t4/native_scaffold.ark` (#641). |
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 
@@ -97,22 +97,26 @@ not require T2 and is not blocked on it (see ADR-017).
 | run | none | No runtime/browser execution support yet |
 | validator pass | scaffold | Dedicated `t2_scaffold` proof runs `wasmparser::Validator::validate_all` on emitted output |
 
-### T4 — native (LLVM backend)
+### T4 — native (selfhost-native backend)
 
-**Status: not-implemented**
+**Status: scaffold**
 
-The former native backend scaffold was removed in #586 (Phase 5 selfhost
-retirement). T4 has no current backend, no tests, and no scaffold code. If a
-future native target is desired, it will be built selfhost-native per #529
-Phase 7 strategy (no Rust crate revival).
+The former Rust `ark-llvm` scaffold was removed in #586 (Phase 5 selfhost
+retirement). T4 now registers a **selfhost-native compile-only scaffold**
+(#641): `src/compiler/target.ark` + `src/compiler/native/scaffold_emit.ark`
+emit a minimal GNU assembler stub; `run_supported=false`. Full MIR→native
+lowering remains follow-up per #529 Phase 7.
+
+Repo-visible proof: `arukellt compile --target native tests/fixtures/t4/native_scaffold.ark -o out.s`
+(also listed as `t4-compile:t4/native_scaffold.ark` in `tests/fixtures/manifest.txt`).
 
 | Surface | Status | Detail |
 |---------|--------|--------|
 | parse / typecheck | guaranteed | shared frontend |
-| compile | not-implemented | no backend (Rust scaffold removed in #586) |
-| run | none | no backend |
-| emit | none | no backend |
-| determinism | n/a | not applicable until a backend exists |
+| compile | scaffold | `native::emit_native_scaffold` asm stub; close-gate `gate_641` |
+| run | none | `run_supported=false`; no linker/runtime |
+| emit | scaffold | compile-only `.s`-style artifact bytes |
+| determinism | n/a | not applicable until a real backend exists |
 
 ### T5 — interpreter / WASI P3
 

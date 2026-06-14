@@ -5,6 +5,8 @@ use driver::config_record
 use driver::result_record
 use std::host::stdio
 use component
+use native
+use target
 use wasm
 use std::host::clock
 use driver::checked_program
@@ -14,6 +16,11 @@ use resolver::wit_import_bind
 // Arukellt Driver - final output mode dispatch
 
 fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    let normalized_target = target::normalize_target_pub(config_record::config_target(config))
+    config_record::config_set_target(config, clone(normalized_target))
+    if target::is_native_target_pub(config_record::config_target(config)) {
+        return emit_native_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    }
     normalize_wasi_version(config)
     let emit_mode = config_record::config_emit_mode(config)
     let component_error = component_target_error(config, clone(emit_mode))
@@ -74,6 +81,16 @@ fn emit_timing_if_enabled(config: DriverConfig, t0: i64, t_lex: i64, t_parse: i6
     if config_record::config_show_timing(config) {
         debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
     }
+}
+
+// Arukellt Driver - T4 native scaffold output emission.
+
+fn emit_native_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+    let native_bytes = native::emit_native_scaffold(mir_module, config_record::config_target(config))
+    let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
+    result_record::compile_result_set_output_bytes(result, native_bytes)
+    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    result
 }
 
 // Arukellt Driver - core Wasm output emission.

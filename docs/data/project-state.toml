@@ -65,7 +65,7 @@ tier = "T4"
 adr_tier = "scaffold"
 status = "scaffold"
 run_supported = false
-role = "Not started: T4 native backend has no implementation; ark-llvm scaffold removed (#586)"
+role = "Scaffold: selfhost-native asm stub (#641); compile-only, run_supported=false"
 
 [[target_profiles]]
 id = "wasm32-wasi-p3"

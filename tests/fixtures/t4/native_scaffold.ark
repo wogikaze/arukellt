@@ -1,0 +1,3 @@
+// T4 native scaffold compile-only proof (#641).
+fn main() {
+}

@@ -36,7 +36,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 | `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
 | `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
 | `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
-| `native` | T4 | scaffold | not-implemented | No | Not implemented: ark-llvm scaffold removed in #586. Future T4 backend will be selfhost-native (#529 Phase 7). |
+| `native` | T4 | scaffold | scaffold | No | Scaffold: selfhost-native asm stub via native::emit_native_scaffold; compile-only proof at tests/fixtures/t4/native_scaffold.ark (#641). |
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
@@ -278,7 +278,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 
 - `--deny-clock` and `--deny-random` are enforced at **compile time** via MIR scan (`mir_uses_capability`). Detection is transitive. These flags apply to the `run` subcommand; the `compile` subcommand does not accept them (compile only emits Wasm bytes, no runtime policy is applied).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
-- T4 (`native`) has no backend: the Rust `ark-llvm` scaffold was removed (#586). Any future native backend will be selfhost-native per #529 Phase 7.
+- T4 (`native`) is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. Full selfhost-native lowering remains #529 Phase 7 follow-up.
 - some historical docs remain archived / historical and should not override current-state
 - **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see `docs/capability-surface.md` and #633). Importing `std::host::sockets` or `std::host::udp` on T1 still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
 
