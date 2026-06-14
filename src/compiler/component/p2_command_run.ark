@@ -32,10 +32,10 @@ fn comp_p2_run_hex_val(c: i32) -> i32 {
 
 fn comp_emit_p2_command_run_world(out: writer_core::ComponentWriter) {
     comp_p2_run_emit_component_section(out)
-    comp_p2_run_emit_instance_section(out)
     comp_p2_run_emit_alias_section(out)
     comp_p2_run_emit_type_section(out)
     comp_p2_run_emit_canon_section(out)
+    comp_p2_run_emit_instance_section(out)
     comp_p2_run_emit_export_section(out)
 }
 
@@ -47,7 +47,7 @@ fn comp_p2_run_emit_alias_section(out: writer_core::ComponentWriter) {
     let sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(sec, 1)
     writer_core::comp_emit_byte(sec, 0x00)
-    writer_core::comp_emit_byte(sec, 0x00)
+    writer_core::comp_emit_byte(sec, 0x01)
     writer_core::comp_emit_leb128_u(sec, 5)
     writer_core::comp_emit_string(sec, String_from("_start"))
     comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), sec)
@@ -61,10 +61,6 @@ fn comp_p2_run_emit_type_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x40)
     writer_core::comp_emit_byte(sec, 0x00)
-    writer_core::comp_emit_byte(sec, 0x00)
-    writer_core::comp_emit_byte(sec, 0x00)
-    writer_core::comp_emit_byte(sec, 0x40)
-    writer_core::comp_emit_leb128_u(sec, 0)
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x00)
     comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), sec)
@@ -102,9 +98,9 @@ fn comp_p2_run_emit_instance_section(out: writer_core::ComponentWriter) {
 fn comp_p2_run_emit_export_section(out: writer_core::ComponentWriter) {
     let sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(sec, 1)
+    writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_string(sec, String_from("wasi:cli/run@0.2.6"))
     writer_core::comp_emit_byte(sec, 0x05)
     writer_core::comp_emit_leb128_u(sec, 0)
-    writer_core::comp_emit_byte(sec, 0x00)
     comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), sec)
 }

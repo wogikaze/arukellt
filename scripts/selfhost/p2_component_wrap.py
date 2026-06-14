@@ -186,21 +186,12 @@ def emit_instance_arg(sec: Writer, import_name: str, instance_index: int) -> Non
 
 
 def emit_p2_run_command_world_sections(out: Writer) -> None:
+  # Component sections may appear in any file order; canon lift must precede the
+  # nested instance binding that references component func 0.
     emit_section(out, 4, P2_RUN_INNER_COMPONENT)
-
-    inst = Writer()
-    inst.leb(1)
-    inst.byte(0x00)
-    inst.leb(0)
-    inst.leb(1)
-    inst.string("import-func-run")
-    inst.byte(0x01)
-    inst.leb(0)
-    emit_section(out, 5, inst.finish())
 
     alias_sec = Writer()
     alias_sec.leb(1)
-    alias_sec.byte(0x00)
     alias_sec.byte(0x00)
     alias_sec.byte(0x01)
     alias_sec.leb(5)
@@ -226,6 +217,16 @@ def emit_p2_run_command_world_sections(out: Writer) -> None:
     canon_sec.leb(0)
     canon_sec.leb(1)
     emit_section(out, 8, canon_sec.finish())
+
+    inst = Writer()
+    inst.leb(1)
+    inst.byte(0x00)
+    inst.leb(0)
+    inst.leb(1)
+    inst.string("import-func-run")
+    inst.byte(0x01)
+    inst.leb(0)
+    emit_section(out, 5, inst.finish())
 
     export_sec = Writer()
     export_sec.leb(1)
