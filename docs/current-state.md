@@ -185,7 +185,7 @@ The `arukellt` binary exposes the following subcommands:
 | `arukellt doc <symbol>` | Look up stdlib documentation for a symbol or module |
 | `arukellt lsp` | Start the Language Server Protocol server |
 | `arukellt debug-adapter` | Start the Debug Adapter Protocol server |
-| `arukellt compose` | Compose Wasm component binaries |
+| `arukellt compose` | Compose Wasm component binaries (validates + `wac plug` delegation — #443 Phase 3) |
 
 ### `arukellt doc`
 

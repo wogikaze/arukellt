@@ -65,8 +65,9 @@ ark compose --plug <provider.component.wasm> <socket.component.wasm> -o <output.
 ark compose --validate --plug <provider> <socket> -o <output>
 ```
 
-**Status:** Phase 1 scaffold (#443) — validates paths, prints a dependency graph, and
-delegates binary composition to `wac plug`. Native in-tree linking is not implemented yet.
+**Status:** Phase 3 (#443) — validates paths and WIT sidecars, prints a dependency graph,
+and delegates binary composition to `wac plug` via `arukellt-selfhost.sh` (ADR-034 Phase 3).
+Native in-tree linking is not implemented yet.
 
 | Flag / option | Description |
 |---------------|-------------|
@@ -77,14 +78,11 @@ delegates binary composition to `wac plug`. Native in-tree linking is not implem
 **Examples:**
 
 ```bash
-# Validate a two-component plug plan
+# Validate a two-component plug plan (no binary output)
 ark compose --validate --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
 
-# Print graph + suggested wac plug command
+# Validate + run wac plug to produce composed artifact (requires wac in PATH)
 ark compose --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
-
-# End-to-end plug (external toolchain — see tests/component-interop/compose/run.sh)
-wac plug --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
 ```
 
 See [adr/ADR-034-component-composition-linking.md](adr/ADR-034-component-composition-linking.md).

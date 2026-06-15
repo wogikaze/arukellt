@@ -1,6 +1,6 @@
 # ADR-034: Component Composition Linking Model
 
-ステータス: **PROPOSED** — Phase 1 scaffold landed (#443); native linker deferred
+ステータス: **ACCEPTED** — Phase 3 wac 委譲 landed (#443, 2026-06-15)
 
 決定日: 2026-06-15
 
@@ -36,7 +36,7 @@ arukellt compose --validate --plug <provider> <socket> -o <output>   # 検証の
 | パス衝突検出（provider/socket/output の同一パス） | ✅ |
 | dependency graph テキスト出力 | ✅ scaffold |
 | import/export WIT 型解決 | ✅ Phase 2（`.wit` sidecar マッチング） |
-| ネイティブバイナリ合成 | ❌ Phase 3 |
+| ネイティブバイナリ合成 | ✅ Phase 3 (`wac plug` 委譲 — `arukellt compose` + selfhost wrapper) |
 | `ark.toml` 依存グラフ連動 | ❌ #124 Phase 3 |
 
 バイナリ合成は `wac plug` に委譲する（#476 smoke と同じツールチェーン）。
@@ -48,12 +48,16 @@ arukellt compose --validate --plug <provider> <socket> -o <output>   # 検証の
 - 不一致時: `error: compose conflict: ...`
 - 未実装: component バイナリからの in-tree WIT 抽出（`wasm-tools component wit` 相当）
 
-### Phase 3 — ネイティブ合成（または恒久委譲）
+### Phase 3 — `wac plug` 恒久委譲（2026-06-15 完了）
 
-選択肢:
+`arukellt compose`（`--validate` なし）は検証後に `wac plug --plug <provider> <socket> -o <output>` を実行する。
+`wac` が PATH に無い場合は delegate hint を出力して非ゼロ exit。
 
-1. **恒久 `wac` 委譲** — ADR-008 と同様、参照実装に依存（推奨 short-term）
-2. **in-tree linker** — `component/` emitter と対称の composition writer（long-term）
+- 実装: `src/compiler/main/compose_cmd.ark`（マーカー + コマンド構築）
+- 実行: `scripts/run/arukellt-selfhost.sh`（`exec wac plug`）
+- ゲート: `scripts/check/gate-443-component-composition-phase3.py`
+
+in-tree linker は long-term で非スコープ（option 2）。
 
 ---
 
@@ -91,7 +95,7 @@ socket = "target/runner.component.wasm"
 
 - `src/compiler/main/compose_cmd.ark` — Phase 1 実装
 - `docs/cli-reference.md` — compose セクション
-- Issue #443 — acceptance 5 項目中 1 項（CLI）のみ scaffold 完了; issue は open のまま
+- Issue #443 — acceptance 完了（Phase 3 wac 委譲）
 
 ---
 

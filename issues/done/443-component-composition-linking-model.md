@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-31
 Updated: 2026-06-15
 ID: 443
@@ -8,7 +8,8 @@ Depends on: 442, 476
 Orchestration class: implementation-ready
 Blocks v1 exit: False
 Priority: 5
-Status note: Phase 2 partial (2026-06-15) — `arukellt compose --validate` checks WIT import/export name and func-signature match via `<component>.wit` sidecars; binary WIT extraction and native linking deferred. See `docs/adr/ADR-034-component-composition-linking.md`.
+Status note: Closed 2026-06-15 — Phase 3 `wac plug` delegation via `arukellt compose` + selfhost wrapper; gate `gate-443-component-composition-phase3.py`.
+Close gate: gate_443 → scripts/check/gate-443-component-composition-phase3.py
 ---
 ## Reopened by audit — 2026-06-12 (Slice C)
 
@@ -30,26 +31,17 @@ Status note: Phase 2 partial (2026-06-15) — `arukellt compose --validate` chec
 
 複数の Wasm Component を合成し、依存関係を解決して実行可能な構成を作る linking モデルを導入する。package system / dependency graph と連動させる。
 
-## Current state
-
-- 単体 component 出力のみ。
-- `arukellt compose` Phase 2: WIT sidecar import/export 名前・シグネチャ検証（`src/compiler/component/compose_wit_validate.ark`）。
-- ネイティブ合成と component バイナリからの WIT 抽出は未実装。
-- package-level component 概念なし。
-
-## Remaining acceptance (#443)
-
-Phase 2 partial 2026-06-15. Still open:
+## Acceptance (#443)
 
 - [x] component 同士の import/export を解決可能にする（WIT sidecar 型マッチング — Phase 2; バイナリ抽出は未実装）。
-- [ ] 複数 component を 1つの実行単位に合成できる（in-tree または恒久 `wac` 委譲の契約化 — Phase 3）。
+- [x] 複数 component を 1つの実行単位に合成できる（恒久 `wac` 委譲 — Phase 3; `arukellt compose` + `scripts/run/arukellt-selfhost.sh`）。
 - [x] dependency graph が構築される（scaffold: テキスト出力）。
 - [x] conflict（名前/型）の検出が可能（パス衝突 + WIT import/export 不一致）。
-- [x] CLI から compose/build が実行可能（scaffold: `--validate` + delegate hint; バイナリ合成は `wac` 委譲）。
+- [x] CLI から compose/build が実行可能（`--validate` + `wac plug` 委譲）。
 
 ## References
 
-- `crates/ark-driver/`
-- `crates/ark-wasm/`
-- `docs/target-contract.md`
-- `docs/ark-toml.md`
+- `src/compiler/main/compose_cmd.ark`
+- `scripts/run/arukellt-selfhost.sh`
+- `docs/adr/ADR-034-component-composition-linking.md`
+- `scripts/check/gate-443-component-composition-phase3.py`

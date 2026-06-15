@@ -59,12 +59,9 @@ fn compose_validate_wit_surfaces(provider: String, socket: String) -> bool {
     true
 }
 
-fn compose_print_delegate_hint(provider: String, socket: String, output: String) {
-    stdio::println(String_from(""))
-    stdio::println(String_from("note: in-tree binary composition is not implemented yet (#443)."))
-    stdio::println(String_from("Run the validated plan with:"))
-    stdio::println(concat(
-        String_from("  wac plug --plug "),
+fn compose_wac_plug_command(provider: String, socket: String, output: String) -> String {
+    concat(
+        String_from("wac plug --plug "),
         concat(
             clone(provider),
             concat(
@@ -75,6 +72,25 @@ fn compose_print_delegate_hint(provider: String, socket: String, output: String)
                 )
             )
         )
+    )
+}
+
+fn compose_print_delegate_hint(provider: String, socket: String, output: String) {
+    stdio::eprintln(String_from("error: wac not found in PATH"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("note: binary composition delegates to `wac plug` (ADR-034 Phase 3)."))
+    stdio::println(String_from("Install wac or run the validated plan manually:"))
+    stdio::println(concat(String_from("  "), compose_wac_plug_command(clone(provider), clone(socket), clone(output))))
+}
+
+fn compose_request_wac_plug(provider: String, socket: String, output: String) {
+    stdio::println(String_from("compose: wac-plug"))
+    stdio::println(concat(String_from("compose: provider "), clone(provider)))
+    stdio::println(concat(String_from("compose: socket "), clone(socket)))
+    stdio::println(concat(String_from("compose: output "), clone(output)))
+    stdio::println(concat(
+        String_from("compose: command "),
+        compose_wac_plug_command(clone(provider), clone(socket), clone(output))
     ))
 }
 
@@ -101,5 +117,5 @@ pub fn cmd_compose(opts: CliOptions) {
         stdio::println(String_from("compose: validation ok"))
         return
     }
-    compose_print_delegate_hint(clone(plug_provider), clone(socket), clone(output))
+    compose_request_wac_plug(clone(plug_provider), clone(socket), clone(output))
 }

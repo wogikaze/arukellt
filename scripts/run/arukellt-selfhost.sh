@@ -98,6 +98,65 @@ if [[ "${1:-}" == "run" ]]; then
   exec wasmtime run --dir="$REPO_ROOT" "$out_path"
 fi
 
+# #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
+if [[ "${1:-}" == "compose" ]]; then
+  validate_only=0
+  for arg in "$@"; do
+    if [[ "$arg" == "--validate" ]]; then
+      validate_only=1
+    fi
+  done
+  if [[ "$validate_only" -eq 0 ]]; then
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+    set +e
+    wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    rc=$?
+    set -e
+    cat "$tmpdir/stdout"
+    cat "$tmpdir/stderr" >&2
+    if [[ "$rc" -ne 0 ]]; then
+      exit "$rc"
+    fi
+    if ! command -v wac >/dev/null 2>&1; then
+      echo "error: wac not found in PATH" >&2
+      echo "note: binary composition delegates to \`wac plug\` (ADR-034 Phase 3)." >&2
+      exit 1
+    fi
+    plug_provider=""
+    plug_socket=""
+    plug_output=""
+    i=1
+    while [[ $i -le $# ]]; do
+      arg="${!i}"
+      if [[ "$arg" == "--plug" ]]; then
+        next=$((i + 1))
+        next2=$((i + 2))
+        if [[ $next2 -le $# ]]; then
+          plug_provider="${!next}"
+          plug_socket="${!next2}"
+        fi
+        i=$((i + 3))
+        continue
+      fi
+      if [[ "$arg" == "-o" || "$arg" == "--output" ]]; then
+        next=$((i + 1))
+        if [[ $next -le $# ]]; then
+          plug_output="${!next}"
+        fi
+        i=$((i + 2))
+        continue
+      fi
+      i=$((i + 1))
+    done
+    if [[ -z "$plug_provider" || -z "$plug_socket" || -z "$plug_output" ]]; then
+      echo "arukellt-selfhost: error — compose missing --plug provider socket -o output" >&2
+      exit 2
+    fi
+    exec wac plug --plug "$plug_provider" "$plug_socket" -o "$plug_output"
+  fi
+fi
+
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
     exec wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@"
