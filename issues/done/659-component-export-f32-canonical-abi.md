@@ -20,7 +20,7 @@ beyond the #121 fixture matrix. Addresses `docs/current-state.md` f32 carry-over
 
 ## Parent
 
-Umbrella: [#648 general canonical ABI](../open/648-component-export-general-canonical-abi.md)
+Umbrella: [#648 general canonical ABI](../done/648-component-export-general-canonical-abi.md)
 
 ## Acceptance
 
@@ -33,6 +33,6 @@ Umbrella: [#648 general canonical ABI](../open/648-component-export-general-cano
 
 ## References
 
-- `issues/open/648-component-export-general-canonical-abi.md`
+- `issues/done/648-component-export-general-canonical-abi.md`
 - `issues/done/121-wasi-p2-canonical-abi-hardening.md`
 - `src/compiler/component/`

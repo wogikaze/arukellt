@@ -20,7 +20,7 @@ name-independent shapes. Also covers general enum/record/variant descriptor adap
 
 ## Parent
 
-Umbrella: [#648 general canonical ABI](../open/648-component-export-general-canonical-abi.md)
+Umbrella: [#648 general canonical ABI](../done/648-component-export-general-canonical-abi.md)
 
 ## Acceptance
 
@@ -41,7 +41,7 @@ adapters remain future work; Tier 2 row in `docs/current-state.md` documents the
 
 ## References
 
-- `issues/open/648-component-export-general-canonical-abi.md`
+- `issues/done/648-component-export-general-canonical-abi.md`
 - `issues/done/659-component-export-f32-canonical-abi.md`
 - `src/compiler/component/export_shapes_string_general.ark`
 - `src/compiler/component/adapters_string_general.ark`

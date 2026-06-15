@@ -1,0 +1,13 @@
+// Export with unsupported record name — only the fixture-specific Point record adapters exist.
+// Expected: E0401 compile-time error.
+struct Rect {
+    width: i32,
+    height: i32,
+}
+
+pub fn rect_area(r: Rect) -> i32 {
+    r.width * r.height
+}
+
+fn main() {
+}
