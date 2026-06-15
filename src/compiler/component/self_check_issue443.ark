@@ -1,0 +1,29 @@
+// Arukellt Selfhost - issue #443 compose WIT validation self-check.
+
+use component::compose_wit_validate
+
+fn issue443_compose_wit_match_self_check() -> bool {
+    let ok = compose_wit_validate::validate_plug_surfaces(
+        String_from("tests/component-interop/compose/fixtures/provider-match.wasm"),
+        String_from("tests/component-interop/compose/fixtures/socket-match.wasm")
+    )
+    len(ok) == 0
+}
+
+fn issue443_compose_wit_name_mismatch_self_check() -> bool {
+    let err = compose_wit_validate::validate_plug_surfaces(
+        String_from("tests/component-interop/compose/fixtures/provider-match.wasm"),
+        String_from("tests/component-interop/compose/fixtures/socket-name-mismatch.wasm")
+    )
+    contains(clone(err), String_from("error: compose conflict:"))
+        && contains(clone(err), String_from("no matching provider export"))
+}
+
+fn issue443_compose_wit_type_mismatch_self_check() -> bool {
+    let err = compose_wit_validate::validate_plug_surfaces(
+        String_from("tests/component-interop/compose/fixtures/provider-match.wasm"),
+        String_from("tests/component-interop/compose/fixtures/socket-type-mismatch.wasm")
+    )
+    contains(clone(err), String_from("error: compose conflict:"))
+        && contains(clone(err), String_from("type mismatch"))
+}

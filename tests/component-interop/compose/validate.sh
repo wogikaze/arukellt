@@ -52,4 +52,31 @@ if run_compose compose --validate --plug "$PROVIDER" "$PROVIDER" -o "$COMPOSED" 
   echo "FAIL: compose should reject identical provider/socket paths"
   exit 1
 fi
+FIXTURE_DIR="tests/component-interop/compose/fixtures"
+MATCH_PROVIDER="$FIXTURE_DIR/provider-match.wasm"
+MATCH_SOCKET="$FIXTURE_DIR/socket-match.wasm"
+NAME_MISMATCH_SOCKET="$FIXTURE_DIR/socket-name-mismatch.wasm"
+TYPE_MISMATCH_SOCKET="$FIXTURE_DIR/socket-type-mismatch.wasm"
+if ! run_compose compose --validate --plug "$MATCH_PROVIDER" "$MATCH_SOCKET" -o "$COMPOSED" 2>&1 | grep -q "compose: validation ok"; then
+  echo "FAIL: compose should accept matching WIT import/export surfaces"
+  exit 1
+fi
+NAME_MISMATCH_OUT="$(run_compose compose --validate --plug "$MATCH_PROVIDER" "$NAME_MISMATCH_SOCKET" -o "$COMPOSED" 2>&1 || true)"
+if echo "$NAME_MISMATCH_OUT" | grep -q "compose: validation ok"; then
+  echo "FAIL: compose should reject socket import name mismatch"
+  exit 1
+fi
+if ! echo "$NAME_MISMATCH_OUT" | grep -q "error: compose conflict:"; then
+  echo "FAIL: compose name mismatch should print compose conflict error"
+  exit 1
+fi
+TYPE_MISMATCH_OUT="$(run_compose compose --validate --plug "$MATCH_PROVIDER" "$TYPE_MISMATCH_SOCKET" -o "$COMPOSED" 2>&1 || true)"
+if echo "$TYPE_MISMATCH_OUT" | grep -q "compose: validation ok"; then
+  echo "FAIL: compose should reject socket import type mismatch"
+  exit 1
+fi
+if ! echo "$TYPE_MISMATCH_OUT" | grep -q "type mismatch"; then
+  echo "FAIL: compose type mismatch should print type mismatch detail"
+  exit 1
+fi
 echo PASS compose validate scaffold

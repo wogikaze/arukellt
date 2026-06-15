@@ -1,0 +1,6 @@
+package test:app@0.1.0;
+
+world runner {
+  import add: func(a: s32, b: s32) -> s32;
+  export run: func() -> s32;
+}

@@ -35,17 +35,18 @@ arukellt compose --validate --plug <provider> <socket> -o <output>   # 検証の
 | 入力パス存在チェック | ✅ |
 | パス衝突検出（provider/socket/output の同一パス） | ✅ |
 | dependency graph テキスト出力 | ✅ scaffold |
-| import/export WIT 型解決 | ❌ Phase 2 |
+| import/export WIT 型解決 | ✅ Phase 2（`.wit` sidecar マッチング） |
 | ネイティブバイナリ合成 | ❌ Phase 3 |
 | `ark.toml` 依存グラフ連動 | ❌ #124 Phase 3 |
 
 バイナリ合成は `wac plug` に委譲する（#476 smoke と同じツールチェーン）。
 
-### Phase 2 — WIT インターフェース検証
+### Phase 2 — WIT インターフェース検証（2026-06-15 部分完了）
 
-- `wasm-tools component wit` 相当の in-tree WIT 抽出（または subprocess ラッパー）
-- provider の export と socket の import の名前/型マッチング
-- 不一致時の compile-time 相当エラー（`error: compose conflict: ...`）
+- `.wit` sidecar から world import/export を抽出（`provider.wasm` → `provider.wit`）
+- provider export と socket import の名前/func シグネチャマッチング
+- 不一致時: `error: compose conflict: ...`
+- 未実装: component バイナリからの in-tree WIT 抽出（`wasm-tools component wit` 相当）
 
 ### Phase 3 — ネイティブ合成（または恒久委譲）
 

@@ -1,5 +1,6 @@
-// Arukellt Selfhost - CLI compose command (#443 scaffold).
+// Arukellt Selfhost - CLI compose command (#443 scaffold + Phase 2 WIT validation).
 
+use component::compose_wit_validate
 use std::host::fs
 use std::host::process
 use std::host::stdio
@@ -11,6 +12,7 @@ fn compose_print_usage() {
     stdio::eprintln(String_from("       arukellt compose --validate --plug <provider> <socket> -o <output>"))
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Validates a two-component plug plan and prints the dependency graph."))
+    stdio::eprintln(String_from("When <component>.wit sidecars exist, import/export names and func signatures are checked."))
     stdio::eprintln(String_from("Binary composition currently delegates to `wac plug` (see docs/adr/ADR-034-component-composition-linking.md)."))
 }
 
@@ -48,6 +50,15 @@ fn compose_validate_paths(provider: String, socket: String, output: String) -> b
     true
 }
 
+fn compose_validate_wit_surfaces(provider: String, socket: String) -> bool {
+    let err = compose_wit_validate::validate_plug_surfaces(clone(provider), clone(socket))
+    if len(err) > 0 {
+        stdio::eprintln(err)
+        return false
+    }
+    true
+}
+
 fn compose_print_delegate_hint(provider: String, socket: String, output: String) {
     stdio::println(String_from(""))
     stdio::println(String_from("note: in-tree binary composition is not implemented yet (#443)."))
@@ -78,6 +89,10 @@ pub fn cmd_compose(opts: CliOptions) {
         return
     }
     if !compose_validate_paths(clone(plug_provider), clone(socket), clone(output)) {
+        process::exit(1)
+        return
+    }
+    if !compose_validate_wit_surfaces(clone(plug_provider), clone(socket)) {
         process::exit(1)
         return
     }
