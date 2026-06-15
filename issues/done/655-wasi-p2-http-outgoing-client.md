@@ -20,7 +20,7 @@ T1 compile-time rejection and T3 wasmtime smoke for client path.
 
 ## Parent
 
-Umbrella: [#077 WASI P2 HTTP](../open/077-wasi-p2-http.md)
+Umbrella: [#077 WASI P2 HTTP](../done/077-wasi-p2-http.md)
 
 ## Acceptance
 
@@ -33,7 +33,7 @@ Umbrella: [#077 WASI P2 HTTP](../open/077-wasi-p2-http.md)
 
 ## References
 
-- `issues/open/077-wasi-p2-http.md`
+- `issues/done/077-wasi-p2-http.md`
 - `docs/spec/spec-WASI-0.2.10/proposals/wasi-http/`
 - `std/host/http.ark`
 

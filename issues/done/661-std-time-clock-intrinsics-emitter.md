@@ -21,7 +21,7 @@ and `__intrinsic_random_i32`. Port WASI P2 clock/random import synthesis from re
 
 ## Parent
 
-Umbrella: [#051 std::time + std::random](../open/051-std-time-random.md)
+Umbrella: [#051 std::time + std::random](../done/051-std-time-random.md)
 
 ## Acceptance
 
@@ -34,6 +34,6 @@ Umbrella: [#051 std::time + std::random](../open/051-std-time-random.md)
 
 ## References
 
-- `issues/open/051-std-time-random.md`
+- `issues/done/051-std-time-random.md`
 - `std/host/clock.ark`, `std/host/random.ark`
 - `src/compiler/emitter.ark`

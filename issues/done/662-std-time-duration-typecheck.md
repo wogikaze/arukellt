@@ -22,7 +22,7 @@ Fix selfhost typechecker regression where `std/time/mod.ark` duration helpers (`
 
 ## Parent
 
-Umbrella: [#051 std::time + std::random](../open/051-std-time-random.md)
+Umbrella: [#051 std::time + std::random](../done/051-std-time-random.md)
 
 ## Acceptance
 
@@ -42,7 +42,7 @@ rules). `infer_wrappers.ark` if-expressions unify then/else branch types so mixe
 
 ## References
 
-- `issues/open/051-std-time-random.md`
+- `issues/done/051-std-time-random.md`
 - `std/time/mod.ark`
 - `src/compiler/typechecker/infer_leaf.ark`
 - `src/compiler/typechecker/infer_wrappers.ark`
