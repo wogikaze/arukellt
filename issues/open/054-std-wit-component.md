@@ -1,14 +1,14 @@
 ---
 Status: open
 Created: 2026-03-28
-Updated: 2026-05-14
+Updated: 2026-06-15
 ID: 44
 Track: stdlib
 Depends on: 039, 044, 053
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v3 exit: "no (Experimental)"
-Status note: Implementation-ready — upstream #039, #044, and #053 done.
+Status note: Partial — Wave 3 slice landed `std::component::handle` (SlotMap-backed i32 handle table, #473 phase 1). Remaining: `std::wit` World/parser/printer, canonical ABI lift/lower, generic `HandleTable<T>`, fixtures `wit_*` / `canonical_*`.
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---

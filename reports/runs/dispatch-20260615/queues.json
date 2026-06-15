@@ -1,13 +1,16 @@
 {
   "schema": "arukellt-dispatch-queues-v1",
   "run_id": "dispatch-20260615",
-  "generated_at": "2026-06-14T20:19:48Z",
-  "generator": "wave-minus1-orchestration",
+  "generated_at": "2026-06-15T12:00:00Z",
+  "generator": "wave-defer-orchestration",
+  "defer_doc": "defer-status.md",
   "summary": {
     "open_issues": 30,
     "ready": 15,
-    "design": 2,
-    "blocked": 13
+    "design": 1,
+    "blocked": 10,
+    "deferred": 5,
+    "defer_note": "5 entries: open #474 #646 #649 #030 (id 30) + blocked #037 — see defer-status.md"
   },
   "queues": {
     "ready": [
@@ -201,17 +204,6 @@
           "476"
         ],
         "waiting_on": []
-      },
-      {
-        "id": "649",
-        "path": "649-t4-native-full-lowering.md",
-        "title": "649 — T4 native full lowering (beyond scaffold #641)",
-        "track": "wasm-feature",
-        "orchestration_class": "design-ready",
-        "depends_on": [
-          "641"
-        ],
-        "waiting_on": []
       }
     ],
     "blocked": [
@@ -232,18 +224,6 @@
           "124"
         ],
         "reason": "wait #30, #124"
-      },
-      {
-        "id": "30",
-        "path": "036-jco-javascript-interop.md",
-        "title": "036-jco-javascript-interop",
-        "track": "component-model",
-        "orchestration_class": "partially-blocked",
-        "depends_on": [
-          "27"
-        ],
-        "waiting_on": [],
-        "reason": "partially-blocked"
       },
       {
         "id": "41",
@@ -337,34 +317,6 @@
         "reason": "wait #124"
       },
       {
-        "id": "474",
-        "path": "474-async-component-support-v5.md",
-        "title": "Async component support (v5)",
-        "track": "wasm-feature",
-        "orchestration_class": "blocked-by-upstream",
-        "depends_on": [
-          "035",
-          "done)",
-          "074"
-        ],
-        "waiting_on": [],
-        "reason": "blocked-by-upstream"
-      },
-      {
-        "id": "646",
-        "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
-        "title": "646 — T5 wasm32-wasi-p3 target scaffold",
-        "track": "wasm-feature",
-        "orchestration_class": "design-ready",
-        "depends_on": [
-          "474"
-        ],
-        "waiting_on": [
-          "474"
-        ],
-        "reason": "wait #474"
-      },
-      {
         "id": "651",
         "path": "651-wit-flags-type-support.md",
         "title": "651 — WIT `flags` type support (remove E0090 rejection)",
@@ -408,6 +360,104 @@
           "653"
         ],
         "reason": "wait #653"
+      }
+    ],
+    "deferred": [
+      {
+        "id": "474",
+        "path": "474-async-component-support-v5.md",
+        "title": "Async component support (v5)",
+        "track": "wasm-feature",
+        "orchestration_class": "deferred",
+        "status_location": "issues/open/",
+        "depends_on": [
+          "035",
+          "074"
+        ],
+        "waiting_on": [
+          "component-model-async-spec",
+          "wasmtime-async-runtime-policy"
+        ],
+        "reason": "v5/T5 async component; stream/future E0402 — not in current P2 dispatch round",
+        "reopen_when": "Async spec + wasmtime async policy agreed; Phase 1 design slice filed",
+        "defer_doc": "defer-status.md#474--async-component-support-v5"
+      },
+      {
+        "id": "646",
+        "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
+        "title": "646 — T5 wasm32-wasi-p3 target scaffold",
+        "track": "wasm-feature",
+        "orchestration_class": "deferred",
+        "status_location": "issues/open/",
+        "depends_on": [
+          "474"
+        ],
+        "waiting_on": [
+          "474"
+        ],
+        "reason": "T5 not-started; depends on #474 async v5 boundary",
+        "reopen_when": "#474 Phase 1; T5 scaffold scope in target-contract.md",
+        "defer_doc": "defer-status.md#646--t5-wasm32-wasi-p3-target-scaffold"
+      },
+      {
+        "id": "649",
+        "path": "649-t4-native-full-lowering.md",
+        "title": "649 — T4 native full lowering (beyond scaffold #641)",
+        "track": "wasm-feature",
+        "orchestration_class": "deferred",
+        "status_location": "issues/open/",
+        "depends_on": [
+          "641"
+        ],
+        "waiting_on": [
+          "t4-lowering-adr",
+          "run_supported-boundary-decision"
+        ],
+        "reason": "T4 scaffold-only (#641); full lowering needs design ADR",
+        "reopen_when": "ADR + compile-only vs run_supported decision documented",
+        "defer_doc": "defer-status.md#649--t4-native-full-lowering"
+      },
+      {
+        "id": "30",
+        "issue_ref": "030",
+        "path": "036-jco-javascript-interop.md",
+        "title": "036-jco-javascript-interop",
+        "track": "component-model",
+        "orchestration_class": "deferred",
+        "status_location": "issues/open/",
+        "depends_on": [
+          "27"
+        ],
+        "waiting_on": [
+          "037",
+          "canonical-abi-string-adapters"
+        ],
+        "reason": "partially-blocked: wasmtime scalar done; Node/jco + greet(String) open",
+        "reopen_when": "Scalar jco Node smoke in CI; string path resolved or scoped out",
+        "defer_doc": "defer-status.md#030--jco-javascript-interop-036-jco-javascript-interopmd-id-30"
+      },
+      {
+        "id": "31",
+        "issue_ref": "037",
+        "path": "037-jco-gc-support.md",
+        "title": "jco: Wasm GC 型サポート待ち (upstream blocked)",
+        "track": "component-model",
+        "orchestration_class": "deferred-external-blocked",
+        "status_location": "issues/blocked/",
+        "depends_on": [
+          "30"
+        ],
+        "waiting_on": [
+          "jco-gc-transpile",
+          "030-node-smoke"
+        ],
+        "reason": "external: jco GC transpile for T3 components",
+        "reopen_when": "jco transpile + Node scalar invoke verified; or Option C chosen",
+        "upstream_last_verified": "2026-06-15",
+        "upstream_jco_version": "1.23.0",
+        "upstream_transpile": "pass",
+        "upstream_node_invoke": "not-verified",
+        "defer_doc": "defer-status.md#037--jco-wasm-gc-support-blocked-external"
       }
     ],
     "active": [],

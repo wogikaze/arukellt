@@ -1,0 +1,34 @@
+//! Resource handle table for Component Model boundaries (#054, #473 phase 1).
+//!
+//! Maps opaque `i32` handles to stored payloads using the SlotMap layout from
+//! `std::collections::compiler`. Phase 1 is monomorphic over `i32` values;
+//! generic `HandleTable<T>` awaits trait-bound stdlib dispatch (#044).
+//!
+//! **Stability:** experimental.
+
+use std::collections::compiler
+
+/// Create an empty handle table (SlotMap-backed storage).
+pub fn handle_table_new() -> Vec<i32> {
+    compiler::slotmap_new()
+}
+
+/// Insert `value` and return a stable handle index.
+pub fn handle_new(table: Vec<i32>, value: i32) -> i32 {
+    compiler::slotmap_insert(table, value)
+}
+
+/// Look up a live handle without removing it.
+pub fn handle_get(table: Vec<i32>, handle: i32) -> Option<i32> {
+    compiler::slotmap_get(table, handle)
+}
+
+/// Drop a handle and return its value, if still live.
+pub fn handle_drop(table: Vec<i32>, handle: i32) -> Option<i32> {
+    compiler::slotmap_remove(table, handle)
+}
+
+/// Return the number of live handles in the table.
+pub fn handle_len(table: Vec<i32>) -> i32 {
+    compiler::slotmap_len(table)
+}

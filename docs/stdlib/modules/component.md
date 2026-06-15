@@ -37,8 +37,9 @@ let ver = component_model_version()     // e.g. "0.2"
 
 Experimental component-model helpers.
 
-The current module only exposes version constants while the rest of the
-component surface is still being designed.
+Version constants live in this module; resource handle tables live in
+`std::component::handle` (SlotMap-backed, #473 phase 1). Canonical ABI
+lift/lower helpers are tracked by #054.
 
 ### Public API
 

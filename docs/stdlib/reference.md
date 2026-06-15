@@ -9,7 +9,7 @@
 |------|-------|-------------|
 | [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 25 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 175 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 180 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -321,6 +321,11 @@ push(v, 2)
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
+| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Drop a handle and return its value, if still live. |
+| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Look up a live handle without removing it. |
+| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `builtin` | no | - | Return the number of live handles in the table. |
+| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
+| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 
 ## Control
 
@@ -1550,6 +1555,11 @@ Expected output: `hello world`
 | `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants). |
 | `functype_param_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of parameter types in a FuncType. |
 | `functype_result_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of result types in a FuncType. |
+| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Drop a handle and return its value, if still live. |
+| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Look up a live handle without removing it. |
+| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `builtin` | no | - | Return the number of live handles in the table. |
+| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
+| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 | `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
 | `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
 | `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |

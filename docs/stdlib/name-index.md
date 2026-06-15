@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 589
+- **Canonical names:** 594
 - **Historical/deprecated names:** 25
-- **Total entries:** 614
+- **Total entries:** 619
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -229,6 +229,11 @@ Current public API names, sorted alphabetically.
 | `get` | `prelude` | `stable` | Collections |
 | `get` | `std::host::http` | `provisional` | Host Http |
 | `get_unchecked` | `prelude` | `stable` | Collections |
+| `handle_drop` | `std::component::handle` | `experimental` | Component |
+| `handle_get` | `std::component::handle` | `experimental` | Component |
+| `handle_len` | `std::component::handle` | `experimental` | Component |
+| `handle_new` | `std::component::handle` | `experimental` | Component |
+| `handle_table_new` | `std::component::handle` | `experimental` | Component |
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `has_flag` | `std::cli` | `stable` | Cli |
 | `hash_combine` | `std::core::hash` | `stable` | Core |
@@ -864,6 +869,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `get` | ✅ `provisional` | `std::host::http` | Host Http |
 | `get_unchecked` | ✅ `stable` | `prelude` | Collections |
 | ~~`get_var`~~ | ⚠️ deprecated | `std::env` | → `var` · [migration guide](migration-guidance.md) |
+| `handle_drop` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_get` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_len` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_new` | ✅ `experimental` | `std::component::handle` | Component |
+| `handle_table_new` | ✅ `experimental` | `std::component::handle` | Component |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
 | `hash_combine` | ✅ `stable` | `std::core::hash` | Core |

@@ -4529,6 +4529,51 @@ stability = "experimental"
 params = []
 returns = "String"
 
+[[functions]]
+name = "handle_table_new"
+module = "std::component::handle"
+doc_category = "component"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create an empty Component Model handle table (SlotMap-backed storage)."
+
+[[functions]]
+name = "handle_new"
+module = "std::component::handle"
+doc_category = "component"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Insert a value and return a stable opaque handle index."
+
+[[functions]]
+name = "handle_get"
+module = "std::component::handle"
+doc_category = "component"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+doc = "Look up a live handle without removing it."
+
+[[functions]]
+name = "handle_drop"
+module = "std::component::handle"
+doc_category = "component"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+doc = "Drop a handle and return its value, if still live."
+
+[[functions]]
+name = "handle_len"
+module = "std::component::handle"
+doc_category = "component"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of live handles in the table."
+
 # === std::json ===
 
 # === std::json ===

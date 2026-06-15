@@ -511,6 +511,7 @@ run:stdlib_collections_compiler/arena_basic.ark
 run:stdlib_collections_compiler/slotmap_remove.ark
 run:stdlib_collections_compiler/rope_edit.ark
 run:stdlib_component/component_helpers.ark
+run:stdlib_component/handle_basic.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/error_basic.ark
 run:stdlib_core/error_match.ark
