@@ -1,18 +1,29 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-06-12
+Updated: 2026-06-15
 ID: 034
 Track: component-model
 Depends on: 030, 031, 028b, 124
-Orchestration class: blocked-by-upstream
-Orchestration upstream: 124
+Orchestration class: implementation-ready
+Orchestration upstream: None
 Blocks v{N}: none
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
-Blocked by: "#124 WIT component import syntax"
+Status note: Closed — callable ``--wit`` import binding wired end-to-end (CLI → resolver/MIR → Wasm emit); gate-034 + wit_import fixture.
 ---
 
-## Reopened by audit — 2026-06-12 (Slice C)
+## Close notes — 2026-06-15
+
+Phase 1 of [#124](../open/124-wit-component-import-syntax.md) ([#652](652-wit-import-parser-grammar.md)–[#654](654-wit-import-component-emit.md)) delivers callable WIT import binding for this issue:
+
+- `--wit` paths thread from CLI through `DriverConfig` into resolver, typecheck, MIR (`MIR_WIT_CALL`), and Wasm import section emission.
+- `tests/fixtures/wit_import/main.ark` + `host_math.wit` prove `import "test:host/math" as host` with `host::add(1, 2)` typechecks under `--wit`.
+- Removed guard-only `tests/fixtures/component/import_scalar_func.diag` (`E0401`); `import_scalar_func.ark` now uses the same callable import surface.
+- Close gate: `scripts/check/gate-034-wit-cli-integration.py`.
+
+Remaining #124 umbrella work (ark.toml, compose round-trip, expanded type bindings) is out of scope for #034.
+
+---
 
 **Reopen reason:** Prior wave-2 "truly-done" resolution retracted. Callable WIT import binding is not proven: `tests/fixtures/wit_import/` absent; `import_scalar_func.diag` expects `E0401` (guard-only, not success); manifest registers `component-compile:component/import_scalar_func.ark` without callable-import close gate.
 
@@ -239,8 +250,8 @@ arukellt compile --emit component myapp.ark --wit host.wit --target wasm32-wasi-
       boundaries (e.g., I/O functions in component mode).
 - [x] Target help text updated: `wasm32-wasi-p2` description changed from
       "component model not yet implemented" to "component model supported".
-- [ ] `docs/cli-reference.md` documents `component inspect` / `validate` as hint-only stubs
-      pointing to `wasm-tools` (#475 done scope), not native implementations — docs-to-issues audit 2026-06-12
+- [x] `docs/cli-reference.md` documents `component inspect` / `validate` as hint-only stubs
+      pointing to `wasm-tools` (#475 done scope) — covered by #475 close gate
 
 ## Key Files
 

@@ -11,24 +11,23 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 124 | WIT component import syntax | language-design | 3 | 0 | 1 | 5 | 4 | 13 |
-| 2 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 3 | 28 | 034-wit-cli-integration | component-model | 0 | 0 | 5 | 3 | 2 | 10 |
-| 4 | 651 | 651 — WIT `flags` type support (remove E0090 rejection) | component-model | 0 | 0 | 1 | 5 | 3 | 9 |
-| 5 | 662 | 662 — std::time duration helpers typecheck fix | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
-| 6 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 7 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
-| 8 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
-| 9 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 10 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 11 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
-| 12 | 473 | 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`) | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 13 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 14 | 648 | 648 — Component export: general canonical ABI adapters (pos... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 15 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 16 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 17 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 18 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 19 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 20 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 21 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 1 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 2 | 124 | WIT component import syntax | language-design | 2 | 0 | 1 | 5 | 4 | 12 |
+| 3 | 651 | 651 — WIT `flags` type support (remove E0090 rejection) | component-model | 0 | 0 | 1 | 5 | 3 | 9 |
+| 4 | 662 | 662 — std::time duration helpers typecheck fix | stdlib | 0 | 0 | 1 | 5 | 3 | 9 |
+| 5 | 138 | 138-std-wasi-shared-capabilities-t1-t3 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 6 | 139 | WASI P2: `std::host::sockets` facade と T3 実行検証 | wasi-feature | 1 | 0 | 1 | 3 | 3 | 8 |
+| 7 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
+| 8 | 41 | 051-std-time-random | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 9 | 63 | WASI P2: "`std::host::http` facade と runtime 検証" | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 10 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
+| 11 | 473 | 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`) | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 12 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
+| 13 | 648 | 648 — Component export: general canonical ABI adapters (pos... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 14 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 15 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 16 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 17 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 18 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 19 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 20 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |

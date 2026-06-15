@@ -22,26 +22,22 @@ graph LR
   I658["658 658 — WASI P2 sockets: listen and accept"]
   I660["660 660 — Component export: Tier2 general canonical ABI adapters"]
   I662["662 662 — std::time duration helpers typecheck fix"]
-  I28["28 034-wit-cli-integration"]
   I473["473 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`)"]
   I651["651 651 — WIT `flags` type support (remove E0090 rejection)"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
-  I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
-  I124 --> I28
   I124 --> I473
   I124 --> I651
   I138 --> I136
   I139 --> I136
   I474 --> I646
-  I124 --> I28
   I30 --> I31
 ```
 
 ## Adjacency list
 
-- **124** depends on: 074; blocks: 28, 473, 651
+- **124** depends on: 074; blocks: 473, 651
 - **138** depends on: 137, 051; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
 - **30** depends on: 27; blocks: none
@@ -57,7 +53,6 @@ graph LR
 - **658** depends on: 074, 137; blocks: none
 - **660** depends on: 121, 074; blocks: none
 - **662** depends on: 039, 040; blocks: none
-- **28** depends on: 030, 031, 028b, 124; blocks: none
 - **473** depends on: 074, 124; blocks: none
 - **651** depends on: 074, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
@@ -65,5 +60,4 @@ graph LR
 
 ### Blocked
 
-- **28** ⛔ blocked — depends on: 030, 031, 028b, 124; blocked by: #124 WIT component import syntax
 - **31** ⛔ blocked — depends on: 30; blocked by: jco upstream (<https://github.com/bytecodealliance/jco>)
