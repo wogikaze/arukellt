@@ -1,0 +1,44 @@
+// Arukellt Selfhost - issue #473 WIT resource self-check.
+
+use component::wit_parse_import
+use component::wit_parse_resource
+
+fn issue473_resource_parse_self_check() -> bool {
+    if !wit_parse_resource::wit_is_own_type(String_from("own<handle>")) {
+        return false
+    }
+    if !wit_parse_resource::wit_is_borrow_type(String_from("borrow<handle>")) {
+        return false
+    }
+    if !eq(wit_parse_resource::wit_own_inner_name(String_from("own<handle>")), String_from("handle")) {
+        return false
+    }
+    let doc = wit_parse_import::parse_wit_import_file(String_from("tests/fixtures/component/import_resource_handle_type.wit"))
+    if !eq(clone(doc.package), String_from("test:host")) {
+        return false
+    }
+    if !eq(clone(doc.interface), String_from("handles")) {
+        return false
+    }
+    if len(doc.funcs) != 2 {
+        return false
+    }
+    let take = get_unchecked(doc.funcs, 0)
+    if !eq(clone(take.wit_name), String_from("take")) {
+        return false
+    }
+    if len(take.param_wit_types) != 1 {
+        return false
+    }
+    if !wit_parse_resource::wit_is_own_type(get_unchecked(take.param_wit_types, 0)) {
+        return false
+    }
+    let peek = get_unchecked(doc.funcs, 1)
+    if !eq(clone(peek.wit_name), String_from("peek")) {
+        return false
+    }
+    if len(peek.param_wit_types) != 1 {
+        return false
+    }
+    wit_parse_resource::wit_is_borrow_type(get_unchecked(peek.param_wit_types, 0))
+}

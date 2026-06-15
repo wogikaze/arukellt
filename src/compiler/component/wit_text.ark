@@ -81,6 +81,8 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 						out = concat(out, String_from(": "))
 						if eq(clone(fname), String_from("flip_read")) {
 							out = concat(out, wit_type_defs::wit_export_flags_type_name())
+						} else if eq(clone(fname), String_from("pass_handle")) {
+							out = concat(out, wit_type_defs::wit_export_own_handle_type())
 						} else if wit_decl::wit_func_param_has_type_at(f, pi) {
 							out = concat(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
 						} else {
@@ -97,6 +99,8 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 					out = concat(out, String_from(" -> "))
 					if eq(clone(fname), String_from("flip_read")) {
 						out = concat(out, wit_type_defs::wit_export_flags_type_name())
+					} else if eq(clone(fname), String_from("pass_handle")) {
+						out = concat(out, wit_type_defs::wit_export_own_handle_type())
 					} else {
 						out = concat(out, ret)
 					}
@@ -142,12 +146,6 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
 		let read_result = fs::read_to_string(clone(path))
 		match read_result {
 			Result::Ok(text) => {
-				if contains(clone(text), String_from("resource ")) {
-					return concat(String_from("E0402: unsupported WIT resource type in "), clone(path))
-				}
-				if contains(clone(text), String_from("own<")) || contains(clone(text), String_from("borrow<")) {
-					return concat(String_from("E0402: unsupported WIT resource handle type in "), clone(path))
-				}
 				if contains(clone(text), String_from("stream<")) || contains(clone(text), String_from("future<")) {
 					return concat(String_from("E0402: unsupported WIT async resource type in "), clone(path))
 				}

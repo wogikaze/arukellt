@@ -1,0 +1,9 @@
+package arukellt:generated;
+
+world arukellt {
+  resource handle {
+    id: s32,
+  }
+
+  export pass-handle: func(p: own<handle>) -> own<handle>;
+}

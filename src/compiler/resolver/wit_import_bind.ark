@@ -66,5 +66,10 @@ fn wit_push_bindings_for_import(bindings: Vec<WitImportBinding>, package_id: Str
     }
     if eq(clone(package_id), String_from("test:host/host")) {
         push(bindings, WitImportBinding_new(String_from("i32_0"), String_from("test:host/host"), String_from("set-perms"), concat(clone(alias), String_from("::set_perms"))))
+        return
+    }
+    if eq(clone(package_id), String_from("test:host/handles")) {
+        push(bindings, WitImportBinding_new(String_from("i32_0"), String_from("test:host/handles"), String_from("take"), concat(clone(alias), String_from("::take"))))
+        push(bindings, WitImportBinding_new(String_from("i32_0"), String_from("test:host/handles"), String_from("peek"), concat(clone(alias), String_from("::peek"))))
     }
 }

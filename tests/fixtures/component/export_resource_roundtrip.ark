@@ -1,0 +1,11 @@
+// Export with WIT own<handle> parameter/result canonical ABI roundtrip.
+resource Handle {
+    id: i32,
+}
+
+pub fn pass_handle(h: i32) -> i32 {
+    h
+}
+
+fn main() {
+}

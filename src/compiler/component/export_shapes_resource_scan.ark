@@ -1,0 +1,37 @@
+// Arukellt Selfhost - component resource export shape scan (#473).
+
+use component::export_function_view
+use component::naming
+use mir::module_functions
+
+fn comp_function_is_resource_roundtrip_export(f: MirFunction) -> bool {
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if !eq(export_function_view::export_function_name(f), String_from("pass_handle")) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+        return false
+    }
+    eq(export_function_view::export_function_param_type_name(f, 0), String_from("i32"))
+}
+
+fn comp_single_resource_roundtrip_export_name(mir: MirModule) -> String {
+    let mut i = 0
+    while i < module_functions::MirModule_function_count(mir) {
+        let f = module_functions::MirModule_function_at(mir, i)
+        if comp_function_is_resource_roundtrip_export(f) {
+            return export_function_view::export_function_name(f)
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn comp_resource_type_export_name() -> String {
+    String_from("handle")
+}

@@ -73,6 +73,14 @@ fn wit_export_flags_type_name() -> String {
 	String_from("perms")
 }
 
+fn wit_export_resource_type_name() -> String {
+	String_from("handle")
+}
+
+fn wit_export_own_handle_type() -> String {
+	concat(String_from("own<"), concat(wit_export_resource_type_name(), String_from(">")))
+}
+
 fn component_decl_is_perms_flags_shape(d: AstNode) -> bool {
 	let decl = wit_decl::wit_decl_from_node(d)
 	if !wit_decl::wit_decl_is_record(decl) {

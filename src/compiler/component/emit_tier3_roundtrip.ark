@@ -1,0 +1,12 @@
+// Arukellt Selfhost - Tier 3 fixture round-trip component dispatch (#651, #473).
+
+use component::emit_flags as flags
+use component::emit_resource as resource
+
+fn try_emit_tier3_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    let resource_component = resource::try_emit_resource_roundtrip_component(clone(core_wasm), mir)
+    if len(resource_component) > 0 {
+        return resource_component
+    }
+    flags::try_emit_flags_roundtrip_component(core_wasm, mir)
+}

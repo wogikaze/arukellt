@@ -1,0 +1,55 @@
+// WIT resource / own / borrow type parsing helpers (#473).
+
+fn wit_trim_ws(text: String) -> String {
+    let n = len(text)
+    let mut start = 0
+    while start < n {
+        let ch = char_at(text, start)
+        if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
+            break
+        }
+        start = start + 1
+    }
+    let mut end = n
+    while end > start {
+        let ch = char_at(text, end - 1)
+        if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
+            break
+        }
+        end = end - 1
+    }
+    substring(text, start, end)
+}
+
+fn wit_is_resource_decl(text: String) -> bool {
+    starts_with(wit_trim_ws(text), String_from("resource "))
+}
+
+fn wit_is_own_type(text: String) -> bool {
+    starts_with(wit_trim_ws(text), String_from("own<"))
+}
+
+fn wit_is_borrow_type(text: String) -> bool {
+    starts_with(wit_trim_ws(text), String_from("borrow<"))
+}
+
+fn wit_own_inner_name(text: String) -> String {
+    let open = index_of(text, String_from("<"))
+    let close = index_of(text, String_from(">"))
+    if open < 0 || close <= open {
+        return String_new()
+    }
+    wit_trim_ws(substring(text, open + 1, close))
+}
+
+fn wit_borrow_inner_name(text: String) -> String {
+    wit_own_inner_name(text)
+}
+
+fn wit_own_type_text(resource_name: String) -> String {
+    concat(String_from("own<"), concat(resource_name, String_from(">")))
+}
+
+fn wit_borrow_type_text(resource_name: String) -> String {
+    concat(String_from("borrow<"), concat(resource_name, String_from(">")))
+}

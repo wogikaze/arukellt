@@ -26,3 +26,4 @@
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |
 | [t3-reachability.md](t3-reachability.md) | T3 Reachability Root Contract | Defines the root set for dead function elimination on T3 (wasm32-wasi-p2) |
 | [t3-rmw-optimization.md](t3-rmw-optimization.md) | T3 Backend: Read-Modify-Write Optimization Analysis | Resolved: T3 backend already generates optimal RMW code for struct fields. |
+| [wit-resource-handles.md](wit-resource-handles.md) | WIT resource handles (resource, own<T>, borrow<T>) | Design for Tier 3 component emission of WIT resource types at the canonical ABI |

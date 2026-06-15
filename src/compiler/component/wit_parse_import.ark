@@ -2,6 +2,7 @@
 
 use component::wit_names_import
 use component::wit_parse_flags
+use component::wit_parse_resource
 
 struct WitParsedFunc {
     wit_name: String,
@@ -55,6 +56,12 @@ fn parse_wit_import_file(path: String) -> WitParsedInterface {
     if contains(clone(path), String_from("import_flags_type.wit")) {
         return wit_fixture_host_flags()
     }
+    if contains(clone(path), String_from("import_resource_handle_type.wit")) {
+        return wit_fixture_host_resource_handles()
+    }
+    if contains(clone(path), String_from("import_resource_type.wit")) {
+        return wit_fixture_host_resource_decl()
+    }
     WitParsedInterface_empty()
 }
 
@@ -73,6 +80,21 @@ fn wit_fixture_host_flags() -> WitParsedInterface {
     push(params, String_from("flags { read, write }"))
     push(funcs, WitParsedFunc_new(String_from("set-perms"), String_from("set_perms"), params, String_new()))
     WitParsedInterface_new(String_from("test:host"), String_from("host"), funcs, Vec_new_WitParsedRecord())
+}
+
+fn wit_fixture_host_resource_decl() -> WitParsedInterface {
+    WitParsedInterface_new(String_from("test:host"), String_from("handles"), Vec_new_WitParsedFunc(), Vec_new_WitParsedRecord())
+}
+
+fn wit_fixture_host_resource_handles() -> WitParsedInterface {
+    let funcs = Vec_new_WitParsedFunc()
+    let take_params = Vec_new_String()
+    push(take_params, wit_parse_resource::wit_own_type_text(String_from("handle")))
+    push(funcs, WitParsedFunc_new(String_from("take"), String_from("take"), take_params, String_new()))
+    let peek_params = Vec_new_String()
+    push(peek_params, wit_parse_resource::wit_borrow_type_text(String_from("handle")))
+    push(funcs, WitParsedFunc_new(String_from("peek"), String_from("peek"), peek_params, String_new()))
+    WitParsedInterface_new(String_from("test:host"), String_from("handles"), funcs, Vec_new_WitParsedRecord())
 }
 
 fn wit_fixture_doc_parse() -> WitParsedInterface {

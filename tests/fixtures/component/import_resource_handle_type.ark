@@ -1,2 +1,5 @@
+import "test:host/handles" as host
+
 fn main() {
+    host::take(1)
 }
