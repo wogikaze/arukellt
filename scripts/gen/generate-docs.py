@@ -671,7 +671,7 @@ let name = wit_type_name(t)   // "u32"
                 "selfhost compile path — host bindings are tracked by "
                 "[#446](../../../issues/done/446-std-host-http-implementation.md) and "
                 "native WASI P2 HTTP by "
-                "[#077](../../../issues/open/077-wasi-p2-http.md). "
+                "[#077](../../../issues/done/077-wasi-p2-http.md). "
                 "When implemented, only plain `http://` URLs are supported — "
                 "**HTTPS is not available**."
             ),
@@ -703,7 +703,7 @@ match body {
                 "selfhost compile path — host bindings are tracked by "
                 "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
                 "native WASI P2 sockets by "
-                "[#139](../../../issues/open/139-std-wasi-sockets-p2.md). "
+                "[#139](../../../issues/done/139-std-wasi-sockets-p2.md). "
                 "Importing this module on T1 (wasm32-wasi-p1) emits E0500."
             ),
             "highlights": [

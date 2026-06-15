@@ -82,14 +82,21 @@ def main() -> int:
         if not _issue_in_done(issue_id):
             failures.append(f"upstream #{issue_id} not in issues/done/")
 
-    for parent_id, (done_slice, _open_slice) in SLICED_PARENTS.items():
+    for parent_id, (slice_a, slice_b) in SLICED_PARENTS.items():
+        both_slices_done = _issue_in_done(slice_a) and _issue_in_done(slice_b)
         parent = _issue_path(parent_id)
         if parent is None:
             failures.append(f"missing parent issue #{parent_id}")
+        elif both_slices_done:
+            if parent.parent != DONE_DIR:
+                failures.append(
+                    f"parent #{parent_id} expected done umbrella in issues/done/ "
+                    f"when #{slice_a} and #{slice_b} are closed"
+                )
         elif parent.parent != OPEN_DIR:
             failures.append(f"parent #{parent_id} expected open umbrella in issues/open/")
-        if not _issue_in_done(done_slice):
-            failures.append(f"slice #{done_slice} (child of #{parent_id}) not in issues/done/")
+        if not _issue_in_done(slice_a):
+            failures.append(f"slice #{slice_a} (child of #{parent_id}) not in issues/done/")
 
     for slice_id in SLICE_DONE_MIN:
         path = _issue_path(slice_id)

@@ -20,7 +20,7 @@ T1 rejection and T3 wasmtime socket I/O smoke for outbound connections.
 
 ## Parent
 
-Umbrella: [#139 WASI P2 sockets](../open/139-std-wasi-sockets-p2.md)
+Umbrella: [#139 WASI P2 sockets](../done/139-std-wasi-sockets-p2.md)
 
 ## Acceptance
 
@@ -33,6 +33,6 @@ Umbrella: [#139 WASI P2 sockets](../open/139-std-wasi-sockets-p2.md)
 
 ## References
 
-- `issues/open/139-std-wasi-sockets-p2.md`
+- `issues/done/139-std-wasi-sockets-p2.md`
 - `docs/adr/ADR-011-wasi-host-layering.md`
 - `std/host/sockets.ark`
