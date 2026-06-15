@@ -5,6 +5,8 @@ use component::contract_string_fn
 
 pub struct ComponentStringScan {
 	has_string_unary: bool,
+	has_string_general_multi: bool,
+	all_string_unary: bool,
 	has_i32_to_string: bool,
 	has_string_to_i32: bool,
 	has_string_to_narrow_i32: bool,
@@ -17,9 +19,11 @@ pub struct ComponentStringScan {
 	export_count: i32,
 }
 
-fn ComponentStringScan_new(has_string_unary: bool, has_i32_to_string: bool, has_string_to_i32: bool, has_string_to_narrow_i32: bool, has_string_to_bool: bool, has_string_to_char: bool, has_string_to_f64: bool, has_string_to_i64: bool, has_string_to_u64: bool, has_string_to_f32: bool, export_count: i32) -> ComponentStringScan {
+fn ComponentStringScan_new(has_string_unary: bool, has_string_general_multi: bool, all_string_unary: bool, has_i32_to_string: bool, has_string_to_i32: bool, has_string_to_narrow_i32: bool, has_string_to_bool: bool, has_string_to_char: bool, has_string_to_f64: bool, has_string_to_i64: bool, has_string_to_u64: bool, has_string_to_f32: bool, export_count: i32) -> ComponentStringScan {
 	ComponentStringScan {
 		has_string_unary: has_string_unary,
+		has_string_general_multi: has_string_general_multi,
+		all_string_unary: all_string_unary,
 		has_i32_to_string: has_i32_to_string,
 		has_string_to_i32: has_string_to_i32,
 		has_string_to_narrow_i32: has_string_to_narrow_i32,
@@ -34,7 +38,7 @@ fn ComponentStringScan_new(has_string_unary: bool, has_i32_to_string: bool, has_
 }
 
 fn ComponentStringScan_empty() -> ComponentStringScan {
-	ComponentStringScan_new(false, false, false, false, false, false, false, false, false, false, 0)
+	ComponentStringScan_new(false, false, true, false, false, false, false, false, false, false, false, false, 0)
 }
 
 fn ComponentStringScan_export_count(scan: ComponentStringScan) -> i32 {
@@ -47,6 +51,14 @@ fn ComponentStringScan_single_export(scan: ComponentStringScan) -> bool {
 
 fn ComponentStringScan_has_string_unary(scan: ComponentStringScan) -> bool {
 	scan.has_string_unary
+}
+
+fn ComponentStringScan_has_string_general_multi(scan: ComponentStringScan) -> bool {
+	scan.has_string_general_multi
+}
+
+fn ComponentStringScan_all_string_unary(scan: ComponentStringScan) -> bool {
+	scan.all_string_unary
 }
 
 fn ComponentStringScan_has_i32_to_string(scan: ComponentStringScan) -> bool {
@@ -91,6 +103,10 @@ fn ComponentStringScan_increment_export_count(scan: ComponentStringScan) {
 
 fn ComponentStringScan_set_has_string_unary(scan: ComponentStringScan, value: bool) {
 	scan.has_string_unary = value
+}
+
+fn ComponentStringScan_set_all_string_unary(scan: ComponentStringScan, value: bool) {
+	scan.all_string_unary = value
 }
 
 fn ComponentStringScan_set_has_i32_to_string(scan: ComponentStringScan, value: bool) {
@@ -171,6 +187,17 @@ fn component_string_scan_apply_export(scan: ComponentStringScan, d: AstNode) {
 	ComponentStringScan_increment_export_count(scan)
 	component_string_scan_apply_basic(scan, d)
 	component_string_scan_apply_numeric(scan, d)
+	let f = contract_helpers::component_func_from_decl(d)
+	if !contract_string_fn::component_fn_is_string_unary(f) {
+		ComponentStringScan_set_all_string_unary(scan, false)
+	}
+}
+
+fn component_string_scan_finalize(scan: ComponentStringScan) -> ComponentStringScan {
+	if scan.export_count >= 2 && ComponentStringScan_all_string_unary(scan) {
+		scan.has_string_general_multi = true
+	}
+	scan
 }
 
 fn component_string_scan(decls: Vec<AstNode>) -> ComponentStringScan {
@@ -183,5 +210,5 @@ fn component_string_scan(decls: Vec<AstNode>) -> ComponentStringScan {
 		}
 		i = i + 1
 	}
-	scan
+	component_string_scan_finalize(scan)
 }

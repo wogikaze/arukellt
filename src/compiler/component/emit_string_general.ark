@@ -1,0 +1,90 @@
+// Arukellt Selfhost - general multi-export string component wrapper emission.
+
+use component::adapters_string_general
+use component::component_base
+use component::constants_sections_linkage
+use component::constants_wit_values
+use component::export_sections
+use component::export_sections_entries
+use component::export_shapes_string_general
+use component::naming
+use component::types_wit_func
+use component::writer_core
+
+fn emit_string_general_component(core_wasm: Vec<i32>, plan: export_shapes_string_general::StringGeneralPlan) -> Vec<i32> {
+	let out = component_base::comp_new_component_writer()
+	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_string_general::comp_string_general_adapter_core_module(plan))
+
+	emit_string_general_alias_section(out, plan)
+	emit_string_general_type_section(out, plan)
+	emit_string_general_canon_section(out, plan)
+	emit_string_general_export_section(out, plan)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn try_emit_string_general_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+	let plan = export_shapes_string_general::comp_string_general_plan(mir)
+	if !export_shapes_string_general::comp_string_general_plan_is_valid(plan) {
+		return Vec_new_i32()
+	}
+	emit_string_general_component(core_wasm, plan)
+}
+
+fn emit_string_general_alias_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let alias_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(alias_sec, 2 + count)
+	export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
+	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, String_from("realloc"))
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
+		let name = export_shapes_string_general::StringGeneralExport_name(entry)
+		export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, name)
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+}
+
+fn emit_string_general_type_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let type_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(type_sec, count)
+	let mut i = 0
+	while i < count {
+		let params = Vec_new_i32()
+		push(params, constants_wit_values::WIT_VAL_STRING())
+		let results = Vec_new_i32()
+		push(results, constants_wit_values::WIT_VAL_STRING())
+		writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
+}
+
+fn emit_string_general_canon_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let canon_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(canon_sec, count)
+	let mut i = 0
+	while i < count {
+		export_sections_entries::emit_canon_lift_memory_realloc_entry(canon_sec, i, 0, 1, i)
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+}
+
+fn emit_string_general_export_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let func_export_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(func_export_sec, count)
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
+		let name = export_shapes_string_general::StringGeneralExport_name(entry)
+		export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(name), i, i)
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+}

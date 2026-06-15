@@ -34,6 +34,7 @@ fn component_collection_allows(list_scan: ComponentCollectionListScan, option_sc
 fn component_string_allows(string_scan: ComponentStringScan) -> ComponentStringAllows {
     contract_allows_string_record::ComponentStringAllows_new(
         contract_string_scan_queries::ComponentStringScan_allows_string_unary(string_scan),
+        contract_string_scan_queries::ComponentStringScan_allows_string_general_multi(string_scan),
         contract_string_scan_queries::ComponentStringScan_allows_i32_to_string(string_scan),
         contract_string_scan_queries::ComponentStringScan_allows_string_to_i32(string_scan),
         contract_string_scan_queries::ComponentStringScan_allows_string_to_narrow_i32(string_scan),

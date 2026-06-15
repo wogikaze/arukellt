@@ -7,7 +7,7 @@ Track: component-model
 Depends on: 121, 074
 Orchestration class: implementation-ready
 Orchestration upstream: None
-Blocks: 659, 660
+Blocks: 659
 Blocks v{N}: none
 Status note: Umbrella; dispatch child slices #659 (f32 general), #660 (Tier2 general adapters).
 Source: docs/current-state.md Known v2 carry-over limitations (Tier 1/2 partial adapters post-#121)
@@ -43,11 +43,11 @@ matrix — not another round of one-off name-independent adapters.
 
 ## Acceptance
 
-- [ ] General (non-name-independent) f32 export/import preservation or documented permanent rejection
+- [x] General (non-name-independent) f32 export/import preservation or documented permanent rejection
 - [ ] General enum/record/variant descriptor adapters OR explicit E0401 matrix in docs
-- [ ] Tier 2 general string/list/option/result/tuple adapters beyond single-export shapes
-- [ ] Regression fixtures for at least one newly unlocked general shape per tier
-- [ ] `docs/current-state.md` tier table updated (remove stale #121 carry-over pointers)
+- [x] Tier 2 general string/list/option/result/tuple adapters beyond single-export shapes
+- [x] Regression fixtures for at least one newly unlocked general shape per tier
+- [x] `docs/current-state.md` tier table updated (remove stale #121 carry-over pointers)
 - [ ] `python3 scripts/manager.py verify quick` exits 0
 
 ## Required verification

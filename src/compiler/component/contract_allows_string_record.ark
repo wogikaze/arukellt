@@ -2,6 +2,7 @@
 
 pub struct ComponentStringAllows {
     allow_string_greet: bool,
+    allow_string_general_multi: bool,
     allow_string_result: bool,
     allow_string_param: bool,
     allow_string_narrow: bool,
@@ -13,9 +14,10 @@ pub struct ComponentStringAllows {
     allow_string_u64: bool,
 }
 
-fn ComponentStringAllows_new(allow_string_greet: bool, allow_string_result: bool, allow_string_param: bool, allow_string_narrow: bool, allow_string_bool: bool, allow_string_char: bool, allow_string_f32: bool, allow_string_f64: bool, allow_string_i64: bool, allow_string_u64: bool) -> ComponentStringAllows {
+fn ComponentStringAllows_new(allow_string_greet: bool, allow_string_general_multi: bool, allow_string_result: bool, allow_string_param: bool, allow_string_narrow: bool, allow_string_bool: bool, allow_string_char: bool, allow_string_f32: bool, allow_string_f64: bool, allow_string_i64: bool, allow_string_u64: bool) -> ComponentStringAllows {
     ComponentStringAllows {
         allow_string_greet: allow_string_greet,
+        allow_string_general_multi: allow_string_general_multi,
         allow_string_result: allow_string_result,
         allow_string_param: allow_string_param,
         allow_string_narrow: allow_string_narrow,
@@ -30,6 +32,10 @@ fn ComponentStringAllows_new(allow_string_greet: bool, allow_string_result: bool
 
 fn ComponentStringAllows_allow_string_greet(allows: ComponentStringAllows) -> bool {
     allows.allow_string_greet
+}
+
+fn ComponentStringAllows_allow_string_general_multi(allows: ComponentStringAllows) -> bool {
+    allows.allow_string_general_multi
 }
 
 fn ComponentStringAllows_allow_string_result(allows: ComponentStringAllows) -> bool {

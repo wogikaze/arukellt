@@ -1,0 +1,152 @@
+// Arukellt Selfhost - general multi-export string canonical ABI adapter core module.
+
+use component::adapter_body
+use component::adapter_memory
+use component::adapters_string_body
+use component::export_shapes_string_general
+use component::sections
+use component::writer_core
+
+fn comp_string_general_adapter_core_module(plan: export_shapes_string_general::StringGeneralPlan) -> Vec<i32> {
+	let out = sections::comp_new_core_module_writer()
+	comp_emit_string_general_adapter_sections(out, plan)
+	writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_string_general_adapter_sections(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	comp_emit_string_general_type_section(out, plan)
+	comp_emit_string_general_import_section(out, plan)
+	comp_emit_string_general_func_section(out, plan)
+	comp_emit_string_general_global_section(out)
+	comp_emit_string_general_export_section(out, plan)
+	comp_emit_string_general_code_section(out, plan)
+}
+
+fn comp_emit_string_general_type_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let type_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(type_sec, 1 + count * 2)
+	let realloc_params = Vec_new_i32()
+	push(realloc_params, 0x7f)
+	push(realloc_params, 0x7f)
+	push(realloc_params, 0x7f)
+	push(realloc_params, 0x7f)
+	let i32_result = Vec_new_i32()
+	push(i32_result, 0x7f)
+	sections::comp_emit_core_func_type(type_sec, realloc_params, i32_result)
+	let mut i = 0
+	while i < count {
+		let user_params = Vec_new_i32()
+		push(user_params, 0x7f)
+		sections::comp_emit_core_func_type(type_sec, user_params, i32_result)
+		let abi_params = Vec_new_i32()
+		push(abi_params, 0x7f)
+		push(abi_params, 0x7f)
+		let abi_results = Vec_new_i32()
+		push(abi_results, 0x7f)
+		sections::comp_emit_core_func_type(type_sec, abi_params, abi_results)
+		i = i + 1
+	}
+	sections::comp_emit_wasm_section(out, 1, type_sec)
+}
+
+fn comp_emit_string_general_import_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let import_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(import_sec, 1 + count)
+	writer_core::comp_emit_string(import_sec, String_from("user"))
+	writer_core::comp_emit_string(import_sec, String_from("memory"))
+	writer_core::comp_emit_byte(import_sec, 0x02)
+	writer_core::comp_emit_leb128_u(import_sec, 0)
+	writer_core::comp_emit_leb128_u(import_sec, 1)
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
+		let name = export_shapes_string_general::StringGeneralExport_name(entry)
+		writer_core::comp_emit_string(import_sec, String_from("user"))
+		writer_core::comp_emit_string(import_sec, clone(name))
+		writer_core::comp_emit_byte(import_sec, 0x00)
+		writer_core::comp_emit_leb128_u(import_sec, 1 + i * 2)
+		i = i + 1
+	}
+	sections::comp_emit_wasm_section(out, 2, import_sec)
+}
+
+fn comp_emit_string_general_func_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let func_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(func_sec, 1 + count)
+	writer_core::comp_emit_leb128_u(func_sec, 0)
+	let mut i = 0
+	while i < count {
+		writer_core::comp_emit_leb128_u(func_sec, 2 + i * 2)
+		i = i + 1
+	}
+	sections::comp_emit_wasm_section(out, 3, func_sec)
+}
+
+fn comp_emit_string_general_global_section(out: writer_core::ComponentWriter) {
+	let global_sec = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(global_sec, 1)
+	writer_core::comp_emit_byte(global_sec, 0x7f)
+	writer_core::comp_emit_byte(global_sec, 0x01)
+	writer_core::comp_emit_byte(global_sec, 0x41)
+	writer_core::comp_emit_leb128_u(global_sec, 70000)
+	writer_core::comp_emit_byte(global_sec, 0x0b)
+	sections::comp_emit_wasm_section(out, 6, global_sec)
+}
+
+fn comp_emit_string_general_export_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let export_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(export_sec, 2 + count)
+	writer_core::comp_emit_string(export_sec, String_from("memory"))
+	writer_core::comp_emit_byte(export_sec, 0x02)
+	writer_core::comp_emit_leb128_u(export_sec, 0)
+	writer_core::comp_emit_string(export_sec, String_from("realloc"))
+	writer_core::comp_emit_byte(export_sec, 0x00)
+	writer_core::comp_emit_leb128_u(export_sec, 0)
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
+		let name = export_shapes_string_general::StringGeneralExport_name(entry)
+		writer_core::comp_emit_string(export_sec, clone(name))
+		writer_core::comp_emit_byte(export_sec, 0x00)
+		writer_core::comp_emit_leb128_u(export_sec, 1 + i)
+		i = i + 1
+	}
+	sections::comp_emit_wasm_section(out, 7, export_sec)
+}
+
+fn comp_emit_string_general_code_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
+	let code_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_string_general::StringGeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(code_sec, 1 + count)
+	adapter_memory::comp_emit_realloc_body(code_sec)
+	let mut i = 0
+	while i < count {
+		comp_emit_string_general_wrapper_body(code_sec, i)
+		i = i + 1
+	}
+	sections::comp_emit_wasm_section(out, 10, code_sec)
+}
+
+fn comp_emit_string_general_wrapper_body(code_sec: writer_core::ComponentWriter, user_import_idx: i32) {
+	let body = writer_core::ComponentWriter_new()
+	writer_core::comp_emit_leb128_u(body, 1)
+	writer_core::comp_emit_leb128_u(body, 3)
+	writer_core::comp_emit_byte(body, 0x7f)
+	adapters_string_body::comp_emit_adapter_string_input_copy(body)
+	writer_core::comp_emit_byte(body, 0x20)
+	writer_core::comp_emit_leb128_u(body, 2)
+	writer_core::comp_emit_byte(body, 0x41)
+	writer_core::comp_emit_leb128_u(body, 4)
+	writer_core::comp_emit_byte(body, 0x6a)
+	writer_core::comp_emit_byte(body, 0x10)
+	writer_core::comp_emit_leb128_u(body, user_import_idx)
+	writer_core::comp_emit_byte(body, 0x21)
+	writer_core::comp_emit_leb128_u(body, 3)
+	adapters_string_body::comp_emit_string_output_record_alloc(body, 4)
+	adapters_string_body::comp_emit_string_output_record_fields(body, 4, 3)
+	adapter_body::comp_emit_func_body(code_sec, body)
+}

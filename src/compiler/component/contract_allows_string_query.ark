@@ -11,6 +11,10 @@ fn ComponentContractAllows_allow_string_greet(allows: ComponentContractAllows) -
     contract_allows_string_record::ComponentStringAllows_allow_string_greet(component_string_allows(allows))
 }
 
+fn ComponentContractAllows_allow_string_general_multi(allows: ComponentContractAllows) -> bool {
+    contract_allows_string_record::ComponentStringAllows_allow_string_general_multi(component_string_allows(allows))
+}
+
 fn ComponentContractAllows_allow_string_result(allows: ComponentContractAllows) -> bool {
     contract_allows_string_record::ComponentStringAllows_allow_string_result(component_string_allows(allows))
 }

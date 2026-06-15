@@ -1,0 +1,12 @@
+// Mixed-type string multi-export must reject: String->String with String->i32.
+// Expected: E0401 compile-time error.
+pub fn echo_text(text: String) -> String {
+    text
+}
+
+pub fn text_len(text: String) -> i32 {
+    0
+}
+
+fn main() {
+}

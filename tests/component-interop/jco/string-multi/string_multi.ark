@@ -1,0 +1,4 @@
+// General multi-export string canonical ABI: echo + greet in one world.
+pub fn echo_text(text: String) -> String { text }
+pub fn greet_text(name: String) -> String { name }
+fn main() {}

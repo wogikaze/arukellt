@@ -4,10 +4,15 @@ use component::constants_wit_values
 
 use component::adapters_string
 use component::component_base
+use component::emit_string_general
 use component::emit_string_sections
 use component::writer_core
 
 fn try_emit_basic_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+	let string_general_component = emit_string_general::try_emit_string_general_component(clone(core_wasm), mir)
+	if len(string_general_component) > 0 {
+		return string_general_component
+	}
 	let string_unary_name = export_shapes_scan::comp_single_string_unary_export_name(mir)
 	if len(string_unary_name) > 0 {
 		return emit_string_unary_component(core_wasm, string_unary_name)
