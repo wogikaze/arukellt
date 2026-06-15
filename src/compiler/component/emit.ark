@@ -13,9 +13,16 @@ fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_vers
     let plan = export_plan::collect_component_exports(mir)
     let specialized = emit_specialized::emit_specialized_component(core_wasm, mir, export_plan::export_plan_names(plan))
     if len(specialized) > 0 { return specialized }
+    if export_plan::export_plan_count(plan) > 0 {
+        return emit_component_generic_exports(out, core_wasm, plan, mir)
+    }
     if world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
         return wasm::emit_p2_command_component(core_wasm)
     }
+    emit_component_generic_exports(out, core_wasm, plan, mir)
+}
+
+fn emit_component_generic_exports(out: writer_core::ComponentWriter, core_wasm: Vec<i32>, plan: export_plan::ComponentExportPlan, mir: MirModule) -> Vec<i32> {
     component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
     export_sections::emit_generic_alias_section(out, plan)
     let export_type_indices = export_types::emit_generic_export_types(out, plan, mir)

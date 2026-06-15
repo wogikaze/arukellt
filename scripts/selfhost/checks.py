@@ -115,7 +115,15 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
     core_wasm
 }
 
+pub fn mir_has_library_exports(mir: MirModule) -> bool {
+    false
+}
+
 pub fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
+    String_from("")
+}
+
+pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
     String_from("")
 }
 
@@ -124,7 +132,13 @@ pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 }
 
 pub fn string_to_bytes(text: String) -> Vec<i32> {
-    Vec_new_i32()
+    let mut bytes = Vec_new_i32()
+    let mut i = 0
+    while i < len(text) {
+        push(bytes, char_at(text, i))
+        i = i + 1
+    }
+    bytes
 }
 
 pub fn validate_wit_import_surface(paths: Vec<String>) -> String {

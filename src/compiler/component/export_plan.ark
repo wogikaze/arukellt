@@ -68,3 +68,7 @@ fn export_plan_name_at(plan: ComponentExportPlan, index: i32) -> String {
 fn export_plan_index_at(plan: ComponentExportPlan, index: i32) -> i32 {
 	get_unchecked(plan.export_indices, index)
 }
+
+fn mir_has_library_exports(mir: MirModule) -> bool {
+	export_plan_count(collect_component_exports(mir)) > 0
+}

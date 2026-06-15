@@ -32,6 +32,9 @@ fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
 
 
 fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> String {
+	if !world_spec::world_spec_is_cli_command(clone(world)) {
+		return emit_wit_func_exports(decls)
+	}
 	let mut out = String_from("")
 	let mut i = 0
 	while i < len(decls) {
@@ -39,8 +42,7 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 		if wit_decl::wit_decl_is_func(decl) {
 			let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
 			let fname = wit_decl::wit_func_name(f)
-			if wit_decl::wit_func_is_export(f) || (world_spec::world_spec_is_cli_command(clone(world)) && (eq(clone(fname), String_from("main")) || eq(clone(fname), String_from("_start")))) {
-				if !wit_decl::wit_func_is_export(f) && !world_spec::world_spec_is_cli_command(clone(world)) { i = i + 1; continue }
+			if wit_decl::wit_func_is_export(f) || eq(clone(fname), String_from("main")) || eq(clone(fname), String_from("_start")) {
 				let export_name = world_spec::world_spec_wit_export_name(fname, clone(world))
 				let export_key = concat(String_from("export "), concat(wit_names::wit_export_name(export_name), String_from(":")))
 				if !contains(clone(out), clone(export_key)) {
