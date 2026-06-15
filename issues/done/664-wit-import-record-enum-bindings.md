@@ -23,7 +23,7 @@ symbols in resolver scope, and build function signatures dynamically from parsed
 
 ## Parent
 
-Umbrella: [#124 WIT component import syntax](../open/124-wit-component-import-syntax.md)
+Umbrella: [#124 WIT component import syntax](../done/124-wit-component-import-syntax.md)
 
 ## Acceptance
 

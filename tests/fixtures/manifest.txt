@@ -183,6 +183,7 @@ check-only:wit_import/check/call_add.ark
 check-only:wit_import/check/record_field.ark
 check-only:wit_import/check/record_enum_general.ark
 check-only:wit_import/ark_manifest/main.ark
+component-compile:wit_import/compose_roundtrip/main.ark
 mir-dump:wit_import/mir/call_add.ark
 t3-compile:component/resource_v3/resource_basic.ark
 t3-compile:component/resource_v3/resource_handle.ark

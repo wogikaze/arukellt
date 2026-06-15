@@ -1,0 +1,6 @@
+[package]
+name = "wit-import-compose-roundtrip"
+version = "0.1.0"
+
+[dependencies]
+"test:host" = { path = "vendor/host" }

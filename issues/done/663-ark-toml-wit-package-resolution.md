@@ -22,7 +22,7 @@ files into the compile pipeline without requiring `--wit` on the CLI.
 
 ## Parent
 
-Umbrella: [#124 WIT component import syntax](../open/124-wit-component-import-syntax.md)
+Umbrella: [#124 WIT component import syntax](../done/124-wit-component-import-syntax.md)
 
 ## Acceptance
 

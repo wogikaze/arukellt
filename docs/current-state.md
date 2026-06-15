@@ -238,6 +238,7 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 3. ✅ **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
   `--wit` paths are accepted, validated, and threaded through CLI → `DriverConfig` → resolver/typecheck/MIR → Wasm import section (Phase 1 slices [#652](../issues/done/652-wit-import-parser-grammar.md)–[#654](../issues/done/654-wit-import-component-emit.md)).
   Scalar WIT function imports bind via `import "package/id" as alias` source syntax and resolve to `host::add(...)`-style calls in `tests/fixtures/wit_import/`.
+  `ark.toml` `[dependencies]` vendor WIT packages resolve without `--wit` ([#663](../issues/done/663-ark-toml-wit-package-resolution.md)); compose round-trip fixture `tests/fixtures/wit_import/compose_roundtrip/` validates provider/socket WIT surfaces via `arukellt compose --validate` ([#665](../issues/done/665-wit-import-compose-roundtrip-e2e.md)).
   Unsupported WIT import shapes such as `stream<T>` / `future<T>` async resource shapes are
   rejected with `E0402`. WIT `resource` declarations and `own<T>` / `borrow<T>` handles are
   supported for fixture-backed import and export round-trip ([#473](../issues/done/473-wit-resource-handles.md)).

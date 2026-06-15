@@ -14,7 +14,7 @@ Status note: Closed — callable ``--wit`` import binding wired end-to-end (CLI 
 
 ## Close notes — 2026-06-15
 
-Phase 1 of [#124](../open/124-wit-component-import-syntax.md) ([#652](652-wit-import-parser-grammar.md)–[#654](654-wit-import-component-emit.md)) delivers callable WIT import binding for this issue:
+Phase 1 of [#124](../done/124-wit-component-import-syntax.md) ([#652](652-wit-import-parser-grammar.md)–[#654](654-wit-import-component-emit.md)) delivers callable WIT import binding for this issue:
 
 - `--wit` paths thread from CLI through `DriverConfig` into resolver, typecheck, MIR (`MIR_WIT_CALL`), and Wasm import section emission.
 - `tests/fixtures/wit_import/main.ark` + `host_math.wit` prove `import "test:host/math" as host` with `host::add(1, 2)` typechecks under `--wit`.

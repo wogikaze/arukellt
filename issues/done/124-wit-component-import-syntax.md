@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
 ID: 124
 Track: language-design
@@ -10,7 +10,7 @@ Blocks: 034, 473, 651
 Blocks v4 exit: yes
 ADR candidate: yes
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
-Status note: Phase 1 (#652–#654) and Phase 2a (#663 ark.toml WIT package resolution) and Phase 2b (#664 record/enum bindings) closed. Umbrella remains open for #665 compose round-trip.
+Status note: Closed 2026-06-15 — Phase 1 (#652–#654), Phase 2 (#663–#665 ark.toml + record/enum bindings + compose round-trip E2E) complete. Phase 3+ (full ark.toml world manifest, cookbook) remain future work outside this umbrella.
 ---
 
 # WIT component import syntax

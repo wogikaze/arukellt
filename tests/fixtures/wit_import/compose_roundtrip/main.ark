@@ -1,0 +1,9 @@
+import "test:host/math" as host
+
+pub fn run() -> i32 {
+    host::add(40, 2)
+}
+
+fn main() {
+    let _ = run()
+}

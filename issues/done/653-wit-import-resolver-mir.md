@@ -21,7 +21,7 @@ Register WIT interface functions and record types in scope; enable typed calls l
 
 ## Parent
 
-Umbrella: [#124 WIT component import syntax](../open/124-wit-component-import-syntax.md)
+Umbrella: [#124 WIT component import syntax](../done/124-wit-component-import-syntax.md)
 
 ## Acceptance
 

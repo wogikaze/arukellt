@@ -22,7 +22,7 @@ Distinguish WIT imports (string literal) from local imports (identifier) per #12
 
 ## Parent
 
-Umbrella: [#124 WIT component import syntax](../open/124-wit-component-import-syntax.md)
+Umbrella: [#124 WIT component import syntax](../done/124-wit-component-import-syntax.md)
 
 ## Acceptance
 

@@ -21,7 +21,7 @@ Add `tests/fixtures/wit_import/` end-to-end fixture with validate/run evidence.
 
 ## Parent
 
-Umbrella: [#124 WIT component import syntax](../open/124-wit-component-import-syntax.md)
+Umbrella: [#124 WIT component import syntax](../done/124-wit-component-import-syntax.md)
 
 ## Acceptance
 

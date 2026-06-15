@@ -1,0 +1,5 @@
+package test:host@0.1.0;
+
+interface math {
+    add: func(a: s32, b: s32) -> s32;
+}
