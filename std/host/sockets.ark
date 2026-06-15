@@ -1,7 +1,8 @@
 //! Host TCP socket helpers via the `arukellt_host` Wasmtime linker.
 //!
-//! Minimal TCP client surface: `connect`, `read`, and `write` on placeholder fd `3`.
-//! T1 import emits E0500; T3 uses host-linker (#657).
+//! Client surface: `connect`, `read`, and `write` on placeholder fd `3`.
+//! Server surface: `listen` on fd `4`, `accept` returning connected fd `3`.
+//! T1 import emits E0500; T3 uses host-linker (#657 client, #658 server).
 
 /// Opens a TCP connection to the given host and port.
 pub fn connect(host: String, port: i32) -> Result<i32, String> {
@@ -16,4 +17,14 @@ pub fn read(fd: i32, max_len: i32) -> Result<Vec<i32>, String> {
 /// Writes byte values from `bytes` to an open socket.
 pub fn write(fd: i32, bytes: Vec<i32>) -> Result<i32, String> {
     __intrinsic_sockets_write(fd, bytes)
+}
+
+/// Binds a TCP listener on the given host and port. Returns listener fd on success.
+pub fn listen(host: String, port: i32) -> Result<i32, String> {
+    __intrinsic_sockets_listen(host, port)
+}
+
+/// Accepts one inbound connection on a listener fd. Returns connected socket fd.
+pub fn accept(listener_fd: i32) -> Result<i32, String> {
+    __intrinsic_sockets_accept(listener_fd)
 }

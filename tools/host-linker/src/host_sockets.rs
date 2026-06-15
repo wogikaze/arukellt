@@ -1,4 +1,4 @@
-//! TCP socket host implementations for `arukellt_host::{sockets_connect,sockets_read,sockets_write}`.
+//! TCP socket host implementations for `arukellt_host::{sockets_connect,sockets_read,sockets_write,sockets_listen,sockets_accept}`.
 
 use crate::{read_string_from_mem, write_error};
 use std::collections::HashMap;
@@ -10,8 +10,10 @@ use wasmtime::*;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
 const SOCKET_FD: i32 = 3;
+const LISTENER_FD: i32 = 4;
 
 static SOCKET_TABLE: Mutex<Option<HashMap<i32, TcpStream>>> = Mutex::new(None);
+static LISTENER_TABLE: Mutex<Option<HashMap<i32, TcpListener>>> = Mutex::new(None);
 static ECHO_PORT: OnceLock<u16> = OnceLock::new();
 
 pub fn ensure_socket_echo_server() -> u16 {
@@ -162,6 +164,49 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
         )
         .map_err(|e| format!("linker sockets_write error: {}", e))?;
 
+    linker
+        .func_wrap(
+            "arukellt_host",
+            "sockets_listen",
+            |mut caller: Caller<'_, WasiP1Ctx>,
+             host_ptr: i32,
+             host_len: i32,
+             port: i32,
+             result_ptr: i32|
+             -> i32 {
+                let mem = match caller.get_export("memory") {
+                    Some(Extern::Memory(m)) => m,
+                    _ => return write_error(&mut caller, result_ptr, "no memory export"),
+                };
+                let host = match read_string_from_mem(&caller, &mem, host_ptr, host_len) {
+                    Ok(s) => s,
+                    Err(e) => return write_error(&mut caller, result_ptr, &e),
+                };
+                if !(0..=65535).contains(&port) {
+                    let msg = format!("listen: invalid port {}", port);
+                    return write_error(&mut caller, result_ptr, &msg);
+                }
+                match tcp_listen_impl(&host, port as u16) {
+                    Ok(fd) => fd,
+                    Err(msg) => write_error(&mut caller, result_ptr, &msg),
+                }
+            },
+        )
+        .map_err(|e| format!("linker sockets_listen error: {}", e))?;
+
+    linker
+        .func_wrap(
+            "arukellt_host",
+            "sockets_accept",
+            |mut caller: Caller<'_, WasiP1Ctx>, listener_fd: i32, result_ptr: i32| -> i32 {
+                match tcp_accept_impl(listener_fd) {
+                    Ok(client_fd) => client_fd,
+                    Err(msg) => write_error(&mut caller, result_ptr, &msg),
+                }
+            },
+        )
+        .map_err(|e| format!("linker sockets_accept error: {}", e))?;
+
     Ok(())
 }
 
@@ -276,6 +321,71 @@ fn to_socket_addr_for_connect(host: &str, port: u16) -> Result<std::net::SocketA
         .ok_or_else(|| format!("connect: {}:{}: dns not found", host, port))
 }
 
+pub fn ensure_listen_client_helper(port: u16) {
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(50));
+        let addr = format!("127.0.0.1:{}", port);
+        if let Ok(addr) = addr.parse() {
+            let _ = TcpStream::connect_timeout(&addr, Duration::from_secs(5));
+        }
+    });
+}
+
+fn insert_listener(fd: i32, listener: TcpListener) {
+    if let Ok(mut guard) = LISTENER_TABLE.lock() {
+        if guard.is_none() {
+            *guard = Some(HashMap::new());
+        }
+        if let Some(table) = guard.as_mut() {
+            table.insert(fd, listener);
+        }
+    }
+}
+
+fn with_listener<F, T>(fd: i32, f: F) -> Result<T, String>
+where
+    F: FnOnce(&TcpListener) -> Result<T, String>,
+{
+    let guard = LISTENER_TABLE
+        .lock()
+        .map_err(|_| "listen: listener table poisoned".to_string())?;
+    let table = guard
+        .as_ref()
+        .ok_or_else(|| "listen: listener table unavailable".to_string())?;
+    let listener = table
+        .get(&fd)
+        .ok_or_else(|| format!("accept: unknown listener fd {}", fd))?;
+    f(listener)
+}
+
+fn tcp_listen_impl(host: &str, port: u16) -> Result<i32, String> {
+    let addr_str = format!("{}:{}", host, port);
+    let listener = TcpListener::bind(&addr_str)
+        .map_err(|e| format!("listen: {}:{}: {}", host, port, e))?;
+    let actual_port = listener
+        .local_addr()
+        .map_err(|e| format!("listen: local_addr: {}", e))?
+        .port();
+    listener
+        .set_nonblocking(false)
+        .map_err(|e| format!("listen: set_nonblocking: {}", e))?;
+    insert_listener(LISTENER_FD, listener);
+    ensure_listen_client_helper(actual_port);
+    Ok(LISTENER_FD)
+}
+
+fn tcp_accept_impl(listener_fd: i32) -> Result<i32, String> {
+    with_listener(listener_fd, |listener| {
+        let (stream, _peer) = listener
+            .accept()
+            .map_err(|e| format!("accept: {}: {}", listener_fd, e))?;
+        let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
+        let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
+        insert_socket(SOCKET_FD, stream);
+        Ok(SOCKET_FD)
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -294,5 +404,24 @@ mod tests {
         let n = client.read(&mut buf).unwrap();
         assert_eq!(n, 2);
         assert_eq!(&buf[..2], b"Hi");
+    }
+
+    #[test]
+    fn tcp_listen_accept_roundtrip() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind listener");
+        let port = listener.local_addr().expect("listener addr").port();
+        ensure_listen_client_helper(port);
+        let (stream, _) = listener.accept().expect("accept client");
+        drop(stream);
+    }
+
+    #[test]
+    fn tcp_listen_accept_host_impl() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind listener");
+        let port = listener.local_addr().expect("listener addr").port();
+        insert_listener(LISTENER_FD, listener);
+        ensure_listen_client_helper(port);
+        let client_fd = tcp_accept_impl(LISTENER_FD).expect("accept via host impl");
+        assert_eq!(client_fd, SOCKET_FD);
     }
 }

@@ -42,6 +42,25 @@ fn emit_sockets_write(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+fn emit_sockets_listen(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_host = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    emit_sockets_connect_save_args(w, s_host, s_port)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
+    emit_sockets_host_call(w, ctx, import_indices::sockets_listen_import_idx(ctx))
+    intrinsic_sockets_result::emit_sockets_finalize_i32_result(w)
+    return true
+}
+
+fn emit_sockets_accept(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_fd = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    emit_sockets_accept_save_args(w, s_fd)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
+    emit_sockets_accept_host_call(w, ctx, import_indices::sockets_accept_import_idx(ctx))
+    intrinsic_sockets_result::emit_sockets_finalize_i32_result(w)
+    return true
+}
+
 fn emit_sockets_connect_save_args(w: WasmWriter, host_local: i32, port_local: i32) {
     helpers_core_locals::emit_local_set(w, port_local)
     helpers_core_locals::emit_local_set(w, host_local)
@@ -90,6 +109,23 @@ fn emit_sockets_rw_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
     helpers_memory_access::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, import_idx)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_sockets_accept_save_args(w: WasmWriter, fd_local: i32) {
+    helpers_core_locals::emit_local_set(w, fd_local)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
+    helpers_core_locals::emit_local_get(w, fd_local)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_sockets_accept_host_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
     helpers_memory_access::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
     helpers_memory_access::emit_i32_load_default(w)

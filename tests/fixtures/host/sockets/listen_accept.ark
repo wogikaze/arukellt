@@ -1,0 +1,15 @@
+// Fixture: T3 TCP listen + accept on loopback with host-linker helper client.
+use std::host::sockets
+use std::host::stdio
+
+fn main() {
+    match sockets::listen("127.0.0.1", 0) {
+        Result::Err(e) => stdio::println(concat("listen: ", e)),
+        Result::Ok(listener_fd) => {
+            match sockets::accept(listener_fd) {
+                Result::Err(e) => stdio::println(concat("accept: ", e)),
+                Result::Ok(_client_fd) => stdio::println("accept ok"),
+            }
+        },
+    }
+}

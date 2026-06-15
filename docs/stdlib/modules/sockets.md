@@ -7,7 +7,7 @@ Source-backed docs for TCP socket operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::sockets` module defines TCP socket helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#447](../../../issues/done/447-std-host-sockets-implementation.md) and native WASI P2 sockets by [#139](../../../issues/open/139-std-wasi-sockets-p2.md). Importing this module on T1 (wasm32-wasi-p1) emits E0500.
+The `std::host::sockets` module defines TCP socket helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#447](../../../issues/done/447-std-host-sockets-implementation.md) and native WASI P2 sockets by [#139](../../../issues/done/139-std-wasi-sockets-p2.md). Importing this module on T1 (wasm32-wasi-p1) emits E0500.
 
 **Recommended API highlights:**
 
@@ -34,8 +34,8 @@ match sock {
 ## `std::host::sockets`
 
 - Source: [`../../../std/host/sockets.ark`](../../../std/host/sockets.ark)
-- Manifest-backed functions: 3
-- Stability: provisional 3
+- Manifest-backed functions: 5
+- Stability: provisional 5
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
 
@@ -49,9 +49,11 @@ Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | Opens a TCP connection to the given host and port. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `provisional` | ✅ impl | Reads up to max_len bytes from an open socket. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `provisional` | ✅ impl | Writes byte values from bytes to an open socket. |
+| `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | - |
+| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `provisional` | ✅ impl | - |
+| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `provisional` | ✅ impl | - |
+| `listen` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | - |
+| `accept` | `(i32) -> Result<i32, String>` | `provisional` | ✅ impl | - |
 
 #### `connect`
 
@@ -83,3 +85,19 @@ Write byte values from a Vec to an open socket fd.
 **Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
 
 **Errors:** Err on invalid fd or I/O failure.
+
+#### `listen`
+
+Bind a TCP listener on the given hostname and port. Returns a listener fd on success.
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#658). Importing on T1 emits E0500.
+
+**Errors:** Err on bind failure or invalid port.
+
+#### `accept`
+
+Accept one inbound TCP connection on a listener fd. Returns connected socket fd.
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#658). Importing on T1 emits E0500.
+
+**Errors:** Err on invalid listener fd or accept failure.
