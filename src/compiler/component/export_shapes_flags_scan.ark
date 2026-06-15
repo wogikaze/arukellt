@@ -1,0 +1,40 @@
+// Arukellt Selfhost - component flags export shape scan (#651).
+
+use component::export_function_view
+use component::naming
+use mir::module_functions
+
+fn comp_function_is_flags_roundtrip_export(f: MirFunction) -> bool {
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if !eq(export_function_view::export_function_name(f), String_from("flip_read")) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+        return false
+    }
+    eq(export_function_view::export_function_param_type_name(f, 0), String_from("i32"))
+}
+
+fn comp_single_flags_roundtrip_export_name(mir: MirModule) -> String {
+    let mut i = 0
+    while i < module_functions::MirModule_function_count(mir) {
+        let f = module_functions::MirModule_function_at(mir, i)
+        if comp_function_is_flags_roundtrip_export(f) {
+            return export_function_view::export_function_name(f)
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn comp_flags_member_names() -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, String_from("read"))
+    push(names, String_from("write"))
+    names
+}

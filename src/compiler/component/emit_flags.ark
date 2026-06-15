@@ -1,0 +1,70 @@
+// Arukellt Selfhost - WIT flags component wrappers (#651).
+
+use component::component_base
+use component::constants_sections_linkage
+use component::export_sections
+use component::export_sections_entries
+use component::export_shapes_flags_scan
+use component::naming
+use component::type_section_entries
+use component::types_wit_compound
+use component::types_wit_func
+use component::writer_core
+
+fn emit_flags_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+
+    emit_flags_alias_section(out, clone(export_name))
+    emit_flags_type_export_sections(out)
+    emit_flags_func_type_section(out)
+    emit_flags_canon_section(out)
+    emit_flags_export_section(out, clone(export_name))
+
+    writer_core::comp_writer_bytes(out)
+}
+
+fn emit_flags_alias_section(out: writer_core::ComponentWriter, export_name: String) {
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 1)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 1, export_name)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+}
+
+fn emit_flags_type_export_sections(out: writer_core::ComponentWriter) {
+    type_section_entries::emit_single_type_section(out, types_wit_compound::comp_wit_flags_type(export_shapes_flags_scan::comp_flags_member_names()))
+    type_section_entries::emit_single_type_export_section(out, String_from("perms"), 0)
+}
+
+fn emit_flags_func_type_section(out: writer_core::ComponentWriter) {
+    let func_type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_type_sec, 1)
+    let params = Vec_new_i32()
+    push(params, 0)
+    let results = Vec_new_i32()
+    push(results, 0)
+    writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
+}
+
+fn emit_flags_canon_section(out: writer_core::ComponentWriter) {
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 1)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+}
+
+fn emit_flags_export_section(out: writer_core::ComponentWriter, export_name: String) {
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+}
+
+fn try_emit_flags_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    let export_name = export_shapes_flags_scan::comp_single_flags_roundtrip_export_name(mir)
+    if len(export_name) > 0 {
+        return emit_flags_roundtrip_component(core_wasm, export_name)
+    }
+    Vec_new_i32()
+}

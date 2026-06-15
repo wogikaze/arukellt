@@ -1,5 +1,6 @@
 // Arukellt Selfhost - component specialized export-shape dispatch facade
 
+use component::emit_flags as flags
 use component::emit_list
 use component::emit_numeric
 use component::emit_option
@@ -161,6 +162,10 @@ fn try_emit_shape_component(core_wasm: Vec<i32>, mir: MirModule, export_names: V
 }
 
 fn try_emit_tuple_or_numeric_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+	let flags_component = flags::try_emit_flags_roundtrip_component(clone(core_wasm), mir)
+	if len(flags_component) > 0 {
+		return flags_component
+	}
 	let f32_general_component = numeric::try_emit_f32_general_component(clone(core_wasm), mir)
 	if len(f32_general_component) > 0 {
 		return f32_general_component

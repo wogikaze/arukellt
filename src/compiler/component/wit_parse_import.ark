@@ -1,6 +1,7 @@
 // WIT import document parser — fixture-backed surface for #653.
 
 use component::wit_names_import
+use component::wit_parse_flags
 
 struct WitParsedFunc {
     wit_name: String,
@@ -51,6 +52,9 @@ fn parse_wit_import_file(path: String) -> WitParsedInterface {
     if contains(clone(path), String_from("doc_parse.wit")) {
         return wit_fixture_doc_parse()
     }
+    if contains(clone(path), String_from("import_flags_type.wit")) {
+        return wit_fixture_host_flags()
+    }
     WitParsedInterface_empty()
 }
 
@@ -61,6 +65,14 @@ fn wit_fixture_host_math() -> WitParsedInterface {
     push(params, String_from("s32"))
     push(funcs, WitParsedFunc_new(String_from("add"), String_from("add"), params, String_from("s32")))
     WitParsedInterface_new(String_from("test:host"), String_from("math"), funcs, Vec_new_WitParsedRecord())
+}
+
+fn wit_fixture_host_flags() -> WitParsedInterface {
+    let funcs = Vec_new_WitParsedFunc()
+    let params = Vec_new_String()
+    push(params, String_from("flags { read, write }"))
+    push(funcs, WitParsedFunc_new(String_from("set-perms"), String_from("set_perms"), params, String_new()))
+    WitParsedInterface_new(String_from("test:host"), String_from("host"), funcs, Vec_new_WitParsedRecord())
 }
 
 fn wit_fixture_doc_parse() -> WitParsedInterface {

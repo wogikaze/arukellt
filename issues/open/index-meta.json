@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T04:22:16Z",
+  "generated_at": "2026-06-15T04:33:06Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -18,8 +18,7 @@
         "074"
       ],
       "blocks_issue_ids": [
-        "473",
-        "651"
+        "473"
       ],
       "acceptance": {
         "checked": 0,
@@ -280,8 +279,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 6
+        "checked": 4,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -363,31 +362,6 @@
       }
     },
     {
-      "id": "660",
-      "path": "660-component-export-tier2-general-adapters.md",
-      "title": "660 — Component export: Tier2 general canonical ABI adapters",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "121",
-        "074"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "662",
       "path": "662-std-time-duration-typecheck.md",
       "title": "662 — std::time duration helpers typecheck fix",
@@ -416,31 +390,6 @@
       "id": "473",
       "path": "473-wit-resource-handles.md",
       "title": "473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`)",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "124"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "651",
-      "path": "651-wit-flags-type-support.md",
-      "title": "651 — WIT `flags` type support (remove E0090 rejection)",
       "track": "component-model",
       "status": "open",
       "blocks_v1": "none",

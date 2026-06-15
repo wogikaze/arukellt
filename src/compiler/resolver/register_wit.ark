@@ -42,6 +42,10 @@ fn register_one_wit_import(ctx: ResolveCtx, package_id: String, alias: String) {
     }
     if eq(clone(package_id), String_from("test:doc/parse")) {
         register_wit_doc_parse(ctx, clone(alias))
+        return
+    }
+    if eq(clone(package_id), String_from("test:host/host")) {
+        register_wit_host_flags(ctx, clone(alias))
     }
 }
 
@@ -54,4 +58,9 @@ fn register_wit_doc_parse(ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
     register_exports::register_module_export(ctx, clone(alias), String_from("parse_markdown"), commands::SYM_FN(), true)
     register_exports::register_module_export(ctx, clone(alias), String_from("Document"), commands::SYM_STRUCT(), true)
+}
+
+fn register_wit_host_flags(ctx: ResolveCtx, alias: String) {
+    register_wit_module_alias(ctx, clone(alias))
+    register_exports::register_module_export(ctx, clone(alias), String_from("set_perms"), commands::SYM_FN(), true)
 }

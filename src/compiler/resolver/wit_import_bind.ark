@@ -62,5 +62,9 @@ fn wit_push_bindings_for_import(bindings: Vec<WitImportBinding>, package_id: Str
     }
     if eq(clone(package_id), String_from("test:doc/parse")) {
         push(bindings, WitImportBinding_new(String_from("String_1i32"), String_from("test:doc/parse"), String_from("parse-markdown"), concat(clone(alias), String_from("::parse_markdown"))))
+        return
+    }
+    if eq(clone(package_id), String_from("test:host/host")) {
+        push(bindings, WitImportBinding_new(String_from("i32_0"), String_from("test:host/host"), String_from("set-perms"), concat(clone(alias), String_from("::set_perms"))))
     }
 }

@@ -25,6 +25,7 @@ component-compile:component/export_enum_color_renamed.ark
 component-compile:component/export_enum_colors_renamed.ark
 component-compile:component/export_enum_roundtrip.ark
 component-compile:component/export_enum_roundtrip_renamed.ark
+component-compile:component/export_flags_roundtrip.ark
 component-compile:component/export_enum_wit.ark
 component-compile:component/export_f32.ark
 component-compile:component/export_f32_binary.ark
@@ -32,6 +33,7 @@ component-compile:component/export_f32_param_i32.ark
 component-compile:component/export_f32_renamed.ark
 component-compile:component/export_f32_result_i32.ark
 component-compile:component/export_f32_multi.ark
+component-compile:component/export_string_multi.ark
 component-compile:component/export_f64.ark
 component-compile:component/export_f64_renamed.ark
 component-compile:component/export_i16_renamed.ark
@@ -156,6 +158,7 @@ compile-error:component/export_unsupported_result_vec_i32_string.ark
 compile-error:component/export_unsupported_list_string.ark
 compile-error:component/export_unsupported_nested_option.ark
 compile-error:component/export_unsupported_string_extra.ark
+compile-error:component/export_unsupported_string_multi_mixed.ark
 compile-error:component/export_unsupported_tuple_arity3.ark
 compile-error:component/export_unsupported_tuple_string.ark
 compile-error:component/export_unsupported_variant_payload_i32.ark
@@ -164,7 +167,7 @@ compile-error:component/export_variant_renamed_bad_payload_type.ark
 compile-error:component/export_variant_renamed_bad_shape.ark
 compile-error:component/export_variant_renamed_extra.ark
 compile-error:component/import_async_resource_type.ark
-compile-error:component/import_flags_type.ark
+component-compile:component/import_flags_type.ark
 compile-error:component/import_future_type.ark
 compile-error:component/import_resource_handle_type.ark
 compile-error:component/import_resource_type.ark

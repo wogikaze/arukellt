@@ -1,2 +1,5 @@
+import "test:host/host" as host
+
 fn main() {
+    host::set_perms(3)
 }

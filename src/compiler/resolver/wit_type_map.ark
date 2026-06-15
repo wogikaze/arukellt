@@ -1,7 +1,12 @@
 // WIT type mapping — WIT surface types to Arukellt type names (#653).
 
+use component::wit_parse_flags
+
 fn wit_primitive_to_ark(wit_type: String) -> String {
     let t = wit_trim_type(wit_type)
+    if wit_parse_flags::wit_is_flags_type(clone(t)) {
+        return String_from("i32")
+    }
     if eq(clone(t), String_from("s32")) || eq(clone(t), String_from("u32")) {
         return String_from("i32")
     }
@@ -95,6 +100,9 @@ fn wit_record_index(names: Vec<String>, wit_name: String) -> i32 {
 }
 
 fn wit_type_to_valtype(wit_type: String) -> String {
+    if wit_parse_flags::wit_is_flags_type(wit_trim_type(wit_type)) {
+        return String_from("i32")
+    }
     let ark = wit_primitive_to_ark(wit_type)
     if eq(clone(ark), String_from("i64")) {
         return String_from("i64")

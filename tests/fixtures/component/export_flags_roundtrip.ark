@@ -1,0 +1,12 @@
+// Export with WIT flags parameter/result canonical ABI roundtrip.
+struct Perms {
+    read: bool,
+    write: bool,
+}
+
+pub fn flip_read(p: i32) -> i32 {
+    p ^ 1
+}
+
+fn main() {
+}

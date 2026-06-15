@@ -1,0 +1,38 @@
+// Arukellt Selfhost - issue #651 WIT flags self-check.
+
+use component::wit_parse_flags
+use component::wit_parse_import
+
+fn issue651_flags_parse_self_check() -> bool {
+    let members = wit_parse_flags::wit_flags_member_names(String_from("flags { read, write }"))
+    if len(members) != 2 {
+        return false
+    }
+    if !eq(get_unchecked(members, 0), String_from("read")) {
+        return false
+    }
+    if !eq(get_unchecked(members, 1), String_from("write")) {
+        return false
+    }
+    let doc = wit_parse_import::parse_wit_import_file(String_from("tests/fixtures/component/import_flags_type.wit"))
+    if !eq(clone(doc.package), String_from("test:host")) {
+        return false
+    }
+    if !eq(clone(doc.interface), String_from("host")) {
+        return false
+    }
+    if len(doc.funcs) != 1 {
+        return false
+    }
+    let func = get_unchecked(doc.funcs, 0)
+    if !eq(clone(func.wit_name), String_from("set-perms")) {
+        return false
+    }
+    if !eq(clone(func.ark_name), String_from("set_perms")) {
+        return false
+    }
+    if len(func.param_wit_types) != 1 {
+        return false
+    }
+    wit_parse_flags::wit_is_flags_type(get_unchecked(func.param_wit_types, 0))
+}

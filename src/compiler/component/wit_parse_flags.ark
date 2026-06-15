@@ -1,0 +1,72 @@
+// WIT flags type parsing helpers (#651).
+
+fn wit_trim_ws(text: String) -> String {
+    let n = len(text)
+    let mut start = 0
+    while start < n {
+        let ch = char_at(text, start)
+        if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
+            break
+        }
+        start = start + 1
+    }
+    let mut end = n
+    while end > start {
+        let ch = char_at(text, end - 1)
+        if ch != 32 && ch != 9 && ch != 10 && ch != 13 {
+            break
+        }
+        end = end - 1
+    }
+    substring(text, start, end)
+}
+
+fn wit_is_flags_type(text: String) -> bool {
+    starts_with(wit_trim_ws(text), String_from("flags"))
+}
+
+fn wit_flags_member_names(text: String) -> Vec<String> {
+    let names = Vec_new_String()
+    let open = index_of(text, String_from("{"))
+    let close = index_of(text, String_from("}"))
+    if open < 0 || close <= open {
+        return names
+    }
+    let body = wit_trim_ws(substring(text, open + 1, close))
+    if len(body) == 0 {
+        return names
+    }
+    let mut part = String_new()
+    let mut i = 0
+    while i < len(body) {
+        let ch = char_at(body, i)
+        if ch == 44 {
+            let trimmed = wit_trim_ws(part)
+            if len(trimmed) > 0 {
+                push(names, trimmed)
+            }
+            part = String_new()
+        } else {
+            part = concat(part, substring(body, i, i + 1))
+        }
+        i = i + 1
+    }
+    let trimmed = wit_trim_ws(part)
+    if len(trimmed) > 0 {
+        push(names, trimmed)
+    }
+    names
+}
+
+fn wit_flags_type_text(member_names: Vec<String>) -> String {
+    let mut out = String_from("flags {")
+    let mut i = 0
+    while i < len(member_names) {
+        if i > 0 {
+            out = concat(out, String_from(", "))
+        }
+        out = concat(out, get_unchecked(member_names, i))
+        i = i + 1
+    }
+    concat(out, String_from("}"))
+}

@@ -1,0 +1,10 @@
+package arukellt:generated;
+
+world arukellt {
+  flags perms {
+    read,
+    write,
+  }
+
+  export flip-read: func(p: perms) -> perms;
+}

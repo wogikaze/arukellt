@@ -34,6 +34,14 @@ fn emit_canon_lift_no_options_entry(canon_sec: writer_core::ComponentWriter, fun
 	writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
 }
 
+fn emit_canon_lower_no_options_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, type_idx_canon: i32) {
+	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LOWER())
+	writer_core::comp_emit_byte(canon_sec, 0x00)
+	writer_core::comp_emit_leb128_u(canon_sec, func_idx)
+	writer_core::comp_emit_leb128_u(canon_sec, 0)
+	writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
+}
+
 fn emit_canon_lift_memory_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, memory_idx: i32, type_idx_canon: i32) {
 	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
 	writer_core::comp_emit_byte(canon_sec, 0x00)

@@ -111,7 +111,7 @@ Legend:
 | `record` | yes | yes | `record-*` | **missing** | Struct field names undergo driver_export_name (underscore to kebab-case) |
 | `enum` (unit) | yes | yes | `enum-*` | **missing** | WIT text auto-detects unit vs payload variants |
 | `variant` (payload) | yes | yes | `variant-*` | **missing** | Payload detection works; multi-payload variants in `Shape` verified |
-| `flags` | binary only | **no** | **none** | **blocked** | WIT import surface explicitly rejects flags with E0090; text emitter does not emit `flags` declarations |
+| `flags` | binary only | yes | `export_flags_roundtrip`, `import_flags_type` | **partial** | WIT import/export flags round-trip via i32 canonical ABI ([#651](651-wit-flags-type-support.md)); general flags descriptors remain #121 |
 | `resource` / `own<T>` / `borrow<T>` | binary only | **no** | **none** | **blocked** | WIT import surface explicitly rejects resources with E0402; tracked by #473 |
 | `stream<T>` / `future<T>` | binary only | **no** | **none** | **blocked** | WIT import surface explicitly rejects async with E0402; tracked by #474 |
 | Multiple worlds | n/a | yes | **none** | **missing** | multi-world.ark and expected.wit exist in native/ but no runner |
@@ -282,7 +282,7 @@ Phase 6 (CI integration):
 
 | Gap | Status | Tracking |
 |---|---|---|
-| WIT `flags` type | Arukellt has no flags declaration syntax; WIT import rejects flags with E0090 | Separate feature |
+| WIT `flags` type | Supported for fixture-backed import/export round-trip via i32 canonical ABI (#651) | General flags descriptors remain #121 |
 | WIT `resource` / `own<T>` / `borrow<T>` | WIT import rejects with E0402; binary emitter encodes resource types but text emitter has no resource syntax | #473 |
 | WIT `stream<T>` / `future<T>` | WIT import rejects with E0402; not in text emitter | #474 |
 | WIT `@rename` attribute | Binary emitter may rename exports (NIT); text emitter has no `@rename(...)` annotation | New issue |

@@ -38,6 +38,10 @@ fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, package_id: String, alias: Stri
     }
     if eq(clone(package_id), String_from("test:doc/parse")) {
         push(sigs, wit_fn_sig_string_to_record(clone(alias), String_from("parse_markdown"), String_from("Document")))
+        return
+    }
+    if eq(clone(package_id), String_from("test:host/host")) {
+        push(sigs, wit_fn_sig_flags_param(clone(alias), String_from("set_perms")))
     }
 }
 
@@ -55,6 +59,13 @@ fn wit_fn_sig_string_to_record(alias: String, func_name: String, record_name: St
     let params = Vec_new_TypeInfo()
     push(params, type_names::resolve_type_name(String_from("String")))
     contract_fn_sig::FnSig_new(qualified, params, type_names::resolve_type_name(ret_name), Vec_new_String(), Vec_new_TypeParamBounds())
+}
+
+fn wit_fn_sig_flags_param(alias: String, func_name: String) -> FnSig {
+    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
+    let params = Vec_new_TypeInfo()
+    push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
+    contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_UNIT()), Vec_new_String(), Vec_new_TypeParamBounds())
 }
 
 fn merge_fn_sigs(base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {

@@ -1,0 +1,67 @@
+// Arukellt Selfhost - WIT flags import canonical ABI lower adapter (#651).
+
+use component::adapter_body
+use component::sections
+use component::writer_core
+
+fn comp_flags_lower_adapter_core_module(import_name: String) -> Vec<i32> {
+    let out = sections::comp_new_core_module_writer()
+    comp_emit_flags_lower_adapter_sections(out, import_name)
+    writer_core::comp_writer_bytes(out)
+}
+
+fn comp_emit_flags_lower_adapter_sections(out: writer_core::ComponentWriter, import_name: String) {
+    comp_emit_flags_lower_type_section(out)
+    comp_emit_flags_lower_import_section(out, clone(import_name))
+    comp_emit_flags_lower_func_section(out)
+    comp_emit_flags_lower_export_section(out, clone(import_name))
+    comp_emit_flags_lower_code_section(out)
+}
+
+fn comp_emit_flags_lower_type_section(out: writer_core::ComponentWriter) {
+    let type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(type_sec, 2)
+    let guest_params = Vec_new_i32()
+    push(guest_params, 0x7f)
+    let guest_results = Vec_new_i32()
+    sections::comp_emit_core_func_type(type_sec, guest_params, guest_results)
+    let host_params = Vec_new_i32()
+    push(host_params, 0x7f)
+    let host_results = Vec_new_i32()
+    sections::comp_emit_core_func_type(type_sec, host_params, host_results)
+    sections::comp_emit_wasm_section(out, 1, type_sec)
+}
+
+fn comp_emit_flags_lower_import_section(out: writer_core::ComponentWriter, import_name: String) {
+    let import_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(import_sec, 1)
+    writer_core::comp_emit_string(import_sec, String_from("host"))
+    writer_core::comp_emit_string(import_sec, clone(import_name))
+    writer_core::comp_emit_byte(import_sec, 0x00)
+    writer_core::comp_emit_leb128_u(import_sec, 1)
+    sections::comp_emit_wasm_section(out, 2, import_sec)
+}
+
+fn comp_emit_flags_lower_func_section(out: writer_core::ComponentWriter) {
+    let func_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    sections::comp_emit_wasm_section(out, 3, func_sec)
+}
+
+fn comp_emit_flags_lower_export_section(out: writer_core::ComponentWriter, import_name: String) {
+    let export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(export_sec, 1)
+    writer_core::comp_emit_string(export_sec, clone(import_name))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 0)
+    sections::comp_emit_wasm_section(out, 7, export_sec)
+}
+
+fn comp_emit_flags_lower_code_section(out: writer_core::ComponentWriter) {
+    let code_sec = writer_core::ComponentWriter_new()
+    let body = writer_core::ComponentWriter_new()
+    adapter_body::comp_emit_single_param_output_user_call(body)
+    adapter_body::comp_emit_func_body(code_sec, body)
+    sections::comp_emit_wasm_section(out, 10, code_sec)
+}
