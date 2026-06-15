@@ -21,7 +21,6 @@ graph LR
   I652["652 652 — WIT import parser grammar (`import "..." as alias`)"]
   I656["656 656 — WASI P2 HTTP incoming server facade"]
   I658["658 658 — WASI P2 sockets: listen and accept"]
-  I659["659 659 — Component export: general f32 canonical ABI"]
   I660["660 660 — Component export: Tier2 general canonical ABI adapters"]
   I662["662 662 — std::time duration helpers typecheck fix"]
   I28["28 034-wit-cli-integration"]
@@ -62,7 +61,6 @@ graph LR
 - **652** depends on: 074; blocks: 653
 - **656** depends on: 074, 137; blocks: none
 - **658** depends on: 074, 137; blocks: none
-- **659** depends on: 121, 074; blocks: none
 - **660** depends on: 121, 074; blocks: none
 - **662** depends on: 039, 040; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none

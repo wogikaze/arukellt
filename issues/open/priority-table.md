@@ -31,8 +31,7 @@ Scoring criteria (0-5 each, total 25):
 | 18 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
 | 19 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
 | 20 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 21 | 659 | 659 — Component export: general f32 canonical ABI | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 22 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 23 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 24 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 25 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 21 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 22 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 23 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 24 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |

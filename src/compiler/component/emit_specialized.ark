@@ -161,6 +161,10 @@ fn try_emit_shape_component(core_wasm: Vec<i32>, mir: MirModule, export_names: V
 }
 
 fn try_emit_tuple_or_numeric_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+	let f32_general_component = numeric::try_emit_f32_general_component(clone(core_wasm), mir)
+	if len(f32_general_component) > 0 {
+		return f32_general_component
+	}
 	let tuple_i32_name = export_shapes_scan::comp_single_i32_i32_to_tuple_i32_i32_export_name(mir)
 	if len(tuple_i32_name) > 0 {
 		return tuple::emit_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_name)

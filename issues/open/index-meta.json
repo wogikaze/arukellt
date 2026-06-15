@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T02:36:11Z",
+  "generated_at": "2026-06-15T02:37:46Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -378,31 +378,6 @@
       "depends_on": [
         "074",
         "137"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "659",
-      "path": "659-component-export-f32-canonical-abi.md",
-      "title": "659 — Component export: general f32 canonical ABI",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "121",
-        "074"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

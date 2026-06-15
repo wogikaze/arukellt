@@ -27,7 +27,7 @@ fn component_named_primitive_type_supported(name: String) -> bool {
 }
 
 fn component_named_numeric_type_supported(name: String, allows: ComponentContractAllows) -> bool {
-    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_square(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_binary(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_to_i32(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_i32_to_f32(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows)) && eq(clone(name), String_from("f32"))
+    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_square(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_binary(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_to_i32(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_i32_to_f32(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_general_multi(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows)) && eq(clone(name), String_from("f32"))
 }
 
 fn component_named_string_type_supported(name: String, allows: ComponentContractAllows) -> bool {

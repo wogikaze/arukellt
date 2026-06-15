@@ -38,3 +38,8 @@ fn component_has_i32_to_f32_decls(decls: Vec<AstNode>) -> bool {
     let scan = contract_numeric_scan::component_numeric_scan(decls)
     contract_numeric_scan::ComponentNumericScan_allows_i32_to_f32(scan)
 }
+
+fn component_has_f32_general_multi_decls(decls: Vec<AstNode>) -> bool {
+    let scan = contract_numeric_scan::component_numeric_scan(decls)
+    contract_numeric_scan::ComponentNumericScan_allows_f32_general_multi(scan)
+}

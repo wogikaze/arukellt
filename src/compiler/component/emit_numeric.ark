@@ -9,6 +9,8 @@ use component::export_sections
 use component::naming
 use component::types_wit_func
 use component::writer_core
+use component::emit_f32_general
+use component::export_shapes_f32_general
 
 fn emit_numeric_component(core_wasm: Vec<i32>, export_name: String, adapter_kind: i32, param0_type: i32, param1_type: i32, param_count: i32, result_type: i32) -> Vec<i32> {
     let out = component_base::comp_new_component_writer()
@@ -36,6 +38,14 @@ fn emit_f32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 
 fn emit_i32_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
     emit_numeric_component(core_wasm, export_name, NUM_ADAPTER_I32_TO_F32(), constants_wit_values::WIT_VAL_S32(), 0, 1, constants_wit_values::WIT_VAL_FLOAT32())
+}
+
+fn try_emit_f32_general_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    let plan = export_shapes_f32_general::comp_f32_general_plan(mir)
+    if !export_shapes_f32_general::comp_f32_general_plan_is_valid(plan) {
+        return Vec_new_i32()
+    }
+    emit_f32_general::emit_f32_general_component(core_wasm, plan)
 }
 
 fn NUM_ADAPTER_F32_UNARY() -> i32 { 1 }

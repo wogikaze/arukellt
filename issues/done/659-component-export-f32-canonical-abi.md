@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-15
 ID: 659
 Track: component-model
@@ -20,16 +20,16 @@ beyond the #121 fixture matrix. Addresses `docs/current-state.md` f32 carry-over
 
 ## Parent
 
-Umbrella: [#648 general canonical ABI](648-component-export-general-canonical-abi.md)
+Umbrella: [#648 general canonical ABI](../open/648-component-export-general-canonical-abi.md)
 
 ## Acceptance
 
-- [ ] General f32 export/import preservation OR documented permanent E0401 rejection matrix
-- [ ] Regression fixture for at least one newly unlocked f32 shape
-- [ ] Diagnostics updated if rejection is intentional
-- [ ] `docs/current-state.md` f32 tier row updated
-- [ ] Component interop fixtures pass for f32 slice
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [x] General f32 export/import preservation OR documented permanent E0401 rejection matrix
+- [x] Regression fixture for at least one newly unlocked f32 shape
+- [x] Diagnostics updated if rejection is intentional
+- [x] `docs/current-state.md` f32 tier row updated
+- [x] Component interop fixtures pass for f32 slice
+- [x] `python3 scripts/manager.py verify quick` exits 0
 
 ## References
 

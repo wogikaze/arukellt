@@ -7,21 +7,25 @@ pub struct ComponentNumericScan {
     has_f32_binary: bool,
     has_f32_to_i32: bool,
     has_i32_to_f32: bool,
+    has_f32_general_multi: bool,
+    all_f32_scalar: bool,
     export_count: i32,
 }
 
-fn ComponentNumericScan_new(has_f32_unary: bool, has_f32_binary: bool, has_f32_to_i32: bool, has_i32_to_f32: bool, export_count: i32) -> ComponentNumericScan {
+fn ComponentNumericScan_new(has_f32_unary: bool, has_f32_binary: bool, has_f32_to_i32: bool, has_i32_to_f32: bool, has_f32_general_multi: bool, all_f32_scalar: bool, export_count: i32) -> ComponentNumericScan {
     ComponentNumericScan {
         has_f32_unary: has_f32_unary,
         has_f32_binary: has_f32_binary,
         has_f32_to_i32: has_f32_to_i32,
         has_i32_to_f32: has_i32_to_f32,
+        has_f32_general_multi: has_f32_general_multi,
+        all_f32_scalar: all_f32_scalar,
         export_count: export_count,
     }
 }
 
 fn ComponentNumericScan_empty() -> ComponentNumericScan {
-    ComponentNumericScan_new(false, false, false, false, 0)
+    ComponentNumericScan_new(false, false, false, false, false, true, 0)
 }
 
 fn ComponentNumericScan_single_export(scan: ComponentNumericScan) -> bool {
@@ -44,6 +48,14 @@ fn ComponentNumericScan_has_i32_to_f32(scan: ComponentNumericScan) -> bool {
     scan.has_i32_to_f32
 }
 
+fn ComponentNumericScan_has_f32_general_multi(scan: ComponentNumericScan) -> bool {
+    scan.has_f32_general_multi
+}
+
+fn ComponentNumericScan_all_f32_scalar(scan: ComponentNumericScan) -> bool {
+    scan.all_f32_scalar
+}
+
 fn ComponentNumericScan_increment_export_count(scan: ComponentNumericScan) {
     scan.export_count = scan.export_count + 1
 }
@@ -62,6 +74,14 @@ fn ComponentNumericScan_set_has_f32_to_i32(scan: ComponentNumericScan, value: bo
 
 fn ComponentNumericScan_set_has_i32_to_f32(scan: ComponentNumericScan, value: bool) {
     scan.has_i32_to_f32 = value
+}
+
+fn ComponentNumericScan_set_all_f32_scalar(scan: ComponentNumericScan, value: bool) {
+    scan.all_f32_scalar = value
+}
+
+fn component_fn_is_f32_scalar_export(f: ComponentExportFunc) -> bool {
+    component_fn_is_f32_unary(f) || component_fn_is_f32_binary(f) || component_fn_is_f32_to_i32(f) || component_fn_is_i32_to_f32(f)
 }
 
 fn component_fn_is_f32_unary(f: ComponentExportFunc) -> bool {
@@ -94,6 +114,9 @@ fn component_numeric_scan_apply_fn(d: AstNode, scan: ComponentNumericScan) -> Co
     if component_fn_is_i32_to_f32(f) {
         ComponentNumericScan_set_has_i32_to_f32(scan, true)
     }
+    if !component_fn_is_f32_scalar_export(f) {
+        ComponentNumericScan_set_all_f32_scalar(scan, false)
+    }
     scan
 }
 
@@ -113,6 +136,17 @@ fn ComponentNumericScan_allows_i32_to_f32(scan: ComponentNumericScan) -> bool {
     ComponentNumericScan_has_i32_to_f32(scan) && ComponentNumericScan_single_export(scan)
 }
 
+fn ComponentNumericScan_allows_f32_general_multi(scan: ComponentNumericScan) -> bool {
+    ComponentNumericScan_has_f32_general_multi(scan)
+}
+
+fn component_numeric_scan_finalize(scan: ComponentNumericScan) -> ComponentNumericScan {
+    if scan.export_count >= 2 && ComponentNumericScan_all_f32_scalar(scan) {
+        scan.has_f32_general_multi = true
+    }
+    scan
+}
+
 fn component_numeric_scan(decls: Vec<AstNode>) -> ComponentNumericScan {
     let scan = ComponentNumericScan_empty()
     let mut i = 0
@@ -124,5 +158,5 @@ fn component_numeric_scan(decls: Vec<AstNode>) -> ComponentNumericScan {
         }
         i = i + 1
     }
-    scan
+    component_numeric_scan_finalize(scan)
 }

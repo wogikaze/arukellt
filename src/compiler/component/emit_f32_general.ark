@@ -1,0 +1,102 @@
+// Arukellt Selfhost - general multi-export f32 component wrapper emission.
+
+use component::adapters_f32_general
+use component::component_base
+use component::constants_sections_linkage
+use component::constants_wit_values
+use component::export_sections
+use component::export_sections_entries
+use component::export_shapes_f32_general
+use component::export_shapes_kinds
+use component::naming
+use component::types_wit_func
+use component::writer_core
+
+fn emit_f32_general_component(core_wasm: Vec<i32>, plan: export_shapes_f32_general::F32GeneralPlan) -> Vec<i32> {
+	let out = component_base::comp_new_component_writer()
+	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_f32_general::comp_f32_general_adapter_core_module(plan))
+
+	emit_f32_general_alias_section(out, plan)
+	emit_f32_general_type_section(out, plan)
+	emit_f32_general_canon_section(out, plan)
+	emit_f32_general_export_section(out, plan)
+
+	writer_core::comp_writer_bytes(out)
+}
+
+fn emit_f32_general_alias_section(out: writer_core::ComponentWriter, plan: export_shapes_f32_general::F32GeneralPlan) {
+	let alias_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_f32_general::F32GeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(alias_sec, count)
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
+		let name = export_shapes_f32_general::F32GeneralExport_name(entry)
+		export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, name)
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+}
+
+fn emit_f32_general_kind_wit_param_types(kind: i32) -> Vec<i32> {
+	let params = Vec_new_i32()
+	if kind == export_shapes_kinds::I32_TO_F32() {
+		push(params, constants_wit_values::WIT_VAL_S32())
+		return params
+	}
+	push(params, constants_wit_values::WIT_VAL_FLOAT32())
+	if kind == export_shapes_kinds::F32_BINARY() {
+		push(params, constants_wit_values::WIT_VAL_FLOAT32())
+	}
+	params
+}
+
+fn emit_f32_general_kind_wit_result_type(kind: i32) -> i32 {
+	if kind == export_shapes_kinds::F32_TO_I32() {
+		return constants_wit_values::WIT_VAL_S32()
+	}
+	constants_wit_values::WIT_VAL_FLOAT32()
+}
+
+fn emit_f32_general_type_section(out: writer_core::ComponentWriter, plan: export_shapes_f32_general::F32GeneralPlan) {
+	let type_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_f32_general::F32GeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(type_sec, count)
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
+		let kind = export_shapes_f32_general::F32GeneralExport_kind(entry)
+		let params = emit_f32_general_kind_wit_param_types(kind)
+		let results = Vec_new_i32()
+		push(results, emit_f32_general_kind_wit_result_type(kind))
+		writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
+}
+
+fn emit_f32_general_canon_section(out: writer_core::ComponentWriter, plan: export_shapes_f32_general::F32GeneralPlan) {
+	let canon_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_f32_general::F32GeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(canon_sec, count)
+	let mut i = 0
+	while i < count {
+		export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, i, i)
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+}
+
+fn emit_f32_general_export_section(out: writer_core::ComponentWriter, plan: export_shapes_f32_general::F32GeneralPlan) {
+	let func_export_sec = writer_core::ComponentWriter_new()
+	let count = export_shapes_f32_general::F32GeneralPlan_count(plan)
+	writer_core::comp_emit_leb128_u(func_export_sec, count)
+	let mut i = 0
+	while i < count {
+		let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
+		let name = export_shapes_f32_general::F32GeneralExport_name(entry)
+		export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(name), i, i)
+		i = i + 1
+	}
+	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+}

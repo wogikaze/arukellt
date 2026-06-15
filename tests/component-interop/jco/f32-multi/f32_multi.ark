@@ -1,0 +1,4 @@
+// General multi-export f32 canonical ABI: unary + binary float32 exports in one world.
+pub fn square32(x: f32) -> f32 { x * x }
+pub fn add32(a: f32, b: f32) -> f32 { a + b }
+fn main() {}

@@ -7,6 +7,7 @@ use component::contract_helpers
 use component::contract_allows_numeric_tuple_query
 use component::contract_allows_string_query
 use component::contract_numeric
+use component::contract_numeric_scan
 use component::contract_string_fn
 use component::contract_tuple_functions
 
@@ -96,6 +97,10 @@ fn component_numeric_tuple_signature_error(f: AstNode, allows: ComponentContract
 }
 
 fn component_numeric_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	let general_error = component_numeric_general_signature_error(f, allows)
+	if len(general_error) > 0 {
+		return general_error
+	}
 	let unary_error = component_numeric_unary_signature_error(f, allows)
 	if len(unary_error) > 0 {
 		return unary_error
@@ -107,6 +112,13 @@ fn component_numeric_signature_error(f: AstNode, allows: ComponentContractAllows
 	let convert_error = component_numeric_convert_signature_error(f, allows)
 	if len(convert_error) > 0 {
 		return convert_error
+	}
+	String_new()
+}
+
+fn component_numeric_general_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
+	if contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_general_multi(allows) && !contract_numeric_scan::component_fn_is_f32_scalar_export(contract_helpers::component_func_from_decl(f)) {
+		return contract_helpers::component_error_for_fn(f)
 	}
 	String_new()
 }

@@ -28,6 +28,10 @@ fn ComponentContractAllows_allow_i32_to_f32(allows: ComponentContractAllows) -> 
     contract_allows_numeric::ComponentNumericAllows_allow_i32_to_f32(component_numeric_allows(allows))
 }
 
+fn ComponentContractAllows_allow_f32_general_multi(allows: ComponentContractAllows) -> bool {
+    contract_allows_numeric::ComponentNumericAllows_allow_f32_general_multi(component_numeric_allows(allows))
+}
+
 fn ComponentContractAllows_allow_tuple_swap(allows: ComponentContractAllows) -> bool {
     contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_swap(component_tuple_allows(allows))
 }

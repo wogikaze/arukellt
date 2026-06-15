@@ -31,6 +31,7 @@ component-compile:component/export_f32_binary.ark
 component-compile:component/export_f32_param_i32.ark
 component-compile:component/export_f32_renamed.ark
 component-compile:component/export_f32_result_i32.ark
+component-compile:component/export_f32_multi.ark
 component-compile:component/export_f64.ark
 component-compile:component/export_f64_renamed.ark
 component-compile:component/export_i16_renamed.ark
