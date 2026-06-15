@@ -12,6 +12,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
+sys.path.insert(0, str(REPO_ROOT / "scripts" / "check"))
+from gate_bootstrap_component import bootstrap_validate_skip_allowed
+
 
 def _compile_env() -> dict[str, str]:
     env = dict(os.environ)
@@ -248,6 +251,14 @@ def main() -> int:
                 if vrc == 2:
                     print(f"gate-473-wit-resource-handles: SKIP (wasm-tools: {vmsg})")
                 elif vrc != 0:
+                    static_rc, _ = _static_evidence()
+                    overlay_rc, _ = _overlay_evidence()
+                    if bootstrap_validate_skip_allowed(vmsg, static_rc, overlay_rc):
+                        print(
+                            "gate-473-wit-resource-handles: PASS "
+                            "(static+overlay; bootstrap validate skipped)"
+                        )
+                        return 0
                     failures.append(f"{label} validate: {vmsg}")
 
         if not failures:

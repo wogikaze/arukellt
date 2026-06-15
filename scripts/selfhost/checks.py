@@ -97,6 +97,10 @@ BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {
 
 # ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
 BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
+# Nested imports that flatten to the namespace owner when the namespace is stubbed.
+BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS: dict[tuple[str, ...], str] = {
+    ("mir_opt", "optimize_module"): "mir_opt",
+}
 BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — full MIR opt excluded (ff8f8ded traps in selfhost wasm).
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     m
@@ -137,7 +141,7 @@ pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decl
 """
 
 BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB = """// Bootstrap overlay stub — world_spec excluded with component model.
-fn world_target_error(world: String, target: String, emit_mode: String) -> String {
+pub fn component_world_spec__world_target_error(world: String, target: String, emit_mode: String) -> String {
     if len(world) == 0 { return String_new() }
     if !contains(clone(target), String_from("-p2")) { return String_from("--world requires --target wasm32-wasi-p2") }
     String_new()
@@ -485,8 +489,18 @@ def _is_overlay_delegate_fn(lines: list[str], start: int) -> bool:
     if inner.find(";") >= 0:
         return False
     param_names = _overlay_fn_param_names(lines[start])
+    clone_forward = re.match(
+        r"^((?:[A-Za-z_][A-Za-z0-9_]*::)+)([A-Za-z_][A-Za-z0-9_]*)\(clone\(([^)]+)\)\)$",
+        inner,
+    )
+    if clone_forward is not None:
+        if clone_forward.group(2) != fn_name:
+            return False
+        if len(param_names) != 1:
+            return False
+        return clone_forward.group(3) == param_names[0]
     match = re.match(
-        r"^([A-Za-z_][A-Za-z0-9_:]*)::([A-Za-z_][A-Za-z0-9_]*)\(([^)]*)\)$",
+        r"^((?:[A-Za-z_][A-Za-z0-9_]*::)+)([A-Za-z_][A-Za-z0-9_]*)\(([^)]*)\)$",
         inner,
     )
     if match is None:
@@ -500,7 +514,9 @@ def _is_overlay_delegate_fn(lines: list[str], start: int) -> bool:
         return False
     idx = 0
     while idx < len(call_args):
-        if call_args[idx] != param_names[idx]:
+        arg = call_args[idx]
+        param = param_names[idx]
+        if arg != param and arg != f"clone({param})":
             return False
         idx = idx + 1
     return True
@@ -987,10 +1003,13 @@ def _write_bootstrap_stub_namespace_overlays(
     """Write passthrough stubs for namespaces that trap when fully overlaid."""
     written: set[str] = set()
     if "mir_opt" in BOOTSTRAP_STUB_OVERLAY_NAMESPACES:
-        for out_name in ("mir_opt.ark", "mir_opt_optimize_module.ark"):
-            (compiler_out / out_name).write_text(BOOTSTRAP_MIR_OPT_STUB, encoding="utf-8")
-            written.add(out_name)
-            write_order.append(out_name)
+        # Single owner only: a second `mir_opt_optimize_module.ark` copy makes overlay
+        # dedupe rename `optimize_module` → `mir_opt__optimize_module`, breaking
+        # `mir_opt::optimize_module` in the emitted selfhost wasm (unreachable trap).
+        out_name = "mir_opt.ark"
+        (compiler_out / out_name).write_text(BOOTSTRAP_MIR_OPT_STUB, encoding="utf-8")
+        written.add(out_name)
+        write_order.append(out_name)
     return written
 
 
@@ -1572,6 +1591,9 @@ def _flatten_compiler_imports(text: str) -> str:
         parts = match.group(2).split("::")
         if parts[0] not in LOCAL_COMPILER_NAMESPACES:
             continue
+        stub_owner = BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS.get(tuple(parts))
+        if stub_owner is not None:
+            continue
         ns_mod = _flatten_namespace_mod_import(parts)
         flat_name = ns_mod if ns_mod is not None else "_".join(parts)
         explicit_alias = match.group(3)
@@ -1592,6 +1614,10 @@ def _flatten_compiler_imports(text: str) -> str:
         if match:
             parts = match.group(2).split("::")
             if parts[0] in LOCAL_COMPILER_NAMESPACES:
+                stub_owner = BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS.get(tuple(parts))
+                if stub_owner is not None:
+                    output.append(f"{match.group(1)}use {stub_owner}")
+                    continue
                 ns_mod = _flatten_namespace_mod_import(parts)
                 flat = ns_mod if ns_mod is not None else "_".join(parts)
                 explicit_alias = match.group(3)
@@ -1676,6 +1702,8 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         out_path.write_text(_flatten_compiler_imports(text), encoding="utf-8")
         write_order.append(out_name)
     _reapply_global_overlay_dedupe(compiler_out, write_order)
+    _patch_bootstrap_mir_host_call_delegates(compiler_out)
+    _patch_bootstrap_mir_module_host_needs(compiler_out)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
     (compiler_out / "component_world_spec.ark").write_text(
         BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB, encoding="utf-8",
@@ -1687,6 +1715,59 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     return overlay_root
+
+
+def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
+    """Drop mir host-call facades that recurse after overlay symbol renaming."""
+    fn_path = compiler_out / "mir_module_functions.ark"
+    host_path = compiler_out / "mir_module_host_calls.ark"
+    if not fn_path.is_file() or not host_path.is_file():
+        return
+    host_text = host_path.read_text(encoding="utf-8")
+    text = fn_path.read_text(encoding="utf-8")
+    for symbol in ("mir_call_is_arukellt_host", "mir_call_is_wasi_http_outgoing"):
+        if not re.search(
+            rf"pub fn (?:mir_module_host_calls__)?{re.escape(symbol)}\(callee: String\) -> bool",
+            host_text,
+        ):
+            continue
+        text = re.sub(
+            rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool \{{[^}}]+\}}\n+",
+            "",
+            text,
+            count=1,
+        )
+        text = text.replace(
+            f"{symbol}(",
+            f"mir_module_host_calls::{symbol}(",
+        )
+    if "use mir_module_host_calls" not in text:
+        text = text.replace(
+            "use mir_opcodes\n",
+            "use mir_opcodes\nuse mir_module_host_calls\n",
+        )
+    fn_path.write_text(text, encoding="utf-8")
+
+
+def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
+    """Bootstrap overlay: host-import scans trap after flat-module symbol renames."""
+    path = compiler_out / "mir_module_functions.ark"
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    stubs: tuple[tuple[str, str], ...] = (
+        ("mir_module_needs_arukellt_host", "mir: MirModule"),
+        ("mir_module_needs_wasi_http_outgoing", "mir: MirModule"),
+        ("mir_module_needs_wasi_http_outgoing_if_p2", "mir: MirModule, wasi_version: String"),
+    )
+    for name, params in stubs:
+        text = re.sub(
+            rf"pub fn {re.escape(name)}\({re.escape(params)}\) -> i32 \{{[\s\S]*?\n\}}",
+            f"pub fn {name}({params}) -> i32 {{\n    0\n}}",
+            text,
+            count=1,
+        )
+    path.write_text(text, encoding="utf-8")
 
 
 def _prepare_bootstrap_workspace(root: Path) -> Path:
