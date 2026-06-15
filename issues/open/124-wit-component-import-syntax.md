@@ -10,7 +10,7 @@ Blocks: 034, 473, 651
 Blocks v4 exit: yes
 ADR candidate: yes
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
-Status note: Phase 1 (#652–#654) and Phase 2a (#663 ark.toml WIT package resolution) closed. Umbrella remains open for #664 record/enum bindings and #665 compose round-trip.
+Status note: Phase 1 (#652–#654) and Phase 2a (#663 ark.toml WIT package resolution) and Phase 2b (#664 record/enum bindings) closed. Umbrella remains open for #665 compose round-trip.
 ---
 
 # WIT component import syntax

@@ -1,6 +1,7 @@
-// WIT type mapping — WIT surface types to Arukellt type names (#653).
+// WIT type mapping — WIT surface types to Arukellt type names (#653, #664).
 
 use component::wit_parse_flags
+use component::wit_parse_text
 
 fn wit_primitive_to_ark(wit_type: String) -> String {
     let t = wit_trim_type(wit_type)
@@ -58,23 +59,72 @@ fn wit_trim_type(t: String) -> String {
     substring(t, start, end)
 }
 
-fn wit_type_to_ark(wit_type: String, alias: String, record_ark_names: Vec<String>, record_wit_names: Vec<String>) -> String {
+fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
+    let names = Vec_new_String()
+    let mut ri = 0
+    while ri < len(doc.records) {
+        push(names, clone(get_unchecked(doc.records, ri).wit_name))
+        ri = ri + 1
+    }
+    names
+}
+
+fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
+    let names = Vec_new_String()
+    let mut ri = 0
+    while ri < len(doc.records) {
+        push(names, clone(get_unchecked(doc.records, ri).ark_name))
+        ri = ri + 1
+    }
+    names
+}
+
+fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
+    let names = Vec_new_String()
+    let mut ei = 0
+    while ei < len(doc.enums) {
+        push(names, clone(get_unchecked(doc.enums, ei).wit_name))
+        ei = ei + 1
+    }
+    names
+}
+
+fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
+    let names = Vec_new_String()
+    let mut ei = 0
+    while ei < len(doc.enums) {
+        push(names, clone(get_unchecked(doc.enums, ei).ark_name))
+        ei = ei + 1
+    }
+    names
+}
+
+fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
+    let rec_wit = wit_record_wit_names(doc)
+    let rec_ark = wit_record_ark_names(doc)
+    let enum_wit = wit_enum_wit_names(doc)
+    let enum_ark = wit_enum_ark_names(doc)
     let t = wit_trim_type(wit_type)
     if len(t) == 0 {
         return String_from("()")
     }
     if starts_with(clone(t), String_from("list<")) {
         let inner = wit_generic_inner(t)
-        return concat(String_from("Vec<"), concat(wit_type_to_ark(inner, clone(alias), record_ark_names, record_wit_names), String_from(">")))
+        return concat(String_from("Vec<"), concat(wit_type_to_ark(inner, clone(alias), doc), String_from(">")))
     }
     if starts_with(clone(t), String_from("option<")) {
         let inner = wit_generic_inner(t)
-        return concat(String_from("Option<"), concat(wit_type_to_ark(inner, clone(alias), record_ark_names, record_wit_names), String_from(">")))
+        return concat(String_from("Option<"), concat(wit_type_to_ark(inner, clone(alias), doc), String_from(">")))
     }
-    let rec_idx = wit_record_index(record_wit_names, clone(t))
+    let rec_idx = wit_record_index(rec_wit, clone(t))
     if rec_idx >= 0 {
-        let rec_name = get_unchecked(record_ark_names, rec_idx)
+        let rec_name = get_unchecked(rec_ark, rec_idx)
         return concat(clone(alias), concat(String_from("::"), clone(rec_name)))
+    }
+    let enum_idx = wit_enum_index(enum_wit, clone(t))
+    if enum_idx >= 0 {
+        let enum_name = get_unchecked(enum_ark, enum_idx)
+        return concat(clone(alias), concat(String_from("::"), clone(enum_name)))
     }
     wit_primitive_to_ark(t)
 }
@@ -99,8 +149,28 @@ fn wit_record_index(names: Vec<String>, wit_name: String) -> i32 {
     0 - 1
 }
 
-fn wit_type_to_valtype(wit_type: String) -> String {
+fn wit_enum_index(names: Vec<String>, wit_name: String) -> i32 {
+    let mut i = 0
+    while i < len(names) {
+        if eq(get_unchecked(names, i), clone(wit_name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
     if wit_parse_flags::wit_is_flags_type(wit_trim_type(wit_type)) {
+        return String_from("i32")
+    }
+    let t = wit_trim_type(wit_type)
+    let rec_idx = wit_record_index(wit_record_wit_names(doc), clone(t))
+    if rec_idx >= 0 {
+        return String_from("i32")
+    }
+    let enum_idx = wit_enum_index(wit_enum_wit_names(doc), clone(t))
+    if enum_idx >= 0 {
         return String_from("i32")
     }
     let ark = wit_primitive_to_ark(wit_type)
@@ -113,14 +183,14 @@ fn wit_type_to_valtype(wit_type: String) -> String {
     String_from("i32")
 }
 
-fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String) -> String {
+fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
     let mut sig = String_new()
     let mut pi = 0
     while pi < len(param_wit_types) {
         if pi > 0 {
             sig = concat(sig, String_from("_"))
         }
-        sig = concat(sig, wit_type_to_valtype(get_unchecked(param_wit_types, pi)))
+        sig = concat(sig, wit_type_to_valtype(get_unchecked(param_wit_types, pi), doc))
         pi = pi + 1
     }
     let ret = wit_trim_type(ret_wit_type)
@@ -133,5 +203,5 @@ fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String) -> Stri
     if len(sig) > 0 {
         sig = concat(sig, String_from("_"))
     }
-    concat(sig, concat(String_from("1"), wit_type_to_valtype(ret)))
+    concat(sig, concat(String_from("1"), wit_type_to_valtype(ret, doc)))
 }

@@ -1,4 +1,4 @@
-// WIT import document loading and lookup (#653).
+// WIT import document loading and lookup (#653, #664).
 
 use component::wit_parse_import
 use component::wit_parse_text
@@ -42,41 +42,33 @@ fn wit_interface_id_parts(package: String, interface: String) -> String {
 }
 
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
-    let names = Vec_new_String()
-    let mut ri = 0
-    while ri < len(doc.records) {
-        push(names, clone(get_unchecked(doc.records, ri).wit_name))
-        ri = ri + 1
-    }
-    names
+    wit_type_map::wit_record_wit_names(doc)
 }
 
 fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
-    let names = Vec_new_String()
-    let mut ri = 0
-    while ri < len(doc.records) {
-        push(names, clone(get_unchecked(doc.records, ri).ark_name))
-        ri = ri + 1
-    }
-    names
+    wit_type_map::wit_record_ark_names(doc)
+}
+
+fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
+    wit_type_map::wit_enum_wit_names(doc)
+}
+
+fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
+    wit_type_map::wit_enum_ark_names(doc)
 }
 
 fn wit_func_param_ark_types(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
-    let rec_wit = wit_record_wit_names(doc)
-    let rec_ark = wit_record_ark_names(doc)
     let out = Vec_new_String()
     let mut pi = 0
     while pi < len(func.param_wit_types) {
-        push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), clone(alias), rec_ark, rec_wit))
+        push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), clone(alias), doc))
         pi = pi + 1
     }
     out
 }
 
 fn wit_func_ret_ark_type(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
-    let rec_wit = wit_record_wit_names(doc)
-    let rec_ark = wit_record_ark_names(doc)
-    wit_type_map::wit_type_to_ark(func.ret_wit_type, clone(alias), rec_ark, rec_wit)
+    wit_type_map::wit_type_to_ark(func.ret_wit_type, clone(alias), doc)
 }
 
 fn wit_binding_key(interface_id: String, wit_func_name: String) -> String {

@@ -1,0 +1,19 @@
+package test:doc@0.1.0;
+
+interface parse {
+    record point {
+        x: s32,
+        y: s32,
+    }
+
+    enum direction {
+        north,
+        south,
+        east,
+        west,
+    }
+
+    origin: func() -> point;
+    label: func(d: direction) -> string;
+    facing: func() -> direction;
+}

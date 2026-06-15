@@ -17,7 +17,7 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls), module_wit::collect_wit_fn_sigs(wit_paths, decls))
-    let enum_defs = module::collect_enum_defs(decls)
+    let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)

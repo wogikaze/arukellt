@@ -30,3 +30,11 @@ fn wit_record_type_name(record_name: String) -> String {
 fn wit_import_func_name(wit_name: String) -> String {
     wit_kebab_to_snake(wit_name)
 }
+
+fn wit_enum_type_name(enum_name: String) -> String {
+    wit_record_type_name(enum_name)
+}
+
+fn wit_enum_variant_name(variant_name: String) -> String {
+    wit_record_type_name(variant_name)
+}

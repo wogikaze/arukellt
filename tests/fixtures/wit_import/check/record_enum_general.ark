@@ -1,0 +1,7 @@
+import "test:doc/parse" as geo
+
+fn main() {
+    let _ = geo::origin().x
+    let _ = geo::label(geo::Direction::North)
+    let _ = geo::facing()
+}

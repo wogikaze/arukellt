@@ -1,4 +1,4 @@
-// WIT parsed import surface types (#653, #663).
+// WIT parsed import surface types (#653, #663, #664).
 
 struct WitParsedFunc {
     wit_name: String,
@@ -14,11 +14,19 @@ struct WitParsedRecord {
     field_wit_types: Vec<String>,
 }
 
+struct WitParsedEnum {
+    wit_name: String,
+    ark_name: String,
+    variant_wit_names: Vec<String>,
+    variant_ark_names: Vec<String>,
+}
+
 struct WitParsedInterface {
     package: String,
     interface: String,
     funcs: Vec<WitParsedFunc>,
     records: Vec<WitParsedRecord>,
+    enums: Vec<WitParsedEnum>,
 }
 
 fn WitParsedInterface_empty() -> WitParsedInterface {
@@ -27,11 +35,12 @@ fn WitParsedInterface_empty() -> WitParsedInterface {
         interface: String_new(),
         funcs: Vec_new_WitParsedFunc(),
         records: Vec_new_WitParsedRecord(),
+        enums: Vec_new_WitParsedEnum(),
     }
 }
 
-fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>) -> WitParsedInterface {
-    WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records }
+fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>, enums: Vec<WitParsedEnum>) -> WitParsedInterface {
+    WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records, enums: enums }
 }
 
 fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<String>, ret_wit_type: String) -> WitParsedFunc {
@@ -40,4 +49,8 @@ fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<St
 
 fn WitParsedRecord_new(wit_name: String, ark_name: String, field_names: Vec<String>, field_wit_types: Vec<String>) -> WitParsedRecord {
     WitParsedRecord { wit_name: wit_name, ark_name: ark_name, field_names: field_names, field_wit_types: field_wit_types }
+}
+
+fn WitParsedEnum_new(wit_name: String, ark_name: String, variant_wit_names: Vec<String>, variant_ark_names: Vec<String>) -> WitParsedEnum {
+    WitParsedEnum { wit_name: wit_name, ark_name: ark_name, variant_wit_names: variant_wit_names, variant_ark_names: variant_ark_names }
 }

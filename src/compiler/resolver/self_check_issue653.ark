@@ -31,7 +31,7 @@ fn issue653_parse_host_math() -> String {
     if !eq(clone(func.ark_name), String_from("add")) {
         return String_from("issue653 fail: func name")
     }
-    let sig = wit_type_map::wit_func_type_sig(func.param_wit_types, func.ret_wit_type)
+    let sig = wit_type_map::wit_func_type_sig(func.param_wit_types, func.ret_wit_type, doc)
     if !eq(clone(sig), String_from("i32_i32_1i32")) {
         return String_from("issue653 fail: func type sig")
     }

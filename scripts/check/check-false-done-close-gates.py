@@ -56,6 +56,7 @@ TRACKED: dict[str, list[str]] = {
     "653": ["WIT import resolver MIR gate-653-wit-import-resolver-mir.py"],
     "654": ["WIT import component emit gate-654-wit-import-component-emit.py"],
     "663": ["ark.toml WIT package resolution gate-663-ark-toml-wit-package.py"],
+    "664": ["WIT record/enum import bindings gate-664-wit-import-record-enum-bindings.py"],
     "651": ["WIT flags type support gate-651-wit-flags-type-support.py"],
     "473": ["WIT resource handles gate-473-wit-resource-handles.py"],
     "034": ["callable --wit import binding gate-034-wit-cli-integration.py"],
@@ -603,6 +604,16 @@ def gate_663() -> tuple[int, str]:
         return 1, (result.stdout + result.stderr)[-400:]
     return 0, ""
 
+def gate_664() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-664-wit-import-record-enum-bindings.py"
+    if not script.is_file():
+        return 1, "missing gate-664-wit-import-record-enum-bindings.py"
+    result = subprocess.run([sys.executable, str(script)], cwd=str(REPO_ROOT), capture_output=True, text=True)
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-400:]
+    return 0, ""
+
+
 def gate_654() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-654-wit-import-component-emit.py"
     if not script.is_file():
@@ -787,6 +798,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "653": gate_653,
     "654": gate_654,
     "663": gate_663,
+    "664": gate_664,
     "651": gate_651,
     "473": gate_473,
     "034": gate_034,

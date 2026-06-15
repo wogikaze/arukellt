@@ -1,24 +1,40 @@
-// WIT function signature collection for typecheck (#653).
+// WIT function signature collection for typecheck (#653, #664).
 
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::contract_fn_sig
 use typechecker::contract_type_constructors
+use typechecker::contract_enum_info
 use typechecker::type_names
+use resolver::wit_register
+use resolver::wit_surface
 
 fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig> {
-    let _ = wit_paths
     let sigs = Vec_new_FnSig()
     let count = len(decls)
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_wit_import(d) {
-            wit_push_fn_sigs_for_import(sigs, ast_access::node_text(d), wit_import_alias(d))
+            wit_push_fn_sigs_for_import(sigs, wit_paths, ast_access::node_text(d), wit_import_alias(d))
         }
         i = i + 1
     }
     sigs
+}
+
+fn collect_wit_enum_defs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<EnumInfo> {
+    let enum_defs = Vec_new_EnumInfo()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let d = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_wit_import(d) {
+            wit_push_enum_defs_for_import(enum_defs, wit_paths, ast_access::node_text(d), wit_import_alias(d))
+        }
+        i = i + 1
+    }
+    enum_defs
 }
 
 fn wit_import_alias(decl: AstNode) -> String {
@@ -28,16 +44,13 @@ fn wit_import_alias(decl: AstNode) -> String {
     ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
 }
 
-fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, package_id: String, alias: String) {
+fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, wit_paths: Vec<String>, package_id: String, alias: String) {
     if len(alias) == 0 {
         return
     }
-    if eq(clone(package_id), String_from("test:host/math")) {
-        push(sigs, wit_fn_sig_binary_i32(clone(alias), String_from("add")))
-        return
-    }
-    if eq(clone(package_id), String_from("test:doc/parse")) {
-        push(sigs, wit_fn_sig_string_to_record(clone(alias), String_from("parse_markdown"), String_from("Document")))
+    let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
+    if wit_register::wit_doc_has_surface(doc) {
+        wit_push_fn_sigs_for_doc(sigs, clone(alias), doc)
         return
     }
     if eq(clone(package_id), String_from("test:host/host")) {
@@ -50,20 +63,50 @@ fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, package_id: String, alias: Stri
     }
 }
 
-fn wit_fn_sig_binary_i32(alias: String, func_name: String) -> FnSig {
-    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
-    let params = Vec_new_TypeInfo()
-    push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
-    push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
-    contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()), Vec_new_String(), Vec_new_TypeParamBounds())
+fn wit_push_enum_defs_for_import(enum_defs: Vec<EnumInfo>, wit_paths: Vec<String>, package_id: String, alias: String) {
+    if len(alias) == 0 {
+        return
+    }
+    let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
+    if !wit_register::wit_doc_has_surface(doc) {
+        return
+    }
+    let mut ei = 0
+    while ei < len(doc.enums) {
+        push(enum_defs, wit_enum_info_from_parsed(clone(alias), get_unchecked(doc.enums, ei)))
+        ei = ei + 1
+    }
 }
 
-fn wit_fn_sig_string_to_record(alias: String, func_name: String, record_name: String) -> FnSig {
-    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
-    let ret_name = concat(clone(alias), concat(String_from("::"), clone(record_name)))
+fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit_parse_text::WitParsedInterface) {
+    let mut fi = 0
+    while fi < len(doc.funcs) {
+        push(sigs, wit_fn_sig_from_parsed(clone(alias), doc, get_unchecked(doc.funcs, fi)))
+        fi = fi + 1
+    }
+}
+
+fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitParsedInterface, func: component::wit_parse_text::WitParsedFunc) -> FnSig {
+    let qualified = concat(clone(alias), concat(String_from("::"), clone(func.ark_name)))
     let params = Vec_new_TypeInfo()
-    push(params, type_names::resolve_type_name(String_from("String")))
-    contract_fn_sig::FnSig_new(qualified, params, type_names::resolve_type_name(ret_name), Vec_new_String(), Vec_new_TypeParamBounds())
+    let param_types = wit_surface::wit_func_param_ark_types(func, clone(alias), doc)
+    let mut pi = 0
+    while pi < len(param_types) {
+        push(params, type_names::resolve_type_name(get_unchecked(param_types, pi)))
+        pi = pi + 1
+    }
+    let ret_name = wit_surface::wit_func_ret_ark_type(func, clone(alias), doc)
+    let ret_ty = if len(ret_name) == 0 || eq(clone(ret_name), String_from("()")) {
+        contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
+    } else {
+        type_names::resolve_type_name(ret_name)
+    }
+    contract_fn_sig::FnSig_new(qualified, params, ret_ty, Vec_new_String(), Vec_new_TypeParamBounds())
+}
+
+fn wit_enum_info_from_parsed(alias: String, en: component::wit_parse_text::WitParsedEnum) -> EnumInfo {
+    let qualified = concat(clone(alias), concat(String_from("::"), clone(en.ark_name)))
+    contract_enum_info::EnumInfo_new(qualified, en.variant_ark_names)
 }
 
 fn wit_fn_sig_flags_param(alias: String, func_name: String) -> FnSig {
@@ -81,6 +124,16 @@ fn wit_fn_sig_i32_param(alias: String, func_name: String) -> FnSig {
 }
 
 fn merge_fn_sigs(base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {
+    let wit_count = len(wit)
+    let mut i = 0
+    while i < wit_count {
+        push(base, get_unchecked(wit, i))
+        i = i + 1
+    }
+    base
+}
+
+fn merge_enum_defs(base: Vec<EnumInfo>, wit: Vec<EnumInfo>) -> Vec<EnumInfo> {
     let wit_count = len(wit)
     let mut i = 0
     while i < wit_count {

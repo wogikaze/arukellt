@@ -27,9 +27,7 @@ fn wit_import_alias(decl: AstNode) -> String {
 }
 
 fn register_wit_module_alias(ctx: ResolveCtx, alias: String) {
-    if scope_lookup::lookup(ctx, clone(alias)) < 0 {
-        scope_define::define(ctx, clone(alias), commands::SYM_MODULE())
-    }
+    wit_register::wit_ensure_module_alias(ctx, clone(alias))
 }
 
 fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String) {
