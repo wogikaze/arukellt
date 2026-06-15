@@ -19,10 +19,8 @@ graph LR
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I656["656 656 — WASI P2 HTTP incoming server facade"]
   I658["658 658 — WASI P2 sockets: listen and accept"]
-  I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
-  I139 --> I136
   I474 --> I646
   I30 --> I31
 ```
@@ -30,7 +28,7 @@ graph LR
 ## Adjacency list
 
 - **124** depends on: 074; blocks: none
-- **139** depends on: 074, 137; blocks: 136
+- **139** depends on: 074, 137; blocks: none
 - **30** depends on: 27; blocks: none
 - **41** depends on: 039, 040; blocks: none
 - **44** depends on: 039, 044, 053; blocks: none
@@ -42,7 +40,6 @@ graph LR
 - **649** depends on: 641; blocks: none
 - **656** depends on: 074, 137; blocks: none
 - **658** depends on: 074, 137; blocks: none
-- **136** depends on: 137, 138, 077, 139; blocks: none
 - **646** depends on: 474; blocks: none
 
 ### Blocked

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T04:46:35Z",
+  "generated_at": "2026-06-15T04:55:55Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -42,9 +42,7 @@
         "074",
         "137"
       ],
-      "blocks_issue_ids": [
-        "136"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -329,33 +327,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "136",
-      "path": "136-std-wasi-capability-rollout.md",
-      "title": "ADR-011 に沿った `std::host` layer の段階的ロールアウト",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "137",
-        "138",
-        "077",
-        "139"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
         "upstream_notes": "None"
       }
     },

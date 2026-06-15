@@ -46,6 +46,7 @@ TRACKED: dict[str, list[str]] = {
     "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
     "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
     "138": ["std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
+    "136": ["ADR-011 std::host rollout consistency (gate-136-std-host-rollout.py)"],
     "652": ["WIT import parser grammar gate-652-wit-import-parser.py"],
     "653": ["WIT import resolver MIR gate-653-wit-import-resolver-mir.py"],
     "654": ["WIT import component emit gate-654-wit-import-component-emit.py"],
@@ -670,6 +671,22 @@ def gate_138() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_136() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-136-std-host-rollout.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-136-std-host-rollout.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 GATES: dict[str, callable[[], tuple[int, str]]] = {
     "074": gate_074,
     "076": gate_076,
@@ -684,6 +701,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "657": gate_657,
     "655": gate_655,
     "138": gate_138,
+    "136": gate_136,
     "652": gate_652,
     "653": gate_653,
     "654": gate_654,

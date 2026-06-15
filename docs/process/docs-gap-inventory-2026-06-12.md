@@ -36,7 +36,7 @@
 | WASI P2 native component output | `docs/current-state.md, target-contract.md` | implementation | #074 #510 open | **no-action** | #074 |
 | WIT function imports (--wit) E0401 | `docs/current-state.md:248` | implementation | #124 open | **no-action** | #124 |
 | WIT resource/stream/future E0402 | `docs/current-state.md:237` | implementation | #054 #474 open | **no-action** | #054 |
-| std::host namespace rollout | `docs/capability-surface.md` | implementation | #136 #358 #633 open | **no-action** | #136 |
+| std::host namespace rollout | `docs/capability-surface.md` | implementation | #358 #633 open | **resolved** | #136 done 2026-06-15 |
 | std::host::sockets T3-only | `docs/capability-surface.md` | implementation | #447 #139 open | **no-action** | #447 |
 | LSP/VS Code product completion | `docs/release-criteria.md` | implementation | #183 #334-342 open | **no-action** | #183 |
 | wasm-tools compose integration | `docs/process/false-done-audit-2026-06-12.md` | implementation | #476 open | **no-action** | #476 |

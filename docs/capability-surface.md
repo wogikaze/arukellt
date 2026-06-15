@@ -281,3 +281,22 @@ blocked intrinsic, the program is still rejected.
    Without `--dir`, filesystem calls fail at runtime rather than at
    compile time. `--deny-fs` explicitly blocks grants and overrides
    `--dir` flags, but does not add a compile-time scan.
+
+---
+
+## Runtime verification
+
+T1/T3 execution checks for the ADR-011 `std::host::*` rollout are registered in
+`tests/fixtures/manifest.txt` and enforced by close gates. Use
+[`migration/t1-to-t3.md`](migration/t1-to-t3.md) for target selection (`wasm32-wasi-p1` vs
+`wasm32-wasi-p2`).
+
+| Capability group | Fixtures | Close gate | Issue |
+|---|---|---|---|
+| Shared (`stdio`, `fs`, `env`, `process`, `clock`, `random`) | `tests/fixtures/stdlib_host/wasi_{stdio,fs,args,process,clock,random}.ark` (`run:` + `t3-run:`) | `scripts/check/gate-138-shared-capabilities-t1-t3.py` | [#138](../issues/done/138-std-wasi-shared-capabilities-t1-t3.md) |
+| HTTP outgoing client | `tests/fixtures/host/http/get_err_dns.ark`, `tests/fixtures/wasi_http_p2.ark` | `scripts/check/gate-655-http-outgoing.py` | [#655](../issues/done/655-wasi-p2-http-outgoing-client.md) (parent [#077](../issues/open/077-wasi-p2-http.md)) |
+| Sockets connect/read/write | `tests/fixtures/host/sockets/connect_read_write.ark` | `scripts/check/gate-657-sockets-connect-read-write.py` | [#657](../issues/done/657-std-wasi-sockets-connect-read.md) (parent [#139](../issues/open/139-std-wasi-sockets-p2.md)) |
+| Namespace + T1 reject for P2-only modules | `tests/fixtures/target_gating/t1_import_{sockets,udp,http}.ark` | resolver target gate (#137) | [#137](../issues/done/137-std-wasi-namespace-and-target-gating.md) |
+
+Remaining P2 slices (issue #656 HTTP server, issue #658 sockets listen/accept) stay on the open
+queue; they do not block the ADR-011 namespace rollout tracked by issue #136.
