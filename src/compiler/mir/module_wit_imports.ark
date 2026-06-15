@@ -1,4 +1,4 @@
-// MIR WIT import metadata — stub until WIT lowering (#124) is complete.
+// MIR WIT import metadata for Wasm type/import emission (#654).
 
 use resolver::wit_import_bind
 

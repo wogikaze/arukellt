@@ -47,6 +47,7 @@ TRACKED: dict[str, list[str]] = {
     "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
     "652": ["WIT import parser grammar gate-652-wit-import-parser.py"],
     "653": ["WIT import resolver MIR gate-653-wit-import-resolver-mir.py"],
+    "654": ["WIT import component emit gate-654-wit-import-component-emit.py"],
 }
 
 
@@ -553,6 +554,22 @@ def gate_653() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_654() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-654-wit-import-component-emit.py"
+    if not script.is_file():
+        return 1, "missing gate-654-wit-import-component-emit.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_655() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-655-http-outgoing.py"
     if not script.is_file():
@@ -600,6 +617,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "655": gate_655,
     "652": gate_652,
     "653": gate_653,
+    "654": gate_654,
 }
 
 

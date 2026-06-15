@@ -18,7 +18,6 @@ graph LR
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I648["648 648 — Component export: general canonical ABI adapters (post-#121)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
-  I654["654 654 — WIT import component emit and end-to-end fixture"]
   I656["656 656 — WASI P2 HTTP incoming server facade"]
   I658["658 658 — WASI P2 sockets: listen and accept"]
   I660["660 660 — Component export: Tier2 general canonical ABI adapters"]
@@ -54,7 +53,6 @@ graph LR
 - **63** depends on: 074, 137; blocks: none
 - **648** depends on: 121, 074; blocks: none
 - **649** depends on: 641; blocks: none
-- **654** depends on: 653, 074; blocks: none
 - **656** depends on: 074, 137; blocks: none
 - **658** depends on: 074, 137; blocks: none
 - **660** depends on: 121, 074; blocks: none

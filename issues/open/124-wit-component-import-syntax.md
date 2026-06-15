@@ -6,11 +6,11 @@ Track: language-design
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Depends on: "074 (wasi-p2-native-component)"
-Blocks: 652, 653, 654
+Blocks: 034, 473, 651
 Blocks v4 exit: yes
 ADR candidate: yes
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
-Status note: Implementation-ready — upstream #074 done. Umbrella issue; dispatch child slices #652 (parser), #653 (resolver+MIR), #654 (component emit).
+Status note: Phase 1 slices #652–#654 closed (parser, resolver/MIR, Wasm emit). Umbrella remains open for ark.toml, compose round-trip, and expanded type bindings.
 ---
 
 # WIT component import syntax

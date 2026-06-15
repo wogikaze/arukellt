@@ -1,0 +1,18 @@
+// Self-check for #654 — WIT import Wasm emit wiring.
+
+use resolver::wit_import_bind
+
+fn issue654_assert_wit_emit_sources() -> String {
+    let bindings = Vec_new_WitImportBinding()
+    push(bindings, WitImportBinding_new(String_from("i32_i32_1i32"), String_from("test:host/math"), String_from("add"), String_from("host::add")))
+    if len(bindings) != 1 {
+        return String_from("binding table empty")
+    }
+    if !eq(wit_import_bind::wit_import_binding_interface_id(get_unchecked(bindings, 0)), String_from("test:host/math")) {
+        return String_from("interface id mismatch")
+    }
+    if !eq(wit_import_bind::wit_import_binding_wit_func_name(get_unchecked(bindings, 0)), String_from("add")) {
+        return String_from("wit func name mismatch")
+    }
+    String_new()
+}

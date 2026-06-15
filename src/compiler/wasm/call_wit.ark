@@ -1,15 +1,43 @@
-// Wasm WIT call emission — stub until WIT lowering (#124) is complete.
+// Wasm WIT call emission (#654).
 
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::module_wit_imports
+use mir::opcodes
 use resolver::wit_import_bind
+use wasm::ctx_record
+use wasm::function_indices
+use wasm::inst_store
+use wasm::intrinsics::helpers_core_calls
+use wasm::sections_type_plan
 
 fn try_emit_wit_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, bindings: Vec<wit_import_bind::WitImportBinding>, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    let _ = w
-    let _ = inst
-    let _ = ctx
-    let _ = bindings
-    let _ = next_op
-    let _ = next_arg0
-    let _ = next_arg1
+    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_WIT_CALL() {
+        return false
+    }
+    let bind_idx = inst_accessors_operands::MirInst_arg0(inst)
+    if bind_idx < 0 || bind_idx >= len(bindings) {
+        return false
+    }
+    let import_idx = function_indices::wit_import_function_index(
+        bind_idx,
+        ctx_record::SelfEmitCtx_target(ctx),
+        ctx_record::SelfEmitCtx_wasi_version(ctx),
+        ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+        ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+        len(bindings)
+    )
+    helpers_core_calls::emit_call(w, import_idx)
+    let has_result = wit_binding_has_result(bindings, bind_idx)
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, has_result)
+    let _ = inst_accessors_literals::MirInst_int_val(inst)
     let _ = next2_op
-    return false
+    return true
+}
+
+fn wit_binding_has_result(bindings: Vec<wit_import_bind::WitImportBinding>, bind_idx: i32) -> bool {
+    let sig = module_wit_imports::wit_import_type_sig(bindings, bind_idx)
+    let result_seg = sections_type_plan::type_sig_result_segment(sig)
+    return !eq(clone(result_seg), String_from("0"))
 }
