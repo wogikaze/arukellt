@@ -45,10 +45,12 @@ TRACKED: dict[str, list[str]] = {
     "643": ["Grain benchmark hook (compare-benchmarks --compare-lang grain)"],
     "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
     "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
+    "138": ["std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
     "652": ["WIT import parser grammar gate-652-wit-import-parser.py"],
     "653": ["WIT import resolver MIR gate-653-wit-import-resolver-mir.py"],
     "654": ["WIT import component emit gate-654-wit-import-component-emit.py"],
     "651": ["WIT flags type support gate-651-wit-flags-type-support.py"],
+    "473": ["WIT resource handles gate-473-wit-resource-handles.py"],
     "034": ["callable --wit import binding gate-034-wit-cli-integration.py"],
 }
 
@@ -588,6 +590,22 @@ def gate_651() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_473() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-473-wit-resource-handles.py"
+    if not script.is_file():
+        return 1, "missing gate-473-wit-resource-handles.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_034() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-034-wit-cli-integration.py"
     if not script.is_file():
@@ -636,6 +654,22 @@ def gate_657() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_138() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-138-shared-capabilities-t1-t3.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-138-shared-capabilities-t1-t3.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 GATES: dict[str, callable[[], tuple[int, str]]] = {
     "074": gate_074,
     "076": gate_076,
@@ -649,10 +683,12 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "643": gate_643,
     "657": gate_657,
     "655": gate_655,
+    "138": gate_138,
     "652": gate_652,
     "653": gate_653,
     "654": gate_654,
     "651": gate_651,
+    "473": gate_473,
     "034": gate_034,
 }
 

@@ -26,6 +26,7 @@ component-compile:component/export_enum_colors_renamed.ark
 component-compile:component/export_enum_roundtrip.ark
 component-compile:component/export_enum_roundtrip_renamed.ark
 component-compile:component/export_flags_roundtrip.ark
+component-compile:component/export_resource_roundtrip.ark
 component-compile:component/export_enum_wit.ark
 component-compile:component/export_f32.ark
 component-compile:component/export_f32_binary.ark
@@ -169,8 +170,8 @@ compile-error:component/export_variant_renamed_extra.ark
 compile-error:component/import_async_resource_type.ark
 component-compile:component/import_flags_type.ark
 compile-error:component/import_future_type.ark
-compile-error:component/import_resource_handle_type.ark
-compile-error:component/import_resource_type.ark
+component-compile:component/import_resource_handle_type.ark
+t3-compile:component/import_resource_type.ark
 component-compile:component/import_scalar_func.ark
 component-compile:wit_import/main.ark
 parse-only:wit_import/parse/with_alias.ark
@@ -242,14 +243,26 @@ module-run:modules/visibility_pub_access/main.ark
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
 parse-only:module_import/pub_use_basic.ark
-# std::host::clock and std::host::random import-acceptance fixtures (#138)
+# std::host shared capabilities T1/T3 smoke matrix (#138)
 parse-only:stdlib_host/clock_import.ark
 parse-only:stdlib_host/random_import.ark
-run:selfhost/fn_multiclause_where.ark
-compile-error:selfhost/fn_multiclause_where_unresolved.ark
+run:stdlib_host/wasi_stdio.ark
+t3-run:stdlib_host/wasi_stdio.ark
+run:stdlib_host/wasi_fs.ark
+t3-run:stdlib_host/wasi_fs.ark
+run:stdlib_host/wasi_args.ark
+t3-run:stdlib_host/wasi_args.ark
+run:stdlib_host/wasi_process.ark
+t3-run:stdlib_host/wasi_process.ark
+run:stdlib_host/wasi_clock.ark
+t3-run:stdlib_host/wasi_clock.ark
+run:stdlib_host/wasi_random.ark
+t3-run:stdlib_host/wasi_random.ark
 module-run:stdlib_host/wasi_clock.ark
 module-run:stdlib_host/wasi_random.ark
 module-run:stdlib_host/wasi_args.ark
+run:selfhost/fn_multiclause_where.ark
+compile-error:selfhost/fn_multiclause_where_unresolved.ark
 run:module_import/use_std_string.ark
 run:module_import/use_qualified_call_typed.ark
 run:module_import/use_whole_module.ark

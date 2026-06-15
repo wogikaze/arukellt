@@ -1,0 +1,9 @@
+// Fixture: wasi_process.ark
+// Verifies std::host::process::exit(0) terminates after stdout flush.
+use std::host::process
+use std::host::stdio
+
+fn main() {
+    stdio::println("wasi_process ok")
+    process::exit(0)
+}

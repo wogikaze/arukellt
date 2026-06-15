@@ -1,0 +1,7 @@
+// Fixture: wasi_stdio.ark
+// Verifies std::host::stdio println on T1/T3 host targets.
+use std::host::stdio
+
+fn main() {
+    stdio::println("wasi_stdio ok")
+}
