@@ -107,8 +107,8 @@ arukellt compile --target wasm32-wasi-p2 --emit wit mylib.ark
 
 ### Compiler / WIT
 
-- [ ] `arukellt compile examples/ark/export-library/calculator.ark --target wasm32-wasi-p2 --emit wit -o /tmp/calc.wit` writes non-empty WIT listing `add` and `mul` (s2 selfhost).
-- [ ] Golden WIT diff: `examples/ark/export-library/calculator.expected.wit` checked in CI or via `tests/component-interop/roundtrip/` extension.
+- [x] `arukellt compile examples/ark/export-library/calculator.ark --target wasm32-wasi-p2 --emit wit -o /tmp/calc.wit` writes non-empty WIT listing `add` and `mul` (s2 selfhost).
+- [x] Golden WIT diff: `examples/ark/export-library/calculator.expected.wit` checked in CI or via `tests/component-interop/roundtrip/` extension.
 - [ ] `wasm-tools component wit` on `--emit component` output lists the same exports (no empty `world root {}` for library fixtures).
 
 ### Component invoke
@@ -119,8 +119,8 @@ arukellt compile --target wasm32-wasi-p2 --emit wit mylib.ark
 
 ### Bootstrap boundary
 
-- [ ] Pinned bootstrap either emits diagnostic when `--emit wit`/`component` would use stub, or close-gate documents permanent compile-only stub with redirect to s2 build instructions.
-- [ ] `docs/current-state.md` Known Limitations updated: library `--emit component` status honest.
+- [x] Pinned bootstrap either emits diagnostic when `--emit wit`/`component` would use stub, or close-gate documents permanent compile-only stub with redirect to s2 build instructions.
+- [x] `docs/current-state.md` Known Limitations updated: library `--emit wit` requires s2; library `--emit component` still incomplete (#666 component invoke scope).
 
 ### Examples
 

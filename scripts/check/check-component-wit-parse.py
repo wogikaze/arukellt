@@ -67,6 +67,11 @@ def _selfhost_compile_env() -> dict[str, str]:
     return env
 
 
+def _uses_s2_selfhost(env: dict[str, str]) -> bool:
+    wasm = env.get("ARUKELLT_SELFHOST_WASM", "")
+    return "arukellt-s2" in Path(wasm).name if wasm else False
+
+
 def _load_manifest_entries(kind: str) -> list[str]:
     entries: list[str] = []
     for line in MANIFEST.read_text(encoding="utf-8").splitlines():
@@ -99,7 +104,12 @@ def _wasm_tools_parse_wit(tool: str, wit_path: Path) -> tuple[int, str]:
     return 0, result.stdout
 
 
-def _try_emit_wit(compiler: Path, fixture_rel: str, out_rel: str) -> tuple[int, str]:
+def _try_emit_wit(
+    compiler: Path,
+    fixture_rel: str,
+    out_rel: str,
+    env: dict[str, str] | None = None,
+) -> tuple[int, str]:
     cmd = [
         str(compiler),
         "compile",
@@ -119,7 +129,7 @@ def _try_emit_wit(compiler: Path, fixture_rel: str, out_rel: str) -> tuple[int, 
         capture_output=True,
         text=True,
         timeout=120,
-        env=_selfhost_compile_env(),
+        env=_selfhost_compile_env() if env is None else env,
     )
     if result.returncode != 0:
         tail = (result.stderr or result.stdout)[-800:]
@@ -146,6 +156,8 @@ def main() -> int:
         return 1
 
     compiler = _compiler()
+    compile_env = _selfhost_compile_env()
+    strict_emit = _uses_s2_selfhost(compile_env)
     failures = 0
 
     for fixture_rel in entries:
@@ -187,10 +199,17 @@ def main() -> int:
         out_rel = f".build/component-wit-parse-{fixture.stem}.wit"
         out_path = REPO_ROOT / out_rel
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        rc, msg = _try_emit_wit(compiler, str(Path("tests/fixtures") / fixture_rel), out_rel)
+        rc, msg = _try_emit_wit(
+            compiler, str(Path("tests/fixtures") / fixture_rel), out_rel, compile_env,
+        )
         try:
             if rc == 2:
-                print(f"  note: {fixture_rel} emit skipped ({msg})")
+                if strict_emit:
+                    print(f"FAIL {fixture_rel}: empty WIT emit under s2 selfhost ({msg})",
+                          file=sys.stderr)
+                    failures += 1
+                else:
+                    print(f"  note: {fixture_rel} emit skipped ({msg})")
                 continue
             if rc != 0:
                 print(f"FAIL {fixture_rel}: {msg}", file=sys.stderr)

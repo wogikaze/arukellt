@@ -159,8 +159,7 @@ pub fn mir_has_library_exports(mir: MirModule) -> bool {
 }
 
 fn bootstrap_emit_wit_with_world(decls: Vec<AstNode>, world: String) -> String {
-    let world_name = component_world_spec::world_spec_world_name(clone(world))
-    concat(String_from("package arukellt:generated;\\n\\nworld "), concat(world_name, String_from(" {\\n}\\n")))
+    component_wit_text::bootstrap_emit_wit_from_decls_with_world(decls, world)
 }
 
 pub fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
@@ -172,7 +171,7 @@ pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -
 }
 
 pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
-    Vec_new_String()
+    component_wit_text::bootstrap_collect_wit_export_roots(decls)
 }
 
 pub fn string_to_bytes(text: String) -> Vec<i32> {
@@ -209,6 +208,16 @@ pub fn component_world_spec__world_target_error(world: String, target: String, e
 BOOTSTRAP_EMIT_LIBRARY_PATCH = """
 pub fn bootstrap_emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     emit_library_component(core_wasm, mir, target, wasi_version, world)
+}
+"""
+
+BOOTSTRAP_WIT_EMIT_PATCH = """
+pub fn bootstrap_emit_wit_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
+    component_wit_text__emit_wit_text_from_decls_with_world(decls, world)
+}
+
+pub fn bootstrap_collect_wit_export_roots(decls: Vec<AstNode>) -> Vec<String> {
+    component_wit_text__collect_export_roots(decls)
 }
 """
 
@@ -646,6 +655,7 @@ def _overlay_reachable_rels(entries: list[tuple[str, str]]) -> set[str]:
 
 def _compute_overlay_symbol_plan(
     entries: list[tuple[str, str]],
+    forced_keepers: set[tuple[str, str]] | None = None,
 ) -> tuple[set[tuple[str, str]], list[tuple[str, str]]]:
     """Plan collision handling: strip namespace facade dupes, rename the rest.
 
@@ -681,10 +691,14 @@ def _compute_overlay_symbol_plan(
         reachable_owners = [rel for rel, _ in owners if rel in reachable]
         remaining: list[tuple[str, bool]] = []
         for rel_name, is_delegate in owners:
+            forced = forced_keepers is not None and (rel_name, symbol) in forced_keepers
             rank1 = _overlay_facade_rank(Path(rel_name)) == 1
             others_reachable = [rel for rel in reachable_owners if rel != rel_name]
             # Namespace facade dupes are stripped (baseline) only when another
             # import-reachable owner still provides the symbol.
+            if forced:
+                remaining.append((rel_name, is_delegate))
+                continue
             if rank1 and others_reachable:
                 keepers.discard((rel_name, symbol))
             else:
@@ -695,10 +709,16 @@ def _compute_overlay_symbol_plan(
         # driver (import-reachable from main.ark) so first-match call binding
         # can find it. Prefer reachable implementations over delegates.
         keeper_rel = None
-        for rel_name, is_delegate in remaining:
-            if not is_delegate and rel_name in reachable:
-                keeper_rel = rel_name
-                break
+        if forced_keepers:
+            for rel_name, _ in remaining:
+                if (rel_name, symbol) in forced_keepers:
+                    keeper_rel = rel_name
+                    break
+        if keeper_rel is None:
+            for rel_name, is_delegate in remaining:
+                if not is_delegate and rel_name in reachable:
+                    keeper_rel = rel_name
+                    break
         if keeper_rel is None:
             for rel_name, _ in remaining:
                 if rel_name in reachable:
@@ -714,6 +734,9 @@ def _compute_overlay_symbol_plan(
         for rel_name, _ in remaining:
             if rel_name != keeper_rel:
                 renames.append((rel_name, symbol))
+        for rel_name, _ in remaining:
+            if rel_name == keeper_rel:
+                keepers.add((rel_name, symbol))
     return keepers, renames
 
 
@@ -851,6 +874,93 @@ def _reapply_global_overlay_dedupe(compiler_out: Path, write_order: list[str]) -
         (compiler_out / rel_name).write_text(text, encoding="utf-8")
 
 
+_COMPONENT_STUB_REL = "component.ark"
+_WIT_BRIDGE_PROMOTE_MODULES = (
+    "component_wit_text.ark",
+    "component_wit_type_defs.ark",
+    "component_wit_decl.ark",
+    "component_wit_names.ark",
+    "component_wit_types.ark",
+    "component_ast_node.ark",
+    "component_world_spec.ark",
+    "component_type_node.ark",
+    "component_naming.ark",
+    "parser_kinds.ark",
+)
+
+
+def _reapply_post_stub_overlay_dedupe(compiler_out: Path, write_order: list[str]) -> None:
+    """Re-dedupe after component stub write so driver-facing symbols stay on stub."""
+    entries: list[tuple[str, str]] = []
+    seen_rel: set[str] = set()
+    for rel_name in write_order:
+        if rel_name in seen_rel:
+            continue
+        seen_rel.add(rel_name)
+        path = compiler_out / rel_name
+        if path.is_file():
+            entries.append((rel_name, path.read_text(encoding="utf-8")))
+    stub_path = compiler_out / _COMPONENT_STUB_REL
+    if _COMPONENT_STUB_REL not in seen_rel and stub_path.is_file():
+        entries.append((_COMPONENT_STUB_REL, stub_path.read_text(encoding="utf-8")))
+    forced_keepers: set[tuple[str, str]] = set()
+    stub_text = next((text for rel, text in entries if rel == _COMPONENT_STUB_REL), None)
+    if stub_text is not None:
+        for symbol, _ in _iter_overlay_top_level_symbols(stub_text, _COMPONENT_STUB_REL):
+            forced_keepers.add((_COMPONENT_STUB_REL, symbol))
+    keepers, renames = _compute_overlay_symbol_plan(entries, forced_keepers=forced_keepers)
+    texts: dict[str, str] = {}
+    for rel_name, text in entries:
+        texts[rel_name] = _strip_duplicate_overlay_top_level_fns(
+            text, rel_name=rel_name, keepers=keepers,
+        )
+    owner_modules: dict[str, set[str]] = {}
+    for rel_name, text in texts.items():
+        stem = rel_name[:-4] if rel_name.endswith(".ark") else rel_name
+        for line in text.splitlines():
+            m = _TOP_LEVEL_FN_RE.match(line)
+            if m is not None:
+                owner_modules.setdefault(m.group(1), set()).add(stem)
+    _apply_overlay_collision_renames(texts, renames, owner_modules)
+    for rel_name, text in texts.items():
+        (compiler_out / rel_name).write_text(text, encoding="utf-8")
+
+
+def _patch_bootstrap_component_wit_stub_calls(compiler_out: Path) -> None:
+    """Align stub delegate calls with post-global-dedupe wit_text symbol names."""
+    wit_path = compiler_out / "component_wit_text.ark"
+    stub_path = compiler_out / _COMPONENT_STUB_REL
+    if not wit_path.is_file() or not stub_path.is_file():
+        return
+    wit_text = wit_path.read_text(encoding="utf-8")
+    if "bootstrap_emit_wit_from_decls_with_world" not in wit_text:
+        if wit_text and not wit_text.endswith("\n"):
+            wit_text = wit_text + "\n"
+        wit_text = wit_text + BOOTSTRAP_WIT_EMIT_PATCH
+        wit_path.write_text(wit_text, encoding="utf-8")
+
+
+def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
+    """Route --emit wit through wit_text bridge so DCE keeps the implementation."""
+    path = compiler_out / "driver_emit.ark"
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    if "use component_wit_text" not in text:
+        text = text.replace("use component\n", "use component\nuse component_wit_text\n")
+    old = (
+        "let wit_output = component::emit_wit_text_from_decls_with_world("
+        "all_decls, driver_config_record::config_world(config))"
+    )
+    new = (
+        "let wit_output = component_wit_text::bootstrap_emit_wit_from_decls_with_world("
+        "all_decls, driver_config_record::config_world(config))"
+    )
+    if old in text:
+        text = text.replace(old, new)
+        path.write_text(text, encoding="utf-8")
+
+
 def _patch_bootstrap_driver_timing(text: str) -> str:
     """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32."""
     text = text.replace("clock::monotonic_now()", "0")
@@ -955,6 +1065,13 @@ def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
 
 def _patch_bootstrap_component_wit_bridge(compiler_out: Path) -> None:
     """Promote overlay modules used by bootstrap library/WIT helpers."""
+    for rel_name in _WIT_BRIDGE_PROMOTE_MODULES:
+        module_path = compiler_out / rel_name
+        if not module_path.is_file():
+            continue
+        text = module_path.read_text(encoding="utf-8")
+        text = _promote_top_level_fns_public(text)
+        module_path.write_text(text, encoding="utf-8")
     emit_path = compiler_out / "component_emit.ark"
     if emit_path.is_file():
         emit_text = emit_path.read_text(encoding="utf-8")
@@ -1782,6 +1899,9 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     _patch_bootstrap_mir_module_host_needs(compiler_out)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
     _patch_bootstrap_component_wit_bridge(compiler_out)
+    _reapply_post_stub_overlay_dedupe(compiler_out, write_order)
+    _patch_bootstrap_component_wit_stub_calls(compiler_out)
+    _patch_bootstrap_driver_wit_delegate(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     ark_toml = source_root / "ark.toml"

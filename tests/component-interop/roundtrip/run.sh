@@ -42,6 +42,11 @@ normalize_wit() {
   awk 'NF { sub(/[[:space:]]+$/, ""); print }' "$1"
 }
 
+is_s2_selfhost_wasm() {
+  local wasm="${ARUKELLT_SELFHOST_WASM:-}"
+  [[ "$wasm" == *"arukellt-s2"* ]]
+}
+
 emit_wit() {
   local src_rel="$1"
   local out_path="$2"
@@ -105,6 +110,11 @@ for scenario_dir in "$FIXTURE_ROOT"/*/; do
     cp "$emitted" "$provider_wit"
     echo "  wit emit: golden match"
   else
+    if is_s2_selfhost_wasm; then
+      echo "FAIL: $name --emit wit returned empty output (s2 selfhost)"
+      FAIL=$((FAIL + 1))
+      continue
+    fi
     cp "$golden" "$provider_wit"
     echo "  wit emit: empty (bootstrap stub) — using golden for bindings step"
   fi

@@ -1,0 +1,6 @@
+package arukellt:generated;
+
+world arukellt {
+  export add: func(a: s32, b: s32) -> s32;
+  export mul: func(a: s32, b: s32) -> s32;
+}
