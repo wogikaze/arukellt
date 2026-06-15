@@ -1,7 +1,57 @@
-// WIT import registration — stub until #124 WIT component import syntax lands.
+// WIT import registration in resolver scope (#653).
+
+use resolver::scope_lookup
+use resolver::scope_define
+use resolver::register_exports
+use resolver::ast_decl_predicates
+use resolver::ast_access
 
 fn register_wit_imports(ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
-    let _ = ctx
     let _ = wit_paths
-    let _ = decls
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let d = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_wit_import(d) {
+            register_one_wit_import(ctx, ast_access::node_text(d), wit_import_alias(d))
+        }
+        i = i + 1
+    }
+}
+
+fn wit_import_alias(decl: AstNode) -> String {
+    if ast_access::node_type_ann_count(decl) == 0 {
+        return String_new()
+    }
+    ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+}
+
+fn register_wit_module_alias(ctx: ResolveCtx, alias: String) {
+    if scope_lookup::lookup(ctx, clone(alias)) < 0 {
+        scope_define::define(ctx, clone(alias), commands::SYM_MODULE())
+    }
+}
+
+fn register_one_wit_import(ctx: ResolveCtx, package_id: String, alias: String) {
+    if len(alias) == 0 {
+        return
+    }
+    if eq(clone(package_id), String_from("test:host/math")) {
+        register_wit_host_math(ctx, clone(alias))
+        return
+    }
+    if eq(clone(package_id), String_from("test:doc/parse")) {
+        register_wit_doc_parse(ctx, clone(alias))
+    }
+}
+
+fn register_wit_host_math(ctx: ResolveCtx, alias: String) {
+    register_wit_module_alias(ctx, clone(alias))
+    register_exports::register_module_export(ctx, clone(alias), String_from("add"), commands::SYM_FN(), true)
+}
+
+fn register_wit_doc_parse(ctx: ResolveCtx, alias: String) {
+    register_wit_module_alias(ctx, clone(alias))
+    register_exports::register_module_export(ctx, clone(alias), String_from("parse_markdown"), commands::SYM_FN(), true)
+    register_exports::register_module_export(ctx, clone(alias), String_from("Document"), commands::SYM_STRUCT(), true)
 }

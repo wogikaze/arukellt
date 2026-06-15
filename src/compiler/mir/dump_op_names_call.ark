@@ -9,5 +9,8 @@ fn mir_call_op_name(op: i32) -> String {
     if op == opcodes::MIR_RETURN() {
         return String_from("return")
     }
+    if op == opcodes::MIR_WIT_CALL() {
+        return String_from("wit-call")
+    }
     String_from("")
 }

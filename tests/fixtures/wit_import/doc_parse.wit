@@ -1,0 +1,10 @@
+package test:doc@0.1.0;
+
+interface parse {
+    record document {
+        title: string,
+        body: string,
+    }
+
+    parse-markdown: func(input: string) -> document;
+}

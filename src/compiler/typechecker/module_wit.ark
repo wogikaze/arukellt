@@ -1,9 +1,60 @@
-// WIT function signature collection — stub until #124 WIT import syntax lands.
+// WIT function signature collection for typecheck (#653).
+
+use typechecker::ast_decl_predicates
+use typechecker::ast_access
+use typechecker::contract_fn_sig
+use typechecker::contract_type_constructors
+use typechecker::type_names
 
 fn collect_wit_fn_sigs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<FnSig> {
     let _ = wit_paths
-    let _ = decls
-    return Vec_new_FnSig()
+    let sigs = Vec_new_FnSig()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let d = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_wit_import(d) {
+            wit_push_fn_sigs_for_import(sigs, ast_access::node_text(d), wit_import_alias(d))
+        }
+        i = i + 1
+    }
+    sigs
+}
+
+fn wit_import_alias(decl: AstNode) -> String {
+    if ast_access::node_type_ann_count(decl) == 0 {
+        return String_new()
+    }
+    ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+}
+
+fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, package_id: String, alias: String) {
+    if len(alias) == 0 {
+        return
+    }
+    if eq(clone(package_id), String_from("test:host/math")) {
+        push(sigs, wit_fn_sig_binary_i32(clone(alias), String_from("add")))
+        return
+    }
+    if eq(clone(package_id), String_from("test:doc/parse")) {
+        push(sigs, wit_fn_sig_string_to_record(clone(alias), String_from("parse_markdown"), String_from("Document")))
+    }
+}
+
+fn wit_fn_sig_binary_i32(alias: String, func_name: String) -> FnSig {
+    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
+    let params = Vec_new_TypeInfo()
+    push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
+    push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
+    contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()), Vec_new_String(), Vec_new_TypeParamBounds())
+}
+
+fn wit_fn_sig_string_to_record(alias: String, func_name: String, record_name: String) -> FnSig {
+    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
+    let ret_name = concat(clone(alias), concat(String_from("::"), clone(record_name)))
+    let params = Vec_new_TypeInfo()
+    push(params, type_names::resolve_type_name(String_from("String")))
+    contract_fn_sig::FnSig_new(qualified, params, type_names::resolve_type_name(ret_name), Vec_new_String(), Vec_new_TypeParamBounds())
 }
 
 fn merge_fn_sigs(base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {

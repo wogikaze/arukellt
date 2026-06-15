@@ -1,0 +1,22 @@
+// MIR WIT call binding table accessors (#653).
+
+use mir::lower::ctx_types
+
+fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
+    let mut i = 0
+    while i < len(ctx.wit_call_names) {
+        if eq(get_unchecked(ctx.wit_call_names, i), clone(qualified_name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn ctx_wit_call_iface(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.wit_call_iface_ids, index))
+}
+
+fn ctx_wit_call_func(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.wit_call_func_names, index))
+}

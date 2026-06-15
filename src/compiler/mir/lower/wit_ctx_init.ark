@@ -1,7 +1,16 @@
-// MIR WIT binding initialization — stub until WIT lowering (#124) is complete.
+// MIR WIT binding initialization (#653).
+
+use resolver::wit_import_bind
 
 fn mir_init_wit_bindings(ctx: LowerCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
-    let _ = ctx
-    let _ = wit_paths
-    let _ = decls
+    let bindings = wit_import_bind::wit_collect_bindings(wit_paths, decls)
+    let count = len(bindings)
+    let mut i = 0
+    while i < count {
+        let binding = get_unchecked(bindings, i)
+        push(ctx.wit_call_names, wit_import_bind::wit_import_binding_qualified_name(binding))
+        push(ctx.wit_call_iface_ids, wit_import_bind::wit_import_binding_interface_id(binding))
+        push(ctx.wit_call_func_names, wit_import_bind::wit_import_binding_wit_func_name(binding))
+        i = i + 1
+    }
 }

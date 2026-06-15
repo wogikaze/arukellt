@@ -18,7 +18,7 @@ graph LR
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I648["648 648 — Component export: general canonical ABI adapters (post-#121)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
-  I653["653 653 — WIT import resolver, typecheck, and MIR lowering"]
+  I654["654 654 — WIT import component emit and end-to-end fixture"]
   I656["656 656 — WASI P2 HTTP incoming server facade"]
   I658["658 658 — WASI P2 sockets: listen and accept"]
   I660["660 660 — Component export: Tier2 general canonical ABI adapters"]
@@ -28,7 +28,6 @@ graph LR
   I651["651 651 — WIT `flags` type support (remove E0090 rejection)"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
-  I654["654 654 — WIT import component emit and end-to-end fixture"]
   I28["28 034-wit-cli-integration ⛔"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I124 --> I28
@@ -37,7 +36,6 @@ graph LR
   I138 --> I136
   I139 --> I136
   I474 --> I646
-  I653 --> I654
   I124 --> I28
   I30 --> I31
 ```
@@ -56,7 +54,7 @@ graph LR
 - **63** depends on: 074, 137; blocks: none
 - **648** depends on: 121, 074; blocks: none
 - **649** depends on: 641; blocks: none
-- **653** depends on: 652, 074; blocks: 654
+- **654** depends on: 653, 074; blocks: none
 - **656** depends on: 074, 137; blocks: none
 - **658** depends on: 074, 137; blocks: none
 - **660** depends on: 121, 074; blocks: none
@@ -66,7 +64,6 @@ graph LR
 - **651** depends on: 074, 124; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **646** depends on: 474; blocks: none
-- **654** depends on: 653, 074; blocks: none
 
 ### Blocked
 

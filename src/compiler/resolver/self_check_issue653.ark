@@ -1,0 +1,80 @@
+// Resolver/typecheck self-checks for issue #653 (WIT import resolver + MIR).
+
+use lexer::scan
+use parser::core_api_token
+use parser::decl
+use resolver::context
+use resolver::program
+use component::wit_parse_import
+use resolver::wit_type_map
+use typechecker::contract_result_state
+use typechecker::entry
+
+fn issue653_parse_source(src: String) -> Vec<AstNode> {
+    let tokens = scan::tokenize(src)
+    let p = core_api_token::Parser_new(tokens)
+    decl::parse_module(p)
+}
+
+fn issue653_parse_host_math() -> String {
+    let doc = wit_parse_import::parse_wit_import_file(String_from("tests/fixtures/wit_import/host_math.wit"))
+    if !eq(clone(doc.package), String_from("test:host")) {
+        return String_from("issue653 fail: package")
+    }
+    if !eq(clone(doc.interface), String_from("math")) {
+        return String_from("issue653 fail: interface")
+    }
+    if len(doc.funcs) != 1 {
+        return String_from("issue653 fail: func count")
+    }
+    let func = get_unchecked(doc.funcs, 0)
+    if !eq(clone(func.ark_name), String_from("add")) {
+        return String_from("issue653 fail: func name")
+    }
+    let sig = wit_type_map::wit_func_type_sig(func.param_wit_types, func.ret_wit_type)
+    if !eq(clone(sig), String_from("i32_i32_1i32")) {
+        return String_from("issue653 fail: func type sig")
+    }
+    String_new()
+}
+
+fn issue653_resolve_call_add() -> String {
+    let src = String_from("import \"test:host/math\" as host\nfn main() { let _ = host::add(1, 2) }\n")
+    let decls = issue653_parse_source(src)
+    let wit_paths = Vec_new_String()
+    push(wit_paths, String_from("tests/fixtures/wit_import/host_math.wit"))
+    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls(), wit_paths)
+    if context::ResolveCtx_reported_error_count(ctx) != 0 {
+        return String_from("issue653 fail: resolve errors")
+    }
+    String_new()
+}
+
+fn issue653_typecheck_call_add() -> String {
+    let src = String_from("import \"test:host/math\" as host\nfn main() { let _ = host::add(1, 2) }\n")
+    let decls = issue653_parse_source(src)
+    let wit_paths = Vec_new_String()
+    push(wit_paths, String_from("tests/fixtures/wit_import/host_math.wit"))
+    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls(), wit_paths)
+    let result = entry::typecheck_module(decls, ctx, wit_paths)
+    if contract_result_state::typecheck_result_error_count(result) != 0 {
+        return String_from("issue653 fail: typecheck errors")
+    }
+    String_new()
+}
+
+fn issue653_resolver_self_check() -> String {
+    let err = issue653_parse_host_math()
+    if len(err) > 0 {
+        return err
+    }
+    let err2 = issue653_resolve_call_add()
+    if len(err2) > 0 {
+        return err2
+    }
+    let err3 = issue653_typecheck_call_add()
+    if len(err3) > 0 {
+        return err3
+    }
+    return String_from("issue653 resolver ok: WIT import resolve/typecheck")
+}

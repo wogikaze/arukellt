@@ -1,0 +1,6 @@
+import "test:host/math" as host
+
+fn main() {
+    let x = host::add(1, 2)
+    let _ = x
+}

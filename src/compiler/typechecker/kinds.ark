@@ -3,8 +3,10 @@
 // Declaration node kinds.
 fn NK_FN_DECL() -> i32 { 50 }
 fn NK_ENUM_DECL() -> i32 { 52 }
+fn NK_IMPORT() -> i32 { 53 }
 fn NK_IMPL_DECL() -> i32 { 56 }
 fn NK_RESOURCE_DECL() -> i32 { 57 }
+fn IMPORT_KIND_WIT() -> i32 { 1 }
 
 // Literal expression node kinds.
 fn NK_INT_LIT() -> i32 { 1 }

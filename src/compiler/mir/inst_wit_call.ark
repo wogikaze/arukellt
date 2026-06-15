@@ -1,0 +1,10 @@
+// MIR WIT call instruction constructor (#653).
+
+use mir::inst_factory
+use mir::opcodes
+use mir::value_types
+
+fn MirInst_wit_call(interface: String, func: String, arg_count: i32, dest: i32, binding_idx: i32) -> MirInst {
+    let key = concat(clone(interface), concat(String_from("\x1f"), clone(func)))
+    inst_factory::MirInst_full(opcodes::MIR_WIT_CALL(), dest, binding_idx, 0 - 1, arg_count, 0.0, key, value_types::VT_VOID())
+}

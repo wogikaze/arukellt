@@ -1,0 +1,32 @@
+// WIT import naming — kebab/snake and PascalCase for Arukellt surface (#653).
+
+fn wit_kebab_to_snake(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 45 {
+            out = concat(out, String_from("_"))
+        } else {
+            out = concat(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn wit_record_type_name(record_name: String) -> String {
+    if len(record_name) == 0 {
+        return String_new()
+    }
+    let first = char_at(record_name, 0)
+    if first >= 97 && first <= 122 {
+        return concat(char_to_string(first - 32), substring(record_name, 1, len(record_name)))
+    }
+    clone(record_name)
+}
+
+fn wit_import_func_name(wit_name: String) -> String {
+    wit_kebab_to_snake(wit_name)
+}

@@ -1,0 +1,5 @@
+import "test:doc/parse" as md
+
+fn main() {
+    let _ = md::parse_markdown("hello").title
+}

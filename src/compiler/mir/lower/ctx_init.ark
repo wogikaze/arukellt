@@ -42,5 +42,8 @@ fn LowerCtx_new(m: MirModule) -> ctx_types::LowerCtx {
         mono_call_targets: Vec_new_String(),
         mono_call_sources: Vec_new_String(),
         mono_call_used: Vec_new_i32(),
+        wit_call_names: Vec_new_String(),
+        wit_call_iface_ids: Vec_new_String(),
+        wit_call_func_names: Vec_new_String(),
     }
 }
