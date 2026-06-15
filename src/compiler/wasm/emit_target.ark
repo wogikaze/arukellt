@@ -24,6 +24,13 @@ fn p2_host_import_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32)
     }
 }
 
+fn p2_host_type_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
+    let mut count = 7
+    if needs_wasi_http_outgoing == 1 { count = count + 1 }
+    if needs_arukellt_host == 1 { count = count + 3 }
+    return count
+}
+
 fn wasi_host_type_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     let base = constants::NUM_WASI_TYPES_BASE()
     let with_outgoing = if needs_wasi_http_outgoing == 1 {
@@ -56,7 +63,7 @@ fn host_type_count(target: String, wasi_version: String, needs_arukellt_host: i3
         return constants::NUM_T2_TYPES()
     }
     if is_p2_wasi(clone(wasi_version)) {
-        return wasi_host_type_count(needs_arukellt_host, needs_wasi_http_outgoing)
+        return p2_host_type_count(needs_arukellt_host, needs_wasi_http_outgoing)
     }
     if needs_arukellt_host == 1 {
         return constants::NUM_WASI_TYPES()

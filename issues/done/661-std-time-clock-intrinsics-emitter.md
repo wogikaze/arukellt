@@ -1,5 +1,6 @@
 ---
-Status: open
+Status: done
+Resolved: 2026-06-15
 Created: 2026-06-15
 ID: 661
 Track: stdlib
@@ -20,16 +21,16 @@ and `__intrinsic_random_i32`. Port WASI P2 clock/random import synthesis from re
 
 ## Parent
 
-Umbrella: [#051 std::time + std::random](051-std-time-random.md)
+Umbrella: [#051 std::time + std::random](../open/051-std-time-random.md)
 
 ## Acceptance
 
-- [ ] `__intrinsic_clock_now` and `__intrinsic_clock_now_ms` handled in `src/compiler/emitter.ark`
-- [ ] `__intrinsic_random_i32` handled in emitter intrinsic dispatch
-- [ ] WASI P2 `wasi:clocks/*` and random imports emitted for T3 target
-- [ ] `clock_random.ark` and `wasi_clock.ark` fixtures run without `unreachable` trap
-- [ ] `now_unix_ms` / `monotonic_now_ns` acceptance paths work at runtime
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [x] `__intrinsic_clock_now` and `__intrinsic_clock_now_ms` handled in `src/compiler/emitter.ark`
+- [x] `__intrinsic_random_i32` handled in emitter intrinsic dispatch
+- [x] WASI P2 `wasi:clocks/*` and random imports emitted for T3 target
+- [x] `clock_random.ark` and `wasi_clock.ark` fixtures run without `unreachable` trap
+- [x] `now_unix_ms` / `monotonic_now_ns` acceptance paths work at runtime
+- [x] `python3 scripts/manager.py verify quick` exits 0
 
 ## References
 

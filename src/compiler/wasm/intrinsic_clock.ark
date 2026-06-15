@@ -1,4 +1,7 @@
 use wasm::constants
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::intrinsics::helpers_clock_p2
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_stack
 use wasm::intrinsics::helpers_numeric_i32_const
@@ -8,12 +11,29 @@ use wasm::writer_core
 use wasm::writer_leb
 
 fn emit_clock_now(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    emit_clock_time_get(w, 0)
+    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    }
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        helpers_core_calls::emit_call(w, constants::P2_IMPORT_MONOTONIC_NOW())
+        return true
+    }
+    emit_clock_time_get(w, 1)
     emit_clock_load_i64_result(w)
     return true
 }
 
 fn emit_clock_now_ms(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    }
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        helpers_core_calls::emit_call(w, constants::P2_IMPORT_WALL_NOW())
+        helpers_clock_p2::emit_wall_datetime_to_ms(w, ctx)
+        return true
+    }
     emit_clock_time_get(w, 0)
     emit_clock_load_i64_result(w)
     let million: i64 = 1000000

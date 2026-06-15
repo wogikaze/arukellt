@@ -92,6 +92,9 @@ fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs
     emit_host_func_import(import_sec, String_from("wasi:cli/stdin@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))
+    emit_host_func_import(import_sec, String_from("wasi:clocks/monotonic-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 5))
+    emit_host_func_import(import_sec, String_from("wasi:clocks/wall-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 6))
+    emit_host_func_import(import_sec, String_from("wasi:random/random@0.2.0"), String_from("get-random-u64"), get_unchecked(host_type_map, 5))
     if needs_wasi_http_outgoing == 1 {
         emit_p2_outgoing_handler_import(import_sec, host_type_map)
     }

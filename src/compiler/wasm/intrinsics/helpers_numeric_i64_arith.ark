@@ -4,5 +4,7 @@ use wasm::opcodes
 use wasm::writer_core
 
 fn emit_i64_sub(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_SUB()) }
+fn emit_i64_add(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_ADD()) }
+fn emit_i64_mul(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_MUL()) }
 fn emit_i64_div_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_DIV_U()) }
 fn emit_i64_rem_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I64_REM_U()) }

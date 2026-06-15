@@ -23,7 +23,6 @@ graph LR
   I658["658 658 — WASI P2 sockets: listen and accept"]
   I659["659 659 — Component export: general f32 canonical ABI"]
   I660["660 660 — Component export: Tier2 general canonical ABI adapters"]
-  I661["661 661 — std::time/host clock and random intrinsics (emitter)"]
   I662["662 662 — std::time duration helpers typecheck fix"]
   I28["28 034-wit-cli-integration"]
   I473["473 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`)"]
@@ -65,7 +64,6 @@ graph LR
 - **658** depends on: 074, 137; blocks: none
 - **659** depends on: 121, 074; blocks: none
 - **660** depends on: 121, 074; blocks: none
-- **661** depends on: 039, 040; blocks: none
 - **662** depends on: 039, 040; blocks: none
 - **28** depends on: 030, 031, 028b, 124; blocks: none
 - **473** depends on: 074, 124; blocks: none
