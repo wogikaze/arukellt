@@ -26,6 +26,9 @@ arukellt compile --target wasm32-wasi-p2 --emit wit hello.ark
 arukellt compile --target wasm32-wasi-p2 --emit component hello.ark
 ```
 
+Cross-language interop walkthroughs (Ark ↔ Rust ↔ JS, compose / WIT import):
+see [`../examples/README.md`](../examples/README.md).
+
 To bind host imports from external WIT, pass one or more `--wit` files:
 
 ```bash

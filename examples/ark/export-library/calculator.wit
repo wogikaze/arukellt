@@ -1,0 +1,6 @@
+package example:calc@0.1.0;
+
+world calc {
+  export add: func(a: s32, b: s32) -> s32;
+  export mul: func(a: s32, b: s32) -> s32;
+}

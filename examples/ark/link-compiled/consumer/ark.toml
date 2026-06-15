@@ -1,0 +1,6 @@
+[package]
+name = "ark-link-compiled-consumer"
+version = "0.1.0"
+
+[dependencies]
+"test:host" = { path = "vendor/host" }
