@@ -1,0 +1,5 @@
+import "wasi:cli/stdin"
+
+fn main() {
+    let _ = 0
+}

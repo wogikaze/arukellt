@@ -5,6 +5,8 @@ fn NK_FN_DECL() -> i32 { 50 }
 fn NK_STRUCT_DECL() -> i32 { 51 }
 fn NK_ENUM_DECL() -> i32 { 52 }
 fn NK_IMPORT() -> i32 { 53 }
+fn IMPORT_KIND_LOCAL() -> i32 { 0 }
+fn IMPORT_KIND_WIT() -> i32 { 1 }
 fn NK_USE() -> i32 { 54 }
 fn NK_TRAIT_DECL() -> i32 { 55 }
 fn NK_IMPL_DECL() -> i32 { 56 }

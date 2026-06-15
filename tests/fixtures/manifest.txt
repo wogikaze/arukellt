@@ -170,6 +170,10 @@ compile-error:component/import_resource_handle_type.ark
 compile-error:component/import_resource_type.ark
 component-compile:component/import_scalar_func.ark
 component-compile:wit_import/main.ark
+parse-only:wit_import/parse/with_alias.ark
+parse-only:wit_import/parse/no_alias.ark
+parse-only:wit_import/parse/local_ident.ark
+diag:wit_import/parse/malformed.ark
 t3-compile:component/resource_v3/resource_basic.ark
 t3-compile:component/resource_v3/resource_handle.ark
 t3-compile:component/resource_v3/resource_gc.ark

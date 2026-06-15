@@ -8,6 +8,7 @@ use parser::decl
 use parser::dump
 use parser::self_check_issue499
 use parser::self_check_issue504
+use parser::self_check_issue652
 use parser::state_record
 
 fn issue504_parser_self_check() -> String {
@@ -28,6 +29,14 @@ fn issue499_parser_lexer_integration_self_check() -> String {
 
 fn issue499_parser_block_body_lexer_integration_self_check() -> String {
     self_check_issue499::issue499_parser_block_body_lexer_integration_self_check()
+}
+
+fn issue652_parser_self_check() -> String {
+    self_check_issue652::issue652_parser_self_check()
+}
+
+fn issue652_parser_malformed_self_check() -> String {
+    self_check_issue652::issue652_parser_malformed_self_check()
 }
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
@@ -61,4 +70,6 @@ fn main() {
     stdio::println(issue499_parser_lexer_integration_self_check())
     stdio::println(issue499_parser_block_body_lexer_integration_self_check())
     stdio::println(issue504_parser_self_check())
+    stdio::println(issue652_parser_self_check())
+    stdio::println(issue652_parser_malformed_self_check())
 }

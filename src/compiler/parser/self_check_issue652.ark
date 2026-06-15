@@ -1,0 +1,82 @@
+// Arukellt Parser self-checks for issue #652 (WIT import grammar).
+
+use lexer::scan
+use parser::ast_kind_fields
+use parser::core_api_token
+use parser::core_ast_literal_fields
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+use parser::decl
+use parser::kinds
+use parser::state_record
+
+fn issue652_parse_source(src: String) -> Parser {
+    let tokens = scan::tokenize(src)
+    core_api_token::Parser_new(tokens)
+}
+
+fn issue652_import_kind(node: AstNode) -> i32 {
+    core_ast_literal_fields::AstNode_int_val(node)
+}
+
+fn issue652_import_alias(node: AstNode) -> String {
+    if core_ast_type_ann::AstNode_type_ann_count(node) == 0 {
+        return String_new()
+    }
+    let alias = core_ast_type_ann::AstNode_type_ann_at(node, 0)
+    return core_ast_text_fields::AstNode_text(alias)
+}
+
+fn issue652_assert_wit_import(node: AstNode, package_id: String, alias: String) -> String {
+    if ast_kind_fields::AstNode_kind(node) != kinds::NK_IMPORT() {
+        return String_from("issue652 parser fail: expected import decl")
+    }
+    if issue652_import_kind(node) != kinds::IMPORT_KIND_WIT() {
+        return String_from("issue652 parser fail: expected WIT import kind")
+    }
+    if !eq(core_ast_text_fields::AstNode_text(node), package_id) {
+        return String_from("issue652 parser fail: WIT package id")
+    }
+    if !eq(issue652_import_alias(node), alias) {
+        return String_from("issue652 parser fail: WIT import alias")
+    }
+    return String_new()
+}
+
+fn issue652_parser_self_check() -> String {
+    let src = String_from("import \"test:host/math\" as host\nimport \"wasi:cli/stdin\"\nimport math\n")
+    let p = issue652_parse_source(src)
+    let decls = decl::parse_module(p)
+    if state_record::parser_error_count(p) != 0 {
+        return String_from("issue652 parser fail: unexpected parse errors")
+    }
+    if len(decls) != 3 {
+        return concat(String_from("issue652 parser fail: decl count="), to_string(len(decls)))
+    }
+    let wit_alias = issue652_assert_wit_import(get_unchecked(decls, 0), String_from("test:host/math"), String_from("host"))
+    if len(wit_alias) > 0 {
+        return wit_alias
+    }
+    let wit_default = issue652_assert_wit_import(get_unchecked(decls, 1), String_from("wasi:cli/stdin"), String_from("stdin"))
+    if len(wit_default) > 0 {
+        return wit_default
+    }
+    let local = get_unchecked(decls, 2)
+    if issue652_import_kind(local) != kinds::IMPORT_KIND_LOCAL() {
+        return String_from("issue652 parser fail: expected local import kind")
+    }
+    if !eq(core_ast_text_fields::AstNode_text(local), String_from("math")) {
+        return String_from("issue652 parser fail: local import path")
+    }
+    return String_from("issue652 parser ok: WIT and local import grammar")
+}
+
+fn issue652_parser_malformed_self_check() -> String {
+    let src = String_from("import \"not-a-wit-id\"\n")
+    let p = issue652_parse_source(src)
+    let _ = decl::parse_module(p)
+    if state_record::parser_error_count(p) == 0 {
+        return String_from("issue652 parser fail: expected malformed WIT import diagnostic")
+    }
+    return String_from("issue652 parser ok: malformed WIT import rejected")
+}

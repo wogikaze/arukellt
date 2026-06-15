@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T02:37:46Z",
+  "generated_at": "2026-06-15T02:48:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -314,9 +314,9 @@
       }
     },
     {
-      "id": "652",
-      "path": "652-wit-import-parser-grammar.md",
-      "title": "652 — WIT import parser grammar (`import \"...\" as alias`)",
+      "id": "653",
+      "path": "653-wit-import-resolver-mir.md",
+      "title": "653 — WIT import resolver, typecheck, and MIR lowering",
       "track": "language-design",
       "status": "open",
       "blocks_v1": "none",
@@ -325,10 +325,11 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
+        "652",
         "074"
       ],
       "blocks_issue_ids": [
-        "653"
+        "654"
       ],
       "acceptance": {
         "checked": 0,
@@ -565,33 +566,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "653",
-      "path": "653-wit-import-resolver-mir.md",
-      "title": "653 — WIT import resolver, typecheck, and MIR lowering",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "652",
-        "074"
-      ],
-      "blocks_issue_ids": [
-        "654"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {

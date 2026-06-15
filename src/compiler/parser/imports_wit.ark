@@ -1,0 +1,42 @@
+// Arukellt Parser - WIT string import declaration syntax (#652).
+
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_literal_fields
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::diagnostics
+use parser::imports_alias
+use parser::imports_wit_validate
+use parser::kinds
+use parser::token_state
+
+fn wit_attach_default_alias(node: AstNode, package_id: String, path_span: Span) {
+    if core_ast_type_ann::AstNode_type_ann_count(node) > 0 {
+        return
+    }
+    let alias_name = imports_wit_validate::wit_default_alias(package_id)
+    if len(alias_name) == 0 {
+        return
+    }
+    let alias_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), alias_name, path_span)
+    core_ast_type_ann::AstNode_push_type_ann(node, alias_node)
+}
+
+fn parse_wit_import(p: Parser, import_span: Span) -> AstNode {
+    let path_tok = core_api_expect::expect_token(p, tokens::TK_STRING())
+    let package_id = token_state::Token_text(path_tok)
+    let path_span = core_api_expect::tok_span(path_tok)
+    let node = core_ast_factory::AstNode_new(kinds::NK_IMPORT(), import_span)
+    core_ast_text_fields::AstNode_set_text(node, clone(package_id))
+    core_ast_literal_fields::AstNode_set_int_val(node, kinds::IMPORT_KIND_WIT())
+    let err = imports_wit_validate::wit_validate_package_id(clone(package_id))
+    if len(err) > 0 {
+        diagnostics::parser_push_unexpected_error(p, err)
+    }
+    imports_alias::parse_use_alias(p, node)
+    wit_attach_default_alias(node, clone(package_id), path_span)
+    node
+}

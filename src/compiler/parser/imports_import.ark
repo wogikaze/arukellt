@@ -1,18 +1,25 @@
-// Arukellt Parser - string import declaration syntax.
+// Arukellt Parser - import declaration dispatch (WIT string vs local ident).
 
 use lexer::tokens
-use parser::core_ast_text_fields
 use parser::core_ast_factory
 use parser::core_api_cursor
 use parser::core_api_expect
+use parser::diagnostics
+use parser::imports_local
+use parser::imports_wit
 use parser::kinds
-use parser::token_state
 
 fn parse_import_decl(p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_IMPORT())
-    let node = core_ast_factory::AstNode_new(kinds::NK_IMPORT(), core_api_expect::tok_span(t))
+    let span = core_api_expect::tok_span(t)
     core_api_cursor::skip_newlines(p)
-    let path_tok = core_api_expect::expect_token(p, tokens::TK_STRING())
-    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(path_tok))
-    node
+    let k = core_api_cursor::peek_kind(p)
+    if k == tokens::TK_STRING() {
+        return imports_wit::parse_wit_import(p, span)
+    }
+    if k == tokens::TK_IDENT() {
+        return imports_local::parse_local_import(p, span)
+    }
+    diagnostics::parser_push_unexpected_error(p, String_from("expected string literal or identifier after import"))
+    core_ast_factory::AstNode_new(kinds::NK_IMPORT(), span)
 }

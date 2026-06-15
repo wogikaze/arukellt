@@ -1,0 +1,5 @@
+import "not-a-wit-package-id"
+
+fn main() {
+    let _ = 0
+}

@@ -1,0 +1,69 @@
+// Arukellt Parser - WIT package id validation and default alias (#652).
+
+fn wit_find_char(s: String, ch: i32, from: i32) -> i32 {
+    let n = len(s)
+    let mut i = from
+    while i < n {
+        if char_at(s, i) == ch {
+            return i
+        }
+        i = i + 1
+    }
+    return -1
+}
+
+fn wit_find_last_char(s: String, ch: i32) -> i32 {
+    let n = len(s)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(s, i) == ch {
+            return i
+        }
+        i = i - 1
+    }
+    return -1
+}
+
+fn wit_strip_version(segment: String) -> String {
+    let at = wit_find_char(segment, 64, 0)
+    if at <= 0 {
+        return segment
+    }
+    return substring(segment, 0, at)
+}
+
+fn wit_validate_package_id(id: String) -> String {
+    if len(id) == 0 {
+        return String_from("WIT import string must not be empty")
+    }
+    let colon = wit_find_char(id, 58, 0)
+    if colon < 0 {
+        return String_from("WIT import must use namespace:package/interface form")
+    }
+    if colon == 0 {
+        return String_from("WIT import namespace must not be empty")
+    }
+    let slash = wit_find_char(id, 47, colon + 1)
+    if slash < 0 {
+        return String_from("WIT import must include /interface segment")
+    }
+    if slash == colon + 1 {
+        return String_from("WIT import package must not be empty")
+    }
+    if slash + 1 >= len(id) {
+        return String_from("WIT import interface must not be empty")
+    }
+    return String_new()
+}
+
+fn wit_default_alias(id: String) -> String {
+    let slash = wit_find_last_char(id, 47)
+    if slash < 0 {
+        let colon = wit_find_last_char(id, 58)
+        if colon < 0 {
+            return clone(id)
+        }
+        return wit_strip_version(substring(id, colon + 1, len(id)))
+    }
+    return wit_strip_version(substring(id, slash + 1, len(id)))
+}
