@@ -137,6 +137,7 @@ P2 emitter imports `wasi:http/outgoing-handler@0.2.0` and lowers via `arukellt_h
 |---|---|---|---|---|
 | `request` | `(String, String, String) -> Result<String, String>` | available (bridge) | T3 | `arukellt_host` + outgoing-handler import |
 | `get` | `(String) -> Result<String, String>` | available (bridge) | T3 | same |
+| `serve` | `(i32, String) -> Result<(), String>` | available (bridge) | T3 | `arukellt_host` + incoming-handler import |
 | `request_with_headers` | returns `HttpResponse` | provisional | T3 | whole-body; headers not forwarded yet |
 
 #### Error mapping (when implemented)
@@ -158,7 +159,7 @@ Module stability is **provisional** (HTTPS not supported). There is no `--deny-h
 
 **Not user-reachable** on the selfhost path.
 [#447](../issues/done/447-std-host-sockets-implementation.md) /
-[#139](../issues/open/139-std-wasi-sockets-p2.md).
+[#139](../issues/done/139-std-wasi-sockets-p2.md).
 
 | Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
@@ -169,7 +170,7 @@ Module stability is **provisional** (HTTPS not supported). There is no `--deny-h
 ### `std::host::udp`
 
 **Not user-reachable** on the selfhost path.
-[#139](../issues/open/139-std-wasi-sockets-p2.md).
+[#139](../issues/done/139-std-wasi-sockets-p2.md).
 
 | Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
@@ -213,8 +214,8 @@ No builtins in the stub list. `std::host::http`, `std::host::sockets`, and
 [#633](../issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md),
 [#446](../issues/done/446-std-host-http-implementation.md),
 [#447](../issues/done/447-std-host-sockets-implementation.md),
-[#077](../issues/open/077-wasi-p2-http.md),
-[#139](../issues/open/139-std-wasi-sockets-p2.md).
+[#077](../issues/done/077-wasi-p2-http.md),
+[#139](../issues/done/139-std-wasi-sockets-p2.md).
 
 ---
 
@@ -294,9 +295,9 @@ T1/T3 execution checks for the ADR-011 `std::host::*` rollout are registered in
 | Capability group | Fixtures | Close gate | Issue |
 |---|---|---|---|
 | Shared (`stdio`, `fs`, `env`, `process`, `clock`, `random`) | `tests/fixtures/stdlib_host/wasi_{stdio,fs,args,process,clock,random}.ark` (`run:` + `t3-run:`) | `scripts/check/gate-138-shared-capabilities-t1-t3.py` | [#138](../issues/done/138-std-wasi-shared-capabilities-t1-t3.md) |
-| HTTP outgoing client | `tests/fixtures/host/http/get_err_dns.ark`, `tests/fixtures/wasi_http_p2.ark` | `scripts/check/gate-655-http-outgoing.py` | [#655](../issues/done/655-wasi-p2-http-outgoing-client.md) (parent [#077](../issues/open/077-wasi-p2-http.md)) |
-| Sockets connect/read/write | `tests/fixtures/host/sockets/connect_read_write.ark` | `scripts/check/gate-657-sockets-connect-read-write.py` | [#657](../issues/done/657-std-wasi-sockets-connect-read.md) (parent [#139](../issues/open/139-std-wasi-sockets-p2.md)) |
+| HTTP outgoing client | `tests/fixtures/host/http/get_err_dns.ark`, `tests/fixtures/wasi_http_p2.ark` | `scripts/check/gate-655-http-outgoing.py` | [#655](../issues/done/655-wasi-p2-http-outgoing-client.md) (parent [#077](../issues/done/077-wasi-p2-http.md)) |
+| Sockets connect/read/write | `tests/fixtures/host/sockets/connect_read_write.ark` | `scripts/check/gate-657-sockets-connect-read-write.py` | [#657](../issues/done/657-std-wasi-sockets-connect-read.md) (parent [#139](../issues/done/139-std-wasi-sockets-p2.md)) |
+| HTTP incoming server | `tests/fixtures/host/http/incoming_smoke.ark` | `scripts/check/gate-656-http-incoming.py` | [#656](../issues/done/656-wasi-p2-http-incoming-server.md) (parent [#077](../issues/done/077-wasi-p2-http.md)) |
 | Namespace + T1 reject for P2-only modules | `tests/fixtures/target_gating/t1_import_{sockets,udp,http}.ark` | resolver target gate (#137) | [#137](../issues/done/137-std-wasi-namespace-and-target-gating.md) |
 
-Remaining P2 slices (issue #656 HTTP server, issue #658 sockets listen/accept) stay on the open
-queue; they do not block the ADR-011 namespace rollout tracked by issue #136.
+Remaining P2 slices stay on the open queue; they do not block the ADR-011 namespace rollout tracked by issue #136.

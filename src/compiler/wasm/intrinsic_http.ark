@@ -30,6 +30,16 @@ fn emit_http_request(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+fn emit_http_serve(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_body = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    emit_http_serve_save_args(w, s_port, s_body)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
+    emit_http_serve_call(w, ctx)
+    intrinsic_http_result::emit_http_finalize_unit_result(w, constants::SCRATCH_SOCK_RESPPTR(), constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN(), constants::SCRATCH_SOCK_ENUMPTR())
+    return true
+}
+
 fn emit_http_get_save_url(w: WasmWriter, url_local: i32) {
     helpers_core_locals::emit_local_set(w, url_local)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLPTR())
@@ -48,6 +58,15 @@ fn emit_http_request_save_args(w: WasmWriter, method_local: i32, url_local: i32,
     helpers_io::emit_store_string_local_to_scratch(w, method_local, constants::SCRATCH_HTTP_URLPTR(), constants::SCRATCH_HTTP_URLLEN())
     helpers_io::emit_store_string_local_to_scratch(w, url_local, constants::SCRATCH_HTTP_REQ_URLPTR(), constants::SCRATCH_HTTP_REQ_URLLEN())
     helpers_io::emit_store_string_local_to_scratch(w, body_local, constants::SCRATCH_HTTP_REQ_BODYPTR(), constants::SCRATCH_HTTP_REQ_BODYLEN())
+}
+
+fn emit_http_serve_save_args(w: WasmWriter, port_local: i32, body_local: i32) {
+    helpers_core_locals::emit_local_set(w, body_local)
+    helpers_core_locals::emit_local_set(w, port_local)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
+    helpers_core_locals::emit_local_get(w, port_local)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_io::emit_store_string_local_to_scratch(w, body_local, constants::SCRATCH_SOCK_HOSTPTR(), constants::SCRATCH_SOCK_HOSTLEN())
 }
 
 fn emit_http_get_call(w: WasmWriter, ctx: SelfEmitCtx) {
@@ -79,5 +98,19 @@ fn emit_http_request_call(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_REQ_RESPPTR())
     helpers_memory_access::emit_i32_load_default(w)
     helpers_core_calls::emit_call(w, import_indices::http_request_import_idx(ctx))
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_http_serve_call(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, import_indices::http_serve_import_idx(ctx))
     helpers_memory_access::emit_i32_store_default(w)
 }

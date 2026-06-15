@@ -57,3 +57,24 @@ fn sockets_write_import_idx(ctx: SelfEmitCtx) -> i32 {
     }
     constants::WASI_IMPORT_SOCKETS_WRITE()
 }
+
+fn sockets_listen_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 5
+    }
+    constants::WASI_IMPORT_SOCKETS_LISTEN()
+}
+
+fn sockets_accept_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 6
+    }
+    constants::WASI_IMPORT_SOCKETS_ACCEPT()
+}
+
+fn http_serve_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 7
+    }
+    constants::WASI_IMPORT_SOCKETS_CONNECT()
+}

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 586
+- **Canonical names:** 589
 - **Historical/deprecated names:** 25
-- **Total entries:** 611
+- **Total entries:** 614
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -26,6 +26,7 @@ Current public API names, sorted alphabetically.
 | `abs` | `prelude` | `stable` | Math |
 | `abs` | `std::core::math` | `stable` | Core |
 | `abs_i32` | `std::core::math` | `stable` | Core |
+| `accept` | `std::host::sockets` | `provisional` | Host Sockets |
 | `any_i32` | `prelude` | `stable` | Collections |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
@@ -336,6 +337,7 @@ Current public API names, sorted alphabetically.
 | `limits_min` | `std::wasm` | `experimental` | Wasm |
 | `limits_unbounded` | `std::wasm` | `experimental` | Wasm |
 | `lines` | `std::text` | `stable` | Text |
+| `listen` | `std::host::sockets` | `provisional` | Host Sockets |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
 | `map_i32_i32` | `prelude` | `stable` | Collections |
@@ -484,6 +486,7 @@ Current public API names, sorted alphabetically.
 | `send` | `std::host::udp` | `provisional` | Host Udp |
 | `seq_contains` | `std::seq` | `stable` | Seq |
 | `seq_reverse` | `std::seq` | `stable` | Seq |
+| `serve` | `std::host::http` | `provisional` | Host Http |
 | `set` | `prelude` | `stable` | Collections |
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
@@ -655,6 +658,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abs` | ✅ `stable` | `prelude` | Math |
 | `abs` | ✅ `stable` | `std::core::math` | Core |
 | `abs_i32` | ✅ `stable` | `std::core::math` | Core |
+| `accept` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `any_i32` | ✅ `stable` | `prelude` | Collections |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -988,6 +992,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `limits_min` | ✅ `experimental` | `std::wasm` | Wasm |
 | `limits_unbounded` | ✅ `experimental` | `std::wasm` | Wasm |
 | `lines` | ✅ `stable` | `std::text` | Text |
+| `listen` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `map_i32_i32` | ✅ `stable` | `prelude` | Collections |
@@ -1136,6 +1141,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `send` | ✅ `provisional` | `std::host::udp` | Host Udp |
 | `seq_contains` | ✅ `stable` | `std::seq` | Seq |
 | `seq_reverse` | ✅ `stable` | `std::seq` | Seq |
+| `serve` | ✅ `provisional` | `std::host::http` | Host Http |
 | `set` | ✅ `stable` | `prelude` | Collections |
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |

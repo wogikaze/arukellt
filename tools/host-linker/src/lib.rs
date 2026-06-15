@@ -81,7 +81,7 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
 
     let needs_http = module
         .imports()
-        .any(|imp| imp.module() == "arukellt_host" && matches!(imp.name(), "http_get" | "http_request"));
+        .any(|imp| imp.module() == "arukellt_host" && matches!(imp.name(), "http_get" | "http_request" | "http_serve"));
     if needs_http {
         host_http::register_http_host_fns(&mut linker)?;
     }
@@ -90,7 +90,11 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
         imp.module() == "arukellt_host"
             && matches!(
                 imp.name(),
-                "sockets_connect" | "sockets_read" | "sockets_write"
+                "sockets_connect"
+                    | "sockets_read"
+                    | "sockets_write"
+                    | "sockets_listen"
+                    | "sockets_accept"
             )
     });
     if needs_sockets {

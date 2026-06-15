@@ -8,7 +8,7 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
-| [provisional](#provisional-apis) | 22 | API is usable but may change in minor versions based on feedback. |
+| [provisional](#provisional-apis) | 25 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 175 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
 
@@ -518,6 +518,7 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 | `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 | `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `builtin (wasm32-wasi-p2)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
 | `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `builtin (wasm32-wasi-p2)` | no | - | - |
+| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to the incomin… |
 
 ### `get` — `std::host::http`
 
@@ -541,6 +542,19 @@ _Example — POST JSON to an API endpoint:_
 
 ```ark
 let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
+```
+
+### `serve` — `std::host::http`
+
+**Errors:** Err on bind failure, accept timeout, or I/O error while serving the single request.
+
+_Example — Handle one GET on port 8080:_
+
+```ark
+match http::serve(8080, "hello") {
+  Ok(()) => println("served")
+  Err(e) => eprintln(e)
+}
 ```
 
 ## Host Process
@@ -573,9 +587,15 @@ let n = random::random_i32_range(1, 7)
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
 | `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
+| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
 | `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_read` | Read up to max_len bytes from an open socket fd. |
 | `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_write` | Write byte values from a Vec to an open socket fd. |
+
+### `accept` — `std::host::sockets`
+
+**Errors:** Err on invalid listener fd or accept failure.
 
 ### `connect` — `std::host::sockets`
 
@@ -587,6 +607,10 @@ _Example — Connect to a local server on port 8080:_
 let sock = sockets::connect("localhost", 8080)
 match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 ```
+
+### `listen` — `std::host::sockets`
+
+**Errors:** Err on bind failure or invalid port.
 
 ### `read` — `std::host::sockets`
 
@@ -1449,6 +1473,7 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
 | `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 | `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
 | `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
@@ -1457,6 +1482,7 @@ Expected output: `hello world`
 | `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
 | `is_file` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. |
 | `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
+| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
 | `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
 | `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
 | `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_read` | Read up to max_len bytes from an open socket fd. |
@@ -1468,6 +1494,7 @@ Expected output: `hello world`
 | `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `builtin (wasm32-wasi-p2)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
 | `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `builtin (wasm32-wasi-p2)` | no | - | - |
 | `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |
+| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to the incomin… |
 | `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_write` | Write byte values from a Vec to an open socket fd. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |

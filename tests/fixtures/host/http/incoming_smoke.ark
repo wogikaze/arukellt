@@ -1,0 +1,25 @@
+// Fixture: T3 HTTP incoming server — one GET handled on loopback with fixed body.
+use std::host::http
+use std::host::env
+use std::host::stdio
+
+fn main() {
+    let port_str = match env::var("ARUKELLT_HTTP_INCOMING_PORT") {
+        Option::Some(p) => p,
+        None => {
+            stdio::println("missing incoming port")
+            return
+        },
+    }
+    let port = match parse_i32(port_str) {
+        Result::Ok(n) => n,
+        Result::Err(_) => {
+            stdio::println("bad incoming port")
+            return
+        },
+    }
+    match http::serve(port, "hello") {
+        Result::Ok(()) => stdio::println("incoming ok"),
+        Result::Err(e) => stdio::println(e),
+    }
+}

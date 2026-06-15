@@ -7,9 +7,9 @@
 //!
 //! - **HTTPS is not supported** by the current capability surface; only
 //!   plaintext HTTP/1.1 over TCP is reachable from this module.
-//! - Only the verbs explicitly exposed (`request`, `get`) are available; there
-//!   is no header customization, streaming body, or response-status surface
-//!   beyond the returned body string today.
+//! - Only the verbs explicitly exposed (`request`, `get`, `serve`) are available;
+//!   there is no header customization, streaming body, or response-status
+//!   surface beyond the returned body string today.
 //! - Network access requires the host to be invoked with the appropriate
 //!   networking capability flags; without them every call returns `Err`.
 //!
@@ -25,4 +25,10 @@ pub fn request(method: String, url: String, body: String) -> Result<String, Stri
 /// Returns the response body or an error string.
 pub fn get(url: String) -> Result<String, String> {
     __intrinsic_http_get(url)
+}
+
+/// Serves one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200).
+/// Maps to the `wasi:http/incoming-handler` proxy-world server bridge (#656).
+pub fn serve(port: i32, body: String) -> Result<(), String> {
+    __intrinsic_http_serve(port, body)
 }

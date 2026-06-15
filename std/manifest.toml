@@ -2783,6 +2783,21 @@ errors = "Err on DNS failure (dns: <host>: not found), connection refused (conne
 availability = { t1 = false, t3 = true, note = "T3 bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
 
+[[functions]]
+name = "serve"
+module = "std::host::http"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_http_serve"
+params = ["i32", "String"]
+returns = "Result<(), String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_http"
+doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to the incoming-handler proxy-world bridge (#656)."
+errors = "Err on bind failure, accept timeout, or I/O error while serving the single request."
+availability = { t1 = false, t3 = true, note = "T3 bridge via arukellt_host + incoming-handler import (#656)." }
+examples = [{code = "match http::serve(8080, \"hello\") {\n  Ok(()) => println(\"served\")\n  Err(e) => eprintln(e)\n}", description = "Handle one GET on port 8080"}]
+
 
 
 [[functions]]
@@ -2826,7 +2841,7 @@ name = "std::host::sockets"
 target = ["wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "TCP socket helpers (provisional). T3 connect/read/write via host-linker (#657); native WASI P2 sockets by #139."
+doc = "TCP socket helpers (provisional). T3 connect/read/write via host-linker (#657); listen/accept (#658); native WASI P2 sockets by #139."
 
 [[functions]]
 name = "connect"
@@ -2870,6 +2885,34 @@ doc_category = "host_sockets"
 doc = "Write byte values from a Vec to an open socket fd."
 errors = "Err on invalid fd or I/O failure."
 availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
+
+[[functions]]
+name = "listen"
+module = "std::host::sockets"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_sockets_listen"
+params = ["String", "i32"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_sockets"
+doc = "Bind a TCP listener on the given hostname and port. Returns a listener fd on success."
+errors = "Err on bind failure or invalid port."
+availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#658). Importing on T1 emits E0500." }
+
+[[functions]]
+name = "accept"
+module = "std::host::sockets"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_sockets_accept"
+params = ["i32"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_sockets"
+doc = "Accept one inbound TCP connection on a listener fd. Returns connected socket fd."
+errors = "Err on invalid listener fd or accept failure."
+availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#658). Importing on T1 emits E0500." }
 
 [[modules]]
 name = "std::host::udp"

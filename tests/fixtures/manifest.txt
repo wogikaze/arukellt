@@ -140,6 +140,7 @@ compile-error:component/export_record_point_renamed_bad_signature.ark
 compile-error:component/export_record_point_renamed_extra.ark
 compile-error:component/export_resource.ark
 compile-error:component/export_unsupported_enum_status.ark
+compile-error:component/export_unsupported_record_rect.ark
 compile-error:component/export_unsupported_f32_multi.ark
 compile-error:component/export_unsupported_list_bool.ark
 compile-error:component/export_unsupported_list_extra.ark
@@ -351,6 +352,8 @@ run:host/http/get_err_dns.ark
 run:host/http/request_err_refused.ark
 t3-run:host/http/get_err_dns.ark
 t3-run:host/http/request_err_refused.ark
+t3-run:host/http/incoming_smoke.ark
+t3-run:host/http/incoming_smoke.ark
 run:host/process/abort.ark
 run:host/process/exit_code_127.ark
 run:host/process/exit_from_branch.ark
@@ -981,6 +984,7 @@ t3-run:host/process/exit_zero.ark
 t3-run:host/sockets/connect_refused.ark
 t3-run:host/sockets/connect_dns_fail.ark
 t3-run:host/sockets/connect_read_write.ark
+t3-run:host/sockets/listen_accept.ark
 t3-run:integration/calculator.ark
 t3-run:integration/fibonacci.ark
 t3-run:integration/word_counter.ark

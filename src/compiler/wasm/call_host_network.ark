@@ -15,6 +15,11 @@ fn try_emit_network_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
+    if eq(clone(callee), "http_serve") || eq(clone(callee), "__intrinsic_http_serve") || eq(clone(callee), "http::serve") || eq(clone(callee), "std::host::http::serve") {
+        let _result_on_stack = intrinsic_http::emit_http_serve(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
     if eq(clone(callee), "sockets_connect") || eq(clone(callee), "__intrinsic_sockets_connect") || eq(clone(callee), "sockets::connect") || eq(clone(callee), "std::host::sockets::connect") {
         let _result_on_stack = intrinsic_sockets::emit_sockets_connect(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -27,6 +32,16 @@ fn try_emit_network_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
     }
     if eq(clone(callee), "sockets_write") || eq(clone(callee), "__intrinsic_sockets_write") || eq(clone(callee), "sockets::write") || eq(clone(callee), "std::host::sockets::write") {
         let _result_on_stack = intrinsic_sockets::emit_sockets_write(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "sockets_listen") || eq(clone(callee), "__intrinsic_sockets_listen") || eq(clone(callee), "sockets::listen") || eq(clone(callee), "std::host::sockets::listen") {
+        let _result_on_stack = intrinsic_sockets::emit_sockets_listen(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "sockets_accept") || eq(clone(callee), "__intrinsic_sockets_accept") || eq(clone(callee), "sockets::accept") || eq(clone(callee), "std::host::sockets::accept") {
+        let _result_on_stack = intrinsic_sockets::emit_sockets_accept(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }

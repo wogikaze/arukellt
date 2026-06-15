@@ -38,13 +38,18 @@ TRACKED: dict[str, list[str]] = {
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
     "500": ["playground wasm typecheck export gate"],
-    "051": ["stdlib_time monotonic run + clock intrinsic emitter handlers"],
+    "051": ["std::time + std::random umbrella (gate-051-std-time-random.py)"],
+    "648": ["general canonical ABI umbrella (gate-648-component-export-general-abi.py)"],
     "123": ["Layer C import string syntax component fixture"],
     "641": ["T4 native scaffold compile (t4/native_scaffold.ark)"],
     "639": ["HTTP registry fixtures + gate-639-registry-http.py"],
     "643": ["Grain benchmark hook (compare-benchmarks --compare-lang grain)"],
     "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
+    "658": ["TCP listen/accept host-linker smoke (gate-658-sockets-listen-accept.py)"],
+    "139": ["WASI P2 sockets umbrella (gate-139-wasi-p2-sockets-umbrella.py)"],
     "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
+    "656": ["HTTP incoming server gate-656-http-incoming.py"],
+    "077": ["WASI P2 HTTP umbrella (gate-077-wasi-p2-http-umbrella.py)"],
     "138": ["std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
     "136": ["ADR-011 std::host rollout consistency (gate-136-std-host-rollout.py)"],
     "652": ["WIT import parser grammar gate-652-wit-import-parser.py"],
@@ -423,37 +428,66 @@ def gate_500() -> tuple[int, str]:
 
 
 def gate_051() -> tuple[int, str]:
-    if not _manifest_contains("t3-run:stdlib_time/monotonic.ark"):
-        return 1, "manifest missing t3-run:stdlib_time/monotonic.ark"
-    compiler = _compiler()
-    if compiler is None:
-        return 2, "arukellt compiler binary not found"
-    fixture = REPO_ROOT / "tests" / "fixtures" / "stdlib_time" / "monotonic.ark"
+    script = REPO_ROOT / "scripts" / "check" / "gate-051-std-time-random.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-051-std-time-random.py"
     result = subprocess.run(
-        [
-            str(compiler),
-            "compile",
-            str(fixture),
-            "--target",
-            "wasm32-wasi-p1",
-            "-o",
-            "/dev/null",
-        ],
+        [sys.executable, str(script)],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
         timeout=60,
     )
     if result.returncode != 0:
-        return 1, f"stdlib_time/monotonic.ark compile failed: {(result.stderr or '')[-400:]}"
-    emitter_glob = list((REPO_ROOT / "src" / "compiler").rglob("*.ark"))
-    clock_handlers = 0
-    for path in emitter_glob:
-        text = path.read_text(encoding="utf-8", errors="replace")
-        if "__intrinsic_clock_now" in text and "handler" in text.lower():
-            clock_handlers += 1
-    if clock_handlers == 0:
-        return 1, "no selfhost emitter handler for __intrinsic_clock_now"
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
+def gate_648() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-648-component-export-general-abi.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-648-component-export-general-abi.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
+def gate_139() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-139-wasi-p2-sockets-umbrella.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-139-wasi-p2-sockets-umbrella.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
+def gate_077() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-077-wasi-p2-http-umbrella.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-077-wasi-p2-http-umbrella.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
     return 0, ""
 
 
@@ -639,10 +673,42 @@ def gate_655() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_656() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-656-http-incoming.py"
+    if not script.is_file():
+        return 1, "missing gate-656-http-incoming.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_657() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-657-sockets-connect-read-write.py"
     if not script.is_file():
         return 1, "missing scripts/check/gate-657-sockets-connect-read-write.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
+def gate_658() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-658-sockets-listen-accept.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-658-sockets-listen-accept.py"
     result = subprocess.run(
         [sys.executable, str(script)],
         cwd=str(REPO_ROOT),
@@ -694,12 +760,17 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "472": gate_472,
     "500": gate_500,
     "051": gate_051,
+    "648": gate_648,
     "123": gate_123,
     "639": gate_639,
     "641": gate_641,
     "643": gate_643,
     "657": gate_657,
+    "658": gate_658,
+    "139": gate_139,
     "655": gate_655,
+    "656": gate_656,
+    "077": gate_077,
     "138": gate_138,
     "136": gate_136,
     "652": gate_652,

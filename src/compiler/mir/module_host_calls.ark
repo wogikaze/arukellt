@@ -9,6 +9,10 @@ fn mir_call_is_wasi_http_outgoing(callee: String) -> bool {
     if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
     if eq(clone(callee), String_from("http::request")) { return true }
     if eq(clone(callee), String_from("std::host::http::request")) { return true }
+    if eq(clone(callee), String_from("http_serve")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_serve")) { return true }
+    if eq(clone(callee), String_from("http::serve")) { return true }
+    if eq(clone(callee), String_from("std::host::http::serve")) { return true }
     if eq(clone(callee), String_from("std::host::http::request_with_headers")) { return true }
     false
 }
@@ -26,6 +30,14 @@ fn mir_call_is_arukellt_host_sockets(callee: String) -> bool {
     if eq(clone(callee), String_from("__intrinsic_sockets_write")) { return true }
     if eq(clone(callee), String_from("sockets::write")) { return true }
     if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
+    if eq(clone(callee), String_from("sockets_listen")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_listen")) { return true }
+    if eq(clone(callee), String_from("sockets::listen")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::listen")) { return true }
+    if eq(clone(callee), String_from("sockets_accept")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_accept")) { return true }
+    if eq(clone(callee), String_from("sockets::accept")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::accept")) { return true }
     false
 }
 
@@ -38,6 +50,10 @@ fn mir_call_is_arukellt_host(callee: String) -> bool {
     if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
     if eq(clone(callee), String_from("http::request")) { return true }
     if eq(clone(callee), String_from("std::host::http::request")) { return true }
+    if eq(clone(callee), String_from("http_serve")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_serve")) { return true }
+    if eq(clone(callee), String_from("http::serve")) { return true }
+    if eq(clone(callee), String_from("std::host::http::serve")) { return true }
     if mir_call_is_arukellt_host_sockets(clone(callee)) { return true }
     false
 }

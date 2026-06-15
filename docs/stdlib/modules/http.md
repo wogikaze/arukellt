@@ -7,7 +7,7 @@ Source-backed docs for HTTP client operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::http` module defines HTTP/1.1 client helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#446](../../../issues/done/446-std-host-http-implementation.md) and native WASI P2 HTTP by [#077](../../../issues/open/077-wasi-p2-http.md). When implemented, only plain `http://` URLs are supported — **HTTPS is not available**.
+The `std::host::http` module defines HTTP/1.1 client helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#446](../../../issues/done/446-std-host-http-implementation.md) and native WASI P2 HTTP by [#077](../../../issues/done/077-wasi-p2-http.md). When implemented, only plain `http://` URLs are supported — **HTTPS is not available**.
 
 **Recommended API highlights:**
 
@@ -35,8 +35,8 @@ match body {
 ## `std::host::http`
 
 - Source: [`../../../std/host/http.ark`](../../../std/host/http.ark)
-- Manifest-backed functions: 5
-- Stability: provisional 5
+- Manifest-backed functions: 6
+- Stability: provisional 6
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
 
@@ -53,6 +53,7 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 |------|-----------|-----------|--------|---------|
 | `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP request with the given method, URL, and body. |
 | `get` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP GET request to the given URL. |
+| `serve` | `(i32, String) -> Result<(), String>` | `provisional` | ✅ impl | Serves one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). |
 | `read_body` | `(HttpResponse) -> String` | `provisional` | ✅ impl | - |
 | `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ✅ impl | - |
 | `response_status` | `(HttpResponse) -> i32` | `provisional` | ✅ impl | - |
@@ -85,6 +86,23 @@ _Example — Fetch a URL and print its body:_
 let body = http::get("http://example.com")
 match body {
   Ok(s) => println(s)
+  Err(e) => eprintln(e)
+}
+```
+
+#### `serve`
+
+Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to the incoming-handler proxy-world bridge (#656).
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 bridge via arukellt_host + incoming-handler import (#656).
+
+**Errors:** Err on bind failure, accept timeout, or I/O error while serving the single request.
+
+_Example — Handle one GET on port 8080:_
+
+```ark
+match http::serve(8080, "hello") {
+  Ok(()) => println("served")
   Err(e) => eprintln(e)
 }
 ```

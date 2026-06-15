@@ -1,10 +1,66 @@
-//! TCP HTTP/1.1 host implementations for `arukellt_host::http_get` / `http_request`.
+//! TCP HTTP/1.1 host implementations for `arukellt_host::http_get` / `http_request` / `http_serve`.
 
 use crate::{read_string_from_mem, write_error, write_ok};
+use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::sync::OnceLock;
+use std::time::Duration;
 use wasmtime::*;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
+static INCOMING_PORT: OnceLock<u16> = OnceLock::new();
+
+pub fn ensure_http_incoming_client_helper() -> u16 {
+    *INCOMING_PORT.get_or_init(|| {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind incoming helper");
+        let port = listener.local_addr().expect("incoming helper addr").port();
+        drop(listener);
+        std::env::set_var("ARUKELLT_HTTP_INCOMING_PORT", port.to_string());
+        std::thread::spawn(move || incoming_client_loop(port));
+        port
+    })
+}
+
+fn incoming_client_loop(port: u16) {
+    use std::io::ErrorKind;
+    use std::net::ToSocketAddrs;
+
+    let addr = format!("127.0.0.1:{}", port);
+    let socket_addr = match addr.to_socket_addrs().and_then(|mut a| {
+        a.next()
+            .ok_or_else(|| std::io::Error::new(ErrorKind::InvalidInput, "incoming client addr"))
+    }) {
+        Ok(sa) => sa,
+        Err(_) => return,
+    };
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    loop {
+        match TcpStream::connect_timeout(&socket_addr, Duration::from_millis(200)) {
+            Ok(mut stream) => {
+                let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
+                let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
+                let request =
+                    "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+                if stream.write_all(request.as_bytes()).is_err() {
+                    return;
+                }
+                let mut response = Vec::new();
+                let _ = stream.read_to_end(&mut response);
+                return;
+            }
+            Err(ref e) if e.kind() == ErrorKind::ConnectionRefused || e.kind() == ErrorKind::TimedOut => {
+                if std::time::Instant::now() >= deadline {
+                    return;
+                }
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            Err(_) => return,
+        }
+    }
+}
+
 pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), String> {
+    ensure_http_incoming_client_helper();
     linker
         .func_wrap(
             "arukellt_host",
@@ -62,6 +118,32 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
             },
         )
         .map_err(|e| format!("linker http_request error: {}", e))?;
+
+    linker
+        .func_wrap(
+            "arukellt_host",
+            "http_serve",
+            |mut caller: Caller<'_, WasiP1Ctx>,
+             port: i32,
+             body_ptr: i32,
+             body_len: i32,
+             resp_ptr: i32|
+             -> i32 {
+                let mem = match caller.get_export("memory") {
+                    Some(Extern::Memory(m)) => m,
+                    _ => return write_error(&mut caller, resp_ptr, "no memory export"),
+                };
+                let body = match read_string_from_mem(&caller, &mem, body_ptr, body_len) {
+                    Ok(s) => s,
+                    Err(e) => return write_error(&mut caller, resp_ptr, &e),
+                };
+                match http_serve_impl(port, &body) {
+                    Ok(()) => 0,
+                    Err(e) => write_error(&mut caller, resp_ptr, &e),
+                }
+            },
+        )
+        .map_err(|e| format!("linker http_serve error: {}", e))?;
 
     Ok(())
 }
@@ -180,9 +262,54 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
     }
 }
 
+fn http_serve_impl(port: i32, body: &str) -> Result<(), String> {
+    use std::io::ErrorKind;
+
+    if !(0..=65535).contains(&port) {
+        return Err(format!("serve: invalid port {}", port));
+    }
+    let addr = format!("127.0.0.1:{}", port);
+    let listener =
+        TcpListener::bind(&addr).map_err(|e| format!("serve: {}: {}", port, e))?;
+    listener
+        .set_nonblocking(true)
+        .map_err(|e| format!("serve: {}: {}", port, e))?;
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    let (mut stream, _) = loop {
+        match listener.accept() {
+            Ok(pair) => break pair,
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                if std::time::Instant::now() >= deadline {
+                    return Err(format!("serve: {}: timed out", port));
+                }
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            Err(e) => return Err(format!("serve: {}: {}", port, e)),
+        }
+    };
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
+    let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
+    let mut buf = [0u8; 4096];
+    let _ = stream.read(&mut buf);
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{}",
+        body.len(),
+        body
+    );
+    stream
+        .write_all(response.as_bytes())
+        .map_err(|e| format!("serve: write: {}", e))?;
+    let _ = stream.flush();
+    let _ = stream.shutdown(std::net::Shutdown::Write);
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
-    use super::http_get_impl;
+    use super::{http_get_impl, http_serve_impl};
+    use std::io::{Read, Write};
+    use std::net::{TcpListener, TcpStream};
+    use std::time::Duration;
 
     #[test]
     fn http_get_dns_error() {
@@ -192,5 +319,36 @@ mod tests {
             err.starts_with("dns:"),
             "expected dns error, got {err:?}"
         );
+    }
+
+    #[test]
+    fn http_incoming_roundtrip() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        drop(listener);
+        let handle = std::thread::spawn(move || {
+            http_serve_impl(port as i32, "hello").expect("serve");
+        });
+        let addr = format!("127.0.0.1:{}", port);
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        loop {
+            if let Ok(mut client) =
+                TcpStream::connect_timeout(&addr.parse().unwrap(), Duration::from_millis(200))
+            {
+                client
+                    .write_all(b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
+                    .unwrap();
+                let mut buf = Vec::new();
+                let _ = client.read_to_end(&mut buf);
+                let text = String::from_utf8_lossy(&buf);
+                assert!(text.contains("hello"), "response missing body: {text}");
+                break;
+            }
+            if std::time::Instant::now() >= deadline {
+                panic!("incoming client timed out");
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        handle.join().unwrap();
     }
 }
