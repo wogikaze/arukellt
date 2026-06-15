@@ -531,6 +531,7 @@ run:stdlib_trait/display_trait.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/hash_trait.ark
 run:stdlib_csv/csv_basic.ark
+run:stdlib_csv/csv_parse_doc.ark
 run:stdlib_csv/csv_parse_row.ark
 run:stdlib_env/env_basic.ark
 run:stdlib_filter/filter_string.ark

@@ -1,13 +1,6 @@
 //! JSON parser/serializer for `std::json`.
 //!
-//! **Status: partial / experimental — see #604 / #606.**
-//!
-//! This module is not a full JSON DOM. It provides a bounded set of
-//! stringify/parse helpers plus a tagged `JsonValue` whose Array and
-//! Object variants store their *raw JSON text* to avoid recursive type
-//! constraints. Nested access through `json_get` / `json_get_index`
-//! therefore re-parses the raw text on demand rather than walking a
-//! pre-built tree.
+//! **Status: experimental — recursive `JsonValue` enum DOM (#045).**
 //!
 //! ## Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
 //!
@@ -113,19 +106,18 @@ pub fn json_parse_bool(s: String) -> bool {
 }
 
 // ─── JsonValue type ──────────────────────────────────────────────────────────
-/// Tagged container for a JSON value.
-/// 
-/// | tag | kind   | `raw` contents                     |
-/// |-----|--------|------------------------------------|
-/// |  0  | null   | `"null"`                           |
-/// |  1  | bool   | `"true"` or `"false"`              |
-/// |  2  | number | decimal representation              |
-/// |  3  | string | full JSON literal incl. quotes     |
-/// |  4  | array  | full JSON `[…]` text               |
-/// |  5  | object | full JSON `{…}` text               |
-pub struct JsonValue {
-    tag: i32,
-    raw: String,
+pub enum JsonValue {
+    Null,
+    Bool(bool),
+    Number(f64),
+    Str(String),
+    Array(Vec<JsonValue>),
+    Object(Vec<JsonField>),
+}
+
+pub struct JsonField {
+    key: String,
+    value: JsonValue,
 }
 
 // ─── Internal parsing helpers ────────────────────────────────────────────────
@@ -271,101 +263,147 @@ pub fn parse_error_message(err: JsonParseError) -> String {
 /// 
 /// Leading and trailing whitespace is ignored, but any non-whitespace
 /// characters after the first top-level value cause an error.
+fn parse_value_at(s: String, pos: i32) -> (Result<JsonValue, JsonParseError>, i32) {
+    let pos = skip_ws(s, pos)
+    let n = len(s)
+    if pos >= n {
+        return (Err(JsonParseError::EmptyInput), pos)
+    }
+    let c = char_at(s, pos)
+    if c == 110 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
+        return (Ok(JsonValue::Null), pos + 4)
+    }
+    if c == 116 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
+        return (Ok(JsonValue::Bool(true)), pos + 4)
+    }
+    if c == 102 && n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
+        return (Ok(JsonValue::Bool(false)), pos + 5)
+    }
+    if c == 34 {
+        let end = find_string_end(s, pos + 1)
+        let inner = json_decode_string(slice(s, pos + 1, end - 1))
+        return (Ok(JsonValue::Str(inner)), end)
+    }
+    if c == 91 {
+        let arr = Vec_new_JsonValue()
+        let mut i = skip_ws(s, pos + 1)
+        while i < n {
+            i = skip_ws(s, i)
+            if i < n && char_at(s, i) == 93 {
+                return (Ok(JsonValue::Array(arr)), i + 1)
+            }
+            let (elem, next) = parse_value_at(s, i)
+            match elem {
+                Result::Ok(v) => push(arr, v),
+                Result::Err(e) => return (Err(e), i),
+            }
+            i = skip_ws(s, next)
+            if i < n && char_at(s, i) == 44 {
+                i = i + 1
+            }
+        }
+        return (Err(JsonParseError::UnexpectedCharacter(c)), pos)
+    }
+    if c == 123 {
+        let fields = Vec_new_JsonField()
+        let mut i = skip_ws(s, pos + 1)
+        while i < n {
+            i = skip_ws(s, i)
+            if i < n && char_at(s, i) == 125 {
+                return (Ok(JsonValue::Object(fields)), i + 1)
+            }
+            if char_at(s, i) != 34 {
+                return (Err(JsonParseError::UnexpectedCharacter(char_at(s, i))), i)
+            }
+            let key_end = find_string_end(s, i + 1)
+            let key = json_decode_string(slice(s, i + 1, key_end - 1))
+            i = skip_ws(s, key_end)
+            if i >= n || char_at(s, i) != 58 {
+                return (Err(JsonParseError::UnexpectedCharacter(58)), i)
+            }
+            let (val, next) = parse_value_at(s, skip_ws(s, i + 1))
+            match val {
+                Result::Ok(v) => push(fields, JsonField { key: key, value: v }),
+                Result::Err(e) => return (Err(e), i),
+            }
+            i = skip_ws(s, next)
+            if i < n && char_at(s, i) == 44 {
+                i = i + 1
+            }
+        }
+        return (Err(JsonParseError::UnexpectedCharacter(c)), pos)
+    }
+    if c >= 48 && c <= 57 || c == 45 {
+        let end = find_number_end(s, pos)
+        let raw = slice(s, pos, end)
+        match parse_f64(raw) {
+            Result::Ok(num) => return (Ok(JsonValue::Number(num)), end),
+            Result::Err(_) => return (Err(JsonParseError::InvalidLiteral(String_from("number"))), pos),
+        }
+    }
+    (Err(JsonParseError::UnexpectedCharacter(c)), pos)
+}
+
 pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
     let pos = skip_ws(s, 0)
     let n = len(s)
     if pos >= n {
         return Err(JsonParseError::EmptyInput)
     }
-    let c = char_at(s, pos)
-    if c == 110 {
-        if n >= pos + 4 {
-            if eq(slice(s, pos, pos + 4), "null") {
-                let end = pos + 4
-                let after = skip_ws(s, end)
-                if after == n {
-                    return Ok(JsonValue { tag: 0, raw: "null" })
-                }
-                return Err(JsonParseError::TrailingCharacters)
-            }
-        }
-        Err(JsonParseError::InvalidLiteral("null"))
-    } else {
-        if c == 116 {
-            if n >= pos + 4 {
-                if eq(slice(s, pos, pos + 4), "true") {
-                    let end = pos + 4
-                    let after = skip_ws(s, end)
-                    if after == n {
-                        return Ok(JsonValue { tag: 1, raw: "true" })
-                    }
-                    return Err(JsonParseError::TrailingCharacters)
-                }
-            }
-            Err(JsonParseError::InvalidLiteral("true"))
-        } else {
-            if c == 102 {
-                if n >= pos + 5 {
-                    if eq(slice(s, pos, pos + 5), "false") {
-                        let end = pos + 5
-                        let after = skip_ws(s, end)
-                        if after == n {
-                            return Ok(JsonValue { tag: 1, raw: "false" })
-                        }
-                        return Err(JsonParseError::TrailingCharacters)
-                    }
-                }
-                Err(JsonParseError::InvalidLiteral("false"))
+    let (value, end) = parse_value_at(s, pos)
+    match value {
+        Result::Ok(v) => {
+            let after = skip_ws(s, end)
+            if after == n {
+                Ok(v)
             } else {
-                if c == 34 {
-                    let end = find_string_end(s, pos + 1)
-                    let after = skip_ws(s, end)
-                    if after == n {
-                        Ok(JsonValue { tag: 3, raw: slice(s, pos, end) })
-                    } else {
-                        Err(JsonParseError::TrailingCharacters)
-                    }
-                } else {
-                    if c == 91 {
-                        let end = find_closing(s, pos + 1, 91, 93)
-                        let after = skip_ws(s, end)
-                        if after == n {
-                            Ok(JsonValue { tag: 4, raw: slice(s, pos, end) })
-                        } else {
-                            Err(JsonParseError::TrailingCharacters)
-                        }
-                    } else {
-                        if c == 123 {
-                            let end = find_closing(s, pos + 1, 123, 125)
-                            let after = skip_ws(s, end)
-                            if after == n {
-                                Ok(JsonValue { tag: 5, raw: slice(s, pos, end) })
-                            } else {
-                                Err(JsonParseError::TrailingCharacters)
-                            }
-                        } else {
-                            if c >= 48 && c <= 57 || c == 45 {
-                                let end = find_number_end(s, pos)
-                                let after = skip_ws(s, end)
-                                if after == n {
-                                    Ok(JsonValue { tag: 2, raw: slice(s, pos, end) })
-                                } else {
-                                    Err(JsonParseError::TrailingCharacters)
-                                }
-                            } else {
-                                Err(JsonParseError::UnexpectedCharacter(c))
-                            }
-                        }
-                    }
-                }
+                Err(JsonParseError::TrailingCharacters)
             }
-        }
+        },
+        Result::Err(e) => Err(e),
     }
 }
 
 /// Serialize a `JsonValue` back to its JSON text.
 pub fn stringify(v: JsonValue) -> String {
-    v.raw
+    match v {
+        JsonValue::Null => "null",
+        JsonValue::Bool(true) => "true",
+        JsonValue::Bool(false) => "false",
+        JsonValue::Number(n) => f64_to_string(n),
+        JsonValue::Str(s) => json_encode_string(s),
+        JsonValue::Array(items) => stringify_array(items),
+        JsonValue::Object(fields) => stringify_object(fields),
+    }
+}
+
+fn stringify_array(items: Vec<JsonValue>) -> String {
+    let n = len(items)
+    let mut out = "["
+    let mut i = 0
+    while i < n {
+        if i > 0 {
+            out = concat(out, ",")
+        }
+        out = concat(out, stringify(get_unchecked(items, i)))
+        i = i + 1
+    }
+    concat(out, "]")
+}
+
+fn stringify_object(fields: Vec<JsonField>) -> String {
+    let n = len(fields)
+    let mut out = "{"
+    let mut i = 0
+    while i < n {
+        if i > 0 {
+            out = concat(out, ",")
+        }
+        let f = get_unchecked(fields, i)
+        out = concat(out, concat(json_encode_string(f.key), concat(":", stringify(f.value))))
+        i = i + 1
+    }
+    concat(out, "}")
 }
 
 fn repeat_spaces(count: i32) -> String {
@@ -383,31 +421,58 @@ fn repeat_spaces(count: i32) -> String {
 }
 
 fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
-    if v.tag == 0 {
-        v.raw
-    } else {
-        if v.tag == 1 {
-            v.raw
-        } else {
-            if v.tag == 2 {
-                v.raw
-            } else {
-                if v.tag == 3 {
-                    v.raw
-                } else {
-                    if v.tag == 4 {
-                        format_array_pretty(v.raw, indent, depth)
-                    } else {
-                        if v.tag == 5 {
-                            format_object_pretty(v.raw, indent, depth)
-                        } else {
-                            v.raw
-                        }
-                    }
-                }
-            }
-        }
+    match v {
+        JsonValue::Null => "null",
+        JsonValue::Bool(true) => "true",
+        JsonValue::Bool(false) => "false",
+        JsonValue::Number(n) => f64_to_string(n),
+        JsonValue::Str(s) => json_encode_string(s),
+        JsonValue::Array(items) => stringify_array_pretty(items, indent, depth),
+        JsonValue::Object(fields) => stringify_object_pretty(fields, indent, depth),
     }
+}
+
+fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> String {
+    if len(items) == 0 {
+        return "[]"
+    }
+    let child_pad = repeat_spaces(indent * depth + 1)
+    let close_pad = repeat_spaces(indent * depth)
+    let mut result = "[\n"
+    let n = len(items)
+    let mut i = 0
+    while i < n {
+        if i > 0 {
+            result = concat(result, ",\n")
+        }
+        result = concat(result, child_pad)
+        result = concat(result, stringify_pretty_at(get_unchecked(items, i), indent, depth + 1))
+        i = i + 1
+    }
+    concat(concat(concat(result, "\n"), close_pad), "]")
+}
+
+fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> String {
+    if len(fields) == 0 {
+        return "{}"
+    }
+    let child_pad = repeat_spaces(indent * depth + 1)
+    let close_pad = repeat_spaces(indent * depth)
+    let mut result = "{\n"
+    let n = len(fields)
+    let mut i = 0
+    while i < n {
+        if i > 0 {
+            result = concat(result, ",\n")
+        }
+        let f = get_unchecked(fields, i)
+        result = concat(result, child_pad)
+        result = concat(result, json_encode_string(f.key))
+        result = concat(result, ": ")
+        result = concat(result, stringify_pretty_at(f.value, indent, depth + 1))
+        i = i + 1
+    }
+    concat(concat(concat(result, "\n"), close_pad), "}")
 }
 
 fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
@@ -519,158 +584,110 @@ pub fn stringify_pretty(v: JsonValue, indent: i32) -> String {
 
 // ─── Type predicates ─────────────────────────────────────────────────────────
 pub fn is_null(v: JsonValue) -> bool {
-    v.tag == 0
+    match v {
+        JsonValue::Null => true,
+        _ => false,
+    }
 }
 
 pub fn is_bool(v: JsonValue) -> bool {
-    v.tag == 1
+    match v {
+        JsonValue::Bool(_) => true,
+        _ => false,
+    }
 }
 
 pub fn is_number(v: JsonValue) -> bool {
-    v.tag == 2
+    match v {
+        JsonValue::Number(_) => true,
+        _ => false,
+    }
 }
 
 pub fn is_string(v: JsonValue) -> bool {
-    v.tag == 3
+    match v {
+        JsonValue::Str(_) => true,
+        _ => false,
+    }
 }
 
 pub fn is_array(v: JsonValue) -> bool {
-    v.tag == 4
+    match v {
+        JsonValue::Array(_) => true,
+        _ => false,
+    }
 }
 
 pub fn is_object(v: JsonValue) -> bool {
-    v.tag == 5
+    match v {
+        JsonValue::Object(_) => true,
+        _ => false,
+    }
 }
 
-// ─── Value extractors ────────────────────────────────────────────────────────
 pub fn json_as_bool(v: JsonValue) -> Option<bool> {
-    if v.tag == 1 {
-        Some(eq(v.raw, "true"))
-    } else {
-        None
+    match v {
+        JsonValue::Bool(b) => Some(b),
+        _ => None,
     }
 }
 
 pub fn json_as_string(v: JsonValue) -> Option<String> {
-    if v.tag == 3 {
-        let n = len(v.raw)
-        if n < 2 {
-            return Some("")
-        }
-        Some(json_decode_string(slice(v.raw, 1, n - 1)))
-    } else {
-        None
+    match v {
+        JsonValue::Str(s) => Some(s),
+        _ => None,
     }
 }
 
 pub fn json_as_i32(v: JsonValue) -> Option<i32> {
-    if v.tag == 2 {
-        match parse_i32(v.raw) {
-            Result::Ok(n) => Some(n),
-            Result::Err(_) => None,
-        }
-    } else {
-        None
+    match v {
+        JsonValue::Number(n) => {
+            match parse_i32(f64_to_string(n)) {
+                Result::Ok(i) => Some(i),
+                Result::Err(_) => None,
+            }
+        },
+        _ => None,
     }
 }
 
 pub fn json_as_f64(v: JsonValue) -> Option<f64> {
-    if v.tag == 2 {
-        match parse_f64(v.raw) {
-            Result::Ok(n) => Some(n),
-            Result::Err(_) => None,
-        }
-    } else {
-        None
+    match v {
+        JsonValue::Number(n) => Some(n),
+        _ => None,
     }
 }
 
-// ─── Object / array accessors ────────────────────────────────────────────────
-/// Look up a named field in a JSON object value.
-pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
-    if v.tag != 5 {
-        return None
+pub fn json_as_array(v: JsonValue) -> Option<Vec<JsonValue>> {
+    match v {
+        JsonValue::Array(items) => Some(items),
+        _ => None,
     }
-    let raw = v.raw
-    let n = len(raw)
-    let needle = concat("\"", concat(key, "\""))
-    let needle_len = len(needle)
-    let mut i = 1
-    let mut in_str = false
-    let mut esc = false
-    while i < n - 1 {
-        let c = char_at(raw, i)
-        if esc {
-            esc = false
-            i = i + 1
-        } else {
-            if in_str {
-                if c == 92 {
-                    esc = true
-                } else {
-                    if c == 34 {
-                        in_str = false
-                    }
+}
+
+pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
+    match v {
+        JsonValue::Object(fields) => {
+            let n = len(fields)
+            let mut i = 0
+            while i < n {
+                let f = get_unchecked(fields, i)
+                if eq(f.key, key) {
+                    return Some(f.value)
                 }
                 i = i + 1
-            } else {
-                if c == 34 {
-                    if i + needle_len <= n {
-                        if eq(slice(raw, i, i + needle_len), needle) {
-                            let after = skip_ws(raw, i + needle_len)
-                            if after < n && char_at(raw, after) == 58 {
-                                let value_start = skip_ws(raw, after + 1)
-                                let value_end = find_value_end(raw, value_start)
-                                match parse(slice(raw, value_start, value_end)) {
-                                    Result::Ok(val) => return Some(val),
-                                    Result::Err(_) => return None,
-                                }
-                            }
-                        }
-                    }
-                    let end = find_string_end(raw, i + 1)
-                    i = end
-                } else {
-                    i = i + 1
-                }
             }
-        }
+            None
+        },
+        _ => None,
     }
-    None
 }
 
-/// Return the element at `index` from a JSON array value.
 pub fn json_get_index(v: JsonValue, index: i32) -> Option<JsonValue> {
-    if v.tag != 4 {
-        return None
+    match v {
+        JsonValue::Array(items) => get(items, index),
+        _ => None,
     }
-    let raw = v.raw
-    let n = len(raw)
-    let mut i = skip_ws(raw, 1)
-    let mut current = 0
-    while i < n - 1 {
-        i = skip_ws(raw, i)
-        if i >= n {
-            return None
-        }
-        let c = char_at(raw, i)
-        if c == 93 {
-            return None
-        }
-        let elem_end = find_value_end(raw, i)
-        if current == index {
-            match parse(slice(raw, i, elem_end)) {
-                Result::Ok(val) => return Some(val),
-                Result::Err(_) => return None,
-            }
-        }
-        current = current + 1
-        i = skip_ws(raw, elem_end)
-        if i < n && char_at(raw, i) == 44 {
-            i = i + 1
-        }
-    }
-    None
 }
 
 // ─── String encoding ─────────────────────────────────────────────────────────

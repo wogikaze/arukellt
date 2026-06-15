@@ -48,8 +48,7 @@ with `Err(String)`.
 
 ### Value representation
 
-`TomlValue` is a tagged struct. Array and Table variants store their
-raw serialized text to avoid recursive type constraints.
+`TomlValue` is a recursive enum for structured TOML values.
 
 ### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
@@ -63,7 +62,9 @@ existing fixtures.
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `TomlValue` | `struct` | Tagged container for a TOML value. |
+| `TomlValue` | `enum` | - |
+| `TomlField` | `struct` | - |
+| `TomlValueRaw` | `struct` | Legacy tagged struct accessors — prefer TomlValue enum variants. |
 
 ### Public API
 
@@ -76,7 +77,7 @@ existing fixtures.
 | `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
 | `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | - |
 | `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | Look up a key in a TOML table value. |
-| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | Return the keys of a TOML table as a Vec<String>. |
+| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | - |
 
 #### `toml_parse`
 

@@ -124,6 +124,40 @@ pub fn csv_parse_row_at(s: String, row_index: i32) -> Vec<String> {
     csv_parse_row(csv_get_row_raw(s, row_index))
 }
 
+/// Parse a full CSV document into rows.
+pub fn csv_parse(s: String) -> Result<Vec<Vec<String>>, String> {
+    let lines = split(s, "\n")
+    let n = len(lines)
+    if n == 0 {
+        return Err("empty document")
+    }
+    let rows = Vec_new_Vec_String()
+    let mut i = 0
+    while i < n {
+        let line = get_unchecked(lines, i)
+        if len(line) > 0 {
+            push(rows, csv_parse_row(line))
+        }
+        i = i + 1
+    }
+    Ok(rows)
+}
+
+/// Serialize rows to a CSV document.
+pub fn csv_stringify(rows: Vec<Vec<String>>) -> String {
+    let n = len(rows)
+    let mut out = ""
+    let mut i = 0
+    while i < n {
+        if i > 0 {
+            out = concat(out, "\n")
+        }
+        out = concat(out, csv_stringify_row(get_unchecked(rows, i)))
+        i = i + 1
+    }
+    out
+}
+
 /// Parse a CSV document with a header row.
 /// 
 /// Returns `(header_fields, rows)` — the first row becomes the header and

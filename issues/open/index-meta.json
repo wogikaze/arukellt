@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T13:43:31Z",
+  "generated_at": "2026-06-15T13:54:26Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -25,32 +25,6 @@
       "orchestration": {
         "class": "partially-blocked",
         "upstream_notes": "#037 jco GC upstream"
-      }
-    },
-    {
-      "id": "45",
-      "path": "055-std-json-toml-csv.md",
-      "title": "std: \":json + std::toml + std::csv: データ形式パーサ\"",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "039",
-        "042",
-        "044"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
       }
     },
     {

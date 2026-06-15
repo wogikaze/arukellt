@@ -41,14 +41,7 @@ let parsed = json_parse_i32("42")    // 42
 
 JSON parser/serializer for `std::json`.
 
-**Status: partial / experimental — see #604 / #606.**
-
-This module is not a full JSON DOM. It provides a bounded set of
-stringify/parse helpers plus a tagged `JsonValue` whose Array and
-Object variants store their *raw JSON text* to avoid recursive type
-constraints. Nested access through `json_get` / `json_get_index`
-therefore re-parses the raw text on demand rather than walking a
-pre-built tree.
+**Status: experimental — recursive `JsonValue` enum DOM (#045).**
 
 ### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
@@ -64,7 +57,8 @@ with existing fixtures and are not a complete typed serializer.
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `JsonValue` | `struct` | Tagged container for a JSON value. |
+| `JsonValue` | `enum` | - |
+| `JsonField` | `struct` | - |
 | `JsonParseError` | `enum` | - |
 
 ### Public API
@@ -77,7 +71,7 @@ with existing fixtures and are not a complete typed serializer.
 | `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |
 | `json_parse_i32` | `(String) -> i32` | `experimental` | Parse a decimal integer from a JSON number string. |
 | `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | Parse a full JSON document from s and reject trailing non-whitespace after |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | - |
 | `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize a JsonValue with newlines and indentation for arrays and objects. |
 | `is_null` | `(JsonValue) -> bool` | `experimental` | - |
@@ -90,8 +84,8 @@ with existing fixtures and are not a complete typed serializer.
 | `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
 | `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | - |
 | `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | - |
-| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | Look up a named field in a JSON object value. |
-| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | Return the element at index from a JSON array value. |
+| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | - |
+| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | - |
 | `json_encode_string` | `(String) -> String` | `experimental` | Encode a plain string as a JSON string literal with surrounding quotes |
 
 #### `parse`
