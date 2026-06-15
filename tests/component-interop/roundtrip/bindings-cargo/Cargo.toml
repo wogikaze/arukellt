@@ -1,0 +1,13 @@
+[package]
+name = "roundtrip-bindings-guest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wit-bindgen = "0.44.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "test:roundtrip"

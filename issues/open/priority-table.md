@@ -27,14 +27,13 @@ Scoring criteria (0-5 each, total 25):
 | 14 | 443 | 443-component-composition-linking-model | component-composition | 0 | 0 | 1 | 3 | 3 | 7 |
 | 15 | 473 | 473 — WIT resource handles (`resource`, `own<T>`, `borrow<T>`) | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
 | 16 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
-| 17 | 618 | 618-wit-bindings-round-trip | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 18 | 648 | 648 — Component export: general canonical ABI adapters (pos... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 19 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 20 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 21 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 22 | 659 | 659 — Component export: general f32 canonical ABI | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 23 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 24 | 661 | 661 — std::time/host clock and random intrinsics (emitter) | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 25 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 26 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 27 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 17 | 648 | 648 — Component export: general canonical ABI adapters (pos... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 18 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 19 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 20 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 21 | 659 | 659 — Component export: general f32 canonical ABI | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 22 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 23 | 661 | 661 — std::time/host clock and random intrinsics (emitter) | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 24 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 25 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 26 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |

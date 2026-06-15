@@ -4497,6 +4497,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-component-wit-parse.py",
         ),
         (
+            "WIT bindings round-trip (#618)",
+            "bash tests/component-interop/roundtrip/run.sh",
+        ),
+        (
             "component standard-world gate (#118)",
             "python3 scripts/check/check-component-world.py",
         ),

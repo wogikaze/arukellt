@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T02:11:39Z",
+  "generated_at": "2026-06-15T02:13:34Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -236,31 +236,6 @@
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "618",
-      "path": "618-wit-bindings-round-trip.md",
-      "title": "618-wit-bindings-round-trip",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "262",
-        "476"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },

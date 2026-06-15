@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-05-14
-Updated: 2026-06-12
+Updated: 2026-06-15
 ID: 618
 Track: component-model
 Depends on: 262, 476
@@ -43,14 +43,21 @@ Issue #262 can remain complete without hiding the bindings-generation gap.
 
 ## Acceptance
 
-- [ ] A fixture emits WIT from Arukellt source and stores the expected WIT shape.
-- [ ] A bindings-generation step consumes the emitted WIT and produces Arukellt
+- [x] A fixture emits WIT from Arukellt source and stores the expected WIT shape.
+- [x] A bindings-generation step consumes the emitted WIT and produces Arukellt
   bindings or an explicitly documented interim binding artifact.
-- [ ] The generated bindings participate in a round-trip smoke test through the
+- [x] The generated bindings participate in a round-trip smoke test through the
   component pipeline.
-- [ ] The workflow is wired into `tests/component-interop/` or an adjacent
+- [x] The workflow is wired into `tests/component-interop/` or an adjacent
   component test directory with a stable runner.
-- [ ] `python scripts/manager.py verify` passes.
+- [x] `python scripts/manager.py verify` passes.
+
+## Evidence (2026-06-15)
+
+- `tests/component-interop/roundtrip/run.sh` — stable runner (WIT emit diff, bindings parse, wit-bindgen smoke)
+- `tests/component-interop/roundtrip/scalar-s32/` — RT-07 fixture (`.ark` + `.expected.wit`)
+- `tests/component-interop/roundtrip/bindings-cargo/` — interim wit-bindgen Rust guest bindings artifact
+- Wired into `python scripts/manager.py verify quick` as `WIT bindings round-trip (#618)`
 
 ## Primary paths
 
@@ -242,11 +249,11 @@ The runner should be wired into `verification-component-interop` CI job, consist
 
 ```
 Phase 1 (Quick wins):
-  [ ] Create `tests/component-interop/roundtrip/` directory
-  [ ] Write `run.sh` with the fixture iteration loop
-  [ ] Move the existing skeleton roundtrip.ark into RT-07 (scalar-s32)
-  [ ] Write expected.wit for RT-07
-  [ ] Verify runner passes for RT-07
+  [x] Create `tests/component-interop/roundtrip/` directory
+  [x] Write `run.sh` with the fixture iteration loop
+  [x] Move the existing skeleton roundtrip.ark into RT-07 (scalar-s32)
+  [x] Write expected.wit for RT-07
+  [x] Verify runner passes for RT-07
 
 Phase 2 (Expand scalar coverage):
   [ ] Add RT-01 through RT-06, RT-08 through RT-13
@@ -267,8 +274,8 @@ Phase 5 (Binary round-trip):
   [ ] Document any structural differences between --emit wit and extracted WIT
 
 Phase 6 (CI integration):
-  [ ] Wire roundtrip/run.sh into verification-component-interop
-  [ ] Verify `python scripts/manager.py verify` passes
+  [x] Wire roundtrip/run.sh into verification-component-interop
+  [x] Verify `python scripts/manager.py verify` passes
 ```
 
 ### 7. Known gaps and future work

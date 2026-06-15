@@ -1,0 +1,12 @@
+// RT-07: scalar i32 WIT round-trip — emit, bindings, component smoke (#618)
+
+pub fn identity(x: i32) -> i32 {
+    x
+}
+
+pub fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn main() {
+}

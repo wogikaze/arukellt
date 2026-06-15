@@ -15,7 +15,6 @@ graph LR
   I443["443 443-component-composition-linking-model"]
   I45["45 std: ":json + std::toml + std::csv: データ形式パーサ""]
   I474["474 Async component support (v5)"]
-  I618["618 618-wit-bindings-round-trip"]
   I63["63 WASI P2: "`std::host::http` facade と runtime 検証""]
   I648["648 648 — Component export: general canonical ABI adapters (post-#121)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
@@ -58,7 +57,6 @@ graph LR
 - **443** depends on: 442, 476; blocks: none
 - **45** depends on: 039, 042, 044; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
-- **618** depends on: 262, 476; blocks: none
 - **63** depends on: 074, 137; blocks: none
 - **648** depends on: 121, 074; blocks: none
 - **649** depends on: 641; blocks: none

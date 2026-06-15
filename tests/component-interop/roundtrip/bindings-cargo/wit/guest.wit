@@ -1,0 +1,6 @@
+package test:roundtrip@0.1.0;
+
+world guest {
+  import identity: func(x: s32) -> s32;
+  export run: func() -> s32;
+}
