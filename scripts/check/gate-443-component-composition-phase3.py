@@ -26,8 +26,6 @@ PROVIDER_WASM = (
 
 def _compile_env() -> dict[str, str]:
     env = dict(os.environ)
-    if "ARUKELLT_SELFHOST_WASM" in env:
-        return env
     for candidate in (
         REPO_ROOT / ".build/selfhost/arukellt-s2.wasm",
         REPO_ROOT / ".build/selfhost/arukellt-s2-runtime.wasm",

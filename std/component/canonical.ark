@@ -1,0 +1,131 @@
+//! Canonical ABI scratch helpers (#044, ADR-008).
+//!
+//! Linear memory budget: offset 256–65535 (65280 bytes/call).
+
+use std::collections::compiler
+use std::core::error
+
+const CANONICAL_SCRATCH_BASE: i32 = 256
+const CANONICAL_SCRATCH_LIMIT: i32 = 65280
+
+pub struct CanonicalSlice {
+    ptr: i32,
+    len: i32,
+}
+
+fn scratch_new() -> Vec<i32> {
+    let s = Vec_new_i32()
+    push(s, CANONICAL_SCRATCH_BASE)
+    s
+}
+
+fn scratch_bump(scratch: Vec<i32>, nbytes: i32) -> Result<i32, error::Error> {
+    let base = get_unchecked(scratch, 0)
+    let next = base + nbytes
+    if nbytes < 0 || next > CANONICAL_SCRATCH_BASE + CANONICAL_SCRATCH_LIMIT {
+        return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
+    }
+    set(scratch, 0, next)
+    Ok(base)
+}
+
+fn scratch_write_byte(scratch: Vec<i32>, offset: i32, b: i32) {
+    let idx = offset - CANONICAL_SCRATCH_BASE + 1
+    while len(scratch) <= idx {
+        push(scratch, 0)
+    }
+    set(scratch, idx, b)
+}
+
+fn scratch_read_byte(scratch: Vec<i32>, offset: i32) -> i32 {
+    let idx = offset - CANONICAL_SCRATCH_BASE + 1
+    if idx < 1 || idx >= len(scratch) {
+        return 0
+    }
+    get_unchecked(scratch, idx)
+}
+
+pub fn canonical_lower_string(scratch: Vec<i32>, s: String) -> Result<CanonicalSlice, error::Error> {
+    set(scratch, 0, CANONICAL_SCRATCH_BASE)
+    let n = len(s)
+    let ptr = scratch_bump(scratch, n)
+    match ptr {
+        Result::Ok(start) => {
+            let mut i = 0
+            while i < n {
+                scratch_write_byte(scratch, start + i, char_at(s, i))
+                i = i + 1
+            }
+            Ok(CanonicalSlice { ptr: start, len: n })
+        },
+        Result::Err(e) => Err(e),
+    }
+}
+
+pub fn canonical_lift_string(scratch: Vec<i32>, slice: CanonicalSlice) -> Result<String, error::Error> {
+    canonical_lift_string_at(scratch, slice.ptr, slice.len)
+}
+
+pub fn canonical_lift_string_at(scratch: Vec<i32>, ptr: i32, slen: i32) -> Result<String, error::Error> {
+    if slen < 0 || ptr < CANONICAL_SCRATCH_BASE {
+        return Err(error::Error::InvalidArgument(String_from("canonical_lift_string")))
+    }
+    if slen > CANONICAL_SCRATCH_LIMIT {
+        return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
+    }
+    let mut out = ""
+    let mut i = 0
+    while i < slen {
+        let b = scratch_read_byte(scratch, ptr + i)
+        out = concat(out, char_to_string(b))
+        i = i + 1
+    }
+    Ok(out)
+}
+
+pub fn canonical_lower_list_i32(scratch: Vec<i32>, values: Vec<i32>) -> Result<CanonicalSlice, error::Error> {
+    set(scratch, 0, CANONICAL_SCRATCH_BASE)
+    let count = len(values)
+    let bytes = count * 4
+    let ptr = scratch_bump(scratch, bytes)
+    match ptr {
+        Result::Ok(start) => {
+            let mut i = 0
+            while i < count {
+                let v = get_unchecked(values, i)
+                let off = start + i * 4
+                scratch_write_byte(scratch, off, v)
+                scratch_write_byte(scratch, off + 1, 0)
+                scratch_write_byte(scratch, off + 2, 0)
+                scratch_write_byte(scratch, off + 3, 0)
+                i = i + 1
+            }
+            Ok(CanonicalSlice { ptr: start, len: count })
+        },
+        Result::Err(e) => Err(e),
+    }
+}
+
+pub fn canonical_lift_list_i32(scratch: Vec<i32>, slice: CanonicalSlice) -> Result<Vec<i32>, error::Error> {
+    canonical_lift_list_i32_at(scratch, slice.ptr, slice.len)
+}
+
+pub fn canonical_lift_list_i32_at(scratch: Vec<i32>, ptr: i32, count: i32) -> Result<Vec<i32>, error::Error> {
+    if count < 0 || ptr < CANONICAL_SCRATCH_BASE {
+        return Err(error::Error::InvalidArgument(String_from("canonical_lift_list_i32")))
+    }
+    if count * 4 > CANONICAL_SCRATCH_LIMIT {
+        return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
+    }
+    let out = Vec_new_i32()
+    let mut i = 0
+    while i < count {
+        push(out, scratch_read_byte(scratch, ptr + i * 4))
+        i = i + 1
+    }
+    Ok(out)
+}
+
+pub fn canonical_scratch_new() -> Vec<i32> {
+    scratch_new()
+}

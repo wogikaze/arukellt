@@ -1,0 +1,78 @@
+//! WIT text printer (#044 subset).
+
+use std::wit::types
+use std::wit::world
+
+fn wit_type_print(ty: types::WitType) -> String {
+    match ty {
+        types::WitType::Bool => "bool",
+        types::WitType::U8 => "u8",
+        types::WitType::U16 => "u16",
+        types::WitType::U32 => "u32",
+        types::WitType::U64 => "u64",
+        types::WitType::S8 => "s8",
+        types::WitType::S16 => "s16",
+        types::WitType::S32 => "s32",
+        types::WitType::S64 => "s64",
+        types::WitType::F32 => "f32",
+        types::WitType::F64 => "f64",
+        types::WitType::Char => "char",
+        types::WitType::String => "string",
+        types::WitType::List(inner) => concat("list<", concat(wit_type_print(unbox(inner)), ">")),
+        types::WitType::Option(inner) => concat("option<", concat(wit_type_print(unbox(inner)), ">")),
+        types::WitType::Tuple(_) => "tuple",
+        types::WitType::Record(_) => "record",
+        types::WitType::Variant(_) => "variant",
+        types::WitType::Enum(_) => "enum",
+        types::WitType::Flags(_) => "flags",
+        types::WitType::Resource(name) => name,
+        types::WitType::Unknown(_) => "unknown",
+    }
+}
+
+fn wit_func_print(func: world::WitFunc) -> String {
+    let mut line = concat("  ", concat(func.name, ": func("))
+    let n = len(func.params)
+    let mut i = 0
+    while i < n {
+        let p = get_unchecked(func.params, i)
+        if i > 0 {
+            line = concat(line, ", ")
+        }
+        line = concat(line, concat(p.name, concat(": ", wit_type_print(p.ty))))
+        i = i + 1
+    }
+    line = concat(line, ")")
+    match func.result {
+        Option::Some(ret) => concat(line, concat(" -> ", wit_type_print(ret))),
+        None => line,
+    }
+}
+
+fn wit_iface_print(iface: world::Interface, kind: String) -> String {
+    let mut out = concat(kind, concat(" ", concat(iface.name, " {\n")))
+    let n = len(iface.functions)
+    let mut i = 0
+    while i < n {
+        out = concat(out, concat(wit_func_print(get_unchecked(iface.functions, i)), "\n"))
+        i = i + 1
+    }
+    concat(out, "}\n")
+}
+
+pub fn print_wit(w: world::World) -> String {
+    let mut out = concat("world ", concat(w.name, " {\n"))
+    let ni = len(w.imports)
+    let mut i = 0
+    while i < ni {
+        out = concat(out, wit_iface_print(get_unchecked(w.imports, i), String_from("import")))
+        i = i + 1
+    }
+    let ne = len(w.exports)
+    i = 0
+    while i < ne {
+        out = concat(out, wit_iface_print(get_unchecked(w.exports, i), String_from("export")))
+        i = i + 1
+    }
+    concat(out, "}\n")
+}

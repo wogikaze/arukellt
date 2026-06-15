@@ -1,0 +1,19 @@
+use std::component::canonical
+use std::host::stdio
+use std::core::error
+
+fn main() {
+    let scratch = canonical::canonical_scratch_new()
+    match canonical::canonical_lower_string(scratch, String_from("hi")) {
+        Result::Ok(slice) => {
+            stdio::println(i32_to_string(slice.ptr))
+            stdio::println(i32_to_string(slice.len))
+            match canonical::canonical_lift_string(scratch, slice) {
+                Result::Ok(s) => stdio::println(s),
+                Result::Err(e) => stdio::println(error::error_message(e)),
+            }
+        },
+        Result::Err(e) => stdio::println(error::error_message(e)),
+    }
+}
+// canonical string lower/lift round-trip

@@ -1,0 +1,18 @@
+use std::host::stdio
+use std::wit::printer
+use std::wit::types
+use std::wit::world
+
+fn main() {
+    let iface = world::interface_new(String_from("math"))
+    let params = Vec_new_WitParam()
+    push(params, world::wit_param_new(String_from("a"), types::wit_type_u32()))
+    push(params, world::wit_param_new(String_from("b"), types::wit_type_u32()))
+    let func = world::wit_func_new(String_from("add"), params, Some(types::wit_type_u32()))
+    world::interface_add_func(iface, func)
+    let w = world::world_new(String_from("demo"))
+    world::world_export(w, iface)
+    let text = printer::print_wit(w)
+    stdio::println(text)
+}
+// print_wit emits world block

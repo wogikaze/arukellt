@@ -15,7 +15,7 @@ Phase 1 supports **fixture-backed** resource shapes only:
 | `stream<T>` / `future<T>` | — | — | Still **E0402** ([#474](../../issues/open/474-async-component-support-v5.md)) |
 
 General resource descriptors, handle-table lifecycle, and `std::component` surface
-remain future work ([#054](../../issues/open/054-std-wit-component.md), [#121](../../issues/done/121-wasi-p2-canonical-abi-hardening.md)).
+remain future work ([#054](../../issues/done/054-std-wit-component.md), [#121](../../issues/done/121-wasi-p2-canonical-abi-hardening.md)).
 
 ## Lifecycle model
 

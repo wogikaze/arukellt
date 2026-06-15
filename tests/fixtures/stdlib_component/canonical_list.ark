@@ -1,0 +1,22 @@
+use std::component::canonical
+use std::host::stdio
+use std::core::error
+
+fn main() {
+    let scratch = canonical::canonical_scratch_new()
+    let values = Vec_new_i32()
+    push(values, 1)
+    push(values, 2)
+    push(values, 3)
+    match canonical::canonical_lower_list_i32(scratch, values) {
+        Result::Ok(slice) => {
+            stdio::println(i32_to_string(slice.len))
+            match canonical::canonical_lift_list_i32(scratch, slice) {
+                Result::Ok(out) => stdio::println(i32_to_string(len(out))),
+                Result::Err(e) => stdio::println(error::error_message(e)),
+            }
+        },
+        Result::Err(e) => stdio::println(error::error_message(e)),
+    }
+}
+// canonical i32 list lower/lift

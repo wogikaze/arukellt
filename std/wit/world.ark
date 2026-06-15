@@ -1,0 +1,60 @@
+//! WIT world and interface builders (#044).
+
+use std::wit::types
+
+pub struct WitFunc {
+    name: String,
+    params: Vec<types::WitParam>,
+    result: Option<types::WitType>,
+}
+
+pub struct Interface {
+    name: String,
+    functions: Vec<WitFunc>,
+}
+
+pub struct World {
+    name: String,
+    imports: Vec<Interface>,
+    exports: Vec<Interface>,
+}
+
+pub fn world_new(name: String) -> World {
+    World {
+        name: name,
+        imports: Vec_new_Interface(),
+        exports: Vec_new_Interface(),
+    }
+}
+
+pub fn world_import(w: World, iface: Interface) {
+    push(w.imports, iface)
+}
+
+pub fn world_export(w: World, iface: Interface) {
+    push(w.exports, iface)
+}
+
+pub fn interface_new(name: String) -> Interface {
+    Interface { name: name, functions: Vec_new_WitFunc() }
+}
+
+pub fn interface_add_func(iface: Interface, func: WitFunc) {
+    push(iface.functions, func)
+}
+
+pub fn wit_func_new(name: String, params: Vec<types::WitParam>, result: Option<types::WitType>) -> WitFunc {
+    WitFunc { name: name, params: params, result: result }
+}
+
+pub fn wit_param_new(name: String, ty: types::WitType) -> types::WitParam {
+    types::wit_param(name, ty)
+}
+
+pub fn world_name(w: World) -> String {
+    clone(w.name)
+}
+
+pub fn world_exports_len(w: World) -> i32 {
+    len(w.exports)
+}

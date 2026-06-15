@@ -514,6 +514,8 @@ run:stdlib_collections_compiler/slotmap_remove.ark
 run:stdlib_collections_compiler/rope_edit.ark
 run:stdlib_component/component_helpers.ark
 run:stdlib_component/handle_basic.ark
+run:stdlib_component/canonical_string.ark
+run:stdlib_component/canonical_list.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/error_basic.ark
 run:stdlib_core/error_match.ark
@@ -698,6 +700,9 @@ run:stdlib_wasm/leb128_basic.ark
 run:stdlib_wasm/module_builder.ark
 run:stdlib_wit/wit_basic.ark
 run:stdlib_wit/wit_types.ark
+run:stdlib_wit/wit_type_basic.ark
+run:stdlib_wit/world_build.ark
+run:stdlib_wit/wit_print.ark
 run:string_interp/fstring_basic.ark
 run:string_interp/fstring_expr.ark
 run:struct_mutation/field_assign.ark

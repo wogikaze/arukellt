@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T13:25:00Z",
+  "generated_at": "2026-06-15T13:43:31Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -25,32 +25,6 @@
       "orchestration": {
         "class": "partially-blocked",
         "upstream_notes": "#037 jco GC upstream"
-      }
-    },
-    {
-      "id": "44",
-      "path": "054-std-wit-component.md",
-      "title": "std: \":wit + std::component: WIT 型、resource handle、canonical ABI\"",
-      "track": "stdlib",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "039",
-        "044",
-        "053"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {

@@ -1,0 +1,155 @@
+//! WIT text parser subset (#044).
+
+use std::core::error
+use std::wit::types
+use std::wit::world
+
+fn parse_skip_ws(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 {
+            i = i + 1
+        } else {
+            return i
+        }
+    }
+    i
+}
+
+fn parse_word(s: String, pos: i32) -> (String, i32) {
+    let n = len(s)
+    let start = pos
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 || c == 58 || c == 40 || c == 41 || c == 44 || c == 59 || c == 123 || c == 125 {
+            break
+        }
+        i = i + 1
+    }
+    (slice(s, start, i), i)
+}
+
+fn parse_type_name(name: String) -> types::WitType {
+    if eq(name, "bool") {
+        types::wit_type_bool()
+    } else {
+        if eq(name, "u32") {
+            types::wit_type_u32()
+        } else {
+            if eq(name, "string") {
+                types::wit_type_string()
+            } else {
+                types::wit_type_from_id(0)
+            }
+        }
+    }
+}
+
+fn parse_wit_param(name: String, ty: types::WitType) -> types::WitParam {
+    types::wit_param(name, ty)
+}
+
+fn parse_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
+    let params = Vec_new_WitParam()
+    let mut i = parse_skip_ws(s, pos)
+    let n = len(s)
+    while i < n {
+        i = parse_skip_ws(s, i)
+        if i < n && char_at(s, i) == 41 {
+            return (params, i + 1)
+        }
+        let (pname, p1) = parse_word(s, i)
+        i = parse_skip_ws(s, p1)
+        if i >= n || char_at(s, i) != 58 {
+            return (params, i)
+        }
+        i = parse_skip_ws(s, i + 1)
+        let (tname, p2) = parse_word(s, i)
+        push(params, parse_wit_param(pname, parse_type_name(tname)))
+        i = parse_skip_ws(s, p2)
+        if i < n && char_at(s, i) == 44 {
+            i = i + 1
+        }
+    }
+    (params, i)
+}
+
+fn parse_func_line(s: String, pos: i32) -> (world::WitFunc, i32) {
+    let (fname, p1) = parse_word(s, pos)
+    let mut i = parse_skip_ws(s, p1)
+    if i < len(s) && char_at(s, i) == 58 {
+        i = parse_skip_ws(s, i + 1)
+        let (kw, p2) = parse_word(s, i)
+        if eq(kw, "func") {
+            i = parse_skip_ws(s, p2)
+            if i < len(s) && char_at(s, i) == 40 {
+                let (params, p3) = parse_params(s, i + 1)
+                i = parse_skip_ws(s, p3)
+                let mut result = Option::None
+                if i + 1 < len(s) && char_at(s, i) == 45 && char_at(s, i + 1) == 62 {
+                    i = parse_skip_ws(s, i + 2)
+                    let (tname, p4) = parse_word(s, i)
+                    result = Option::Some(parse_type_name(tname))
+                    i = p4
+                }
+                if i < len(s) && char_at(s, i) == 59 {
+                    i = i + 1
+                }
+                return (world::wit_func_new(fname, params, result), i)
+            }
+        }
+    }
+    (world::wit_func_new(String_from(""), Vec_new_WitParam(), Option::None), pos)
+}
+
+pub fn parse_wit(source: String) -> Result<world::World, error::Error> {
+    let mut i = parse_skip_ws(source, 0)
+    let (kw, p1) = parse_word(source, i)
+    if !eq(kw, "world") {
+        return Err(error::Error::ParseError { kind: String_from("expected world"), input: source })
+    }
+    i = parse_skip_ws(source, p1)
+    let (wname, p2) = parse_word(source, i)
+    i = parse_skip_ws(source, p2)
+    if i >= len(source) || char_at(source, i) != 123 {
+        return Err(error::Error::ParseError { kind: String_from("expected {"), input: source })
+    }
+    let w = world::world_new(wname)
+    i = parse_skip_ws(source, i + 1)
+    while i < len(source) {
+        i = parse_skip_ws(source, i)
+        if i < len(source) && char_at(source, i) == 125 {
+            return Ok(w)
+        }
+        let (section, p3) = parse_word(source, i)
+        i = parse_skip_ws(source, p3)
+        let (iname, p4) = parse_word(source, i)
+        i = parse_skip_ws(source, p4)
+        if i >= len(source) || char_at(source, i) != 123 {
+            return Err(error::Error::ParseError { kind: String_from("expected interface {"), input: source })
+        }
+        let iface = world::interface_new(iname)
+        i = parse_skip_ws(source, i + 1)
+        while i < len(source) {
+            i = parse_skip_ws(source, i)
+            if i < len(source) && char_at(source, i) == 125 {
+                i = i + 1
+                break
+            }
+            let (func, p5) = parse_func_line(source, i)
+            if len(func.name) > 0 {
+                world::interface_add_func(iface, func)
+            }
+            i = p5
+        }
+        if eq(section, "export") {
+            world::world_export(w, iface)
+        } else {
+            world::world_import(w, iface)
+        }
+    }
+    Err(error::Error::ParseError { kind: String_from("unterminated world"), input: source })
+}
