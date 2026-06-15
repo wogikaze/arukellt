@@ -107,8 +107,47 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 }
 """
 
-BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — full component model excluded to reduce memory.
+BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — library exports delegate to flattened component modules.
+fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
+    let fn_count = mir_module_functions::MirModule_function_count(mir)
+    if fn_count < 2 {
+        return false
+    }
+    let mut exportish = 0
+    let mut mi = 0
+    while mi < fn_count {
+        let f = mir_module_functions::MirModule_function_at(mir, mi)
+        let name = mir_function_identity::MirFunction_name(f)
+        if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+            mi = mi + 1
+            continue
+        }
+        if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+            mi = mi + 1
+            continue
+        }
+        if contains(clone(name), String_from("::")) {
+            mi = mi + 1
+            continue
+        }
+        let nlen = len(name)
+        if nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95 {
+            mi = mi + 1
+            continue
+        }
+        exportish = exportish + 1
+        mi = mi + 1
+    }
+    exportish > 0
+}
+
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
+    if bootstrap_mir_has_library_exports(mir) {
+        // TODO(#666): enable after generic export unreachable is fixed in overlay s2.
+        if false {
+            return component_emit::bootstrap_emit_library_component(core_wasm, mir, target, String_from("p1"), world)
+        }
+    }
     if eq(clone(wasi_version), String_from("p2")) {
         return wasm_component_p2_emit::emit_p2_command_component(core_wasm)
     }
@@ -116,15 +155,20 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
 }
 
 pub fn mir_has_library_exports(mir: MirModule) -> bool {
-    false
+    bootstrap_mir_has_library_exports(mir)
+}
+
+fn bootstrap_emit_wit_with_world(decls: Vec<AstNode>, world: String) -> String {
+    let world_name = component_world_spec::world_spec_world_name(clone(world))
+    concat(String_from("package arukellt:generated;\\n\\nworld "), concat(world_name, String_from(" {\\n}\\n")))
 }
 
 pub fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
-    String_from("")
+    bootstrap_emit_wit_with_world(decls, String_new())
 }
 
 pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
-    String_from("")
+    bootstrap_emit_wit_with_world(decls, world)
 }
 
 pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
@@ -159,6 +203,12 @@ pub fn component_world_spec__world_target_error(world: String, target: String, e
     if len(world) == 0 { return String_new() }
     if !contains(clone(target), String_from("-p2")) { return String_from("--world requires --target wasm32-wasi-p2") }
     String_new()
+}
+"""
+
+BOOTSTRAP_EMIT_LIBRARY_PATCH = """
+pub fn bootstrap_emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
+    emit_library_component(core_wasm, mir, target, wasi_version, world)
 }
 """
 
@@ -901,6 +951,18 @@ def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
     String_from("")
 }"""
     return text.replace(old_emit, new_emit)
+
+
+def _patch_bootstrap_component_wit_bridge(compiler_out: Path) -> None:
+    """Promote overlay modules used by bootstrap library/WIT helpers."""
+    emit_path = compiler_out / "component_emit.ark"
+    if emit_path.is_file():
+        emit_text = emit_path.read_text(encoding="utf-8")
+        if "bootstrap_emit_library_component" not in emit_text:
+            if emit_text and not emit_text.endswith("\n"):
+                emit_text = emit_text + "\n"
+            emit_text = _promote_top_level_fns_public(emit_text) + BOOTSTRAP_EMIT_LIBRARY_PATCH
+            emit_path.write_text(emit_text, encoding="utf-8")
 
 
 def _patch_bootstrap_wasm_mod_p2_emit(text: str) -> str:
@@ -1719,9 +1781,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     _patch_bootstrap_mir_host_call_delegates(compiler_out)
     _patch_bootstrap_mir_module_host_needs(compiler_out)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
-    (compiler_out / "component_world_spec.ark").write_text(
-        BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB, encoding="utf-8",
-    )
+    _patch_bootstrap_component_wit_bridge(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     ark_toml = source_root / "ark.toml"

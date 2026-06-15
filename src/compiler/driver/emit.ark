@@ -51,7 +51,8 @@ fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverCon
 
 fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
-    let core_wasm = wasm::emit_wasm(mir_module, config_record::config_target(config), config_record::config_wasi_version(config), config_record::config_opt_level(config), bindings)
+    let core_wasi = emit_component_core_wasi_version(config, mir_module)
+    let core_wasm = wasm::emit_wasm(mir_module, config_record::config_target(config), core_wasi, config_record::config_opt_level(config), bindings)
     if config_record::config_dump_wasm(config) {
         stdio::eprintln(concat(String_from("core wasm size: "), concat(to_string(len(core_wasm)), String_from(" bytes"))))
     }
@@ -63,6 +64,13 @@ fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config:
 }
 
 // Arukellt Driver - emit target normalization and validation.
+
+fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule) -> String {
+    if component::mir_has_library_exports(mir_module) {
+        return String_from("p1")
+    }
+    config_record::config_wasi_version(config)
+}
 
 fn normalize_wasi_version(config: DriverConfig) {
     let tgt = config_record::config_target(config)

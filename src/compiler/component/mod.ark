@@ -3,14 +3,15 @@
 use component::contract
 use component::contract_preflight
 use component::emit
+use component::export_plan
 use component::wit_text
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     emit::emit_component(core_wasm, mir, target, wasi_version, world)
 }
 
-pub fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
-    wit_text::emit_wit_text_from_decls(decls)
+pub fn mir_has_library_exports(mir: MirModule) -> bool {
+    export_plan::mir_has_library_exports(mir)
 }
 
 pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
