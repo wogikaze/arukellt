@@ -1110,3 +1110,5 @@ run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 run:regression/vec_struct_len.ark
 component-compile:wasi_fs_p2.ark
 component-compile:wasi_http_p2.ark
+t3-compile:t3/wasm_dead_fn_elim.ark
+t3-run:scalar/gc_hint_short_lived.ark

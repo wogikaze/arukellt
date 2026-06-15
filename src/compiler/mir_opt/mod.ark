@@ -3,6 +3,6 @@
 use mir::types
 use mir_opt::orchestrate
 
-pub fn optimize_module(m: MirModule, opt_level: i32) -> MirModule {
-    orchestrate::mir_opt_optimize_module(m, opt_level)
+pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+    orchestrate::mir_opt_optimize_module(m, opt_level, target)
 }

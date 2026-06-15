@@ -286,29 +286,32 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 
 - **20 MIR passes** implemented in selfhost `src/compiler/passes/`, running up to 3 fixed-point rounds
 - **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)
-- **Dead function elimination** removes unreachable stdlib functions at O1+ (T1/T2 only — disabled for T3; see below)
+- **Dead function elimination** removes unreachable stdlib functions at O1+ via MIR
+  reachability pruning on T3 (`wasm` and component/wit emit); T1/T2 rely on backend
+  reachability (see [t3-reachability.md](compiler/t3-reachability.md))
 - **T3 backend peephole**: `local.set`/`local.get` → `local.tee` conversion at O1+
 - **Struct field layout reorder**: hot-field-first layout at O2
 - **Backend reachability**: only reachable functions and WASI imports are emitted
 - **MIR validation** brackets every pass for early bug detection
 - Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
 
-### T3 MIR optimization re-enabled (issue #486, 2026-04-15)
+### T3 MIR optimization re-enabled (issue #486, 2026-04-15; #650 wasm emit unlock 2026-06)
 
 Prior to issue #486, T3 (`wasm32-wasi-p2`) was forced to `O0` MIR optimization to
-stabilize fixture tests. Issue #486 replaced the blanket override with per-pass gating:
+stabilize fixture tests. Issue #486 replaced the blanket override with per-pass gating.
 
-- T3 now runs all 9 O1 MIR passes via `passes::run_all()` (standalone path that bypasses
-  `desugar_exprs`, which is not GC-safe)
-- Three safe O2 arithmetic passes are also active for T3 at O2: `algebraic_simplify`,
-  `strength_reduction`, `string_concat_opt`
-- Dead function elimination remains **disabled for T3** — WASI-exported functions that
-  are not called from the Arukellt entry point would be incorrectly removed
-- Six O2/O3 passes remain gated via `T3_GATED_PASSES` in `session.rs` until each is
-  independently verified GC-safe (see selfhost `src/compiler/passes/README.md`)
+Issue #650 extended T3 reachability pruning to `--emit wasm` (not only component/wit)
+and documented T3 O2 pass gating in `mir_opt/orchestrate.ark`:
 
-The #122 opt-level separation work established the `passes/` directory and the unified
-`fn run(module: &mut MirModule, level: OptLevel) -> PassStats` interface that #486 builds on.
+- T3 dead function elimination is **enabled** for `--emit wasm` and component/wit emit
+  using the export-surface root contract ([t3-reachability.md](compiler/t3-reachability.md))
+- O2 `gc_hint` is **unlocked** for T3 with GC-safety note + `t3-run:scalar/gc_hint_short_lived.ark`
+- O2 `loop_unroll` and `licm` remain **gated** for T3 until independently GC-audited
+- Regression fixtures: `tests/fixtures/t3/wasm_dead_fn_elim.ark` (wasm emit),
+  `tests/fixtures/component/export_dead_fn_elim.ark` (component emit)
+
+Historical note: older docs referenced `T3_GATED_PASSES` in Rust `session.rs` and
+`src/compiler/passes/`; the selfhost compiler now gates in `mir_opt/orchestrate.ark`.
 
 ## API Baseline Notes
 

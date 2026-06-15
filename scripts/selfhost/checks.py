@@ -98,7 +98,7 @@ BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {
 # ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
 BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
 BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — full MIR opt excluded (ff8f8ded traps in selfhost wasm).
-pub fn optimize_module(m: MirModule, opt_level: i32) -> MirModule {
+pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     m
 }
 """

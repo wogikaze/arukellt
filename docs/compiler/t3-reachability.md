@@ -1,24 +1,39 @@
 # T3 Reachability Root Contract
 
 > Defines the root set for dead function elimination on T3 (wasm32-wasi-p2)
-> component-model output. This contract governs which functions are preserved
-> during MIR-level reachability pruning.
+> for both `--emit wasm` (core Wasm) and component/wit emit modes.
+> This contract governs which functions are preserved during MIR-level
+> reachability pruning.
 
 ## Status
 
-**Decided**. Implemented as part of issue #611.
+**Decided**. Implemented as part of issue #611 (component emit) and extended
+for general wasm emit in issue #650.
 
 ## Motivation
 
 Dead function elimination (pruning) removes functions that are not reachable
 from any root. For T1 core Wasm modules, the root set is simply `main` and
-`_start` -- the standard WASI entry points. For T3 component-model output,
-WIT-exported functions can also serve as entry points, and must be preserved
-even if nothing in the user's `main` path calls them.
+`_start` -- the standard WASI entry points. For T3 (`wasm32-wasi-p2`),
+exported functions can also serve as entry points and must be preserved even
+if nothing in the user's `main` path calls them.
 
-Prior to this contract, T3 component output disabled dead function elimination
+Prior to this contract, T3 output disabled dead function elimination
 entirely (`lower_to_mir_no_prune`), because the reachability analysis was not
 aware of exported functions.
+
+## Emit Modes
+
+| Emit mode | Pruning applied | Export roots |
+|-----------|-----------------|--------------|
+| `wasm` (T3 target) | `mir_prune_unreachable_for_t3` with export surface | pub fn at module scope |
+| `component` / `wit` | same | pub fn at module scope (WIT export surface) |
+| `wasm` (T1/T2) | no MIR-level pruning in driver (backend reachability only) | n/a |
+
+For `--emit wasm --target wasm32-wasi-p2`, the driver collects the same
+`export_surface` pub fn names used by component emit and passes them as
+`extra_roots` to `mir_prune_unreachable_for_t3`. Core Wasm export section
+emission includes every non-internal function present in MIR after pruning.
 
 ## Root Categories
 
@@ -76,7 +91,14 @@ the BFS-based reachability analysis:
 3. BFS-follow all `MIR_CALL` instructions to mark transitive callees.
 4. Remove all unmarked functions from the module.
 
-### Driver integration (`src/compiler/driver.ark`)
+### Driver integration (`src/compiler/driver/lower.ark`)
+
+For T3 `--emit wasm`:
+
+1. Lower to MIR without initial pruning (`lower_to_mir_no_prune`).
+2. Collect `export_surface` pub fn names from the checked program.
+3. Call `session_lower_mir_component` (shared path) which invokes
+   `mir_prune_unreachable_for_t3(m, export_roots)`.
 
 For T3 component/wit emit mode:
 
@@ -85,8 +107,8 @@ For T3 component/wit emit mode:
    `driver_should_export_func` -- these become `extra_roots`.
 3. Call `mir_prune_unreachable_for_t3(m, export_roots)`.
 
-For T1 core wasm mode, the original `lower_to_mir` (with built-in
-`main`/`_start` pruning) is used unchanged.
+For T1 core wasm mode, the driver uses `session_lower_mir` (no MIR-level
+pruning); backend reachability handles emission.
 
 ### Backend-level safety net (`src/compiler/emitter.ark`)
 
@@ -96,11 +118,38 @@ pruning is the sole gate. This means the correctness of the root contract
 is critical: any function that should be reachable but is not in the
 root set will be incorrectly pruned.
 
+## T3 O2 MIR Pass Gating (#650)
+
+Selfhost `src/compiler/mir_opt/orchestrate.ark` gates O2 passes per target.
+T3 (`wasm32-wasi-p2`) keeps `loop_unroll` and `licm` disabled until each is
+independently verified GC-safe.
+
+### Unlocked: `gc_hint` (issue #650)
+
+**GC-safety rationale:** `gc_hint` only inserts `GcHint::ShortLived` annotations
+before `MIR_STRUCT_NEW` inside loops when the allocated local has exactly one use
+in the loop body and does not escape via calls or struct field stores. It does not
+move instructions, rewrite SSA, or change control flow — only adds hint metadata
+consumed by the T3 backend GC section emitter.
+
+**Regression fixture:** `tests/fixtures/scalar/gc_hint_short_lived.ark`
+(`t3-run:` manifest entry verifies T3 execution at O2).
+
+### Remaining gated (T3)
+
+| Pass | Gate reason |
+|------|-------------|
+| `loop_unroll` | Duplicates loop bodies; may interact badly with GC-ref locals and phi edges |
+| `licm` | Hoists loop-invariant allocations; escape analysis not yet GC-audited for T3 |
+
 ## Verification
 
-- **Regression fixture**: `tests/fixtures/component/export_dead_fn_elim.ark`
-  verifies that an exported function not called from `main` survives
-  pruning while a truly dead (unexported, uncalled) function is removed.
+- **Component regression fixture**: `tests/fixtures/component/export_dead_fn_elim.ark`
+  verifies that an exported function not called from `main` survives pruning while
+  a truly dead (unexported, uncalled) function is removed.
+- **Wasm emit regression fixture**: `tests/fixtures/t3/wasm_dead_fn_elim.ark`
+  (`t3-compile:`) verifies the same contract on `--emit wasm --target wasm32-wasi-p2`.
+- **gc_hint T3 fixture**: `t3-run:scalar/gc_hint_short_lived.ark`
 - **Existing component-compile fixtures**: All `component-compile:` entries
   in the manifest continue to pass, confirming that exported functions
   with various signatures are preserved.

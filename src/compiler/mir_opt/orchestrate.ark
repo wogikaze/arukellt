@@ -1,22 +1,29 @@
 // Arukellt Selfhost - MIR optimization orchestration at O2+.
+//
+// T3 (wasm32-wasi-p2) gates loop_unroll and licm until independently verified
+// GC-safe. gc_hint is unlocked for T3 (#650) — see docs/compiler/t3-reachability.md.
 
 use mir::module_functions
 use mir::types
 use mir_opt::gc_hint
 use mir_opt::licm
 use mir_opt::loop_unroll
+use mir_opt::target_gate
 
-fn mir_opt_optimize_module(m: MirModule, opt_level: i32) -> MirModule {
+fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     if opt_level < 2 {
         return m
     }
+    let t3 = target_gate::mir_opt_is_t3_target(clone(target))
     let fn_count = module_functions::MirModule_function_count(m)
     let updated = Vec_new_MirFunction()
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
-        loop_unroll::run_loop_unroll(f)
-        licm::run_licm(f)
+        if !t3 {
+            loop_unroll::run_loop_unroll(f)
+            licm::run_licm(f)
+        }
         gc_hint::run_gc_hint(f)
         push(updated, f)
         fi = fi + 1

@@ -38,4 +38,3 @@ Scoring criteria (0-5 each, total 25):
 | 25 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
 | 26 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
 | 27 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 28 | 650 | 650 — T3 MIR: unlock remaining gated O2/O3 passes and gener... | mir-opt | 0 | 0 | 1 | 2 | 3 | 6 |
