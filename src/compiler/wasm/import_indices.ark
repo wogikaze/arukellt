@@ -4,6 +4,10 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target
 
+fn p2_outgoing_import_offset(ctx: SelfEmitCtx) -> i32 {
+    constants::NUM_P2_IMPORTS_BASE()
+}
+
 fn arukellt_host_import_base(ctx: SelfEmitCtx) -> i32 {
     let target = ctx_record::SelfEmitCtx_target(ctx)
     let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
@@ -11,7 +15,10 @@ fn arukellt_host_import_base(ctx: SelfEmitCtx) -> i32 {
         return constants::NUM_T2_IMPORTS()
     }
     if emit_target::is_p2_wasi(clone(wasi_version)) {
-        return constants::NUM_P2_IMPORTS_BASE()
+        if ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx) == 1 {
+            return p2_outgoing_import_offset(ctx) + constants::NUM_P2_HTTP_OUTGOING_IMPORTS()
+        }
+        return p2_outgoing_import_offset(ctx)
     }
     constants::NUM_WASI_IMPORTS_BASE()
 }

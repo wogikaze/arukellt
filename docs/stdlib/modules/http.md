@@ -16,7 +16,7 @@ The `std::host::http` module defines HTTP/1.1 client helpers (provisional). It i
 | `request(method, url, body)` | Send an HTTP request with an explicit method, URL, and body. |
 | `get(url)` | Send an HTTP GET request and return the response body as a string. |
 
-**Target constraints:** ⚠ **Not user-reachable** on the current selfhost compile/run path. See [capability-surface.md](../../capability-surface.md) and issues #446 / #447 / #077 / #139.
+**Target constraints:** ⚠ **T3 only** — `wasm32-wasi-p2` (component model) required.
 
 **Typical usage:**
 
@@ -35,10 +35,10 @@ match body {
 ## `std::host::http`
 
 - Source: [`../../../std/host/http.ark`](../../../std/host/http.ark)
-- Manifest-backed functions: 2
-- Stability: provisional 2
+- Manifest-backed functions: 5
+- Stability: provisional 5
 
-> 🎯 **Target:** `wasm32-wasi-p1, wasm32-wasi-p2` · ⚠️ **Not user-reachable** · ⚠️ **Status:** not user-reachable on selfhost path
+> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
 
 Host HTTP client helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
@@ -53,12 +53,15 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 |------|-----------|-----------|--------|---------|
 | `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP request with the given method, URL, and body. |
 | `get` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP GET request to the given URL. |
+| `read_body` | `(HttpResponse) -> String` | `provisional` | ✅ impl | - |
+| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ✅ impl | - |
+| `response_status` | `(HttpResponse) -> i32` | `provisional` | ✅ impl | - |
 
 #### `request`
 
 Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #446 / #077. HTTPS not supported.
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported.
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
@@ -72,7 +75,7 @@ let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\
 
 Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #446 / #077. HTTPS not supported.
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported.
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
@@ -85,3 +88,17 @@ match body {
   Err(e) => eprintln(e)
 }
 ```
+
+#### `read_body`
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Accessor for HttpResponse.body.
+
+#### `request_with_headers`
+
+Send HTTP with header vectors (provisional; headers not forwarded to bridge yet).
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Whole-body bridge; header forwarding deferred.
+
+#### `response_status`
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Provisional status (200 on bridge Ok).

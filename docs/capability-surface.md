@@ -129,15 +129,15 @@ gating (see Issue 448 for future `--deny-process` support).
 
 ### `std::host::http`
 
-HTTP helpers are **not user-reachable** on the selfhost path (`call_host_io.ark`
-covers env/fs/process/stdio only). Tracked by
-[#446](../issues/done/446-std-host-http-implementation.md) and
-[#077](../issues/open/077-wasi-p2-http.md). **HTTPS not supported.**
+HTTP client helpers are **T3-only** (`wasm32-wasi-p2`). T1 import emits E0500 (#655).
+P2 emitter imports `wasi:http/outgoing-handler@0.2.0` and lowers via `arukellt_host` bridge.
+**HTTPS not supported.**
 
 | Function | Signature | Status | Targets | Backing |
 |---|---|---|---|---|
-| `request` | `(String, String, String) -> Result<String, String>` | not user-reachable | — | #446 / #077 |
-| `get` | `(String) -> Result<String, String>` | not user-reachable | — | #446 / #077 |
+| `request` | `(String, String, String) -> Result<String, String>` | available (bridge) | T3 | `arukellt_host` + outgoing-handler import |
+| `get` | `(String) -> Result<String, String>` | available (bridge) | T3 | same |
+| `request_with_headers` | returns `HttpResponse` | provisional | T3 | whole-body; headers not forwarded yet |
 
 #### Error mapping (when implemented)
 

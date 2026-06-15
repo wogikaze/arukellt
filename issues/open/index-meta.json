@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T00:57:39Z",
+  "generated_at": "2026-06-15T02:06:12Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -379,31 +379,6 @@
       "blocks_issue_ids": [
         "653"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "655",
-      "path": "655-wasi-p2-http-outgoing-client.md",
-      "title": "655 — WASI P2 HTTP outgoing client facade",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "137"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 6

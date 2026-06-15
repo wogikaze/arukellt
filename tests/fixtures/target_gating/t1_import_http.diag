@@ -1,0 +1,1 @@
+error[E0500|resolve]: module `std::host::http` requires target wasm32-wasi-p2 (T3); use `--target wasm32-wasi-p2` to enable this module

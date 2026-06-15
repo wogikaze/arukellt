@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Close gate for issue #655 — HTTP outgoing client on T3."""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _static_evidence() -> tuple[int, str]:
+    required = [
+        REPO_ROOT / "std/host/http.ark",
+        REPO_ROOT / "src/compiler/wasm/import_indices.ark",
+        REPO_ROOT / "tests/fixtures/target_gating/t1_import_http.ark",
+        REPO_ROOT / "tests/fixtures/wasi_http_p2.ark",
+        REPO_ROOT / "tests/fixtures/host/http/get_err_dns.ark",
+    ]
+    for path in required:
+        if not path.is_file():
+            return 1, f"missing {path.relative_to(REPO_ROOT)}"
+    imports = (REPO_ROOT / "src/compiler/wasm/sections_imports.ark").read_text(encoding="utf-8")
+    if "wasi:http/outgoing-handler@0.2.0" not in imports:
+        return 1, "sections_imports.ark lacks wasi:http/outgoing-handler import"
+    gate = (REPO_ROOT / "src/compiler/resolver/target_gate.ark").read_text(encoding="utf-8")
+    if "std::host::http" not in gate:
+        return 1, "target_gate.ark lacks std::host::http T3 gate"
+    manifest = (REPO_ROOT / "tests/fixtures/manifest.txt").read_text(encoding="utf-8")
+    for entry in (
+        "diag:target_gating/t1_import_http.ark",
+        "component-compile:wasi_http_p2.ark",
+        "t3-run:host/http/get_err_dns.ark",
+    ):
+        if entry not in manifest:
+            return 1, f"manifest missing {entry}"
+    return 0, ""
+
+
+def _host_linker_dns_test() -> tuple[int, str]:
+    result = subprocess.run(
+        ["cargo", "test", "--lib", "http_get_dns_error", "--", "--nocapture"],
+        cwd=str(REPO_ROOT / "tools" / "host-linker"),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
+def main() -> int:
+    failures: list[str] = []
+    for name, fn in (
+        ("static evidence", _static_evidence),
+        ("host-linker dns", _host_linker_dns_test),
+    ):
+        rc, msg = fn()
+        if rc != 0:
+            failures.append(f"{name}: {msg}")
+    if failures:
+        print("gate-655-http-outgoing: FAIL", file=sys.stderr)
+        for line in failures:
+            print(f"  - {line}", file=sys.stderr)
+        return 1
+    print("gate-655-http-outgoing: PASS")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

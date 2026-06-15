@@ -3,7 +3,7 @@
 use wasm::strings
 use wasm::ctx_record
 
-fn emit_wasm_context_new(functions: Vec<MirFunction>, strings: EmitStringTablePlan, target: String, wasi_version: String, needs_arukellt_host: i32) -> SelfEmitCtx {
+fn emit_wasm_context_new(functions: Vec<MirFunction>, strings: EmitStringTablePlan, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> SelfEmitCtx {
     let string_values = strings::EmitStringTablePlan_values(strings)
-    ctx_record::SelfEmitCtx_new(functions, strings::EmitStringTablePlan_offsets(strings), strings::EmitStringTablePlan_lengths(strings), string_values, strings::EmitStringTablePlan_true_idx(strings), strings::EmitStringTablePlan_false_idx(strings), target, wasi_version, needs_arukellt_host)
+    ctx_record::SelfEmitCtx_new(functions, strings::EmitStringTablePlan_offsets(strings), strings::EmitStringTablePlan_lengths(strings), string_values, strings::EmitStringTablePlan_true_idx(strings), strings::EmitStringTablePlan_false_idx(strings), target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing)
 }

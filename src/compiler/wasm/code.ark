@@ -37,7 +37,7 @@ fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i3
     let wrapper_body = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(wrapper_body, 0)
     writer_core::emit_byte(wrapper_body, opcodes::OP_CALL())
-    writer_leb::emit_leb128_u(wrapper_body, function_indices::defined_function_index(main_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), wit_import_count))
+    writer_leb::emit_leb128_u(wrapper_body, function_indices::defined_function_index(main_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
     writer_core::emit_byte(wrapper_body, opcodes::OP_DROP())
     writer_core::emit_byte(wrapper_body, opcodes::OP_END())
     wrapper_body

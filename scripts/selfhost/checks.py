@@ -93,8 +93,6 @@ BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {
     "wasm/inst_dispatch.ark": "4b859775",
     "wasm/inst_dispatch_struct.ark": "4b859775",
     "wasm/inst_struct_record.ark": "4b859775",
-    "wasm/ctx_record.ark": "4b859775",
-    "wasm/wasm_sections.ark": "4b859775",
 }
 
 # ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
@@ -845,6 +843,16 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
     return text
 
 
+def _patch_bootstrap_wasm_sections_data_only(text: str) -> str:
+    """Bootstrap overlay excludes gc_hint tail; emit data section directly."""
+    text = text.replace("use wasm::sections_tail", "use wasm::sections_data")
+    text = text.replace(
+        "sections_tail::emit_tail_sections(out, ctx, strings, opt_level)",
+        "sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))",
+    )
+    return text
+
+
 def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
     """Bootstrap overlay drops WAT modules; keep a stub for driver linkage."""
     lines = text.splitlines()
@@ -958,6 +966,8 @@ def _write_worktree_namespace_overlay(
         if rel_name == "wasm/mod.ark":
             text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
             text = _patch_bootstrap_wasm_mod_p2_emit(text)
+        if rel_name == "wasm/wasm_sections.ark":
+            text = _patch_bootstrap_wasm_sections_data_only(text)
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text)
         text = _promote_top_level_fns_public(text)

@@ -44,6 +44,7 @@ TRACKED: dict[str, list[str]] = {
     "639": ["HTTP registry fixtures + gate-639-registry-http.py"],
     "643": ["Grain benchmark hook (compare-benchmarks --compare-lang grain)"],
     "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
+    "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
 }
 
 
@@ -518,6 +519,22 @@ def gate_643() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_655() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-655-http-outgoing.py"
+    if not script.is_file():
+        return 1, "missing gate-655-http-outgoing.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_657() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-657-sockets-connect-read-write.py"
     if not script.is_file():
@@ -546,6 +563,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "641": gate_641,
     "643": gate_643,
     "657": gate_657,
+    "655": gate_655,
 }
 
 

@@ -201,6 +201,7 @@ diag:host_stub_sockets.ark
 diag:deny_clock_compile.ark
 diag:deny_random_compile.ark
 diag:target_gating/t1_import_sockets.ark
+diag:target_gating/t1_import_http.ark
 diag:target_gating/t1_import_udp.ark
 diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
@@ -1108,3 +1109,4 @@ run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 # issue 487: Vec<Struct> len() correctness (fix in mir_lower)
 run:regression/vec_struct_len.ark
 component-compile:wasi_fs_p2.ark
+component-compile:wasi_http_p2.ark

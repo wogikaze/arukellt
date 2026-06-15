@@ -179,3 +179,18 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
         Err("error: malformed HTTP response (no header terminator)".into())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::http_get_impl;
+
+    #[test]
+    fn http_get_dns_error() {
+        let err = http_get_impl("http://this.domain.does.not.exist.invalid/")
+            .unwrap_err();
+        assert!(
+            err.starts_with("dns:"),
+            "expected dns error, got {err:?}"
+        );
+    }
+}

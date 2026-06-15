@@ -24,7 +24,7 @@
 | `std::host::clock` | 2 | 2 | 0 | 0 | 2/2 (100%) | yes |
 | `std::host::env` | 5 | 5 | 0 | 0 | 5/5 (100%) | yes |
 | `std::host::fs` | 13 | 2 | 11 | 0 | 10/13 (77%) | yes |
-| `std::host::http` | 2 | 0 | 2 | 0 | 2/2 (100%) | yes |
+| `std::host::http` | 5 | 0 | 5 | 0 | **2/5 (40%)** | yes |
 | `std::host::process` | 2 | 2 | 0 | 0 | 2/2 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 2/4 (50%) | yes |
 | `std::host::sockets` | 3 | 0 | 3 | 0 | 3/3 (100%) | yes |
@@ -45,7 +45,7 @@
 | `std::wasm` | 61 | 0 | 61 | 0 | 37/61 (61%) | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 608 APIs, 389 stable, 194 experimental, 25 deprecated, 490/583 (84%) fixture coverage
+**Total**: 611 APIs, 389 stable, 197 experimental, 25 deprecated, 490/586 (84%) fixture coverage
 
 ## Legend
 
@@ -60,4 +60,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wit` (44%).
+`std::host::http` (40%), `std::wit` (44%).

@@ -21,7 +21,6 @@ graph LR
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I650["650 650 — T3 MIR: unlock remaining gated O2/O3 passes and general dead-fn-elim"]
   I652["652 652 — WIT import parser grammar (`import "..." as alias`)"]
-  I655["655 655 — WASI P2 HTTP outgoing client facade"]
   I656["656 656 — WASI P2 HTTP incoming server facade"]
   I658["658 658 — WASI P2 sockets: listen and accept"]
   I659["659 659 — Component export: general f32 canonical ABI"]
@@ -66,7 +65,6 @@ graph LR
 - **649** depends on: 641; blocks: none
 - **650** depends on: 611; blocks: none
 - **652** depends on: 074; blocks: 653
-- **655** depends on: 074, 137; blocks: none
 - **656** depends on: 074, 137; blocks: none
 - **658** depends on: 074, 137; blocks: none
 - **659** depends on: 121, 074; blocks: none

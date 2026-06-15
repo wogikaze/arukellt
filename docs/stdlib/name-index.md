@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 583
+- **Canonical names:** 586
 - **Historical/deprecated names:** 25
-- **Total entries:** 608
+- **Total entries:** 611
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -430,6 +430,7 @@ Current public API names, sorted alphabetically.
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
 | `read` | `std::host::sockets` | `provisional` | Host Sockets |
+| `read_body` | `std::host::http` | `provisional` | Host Http |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_dir` | `std::fs` | `provisional` | Fs |
 | `read_dir` | `std::host::fs` | `provisional` | Host Fs |
@@ -455,6 +456,8 @@ Current public API names, sorted alphabetically.
 | `replace` | `prelude` | `stable` | String |
 | `replace` | `std::text` | `stable` | Text |
 | `request` | `std::host::http` | `provisional` | Host Http |
+| `request_with_headers` | `std::host::http` | `provisional` | Host Http |
+| `response_status` | `std::host::http` | `provisional` | Host Http |
 | `reverse_i32` | `prelude` | `stable` | Collections |
 | `reverse_String` | `prelude` | `stable` | Collections |
 | `rope_delete` | `std::text::rope` | `experimental` | Text |
@@ -1079,6 +1082,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
+| `read_body` | ✅ `provisional` | `std::host::http` | Host Http |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_dir` | ✅ `provisional` | `std::host::fs` | Host Fs |
@@ -1104,6 +1108,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `replace` | ✅ `stable` | `prelude` | String |
 | `replace` | ✅ `stable` | `std::text` | Text |
 | `request` | ✅ `provisional` | `std::host::http` | Host Http |
+| `request_with_headers` | ✅ `provisional` | `std::host::http` | Host Http |
+| `response_status` | ✅ `provisional` | `std::host::http` | Host Http |
 | `reverse_i32` | ✅ `stable` | `prelude` | Collections |
 | `reverse_String` | ✅ `stable` | `prelude` | Collections |
 | `rope_delete` | ✅ `experimental` | `std::text::rope` | Text |

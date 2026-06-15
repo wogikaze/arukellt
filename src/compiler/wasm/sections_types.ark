@@ -1,7 +1,6 @@
 use wasm::opcodes
 use wasm::constants
 // Arukellt Selfhost - Wasm type section builder.
-
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
@@ -18,10 +17,10 @@ struct TypeCanonPlan {
     type_map: Vec<i32>,
 }
 
-fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
-    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version), needs_arukellt_host)
+fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
+    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
-    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target), needs_arukellt_host, bindings)
+    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
@@ -44,12 +43,12 @@ fn TypeCanonPlan_type_map(plan: TypeCanonPlan) -> Vec<i32> {
     plan.type_map
 }
 
-fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, needs_arukellt_host: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<String> {
+fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<String> {
     let type_sigs = Vec_new_String()
     if emit_target::is_freestanding_target(clone(target)) {
         append_t2_type_sigs(type_sigs)
     } else {
-        append_wasi_type_sigs(type_sigs, needs_arukellt_host)
+        append_wasi_type_sigs(type_sigs, needs_arukellt_host, needs_wasi_http_outgoing)
     }
     append_wit_type_sigs(type_sigs, bindings)
     append_function_type_sigs(type_sigs, functions, fn_count)
@@ -65,13 +64,14 @@ fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_impo
     }
 }
 
-fn append_wasi_type_sigs(type_sigs: Vec<String>, needs_arukellt_host: i32) {
+fn append_wasi_type_sigs(type_sigs: Vec<String>, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
     push(type_sigs, String_from("i32_i32_i32_i32_1i32"))
     push(type_sigs, String_from("i32_i32_1i32"))
     push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
     push(type_sigs, String_from("i32_1i32"))
     push(type_sigs, String_from("i32_0"))
     push(type_sigs, String_from("i32_i64_i32_1i32"))
+    if needs_wasi_http_outgoing == 1 { push(type_sigs, String_from("i32_i32_1i32")) }
     if needs_arukellt_host == 1 {
         push(type_sigs, String_from("i32_i32_i32_1i32"))
         push(type_sigs, String_from("i32_i32_i32_i32_i32_i32_i32_1i32"))

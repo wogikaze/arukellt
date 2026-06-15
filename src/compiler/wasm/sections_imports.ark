@@ -10,17 +10,17 @@ use wasm::emit_target
 use wasm::sections_wit_imports
 use mir::module_wit_imports
 
-fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, wasi_version: String, needs_arukellt_host: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
+fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
     let import_sec = writer_core::WasmWriter_new()
     let wit_count = module_wit_imports::wit_import_count(bindings)
-    writer_leb::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, wit_count))
+    writer_leb::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_count))
     if emit_target::is_freestanding_target(clone(target)) {
         emit_t2_import_entries(import_sec, host_type_map)
     } else {
         if emit_target::is_p2_wasi(clone(wasi_version)) {
-            emit_p2_import_entries(import_sec, host_type_map, needs_arukellt_host)
+            emit_p2_import_entries(import_sec, host_type_map, needs_arukellt_host, needs_wasi_http_outgoing)
         } else {
-            emit_wasi_import_entries(import_sec, host_type_map, needs_arukellt_host)
+            emit_wasi_import_entries(import_sec, host_type_map, needs_arukellt_host, needs_wasi_http_outgoing)
         }
     }
     sections_wit_imports::emit_wit_import_entries(import_sec, bindings, wit_type_map)
@@ -39,13 +39,14 @@ fn arukellt_host_module_name() -> String {
     String_from("arukellt_host")
 }
 
-fn emit_arukellt_host_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
+fn emit_arukellt_host_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_wasi_http_outgoing: i32) {
     let host_module = arukellt_host_module_name()
-    emit_host_func_import(import_sec, clone(host_module), String_from("http_get"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET()))
-    emit_host_func_import(import_sec, clone(host_module), String_from("http_request"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_REQUEST()))
-    emit_host_func_import(import_sec, clone(host_module), String_from("sockets_connect"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT()))
-    emit_host_func_import(import_sec, clone(host_module), String_from("sockets_read"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET()))
-    emit_host_func_import(import_sec, clone(host_module), String_from("sockets_write"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT()))
+    let host_type_off = if needs_wasi_http_outgoing == 1 { 1 } else { 0 }
+    emit_host_func_import(import_sec, clone(host_module), String_from("http_get"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(host_module), String_from("http_request"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_REQUEST() + host_type_off))
+    emit_host_func_import(import_sec, clone(host_module), String_from("sockets_connect"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
+    emit_host_func_import(import_sec, clone(host_module), String_from("sockets_read"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(host_module), String_from("sockets_write"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
 }
 
 fn emit_t2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
@@ -57,7 +58,7 @@ fn emit_t2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
     emit_host_func_import(import_sec, clone(io_module), String_from("read"), get_unchecked(host_type_map, 2))
 }
 
-fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_arukellt_host: i32) {
+fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
     let wasi_module = wasi_snapshot_module_name()
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_write"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("args_sizes_get"), get_unchecked(host_type_map, 1))
@@ -75,11 +76,15 @@ fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, nee
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_tell"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_fdstat_get"), get_unchecked(host_type_map, 3))
     if needs_arukellt_host == 1 {
-        emit_arukellt_host_import_entries(import_sec, host_type_map)
+        emit_arukellt_host_import_entries(import_sec, host_type_map, needs_wasi_http_outgoing)
     }
 }
 
-fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_arukellt_host: i32) {
+fn emit_p2_outgoing_handler_import(import_sec: WasmWriter, host_type_map: Vec<i32>) {
+    emit_host_func_import(import_sec, String_from("wasi:http/outgoing-handler@0.2.0"), String_from("handle"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_OUTGOING()))
+}
+
+fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
     emit_host_func_import(import_sec, String_from("wasi:cli/stdout@0.2.0"), String_from("write"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("args-sizes"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("arguments"), get_unchecked(host_type_map, 1))
@@ -87,8 +92,11 @@ fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs
     emit_host_func_import(import_sec, String_from("wasi:cli/stdin@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))
+    if needs_wasi_http_outgoing == 1 {
+        emit_p2_outgoing_handler_import(import_sec, host_type_map)
+    }
     if needs_arukellt_host == 1 {
-        emit_arukellt_host_import_entries(import_sec, host_type_map)
+        emit_arukellt_host_import_entries(import_sec, host_type_map, needs_wasi_http_outgoing)
     }
 }
 

@@ -1,0 +1,8 @@
+use std::host::http
+use std::host::stdio
+fn main() {
+    match http::get("http://this.domain.does.not.exist.invalid/") {
+        Result::Ok(_body) => stdio::println("unexpected ok"),
+        Result::Err(e) => stdio::println(e),
+    }
+}
