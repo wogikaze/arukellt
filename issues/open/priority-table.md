@@ -32,12 +32,11 @@ Scoring criteria (0-5 each, total 25):
 | 19 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
 | 20 | 655 | 655 — WASI P2 HTTP outgoing client facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
 | 21 | 656 | 656 — WASI P2 HTTP incoming server facade | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 22 | 657 | 657 — WASI P2 sockets: connect and read/write | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 23 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 24 | 659 | 659 — Component export: general f32 canonical ABI | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 25 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
-| 26 | 661 | 661 — std::time/host clock and random intrinsics (emitter) | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 27 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 28 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
-| 29 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 30 | 650 | 650 — T3 MIR: unlock remaining gated O2/O3 passes and gener... | mir-opt | 0 | 0 | 1 | 2 | 3 | 6 |
+| 22 | 658 | 658 — WASI P2 sockets: listen and accept | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 23 | 659 | 659 — Component export: general f32 canonical ABI | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 24 | 660 | 660 — Component export: Tier2 general canonical ABI adapters | component-model | 0 | 0 | 1 | 3 | 3 | 7 |
+| 25 | 661 | 661 — std::time/host clock and random intrinsics (emitter) | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 26 | 44 | std: ":wit + std::component: WIT 型、resource handle、canonica... | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 27 | 45 | std: ":json + std::toml + std::csv: データ形式パーサ" | stdlib | 0 | 0 | 1 | 3 | 2 | 6 |
+| 28 | 136 | ADR-011 に沿った `std::host` layer の段階的ロールアウト | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 29 | 650 | 650 — T3 MIR: unlock remaining gated O2/O3 passes and gener... | mir-opt | 0 | 0 | 1 | 2 | 3 | 6 |

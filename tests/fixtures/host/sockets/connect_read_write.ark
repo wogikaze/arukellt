@@ -1,0 +1,62 @@
+// Fixture: T3 TCP connect + write + read echo against loopback echo server.
+use std::host::sockets
+use std::host::env
+use std::host::stdio
+
+fn main() {
+    let port_str = match env::var("ARUKELLT_SOCKET_ECHO_PORT") {
+        Option::Some(p) => p,
+        None => {
+            stdio::println("missing echo port")
+            return
+        },
+    }
+    let port = match parse_i32(port_str) {
+        Result::Ok(n) => n,
+        Result::Err(_) => {
+            stdio::println("bad echo port")
+            return
+        },
+    }
+    match sockets::connect("127.0.0.1", port) {
+        Result::Err(e) => stdio::println(concat("connect: ", e)),
+        Result::Ok(fd) => {
+            let out_bytes: Vec<i32> = Vec_new_i32()
+            push(out_bytes, 72)
+            push(out_bytes, 105)
+            match sockets::write(fd, out_bytes) {
+                Result::Err(e) => stdio::println(concat("write: ", e)),
+                Result::Ok(n) => {
+                    if n != 2 {
+                        stdio::println("short write")
+                    } else {
+                        match sockets::read(fd, 64) {
+                            Result::Err(e) => stdio::println(concat("read: ", e)),
+                            Result::Ok(buf) => {
+                                if len(buf) != 2 {
+                                    stdio::println("echo mismatch")
+                                } else {
+                                    match get(buf, 0) {
+                                        Option::Some(b0) => {
+                                            match get(buf, 1) {
+                                                Option::Some(b1) => {
+                                                    if b0 == 72 && b1 == 105 {
+                                                        stdio::println("echo ok")
+                                                    } else {
+                                                        stdio::println("echo mismatch")
+                                                    }
+                                                },
+                                                None => stdio::println("echo mismatch"),
+                                            }
+                                        },
+                                        None => stdio::println("echo mismatch"),
+                                    }
+                                }
+                            },
+                        }
+                    }
+                },
+            }
+        },
+    }
+}

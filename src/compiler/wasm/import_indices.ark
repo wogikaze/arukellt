@@ -1,0 +1,52 @@
+// Arukellt Selfhost - target-aware Wasm import index helpers.
+
+use wasm::constants
+use wasm::ctx_record
+use wasm::emit_target
+
+fn arukellt_host_import_base(ctx: SelfEmitCtx) -> i32 {
+    let target = ctx_record::SelfEmitCtx_target(ctx)
+    let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
+    if emit_target::is_freestanding_target(clone(target)) {
+        return constants::NUM_T2_IMPORTS()
+    }
+    if emit_target::is_p2_wasi(clone(wasi_version)) {
+        return constants::NUM_P2_IMPORTS_BASE()
+    }
+    constants::NUM_WASI_IMPORTS_BASE()
+}
+
+fn http_get_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx)
+    }
+    constants::WASI_IMPORT_HTTP_GET()
+}
+
+fn http_request_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 1
+    }
+    constants::WASI_IMPORT_HTTP_REQUEST()
+}
+
+fn sockets_connect_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 2
+    }
+    constants::WASI_IMPORT_SOCKETS_CONNECT()
+}
+
+fn sockets_read_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 3
+    }
+    constants::WASI_IMPORT_SOCKETS_READ()
+}
+
+fn sockets_write_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if ctx_record::SelfEmitCtx_needs_arukellt_host(ctx) == 1 {
+        return arukellt_host_import_base(ctx) + 4
+    }
+    constants::WASI_IMPORT_SOCKETS_WRITE()
+}

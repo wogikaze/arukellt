@@ -16,7 +16,7 @@ fn host_import_count(target: String, wasi_version: String, needs_arukellt_host: 
     }
     if is_p2_wasi(clone(wasi_version)) {
         if needs_arukellt_host == 1 {
-            return constants::NUM_P2_IMPORTS_BASE() + 3
+            return constants::NUM_P2_IMPORTS_BASE() + constants::NUM_ARUKELLT_HOST_IMPORTS()
         }
         return constants::NUM_P2_IMPORTS_BASE()
     }

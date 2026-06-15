@@ -1,9 +1,11 @@
-// Arukellt Selfhost - TCP sockets_connect intrinsic handler.
+// Arukellt Selfhost - TCP sockets host intrinsic handlers.
 
+use wasm::import_indices
 use wasm::constants
 use wasm::ctx_scratch
 use wasm::intrinsic_http_result
 use wasm::intrinsic_sockets_result
+use wasm::intrinsic_sockets_vec
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_io
@@ -15,7 +17,27 @@ fn emit_sockets_connect(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool 
     let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     emit_sockets_connect_save_args(w, s_host, s_port)
     intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
-    emit_sockets_connect_call(w)
+    emit_sockets_host_call(w, ctx, import_indices::sockets_connect_import_idx(ctx))
+    intrinsic_sockets_result::emit_sockets_finalize_i32_result(w)
+    return true
+}
+
+fn emit_sockets_read(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_fd = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_max = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    emit_sockets_read_save_args(w, s_fd, s_max)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
+    emit_sockets_rw_call(w, ctx, import_indices::sockets_read_import_idx(ctx))
+    intrinsic_sockets_result::emit_sockets_finalize_read_result(w, ctx)
+    return true
+}
+
+fn emit_sockets_write(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_fd = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_bytes = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    emit_sockets_write_save_args(w, ctx, s_fd, s_bytes)
+    intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
+    emit_sockets_host_call(w, ctx, import_indices::sockets_write_import_idx(ctx))
     intrinsic_sockets_result::emit_sockets_finalize_i32_result(w)
     return true
 }
@@ -29,7 +51,27 @@ fn emit_sockets_connect_save_args(w: WasmWriter, host_local: i32, port_local: i3
     helpers_memory_access::emit_i32_store_default(w)
 }
 
-fn emit_sockets_connect_call(w: WasmWriter) {
+fn emit_sockets_read_save_args(w: WasmWriter, fd_local: i32, max_local: i32) {
+    helpers_core_locals::emit_local_set(w, max_local)
+    helpers_core_locals::emit_local_set(w, fd_local)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
+    helpers_core_locals::emit_local_get(w, fd_local)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
+    helpers_core_locals::emit_local_get(w, max_local)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_sockets_write_save_args(w: WasmWriter, ctx: SelfEmitCtx, fd_local: i32, bytes_local: i32) {
+    helpers_core_locals::emit_local_set(w, bytes_local)
+    helpers_core_locals::emit_local_set(w, fd_local)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
+    helpers_core_locals::emit_local_get(w, fd_local)
+    helpers_memory_access::emit_i32_store_default(w)
+    intrinsic_sockets_vec::emit_sockets_store_vec_bytes(w, ctx, bytes_local, constants::SCRATCH_SOCK_HOSTLEN(), constants::SCRATCH_SOCK_PORT())
+}
+
+fn emit_sockets_host_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
     helpers_memory_access::emit_i32_load_default(w)
@@ -39,6 +81,18 @@ fn emit_sockets_connect_call(w: WasmWriter) {
     helpers_memory_access::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
     helpers_memory_access::emit_i32_load_default(w)
-    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_SOCKETS_CONNECT())
+    helpers_core_calls::emit_call(w, import_idx)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_sockets_rw_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_calls::emit_call(w, import_idx)
     helpers_memory_access::emit_i32_store_default(w)
 }

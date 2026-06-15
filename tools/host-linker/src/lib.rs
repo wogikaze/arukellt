@@ -87,7 +87,11 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     }
 
     let needs_sockets = module.imports().any(|imp| {
-        imp.module() == "arukellt_host" && imp.name() == "sockets_connect"
+        imp.module() == "arukellt_host"
+            && matches!(
+                imp.name(),
+                "sockets_connect" | "sockets_read" | "sockets_write"
+            )
     });
     if needs_sockets {
         host_sockets::register_sockets_host_fns(&mut linker)?;

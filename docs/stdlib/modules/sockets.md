@@ -15,7 +15,7 @@ The `std::host::sockets` module defines TCP socket helpers (provisional). It is 
 |-----|---------|
 | `connect(host, port)` | Open a TCP connection; returns `Ok(fd)` or `Err(message)`. |
 
-**Target constraints:** ⚠ **Not user-reachable** on the current selfhost compile/run path. See [capability-surface.md](../../capability-surface.md) and issues #446 / #447 / #077 / #139.
+**Target constraints:** ⚠ **T3 only** — `wasm32-wasi-p2` (component model) required.
 
 **Typical usage:**
 
@@ -34,10 +34,10 @@ match sock {
 ## `std::host::sockets`
 
 - Source: [`../../../std/host/sockets.ark`](../../../std/host/sockets.ark)
-- Manifest-backed functions: 1
-- Stability: provisional 1
+- Manifest-backed functions: 3
+- Stability: provisional 3
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **Not user-reachable** · ⚠️ **Status:** not user-reachable on selfhost path
+> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
 
 Host TCP socket helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
@@ -50,12 +50,14 @@ Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
 | `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | Opens a TCP connection to the given host and port. |
+| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `provisional` | ✅ impl | Reads up to max_len bytes from an open socket. |
+| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `provisional` | ✅ impl | Writes byte values from bytes to an open socket. |
 
 #### `connect`
 
 Open a TCP connection to the given hostname and port. Returns a socket descriptor on success.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — ⚠️ Not available on wasm32-wasi-p2 — Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 
@@ -65,3 +67,19 @@ _Example — Connect to a local server on port 8080:_
 let sock = sockets::connect("localhost", 8080)
 match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 ```
+
+#### `read`
+
+Read up to max_len bytes from an open socket fd.
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
+
+**Errors:** Err on invalid fd or I/O failure.
+
+#### `write`
+
+Write byte values from a Vec to an open socket fd.
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
+
+**Errors:** Err on invalid fd or I/O failure.

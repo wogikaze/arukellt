@@ -30,43 +30,7 @@ fn MirModule_push_function(m: MirModule, f: MirFunction) {
 }
 
 fn mir_call_is_arukellt_host(callee: String) -> bool {
-    if eq(clone(callee), String_from("http_get")) {
-        return true
-    }
-    if eq(clone(callee), String_from("__intrinsic_http_get")) {
-        return true
-    }
-    if eq(clone(callee), String_from("http::get")) {
-        return true
-    }
-    if eq(clone(callee), String_from("std::host::http::get")) {
-        return true
-    }
-    if eq(clone(callee), String_from("http_request")) {
-        return true
-    }
-    if eq(clone(callee), String_from("__intrinsic_http_request")) {
-        return true
-    }
-    if eq(clone(callee), String_from("http::request")) {
-        return true
-    }
-    if eq(clone(callee), String_from("std::host::http::request")) {
-        return true
-    }
-    if eq(clone(callee), String_from("sockets_connect")) {
-        return true
-    }
-    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) {
-        return true
-    }
-    if eq(clone(callee), String_from("sockets::connect")) {
-        return true
-    }
-    if eq(clone(callee), String_from("std::host::sockets::connect")) {
-        return true
-    }
-    false
+    return mir::module_host_calls::mir_call_is_arukellt_host(clone(callee))
 }
 
 fn mir_module_needs_arukellt_host(mir: MirModule) -> i32 {

@@ -11,7 +11,7 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }
-fn NUM_WASI_IMPORTS() -> i32 { 18 }
+fn NUM_WASI_IMPORTS() -> i32 { 20 }
 fn NUM_WASI_TYPES_BASE() -> i32 { 6 }
 fn NUM_WASI_TYPES() -> i32 { 9 }
 fn WASI_IMPORT_PROC_EXIT() -> i32 { 6 }
@@ -22,6 +22,8 @@ fn WASI_IMPORT_ENVIRON_GET() -> i32 { 10 }
 fn WASI_IMPORT_HTTP_GET() -> i32 { 11 }
 fn WASI_IMPORT_HTTP_REQUEST() -> i32 { 12 }
 fn WASI_IMPORT_SOCKETS_CONNECT() -> i32 { 13 }
+fn WASI_IMPORT_SOCKETS_READ() -> i32 { 14 }
+fn WASI_IMPORT_SOCKETS_WRITE() -> i32 { 15 }
 fn WASI_HOST_TYPE_HTTP_GET() -> i32 { 6 }
 fn WASI_HOST_TYPE_HTTP_REQUEST() -> i32 { 7 }
 fn WASI_HOST_TYPE_SOCKETS_CONNECT() -> i32 { 8 }
@@ -48,6 +50,7 @@ fn SCRATCH_SOCK_ABSLEN() -> i32 { 104 }
 fn SCRATCH_SOCK_ENUMPTR() -> i32 { 108 }
 fn NUM_T2_IMPORTS() -> i32 { 5 }
 fn NUM_P2_IMPORTS_BASE() -> i32 { 7 }
+fn NUM_ARUKELLT_HOST_IMPORTS() -> i32 { 5 }
 fn NUM_T2_TYPES() -> i32 { 3 }
 fn T2_IMPORT_WRITE() -> i32 { 0 }
 fn T2_IMPORT_WRITE_ERR() -> i32 { 1 }

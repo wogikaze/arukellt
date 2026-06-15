@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MIR arukellt_host callee name predicates.
+
+fn mir_call_is_arukellt_host_sockets(callee: String) -> bool {
+    if eq(clone(callee), String_from("sockets_connect")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) { return true }
+    if eq(clone(callee), String_from("sockets::connect")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::connect")) { return true }
+    if eq(clone(callee), String_from("sockets_read")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_read")) { return true }
+    if eq(clone(callee), String_from("sockets::read")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::read")) { return true }
+    if eq(clone(callee), String_from("sockets_write")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_write")) { return true }
+    if eq(clone(callee), String_from("sockets::write")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
+    false
+}
+
+fn mir_call_is_arukellt_host(callee: String) -> bool {
+    if eq(clone(callee), String_from("http_get")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_get")) { return true }
+    if eq(clone(callee), String_from("http::get")) { return true }
+    if eq(clone(callee), String_from("std::host::http::get")) { return true }
+    if eq(clone(callee), String_from("http_request")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
+    if eq(clone(callee), String_from("http::request")) { return true }
+    if eq(clone(callee), String_from("std::host::http::request")) { return true }
+    if mir_call_is_arukellt_host_sockets(clone(callee)) { return true }
+    false
+}

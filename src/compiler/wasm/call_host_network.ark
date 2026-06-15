@@ -20,5 +20,15 @@ fn try_emit_network_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
+    if eq(clone(callee), "sockets_read") || eq(clone(callee), "__intrinsic_sockets_read") || eq(clone(callee), "sockets::read") || eq(clone(callee), "std::host::sockets::read") {
+        let _result_on_stack = intrinsic_sockets::emit_sockets_read(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "sockets_write") || eq(clone(callee), "__intrinsic_sockets_write") || eq(clone(callee), "sockets::write") || eq(clone(callee), "std::host::sockets::write") {
+        let _result_on_stack = intrinsic_sockets::emit_sockets_write(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
     false
 }

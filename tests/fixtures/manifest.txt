@@ -955,6 +955,7 @@ t3-run:host/process/exit_nonzero.ark
 t3-run:host/process/exit_zero.ark
 t3-run:host/sockets/connect_refused.ark
 t3-run:host/sockets/connect_dns_fail.ark
+t3-run:host/sockets/connect_read_write.ark
 t3-run:integration/calculator.ark
 t3-run:integration/fibonacci.ark
 t3-run:integration/word_counter.ark

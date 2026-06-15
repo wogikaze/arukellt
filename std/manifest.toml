@@ -2790,7 +2790,7 @@ name = "std::host::sockets"
 target = ["wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "TCP socket helpers (provisional). Not user-reachable on the current selfhost compile path. Host bindings tracked by #447; native WASI P2 sockets by #139."
+doc = "TCP socket helpers (provisional). T3 connect/read/write via host-linker (#657); native WASI P2 sockets by #139."
 
 [[functions]]
 name = "connect"
@@ -2804,8 +2804,36 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
+
+[[functions]]
+name = "read"
+module = "std::host::sockets"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_sockets_read"
+params = ["i32", "i32"]
+returns = "Result<Vec<i32>, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_sockets"
+doc = "Read up to max_len bytes from an open socket fd."
+errors = "Err on invalid fd or I/O failure."
+availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
+
+[[functions]]
+name = "write"
+module = "std::host::sockets"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_sockets_write"
+params = ["i32", "Vec<i32>"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_sockets"
+doc = "Write byte values from a Vec to an open socket fd."
+errors = "Err on invalid fd or I/O failure."
+availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
 
 [[modules]]
 name = "std::host::udp"

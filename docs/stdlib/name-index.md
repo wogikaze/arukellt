@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 570
+- **Canonical names:** 583
 - **Historical/deprecated names:** 25
-- **Total entries:** 595
+- **Total entries:** 608
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -219,6 +219,7 @@ Current public API names, sorted alphabetically.
 | `format_i32` | `std::text` | `stable` | Text |
 | `format_i64` | `std::text` | `stable` | Text |
 | `from_utf8` | `std::text` | `experimental` | Text |
+| `fs_error_message` | `std::host::fs` | `provisional` | Host Fs |
 | `functype_get_param` | `std::wasm` | `experimental` | Wasm |
 | `functype_get_result` | `std::wasm` | `experimental` | Wasm |
 | `functype_new` | `std::wasm` | `experimental` | Wasm |
@@ -285,15 +286,21 @@ Current public API names, sorted alphabetically.
 | `is_absolute` | `std::path` | `stable` | Path |
 | `is_array` | `std::json` | `experimental` | Json |
 | `is_bool` | `std::json` | `experimental` | Json |
+| `is_dir` | `std::fs` | `provisional` | Fs |
+| `is_dir` | `std::host::fs` | `provisional` | Host Fs |
 | `is_empty` | `prelude` | `stable` | String |
 | `is_empty` | `std::text` | `stable` | Text |
 | `is_err` | `prelude` | `stable` | Option Result |
+| `is_file` | `std::fs` | `provisional` | Fs |
+| `is_file` | `std::host::fs` | `provisional` | Host Fs |
 | `is_none` | `prelude` | `stable` | Option Result |
 | `is_null` | `std::json` | `experimental` | Json |
 | `is_number` | `std::json` | `experimental` | Json |
 | `is_object` | `std::json` | `experimental` | Json |
 | `is_ok` | `prelude` | `stable` | Option Result |
 | `is_power_of_two` | `std::signal` | `stable` | Signal |
+| `is_readable_file` | `std::fs` | `stable` | Fs |
+| `is_readable_file` | `std::host::fs` | `stable` | Host Fs |
 | `is_some` | `prelude` | `stable` | Option Result |
 | `is_string` | `std::json` | `experimental` | Json |
 | `join` | `prelude` | `stable` | String |
@@ -345,6 +352,8 @@ Current public API names, sorted alphabetically.
 | `max_i32` | `std::seq` | `stable` | Seq |
 | `memory_copy` | `std::wasm` | `experimental` | Wasm |
 | `memory_fill` | `std::wasm` | `experimental` | Wasm |
+| `metadata` | `std::fs` | `provisional` | Fs |
+| `metadata` | `std::host::fs` | `provisional` | Host Fs |
 | `min` | `prelude` | `stable` | Math |
 | `min` | `std::core::cmp` | `stable` | Core |
 | `min` | `std::core::math` | `stable` | Core |
@@ -420,7 +429,10 @@ Current public API names, sorted alphabetically.
 | `range_inclusive_new` | `std::core` | `stable` | Core |
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
+| `read` | `std::host::sockets` | `provisional` | Host Sockets |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
+| `read_dir` | `std::fs` | `provisional` | Fs |
+| `read_dir` | `std::host::fs` | `provisional` | Host Fs |
 | `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_string` | `std::fs` | `stable` | Fs |
 | `read_to_string` | `std::host::fs` | `provisional` | Host Fs |
@@ -580,6 +592,7 @@ Current public API names, sorted alphabetically.
 | `wit_type_u64` | `std::wit` | `experimental` | Wit |
 | `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
+| `write` | `std::host::sockets` | `provisional` | Host Sockets |
 | `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
@@ -834,6 +847,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `format_i32` | ✅ `stable` | `std::text` | Text |
 | `format_i64` | ✅ `stable` | `std::text` | Text |
 | `from_utf8` | ✅ `experimental` | `std::text` | Text |
+| `fs_error_message` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `functype_get_param` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_get_result` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_new` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -921,15 +935,21 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_absolute` | ✅ `stable` | `std::path` | Path |
 | `is_array` | ✅ `experimental` | `std::json` | Json |
 | `is_bool` | ✅ `experimental` | `std::json` | Json |
+| `is_dir` | ✅ `provisional` | `std::fs` | Fs |
+| `is_dir` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `is_empty` | ✅ `stable` | `prelude` | String |
 | `is_empty` | ✅ `stable` | `std::text` | Text |
 | `is_err` | ✅ `stable` | `prelude` | Option Result |
+| `is_file` | ✅ `provisional` | `std::fs` | Fs |
+| `is_file` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `is_none` | ✅ `stable` | `prelude` | Option Result |
 | `is_null` | ✅ `experimental` | `std::json` | Json |
 | `is_number` | ✅ `experimental` | `std::json` | Json |
 | `is_object` | ✅ `experimental` | `std::json` | Json |
 | `is_ok` | ✅ `stable` | `prelude` | Option Result |
 | `is_power_of_two` | ✅ `stable` | `std::signal` | Signal |
+| `is_readable_file` | ✅ `stable` | `std::fs` | Fs |
+| `is_readable_file` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
 | `is_string` | ✅ `experimental` | `std::json` | Json |
 | `join` | ✅ `stable` | `prelude` | String |
@@ -981,6 +1001,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `max_i32` | ✅ `stable` | `std::seq` | Seq |
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
+| `metadata` | ✅ `provisional` | `std::fs` | Fs |
+| `metadata` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `min` | ✅ `stable` | `prelude` | Math |
 | `min` | ✅ `stable` | `std::core::cmp` | Core |
 | `min` | ✅ `stable` | `std::core::math` | Core |
@@ -1056,7 +1078,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_inclusive_new` | ✅ `stable` | `std::core` | Core |
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
+| `read` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_dir` | ✅ `provisional` | `std::fs` | Fs |
+| `read_dir` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
@@ -1218,6 +1243,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_u64` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
+| `write` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `write_all` | ✅ `stable` | `std::io` | Io |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
