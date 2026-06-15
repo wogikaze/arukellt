@@ -97,6 +97,9 @@ fn parse_implemented_command(name: String) -> i32 {
     if cli_str_eq(clone(name), String_from("doc")) {
         return kinds::CMD_DOC()
     }
+    if cli_str_eq(clone(name), String_from("compose")) {
+        return kinds::CMD_COMPOSE()
+    }
     kinds::CMD_UNKNOWN()
 }
 
@@ -114,9 +117,6 @@ fn parse_service_command(name: String) -> i32 {
 }
 
 fn parse_reserved_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), String_from("compose")) {
-        return kinds::CMD_NOT_YET()
-    }
     kinds::CMD_UNKNOWN()
 }
 

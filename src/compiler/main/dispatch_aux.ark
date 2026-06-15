@@ -2,6 +2,7 @@
 
 use main::args_record
 use main::component_cmd
+use main::compose_cmd
 use main::doc
 use main::fmt
 use main::init
@@ -28,6 +29,10 @@ pub fn dispatch_aux_command(opts: CliOptions, command: i32) -> bool {
     }
     if command == kinds::CMD_SCRIPT() {
         script::cmd_script(opts)
+        return true
+    }
+    if command == kinds::CMD_COMPOSE() {
+        compose_cmd::cmd_compose(opts)
         return true
     }
     if command == kinds::CMD_COMPONENT() {

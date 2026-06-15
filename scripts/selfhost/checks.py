@@ -2611,6 +2611,41 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
         lines.append(f"  FAIL: component validate (exit={rc_cv}, output={out_cv.strip()!r})")
         fail_count += 1
 
+    # Case 18: compose — no args must exit non-zero with usage
+    rc_co0, out_co0 = run_self("compose")
+    if rc_co0 != 0 and ("usage" in out_co0.lower() or "error" in out_co0.lower()):
+        lines.append(f"  pass: compose (no-args: non-zero exit with usage)")
+        pass_count += 1
+    else:
+        lines.append(f"  FAIL: compose (no-args: exit={rc_co0}, output={out_co0.strip()!r})")
+        fail_count += 1
+
+    # Case 19: compose --validate with placeholder component files
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        provider = tmp / "provider.wasm"
+        socket = tmp / "socket.wasm"
+        provider.write_bytes(b"\0asm")
+        socket.write_bytes(b"\0asm")
+        rc_co1, out_co1 = run_self_with_dirs(
+            [root, tmp],
+            "compose",
+            "--validate",
+            "--plug",
+            "provider.wasm",
+            "socket.wasm",
+            "-o",
+            "composed.wasm",
+        )
+        if rc_co1 == 0 and "compose dependency graph" in out_co1:
+            lines.append(f"  pass: compose --validate (exit 0, graph printed)")
+            pass_count += 1
+        else:
+            lines.append(
+                f"  FAIL: compose --validate (exit={rc_co1}, output={out_co1.strip()!r})"
+            )
+            fail_count += 1
+
     lines.append("")
     lines.append(f"{YELLOW}cli-parity: PASS={pass_count} FAIL={fail_count}{NC}")
     if fail_count > 0:

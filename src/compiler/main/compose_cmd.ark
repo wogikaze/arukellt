@@ -1,0 +1,90 @@
+// Arukellt Selfhost - CLI compose command (#443 scaffold).
+
+use std::host::fs
+use std::host::process
+use std::host::stdio
+use main::args_record
+use main::commands
+
+fn compose_print_usage() {
+    stdio::eprintln(String_from("usage: arukellt compose --plug <provider.component.wasm> <socket.component.wasm> -o <output.component.wasm>"))
+    stdio::eprintln(String_from("       arukellt compose --validate --plug <provider> <socket> -o <output>"))
+    stdio::eprintln(String_from(""))
+    stdio::eprintln(String_from("Validates a two-component plug plan and prints the dependency graph."))
+    stdio::eprintln(String_from("Binary composition currently delegates to `wac plug` (see docs/adr/ADR-034-component-composition-linking.md)."))
+}
+
+fn compose_paths_conflict(provider: String, socket: String, output: String) -> bool {
+    if commands::cli_str_eq(clone(provider), clone(socket)) {
+        return true
+    }
+    if commands::cli_str_eq(clone(provider), clone(output)) {
+        return true
+    }
+    commands::cli_str_eq(clone(socket), clone(output))
+}
+
+fn compose_print_graph(provider: String, socket: String, output: String) {
+    stdio::println(String_from("compose dependency graph:"))
+    stdio::println(concat(String_from("  [provider] "), clone(provider)))
+    stdio::println(concat(String_from("  [socket]   "), clone(socket)))
+    stdio::println(String_from("  edge: provider --plug--> socket"))
+    stdio::println(concat(String_from("  output: "), clone(output)))
+}
+
+fn compose_validate_paths(provider: String, socket: String, output: String) -> bool {
+    if compose_paths_conflict(clone(provider), clone(socket), clone(output)) {
+        stdio::eprintln(String_from("error: compose conflict — provider, socket, and output paths must differ"))
+        return false
+    }
+    if !fs::exists(clone(provider)) {
+        stdio::eprintln(concat(String_from("error: provider component not found: "), clone(provider)))
+        return false
+    }
+    if !fs::exists(clone(socket)) {
+        stdio::eprintln(concat(String_from("error: socket component not found: "), clone(socket)))
+        return false
+    }
+    true
+}
+
+fn compose_print_delegate_hint(provider: String, socket: String, output: String) {
+    stdio::println(String_from(""))
+    stdio::println(String_from("note: in-tree binary composition is not implemented yet (#443)."))
+    stdio::println(String_from("Run the validated plan with:"))
+    stdio::println(concat(
+        String_from("  wac plug --plug "),
+        concat(
+            clone(provider),
+            concat(
+                String_from(" "),
+                concat(
+                    clone(socket),
+                    concat(String_from(" -o "), clone(output))
+                )
+            )
+        )
+    ))
+}
+
+pub fn cmd_compose(opts: CliOptions) {
+    let plug_provider = args_record::cli_compose_plug(opts)
+    let socket = args_record::cli_compose_socket(opts)
+    let output = args_record::cli_output_file(opts)
+    let validate_only = args_record::cli_compose_validate_only(opts)
+    if len(plug_provider) == 0 || len(socket) == 0 || len(output) == 0 {
+        compose_print_usage()
+        process::exit(2)
+        return
+    }
+    if !compose_validate_paths(clone(plug_provider), clone(socket), clone(output)) {
+        process::exit(1)
+        return
+    }
+    compose_print_graph(clone(plug_provider), clone(socket), clone(output))
+    if validate_only {
+        stdio::println(String_from("compose: validation ok"))
+        return
+    }
+    compose_print_delegate_hint(clone(plug_provider), clone(socket), clone(output))
+}

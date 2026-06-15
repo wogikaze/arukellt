@@ -53,3 +53,38 @@ wasm-tools component wit my_app.component.wasm
 # Validate a component (requires wasm-tools)
 wasm-tools validate my_app.component.wasm
 ```
+
+### `compose`
+
+Validate and plan linking of multiple Wasm components into one composed artifact.
+
+**Usage:**
+
+```
+ark compose --plug <provider.component.wasm> <socket.component.wasm> -o <output.component.wasm>
+ark compose --validate --plug <provider> <socket> -o <output>
+```
+
+**Status:** Phase 1 scaffold (#443) — validates paths, prints a dependency graph, and
+delegates binary composition to `wac plug`. Native in-tree linking is not implemented yet.
+
+| Flag / option | Description |
+|---------------|-------------|
+| `--plug <provider> <socket>` | Provider component to plug into the socket (consumer) component |
+| `-o`, `--output <path>` | Output composed `.component.wasm` path |
+| `--validate` | Validate the plan only (no binary output) |
+
+**Examples:**
+
+```bash
+# Validate a two-component plug plan
+ark compose --validate --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
+
+# Print graph + suggested wac plug command
+ark compose --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
+
+# End-to-end plug (external toolchain — see tests/component-interop/compose/run.sh)
+wac plug --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
+```
+
+See [adr/ADR-034-component-composition-linking.md](adr/ADR-034-component-composition-linking.md).

@@ -19,6 +19,10 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
     parse_component_subcommand(argv, argc, opts)
+    if args_record::cli_command(opts) == kinds::CMD_COMPOSE() {
+        parse_compose_args(argv, argc, opts)
+        return opts
+    }
     parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
     opts
 }
@@ -101,6 +105,39 @@ fn component_option_start(argv: Vec<String>, argc: i32, opts: CliOptions) -> i32
         return 3
     }
     2
+}
+
+fn parse_compose_args(argv: Vec<String>, argc: i32, opts: CliOptions) {
+    let mut i = 2
+    while i < argc {
+        let arg = get_unchecked(argv, i)
+        if commands::cli_str_eq(clone(arg), String_from("--validate")) {
+            args_record::cli_set_compose_validate_only(opts, true)
+            i = i + 1
+        } else {
+            if commands::cli_str_eq(clone(arg), String_from("--plug")) {
+                if i + 2 >= argc {
+                    args_record::cli_set_error(opts, String_from("--plug requires <provider> and <socket> paths"))
+                    return
+                }
+                args_record::cli_set_compose_plug(opts, get_unchecked(argv, i + 1))
+                args_record::cli_set_compose_socket(opts, get_unchecked(argv, i + 2))
+                i = i + 3
+            } else {
+                if commands::cli_str_eq(clone(arg), String_from("-o")) || commands::cli_str_eq(clone(arg), String_from("--output")) {
+                    if i + 1 >= argc {
+                        args_record::cli_set_error(opts, String_from("-o requires an output path"))
+                        return
+                    }
+                    args_record::cli_set_output_file(opts, get_unchecked(argv, i + 1))
+                    i = i + 2
+                } else {
+                    args_record::cli_set_error(opts, concat(String_from("unknown compose option: "), arg))
+                    return
+                }
+            }
+        }
+    }
 }
 
 fn arg_is_version(arg: String) -> bool {

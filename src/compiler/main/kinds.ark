@@ -21,6 +21,7 @@ fn CMD_COMPONENT() -> i32 { 18 }
 fn CMD_LINT() -> i32 { 19 }
 fn CMD_ANALYZE() -> i32 { 20 }
 fn CMD_DOC() -> i32 { 21 }
+fn CMD_COMPOSE() -> i32 { 22 }
 
 fn COMP_ACTION_BUILD() -> i32 { 0 }
 fn COMP_ACTION_INSPECT() -> i32 { 1 }
