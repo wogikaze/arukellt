@@ -1,9 +1,10 @@
 // WIT import document loading and lookup (#653).
 
 use component::wit_parse_import
+use component::wit_parse_text
 use resolver::wit_type_map
 
-fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_import::WitParsedInterface> {
+fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInterface> {
     let docs = Vec_new_WitParsedInterface()
     let mut i = 0
     while i < len(paths) {
@@ -16,11 +17,11 @@ fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_import::WitParsedInt
     docs
 }
 
-fn wit_lookup_import(paths: Vec<String>, package_id: String) -> wit_parse_import::WitParsedInterface {
+fn wit_lookup_import(paths: Vec<String>, package_id: String) -> wit_parse_text::WitParsedInterface {
     return wit_find_interface(wit_load_interfaces(paths), clone(package_id))
 }
 
-fn wit_find_interface(docs: Vec<wit_parse_import::WitParsedInterface>, package_id: String) -> wit_parse_import::WitParsedInterface {
+fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id: String) -> wit_parse_text::WitParsedInterface {
     let mut i = 0
     while i < len(docs) {
         let doc = get_unchecked(docs, i)
@@ -29,10 +30,18 @@ fn wit_find_interface(docs: Vec<wit_parse_import::WitParsedInterface>, package_i
         }
         i = i + 1
     }
-    wit_parse_import::WitParsedInterface_empty()
+    wit_parse_text::WitParsedInterface_empty()
 }
 
-fn wit_record_wit_names(doc: wit_parse_import::WitParsedInterface) -> Vec<String> {
+fn wit_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
+    wit_interface_id_parts(clone(doc.package), clone(doc.interface))
+}
+
+fn wit_interface_id_parts(package: String, interface: String) -> String {
+    concat(clone(package), concat(String_from("/"), clone(interface)))
+}
+
+fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let names = Vec_new_String()
     let mut ri = 0
     while ri < len(doc.records) {
@@ -42,7 +51,7 @@ fn wit_record_wit_names(doc: wit_parse_import::WitParsedInterface) -> Vec<String
     names
 }
 
-fn wit_record_ark_names(doc: wit_parse_import::WitParsedInterface) -> Vec<String> {
+fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let names = Vec_new_String()
     let mut ri = 0
     while ri < len(doc.records) {
@@ -52,7 +61,7 @@ fn wit_record_ark_names(doc: wit_parse_import::WitParsedInterface) -> Vec<String
     names
 }
 
-fn wit_func_param_ark_types(func: wit_parse_import::WitParsedFunc, alias: String, doc: wit_parse_import::WitParsedInterface) -> Vec<String> {
+fn wit_func_param_ark_types(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let rec_wit = wit_record_wit_names(doc)
     let rec_ark = wit_record_ark_names(doc)
     let out = Vec_new_String()
@@ -64,7 +73,7 @@ fn wit_func_param_ark_types(func: wit_parse_import::WitParsedFunc, alias: String
     out
 }
 
-fn wit_func_ret_ark_type(func: wit_parse_import::WitParsedFunc, alias: String, doc: wit_parse_import::WitParsedInterface) -> String {
+fn wit_func_ret_ark_type(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
     let rec_wit = wit_record_wit_names(doc)
     let rec_ark = wit_record_ark_names(doc)
     wit_type_map::wit_type_to_ark(func.ret_wit_type, clone(alias), rec_ark, rec_wit)

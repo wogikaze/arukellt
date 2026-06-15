@@ -9,9 +9,9 @@
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component emit: available on `wasm32-wasi-p2` (requires external `wasm-tools` binary and WASI adapter module)
-- Fixture harness: 641 passed, 28 skipped / 1104 entries
+- Fixture harness: 641 passed, 28 skipped / 1109 entries
 - Verification: `python3 scripts/manager.py verify quick` — 22/22 checks pass
-- Stdlib manifest-backed public API: 611 functions
+- Stdlib manifest-backed public API: 614 functions
 
 - [Current state](current-state.md)
 - [Quickstart](quickstart.md)

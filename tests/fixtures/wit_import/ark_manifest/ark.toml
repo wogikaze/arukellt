@@ -1,0 +1,6 @@
+[package]
+name = "wit-import-ark-manifest"
+version = "0.1.0"
+
+[dependencies]
+"test:host" = { path = "vendor/host" }

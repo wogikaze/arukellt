@@ -1,19 +1,19 @@
-// WIT import registration in resolver scope (#653).
+// WIT import registration in resolver scope (#653, #663).
 
 use resolver::scope_lookup
 use resolver::scope_define
 use resolver::register_exports
 use resolver::ast_decl_predicates
 use resolver::ast_access
+use resolver::wit_register
 
 fn register_wit_imports(ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
-    let _ = wit_paths
     let count = len(decls)
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_wit_import(d) {
-            register_one_wit_import(ctx, ast_access::node_text(d), wit_import_alias(d))
+            register_one_wit_import(ctx, wit_paths, ast_access::node_text(d), wit_import_alias(d))
         }
         i = i + 1
     }
@@ -32,8 +32,13 @@ fn register_wit_module_alias(ctx: ResolveCtx, alias: String) {
     }
 }
 
-fn register_one_wit_import(ctx: ResolveCtx, package_id: String, alias: String) {
+fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String) {
     if len(alias) == 0 {
+        return
+    }
+    let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
+    if wit_register::wit_doc_has_surface(doc) {
+        wit_register::register_wit_doc(ctx, clone(alias), doc)
         return
     }
     if eq(clone(package_id), String_from("test:host/math")) {

@@ -3,50 +3,23 @@
 use component::wit_names_import
 use component::wit_parse_flags
 use component::wit_parse_resource
+use component::wit_parse_text
+use std::host::fs
 
-struct WitParsedFunc {
-    wit_name: String,
-    ark_name: String,
-    param_wit_types: Vec<String>,
-    ret_wit_type: String,
+fn wit_parse_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
+    len(doc.package) > 0 && len(doc.interface) > 0
 }
 
-struct WitParsedRecord {
-    wit_name: String,
-    ark_name: String,
-    field_names: Vec<String>,
-    field_wit_types: Vec<String>,
-}
-
-struct WitParsedInterface {
-    package: String,
-    interface: String,
-    funcs: Vec<WitParsedFunc>,
-    records: Vec<WitParsedRecord>,
-}
-
-fn WitParsedInterface_empty() -> WitParsedInterface {
-    WitParsedInterface {
-        package: String_new(),
-        interface: String_new(),
-        funcs: Vec_new_WitParsedFunc(),
-        records: Vec_new_WitParsedRecord(),
+fn parse_wit_import_file(path: String) -> wit_parse_text::WitParsedInterface {
+    match fs::read_to_string(clone(path)) {
+        Result::Ok(text) => {
+            let doc = wit_parse_text::parse_wit_import_text(text)
+            if wit_parse_has_surface(doc) {
+                return doc
+            }
+        },
+        Result::Err(_) => {},
     }
-}
-
-fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>) -> WitParsedInterface {
-    WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records }
-}
-
-fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<String>, ret_wit_type: String) -> WitParsedFunc {
-    WitParsedFunc { wit_name: wit_name, ark_name: ark_name, param_wit_types: param_wit_types, ret_wit_type: ret_wit_type }
-}
-
-fn WitParsedRecord_new(wit_name: String, ark_name: String, field_names: Vec<String>, field_wit_types: Vec<String>) -> WitParsedRecord {
-    WitParsedRecord { wit_name: wit_name, ark_name: ark_name, field_names: field_names, field_wit_types: field_wit_types }
-}
-
-fn parse_wit_import_file(path: String) -> WitParsedInterface {
     if contains(clone(path), String_from("host_math.wit")) {
         return wit_fixture_host_math()
     }
@@ -62,46 +35,46 @@ fn parse_wit_import_file(path: String) -> WitParsedInterface {
     if contains(clone(path), String_from("import_resource_type.wit")) {
         return wit_fixture_host_resource_decl()
     }
-    WitParsedInterface_empty()
+    wit_parse_text::WitParsedInterface_empty()
 }
 
-fn wit_fixture_host_math() -> WitParsedInterface {
+fn wit_fixture_host_math() -> wit_parse_text::WitParsedInterface {
     let funcs = Vec_new_WitParsedFunc()
     let params = Vec_new_String()
     push(params, String_from("s32"))
     push(params, String_from("s32"))
-    push(funcs, WitParsedFunc_new(String_from("add"), String_from("add"), params, String_from("s32")))
-    WitParsedInterface_new(String_from("test:host"), String_from("math"), funcs, Vec_new_WitParsedRecord())
+    push(funcs, wit_parse_text::WitParsedFunc_new(String_from("add"), String_from("add"), params, String_from("s32")))
+    wit_parse_text::WitParsedInterface_new(String_from("test:host"), String_from("math"), funcs, Vec_new_WitParsedRecord())
 }
 
-fn wit_fixture_host_flags() -> WitParsedInterface {
+fn wit_fixture_host_flags() -> wit_parse_text::WitParsedInterface {
     let funcs = Vec_new_WitParsedFunc()
     let params = Vec_new_String()
     push(params, String_from("flags { read, write }"))
-    push(funcs, WitParsedFunc_new(String_from("set-perms"), String_from("set_perms"), params, String_new()))
-    WitParsedInterface_new(String_from("test:host"), String_from("host"), funcs, Vec_new_WitParsedRecord())
+    push(funcs, wit_parse_text::WitParsedFunc_new(String_from("set-perms"), String_from("set_perms"), params, String_new()))
+    wit_parse_text::WitParsedInterface_new(String_from("test:host"), String_from("host"), funcs, Vec_new_WitParsedRecord())
 }
 
-fn wit_fixture_host_resource_decl() -> WitParsedInterface {
-    WitParsedInterface_new(String_from("test:host"), String_from("handles"), Vec_new_WitParsedFunc(), Vec_new_WitParsedRecord())
+fn wit_fixture_host_resource_decl() -> wit_parse_text::WitParsedInterface {
+    wit_parse_text::WitParsedInterface_new(String_from("test:host"), String_from("handles"), Vec_new_WitParsedFunc(), Vec_new_WitParsedRecord())
 }
 
-fn wit_fixture_host_resource_handles() -> WitParsedInterface {
+fn wit_fixture_host_resource_handles() -> wit_parse_text::WitParsedInterface {
     let funcs = Vec_new_WitParsedFunc()
     let take_params = Vec_new_String()
     push(take_params, wit_parse_resource::wit_own_type_text(String_from("handle")))
-    push(funcs, WitParsedFunc_new(String_from("take"), String_from("take"), take_params, String_new()))
+    push(funcs, wit_parse_text::WitParsedFunc_new(String_from("take"), String_from("take"), take_params, String_new()))
     let peek_params = Vec_new_String()
     push(peek_params, wit_parse_resource::wit_borrow_type_text(String_from("handle")))
-    push(funcs, WitParsedFunc_new(String_from("peek"), String_from("peek"), peek_params, String_new()))
-    WitParsedInterface_new(String_from("test:host"), String_from("handles"), funcs, Vec_new_WitParsedRecord())
+    push(funcs, wit_parse_text::WitParsedFunc_new(String_from("peek"), String_from("peek"), peek_params, String_new()))
+    wit_parse_text::WitParsedInterface_new(String_from("test:host"), String_from("handles"), funcs, Vec_new_WitParsedRecord())
 }
 
-fn wit_fixture_doc_parse() -> WitParsedInterface {
+fn wit_fixture_doc_parse() -> wit_parse_text::WitParsedInterface {
     let funcs = Vec_new_WitParsedFunc()
     let params = Vec_new_String()
     push(params, String_from("string"))
-    push(funcs, WitParsedFunc_new(String_from("parse-markdown"), String_from("parse_markdown"), params, String_from("document")))
+    push(funcs, wit_parse_text::WitParsedFunc_new(String_from("parse-markdown"), String_from("parse_markdown"), params, String_from("document")))
     let records = Vec_new_WitParsedRecord()
     let field_names = Vec_new_String()
     push(field_names, String_from("title"))
@@ -109,11 +82,11 @@ fn wit_fixture_doc_parse() -> WitParsedInterface {
     let field_types = Vec_new_String()
     push(field_types, String_from("string"))
     push(field_types, String_from("string"))
-    push(records, WitParsedRecord_new(String_from("document"), wit_names_import::wit_record_type_name(String_from("document")), field_names, field_types))
-    WitParsedInterface_new(String_from("test:doc"), String_from("parse"), funcs, records)
+    push(records, wit_parse_text::WitParsedRecord_new(String_from("document"), wit_names_import::wit_record_type_name(String_from("document")), field_names, field_types))
+    wit_parse_text::WitParsedInterface_new(String_from("test:doc"), String_from("parse"), funcs, records)
 }
 
-fn wit_import_id_matches(package_id: String, doc: WitParsedInterface) -> bool {
+fn wit_import_id_matches(package_id: String, doc: wit_parse_text::WitParsedInterface) -> bool {
     if len(doc.package) == 0 || len(doc.interface) == 0 {
         return false
     }
@@ -122,6 +95,15 @@ fn wit_import_id_matches(package_id: String, doc: WitParsedInterface) -> bool {
         return false
     }
     let want_pkg = substring(package_id, 0, slash)
-    let want_iface = substring(package_id, slash + 1, len(package_id))
+    let want_iface = wit_strip_import_iface(substring(package_id, slash + 1, len(package_id)))
     eq(clone(doc.package), clone(want_pkg)) && eq(clone(doc.interface), clone(want_iface))
+}
+
+
+fn wit_strip_import_iface(name: String) -> String {
+    let at = index_of(clone(name), String_from("@"))
+    if at < 0 {
+        return clone(name)
+    }
+    substring(name, 0, at)
 }

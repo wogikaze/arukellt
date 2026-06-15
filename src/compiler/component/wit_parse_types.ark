@@ -1,0 +1,43 @@
+// WIT parsed import surface types (#653, #663).
+
+struct WitParsedFunc {
+    wit_name: String,
+    ark_name: String,
+    param_wit_types: Vec<String>,
+    ret_wit_type: String,
+}
+
+struct WitParsedRecord {
+    wit_name: String,
+    ark_name: String,
+    field_names: Vec<String>,
+    field_wit_types: Vec<String>,
+}
+
+struct WitParsedInterface {
+    package: String,
+    interface: String,
+    funcs: Vec<WitParsedFunc>,
+    records: Vec<WitParsedRecord>,
+}
+
+fn WitParsedInterface_empty() -> WitParsedInterface {
+    WitParsedInterface {
+        package: String_new(),
+        interface: String_new(),
+        funcs: Vec_new_WitParsedFunc(),
+        records: Vec_new_WitParsedRecord(),
+    }
+}
+
+fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>) -> WitParsedInterface {
+    WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records }
+}
+
+fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<String>, ret_wit_type: String) -> WitParsedFunc {
+    WitParsedFunc { wit_name: wit_name, ark_name: ark_name, param_wit_types: param_wit_types, ret_wit_type: ret_wit_type }
+}
+
+fn WitParsedRecord_new(wit_name: String, ark_name: String, field_names: Vec<String>, field_wit_types: Vec<String>) -> WitParsedRecord {
+    WitParsedRecord { wit_name: wit_name, ark_name: ark_name, field_names: field_names, field_wit_types: field_wit_types }
+}

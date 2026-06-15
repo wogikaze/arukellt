@@ -3,7 +3,7 @@
 use std::host::fs
 use main::script_toml
 
-fn read_package_manifest(package_root: String) -> String {
+pub fn read_package_manifest(package_root: String) -> String {
     let manifest_path = concat(clone(package_root), String_from("/ark.toml"))
     match fs::read_to_string(clone(manifest_path)) {
         Result::Ok(content) => content,

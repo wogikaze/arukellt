@@ -1,0 +1,130 @@
+// Minimal WIT text parser — package, interface, func, record (#663).
+
+use component::wit_names_import
+use component::wit_parse_text_scan
+
+struct WitParsedFunc {
+    wit_name: String,
+    ark_name: String,
+    param_wit_types: Vec<String>,
+    ret_wit_type: String,
+}
+
+struct WitParsedRecord {
+    wit_name: String,
+    ark_name: String,
+    field_names: Vec<String>,
+    field_wit_types: Vec<String>,
+}
+
+struct WitParsedInterface {
+    package: String,
+    interface: String,
+    funcs: Vec<WitParsedFunc>,
+    records: Vec<WitParsedRecord>,
+}
+
+fn WitParsedInterface_empty() -> WitParsedInterface {
+    WitParsedInterface {
+        package: String_new(),
+        interface: String_new(),
+        funcs: Vec_new_WitParsedFunc(),
+        records: Vec_new_WitParsedRecord(),
+    }
+}
+
+fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>) -> WitParsedInterface {
+    WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records }
+}
+
+fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<String>, ret_wit_type: String) -> WitParsedFunc {
+    WitParsedFunc { wit_name: wit_name, ark_name: ark_name, param_wit_types: param_wit_types, ret_wit_type: ret_wit_type }
+}
+
+fn WitParsedRecord_new(wit_name: String, ark_name: String, field_names: Vec<String>, field_wit_types: Vec<String>) -> WitParsedRecord {
+    WitParsedRecord { wit_name: wit_name, ark_name: ark_name, field_names: field_names, field_wit_types: field_wit_types }
+}
+
+fn wit_parse_func_decl(line: String) -> WitParsedFunc {
+    let wit_name = wit_parse_text_scan::wit_before_colon(line)
+    let open = wit_parse_text_scan::wit_find_char_from(line, 40, 0)
+    let close = if open >= 0 { wit_parse_text_scan::wit_find_char_from(line, 41, open + 1) } else { 0 - 1 }
+    let params_inner = if open >= 0 && close > open { wit_parse_text_scan::wit_trim(substring(line, open + 1, close)) } else { String_new() }
+    let param_items = wit_parse_text_scan::wit_split_csv_items(params_inner)
+    let param_types = Vec_new_String()
+    let mut pi = 0
+    while pi < len(param_items) {
+        push(param_types, wit_parse_text_scan::wit_split_param(get_unchecked(param_items, pi)))
+        pi = pi + 1
+    }
+    let arrow = index_of(line, String_from("->"))
+    let ret_type = if arrow < 0 {
+        String_new()
+    } else {
+        let semi = wit_parse_text_scan::wit_find_char_from(line, 59, arrow + 2)
+        if semi < 0 {
+            wit_parse_text_scan::wit_trim(substring(line, arrow + 2, len(line)))
+        } else {
+            wit_parse_text_scan::wit_trim(substring(line, arrow + 2, semi))
+        }
+    }
+    WitParsedFunc_new(clone(wit_name), wit_names_import::wit_import_func_name(clone(wit_name)), param_types, ret_type)
+}
+
+fn wit_parse_record_fields(body: String) -> WitParsedRecord {
+    let names = Vec_new_String()
+    let types = Vec_new_String()
+    let items = wit_parse_text_scan::wit_split_csv_items(body)
+    let mut fi = 0
+    while fi < len(items) {
+        let field_line = get_unchecked(items, fi)
+        if len(field_line) > 0 {
+            push(names, wit_parse_text_scan::wit_before_colon(field_line))
+            push(types, wit_parse_text_scan::wit_split_param(field_line))
+        }
+        fi = fi + 1
+    }
+    WitParsedRecord_new(String_new(), String_new(), names, types)
+}
+
+fn wit_parse_interface_body(body: String) -> WitParsedInterface {
+    let funcs = Vec_new_WitParsedFunc()
+    let records = Vec_new_WitParsedRecord()
+    let n = len(body)
+    let mut i = 0
+    while i < n {
+        let func_mark = index_of(substring(body, i, n), String_from(": func"))
+        if func_mark < 0 {
+            break
+        }
+        let abs = i + func_mark
+        let line_start = wit_parse_text_scan::wit_line_start(body, abs)
+        let line_end = wit_parse_text_scan::wit_line_end(body, abs)
+        let line = wit_parse_text_scan::wit_trim(substring(body, line_start, line_end))
+        if len(line) > 0 {
+            push(funcs, wit_parse_func_decl(line))
+        }
+        i = line_end + 1
+    }
+    let rec_mark = index_of(body, String_from("record "))
+    if rec_mark >= 0 {
+        let rest = wit_parse_text_scan::wit_trim(substring(body, rec_mark + 7, len(body)))
+        let brace = wit_parse_text_scan::wit_find_char_from(rest, 123, 0)
+        if brace >= 0 {
+            let rec_name = wit_parse_text_scan::wit_trim(substring(rest, 0, brace))
+            let close = wit_parse_text_scan::wit_find_char_from(rest, 125, brace + 1)
+            let field_body = if close > brace { substring(rest, brace + 1, close) } else { String_new() }
+            let fields = wit_parse_record_fields(field_body)
+            push(records, WitParsedRecord_new(clone(rec_name), wit_names_import::wit_record_type_name(clone(rec_name)), fields.field_names, fields.field_wit_types))
+        }
+    }
+    WitParsedInterface_new(String_new(), String_new(), funcs, records)
+}
+
+fn parse_wit_import_text(text: String) -> WitParsedInterface {
+    let package = wit_parse_text_scan::wit_extract_package(text)
+    let interface = wit_parse_text_scan::wit_extract_interface_name(text)
+    let body = wit_parse_text_scan::wit_extract_interface_body(text)
+    let parsed = wit_parse_interface_body(body)
+    WitParsedInterface_new(package, interface, parsed.funcs, parsed.records)
+}

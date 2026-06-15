@@ -1,0 +1,159 @@
+// WIT text scan helpers for minimal import parsing (#663).
+
+fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
+    let n = len(s)
+    let mut i = from
+    while i < n {
+        if char_at(s, i) == ch {
+            return i
+        }
+        i = i + 1
+    }
+    return 0 - 1
+}
+
+fn wit_trim(s: String) -> String {
+    let n = len(s)
+    let mut start = 0
+    while start < n {
+        let ch = char_at(s, start)
+        if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
+            break
+        }
+        start = start + 1
+    }
+    let mut end = n
+    while end > start {
+        let ch = char_at(s, end - 1)
+        if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
+            break
+        }
+        end = end - 1
+    }
+    substring(s, start, end)
+}
+
+fn wit_strip_version(pkg: String) -> String {
+    let at = wit_find_char_from(pkg, 64, 0)
+    if at < 0 {
+        return clone(pkg)
+    }
+    substring(pkg, 0, at)
+}
+
+fn wit_before_colon(s: String) -> String {
+    let colon = wit_find_char_from(s, 58, 0)
+    if colon < 0 {
+        return wit_trim(s)
+    }
+    wit_trim(substring(s, 0, colon))
+}
+
+fn wit_split_param(param: String) -> String {
+    let colon = wit_find_char_from(param, 58, 0)
+    if colon < 0 {
+        return wit_trim(param)
+    }
+    wit_trim(substring(param, colon + 1, len(param)))
+}
+
+fn wit_split_csv_items(inner: String) -> Vec<String> {
+    let items = Vec_new_String()
+    let n = len(inner)
+    let mut start = 0
+    let mut depth = 0
+    let mut i = 0
+    while i < n {
+        let ch = char_at(inner, i)
+        if ch == 60 {
+            depth = depth + 1
+        }
+        if ch == 62 {
+            depth = depth - 1
+        }
+        if ch == 44 && depth == 0 {
+            push(items, wit_trim(substring(inner, start, i)))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    if start < n {
+        push(items, wit_trim(substring(inner, start, n)))
+    }
+    items
+}
+
+fn wit_extract_package(text: String) -> String {
+    let mark = index_of(text, String_from("package "))
+    if mark < 0 {
+        return String_new()
+    }
+    let semi = wit_find_char_from(text, 59, mark + 8)
+    if semi < 0 {
+        return String_new()
+    }
+    wit_strip_version(wit_trim(substring(text, mark + 8, semi)))
+}
+
+fn wit_extract_interface_name(text: String) -> String {
+    let mark = index_of(text, String_from("interface "))
+    if mark < 0 {
+        return String_new()
+    }
+    let brace = wit_find_char_from(text, 123, mark + 10)
+    if brace < 0 {
+        return String_new()
+    }
+    wit_trim(substring(text, mark + 10, brace))
+}
+
+fn wit_extract_interface_body(text: String) -> String {
+    let mark = index_of(text, String_from("interface "))
+    if mark < 0 {
+        return String_new()
+    }
+    let open = wit_find_char_from(text, 123, mark)
+    if open < 0 {
+        return String_new()
+    }
+    let mut depth = 0
+    let mut i = open
+    let n = len(text)
+    while i < n {
+        let ch = char_at(text, i)
+        if ch == 123 {
+            depth = depth + 1
+        }
+        if ch == 125 {
+            depth = depth - 1
+            if depth == 0 {
+                return substring(text, open + 1, i)
+            }
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn wit_line_start(text: String, pos: i32) -> i32 {
+    let mut i = pos
+    while i > 0 {
+        if char_at(text, i - 1) == 10 {
+            return i
+        }
+        i = i - 1
+    }
+    0
+}
+
+fn wit_line_end(text: String, pos: i32) -> i32 {
+    let n = len(text)
+    let mut i = pos
+    while i < n {
+        if char_at(text, i) == 10 {
+            return i
+        }
+        i = i + 1
+    }
+    n
+}

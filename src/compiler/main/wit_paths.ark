@@ -1,0 +1,21 @@
+// Arukellt Selfhost - merge CLI --wit paths with ark.toml WIT dependencies (#663).
+
+use loader::wit_manifest
+use driver::config_record
+use main::args_record
+
+pub fn merged_wit_paths_for_input(input_file: String, cli_paths: Vec<String>) -> Vec<String> {
+    if len(input_file) == 0 {
+        return clone(cli_paths)
+    }
+    wit_manifest::merge_wit_paths_for_source(clone(input_file), cli_paths)
+}
+
+pub fn apply_merged_wit_paths_for_file(source_file: String, cli_paths: Vec<String>, config: DriverConfig) {
+    let merged = merged_wit_paths_for_input(source_file, cli_paths)
+    config_record::config_set_wit_paths(config, merged)
+}
+
+pub fn apply_merged_wit_paths(opts: CliOptions, config: DriverConfig) {
+    apply_merged_wit_paths_for_file(args_record::cli_input_file(opts), args_record::cli_wit_paths(opts), config)
+}

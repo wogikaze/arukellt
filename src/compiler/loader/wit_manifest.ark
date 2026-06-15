@@ -1,0 +1,155 @@
+// Arukellt Selfhost - ark.toml WIT package dependency resolution (#663).
+
+use std::host::fs
+use loader::module_paths
+use loader::module_package_root
+use loader::registry_config
+use main::script_toml
+
+pub fn is_wit_package_id(name: String) -> bool {
+    index_of(clone(name), String_from(":")) >= 0
+}
+
+pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -> Vec<String> {
+    let base_dir = module_paths::parent_dir(clone(source_file))
+    let package_root = module_package_root::find_package_root(clone(base_dir))
+    let merged = collect_wit_paths_from_manifest(clone(package_root))
+    let mut i = 0
+    while i < len(cli_paths) {
+        wit_push_unique(merged, get_unchecked(cli_paths, i))
+        i = i + 1
+    }
+    merged
+}
+
+fn wit_push_unique(paths: Vec<String>, path: String) {
+    if len(path) == 0 {
+        return
+    }
+    let mut i = 0
+    while i < len(paths) {
+        if eq(get_unchecked(paths, i), clone(path)) {
+            return
+        }
+        i = i + 1
+    }
+    push(paths, path)
+}
+
+fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
+    let paths = Vec_new_String()
+    let content = registry_config::read_package_manifest(clone(package_root))
+    if len(content) == 0 {
+        return paths
+    }
+    let deps_section = script_toml::find_toml_section(clone(content), String_from("dependencies"))
+    if len(deps_section) == 0 {
+        return paths
+    }
+    let mut line_start = 0
+    let content_len = len(deps_section)
+    let mut i = 0
+    while i < content_len {
+        if char_at(deps_section, i) == 10 || i == content_len - 1 {
+            let line_end = if char_at(deps_section, i) == 10 { i } else { i + 1 }
+            let line = substring(deps_section, line_start, line_end)
+            wit_collect_line_dependency(paths, clone(package_root), line)
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    paths
+}
+
+fn wit_collect_line_dependency(paths: Vec<String>, package_root: String, line: String) -> bool {
+    let eq_pos = index_of(clone(line), String_from("="))
+    if eq_pos < 0 {
+        return false
+    }
+    let key = wit_trim_key(substring(line, 0, eq_pos))
+    if !is_wit_package_id(clone(key)) {
+        return false
+    }
+    let vendor_rel = wit_vendor_rel_from_line(clone(line))
+    if len(vendor_rel) == 0 {
+        return false
+    }
+    let vendor_dir = wit_resolve_relative_path(clone(package_root), vendor_rel)
+    let wit_path = wit_vendor_wit_file(clone(vendor_dir))
+    if len(wit_path) == 0 {
+        return false
+    }
+    wit_push_unique(paths, wit_path)
+    true
+}
+
+fn wit_vendor_rel_from_line(line: String) -> String {
+    let path_marker = String_from("path = \"")
+    let pos = index_of(clone(line), path_marker)
+    if pos < 0 {
+        return String_new()
+    }
+    let tail = substring(line, pos + len(path_marker), len(line))
+    let end = index_of(clone(tail), String_from("\""))
+    if end < 0 {
+        return String_new()
+    }
+    substring(tail, 0, end)
+}
+
+fn wit_trim_key(key: String) -> String {
+    let n = len(key)
+    let mut start = 0
+    while start < n && char_at(key, start) == 32 {
+        start = start + 1
+    }
+    let mut end = n
+    while end > start && char_at(key, end - 1) == 32 {
+        end = end - 1
+    }
+    let trimmed = substring(key, start, end)
+    if len(trimmed) >= 2 && char_at(trimmed, 0) == 34 && char_at(trimmed, len(trimmed) - 1) == 34 {
+        return substring(trimmed, 1, len(trimmed) - 1)
+    }
+    trimmed
+}
+
+fn wit_join_path(base: String, rel: String) -> String {
+    if len(base) == 0 {
+        return rel
+    }
+    if ends_with(clone(base), String_from("/")) {
+        return concat(base, rel)
+    }
+    concat(concat(base, String_from("/")), rel)
+}
+
+fn wit_resolve_relative_path(base: String, rel: String) -> String {
+    if len(rel) == 0 {
+        return clone(base)
+    }
+    if starts_with(clone(rel), String_from("../")) {
+        let parent = module_paths::parent_dir(clone(base))
+        return wit_resolve_relative_path(parent, substring(rel, 3, len(rel)))
+    }
+    if starts_with(clone(rel), String_from("./")) {
+        return wit_resolve_relative_path(clone(base), substring(rel, 2, len(rel)))
+    }
+    wit_join_path(clone(base), rel)
+}
+
+fn wit_vendor_wit_file(vendor_dir: String) -> String {
+    let mod_wit = wit_join_path(clone(vendor_dir), String_from("mod.wit"))
+    match fs::exists(clone(mod_wit)) {
+        Result::Ok(true) => mod_wit,
+        Result::Ok(false) => {
+            let iface_wit = wit_join_path(clone(vendor_dir), String_from("interface.wit"))
+            match fs::exists(clone(iface_wit)) {
+                Result::Ok(true) => iface_wit,
+                Result::Ok(false) => String_new(),
+                Result::Err(_) => String_new(),
+            }
+        },
+        Result::Err(_) => String_new(),
+    }
+}

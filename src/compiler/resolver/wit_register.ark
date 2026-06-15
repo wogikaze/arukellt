@@ -1,0 +1,45 @@
+// WIT import registration helpers (#663).
+
+use component::wit_parse_text
+use resolver::register_exports
+use resolver::scope_define
+use resolver::scope_lookup
+use resolver::wit_surface
+use resolver::wit_type_map
+
+fn wit_doc_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
+    len(doc.package) > 0 && len(doc.interface) > 0
+}
+
+fn wit_doc_from_import(wit_paths: Vec<String>, package_id: String) -> wit_parse_text::WitParsedInterface {
+    wit_surface::wit_lookup_import(wit_paths, clone(package_id))
+}
+
+fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitParsedInterface) {
+    if !wit_doc_has_surface(doc) {
+        return
+    }
+    if scope_lookup::lookup(ctx, clone(alias)) < 0 {
+        scope_define::define(ctx, clone(alias), commands::SYM_MODULE())
+    }
+    let mut ri = 0
+    while ri < len(doc.records) {
+        let rec = get_unchecked(doc.records, ri)
+        register_exports::register_module_export(ctx, clone(alias), clone(rec.ark_name), commands::SYM_STRUCT(), true)
+        ri = ri + 1
+    }
+    let mut fi = 0
+    while fi < len(doc.funcs) {
+        let func = get_unchecked(doc.funcs, fi)
+        register_exports::register_module_export(ctx, clone(alias), clone(func.ark_name), commands::SYM_FN(), true)
+        fi = fi + 1
+    }
+}
+
+fn wit_binding_type_sig(func: wit_parse_text::WitParsedFunc) -> String {
+    wit_type_map::wit_func_type_sig(func.param_wit_types, func.ret_wit_type)
+}
+
+fn wit_binding_qualified_name(alias: String, func: wit_parse_text::WitParsedFunc) -> String {
+    concat(clone(alias), concat(String_from("::"), clone(func.ark_name)))
+}

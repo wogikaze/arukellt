@@ -52,14 +52,17 @@ output    = "out.wasm" # override default output path
 
 ### `[dependencies]` *(optional)*
 
-Project dependencies. Only path-based local dependencies are supported in the current release.
+Project dependencies. Path-based local `.ark` packages use simple names; WIT component
+packages use Layer C identifiers (`namespace:package`) per [ADR-026](adr/ADR-026-import-vs-wit-package-syntax.md).
 
 ```toml
 [dependencies]
 my-lib = { path = "../my-lib" }
+"test:host" = { path = "vendor/host" }   # resolves vendor/host/mod.wit for WIT imports
 ```
 
 Version-string dependencies (`my-lib = "0.1.0"`) are accepted by the parser but not yet resolved.
+WIT package entries resolve `mod.wit` (or `interface.wit`) under the vendor path into `--wit` paths automatically.
 
 ### `[world]` *(optional)*
 
