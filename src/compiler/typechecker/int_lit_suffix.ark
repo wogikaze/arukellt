@@ -1,0 +1,13 @@
+// Arukellt Typechecker - integer literal suffix classification.
+
+fn typechecker_int_literal_has_64_suffix(raw_text: String, raw_len: i32) -> bool {
+    if raw_len >= 3 {
+        let last3a = char_at(raw_text, raw_len - 3)
+        let last3b = char_at(raw_text, raw_len - 2)
+        let last3c = char_at(raw_text, raw_len - 1)
+        if (last3a == 105 || last3a == 117) && last3b == 54 && last3c == 52 {
+            return true
+        }
+    }
+    false
+}

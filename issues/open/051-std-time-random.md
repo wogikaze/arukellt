@@ -7,9 +7,9 @@ Track: stdlib
 Depends on: 039, 040
 Orchestration class: partially-blocked
 Orchestration upstream: None
-Blocks: 661, 662
+Blocks: none
 Blocks v3 exit: yes
-Status note: Partially blocked umbrella. Seeded std::random done. Dispatch #661 (clock/random intrinsics+emitter), #662 (time duration typecheck fix).
+Status note: Partially blocked umbrella. Seeded std::random done. #661 (clock/random intrinsics) and #662 (duration typecheck) done; parent remains open for remaining std::time acceptance (sleep_ms, umbrella closure).
 Reason: "This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence."
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 BLOCKED: "The selfhost emitter (`src/compiler/emitter.ark`) lacks intrinsic dispatch handlers for `__intrinsic_clock_now`, `__intrinsic_clock_now_ms`, and `__intrinsic_random_i32`. The old Rust `ark-wasm` emitter handled these (commit 3f4bc5be) but was removed by #529. Additionally, the selfhost typechecker has a regression on i64 division inference affecting `std/time/mod.ark`. The deterministic `std::random` seeded surface (xorshift32 in `std/random/mod.ark`) is unblocked and working (not blocked by this issue)."

@@ -4,6 +4,7 @@ use typechecker::kinds
 use typechecker::ast_stmt_predicates
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
+use typechecker::unify
 
 fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_unary(node) {
@@ -15,7 +16,13 @@ fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
     if ast_expr_predicates::node_is_if_expr(node) {
         if ast_access::node_child_count(node) >= 2 {
             let then_node = ast_access::node_child_at(node, 1)
-            return infer_expr(env, scope, fn_sigs, enum_defs, then_node)
+            let then_ty = infer_expr(env, scope, fn_sigs, enum_defs, then_node)
+            if ast_access::node_child_count(node) >= 3 {
+                let else_node = ast_access::node_child_at(node, 2)
+                let else_ty = infer_expr(env, scope, fn_sigs, enum_defs, else_node)
+                return unify::unify(env, then_ty, else_ty)
+            }
+            return then_ty
         }
     }
     if ast_stmt_predicates::node_is_expr_stmt(node) {
