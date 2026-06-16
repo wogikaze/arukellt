@@ -19,6 +19,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+_SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
 _WASM_TOOLS_LOCK = REPO_ROOT / ".build" / "wasm-tools-component.lock"
 
@@ -53,23 +56,22 @@ def _compiler() -> Path | None:
     return None
 
 
-def _selfhost_compile_env() -> dict[str, str]:
+def _selfhost_compile_env(*, build: bool = True) -> dict[str, str]:
+    from lib.selfhost_s2 import ensure_s2_wasm, gate_env
+
+    if build:
+        return gate_env(REPO_ROOT, build=True)
     env = dict(os.environ)
-    if "ARUKELLT_SELFHOST_WASM" in env:
-        return env
-    for candidate in (
-        REPO_ROOT / ".build" / "selfhost" / "arukellt-pinned-bootstrap.wasm",
-        REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm",
-    ):
-        if candidate.is_file():
-            env["ARUKELLT_SELFHOST_WASM"] = str(candidate)
-            break
+    wasm = ensure_s2_wasm(REPO_ROOT, build=False)
+    env["ARUKELLT_SELFHOST_WASM"] = str(wasm)
     return env
 
 
 def _uses_s2_selfhost(env: dict[str, str]) -> bool:
+    from lib.selfhost_s2 import is_current_selfhost_wasm
+
     wasm = env.get("ARUKELLT_SELFHOST_WASM", "")
-    return "arukellt-s2" in Path(wasm).name if wasm else False
+    return is_current_selfhost_wasm(wasm) if wasm else False
 
 
 def _load_manifest_entries(kind: str) -> list[str]:
@@ -129,7 +131,7 @@ def _try_emit_wit(
         capture_output=True,
         text=True,
         timeout=120,
-        env=_selfhost_compile_env() if env is None else env,
+        env=_selfhost_compile_env(build=False) if env is None else env,
     )
     if result.returncode != 0:
         tail = (result.stderr or result.stdout)[-800:]
@@ -156,7 +158,11 @@ def main() -> int:
         return 1
 
     compiler = _compiler()
-    compile_env = _selfhost_compile_env()
+    try:
+        compile_env = _selfhost_compile_env(build=True)
+    except (FileNotFoundError, RuntimeError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     strict_emit = _uses_s2_selfhost(compile_env)
     failures = 0
 

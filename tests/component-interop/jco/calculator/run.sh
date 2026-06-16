@@ -21,57 +21,30 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+# shellcheck source=../../common.sh
+source "$REPO_ROOT/tests/component-interop/common.sh"
+interop_setup_s2_compiler
 
-ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/scripts/run/arukellt-selfhost.sh}"
+
 WASMTIME="${WASMTIME_BIN:-$(command -v wasmtime 2>/dev/null || echo "")}"
 COMPONENT_WASM="tests/component-interop/jco/calculator/calculator.component.wasm"
 SOURCE_REL="tests/component-interop/jco/calculator/calculator.ark"
 cd "$REPO_ROOT"
 
-# Library scalar exports require s2 selfhost (#666); bootstrap overlay stub is empty.
-if [[ -z "${ARUKELLT_SELFHOST_WASM:-}" ]]; then
-    if [[ -f "$REPO_ROOT/.build/selfhost/arukellt-s2.wasm" ]]; then
-        export ARUKELLT_SELFHOST_WASM="$REPO_ROOT/.build/selfhost/arukellt-s2.wasm"
-    elif [[ -f "$REPO_ROOT/.bootstrap-build/arukellt-s2.wasm" ]]; then
-        export ARUKELLT_SELFHOST_WASM="$REPO_ROOT/.bootstrap-build/arukellt-s2.wasm"
-    fi
-fi
-
 # ── Dependency checks ──────────────────────────────────────────────────────
 
-if [[ ! -f "$ARUKELLT" ]]; then
-    echo "SKIP: arukellt not found at $ARUKELLT"
-    exit 0
-fi
 
 if [[ -z "$WASMTIME" ]]; then
     echo "SKIP: wasmtime not found in PATH"
     exit 0
 fi
 
-if [[ "$(basename "$ARUKELLT")" == "arukellt-selfhost.sh" ]]; then
-    if [[ -z "${ARUKELLT_SELFHOST_WASM:-}" ]] || [[ "${ARUKELLT_SELFHOST_WASM}" != *"arukellt-s2"* ]]; then
-        echo "SKIP: calculator library exports require s2 selfhost (set ARUKELLT_SELFHOST_WASM)"
-        exit 0
-    fi
 fi
 
 # ── Build ──────────────────────────────────────────────────────────────────
 
 echo "[1/3] Compiling calculator.ark -> calculator.component.wasm"
-if [[ "$(basename "$ARUKELLT")" == "arukellt-selfhost.sh" ]]; then
-    bash "$ARUKELLT" compile \
-        --emit component \
-        --target wasm32-wasi-p2 \
-        "$SOURCE_REL" \
-        -o "$COMPONENT_WASM"
-else
-    "$ARUKELLT" compile \
-        --emit component \
-        --target wasm32-wasi-p2 \
-        "$SOURCE_REL" \
-        -o "$COMPONENT_WASM"
-fi
+interop_compile_component "$SOURCE_REL" "$COMPONENT_WASM"
 echo "      OK ($(wc -c < "$COMPONENT_WASM") bytes)"
 
 # ── Run tests ─────────────────────────────────────────────────────────────

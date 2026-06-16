@@ -6478,10 +6478,19 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
         if not run_scripts:
             h.check_skip("component interop scripts not found")
         else:
-            component_env = os.environ.copy()
-            pinned_selfhost = root / "bootstrap" / "arukellt-selfhost.wasm"
-            if "ARUKELLT_SELFHOST_WASM" not in component_env and pinned_selfhost.exists():
-                component_env["ARUKELLT_SELFHOST_WASM"] = str(pinned_selfhost)
+            try:
+                from lib.selfhost_s2 import gate_env
+
+                component_env = gate_env(root, build=True)
+            except (FileNotFoundError, RuntimeError) as exc:
+                h.check_fail(
+                    "component interop (s2 selfhost wasm)",
+                    category="component-interop",
+                    command="python3 scripts/manager.py selfhost fixpoint --build",
+                    primary_path="scripts/lib/selfhost_s2.py",
+                )
+                print(f"{RED}{exc}{NC}")
+                return h.exit_code()
             for run_sh in run_scripts:
                 fixture_name = run_sh.parent.name
                 rc, _, _ = _run_env(

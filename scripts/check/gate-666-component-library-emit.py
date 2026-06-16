@@ -3,10 +3,15 @@
 
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
 from pathlib import Path
+
+_SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from lib.selfhost_s2 import gate_env, is_current_selfhost_wasm  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = REPO_ROOT / "examples" / "ark" / "export-library" / "calculator.ark"
@@ -20,15 +25,6 @@ def _normalize_wit(text: str) -> str:
     return "\n".join(line for line in lines if line) + "\n"
 
 
-def _selfhost_env() -> dict[str, str]:
-    env = dict(os.environ)
-    if "ARUKELLT_SELFHOST_WASM" not in env:
-        s2 = REPO_ROOT / ".build" / "selfhost" / "arukellt-s2.wasm"
-        if s2.is_file():
-            env["ARUKELLT_SELFHOST_WASM"] = str(s2)
-    return env
-
-
 def main() -> int:
     if not FIXTURE.is_file():
         print(f"error: missing {FIXTURE}", file=sys.stderr)
@@ -37,14 +33,19 @@ def main() -> int:
         print(f"error: missing {GOLDEN}", file=sys.stderr)
         return 1
     if not COMPILER.is_file():
-        print("SKIP: arukellt-selfhost.sh missing")
-        return 0
+        print("error: arukellt-selfhost.sh missing", file=sys.stderr)
+        return 1
 
-    env = _selfhost_env()
+    try:
+        env = gate_env(REPO_ROOT, build=True)
+    except (FileNotFoundError, RuntimeError) as exc:
+        print(f"FAIL: gate-666 requires s2 selfhost wasm: {exc}", file=sys.stderr)
+        return 1
+
     wasm = env.get("ARUKELLT_SELFHOST_WASM", "")
-    if "arukellt-s2" not in Path(wasm).name:
-        print("SKIP: gate-666 requires s2 selfhost wasm (set ARUKELLT_SELFHOST_WASM)")
-        return 0
+    if not is_current_selfhost_wasm(wasm):
+        print(f"FAIL: gate-666 requires s2/s3 selfhost wasm, got {wasm!r}", file=sys.stderr)
+        return 1
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     cmd = [

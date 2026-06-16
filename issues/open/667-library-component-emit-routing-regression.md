@@ -116,7 +116,9 @@ has the same coverage; it does not for string/record/list library modules on s2.
 
 ### Tests / gates
 
-- [ ] `tests/component-interop/jco/string-greet/run.sh` passes with s2 selfhost recompile (or documented SKIP only when s2 absent).
+- [x] `tests/component-interop/jco/*/run.sh` default to s2 selfhost recompile via `common.sh` (not `target/debug/arukellt`).
+- [x] `python3 scripts/manager.py verify component` sets `ARUKELLT_SELFHOST_WASM` to current s2 wasm (`scripts/lib/selfhost_s2.py`).
+- [ ] `tests/component-interop/jco/string-greet/run.sh` passes with s2 selfhost recompile.
 - [ ] `tests/component-interop/jco/record-point/run.sh` passes with s2 selfhost recompile.
 - [ ] Optional gate: `scripts/check/gate-667-library-specialized-routing.py` — compile string + record fixtures on s2, assert WIT shapes.
 - [ ] `python3 scripts/manager.py verify quick` exits 0.

@@ -5,18 +5,17 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+# shellcheck source=../../common.sh
+source "$REPO_ROOT/tests/component-interop/common.sh"
+interop_setup_s2_compiler
 
-ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/target/debug/arukellt}"
+
 WASMTIME="${WASMTIME_BIN:-$(command -v wasmtime 2>/dev/null || echo "")}"
 WASM_TOOLS="${WASM_TOOLS_BIN:-$(command -v wasm-tools 2>/dev/null || echo "")}"
 COMPONENT_WASM="tests/component-interop/jco/f32-multi/f32_multi.component.wasm"
 SOURCE_REL="tests/component-interop/jco/f32-multi/f32_multi.ark"
 cd "$REPO_ROOT"
 
-if [[ ! -x "$ARUKELLT" ]]; then
-    echo "SKIP: arukellt not found at $ARUKELLT"
-    exit 0
-fi
 
 if [[ -z "$WASM_TOOLS" ]]; then
     echo "SKIP: wasm-tools not found in PATH"
@@ -29,11 +28,7 @@ if [[ -z "$WASMTIME" ]]; then
 fi
 
 echo "[1/4] Compiling f32_multi.ark -> component wasm"
-"$ARUKELLT" compile \
-    --emit component \
-    --target wasm32-wasi-p2 \
-    "$SOURCE_REL" \
-    -o "$COMPONENT_WASM"
+interop_compile_component "$SOURCE_REL" "$COMPONENT_WASM"
 echo "      OK ($(wc -c < "$COMPONENT_WASM") bytes)"
 
 echo "[2/4] Validating component wasm"
