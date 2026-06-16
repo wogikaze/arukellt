@@ -19,7 +19,7 @@ fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String,
     } else {
         if emit_target::is_p2_wasi(clone(wasi_version)) {
             emit_p2_import_entries(import_sec, host_type_map, needs_arukellt_host, needs_wasi_http_outgoing)
-        } else if emit_target::is_component_stub_wasi(clone(wasi_version)) {
+        } else if emit_target::is_component_stub_wasi(clone(wasi_version)) || emit_target::is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
             emit_wasi_component_stub_import_entries(import_sec, host_type_map)
         } else {
             emit_wasi_import_entries(import_sec, host_type_map, needs_arukellt_host, needs_wasi_http_outgoing)
@@ -84,7 +84,7 @@ fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, nee
     emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("proc_exit"), get_unchecked(host_type_map, 4))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("clock_time_get"), get_unchecked(host_type_map, 5))
-    emit_host_func_import(import_sec, clone(wasi_module), String_from("clock_res_get"), get_unchecked(host_type_map, 5))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("clock_res_get"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("random_get"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("environ_sizes_get"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(wasi_module), String_from("environ_get"), get_unchecked(host_type_map, 1))

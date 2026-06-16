@@ -14,6 +14,21 @@ fn is_component_stub_wasi(wasi_version: String) -> bool {
     eq(clone(wasi_version), String_from("p1-component"))
 }
 
+// Default wasm32-wasi modules without arukellt_host use the same 7-import
+// WASI surface as pinned bootstrap and p1-component stubs (ADR-029 parity).
+fn is_minimal_p1_wasi(wasi_version: String, needs_arukellt_host: i32) -> bool {
+    if is_p2_wasi(clone(wasi_version)) {
+        return false
+    }
+    if is_component_stub_wasi(clone(wasi_version)) {
+        return false
+    }
+    if needs_arukellt_host == 1 {
+        return false
+    }
+    return true
+}
+
 fn p2_host_import_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     let base = constants::NUM_P2_IMPORTS_BASE()
     let with_outgoing = if needs_wasi_http_outgoing == 1 {
@@ -59,6 +74,9 @@ fn host_import_count(target: String, wasi_version: String, needs_arukellt_host: 
     if is_component_stub_wasi(clone(wasi_version)) {
         return constants::NUM_WASI_IMPORTS_COMPONENT()
     }
+    if is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
+        return constants::NUM_WASI_IMPORTS_COMPONENT()
+    }
     if needs_arukellt_host == 1 {
         return constants::NUM_WASI_IMPORTS()
     }
@@ -73,6 +91,9 @@ fn host_type_count(target: String, wasi_version: String, needs_arukellt_host: i3
         return p2_host_type_count(needs_arukellt_host, needs_wasi_http_outgoing)
     }
     if is_component_stub_wasi(clone(wasi_version)) {
+        return constants::NUM_WASI_TYPES_COMPONENT()
+    }
+    if is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
         return constants::NUM_WASI_TYPES_COMPONENT()
     }
     if needs_arukellt_host == 1 {

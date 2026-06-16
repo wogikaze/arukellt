@@ -70,7 +70,7 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_aru
     push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
     push(type_sigs, String_from("i32_1i32"))
     push(type_sigs, String_from("i32_0"))
-    if emit_target::is_component_stub_wasi(clone(wasi_version)) {
+    if emit_target::is_component_stub_wasi(clone(wasi_version)) || emit_target::is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
         return
     }
     if emit_target::is_p2_wasi(clone(wasi_version)) {

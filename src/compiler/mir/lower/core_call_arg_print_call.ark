@@ -18,8 +18,18 @@ fn mir_core_print_call_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirEx
     if eq(clone(return_type_name), "String") || eq(clone(return_type_name), "str") || eq(clone(return_type_name), "string") {
         return false
     }
+    let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(arg)
+    if eq(clone(expr_type_name), "String") || eq(clone(expr_type_name), "str") || eq(clone(expr_type_name), "string") {
+        return false
+    }
     if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(cn)) == value_types::VT_REF() {
         return false
+    }
+    if arg_idx >= 0 {
+        let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
+        if eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string") {
+            return false
+        }
     }
     if core_call_arg_names::mir_core_call_bool_result_name(clone(cn)) {
         ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("bool"))
@@ -28,12 +38,6 @@ fn mir_core_print_call_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirEx
     if core_call_arg_names::mir_core_call_i32_result_name(cn) {
         ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
         return true
-    }
-    if arg_idx >= 0 {
-        let call_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
-        if call_vt == value_types::VT_I32() || call_vt == value_types::VT_I64() || call_vt == value_types::VT_F64() {
-            return true
-        }
     }
     false
 }
