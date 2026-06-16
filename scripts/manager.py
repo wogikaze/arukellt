@@ -4493,6 +4493,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-false-done-hygiene.py",
         ),
         (
+            "docs-runtime contract audit gate (#679)",
+            "python3 scripts/check/gate-679-docs-runtime-contract-audit.py",
+        ),
+        (
             "component WIT parse gate (#117)",
             "python3 scripts/check/check-component-wit-parse.py",
         ),

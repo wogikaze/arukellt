@@ -1493,6 +1493,144 @@ def check_docsify_routing_config() -> int:
     return 0
 
 
+def _load_project_state() -> dict:
+    path = ROOT / "docs" / "data" / "project-state.toml"
+    return _tomllib.loads(path.read_text(encoding="utf-8"))
+
+
+def _extract_generated_block(text: str, marker: str) -> str | None:
+    pattern = rf"<!-- BEGIN GENERATED:{re.escape(marker)} -->(.*?)<!-- END GENERATED:{re.escape(marker)} -->"
+    match = re.search(pattern, text, re.DOTALL)
+    return match.group(1) if match else None
+
+
+def check_docs_runtime_contract() -> int:
+    """Compare README/current-state generated markers to project-state.toml contract."""
+    ps_path = ROOT / "docs" / "data" / "project-state.toml"
+    readme_path = ROOT / "README.md"
+    target_contract = ROOT / "docs" / "target-contract.md"
+    capability_surface = ROOT / "docs" / "capability-surface.md"
+
+    if not ps_path.exists() or not readme_path.exists() or not CURRENT_STATE.exists():
+        return 0
+
+    state = _load_project_state()
+    project = state.get("project", {})
+    verification = state.get("verification", {})
+    contract = state.get("contract_audit", {})
+
+    updated = project.get("updated", "")
+    checks_passed = verification.get("checks_passed")
+    checks_total = verification.get("checks_total")
+    fixture_passed = verification.get("fixture_passed")
+    fixture_skipped = verification.get("fixture_skipped", 0)
+    manifest_count = verification.get("fixture_manifest_count")
+
+    readme_text = readme_path.read_text(encoding="utf-8")
+    status_block = _extract_generated_block(readme_text, "README_STATUS")
+    if status_block is None:
+        errors.append("README missing GENERATED:README_STATUS block")
+        return 1
+
+    if f"Updated: {updated}" not in status_block:
+        errors.append(
+            f"README_STATUS Updated drift: expected {updated!r} from project-state.toml"
+        )
+
+    if checks_passed is not None and checks_total is not None:
+        expected_verify = f"{checks_passed}/{checks_total} checks pass"
+        if expected_verify not in status_block:
+            errors.append(
+                f"README_STATUS verification drift: expected {expected_verify!r}"
+            )
+
+    if fixture_passed is not None and manifest_count is not None:
+        if fixture_skipped:
+            expected_harness = (
+                f"{fixture_passed} passed, {fixture_skipped} skipped / {manifest_count} entries"
+            )
+        else:
+            expected_harness = f"{fixture_passed} passed / {manifest_count} entries"
+        if expected_harness not in status_block:
+            errors.append(
+                f"README_STATUS fixture harness drift: expected {expected_harness!r}"
+            )
+
+    cs_text = CURRENT_STATE.read_text(encoding="utf-8")
+    updated_block = _extract_generated_block(cs_text, "CURRENT_STATE_UPDATED")
+    if updated_block is None:
+        errors.append("current-state.md missing GENERATED:CURRENT_STATE_UPDATED block")
+    elif f"Updated: {updated}." not in updated_block:
+        errors.append(
+            f"CURRENT_STATE_UPDATED drift: expected Updated: {updated}."
+        )
+
+    test_health = _extract_generated_block(cs_text, "CURRENT_STATE_TEST_HEALTH")
+    if test_health is None:
+        errors.append("current-state.md missing GENERATED:CURRENT_STATE_TEST_HEALTH block")
+    else:
+        if checks_passed is not None and checks_total is not None:
+            expected_cs_verify = (
+                f"**{checks_passed}/{checks_total} checks pass**"
+            )
+            if expected_cs_verify not in test_health:
+                errors.append(
+                    f"CURRENT_STATE_TEST_HEALTH verify drift: expected {expected_cs_verify!r}"
+                )
+        if manifest_count is not None and f"Fixture manifest: {manifest_count} entries" not in test_health:
+            errors.append(
+                f"CURRENT_STATE_TEST_HEALTH manifest drift: expected {manifest_count} entries"
+            )
+
+    if not contract:
+        errors.append("project-state.toml missing [contract_audit] section")
+        return 1
+
+    source = contract.get("readme_status_source", "")
+    if "project-state.toml" not in source or "generate-docs.py" not in source:
+        errors.append(
+            "contract_audit.readme_status_source must cite project-state.toml + generate-docs.py"
+        )
+
+    if target_contract.is_file():
+        tc_text = target_contract.read_text(encoding="utf-8")
+        component_tier = contract.get("component_emit_tier", "")
+        if component_tier and not re.search(
+            rf"component.*{re.escape(component_tier)}|{re.escape(component_tier)}.*component",
+            tc_text,
+            re.IGNORECASE | re.DOTALL,
+        ):
+            errors.append(
+                f"contract_audit.component_emit_tier={component_tier!r} "
+                "not reflected in target-contract.md component section"
+            )
+        p2_tier = contract.get("p2_native_tier", "")
+        if p2_tier and not re.search(
+            rf"P2 native|Preview 2 native|p2.native|wasi-version p2",
+            tc_text,
+            re.IGNORECASE,
+        ):
+            errors.append(
+                "target-contract.md missing P2 native section for contract_audit.p2_native_tier"
+            )
+        if component_tier == "smoke" and "skip-on-CI" not in tc_text and "skip" not in tc_text.lower():
+            errors.append(
+                "target-contract.md should mention skip-on-CI or skip for smoke-tier component"
+            )
+
+    if capability_surface.is_file():
+        cap_text = capability_surface.read_text(encoding="utf-8")
+        host_reachable = contract.get("host_http_user_reachable")
+        if host_reachable is False:
+            if "std::host::http" not in cap_text or "not user-reachable" not in cap_text.lower():
+                errors.append(
+                    "capability-surface.md should mark std::host::http not user-reachable "
+                    "when contract_audit.host_http_user_reachable=false"
+                )
+
+    return 1 if errors else 0
+
+
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
@@ -1515,6 +1653,7 @@ def main() -> int:
     failed += check_manifest_availability_consistency()
     failed += check_manifest_example_integrity()
     failed += check_docsify_routing_config()
+    failed += check_docs_runtime_contract()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)

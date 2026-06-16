@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-16T21:10:57Z",
+  "generated_at": "2026-06-16T21:23:08Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -363,9 +363,9 @@
       }
     },
     {
-      "id": "679",
-      "path": "679-docs-runtime-contract-audit.md",
-      "title": "679 — Docs-to-runtime contract audit (README / current-state / manual docs)",
+      "id": "680",
+      "path": "680-target-tier-honesty-audit.md",
+      "title": "680 — Target tier honesty audit (stable / smoke / scaffold / none)",
       "track": "docs-audit",
       "status": "open",
       "blocks_v1": "none",
@@ -373,17 +373,39 @@
       "blocks_v3": "none",
       "blocks_v4": "none",
       "blocks_v5": "none",
-      "depends_on": [],
+      "depends_on": [
+        "679"
+      ],
       "blocks_issue_ids": [
-        "680",
-        "681",
-        "682",
-        "683",
-        "685"
+        "682"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 5
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "681",
+      "path": "681-stdlib-manifest-reachability-audit.md",
+      "title": "681 — Stdlib manifest reachability contract audit",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
       },
       "orchestration": {
         "class": "audit-ready",
@@ -402,6 +424,30 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "685",
+      "path": "685-ide-playground-extension-claim-audit.md",
+      "title": "685 — IDE / Playground / Extension product-claim vs compiler gate audit",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679"
+      ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
@@ -459,80 +505,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "680",
-      "path": "680-target-tier-honesty-audit.md",
-      "title": "680 — Target tier honesty audit (stable / smoke / scaffold / none)",
-      "track": "docs-audit",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "679"
-      ],
-      "blocks_issue_ids": [
-        "682"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "681",
-      "path": "681-stdlib-manifest-reachability-audit.md",
-      "title": "681 — Stdlib manifest reachability contract audit",
-      "track": "docs-audit",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "679"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "685",
-      "path": "685-ide-playground-extension-claim-audit.md",
-      "title": "685 — IDE / Playground / Extension product-claim vs compiler gate audit",
-      "track": "docs-audit",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "679"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
         "upstream_notes": "None"
       }
     },

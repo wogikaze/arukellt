@@ -7,13 +7,13 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 <!-- BEGIN GENERATED:README_STATUS -->
 ## Status
 
-- Updated: 2026-05-14
+- Updated: 2026-06-17
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component/WIT target: `wasm32-wasi-p2`
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 641 passed, 28 skipped / 1118 entries
-- Verification: `python3 scripts/manager.py verify quick` — 22/22 checks pass
+- Verification: `python3 scripts/manager.py verify quick` — 167/167 checks pass
 - Stdlib manifest-backed public API: 619 functions
 <!-- END GENERATED:README_STATUS -->
 

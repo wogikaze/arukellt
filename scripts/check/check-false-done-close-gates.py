@@ -62,6 +62,7 @@ TRACKED: dict[str, list[str]] = {
     "651": ["WIT flags type support gate-651-wit-flags-type-support.py"],
     "473": ["WIT resource handles gate-473-wit-resource-handles.py"],
     "034": ["callable --wit import binding gate-034-wit-cli-integration.py"],
+    "679": ["docs-runtime contract audit (gate-679-docs-runtime-contract-audit.py)"],
 }
 
 
@@ -808,6 +809,22 @@ def gate_136() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_679() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-679-docs-runtime-contract-audit.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-679-docs-runtime-contract-audit.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 GATES: dict[str, callable[[], tuple[int, str]]] = {
     "074": gate_074,
     "076": gate_076,
@@ -838,6 +855,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "651": gate_651,
     "473": gate_473,
     "034": gate_034,
+    "679": gate_679,
 }
 
 
