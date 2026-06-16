@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-16T13:23:20Z",
+  "generated_at": "2026-06-16T20:48:02Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -76,6 +76,30 @@
       },
       "orchestration": {
         "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "667",
+      "path": "667-library-component-emit-routing-regression.md",
+      "title": "667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "666"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },

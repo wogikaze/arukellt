@@ -15,3 +15,4 @@ Scoring criteria (0-5 each, total 25):
 | 2 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 1 | 3 | 4 | 8 |
 | 3 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 1 | 3 | 2 | 7 |
 | 4 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 5 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 0 | 0 | 1 | 3 | 3 | 7 |

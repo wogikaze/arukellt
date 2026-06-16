@@ -9,6 +9,7 @@ graph LR
   I30["30 036-jco-javascript-interop"]
   I474["474 Async component support (v5)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
+  I667["667 667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I474 --> I646
@@ -20,6 +21,7 @@ graph LR
 - **30** depends on: 27; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **649** depends on: 641; blocks: none
+- **667** depends on: 666; blocks: none
 - **646** depends on: 474; blocks: none
 
 ### Blocked
