@@ -3,10 +3,26 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_expr_shape_calls
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR let binding local type inference.
 
 use mir::value_types
+
+fn infer_core_let_type_name_is_string(type_name: String) -> bool {
+    eq(clone(type_name), "String") || eq(clone(type_name), "str") || eq(clone(type_name), "string")
+}
+
+fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String {
+    if core_call_arg_names::mir_core_call_string_result_name(clone(callee)) {
+        return String_from("string")
+    }
+    let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee))
+    if infer_core_let_type_name_is_string(clone(rtn)) {
+        return rtn
+    }
+    String_from("")
+}
 
 fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, local_idx: i32, val_idx: i32, type_name: String, child_count: i32) {
     if len(type_name) > 0 || len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) > 0 || child_count < 1 {
@@ -29,6 +45,25 @@ fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("f64"))
         return
     }
+    if core_expr_shape_atoms::mir_core_expr_is_string(init_expr) {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("string"))
+        return
+    }
+    if core_expr_shape_calls::mir_core_expr_is_match(init_expr) {
+        let match_type = core_expr_shape_accessors::mir_core_expr_type_name(init_expr)
+        if infer_core_let_type_name_is_string(clone(match_type)) {
+            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, match_type)
+        }
+        return
+    }
+    if core_expr_shape_calls::mir_core_expr_is_call(init_expr) {
+        let callee = core_expr_shape_accessors::mir_core_expr_text(init_expr)
+        let call_type = infer_core_let_call_result_type_name(ctx, clone(callee))
+        if len(call_type) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, call_type)
+            return
+        }
+    }
     if val_idx < 0 {
         return
     }
@@ -44,11 +79,5 @@ fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
     if val_vt == value_types::VT_F64() {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("f64"))
         return
-    }
-    if core_expr_shape_calls::mir_core_expr_is_call(init_expr) {
-        let callee = core_expr_shape_accessors::mir_core_expr_text(init_expr)
-        if core_call_arg_names::mir_core_call_string_result_name(clone(callee)) {
-            ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("string"))
-        }
     }
 }

@@ -9,9 +9,34 @@ fn mir_core_call_bool_result_name(name: String) -> bool {
 }
 
 fn mir_core_call_i32_result_name(name: String) -> bool {
-    eq(clone(name), "len") || eq(clone(name), "parse_i32") || eq(clone(name), "abs") || eq(clone(name), "min") || eq(clone(name), "max") || eq(clone(name), "sum_i32") || eq(clone(name), "product_i32") || eq(clone(name), "index_of") || eq(clone(name), "clamp_i32")
+    eq(clone(name), "len") || eq(clone(name), "parse_i32") || eq(clone(name), "abs") || eq(clone(name), "min") || eq(clone(name), "max") || eq(clone(name), "sum_i32") || eq(clone(name), "product_i32") || eq(clone(name), "index_of") || eq(clone(name), "clamp_i32") || eq(clone(name), "get_unchecked") || eq(clone(name), "vec_get_unchecked_i32") || eq(clone(name), "bytes_get") || eq(clone(name), "bytes_len")
+}
+
+fn mir_core_call_short_name(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
 }
 
 fn mir_core_call_string_result_name(name: String) -> bool {
-    eq(clone(name), "String_from") || eq(clone(name), "concat") || eq(clone(name), "text::concat") || eq(clone(name), "to_string") || eq(clone(name), "to_upper") || eq(clone(name), "to_lower") || eq(clone(name), "to_uppercase") || eq(clone(name), "to_lowercase") || ends_with(clone(name), "_to_string")
+    if eq(clone(name), "String_from") || eq(clone(name), "concat") || eq(clone(name), "text::concat") || eq(clone(name), "to_string") || eq(clone(name), "slice") || eq(clone(name), "substring") || eq(clone(name), "trim") || eq(clone(name), "replace") || eq(clone(name), "to_upper") || eq(clone(name), "to_lower") || eq(clone(name), "to_uppercase") || eq(clone(name), "to_lowercase") {
+        return true
+    }
+    if ends_with(clone(name), "_to_string") || ends_with(clone(name), "_from_string") || ends_with(clone(name), "_from_bytes") || ends_with(clone(name), "_encode") {
+        return true
+    }
+    let short = mir_core_call_short_name(clone(name))
+    if eq(clone(short), "greet") || eq(clone(short), "component_model_version") || eq(clone(short), "string_from_bytes") || eq(clone(short), "hex_encode") || eq(clone(short), "rope_new") {
+        return true
+    }
+    if eq(clone(short), "rope_to_string") || eq(clone(short), "rope_from_string") || eq(clone(short), "rope_slice") || eq(clone(short), "rope_insert") || eq(clone(short), "rope_delete") || eq(clone(short), "rope_concat") {
+        return true
+    }
+    false
 }

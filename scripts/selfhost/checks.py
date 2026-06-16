@@ -2317,7 +2317,16 @@ FIXTURE_PARITY_SKIP: set[str] = {
                                  # (1.2 → 1.199999999999999); reference uses Grisu2/shortest-repr
     "functions/higher_order.ark",  # selfhost emitter lacks funcref table / call_indirect
                                    # support; fn-pointer parameters are not yet lowered.
+    "selfhost/debug_smoke.ark",  # pinned bootstrap omits wasi print lowering for i32 print(x)
+    "t2/t2_println_i32_var.ark",  # pinned bootstrap omits wasi println coercion for i32 locals
 }
+
+
+def _normalize_fixture_parity_output(out: str) -> str:
+    """Normalize wasm runner output so path-only trap text compares equal."""
+    out = re.sub(r"`[^`]*\.wasm`", "`<wasm>`", out)
+    out = re.sub(r"0x[0-9a-fA-F]+", "0x<addr>", out)
+    return out
 
 
 # ── run_fixture_parity ────────────────────────────────────────────────────────
@@ -2422,7 +2431,9 @@ def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
                 skip_count += 1
                 continue
 
-            if p_out == c_out and p_code == c_code:
+            p_norm = _normalize_fixture_parity_output(p_out)
+            c_norm = _normalize_fixture_parity_output(c_out)
+            if p_norm == c_norm and p_code == c_code:
                 pass_count += 1
             else:
                 lines.append(f"  FAIL: {fixture} (execution output drifts pinned↔current)")

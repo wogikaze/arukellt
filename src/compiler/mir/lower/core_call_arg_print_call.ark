@@ -39,6 +39,12 @@ fn mir_core_print_call_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirEx
         ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
         return true
     }
+    if arg_idx >= 0 {
+        let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
+        if eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "f64") {
+            return true
+        }
+    }
     false
 }
 
