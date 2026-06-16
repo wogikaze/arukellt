@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-15T16:00:11Z",
+  "generated_at": "2026-06-16T13:23:20Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -76,31 +76,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "666",
-      "path": "666-component-wit-emit-library-exports.md",
-      "title": "666 — `--emit wit` / `--emit component` library export completeness + examples",
-      "track": "component-model",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "618"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },

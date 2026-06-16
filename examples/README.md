@@ -12,6 +12,7 @@ with other languages and with other Ark modules.
 ## Prerequisites
 
 - **Arukellt**: `scripts/run/arukellt-selfhost.sh` (uses pinned bootstrap wasm) or `target/release/arukellt`
+- **Library `--emit component` / `--emit wit`**: point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` (bootstrap overlay stub omits library exports; see `docs/current-state.md`)
 - **wasmtime** with GC + component-model support
 - **wasm-tools**, **wac**, **cargo** — only for compose / WIT-link examples (`ark/link-compiled`, `rust/host-provider`)
 - **Node.js ≥ 18** — optional, for `js/invoke-via-jco`

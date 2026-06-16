@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-16
 Updated: 2026-06-16
 ID: 666
@@ -114,8 +114,8 @@ arukellt compile --target wasm32-wasi-p2 --emit wit mylib.ark
 ### Component invoke
 
 - [x] `wasmtime run --wasm gc --wasm component-model --invoke 'add(3, 4)' <calc.component.wasm>` → `7` from **fresh** `--emit component` build (s2 selfhost, no external embed).
-- [ ] `tests/component-interop/jco/calculator/run.sh` recompiles and passes invoke tests (or fixture wasm regenerated from fixed emitter).
-- [ ] Library + `main` in same module: documented behaviour (export library world vs command world); compile error or dual-world policy explicit in docs.
+- [x] `tests/component-interop/jco/calculator/run.sh` recompiles and passes invoke tests (or fixture wasm regenerated from fixed emitter).
+- [x] Library + `main` in same module: documented behaviour (export library world vs command world); compile error or dual-world policy explicit in docs.
 
 ### Bootstrap boundary
 
@@ -126,14 +126,14 @@ arukellt compile --target wasm32-wasi-p2 --emit wit mylib.ark
 
 - [x] `examples/ark/export-library/run.sh` uses `--emit component` (or `--emit all`) as primary path; manual `wasm-tools embed` moved to “Appendix: external WIT”.
 - [x] `examples/ark/export-library/README.md` quickstart matches post-fix CLI (remove embed as default).
-- [ ] `examples/README.md` diagram updated if pipeline simplifies.
-- [ ] `docs/quickstart.md` cross-link still valid; no contradiction with examples.
+- [x] `examples/README.md` diagram updated if pipeline simplifies.
+- [x] `docs/quickstart.md` cross-link still valid; no contradiction with examples.
 
 ### Regression
 
-- [ ] Existing specialized component interop fixtures (`tests/component-interop/jco/*`) still pass after recompile or wasm refresh.
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
-- [ ] `python3 scripts/check/check-docs-consistency.py` exits 0.
+- [x] Existing specialized component interop fixtures (`tests/component-interop/jco/*`) still pass after recompile or wasm refresh.
+- [x] `python3 scripts/manager.py verify quick` exits 0.
+- [x] `python3 scripts/check/check-docs-consistency.py` exits 0.
 
 ## Implementation notes
 
