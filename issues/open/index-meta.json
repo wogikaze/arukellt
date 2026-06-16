@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-16T20:48:02Z",
+  "generated_at": "2026-06-16T20:59:10Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -93,10 +93,269 @@
       "depends_on": [
         "666"
       ],
+      "blocks_issue_ids": [
+        "673"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "668",
+      "path": "668-p2-native-component-polish.md",
+      "title": "668 — P2 native component polish (post-#074)",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "done)",
+        "510",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "669",
+      "path": "669-wit-import-ide-formatter.md",
+      "title": "669 — WIT import IDE and formatter surface",
+      "track": "lsp-navigation",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "652",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "670",
+      "path": "670-wit-import-resolver-hardening.md",
+      "title": "670 — WIT import resolver hardening (duplicates, spans, collisions)",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "653",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "671",
+      "path": "671-wit-import-callable-type-matrix.md",
+      "title": "671 — WIT import callable type matrix (fixtures + gates)",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "653",
+        "654"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "672",
+      "path": "672-wit-type-binding-codegen.md",
+      "title": "672 — WIT type binding code generation",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "664",
+        "done)"
+      ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 12
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "674",
+      "path": "674-component-composition-deps-interop.md",
+      "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
+      "track": "component-composition",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "443",
+        "663",
+        "665"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "675",
+      "path": "675-host-capability-reachability-flags.md",
+      "title": "675 — Host capability user-reachability and runtime permission flags",
+      "track": "capability",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "446",
+        "447",
+        "655",
+        "656",
+        "657",
+        "658",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "676",
+      "path": "676-std-host-fs-env-process-polish.md",
+      "title": "676 — std::host fs / env / process capability completion",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "076",
+        "done)",
+        "445",
+        "done)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "677",
+      "path": "677-component-developer-experience.md",
+      "title": "677 — Component developer experience (CLI, cookbooks, diagnostics explain)",
+      "track": "cli",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "475",
+        "485"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "678",
+      "path": "678-verification-gates-docs-release.md",
+      "title": "678 — Verification gates: stale docs, release checklist, and close-gate coverage",
+      "track": "tooling-contract",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -125,6 +384,32 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "673",
+      "path": "673-component-export-aggregate-expansion.md",
+      "title": "673 — Component export aggregate expansion (Tier 2 blocked shapes)",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "648",
+        "660",
+        "667"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
       }
     }
   ],

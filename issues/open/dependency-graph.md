@@ -10,9 +10,21 @@ graph LR
   I474["474 Async component support (v5)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I667["667 667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path"]
+  I668["668 668 — P2 native component polish (post-#074)"]
+  I669["669 669 — WIT import IDE and formatter surface"]
+  I670["670 670 — WIT import resolver hardening (duplicates, spans, collisions)"]
+  I671["671 671 — WIT import callable type matrix (fixtures + gates)"]
+  I672["672 672 — WIT type binding code generation"]
+  I674["674 674 — Component composition: dependency wasm, lockfile, and external interop"]
+  I675["675 675 — Host capability user-reachability and runtime permission flags"]
+  I676["676 676 — std::host fs / env / process capability completion"]
+  I677["677 677 — Component developer experience (CLI, cookbooks, diagnostics explain)"]
+  I678["678 678 — Verification gates: stale docs, release checklist, and close-gate coverage"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
+  I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I474 --> I646
+  I667 --> I673
   I30 --> I31
 ```
 
@@ -21,8 +33,19 @@ graph LR
 - **30** depends on: 27; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
 - **649** depends on: 641; blocks: none
-- **667** depends on: 666; blocks: none
+- **667** depends on: 666; blocks: 673
+- **668** depends on: 074, done), 510, done); blocks: none
+- **669** depends on: 652, done); blocks: none
+- **670** depends on: 653, done); blocks: none
+- **671** depends on: 653, 654; blocks: none
+- **672** depends on: 664, done); blocks: none
+- **674** depends on: 443, 663, 665; blocks: none
+- **675** depends on: 446, 447, 655, 656, 657, 658, done); blocks: none
+- **676** depends on: 076, done), 445, done); blocks: none
+- **677** depends on: 475, 485; blocks: none
+- **678** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
+- **673** depends on: 648, 660, 667; blocks: none
 
 ### Blocked
 

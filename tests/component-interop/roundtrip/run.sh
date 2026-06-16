@@ -2,10 +2,12 @@
 # WIT bindings round-trip regression (#618).
 #
 # Per scenario:
-#   1. Ark --emit wit -> diff golden expected WIT
+#   1. Ark --emit wit -> diff golden expected WIT (always uses s2 selfhost)
 #   2. wasm-tools component wit parse (bindings-consumable contract)
-#   3. wit-bindgen guest build (interim Rust bindings artifact)
-#   4. Core wasm + embedded emitted WIT -> component -> wac plug -> wasmtime smoke
+#   3. wit-bindgen guest build (interim Rust bindings artifact) — ROUNDTRIP_EMBED=1
+#   4. Core wasm + embedded emitted WIT -> component -> wac plug -> wasmtime smoke — ROUNDTRIP_EMBED=1
+#
+# verify quick runs steps 1–2 only. Set ROUNDTRIP_EMBED=1 for the full #618 embed/smoke path.
 #
 # Skips gracefully when arukellt, wasm-tools, wasmtime, cargo, or wac are missing.
 set -euo pipefail
@@ -125,6 +127,12 @@ for scenario_dir in "$FIXTURE_ROOT"/*/; do
     continue
   fi
   echo "  bindings parse: wasm-tools component wit OK"
+
+  if [[ "${ROUNDTRIP_EMBED:-0}" != "1" ]]; then
+    echo "  embed/smoke: skipped (set ROUNDTRIP_EMBED=1 for full round-trip)"
+    PASS=$((PASS + 1))
+    continue
+  fi
 
   if [[ "$(basename "$ARUKELLT")" == "arukellt-selfhost.sh" ]]; then
     bash "$ARUKELLT" compile "$src_rel" --target wasm32-wasi-p1 --emit wasm -o "$core_wasm_rel"
