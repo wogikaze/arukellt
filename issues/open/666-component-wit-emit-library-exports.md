@@ -109,23 +109,23 @@ arukellt compile --target wasm32-wasi-p2 --emit wit mylib.ark
 
 - [x] `arukellt compile examples/ark/export-library/calculator.ark --target wasm32-wasi-p2 --emit wit -o /tmp/calc.wit` writes non-empty WIT listing `add` and `mul` (s2 selfhost).
 - [x] Golden WIT diff: `examples/ark/export-library/calculator.expected.wit` checked in CI or via `tests/component-interop/roundtrip/` extension.
-- [ ] `wasm-tools component wit` on `--emit component` output lists the same exports (no empty `world root {}` for library fixtures).
+- [x] `wasm-tools component wit` on `--emit component` output lists the same exports (no empty `world root {}` for library fixtures).
 
 ### Component invoke
 
-- [ ] `wasmtime run --wasm gc --wasm component-model --invoke 'add(3, 4)' <calc.component.wasm>` → `7` from **fresh** `--emit component` build (s2 selfhost, no external embed).
+- [x] `wasmtime run --wasm gc --wasm component-model --invoke 'add(3, 4)' <calc.component.wasm>` → `7` from **fresh** `--emit component` build (s2 selfhost, no external embed).
 - [ ] `tests/component-interop/jco/calculator/run.sh` recompiles and passes invoke tests (or fixture wasm regenerated from fixed emitter).
 - [ ] Library + `main` in same module: documented behaviour (export library world vs command world); compile error or dual-world policy explicit in docs.
 
 ### Bootstrap boundary
 
 - [x] Pinned bootstrap either emits diagnostic when `--emit wit`/`component` would use stub, or close-gate documents permanent compile-only stub with redirect to s2 build instructions.
-- [x] `docs/current-state.md` Known Limitations updated: library `--emit wit` requires s2; library `--emit component` still incomplete (#666 component invoke scope).
+- [x] `docs/current-state.md` Known Limitations updated: library `--emit wit` and scalar library `--emit component` require s2 (#666).
 
 ### Examples
 
-- [ ] `examples/ark/export-library/run.sh` uses `--emit component` (or `--emit all`) as primary path; manual `wasm-tools embed` moved to “Appendix: external WIT”.
-- [ ] `examples/ark/export-library/README.md` quickstart matches post-fix CLI (remove embed as default).
+- [x] `examples/ark/export-library/run.sh` uses `--emit component` (or `--emit all`) as primary path; manual `wasm-tools embed` moved to “Appendix: external WIT”.
+- [x] `examples/ark/export-library/README.md` quickstart matches post-fix CLI (remove embed as default).
 - [ ] `examples/README.md` diagram updated if pipeline simplifies.
 - [ ] `docs/quickstart.md` cross-link still valid; no contradiction with examples.
 

@@ -67,7 +67,7 @@ fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config:
 
 fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule) -> String {
     if component::mir_has_library_exports(mir_module) {
-        return String_from("p1")
+        return String_from("p1-component")
     }
     config_record::config_wasi_version(config)
 }

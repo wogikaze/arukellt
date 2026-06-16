@@ -3,6 +3,7 @@
 use wasm::component_p2_emit
 use wasm::component_p2_run_sections
 use wasm::component_p2_stubs
+use wasm::library_component_emit
 use wasm::wasm
 use wasm::wat
 
@@ -12,6 +13,10 @@ pub fn emit_wasm(mir: MirModule, target: String, wasi_version: String, opt_level
 
 pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     component_p2_emit::emit_p2_command_component(core_wasm)
+}
+
+pub fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    library_component_emit::emit_library_component(core_wasm, mir)
 }
 
 pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {

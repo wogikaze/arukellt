@@ -11,8 +11,10 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }
+fn NUM_WASI_IMPORTS_COMPONENT() -> i32 { 7 }
 fn NUM_WASI_IMPORTS() -> i32 { 22 }
 fn NUM_WASI_TYPES_BASE() -> i32 { 6 }
+fn NUM_WASI_TYPES_COMPONENT() -> i32 { 5 }
 fn NUM_WASI_TYPES() -> i32 { 9 }
 fn WASI_IMPORT_PROC_EXIT() -> i32 { 6 }
 fn WASI_IMPORT_CLOCK_TIME_GET() -> i32 { 7 }
@@ -100,6 +102,20 @@ fn SCRATCH_PF_RESULT() -> i32 { 112 }
 fn SCRATCH_PF_DIVISOR() -> i32 { 120 }
 fn SCRATCH_PF_SAWDOT() -> i32 { 48 }
 fn SCRATCH_PF_DECCOUNT() -> i32 { 52 }
+
+// Library scalar component binary section/sort tags.
+fn LIB_COMP_SEC_CORE_MODULE() -> i32 { 1 }
+fn LIB_COMP_SEC_CORE_INSTANCE() -> i32 { 2 }
+fn LIB_COMP_SEC_ALIAS() -> i32 { 6 }
+fn LIB_COMP_SEC_TYPE() -> i32 { 7 }
+fn LIB_COMP_SEC_CANON() -> i32 { 8 }
+fn LIB_COMP_SEC_EXPORT() -> i32 { 11 }
+fn LIB_COMP_SORT_FUNC() -> i32 { 0x40 }
+fn LIB_COMP_EXI_SORT_FUNC() -> i32 { 0x01 }
+fn LIB_COMP_USER_INSTANCE_IDX() -> i32 { 1 }
+fn LIB_WIT_S32() -> i32 { 0x7a }
+fn LIB_WIT_S64() -> i32 { 0x78 }
+fn LIB_WIT_F64() -> i32 { 0x75 }
 
 // Local result store actions.
 fn STORE_ACTION_SKIP() -> i32 { 0 }

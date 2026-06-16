@@ -10,6 +10,10 @@ fn is_p2_wasi(wasi_version: String) -> bool {
     eq(clone(wasi_version), String_from("p2"))
 }
 
+fn is_component_stub_wasi(wasi_version: String) -> bool {
+    eq(clone(wasi_version), String_from("p1-component"))
+}
+
 fn p2_host_import_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     let base = constants::NUM_P2_IMPORTS_BASE()
     let with_outgoing = if needs_wasi_http_outgoing == 1 {
@@ -52,6 +56,9 @@ fn host_import_count(target: String, wasi_version: String, needs_arukellt_host: 
     if is_p2_wasi(clone(wasi_version)) {
         return p2_host_import_count(needs_arukellt_host, needs_wasi_http_outgoing)
     }
+    if is_component_stub_wasi(clone(wasi_version)) {
+        return constants::NUM_WASI_IMPORTS_COMPONENT()
+    }
     if needs_arukellt_host == 1 {
         return constants::NUM_WASI_IMPORTS()
     }
@@ -64,6 +71,9 @@ fn host_type_count(target: String, wasi_version: String, needs_arukellt_host: i3
     }
     if is_p2_wasi(clone(wasi_version)) {
         return p2_host_type_count(needs_arukellt_host, needs_wasi_http_outgoing)
+    }
+    if is_component_stub_wasi(clone(wasi_version)) {
+        return constants::NUM_WASI_TYPES_COMPONENT()
     }
     if needs_arukellt_host == 1 {
         return constants::NUM_WASI_TYPES()

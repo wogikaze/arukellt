@@ -19,6 +19,8 @@ fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String,
     } else {
         if emit_target::is_p2_wasi(clone(wasi_version)) {
             emit_p2_import_entries(import_sec, host_type_map, needs_arukellt_host, needs_wasi_http_outgoing)
+        } else if emit_target::is_component_stub_wasi(clone(wasi_version)) {
+            emit_wasi_component_stub_import_entries(import_sec, host_type_map)
         } else {
             emit_wasi_import_entries(import_sec, host_type_map, needs_arukellt_host, needs_wasi_http_outgoing)
         }
@@ -59,6 +61,17 @@ fn emit_t2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
     emit_host_func_import(import_sec, clone(io_module), String_from("flush"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(io_module), String_from("flush_err"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(io_module), String_from("read"), get_unchecked(host_type_map, 2))
+}
+
+fn emit_wasi_component_stub_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
+    let wasi_module = wasi_snapshot_module_name()
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_write"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("args_sizes_get"), get_unchecked(host_type_map, 1))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("args_get"), get_unchecked(host_type_map, 1))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("path_open"), get_unchecked(host_type_map, 2))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_read"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("fd_close"), get_unchecked(host_type_map, 3))
+    emit_host_func_import(import_sec, clone(wasi_module), String_from("proc_exit"), get_unchecked(host_type_map, 4))
 }
 
 fn emit_wasi_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {

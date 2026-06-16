@@ -961,6 +961,30 @@ def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
         path.write_text(text, encoding="utf-8")
 
 
+def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
+    """Route library --emit component through wasm scalar emitter; stub keeps P2 command."""
+    path = compiler_out / "driver_emit.ark"
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    old = (
+        "    let comp_bytes = component::emit_component(core_wasm, mir_module, "
+        "driver_config_record::config_target(config), driver_config_record::config_wasi_version(config), "
+        "driver_config_record::config_world(config))"
+    )
+    new = (
+        "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
+        "        wasm::emit_library_component(core_wasm, mir_module)\n"
+        "    } else {\n"
+        "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
+        "driver_config_record::config_wasi_version(config), driver_config_record::config_world(config))\n"
+        "    }"
+    )
+    if old in text and "emit_library_component" not in text:
+        text = text.replace(old, new)
+        path.write_text(text, encoding="utf-8")
+
+
 def _patch_bootstrap_driver_timing(text: str) -> str:
     """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32."""
     text = text.replace("clock::monotonic_now()", "0")
@@ -1085,10 +1109,28 @@ def _patch_bootstrap_component_wit_bridge(compiler_out: Path) -> None:
 def _patch_bootstrap_wasm_mod_p2_emit(text: str) -> str:
     """Ensure flat wasm facade keeps P2 component emit after overlay dedupe."""
     if "emit_p2_command_component" in text:
+        text = _patch_bootstrap_wasm_mod_library_emit(text)
         return text
     stub = """
 pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     wasm_component_p2_emit::emit_p2_command_component(core_wasm)
+}
+
+pub fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    wasm_library_component_emit::emit_library_component(core_wasm, mir)
+}
+"""
+    if text and not text.endswith("\n"):
+        text = text + "\n"
+    return text + stub
+
+
+def _patch_bootstrap_wasm_mod_library_emit(text: str) -> str:
+    if "emit_library_component" in text:
+        return text
+    stub = """
+pub fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    wasm_library_component_emit::emit_library_component(core_wasm, mir)
 }
 """
     if text and not text.endswith("\n"):
@@ -1902,6 +1944,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     _reapply_post_stub_overlay_dedupe(compiler_out, write_order)
     _patch_bootstrap_component_wit_stub_calls(compiler_out)
     _patch_bootstrap_driver_wit_delegate(compiler_out)
+    _patch_bootstrap_driver_component_delegate(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     ark_toml = source_root / "ark.toml"

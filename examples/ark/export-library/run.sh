@@ -7,12 +7,8 @@ source "$SCRIPT_DIR/../../common.sh"
 ROOT="$(examples_repo_root)"
 OUT_REL=".build/examples/ark-export"
 OUT="$ROOT/$OUT_REL"
-CORE_REL="$OUT_REL/calculator.core.wasm"
-EMBED_REL="$OUT_REL/calculator.embed.wasm"
 COMPONENT_REL="$OUT_REL/calculator.component.wasm"
-ADAPTER="$OUT/wasi_snapshot_preview1.reactor.wasm"
 SOURCE="examples/ark/export-library/calculator.ark"
-WIT="examples/ark/export-library/calculator.wit"
 
 cd "$ROOT"
 
@@ -30,20 +26,18 @@ if [[ -z "$WASMTIME" ]] || [[ -z "$WT" ]]; then
 fi
 
 mkdir -p "$OUT"
-examples_ensure_wasi_adapter "$ADAPTER"
 
-echo "[1/3] compile core wasm"
-examples_compile "$ARUKELLT" compile "$SOURCE" \
-    --target wasm32-wasi-p1 \
-    --emit wasm \
-    -o "$CORE_REL"
-
-echo "[2/3] embed WIT + component new"
-"$WT" component embed "$WIT" "$OUT/calculator.core.wasm" -o "$OUT/calculator.embed.wasm"
-"$WT" component new "$OUT/calculator.embed.wasm" \
-    --adapt "wasi_snapshot_preview1=$ADAPTER" \
-    -o "$OUT/calculator.component.wasm"
+echo "[1/3] compile calculator.ark -> component (native --emit component)"
+examples_compile "$ARUKELLT" modern compile "$SOURCE" \
+    --target wasm32-wasi-p2 \
+    --emit component \
+    -o "$COMPONENT_REL"
 echo "      wrote $COMPONENT_REL ($(wc -c < "$OUT/calculator.component.wasm") bytes)"
+
+echo "[2/3] wasm-tools component wit"
+wit="$("$WT" component wit "$OUT/calculator.component.wasm")"
+echo "$wit" | grep -q 'export add:' || { echo "FAIL: WIT missing export add"; exit 1; }
+echo "$wit" | grep -q 'export mul:' || { echo "FAIL: WIT missing export mul"; exit 1; }
 
 echo "[3/3] invoke add(3, 4) and mul(6, 7)"
 got_add="$("$WASMTIME" run --wasm gc --wasm component-model --invoke 'add(3, 4)' "$OUT/calculator.component.wasm")"

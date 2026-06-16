@@ -1,0 +1,244 @@
+// Arukellt Selfhost - minimal scalar library component emitter (bootstrap-safe).
+
+use mir::function_identity
+use mir::function_param_view
+use mir::function_return_view
+use mir::module_functions
+use mir::value_types
+use wasm::constants
+use wasm::wasi_p1_component_stub
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_string
+
+fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    let out = lib_comp_new_component_writer()
+    lib_comp_emit_core_module(out, wasi_p1_component_stub::wasi_p1_stub_core_module())
+    lib_comp_emit_core_module(out, core_wasm)
+    lib_comp_emit_wasi_core_instance_section(out)
+    let export_count = lib_comp_collect_export_indices(mir)
+    if export_count == 0 {
+        return writer_core::writer_bytes(out)
+    }
+    lib_comp_emit_alias_section(out, mir, export_count)
+    lib_comp_emit_type_section(out, mir, export_count)
+    lib_comp_emit_canon_section(out, export_count)
+    lib_comp_emit_export_section(out, mir, export_count)
+    writer_core::writer_bytes(out)
+}
+
+fn lib_comp_new_component_writer() -> writer_core::WasmWriter {
+    let out = writer_core::WasmWriter_new()
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x61)
+    writer_core::emit_byte(out, 0x73)
+    writer_core::emit_byte(out, 0x6d)
+    writer_core::emit_byte(out, 0x0d)
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x01)
+    writer_core::emit_byte(out, 0x00)
+    out
+}
+
+fn lib_comp_emit_section(out: writer_core::WasmWriter, section_id: i32, contents: writer_core::WasmWriter) {
+    writer_core::emit_byte(out, section_id)
+    writer_leb::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
+}
+
+fn lib_comp_emit_core_module(out: writer_core::WasmWriter, module_wasm: Vec<i32>) {
+    let sec = writer_core::WasmWriter_new()
+    writer_core::emit_byte(sec, 0x00)
+    let mut i = 0
+    if len(module_wasm) > 0 && get_unchecked(module_wasm, 0) == 0 {
+        i = 1
+    }
+    while i < len(module_wasm) {
+        writer_core::emit_byte(sec, get_unchecked(module_wasm, i))
+        i = i + 1
+    }
+    lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_MODULE(), sec)
+}
+
+fn lib_comp_emit_wasi_core_instance_section(out: writer_core::WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sec, 2)
+    lib_comp_emit_core_instance_ref(sec, 0, 0)
+    writer_core::emit_byte(sec, 0x00)
+    writer_leb::emit_leb128_u(sec, 1)
+    writer_leb::emit_leb128_u(sec, 1)
+    writer_string::emit_string(sec, String_from("wasi_snapshot_preview1"))
+    writer_core::emit_byte(sec, 0x12)
+    writer_leb::emit_leb128_u(sec, 0)
+    lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_INSTANCE(), sec)
+}
+
+fn lib_comp_emit_core_instance_ref(sec: writer_core::WasmWriter, module_index: i32, instance_index: i32) {
+    writer_core::emit_byte(sec, 0x00)
+    writer_leb::emit_leb128_u(sec, module_index)
+    writer_leb::emit_leb128_u(sec, instance_index)
+}
+
+fn lib_comp_should_export(name: String) -> bool {
+    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+        return false
+    }
+    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+        return false
+    }
+    if contains(clone(name), String_from("::")) {
+        return false
+    }
+    let nlen = len(name)
+    if nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95 {
+        return false
+    }
+    true
+}
+
+fn lib_comp_export_name_kebab(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 95 {
+            out = concat(out, String_from("-"))
+        } else {
+            out = concat(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn lib_comp_val_type_to_wit(vt: i32) -> i32 {
+    if vt == value_types::VT_I64() {
+        return constants::LIB_WIT_S64()
+    }
+    if vt == value_types::VT_F64() {
+        return constants::LIB_WIT_F64()
+    }
+    constants::LIB_WIT_S32()
+}
+
+fn lib_comp_collect_export_indices(mir: MirModule) -> i32 {
+    let fn_count = module_functions::MirModule_function_count(mir)
+    let mut export_count = 0
+    let mut mi = 0
+    while mi < fn_count {
+        let f = module_functions::MirModule_function_at(mir, mi)
+        let name = function_identity::MirFunction_name(f)
+        if lib_comp_should_export(clone(name)) {
+            export_count = export_count + 1
+        }
+        mi = mi + 1
+    }
+    export_count
+}
+
+fn lib_comp_export_fn_at(mir: MirModule, export_index: i32) -> MirFunction {
+    let fn_count = module_functions::MirModule_function_count(mir)
+    let mut seen = 0
+    let mut mi = 0
+    while mi < fn_count {
+        let f = module_functions::MirModule_function_at(mir, mi)
+        let name = function_identity::MirFunction_name(f)
+        if lib_comp_should_export(clone(name)) {
+            if seen == export_index {
+                return f
+            }
+            seen = seen + 1
+        }
+        mi = mi + 1
+    }
+    module_functions::MirModule_function_at(mir, 0)
+}
+
+fn lib_comp_emit_alias_section(out: writer_core::WasmWriter, mir: MirModule, export_count: i32) {
+    let sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sec, export_count)
+    let mut ei = 0
+    while ei < export_count {
+        let f = lib_comp_export_fn_at(mir, ei)
+        let core_name = function_identity::MirFunction_name(f)
+        writer_core::emit_byte(sec, 0x00)
+        writer_core::emit_byte(sec, 0x00)
+        writer_leb::emit_leb128_u(sec, constants::LIB_COMP_USER_INSTANCE_IDX())
+        writer_core::emit_byte(sec, 0x01)
+        writer_string::emit_string(sec, core_name)
+        ei = ei + 1
+    }
+    lib_comp_emit_section(out, constants::LIB_COMP_SEC_ALIAS(), sec)
+}
+
+fn lib_comp_emit_func_type_bytes(f: MirFunction) -> Vec<i32> {
+    let w = writer_core::WasmWriter_new()
+    writer_core::emit_byte(w, constants::LIB_COMP_SORT_FUNC())
+    let param_count = function_param_view::MirFunction_param_count(f)
+    writer_leb::emit_leb128_u(w, param_count)
+    let mut pi = 0
+    while pi < param_count {
+        writer_string::emit_string(w, concat(String_from("arg"), to_string(pi)))
+        let vt = function_param_view::MirFunction_param_val_type(f, pi)
+        writer_core::emit_byte(w, lib_comp_val_type_to_wit(vt))
+        pi = pi + 1
+    }
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    if ret_type != value_types::VT_VOID() {
+        writer_core::emit_byte(w, 0x00)
+        writer_core::emit_byte(w, lib_comp_val_type_to_wit(ret_type))
+    } else {
+        writer_core::emit_byte(w, 0x01)
+        writer_leb::emit_leb128_u(w, 0)
+    }
+    writer_core::writer_bytes(w)
+}
+
+fn lib_comp_emit_type_section(out: writer_core::WasmWriter, mir: MirModule, export_count: i32) {
+    let sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sec, export_count)
+    let mut ei = 0
+    while ei < export_count {
+        let f = lib_comp_export_fn_at(mir, ei)
+        let type_bytes = lib_comp_emit_func_type_bytes(f)
+        writer_core::emit_bytes(sec, type_bytes)
+        ei = ei + 1
+    }
+    lib_comp_emit_section(out, constants::LIB_COMP_SEC_TYPE(), sec)
+}
+
+fn lib_comp_emit_canon_section(out: writer_core::WasmWriter, export_count: i32) {
+    let sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sec, export_count)
+    let mut ci = 0
+    while ci < export_count {
+        writer_core::emit_byte(sec, 0x00)
+        writer_core::emit_byte(sec, 0x00)
+        writer_leb::emit_leb128_u(sec, ci)
+        writer_leb::emit_leb128_u(sec, 0)
+        writer_leb::emit_leb128_u(sec, ci)
+        ci = ci + 1
+    }
+    lib_comp_emit_section(out, constants::LIB_COMP_SEC_CANON(), sec)
+}
+
+fn lib_comp_emit_export_section(out: writer_core::WasmWriter, mir: MirModule, export_count: i32) {
+    let sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(sec, export_count)
+    let mut ei = 0
+    while ei < export_count {
+        let f = lib_comp_export_fn_at(mir, ei)
+        let core_name = function_identity::MirFunction_name(f)
+        let export_name = lib_comp_export_name_kebab(clone(core_name))
+        writer_core::emit_byte(sec, 0x00)
+        writer_string::emit_string(sec, export_name)
+        writer_core::emit_byte(sec, constants::LIB_COMP_EXI_SORT_FUNC())
+        writer_leb::emit_leb128_u(sec, ei)
+        writer_core::emit_byte(sec, 0x01)
+        writer_core::emit_byte(sec, constants::LIB_COMP_EXI_SORT_FUNC())
+        writer_leb::emit_leb128_u(sec, ei)
+        ei = ei + 1
+    }
+    lib_comp_emit_section(out, constants::LIB_COMP_SEC_EXPORT(), sec)
+}
