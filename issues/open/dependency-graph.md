@@ -20,11 +20,25 @@ graph LR
   I676["676 676 — std::host fs / env / process capability completion"]
   I677["677 677 — Component developer experience (CLI, cookbooks, diagnostics explain)"]
   I678["678 678 — Verification gates: stale docs, release checklist, and close-gate coverage"]
+  I679["679 679 — Docs-to-runtime contract audit (README / current-state / manual docs)"]
+  I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
+  I680["680 680 — Target tier honesty audit (stable / smoke / scaffold / none)"]
+  I681["681 681 — Stdlib manifest reachability contract audit"]
+  I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
+  I682["682 682 — Component / WIT product-claim verification audit"]
+  I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I474 --> I646
   I667 --> I673
+  I679 --> I680
+  I679 --> I681
+  I679 --> I685
+  I679 --> I682
+  I680 --> I682
+  I679 --> I683
+  I682 --> I683
   I30 --> I31
 ```
 
@@ -44,8 +58,15 @@ graph LR
 - **676** depends on: 076, done), 445, done); blocks: none
 - **677** depends on: 475, 485; blocks: none
 - **678** depends on: none; blocks: none
+- **679** depends on: none; blocks: 680, 681, 682, 683, 685
+- **684** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
+- **680** depends on: 679; blocks: 682
+- **681** depends on: 679; blocks: none
+- **685** depends on: 679; blocks: none
+- **682** depends on: 679, 680; blocks: 683
+- **683** depends on: 679, 682; blocks: none
 
 ### Blocked
 

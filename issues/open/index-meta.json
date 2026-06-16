@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-16T20:59:10Z",
+  "generated_at": "2026-06-16T21:10:57Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -97,7 +97,7 @@
         "673"
       ],
       "acceptance": {
-        "checked": 0,
+        "checked": 2,
         "unchecked": 12
       },
       "orchestration": {
@@ -363,6 +363,56 @@
       }
     },
     {
+      "id": "679",
+      "path": "679-docs-runtime-contract-audit.md",
+      "title": "679 — Docs-to-runtime contract audit (README / current-state / manual docs)",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "680",
+        "681",
+        "682",
+        "683",
+        "685"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "684",
+      "path": "684-false-done-limited-scope-reaudit.md",
+      "title": "684 — False-done and limited-scope done issue re-audit program",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "646",
       "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
@@ -409,6 +459,132 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "680",
+      "path": "680-target-tier-honesty-audit.md",
+      "title": "680 — Target tier honesty audit (stable / smoke / scaffold / none)",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679"
+      ],
+      "blocks_issue_ids": [
+        "682"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "681",
+      "path": "681-stdlib-manifest-reachability-audit.md",
+      "title": "681 — Stdlib manifest reachability contract audit",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "685",
+      "path": "685-ide-playground-extension-claim-audit.md",
+      "title": "685 — IDE / Playground / Extension product-claim vs compiler gate audit",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "682",
+      "path": "682-component-wit-product-claim-audit.md",
+      "title": "682 — Component / WIT product-claim verification audit",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679",
+        "680"
+      ],
+      "blocks_issue_ids": [
+        "683"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "wasm-tools (CI install policy)"
+      }
+    },
+    {
+      "id": "683",
+      "path": "683-user-facing-executable-example-audit.md",
+      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679",
+        "682"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
         "upstream_notes": "None"
       }
     }
