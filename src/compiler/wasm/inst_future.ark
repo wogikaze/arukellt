@@ -1,0 +1,41 @@
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+use mir::value_types
+use wasm::inst_dispatch_result
+use wasm::opcodes as wasm_opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn try_emit_future_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op == opcodes::MIR_FUTURE_NEW() {
+        emit_future_new(w, inst, ctx)
+        inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if op == opcodes::MIR_AWAIT() {
+        emit_await(w, inst, ctx)
+        inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    false
+}
+
+fn emit_future_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let src = inst_accessors_operands::MirInst_arg0(inst)
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, src)
+    let dest = inst_accessors_shape::MirInst_dest(inst)
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, dest)
+}
+
+fn emit_await(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let src = inst_accessors_operands::MirInst_arg0(inst)
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, src)
+    let dest = inst_accessors_shape::MirInst_dest(inst)
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, dest)
+}

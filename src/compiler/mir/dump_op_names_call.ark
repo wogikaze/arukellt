@@ -12,5 +12,11 @@ fn mir_call_op_name(op: i32) -> String {
     if op == opcodes::MIR_WIT_CALL() {
         return String_from("wit-call")
     }
+    if op == opcodes::MIR_FUTURE_NEW() {
+        return String_from("future-new")
+    }
+    if op == opcodes::MIR_AWAIT() {
+        return String_from("await")
+    }
     String_from("")
 }

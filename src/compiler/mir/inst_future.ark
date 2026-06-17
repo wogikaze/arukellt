@@ -1,0 +1,11 @@
+use mir::inst_factory
+use mir::opcodes
+use mir::value_types
+
+fn MirInst_future_new(dest: i32, src: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_FUTURE_NEW(), dest, src, 0 - 1, 0, 0.0, String_new(), value_types::VT_REF())
+}
+
+fn MirInst_await(dest: i32, future: i32, val_type: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_AWAIT(), dest, future, 0 - 1, 0, 0.0, String_new(), val_type)
+}

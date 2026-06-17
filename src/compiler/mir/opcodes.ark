@@ -74,6 +74,10 @@ fn MIR_PHI() -> i32 { 73 }
 fn MIR_GC_HINT() -> i32 { 74 }
 fn MIR_GC_HINT_SHORT_LIVED() -> i32 { 0 }
 
+// Async/await opcodes.
+fn MIR_FUTURE_NEW() -> i32 { 80 }
+fn MIR_AWAIT() -> i32 { 81 }
+
 fn is_arith_opcode(op: i32) -> bool {
     op >= MIR_ADD() && op <= MIR_SHR()
 }

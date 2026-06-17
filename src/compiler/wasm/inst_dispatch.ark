@@ -8,6 +8,7 @@ use wasm::inst_dispatch_convert
 use wasm::inst_dispatch_local
 use wasm::inst_dispatch_gc_hint
 use wasm::inst_dispatch_struct
+use wasm::inst_future
 
 fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     if inst_dispatch_const::try_emit_const_or_get_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -32,6 +33,9 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i3
         return
     }
     if inst_dispatch_struct::try_emit_struct_inst(w, inst, ctx, prev_op, prev_arg0, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    if inst_future::try_emit_future_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return
     }
 }
