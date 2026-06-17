@@ -1,0 +1,118 @@
+// Arukellt Selfhost - GC shape registry: collects struct/array shapes from MIR
+// and builds GC type definitions for the type section.
+// Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
+
+use mir::value_types
+
+pub struct GcShapeRegistry {
+    struct_names: Vec<String>,
+    struct_field_types: Vec<String>,
+    array_elem_types: Vec<i32>,
+}
+
+fn GcShapeRegistry_new() -> GcShapeRegistry {
+    GcShapeRegistry { struct_names: Vec_new_String(), struct_field_types: Vec_new_String(), array_elem_types: Vec_new_i32() }
+}
+
+fn GcShapeRegistry_add_struct(reg: GcShapeRegistry, struct_name: String, field_types_code: String) -> i32 {
+    let existing = find_struct_by_name(reg, struct_name)
+    if existing >= 0 {
+        return existing
+    }
+    push(clone(reg.struct_names), struct_name)
+    push(clone(reg.struct_field_types), field_types_code)
+    len(reg.struct_names) - 1
+}
+
+fn GcShapeRegistry_add_array(reg: GcShapeRegistry, elem_type: i32) -> i32 {
+    let existing = find_array_by_elem(reg, elem_type)
+    if existing >= 0 {
+        return existing
+    }
+    push(clone(reg.array_elem_types), elem_type)
+    len(reg.array_elem_types) - 1
+}
+
+fn GcShapeRegistry_struct_count(reg: GcShapeRegistry) -> i32 {
+    len(reg.struct_names)
+}
+
+fn GcShapeRegistry_array_count(reg: GcShapeRegistry) -> i32 {
+    len(reg.array_elem_types)
+}
+
+fn GcShapeRegistry_struct_field_count(reg: GcShapeRegistry, idx: i32) -> i32 {
+    len(get_unchecked(reg.struct_field_types, idx))
+}
+
+fn GcShapeRegistry_struct_field_type_at(reg: GcShapeRegistry, struct_idx: i32, field_idx: i32) -> i32 {
+    let types_code = get_unchecked(reg.struct_field_types, struct_idx)
+    let c = char_at(clone(types_code), field_idx)
+    if c == 108 { value_types::VT_I64() }
+    else if c == 100 { value_types::VT_F64() }
+    else if c == 114 { value_types::VT_REF() }
+    else { value_types::VT_I32() }
+}
+
+fn GcShapeRegistry_array_elem_type(reg: GcShapeRegistry, idx: i32) -> i32 {
+    get_unchecked(reg.array_elem_types, idx)
+}
+
+fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
+    let mut sig = String_from("S")
+    let types_code = get_unchecked(reg.struct_field_types, idx)
+    let fc = len(types_code)
+    let mut fi = 0
+    while fi < fc {
+        sig = concat(sig, String_from("_f"))
+        sig = concat(sig, to_string(fi))
+        sig = concat(sig, String_from("_"))
+        sig = concat(sig, code_to_gc_sig(char_at(clone(types_code), fi)))
+        fi = fi + 1
+    }
+    sig
+}
+
+fn GcShapeRegistry_array_sig(reg: GcShapeRegistry, idx: i32) -> String {
+    concat(String_from("A_"), val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
+}
+
+fn GcShapeRegistry_total_gc_type_count(reg: GcShapeRegistry) -> i32 {
+    GcShapeRegistry_struct_count(reg) + GcShapeRegistry_array_count(reg)
+}
+
+fn code_to_gc_sig(c: i32) -> String {
+    if c == 108 { String_from("i64") }
+    else if c == 100 { String_from("f64") }
+    else { String_from("i32") }
+}
+
+fn val_type_to_gc_sig(vt: i32) -> String {
+    if vt == value_types::VT_I64() { String_from("i64") }
+    else if vt == value_types::VT_F64() { String_from("f64") }
+    else { String_from("i32") }
+}
+
+fn find_struct_by_name(reg: GcShapeRegistry, name: String) -> i32 {
+    let n = len(reg.struct_names)
+    let mut i = 0
+    while i < n {
+        if eq(clone(get_unchecked(reg.struct_names, i)), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn find_array_by_elem(reg: GcShapeRegistry, elem_type: i32) -> i32 {
+    let n = len(reg.array_elem_types)
+    let mut i = 0
+    while i < n {
+        if get_unchecked(reg.array_elem_types, i) == elem_type {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}

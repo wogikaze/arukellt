@@ -66,6 +66,5 @@ fn find_char(s: String, c: i32) -> i32 {
 }
 
 fn append_gc_type_sigs(type_sigs: Vec<String>) {
-    push(type_sigs, String_from("S_f0_i32"))
     push(type_sigs, String_from("A_i32"))
 }

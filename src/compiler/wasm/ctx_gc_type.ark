@@ -1,19 +1,36 @@
 // Arukellt Selfhost - GC type index tracking for the emitter context.
+// Computes gc_type_base from ctx: it's the total non-GC type count
+// (host types + function types, excluding GC data types).
 
 use wasm::ctx_record
 
-fn SelfEmitCtx_gc_type_base(ctx: SelfEmitCtx) -> i32 {
-    ctx.gc_type_base
+fn SelfEmitCtx_array_type(ctx: SelfEmitCtx, _elem_count: i32) -> i32 {
+    compute_gc_array_type_idx(ctx)
 }
 
-fn SelfEmitCtx_set_gc_type_base(ctx: SelfEmitCtx, base: i32) {
-    ctx.gc_type_base = base
+fn compute_gc_array_type_idx(ctx: SelfEmitCtx) -> i32 {
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let target = ctx_record::SelfEmitCtx_target(ctx)
+    let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
+    let needs_host = ctx_record::SelfEmitCtx_needs_arukellt_host(ctx)
+    let needs_http = ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx)
+    // Compute host type count (mirrors emit_target::host_type_count logic)
+    let host_count = host_type_count_simple(target, wasi_version, needs_host, needs_http)
+    host_count + fn_count
 }
 
-fn SelfEmitCtx_struct_type(ctx: SelfEmitCtx, struct_size: i32) -> i32 {
-    ctx.gc_type_base
-}
-
-fn SelfEmitCtx_array_type(ctx: SelfEmitCtx, elem_count: i32) -> i32 {
-    ctx.gc_type_base + 1
+fn host_type_count_simple(target: String, wasi_version: String, needs_host: i32, needs_http: i32) -> i32 {
+    if contains(clone(target), String_from("freestanding")) {
+        return 3
+    }
+    if eq(clone(wasi_version), String_from("p2")) {
+        let mut count = 7
+        if needs_http == 1 { count = count + 1 }
+        if needs_host == 1 { count = count + 3 }
+        return count
+    }
+    if eq(clone(wasi_version), String_from("p1-component")) {
+        return 5
+    }
+    6
 }
