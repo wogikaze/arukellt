@@ -52,6 +52,9 @@ pub fn run_until_breakpoint(
     config.cranelift_opt_level(OptLevel::None);
     config.wasm_bulk_memory(true);
     config.wasm_multi_value(true);
+    config.wasm_reference_types(true);
+    config.wasm_function_references(true);
+    config.wasm_gc(true);
     let engine = Engine::new(&config).map_err(|e| format!("engine: {:?}", e))?;
     let module = Module::new(&engine, &prepared).map_err(|e| format!("module: {:?}", e))?;
 

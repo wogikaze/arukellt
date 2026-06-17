@@ -60,6 +60,9 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let mut config = Config::new();
     config.cranelift_opt_level(OptLevel::None);
     config.wasm_bulk_memory(true);
+    config.wasm_reference_types(true);
+    config.wasm_function_references(true);
+    config.wasm_gc(true);
 
     let engine = Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))?;
     let module = Module::new(&engine, wasm_bytes)
