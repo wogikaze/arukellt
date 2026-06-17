@@ -621,6 +621,8 @@ whose canonical ABI lowering/lifting is not yet implemented.
 
 The exported function uses a WIT `resource` type which is not yet implemented.
 
+`stream<T>` and `future<T>` async WIT types are accepted for WIT import parsing as of #474 Phase 4, but full async component export lowering is deferred to a later phase of #474.
+
 ---
 
 ## Resolve Errors — `E05xx`
