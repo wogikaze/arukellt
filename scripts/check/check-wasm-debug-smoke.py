@@ -25,8 +25,9 @@ BOOTSTRAP_WASM = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 def _compile_smoke() -> Path:
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
     env = {**os.environ, "ARUKELLT_SELFHOST_WASM": str(BOOTSTRAP_WASM)}
+    build_wasm_rel = BUILD_WASM.relative_to(REPO_ROOT)
     r = subprocess.run(
-        [str(WRAPPER), "compile", str(SMOKE_ARK)],
+        [str(WRAPPER), "compile", str(SMOKE_ARK), "-o", str(build_wasm_rel)],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
@@ -37,11 +38,9 @@ def _compile_smoke() -> Path:
         print("FAIL: compile smoke program", file=sys.stderr)
         print(r.stderr, file=sys.stderr)
         raise SystemExit(1)
-    default_wasm = (REPO_ROOT / SMOKE_ARK).with_suffix(".wasm")
-    if not default_wasm.is_file():
-        print(f"FAIL: wasm not found at {default_wasm}", file=sys.stderr)
+    if not BUILD_WASM.is_file():
+        print(f"FAIL: wasm not found at {BUILD_WASM}", file=sys.stderr)
         raise SystemExit(1)
-    BUILD_WASM.write_bytes(default_wasm.read_bytes())
     return BUILD_WASM
 
 

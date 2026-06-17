@@ -123,51 +123,37 @@ fn patch_start_with_hook(
     local_x: LocalId,
     breakpoint_line: u32,
 ) -> Result<(), String> {
-    let original = {
-        let func = module.funcs.get(start);
-        let FunctionKind::Local(local) = &func.kind else {
-            return Err("start is not a local function".into());
-        };
-        let entry = local.entry_block();
-        local
-            .block(entry)
-            .instrs
-            .iter()
-            .map(|(ins, loc)| (ins.clone(), *loc))
-            .collect::<Vec<_>>()
+    let func = module.funcs.get_mut(start);
+    let FunctionKind::Local(local) = &mut func.kind else {
+        return Err("start is not a local function".into());
     };
-    let mut insert_at = original.len();
-    for (idx, (ins, _loc)) in original.iter().enumerate().rev() {
+    let entry = local.entry_block();
+    let instrs = &mut local.block_mut(entry).instrs;
+    let mut insert_at = instrs.len();
+    for (idx, (ins, _loc)) in instrs.iter().enumerate().rev() {
         if ins.is_call() {
             insert_at = idx;
             break;
         }
     }
-    let hook = vec![
+    let loc = instrs.first().map(|(_, l)| *l).unwrap_or_default();
+    let hook: Vec<(walrus::ir::Instr, walrus::ir::InstrLocId)> = vec![
         (
             walrus::ir::Instr::Const(walrus::ir::Const {
                 value: walrus::ir::Value::I32(breakpoint_line as i32),
             }),
-            original.first().map(|(_, loc)| *loc).unwrap_or_default(),
+            loc,
         ),
         (
             walrus::ir::Instr::LocalGet(walrus::ir::LocalGet { local: local_x }),
-            original.first().map(|(_, loc)| *loc).unwrap_or_default(),
+            loc,
         ),
         (
             walrus::ir::Instr::Call(walrus::ir::Call { func: hook_func }),
-            original.first().map(|(_, loc)| *loc).unwrap_or_default(),
+            loc,
         ),
     ];
-    let mut rebuilt = original;
-    rebuilt.splice(insert_at..insert_at, hook);
-    module
-        .replace_exported_func(start, |(body, _locals)| {
-            for (ins, _loc) in rebuilt {
-                body.instr(ins);
-            }
-        })
-        .map_err(|e| format!("replace _start: {}", e))?;
+    instrs.splice(insert_at..insert_at, hook);
     Ok(())
 }
 
