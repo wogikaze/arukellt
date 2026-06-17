@@ -1,14 +1,17 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm memory/global section builders.
-
 use wasm::constants
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
+use wasm::emit_target
 
-fn emit_memory_section(out: WasmWriter) {
+fn emit_memory_section(out: WasmWriter, target: String) {
     let mem_sec = writer_core::WasmWriter_new()
-    emit_memory_entry(mem_sec, initial_memory_pages())
+    if emit_target::is_gc_target(clone(target)) {
+        emit_memory_entry(mem_sec, 1)
+    } else {
+        emit_memory_entry(mem_sec, initial_memory_pages())
+    }
     writer_sections::emit_section(out, opcodes::SEC_MEMORY(), mem_sec)
 }
 

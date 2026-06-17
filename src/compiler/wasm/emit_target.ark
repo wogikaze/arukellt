@@ -6,6 +6,13 @@ fn is_freestanding_target(target: String) -> bool {
     contains(clone(target), String_from("freestanding"))
 }
 
+fn is_gc_target(target: String) -> bool {
+    if is_freestanding_target(clone(target)) { return true }
+    if contains(clone(target), String_from("-p2")) { return true }
+    if contains(clone(target), String_from("-p3")) { return true }
+    false
+}
+
 fn is_p2_wasi(wasi_version: String) -> bool {
     eq(clone(wasi_version), String_from("p2"))
 }

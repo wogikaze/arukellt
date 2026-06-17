@@ -5,6 +5,7 @@ use wasm::wasm_context
 use wasm::wasm_start
 use wasm::strings
 use mir::module_functions
+use mir::module_wit_imports
 use wasm::sections_tail
 use wasm::sections_exports
 use wasm::sections_functions
@@ -12,7 +13,6 @@ use wasm::sections_imports
 use wasm::sections_memory
 use wasm::sections_type_plan
 use wasm::sections_types
-use mir::module_wit_imports
 
 fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let fn_count = module_functions::MirModule_function_count(mir)
@@ -26,7 +26,7 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     let type_plan = sections_types::emit_type_section(out, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
     sections_imports::emit_import_section(out, sections_type_plan::TypeSectionPlan_host_type_map(type_plan), clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings, sections_type_plan::TypeSectionPlan_wit_type_map(type_plan))
     sections_functions::emit_function_section(out, fn_count, sections_type_plan::TypeSectionPlan_fn_type_map(type_plan), needs_wrapper, sections_type_plan::TypeSectionPlan_wrapper_type_idx(type_plan))
-    sections_memory::emit_memory_section(out)
+    sections_memory::emit_memory_section(out, clone(target))
     sections_memory::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
     sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)

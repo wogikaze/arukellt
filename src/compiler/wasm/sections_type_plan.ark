@@ -6,10 +6,11 @@ pub struct TypeSectionPlan {
     wrapper_type_idx: i32,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
+    gc_type_base: i32,
 }
 
-fn TypeSectionPlan_new(host_type_map: Vec<i32>, fn_type_map: Vec<i32>, wrapper_type_idx: i32, wit_type_map: Vec<i32>, wit_import_count: i32) -> TypeSectionPlan {
-    TypeSectionPlan { host_type_map: host_type_map, fn_type_map: fn_type_map, wrapper_type_idx: wrapper_type_idx, wit_type_map: wit_type_map, wit_import_count: wit_import_count }
+fn TypeSectionPlan_new(host_type_map: Vec<i32>, fn_type_map: Vec<i32>, wrapper_type_idx: i32, wit_type_map: Vec<i32>, wit_import_count: i32, gc_type_base: i32) -> TypeSectionPlan {
+    TypeSectionPlan { host_type_map: host_type_map, fn_type_map: fn_type_map, wrapper_type_idx: wrapper_type_idx, wit_type_map: wit_type_map, wit_import_count: wit_import_count, gc_type_base: gc_type_base }
 }
 
 fn TypeSectionPlan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {
@@ -32,12 +33,17 @@ fn TypeSectionPlan_wrapper_type_idx(plan: TypeSectionPlan) -> i32 {
     plan.wrapper_type_idx
 }
 
+fn TypeSectionPlan_gc_type_base(plan: TypeSectionPlan) -> i32 {
+    plan.gc_type_base
+}
+
 fn build_type_section_plan(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, fn_count: i32, needs_wrapper: i32) -> TypeSectionPlan {
     let host_type_map = build_host_type_map(type_map, num_host_types)
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
     let fn_type_map = build_function_type_map(type_map, num_host_types, wit_import_count, fn_count)
     let wrapper_type_idx = wrapper_type_index(type_map, num_host_types, wit_import_count, fn_count, needs_wrapper)
-    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count)
+    let gc_type_base = num_host_types + wit_import_count + fn_count + (if needs_wrapper == 1 { 1 } else { 0 })
+    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_type_base)
 }
 
 fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {

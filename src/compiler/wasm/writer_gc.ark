@@ -1,0 +1,62 @@
+// Arukellt Selfhost - Wasm GC instruction emission helpers.
+
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_gc_prefix(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+}
+
+fn emit_gc_struct_new(w: WasmWriter, type_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
+    writer_leb::emit_leb128_u(w, type_idx)
+}
+
+fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_GET())
+    writer_leb::emit_leb128_u(w, type_idx)
+    writer_leb::emit_leb128_u(w, field_idx)
+}
+
+fn emit_gc_struct_set(w: WasmWriter, type_idx: i32, field_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_SET())
+    writer_leb::emit_leb128_u(w, type_idx)
+    writer_leb::emit_leb128_u(w, field_idx)
+}
+
+fn emit_gc_array_new(w: WasmWriter, type_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_NEW())
+    writer_leb::emit_leb128_u(w, type_idx)
+}
+
+fn emit_gc_array_get(w: WasmWriter, type_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_GET())
+    writer_leb::emit_leb128_u(w, type_idx)
+}
+
+fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_SET())
+    writer_leb::emit_leb128_u(w, type_idx)
+}
+
+fn emit_gc_ref_i31(w: WasmWriter) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_REF_I31())
+}
+
+fn emit_gc_i31_get_s(w: WasmWriter) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_I31_GET_S())
+}
+
+fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {
+    writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+    writer_leb::emit_leb128_u(w, type_idx)
+}

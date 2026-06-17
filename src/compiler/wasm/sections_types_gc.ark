@@ -1,0 +1,71 @@
+// Arukellt Selfhost - Wasm type section GC type entry emission.
+
+use wasm::opcodes
+use wasm::constants
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::sections_type_plan
+
+fn emit_struct_type_entry(type_sec: WasmWriter, sig: String) {
+    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
+    let field_sigs = struct_field_sigs(sig)
+    writer_leb::emit_leb128_u(type_sec, len(field_sigs))
+    let mut fi = 0
+    while fi < len(field_sigs) {
+        let ft = get_unchecked(field_sigs, fi)
+        writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(ft))
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        fi = fi + 1
+    }
+}
+
+fn emit_array_type_entry(type_sec: WasmWriter, sig: String) {
+    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
+    let elem_type = array_elem_type(sig)
+    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(elem_type))
+    writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+}
+
+fn struct_field_sigs(sig: String) -> Vec<String> {
+    let body = substring(sig, 2, len(sig))
+    let body_len = len(body)
+    let mut fields = Vec_new_String()
+    let mut seg_start = 0
+    let mut si = 0
+    while si < body_len {
+        if char_at(clone(body), si) == 95 && si > 0 {
+            let seg = substring(clone(body), seg_start, si)
+            let under_pos = find_char(clone(seg), 95)
+            if under_pos >= 0 {
+                push(fields, substring(seg, under_pos + 1, len(seg)))
+            }
+            seg_start = si + 1
+        }
+        si = si + 1
+    }
+    let last_seg = substring(body, seg_start, body_len)
+    let under_pos = find_char(clone(last_seg), 95)
+    if under_pos >= 0 {
+        push(fields, substring(last_seg, under_pos + 1, len(last_seg)))
+    }
+    fields
+}
+
+fn array_elem_type(sig: String) -> String {
+    substring(sig, 2, len(sig))
+}
+
+fn find_char(s: String, c: i32) -> i32 {
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        if char_at(clone(s), i) == c { return i }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn append_gc_type_sigs(type_sigs: Vec<String>) {
+    push(type_sigs, String_from("S_f0_i32"))
+    push(type_sigs, String_from("A_i32"))
+}

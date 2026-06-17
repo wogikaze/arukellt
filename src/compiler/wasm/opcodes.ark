@@ -1,5 +1,32 @@
 // Arukellt Wasm - opcode and section ID constants.
 
+// GC prefix byte and sub-opcodes (0xfb + sub).
+fn GC_PREFIX() -> i32 { 251 }
+fn GC_STRUCT_NEW() -> i32 { 0 }
+fn GC_STRUCT_GET() -> i32 { 3 }
+fn GC_STRUCT_SET() -> i32 { 5 }
+fn GC_ARRAY_NEW() -> i32 { 6 }
+fn GC_ARRAY_GET() -> i32 { 8 }
+fn GC_ARRAY_SET() -> i32 { 11 }
+fn GC_ARRAY_LEN() -> i32 { 12 }
+fn GC_REF_I31() -> i32 { 28 }
+fn GC_I31_GET_S() -> i32 { 29 }
+fn GC_I31_GET_U() -> i32 { 30 }
+fn GC_REF_CAST() -> i32 { 33 }
+fn GC_BR_ON_CAST() -> i32 { 39 }
+fn GC_BR_ON_CAST_FAIL() -> i32 { 40 }
+
+// Reference type opcodes.
+fn OP_REF_NULL() -> i32 { 208 }
+fn OP_REF_AS_NON_NULL() -> i32 { 209 }
+fn OP_REF_EQ() -> i32 { 211 }
+
+// Type section discriminators.
+fn SEC_TYPE_FUNCTYPE() -> i32 { 96 }
+fn SEC_TYPE_STRUCT() -> i32 { 95 }
+fn SEC_TYPE_ARRAY() -> i32 { 94 }
+fn SEC_TYPE_SUB() -> i32 { 80 }
+
 // Structured control opcodes.
 fn OP_UNREACHABLE() -> i32 { 0 }
 fn OP_NOP() -> i32 { 1 }

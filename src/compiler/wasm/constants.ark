@@ -8,6 +8,10 @@ fn WASM_F64() -> i32 { 124 }
 fn WASM_FUNCREF() -> i32 { 112 }
 fn WASM_EXTERNREF() -> i32 { 111 }
 
+// Mutability for GC struct/array fields.
+fn WASM_MUTABLE() -> i32 { 1 }
+fn WASM_IMMUTABLE() -> i32 { 0 }
+
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }

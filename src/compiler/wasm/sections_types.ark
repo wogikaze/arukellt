@@ -1,15 +1,15 @@
 use wasm::opcodes
 use wasm::constants
-// Arukellt Selfhost - Wasm type section builder.
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
-use mir::types
+use wasm::sections_type_plan
+use wasm::sections_types_gc
+use wasm::emit_target
+use wasm::ctx_gc_type
 use mir::function_return_view
 use mir::function_param_view
 use mir::local_access
-use wasm::sections_type_plan
-use wasm::emit_target
 use mir::module_wit_imports
 
 struct TypeCanonPlan {
@@ -28,7 +28,8 @@ fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
     writer_leb::emit_leb128_u(type_sec, len(canon_types))
     emit_canon_type_entries(type_sec, canon_types)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, fn_count, needs_wrapper)
+    let plan = sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, fn_count, needs_wrapper)
+    plan
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -53,6 +54,9 @@ fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i3
     append_wit_type_sigs(type_sigs, bindings)
     append_function_type_sigs(type_sigs, functions, fn_count)
     append_wrapper_type_sig(type_sigs, needs_wrapper)
+    if emit_target::is_gc_target(clone(target)) {
+        sections_types_gc::append_gc_type_sigs(type_sigs)
+    }
     type_sigs
 }
 
@@ -164,21 +168,31 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>) {
     while cti2 < len(canon_types) {
         let csig = get_unchecked(canon_types, cti2)
         if eq(clone(csig), String_from("MR_i64_i32")) {
-            writer_core::emit_byte(type_sec, 96)
+            writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
             writer_leb::emit_leb128_u(type_sec, 0)
             writer_leb::emit_leb128_u(type_sec, 2)
             writer_core::emit_byte(type_sec, constants::WASM_I64())
             writer_core::emit_byte(type_sec, constants::WASM_I32())
         } else {
-            writer_core::emit_byte(type_sec, 96)
-            let param_segments = sections_type_plan::type_sig_param_segments(csig)
-            let result_seg = sections_type_plan::type_sig_result_segment(csig)
-            emit_type_param_entries(type_sec, param_segments)
-            emit_type_result_entry(type_sec, result_seg)
+                if char_at(clone(csig), 0) == 83 {
+                sections_types_gc::emit_struct_type_entry(type_sec, csig)
+            } else {
+                if char_at(clone(csig), 0) == 65 {
+                    sections_types_gc::emit_array_type_entry(type_sec, csig)
+                } else {
+                    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
+                    let param_segments = sections_type_plan::type_sig_param_segments(csig)
+                    let result_seg = sections_type_plan::type_sig_result_segment(csig)
+                    emit_type_param_entries(type_sec, param_segments)
+                    emit_type_result_entry(type_sec, result_seg)
+                }
+            }
         }
         cti2 = cti2 + 1
     }
 }
+
+
 
 fn emit_type_param_entries(type_sec: WasmWriter, param_segments: Vec<String>) {
     let param_count = len(param_segments)
