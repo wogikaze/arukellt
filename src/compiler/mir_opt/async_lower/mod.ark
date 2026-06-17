@@ -1,0 +1,78 @@
+use mir::inst_factory
+use mir::module_functions
+use mir::opcodes
+use mir::types
+use mir::value_types
+
+fn async_lower_optimize_module(m: MirModule) -> MirModule {
+    let fn_count = module_functions::MirModule_function_count(m)
+    let mut updated = Vec_new_MirFunction()
+    let mut fi = 0
+    while fi < fn_count {
+        let f = module_functions::MirModule_function_at(m, fi)
+        if function_has_async_op(f) {
+            let lowered = lower_async_ops(f)
+            push(updated, lowered)
+        } else {
+            push(updated, f)
+        }
+        fi = fi + 1
+    }
+    module_functions::MirModule_set_functions(m, updated)
+    m
+}
+
+fn function_has_async_op(f: MirFunction) -> bool {
+    let block_count = types::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = types::MirFunction_block_at(f, bi)
+        let inst_count = types::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = types::MirBlock_inst_at(block, ii)
+            if types::MirInst_op(inst) == opcodes::MIR_FUTURE_NEW() || types::MirInst_op(inst) == opcodes::MIR_AWAIT() {
+                return true
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn lower_async_ops(f: MirFunction) -> MirFunction {
+    let block_count = types::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = types::MirFunction_block_at(f, bi)
+        let inst_count = types::MirBlock_inst_count(block)
+        let mut filtered = Vec_new_MirInst()
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = types::MirBlock_inst_at(block, ii)
+            let op = types::MirInst_op(inst)
+            if op == opcodes::MIR_AWAIT() {
+                let dest = types::MirInst_dest(inst)
+                let src = types::MirInst_arg0(inst)
+                let get_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_GET(), 0 - 1, src, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+                push(filtered, get_inst)
+                let set_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), 0 - 1, dest, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+                push(filtered, set_inst)
+            } else if op == opcodes::MIR_FUTURE_NEW() {
+                let src = types::MirInst_arg0(inst)
+                let dest = types::MirInst_dest(inst)
+                let get_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_GET(), 0 - 1, src, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+                push(filtered, get_inst)
+                let set_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), 0 - 1, dest, 0 - 1, 0, 0.0, String_new(), value_types::VT_VOID())
+                push(filtered, set_inst)
+            } else {
+                push(filtered, inst)
+            }
+            ii = ii + 1
+        }
+        types::MirBlock_set_instructions(block, filtered)
+        bi = bi + 1
+    }
+    f
+}
