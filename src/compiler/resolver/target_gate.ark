@@ -8,7 +8,7 @@ fn target_is_t1(target: String) -> bool {
 }
 
 fn module_is_t3_only(module_path: String) -> bool {
-    eq(clone(module_path), String_from("std::host::udp")) || eq(module_path, String_from("std::host::sockets")) || eq(module_path, String_from("std::host::http"))
+    eq(clone(module_path), String_from("std::host::udp")) || eq(module_path, String_from("std::host::sockets")) || eq(module_path, String_from("std::host::http")) || eq(module_path, String_from("std::host::streams"))
 }
 
 fn reject_target_gated_use(ctx: ResolveCtx, module_path: String) {

@@ -1,0 +1,22 @@
+//! Host stream I/O backed by WASI Preview 2 `wasi:io/streams` intrinsics.
+//!
+//! Stream handles are opaque i32 values obtained from WASI or host-linker.
+//! Read returns a Vec<i32> of byte values; write accepts the same.
+//!
+//! **Availability:** T3 (`wasm32-wasi-p2`) only via host-linker (#474).
+//! Importing on T1 emits E0500.
+
+/// Reads up to `max_len` bytes from an input stream handle.
+pub fn read(stream: i32, max_len: i32) -> Result<Vec<i32>, String> {
+    __intrinsic_stream_read(stream, max_len)
+}
+
+/// Writes byte values from `data` to an output stream handle.
+pub fn write(stream: i32, data: Vec<i32>) -> Result<i32, String> {
+    __intrinsic_stream_write(stream, data)
+}
+
+/// Flushes an output stream handle.
+pub fn flush(stream: i32) -> Result<i32, String> {
+    __intrinsic_stream_flush(stream)
+}

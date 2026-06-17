@@ -1,0 +1,54 @@
+use wasm::import_indices
+use wasm::inst_store
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_locals
+
+fn try_emit_stream_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if eq(clone(callee), "stream_read") || eq(clone(callee), "__intrinsic_stream_read") || eq(clone(callee), "streams::read") || eq(clone(callee), "std::host::streams::read") {
+        let _result_on_stack = emit_stream_read(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "stream_write") || eq(clone(callee), "__intrinsic_stream_write") || eq(clone(callee), "streams::write") || eq(clone(callee), "std::host::streams::write") {
+        let _result_on_stack = emit_stream_write(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "stream_flush") || eq(clone(callee), "__intrinsic_stream_flush") || eq(clone(callee), "streams::flush") || eq(clone(callee), "std::host::streams::flush") {
+        let _result_on_stack = emit_stream_flush(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
+}
+
+fn emit_stream_read(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_stream = helpers_core_locals::alloc_local(ctx)
+    let s_max = helpers_core_locals::alloc_local(ctx)
+    helpers_core_locals::emit_store_arg0_to_local(w, inst, s_stream)
+    helpers_core_locals::emit_store_arg1_to_local(w, inst, s_max)
+    helpers_core_calls::emit_local_setup_two(w, s_stream, s_max)
+    let idx = import_indices::sockets_read_import_idx(ctx)
+    helpers_core_calls::emit_call_import(w, idx)
+    true
+}
+
+fn emit_stream_write(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_stream = helpers_core_locals::alloc_local(ctx)
+    let s_data = helpers_core_locals::alloc_local(ctx)
+    helpers_core_locals::emit_store_arg0_to_local(w, inst, s_stream)
+    helpers_core_locals::emit_store_arg1_to_local(w, inst, s_data)
+    helpers_core_calls::emit_local_setup_two(w, s_stream, s_data)
+    let idx = import_indices::sockets_write_import_idx(ctx)
+    helpers_core_calls::emit_call_import(w, idx)
+    true
+}
+
+fn emit_stream_flush(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_stream = helpers_core_locals::alloc_local(ctx)
+    helpers_core_locals::emit_store_arg0_to_local(w, inst, s_stream)
+    helpers_core_calls::emit_local_setup_one(s_stream)
+    let idx = import_indices::sockets_connect_import_idx(ctx)
+    helpers_core_calls::emit_call_import(w, idx)
+    true
+}

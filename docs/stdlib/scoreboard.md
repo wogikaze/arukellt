@@ -30,6 +30,7 @@
 | `std::host::random` | 4 | 4 | 0 | 0 | 2/4 (50%) | yes |
 | `std::host::sockets` | 5 | 0 | 5 | 0 | 5/5 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 4/4 (100%) | yes |
+| `std::host::streams` | 3 | 0 | 3 | 0 | 3/3 (100%) | yes |
 | `std::host::udp` | 1 | 0 | 1 | 0 | 1/1 (100%) | yes |
 | `std::io` | 28 | 28 | 0 | 0 | 21/28 (75%) | no |
 | `std::json` | 22 | 0 | 22 | 0 | 20/22 (91%) | no |
@@ -46,7 +47,7 @@
 | `std::wasm` | 61 | 0 | 61 | 0 | 37/61 (61%) | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 619 APIs, 389 stable, 205 experimental, 25 deprecated, 498/594 (84%) fixture coverage
+**Total**: 622 APIs, 389 stable, 208 experimental, 25 deprecated, 501/597 (84%) fixture coverage
 
 ## Legend
 

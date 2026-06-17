@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 594
+- **Canonical names:** 597
 - **Historical/deprecated names:** 25
-- **Total entries:** 619
+- **Total entries:** 622
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -211,6 +211,7 @@ Current public API names, sorted alphabetically.
 | `filter_String` | `prelude` | `stable` | Collections |
 | `find_i32` | `prelude` | `stable` | Collections |
 | `flag` | `std::cli` | `stable` | Cli |
+| `flush` | `std::host::streams` | `provisional` | Host Streams |
 | `flush` | `std::io` | `stable` | Io |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
 | `fold_i32_i32` | `std::seq` | `stable` | Seq |
@@ -437,6 +438,7 @@ Current public API names, sorted alphabetically.
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
 | `read` | `std::host::sockets` | `provisional` | Host Sockets |
+| `read` | `std::host::streams` | `provisional` | Host Streams |
 | `read_body` | `std::host::http` | `provisional` | Host Http |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_dir` | `std::fs` | `provisional` | Fs |
@@ -604,6 +606,7 @@ Current public API names, sorted alphabetically.
 | `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
 | `write` | `std::host::sockets` | `provisional` | Host Sockets |
+| `write` | `std::host::streams` | `provisional` | Host Streams |
 | `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::fs` | `stable` | Fs |
@@ -850,6 +853,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `filter_String` | ✅ `stable` | `prelude` | Collections |
 | `find_i32` | ✅ `stable` | `prelude` | Collections |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
+| `flush` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
 | `fold_i32_i32` | ✅ `stable` | `std::seq` | Seq |
@@ -1097,6 +1101,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
+| `read` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `read_body` | ✅ `provisional` | `std::host::http` | Host Http |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
@@ -1266,6 +1271,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
 | `write` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
+| `write` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `write_all` | ✅ `stable` | `std::io` | Io |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |

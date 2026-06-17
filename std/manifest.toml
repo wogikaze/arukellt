@@ -2935,6 +2935,57 @@ doc = "Send a UDP datagram to the given hostname and port. Returns the number of
 errors = "Err on DNS resolution failure, invalid port, or network unreachable."
 availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500." }
 
+# === std::host::streams ===
+
+[[modules]]
+name = "std::host::streams"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+family = "expansion"
+doc = "WASI Preview 2 stream I/O helpers (provisional). Read/write/flush on input/output stream handles via host-linker (#474)."
+
+[[functions]]
+name = "read"
+module = "std::host::streams"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_stream_read"
+params = ["i32", "i32"]
+returns = "Result<Vec<i32>, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_streams"
+doc = "Read up to max_len bytes from an input stream handle."
+errors = "Err on stream error or closed stream."
+availability = { t1 = false, t3 = true, note = "T3 host-linker streams (#474). Importing on T1 emits E0500." }
+
+[[functions]]
+name = "write"
+module = "std::host::streams"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_stream_write"
+params = ["i32", "Vec<i32>"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_streams"
+doc = "Write byte values to an output stream handle."
+errors = "Err on stream error or closed stream."
+availability = { t1 = false, t3 = true, note = "T3 host-linker streams (#474). Importing on T1 emits E0500." }
+
+[[functions]]
+name = "flush"
+module = "std::host::streams"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_stream_flush"
+params = ["i32"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_streams"
+doc = "Flush an output stream handle."
+errors = "Err on stream error."
+availability = { t1 = false, t3 = true, note = "T3 host-linker streams (#474). Importing on T1 emits E0500." }
+
 # === std::bytes ===
 
 [[functions]]
