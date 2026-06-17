@@ -147,14 +147,10 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
 		let path = get_unchecked(paths, i)
 		let read_result = fs::read_to_string(clone(path))
 		match read_result {
-			Result::Ok(text) => {
-				if contains(clone(text), String_from("stream<")) || contains(clone(text), String_from("future<")) {
-					return concat(String_from("E0402: unsupported WIT async resource type in "), clone(path))
-				}
-			},
 			Result::Err(e) => {
 				return concat(String_from("unable to read WIT file "), concat(clone(path), concat(String_from(": "), e)))
 			},
+			Result::Ok(_) => {},
 		}
 		i = i + 1
 	}

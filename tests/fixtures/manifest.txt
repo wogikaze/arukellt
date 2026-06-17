@@ -168,9 +168,9 @@ compile-error:component/export_variant_renamed_bad_signature.ark
 compile-error:component/export_variant_renamed_bad_payload_type.ark
 compile-error:component/export_variant_renamed_bad_shape.ark
 compile-error:component/export_variant_renamed_extra.ark
-compile-error:component/import_async_resource_type.ark
+t3-compile:component/import_async_resource_type.ark
 component-compile:component/import_flags_type.ark
-compile-error:component/import_future_type.ark
+t3-compile:component/import_future_type.ark
 component-compile:component/import_resource_handle_type.ark
 t3-compile:component/import_resource_type.ark
 component-compile:component/import_scalar_func.ark
