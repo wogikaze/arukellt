@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-04-03
-Updated: 2026-05-14
+Updated: 2026-06-17
 ID: 474
 Track: wasm-feature
 Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"
@@ -52,7 +52,11 @@ Scope:
 
 ## Acceptance
 
-- [ ] Arukellt source can declare and call async functions
+- [x] `async` keyword parsed and recognized in lexer + parser (Phase 0)
+- [x] `Future<T>` / `Stream<T>` types added to type system (Phase 1)
+- [x] MIR opcodes `MIR_FUTURE_NEW` / `MIR_AWAIT` defined with basic Wasm emission (Phase 2)
+- [x] WIT `future<T>` / `stream<T>` type mapping and import parsing (Phase 4)
+- [ ] Arukellt source can declare and call async functions (`async fn` + `await`)
 - [ ] Async WIT function signatures are parsed and type-checked
 - [ ] An async WASI P2 function (e.g., `wasi:io/streams@0.2.0#write`) can be called
 - [ ] `python scripts/manager.py verify` passes
