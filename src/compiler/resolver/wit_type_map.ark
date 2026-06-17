@@ -8,6 +8,9 @@ fn wit_primitive_to_ark(wit_type: String) -> String {
     if wit_parse_flags::wit_is_flags_type(clone(t)) {
         return String_from("i32")
     }
+    if starts_with(clone(t), String_from("future<")) || starts_with(clone(t), String_from("stream<")) {
+        return String_from("i32")
+    }
     if eq(clone(t), String_from("s32")) || eq(clone(t), String_from("u32")) {
         return String_from("i32")
     }
@@ -116,6 +119,14 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
         let inner = wit_generic_inner(t)
         return concat(String_from("Option<"), concat(wit_type_to_ark(inner, clone(alias), doc), String_from(">")))
     }
+    if starts_with(clone(t), String_from("future<")) {
+        let inner = wit_generic_inner(t)
+        return concat(String_from("Future<"), concat(wit_type_to_ark(inner, clone(alias), doc), String_from(">")))
+    }
+    if starts_with(clone(t), String_from("stream<")) {
+        let inner = wit_generic_inner(t)
+        return concat(String_from("Stream<"), concat(wit_type_to_ark(inner, clone(alias), doc), String_from(">")))
+    }
     let rec_idx = wit_record_index(rec_wit, clone(t))
     if rec_idx >= 0 {
         let rec_name = get_unchecked(rec_ark, rec_idx)
@@ -165,6 +176,9 @@ fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface
         return String_from("i32")
     }
     let t = wit_trim_type(wit_type)
+    if starts_with(clone(t), String_from("future<")) || starts_with(clone(t), String_from("stream<")) {
+        return String_from("i32")
+    }
     let rec_idx = wit_record_index(wit_record_wit_names(doc), clone(t))
     if rec_idx >= 0 {
         return String_from("i32")
