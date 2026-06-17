@@ -25,5 +25,21 @@ fn type_name(ty: HirType) -> String {
         }
         return types_format_containers::option_type_name_empty()
     }
+    if type_contracts::HirType_tag(ty) == commands::TY_FUTURE() {
+        let c = type_contracts::HirType_type_arg_count(ty)
+        if c > 0 {
+            let elem = type_contracts::HirType_type_arg_at(ty, 0)
+            return types_format_containers::future_type_name(type_name(elem))
+        }
+        return types_format_containers::future_type_name_empty()
+    }
+    if type_contracts::HirType_tag(ty) == commands::TY_STREAM() {
+        let c = type_contracts::HirType_type_arg_count(ty)
+        if c > 0 {
+            let elem = type_contracts::HirType_type_arg_at(ty, 0)
+            return types_format_containers::stream_type_name(type_name(elem))
+        }
+        return types_format_containers::stream_type_name_empty()
+    }
     types_format_named::named_type_name(ty)
 }

@@ -85,6 +85,8 @@ fn TY_VEC() -> i32 { 10 }
 fn TY_OPTION() -> i32 { 11 }
 fn TY_RESULT() -> i32 { 12 }
 fn TY_HASHMAP() -> i32 { 13 }
+fn TY_FUTURE() -> i32 { 14 }
+fn TY_STREAM() -> i32 { 15 }
 fn TY_TUPLE() -> i32 { 23 }
 
 // Nominal and callable type tags.

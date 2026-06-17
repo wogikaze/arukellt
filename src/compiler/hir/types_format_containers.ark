@@ -15,3 +15,19 @@ fn option_type_name(elem_name: String) -> String {
 fn option_type_name_empty() -> String {
     String_from("Option")
 }
+
+fn future_type_name(elem_name: String) -> String {
+    concat(String_from("Future<"), concat(elem_name, String_from(">")))
+}
+
+fn future_type_name_empty() -> String {
+    String_from("Future")
+}
+
+fn stream_type_name(elem_name: String) -> String {
+    concat(String_from("Stream<"), concat(elem_name, String_from(">")))
+}
+
+fn stream_type_name_empty() -> String {
+    String_from("Stream")
+}

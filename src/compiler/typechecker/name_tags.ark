@@ -11,6 +11,8 @@ fn type_tag_name(tag: i32) -> String {
     if tag == commands::TY_CHAR() { return String_from("char") }
     if tag == commands::TY_UNIT() { return String_from("()") }
     if tag == commands::TY_VEC() { return String_from("Vec") }
+    if tag == commands::TY_FUTURE() { return String_from("Future") }
+    if tag == commands::TY_STREAM() { return String_from("Stream") }
     if tag == commands::TY_FN() { return String_from("fn") }
     if tag == commands::TY_STRUCT() { return String_from("struct") }
     if tag == commands::TY_ENUM() { return String_from("enum") }

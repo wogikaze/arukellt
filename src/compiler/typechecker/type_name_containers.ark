@@ -16,5 +16,11 @@ fn resolve_container_type_name(name: String) -> TypeInfo {
     if eq(clone(name), "HashMap") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_HASHMAP())
     }
+    if eq(clone(name), "Future") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_FUTURE())
+    }
+    if eq(clone(name), "Stream") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_STREAM())
+    }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
 }
