@@ -33,7 +33,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 |--------|------|--------------|--------|-----|-------|
 | `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
 | `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
-| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
+| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): WASI P2 linear-memory path (default target), all CI gates apply |
 | `native` | T4 | scaffold | scaffold | No | Scaffold: selfhost-native asm stub via native::emit_native_scaffold; compile-only proof at tests/fixtures/t4/native_scaffold.ark (#641). |
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
@@ -66,25 +66,32 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 - **Anchor fragments:** `python3 scripts/check/check-anchor-fragments.py` validates `path.md#anchor` links (ADR-019 §3.2) in the `verify quick` static pass.
 - **Playground format UI:** `docs/playground/index.html` exposes a Format toolbar action wired to `pg.format()`; tokenize drives editor syntax highlighting (#635).
 
-## GC-Native Data Model (T3, wasm32-wasi-p2)
+## Data Model (all Wasm targets)
 
-The T3 emitter is **fully GC-native** as of 2026-03-27. All value representations
-use Wasm GC instructions (`struct.new`, `array.new`, `ref.cast`, `br_on_cast`).
-Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
+**Important:** All Wasm targets (P1, P2, freestanding) currently use the **same
+linear-memory data model**. Wasm GC instructions (`struct.new`, `array.new`,
+`ref.cast`) are **not emitted**. The `struct`/`array` MIR operations are lowered
+to linear-memory bump allocation with `i32.load`/`i32.store`.
 
-| Type | Wasm GC representation |
-|------|------------------------|
-| `i32`, `bool` | `i32` (unboxed); boxed as `(ref i31)` in generic contexts |
-| `i64` | `i64` (unboxed) |
-| `f64` | `f64` (unboxed) |
-| `String` | `(ref null (array (mut i8)))` — bare GC byte array |
-| `Vec<T>` | `(ref null (struct (mut (ref $arr_T)) (mut i32)))` |
-| `HashMap<i32,i32>` | `(ref null (struct (mut (ref $arr_i32)) (mut (ref $arr_i32)) (mut i32)))` |
-| User structs | `(ref null (struct (field ...)))` — direct GC struct |
-| Enums / Option / Result | Subtype hierarchy — base + variant subtypes; `br_on_cast` for dispatch |
-| Tuples (concrete) | `__tupleN` structs with `i32` fields |
-| Tuples (generic) | `__tupleN_any` structs with `anyref` fields; `ref.i31` boxing/unboxing |
-| Closures | Parameter-passing captures; `call_indirect` for HOF dispatch today; phased `call_ref` migration per [ADR-033](adr/ADR-033-call-ref-hof-migration.md) |
+The data model across all targets:
+
+| Type | Representation |
+|------|---------------|
+| `i32`, `bool` | `i32` |
+| `i64` | `i64` |
+| `f64` | `f64` |
+| `String` | `i32` pointer to heap-allocated length-prefixed bytes |
+| `Vec<T>` | `i32` pointer to heap-allocated buffer with length/capacity |
+| Structs | `i32` pointer to heap-allocated struct (bump-allocated in linear memory) |
+| Enums / Option / Result | Discriminated union in linear memory |
+| Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
+
+The T3 target (`wasm32-wasi-p2`) differs from T1 only in its WASI import
+signatures (P2 vs P1) and component model output support. The underlying
+value representation is identical.
+
+**Future:** A Wasm GC backend is planned as part of the Wasm 3.0 / P3 track
+(see [ADR-008 — Wasm GC Post-MVP](adr/ADR-008-wasm-gc-post-mvp.md)).
 
 ## Performance Snapshot
 

@@ -5,9 +5,9 @@
 
 ## 現在の reality
 
-- **T1 `wasm32-wasi-p1`** は non-GC 環境向け compatibility path
-- **T3 `wasm32-wasi-p2`** は canonical GC-native path
-- T3 のデータ表現は GC-native。linear memory は主に WASI I/O marshaling に残る
+- **T1 `wasm32-wasi-p1`** — WASI Preview 1 向け linear-memory path
+- **T3 `wasm32-wasi-p2`** — WASI Preview 2 向け linear-memory path (コンポーネントモデル出力対応)
+- **注意**: 全ターゲットでデータ表現は linear-memory（bump allocation）を使用。Wasm GC 命令は未実装
 - `--emit core-wasm` は T1 / T3 の通常出力
 - `--emit component`, `--emit wit`, `--emit all` は `wasm32-wasi-p2` で利用可能
 - Component output には外部 `wasm-tools` と WASI adapter module が必要
@@ -17,11 +17,11 @@
 
 | Target | Tier | Current status | Notes |
 |-------|------|----------------|-------|
-| `wasm32-wasi-p1` | T1 | Implemented | compatibility path for non-GC environments |
-| `wasm32-freestanding` | T2 | Not implemented | registry only |
-| `wasm32-wasi-p2` | T3 | Implemented | canonical GC-native path |
-| `native` | T4 | Not implemented | LLVM scaffold only |
-| `wasm32-wasi-p3` | T5 | Future | not started |
+| `wasm32-wasi-p1` | T1 | Implemented | WASI P1 linear-memory path |
+| `wasm32-freestanding` | T2 | Implemented | compile-only, no WASI |
+| `wasm32-wasi-p2` | T3 | Implemented | WASI P2 linear-memory path (default) |
+| `native` | T4 | Scaffold | compile-only asm stub |
+| `wasm32-wasi-p3` | T5 | Not started | target id exists, no backend |
 
 ## Emit surface
 

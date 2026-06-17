@@ -29,7 +29,7 @@ contract remains the single docs source for target verification status.
 |--------|------|--------------|--------|-----|-------|
 | `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
 | `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
-| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
+| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): WASI P2 linear-memory path (default target), all CI gates apply |
 | `native` | T4 | scaffold | scaffold | No | Scaffold: selfhost-native asm stub via `native::emit_native_scaffold`; compile-only proof at `tests/fixtures/t4/native_scaffold.ark` (#641). |
 | `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
