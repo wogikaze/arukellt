@@ -74,7 +74,9 @@ fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule)
 
 fn normalize_wasi_version(config: DriverConfig) {
     let tgt = config_record::config_target(config)
-    if contains(clone(tgt), String_from("-p2")) {
+    if contains(clone(tgt), String_from("-p3")) {
+        config_record::config_set_wasi_version(config, String_from("p3"))
+    } else if contains(clone(tgt), String_from("-p2")) {
         config_record::config_set_wasi_version(config, String_from("p2"))
     } else {
         config_record::config_set_wasi_version(config, String_from("p1"))
@@ -86,6 +88,9 @@ fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
 }
 
 fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
+    if contains(config_record::config_target(config), String_from("-p3")) {
+        return String_from("wasm32-wasi-p3 (T5) is not yet implemented")
+    }
     if eq(clone(emit_mode), "component") && !contains(config_record::config_target(config), String_from("-p2")) {
         return String_from("component model requires --target wasm32-wasi-p2")
     }

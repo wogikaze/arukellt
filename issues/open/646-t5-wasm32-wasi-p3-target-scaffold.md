@@ -30,9 +30,9 @@ Full WASI Preview 3 runtime, async component export (#474)
 
 ## Acceptance
 
-- [ ] Driver registers wasm32-wasi-p3 with honest not-started → scaffold transition documented
-- [ ] CLI --target wasm32-wasi-p3 produces clear error or compile-only scaffold (documented behavior)
-- [ ] docs/current-state.md and target-contract.md T5 rows synced
+- [x] Driver registers wasm32-wasi-p3 with honest not-started → scaffold transition documented
+- [x] CLI --target wasm32-wasi-p3 produces clear error or compile-only scaffold (documented behavior)
+- [x] docs/current-state.md and target-contract.md T5 rows synced
 
 ## Required verification
 
