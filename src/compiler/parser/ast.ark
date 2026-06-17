@@ -18,6 +18,14 @@ fn ast_node_is_pub(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_pub(node)
 }
 
+fn ast_node_is_async(node: AstNode) -> bool {
+    ast_fields_record::ast_node_is_async(node)
+}
+
+fn ast_node_set_is_async(node: AstNode, is_async: bool) {
+    ast_fields_record::ast_node_set_is_async(node, is_async)
+}
+
 fn ast_node_span_start(node: AstNode) -> i32 {
     ast_fields_record::ast_node_span_start(node)
 }

@@ -31,6 +31,14 @@ fn ast_node_set_is_mut(node: AstNode, is_mut: bool) {
     node.is_mut = is_mut
 }
 
+fn ast_node_is_async(node: AstNode) -> bool {
+    node.is_async
+}
+
+fn ast_node_set_is_async(node: AstNode, is_async: bool) {
+    node.is_async = is_async
+}
+
 fn ast_node_span(node: AstNode) -> Span {
     node.span
 }

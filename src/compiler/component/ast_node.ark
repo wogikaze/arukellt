@@ -19,6 +19,10 @@ fn node_is_pub(node: AstNode) -> bool {
 	ast::ast_node_is_pub(node)
 }
 
+fn node_is_async(node: AstNode) -> bool {
+	ast::ast_node_is_async(node)
+}
+
 fn node_child_count(node: AstNode) -> i32 {
 	ast::ast_node_child_count(node)
 }

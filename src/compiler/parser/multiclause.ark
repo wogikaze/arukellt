@@ -6,10 +6,10 @@ use parser::multiclause_base
 use parser::multiclause_plain
 use parser::multiclause_where
 
-fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool, where_bindings: Vec<AstNode>) -> AstNode {
+fn desugar_multiclause(clauses: Vec<AstNode>, is_pub: bool, where_bindings: Vec<AstNode>, is_async: bool) -> AstNode {
     let first = get_unchecked(clauses, 0)
     let fn_span = core_ast_span_fields::AstNode_span(first)
-    let result = multiclause_base::build_multiclause_fn_base(first, is_pub, fn_span)
+    let result = multiclause_base::build_multiclause_fn_base(first, is_pub, fn_span, is_async)
     let first_child_count = core_ast_children::AstNode_child_count(first)
     let param_count = first_child_count - 1
     if len(where_bindings) > 0 {

@@ -13,6 +13,9 @@ fn is_decl_start(kind: i32) -> bool {
     if kind == tokens::TK_PUB() {
         return true
     }
+    if kind == tokens::TK_ASYNC() {
+        return true
+    }
     if kind == tokens::TK_STRUCT() {
         return true
     }

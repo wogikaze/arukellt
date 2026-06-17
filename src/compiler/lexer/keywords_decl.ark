@@ -27,5 +27,8 @@ pub fn keyword_kind_decl(word: String) -> i32 {
     if eq(word, "resource") {
         return tokens::TK_RESOURCE()
     }
+    if eq(word, "async") {
+        return tokens::TK_ASYNC()
+    }
     0 - 1
 }

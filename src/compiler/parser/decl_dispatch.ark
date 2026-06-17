@@ -13,13 +13,15 @@ use parser::stmt
 
 fn parse_decl(p: Parser) -> AstNode {
     let is_pub = decl_headers::parse_pub_prefix(p)
+    let is_async = decl_headers::parse_async_prefix(p)
     let k2 = core_api_cursor::peek_kind(p)
     if k2 == tokens::TK_FN() {
         if fn_lookahead::peek_is_fn_clause(p) {
-            return decl_multiclause::parse_multiclause_fn_decl(p, is_pub)
+            return decl_multiclause::parse_multiclause_fn_decl(p, is_pub, is_async)
         }
         let d = decl_fns::parse_fn_decl(p)
         core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+        core_ast_flag_fields::AstNode_set_is_async(d, is_async)
         return d
     }
     if k2 == tokens::TK_STRUCT() {

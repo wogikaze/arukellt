@@ -50,6 +50,7 @@ pub fn TK_IN() -> i32 { 21 }
 // kind_keyword_modifier
 pub fn TK_MUT() -> i32 { 14 }
 pub fn TK_PUB() -> i32 { 25 }
+pub fn TK_ASYNC() -> i32 { 33 }
 
 // kind_keyword_module
 pub fn TK_IMPORT() -> i32 { 26 }

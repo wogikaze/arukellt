@@ -15,6 +15,16 @@ fn parse_pub_prefix(p: Parser) -> bool {
     true
 }
 
+fn parse_async_prefix(p: Parser) -> bool {
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) != tokens::TK_ASYNC() {
+        return false
+    }
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    true
+}
+
 fn parse_trait_header(p: Parser) -> AstNode {
     decl_headers_trait::parse_trait_header(p)
 }

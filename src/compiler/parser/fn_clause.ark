@@ -7,10 +7,11 @@ use parser::core_ast_children
 // Arukellt Parser - multi-clause function declaration helpers
 
 
-fn make_clause_error_stub(clause: AstNode, is_pub: bool) -> AstNode {
+fn make_clause_error_stub(clause: AstNode, is_pub: bool, is_async: bool) -> AstNode {
     let stub = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), core_ast_span_fields::AstNode_span(clause))
     core_ast_text_fields::AstNode_set_text(stub, core_ast_text_fields::AstNode_text(clause))
     core_ast_flag_fields::AstNode_set_is_pub(stub, is_pub)
+    core_ast_flag_fields::AstNode_set_is_async(stub, is_async)
     core_ast_children::AstNode_push_child(stub, core_ast_factory::AstNode_new(kinds::NK_BLOCK(), core_ast_span_fields::AstNode_span(clause)))
     stub
 }

@@ -6,10 +6,11 @@ use parser::core_ast_factory
 use parser::kinds
 use parser::multiclause_base_annotations
 
-fn build_multiclause_fn_base(first: AstNode, is_pub: bool, fn_span: Span) -> AstNode {
+fn build_multiclause_fn_base(first: AstNode, is_pub: bool, fn_span: Span, is_async: bool) -> AstNode {
     let result = AstNode_new(kinds::NK_FN_DECL(), fn_span)
     core_ast_text_fields::AstNode_set_text(result, core_ast_text_fields::AstNode_text(first))
     core_ast_flag_fields::AstNode_set_is_pub(result, is_pub)
+    core_ast_flag_fields::AstNode_set_is_async(result, is_async)
     multiclause_base_annotations::copy_non_guard_annotations(first, result)
     result
 }
