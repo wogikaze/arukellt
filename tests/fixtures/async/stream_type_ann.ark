@@ -1,0 +1,9 @@
+// Stream<T> type annotation
+fn make_stream() -> Stream<bool> {
+    true
+}
+
+fn main() {
+    let s: Stream<bool> = make_stream()
+    print(s)
+}

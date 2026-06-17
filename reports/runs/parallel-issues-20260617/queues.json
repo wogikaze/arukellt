@@ -1,0 +1,63 @@
+{
+  "run_id": "parallel-issues-20260617",
+  "started_at": "2026-06-17T00:48:47Z",
+  "baseline_verify_quick": {
+    "status": "pass",
+    "total_checks": 167,
+    "passed": 167,
+    "failed": 0
+  },
+  "scope": {
+    "target_issues": [667, 668, 669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 680, 681, 682, 683, 684, 685],
+    "excluded": [30, 474, 646, 649],
+    "already_done": [679]
+  },
+  "waves": {
+    "wave1": {
+      "description": "Max parallel — no cross-deps among open batch (except audit chain merge order)",
+      "issues": [680, 667, 668, 669, 670, 671, 674, 675, 676, 677, 678, 681, 684, 685],
+      "critical_first": [680, 667, 668, 675, 684, 670],
+      "remaining": [669, 671, 676, 677, 674, 681, 685, 678],
+      "merge_order_notes": {
+        "audit_chain": ["680", "681", "682", "683"],
+        "component_chain": ["667", "673"],
+        "gates_last": ["678"]
+      }
+    },
+    "wave2": {
+      "description": "After #680 and #667 merge",
+      "issues": [682, 672],
+      "blocked_by": {"682": [680], "672": []}
+    },
+    "wave3": {
+      "description": "After #682 and #667 merge",
+      "issues": [683, 673],
+      "blocked_by": {"683": [682], "673": [667]}
+    },
+    "wave4": {
+      "description": "Integration — index regen, verify full, retro",
+      "tasks": ["generate-issue-index", "check-docs-consistency", "verify quick", "verify full", "retro report"]
+    }
+  },
+  "issue_status": {
+    "667": {"wave": 1, "status": "pending", "branch": null},
+    "668": {"wave": 1, "status": "pending", "branch": null},
+    "669": {"wave": 1, "status": "pending", "branch": null},
+    "670": {"wave": 1, "status": "pending", "branch": null},
+    "671": {"wave": 1, "status": "pending", "branch": null},
+    "674": {"wave": 1, "status": "pending", "branch": null},
+    "675": {"wave": 1, "status": "pending", "branch": null},
+    "676": {"wave": 1, "status": "pending", "branch": null},
+    "677": {"wave": 1, "status": "pending", "branch": null},
+    "678": {"wave": 1, "status": "pending", "branch": null},
+    "680": {"wave": 1, "status": "pending", "branch": null},
+    "681": {"wave": 1, "status": "pending", "branch": null},
+    "684": {"wave": 1, "status": "pending", "branch": null},
+    "685": {"wave": 1, "status": "pending", "branch": null},
+    "672": {"wave": 2, "status": "blocked", "blocked_by": []},
+    "682": {"wave": 2, "status": "blocked", "blocked_by": [680]},
+    "673": {"wave": 3, "status": "blocked", "blocked_by": [667]},
+    "683": {"wave": 3, "status": "blocked", "blocked_by": [682]}
+  },
+  "max_concurrent_worktrees": 6
+}

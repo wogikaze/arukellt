@@ -1,0 +1,9 @@
+// Future<T> type annotation
+fn make_future() -> Future<i32> {
+    42
+}
+
+fn main() {
+    let x: Future<i32> = make_future()
+    print(x)
+}

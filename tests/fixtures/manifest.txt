@@ -171,6 +171,9 @@ compile-error:component/export_variant_renamed_extra.ark
 t3-compile:component/import_async_resource_type.ark
 component-compile:component/import_flags_type.ark
 t3-compile:component/import_future_type.ark
+t3-compile:async/async_fn_basic.ark
+t3-compile:async/future_type_ann.ark
+t3-compile:async/stream_type_ann.ark
 component-compile:component/import_resource_handle_type.ark
 t3-compile:component/import_resource_type.ark
 component-compile:component/import_scalar_func.ark

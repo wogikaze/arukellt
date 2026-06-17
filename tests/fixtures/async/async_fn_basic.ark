@@ -1,0 +1,8 @@
+// Basic async fn declaration and call.
+async fn answer() -> i32 {
+    42
+}
+
+fn main() {
+    print(answer())
+}
