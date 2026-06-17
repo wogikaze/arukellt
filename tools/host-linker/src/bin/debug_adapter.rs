@@ -285,13 +285,16 @@ fn run_debug_session(state: &mut DapState) -> Result<(), String> {
 fn compile_to_wasm(repo_root: &Path, program: &Path) -> Result<PathBuf, String> {
     let wrapper = repo_root.join("scripts/run/arukellt-selfhost.sh");
     let pinned = repo_root.join("bootstrap/arukellt-selfhost.wasm");
-    let rel = program
-        .strip_prefix(repo_root)
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|_| program.to_path_buf());
+    let build_dir = repo_root.join(".build").join("debug-dap");
+    std::fs::create_dir_all(&build_dir).map_err(|e| e.to_string())?;
+    let wasm_name = format!("{}.wasm", program.file_stem().and_then(|s| s.to_str()).unwrap_or("out"));
+    let wasm_path = build_dir.join(&wasm_name);
+    let wasm_rel = wasm_path.strip_prefix(repo_root).map_err(|_| "path error".to_string())?;
     let output = Command::new(&wrapper)
         .arg("compile")
-        .arg(&rel)
+        .arg(program.strip_prefix(repo_root).unwrap_or(program))
+        .arg("-o")
+        .arg(&wasm_rel)
         .current_dir(repo_root)
         .env("ARUKELLT_SELFHOST_WASM", pinned)
         .stdout(Stdio::piped())
@@ -301,14 +304,9 @@ fn compile_to_wasm(repo_root: &Path, program: &Path) -> Result<PathBuf, String> 
     if !output.status.success() {
         return Err(String::from_utf8_lossy(&output.stderr).to_string());
     }
-    let wasm = if program.is_absolute() {
-        program.with_extension("wasm")
+    if wasm_path.is_file() {
+        Ok(wasm_path)
     } else {
-        repo_root.join(program).with_extension("wasm")
-    };
-    if wasm.is_file() {
-        Ok(wasm)
-    } else {
-        Err(format!("compiled wasm missing at {}", wasm.display()))
+        Err(format!("compiled wasm missing at {}", wasm_path.display()))
     }
 }
