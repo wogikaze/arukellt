@@ -68,6 +68,12 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let module = Module::new(&engine, wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
 
+    // Check if the module uses P2-style imports
+    let uses_p2 = module.imports().any(|imp| imp.module().starts_with("wasi:"));
+    if uses_p2 {
+        return run_wasm_p2(&engine, &module, caps);
+    }
+
     let mut linker = Linker::<WasiP1Ctx>::new(&engine);
     wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
@@ -139,6 +145,23 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
             }
             Err(format!("runtime error: {}", e))
         }
+    }
+}
+
+fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(), String> {
+    let mut linker = Linker::<()>::new(&engine);
+    crate::debug_runner::register_import_stubs(&mut linker, module)
+        .map_err(|e| format!("p2 stubs: {}", e))?;
+    let mut store = Store::new(&engine, ());
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .map_err(|e| format!("wasm instantiation error: {}", e))?;
+    let start = instance
+        .get_typed_func::<(), ()>(&mut store, "_start")
+        .map_err(|e| format!("missing _start: {}", e))?;
+    match start.call(&mut store, ()) {
+        Ok(()) => Ok(()),
+        Err(e) => Err(format!("runtime error: {}", e)),
     }
 }
 

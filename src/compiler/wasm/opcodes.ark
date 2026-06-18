@@ -7,6 +7,7 @@ fn GC_STRUCT_NEW_DEFAULT() -> i32 { 1 }
 fn GC_STRUCT_GET() -> i32 { 2 }
 fn GC_STRUCT_SET() -> i32 { 5 }
 fn GC_ARRAY_NEW() -> i32 { 6 }
+fn GC_ARRAY_NEW_DEFAULT() -> i32 { 7 }
 fn GC_ARRAY_GET() -> i32 { 11 }
 fn GC_ARRAY_SET() -> i32 { 14 }
 fn GC_ARRAY_LEN() -> i32 { 15 }

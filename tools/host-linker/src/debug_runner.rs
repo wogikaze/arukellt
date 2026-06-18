@@ -103,7 +103,7 @@ pub fn run_until_breakpoint(
 /// Scan the module's imports and register appropriate stubs for each.
 /// Known WASI P2 imports get real implementations; unknown imports
 /// (including future P3 additions) get auto-generated zero-value stubs.
-fn register_import_stubs(linker: &mut Linker<()>, module: &Module) -> Result<(), String> {
+pub fn register_import_stubs(linker: &mut Linker<()>, module: &Module) -> Result<(), String> {
     for import in module.imports() {
         let mod_name = import.module().to_string();
         let field_name = import.name().to_string();

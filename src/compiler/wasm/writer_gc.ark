@@ -36,7 +36,7 @@ fn emit_gc_struct_set(w: WasmWriter, type_idx: i32, field_idx: i32) {
 
 fn emit_gc_array_new(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
-    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_NEW())
+    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
     writer_leb::emit_leb128_u(w, type_idx)
 }
 

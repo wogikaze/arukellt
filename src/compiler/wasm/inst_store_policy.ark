@@ -126,6 +126,18 @@ fn is_direct_consumer_op(op: i32) -> bool {
     if op == opcodes::MIR_STRUCT_GET() {
         return true
     }
+    if op == opcodes::MIR_ARRAY_GET() {
+        return true
+    }
+    if op == opcodes::MIR_ARRAY_SET() {
+        return true
+    }
+    if op == opcodes::MIR_ARRAY_NEW() {
+        return true
+    }
+    if op == opcodes::MIR_STRUCT_NEW() {
+        return true
+    }
     return false
 }
 
