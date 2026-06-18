@@ -15,6 +15,9 @@ fn mir_value_type_name(vt: i32) -> String {
     if vt == value_types::VT_REF() {
         return String_from("ref")
     }
+    if vt == value_types::VT_GC_REF() {
+        return String_from("gc_ref")
+    }
     if vt == value_types::VT_VOID() {
         return String_from("void")
     }

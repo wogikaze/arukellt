@@ -72,9 +72,11 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 linear-memory data model. GC targets (`wasm32-freestanding`, `wasm32-wasi-p2`,
 and `wasm32-wasi-p3`) now emit initial Wasm GC reference locals/types and
 `struct.*` / `array.*` instructions for the current `i32` aggregate lowering
-shape. This is a Phase 1 implementation slice for issue #686, not the complete
-GC-native data model: strings, Vec, enums, options/results, and generic payloads
-still use the existing linear-memory representation.
+shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
+locals, but struct parameter/return ABI migration is still incomplete. This is
+a Phase 1 implementation slice for issue #686, not the complete GC-native data
+model: strings, Vec, enums, options/results, and generic payloads still use the
+existing linear-memory representation.
 
 The data model across all targets:
 

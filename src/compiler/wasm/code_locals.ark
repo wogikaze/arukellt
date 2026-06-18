@@ -31,7 +31,7 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
             writer_leb::emit_leb128_s(body, gc_type)
             return
         }
-        if vt == value_types::VT_REF() {
+        if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx))
             return
@@ -51,6 +51,9 @@ fn val_type_to_wasm(vt: i32) -> i32 {
         return constants::WASM_F64()
     }
     if vt == value_types::VT_REF() {
+        return constants::WASM_I32()
+    }
+    if vt == value_types::VT_GC_REF() {
         return constants::WASM_I32()
     }
     constants::WASM_I32()

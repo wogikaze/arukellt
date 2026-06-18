@@ -15,5 +15,8 @@ fn val_type_name(vt: i32) -> String {
     if vt == value_types::VT_REF() {
         return String_from("i32")
     }
+    if vt == value_types::VT_GC_REF() {
+        return String_from("i32")
+    }
     String_from("i32")
 }

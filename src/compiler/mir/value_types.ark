@@ -18,6 +18,10 @@ fn VT_REF() -> i32 {
     value_types::VT_REF()
 }
 
+fn VT_GC_REF() -> i32 {
+    value_types::VT_GC_REF()
+}
+
 fn VT_VOID() -> i32 {
     value_types::VT_VOID()
 }

@@ -29,8 +29,10 @@ selfhost エミッタには GC 命令基盤 (`writer_gc.ark`、`sections_types_g
 2026-06-18 の Phase 1 スライスで、GC ターゲットは `i32` aggregate lowering
 shape に対して reference local/type encoding と `struct.*` / `array.*` 命令を
 出力し、基本的な array/struct fixture は `wasm-tools validate --features gc`
-を通る。完全な MIR reference type model と String/Vec/Enum/Option/Result の
-GC 表現は未完了。
+を通る。MIR/CoreHIR には aggregate reference locals 用の `VT_GC_REF` tag が
+追加され、GC 型は function signatures より前に emitted される。完全な struct
+parameter/return ABI、MIR reference type model、String/Vec/Enum/Option/Result
+の GC 表現は未完了。
 
 ## 決定
 

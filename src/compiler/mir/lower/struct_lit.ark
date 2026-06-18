@@ -11,7 +11,7 @@ use mir::lower::struct_lit_copy
 use mir::value_types
 
 fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
-    let dest = ctx_fresh_local(ctx, value_types::VT_REF())
+    let dest = ctx_fresh_local(ctx, value_types::VT_GC_REF())
     ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(struct_name), ctx_struct_byte_size(ctx, clone(struct_name))))
     ctx_set_local_type(ctx, dest, clone(struct_name))
     dest

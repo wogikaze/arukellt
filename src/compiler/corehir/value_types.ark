@@ -16,6 +16,10 @@ fn VT_REF() -> i32 {
     4
 }
 
+fn VT_GC_REF() -> i32 {
+    5
+}
+
 fn VT_VOID() -> i32 {
     0
 }

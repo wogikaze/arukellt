@@ -29,6 +29,13 @@ GC struct/array instructions for the current `i32` aggregate lowering shape.
 The broader MIR type-system item remains open because reference semantics are
 still inferred at emit time rather than represented as a complete MIR type model.
 
+2026-06-18 update: MIR/CoreHIR now have a distinct `VT_GC_REF` tag for
+aggregate reference locals, and GC target type sections emit GC array/struct
+types before function signatures so later function ABI work can reference them
+without invalid forward type references. The remaining Phase 1 type-system work
+is to move struct parameters/returns off the existing hidden `i32` aggregate ABI
+and make signatures carry the precise GC shape.
+
 ### Phase 2: 文字列 GC 表現 (`035-gc-strings.md`)
 
 - [ ] String の GC 表現: `(ref null (array (mut i8)))`

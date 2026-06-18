@@ -68,3 +68,7 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
 }
+
+fn gc_type_sig_count() -> i32 {
+    9
+}
