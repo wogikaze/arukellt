@@ -48,3 +48,4 @@
 | [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 Compiler Wasm and Browser Runner Model | Archive | Status: DECIDED — ship the selfhost compiler Wasm to the browser and run compiled T2 Wasm in a sandboxed host |
 | [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: Typed Function References (call_ref) HOF Migration | Archive | Status: DECIDED — phased migration; call_indirect remains baseline until table-free patterns land |
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component Composition Linking Model | Archive | ステータス: ACCEPTED — Phase 3 wac 委譲 landed (#443, 2026-06-15) |
+| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC Implementation Plan | Archive | ステータス: DRAFT — 段階実装中 |
