@@ -1,6 +1,9 @@
 use mir::inst_accessors_operands
 use wasm::ctx_scratch
 use wasm::ctx_string_view
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::writer_gc
 use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_locals
@@ -17,7 +20,11 @@ fn emit_clone(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: len
 fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                                    helpers_memory_stack::emit_string_len_from_stack(w)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        writer_gc::emit_gc_array_len(w)
+    } else {
+        helpers_memory_stack::emit_string_len_from_stack(w)
+    }
     return true
     }
 

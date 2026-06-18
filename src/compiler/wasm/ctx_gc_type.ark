@@ -1,13 +1,15 @@
 // Arukellt Selfhost - GC type index tracking for the emitter context.
-// Computes gc_type_base from ctx: it's the total non-GC type count
-// (host types + function types, excluding GC data types).
 
 use wasm::ctx_record
 
-fn SelfEmitCtx_array_type(ctx: SelfEmitCtx, _elem_count: i32) -> i32 {
+fn SelfEmitCtx_i32_array_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1
+}
+
+fn SelfEmitCtx_string_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx)
 }
 
 fn SelfEmitCtx_struct_type(ctx: SelfEmitCtx, byte_size: i32) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 8
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
 }

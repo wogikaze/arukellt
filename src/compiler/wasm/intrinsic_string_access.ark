@@ -2,6 +2,10 @@
 // Extracted from emit_intrinsic_string_search.ark
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::writer_gc
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_memory_access
 use wasm::intrinsics::helpers_memory_stack
@@ -13,7 +17,11 @@ fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     helpers_core_locals::emit_local_set(w, s0)
     helpers_core_locals::emit_local_get(w, s0)
-    helpers_memory_stack::emit_string_len_from_stack(w)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        writer_gc::emit_gc_array_len(w)
+    } else {
+        helpers_memory_stack::emit_string_len_from_stack(w)
+    }
     helpers_numeric_i32_compare::emit_i32_eqz(w)
     return true
 }
@@ -24,7 +32,11 @@ fn emit_text_len_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     helpers_core_locals::emit_local_set(w, s0)
     helpers_core_locals::emit_local_get(w, s0)
-    helpers_memory_stack::emit_string_len_from_stack(w)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        writer_gc::emit_gc_array_len(w)
+    } else {
+        helpers_memory_stack::emit_string_len_from_stack(w)
+    }
     return true
 }
 
@@ -35,9 +47,15 @@ fn emit_char_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_ca_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     helpers_core_locals::emit_local_set(w, s_ca_i)
     helpers_core_locals::emit_local_set(w, s_ca_str)
-    helpers_core_locals::emit_local_get(w, s_ca_str)
-    helpers_core_locals::emit_local_get(w, s_ca_i)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_load8_u_default(w)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_core_locals::emit_local_get(w, s_ca_str)
+        helpers_core_locals::emit_local_get(w, s_ca_i)
+        writer_gc::emit_gc_array_get_u(w, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+    } else {
+        helpers_core_locals::emit_local_get(w, s_ca_str)
+        helpers_core_locals::emit_local_get(w, s_ca_i)
+        helpers_numeric_i32_arith::emit_i32_add(w)
+        helpers_memory_access::emit_i32_load8_u_default(w)
+    }
     return true
 }

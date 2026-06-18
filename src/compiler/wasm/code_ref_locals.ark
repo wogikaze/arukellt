@@ -46,7 +46,7 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
         let arg0 = inst_accessors_operands::MirInst_arg0(inst)
         if inst_accessors_operands::MirInst_dest(inst) == local_idx {
             if op == opcodes::MIR_ARRAY_NEW() {
-                return ctx_gc_type::SelfEmitCtx_array_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
+                return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
             }
             if op == opcodes::MIR_STRUCT_NEW() {
                 return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
