@@ -127,12 +127,19 @@ fn val_type_to_sig(vt: i32) -> String {
                 String_from("f64")
             } else {
                 if vt == 5 {
-                    return String_from("gc_ref")
+                    return String_from("gcref")
                 }
                 String_from("ref")
             }
         }
     }
+}
+
+fn val_type_to_target_sig(vt: i32, is_gc_target: bool) -> String {
+    if vt == 5 && !is_gc_target {
+        return String_from("i32")
+    }
+    val_type_to_sig(vt)
 }
 
 fn sig_to_wasm_type(sig: String) -> i32 {

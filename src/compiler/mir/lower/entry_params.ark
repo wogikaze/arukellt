@@ -6,10 +6,14 @@ use mir::lower::params_fn
 use mir::lower::params_method
 
 fn mir_bind_top_level_params(ctx: LowerCtx, entry_view: MirLowerEntryView, fn_info_index: i32, param_count: i32) {
+    mir_bind_top_level_params_from(ctx, entry_view, fn_info_index, param_count, 0)
+}
+
+fn mir_bind_top_level_params_from(ctx: LowerCtx, entry_view: MirLowerEntryView, fn_info_index: i32, param_count: i32, start_param: i32) {
     if fn_info_index < 0 {
         return
     }
-    let mut p = 0
+    let mut p = start_param
     while p < param_count {
         let param = entry_view_fn::mir_entry_fn_param_at(entry_view, fn_info_index, p)
         params_fn::mir_bind_fn_param(ctx, param)

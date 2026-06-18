@@ -60,7 +60,7 @@ fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i3
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
     }
-    append_function_type_sigs(type_sigs, functions, fn_count)
+    append_function_type_sigs(type_sigs, functions, fn_count, clone(target))
     append_wrapper_type_sig(type_sigs, needs_wrapper)
     type_sigs
 }
@@ -102,22 +102,22 @@ fn append_t2_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("i32_i32_1i32"))
 }
 
-fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32) {
+fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32, target: String) {
     let mut ui = 0
     while ui < fn_count {
         let uf = get_unchecked(functions, ui)
-        push(type_sigs, build_function_type_sig(uf))
+        push(type_sigs, build_function_type_sig(uf, clone(target)))
         ui = ui + 1
     }
 }
 
-fn build_function_type_sig(uf: MirFunction) -> String {
+fn build_function_type_sig(uf: MirFunction, target: String) -> String {
     let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
     let mut pi = 0
     while pi < pc {
         let p = function_param_view::MirFunction_param_at(uf, pi)
-        sig = concat(sig, sections_type_plan::val_type_to_sig(local_access::MirLocal_val_type(p)))
+        sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
         sig = concat(sig, String_from("_"))
         pi = pi + 1
     }
@@ -126,7 +126,7 @@ fn build_function_type_sig(uf: MirFunction) -> String {
         sig = concat(sig, String_from("0"))
     } else {
         sig = concat(sig, String_from("1"))
-        sig = concat(sig, sections_type_plan::val_type_to_sig(return_type))
+        sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
     }
     sig
 }
@@ -235,7 +235,7 @@ fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String, gc_type_base
 }
 
 fn emit_sig_val_type(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
-    if eq(clone(sig), "gc_ref") && gc_type_base >= 0 {
+    if eq(clone(sig), "gcref") && gc_type_base >= 0 {
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_leb::emit_leb128_s(type_sec, gc_type_base + 8)
         return

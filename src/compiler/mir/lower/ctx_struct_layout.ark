@@ -2,6 +2,7 @@
 
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_offset
+use mir::lower::ctx_struct_storage
 use mir::lower::ctx_struct_size
 
 fn ctx_struct_field_offset(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
@@ -18,4 +19,16 @@ fn ctx_struct_field_is_f64(ctx: LowerCtx, struct_name: String, field_idx: i32) -
 
 fn ctx_struct_field_byte_size(field_type: String) -> i32 {
     ctx_struct_size::ctx_struct_field_byte_size(field_type)
+}
+
+fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
+            return true
+        }
+        si = si + 1
+    }
+    false
 }

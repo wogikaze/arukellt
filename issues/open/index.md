@@ -141,7 +141,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 681 | [681 — Stdlib manifest reachability contract audit](681-stdlib-manifest-reachability-audit.md) | docs-audit | none | 679 | none | 0 checked / 6 open | audit-ready | None | |
 | 684 | [684 — False-done and limited-scope done issue re-audit program](684-false-done-limited-scope-reaudit.md) | docs-audit | none | none | none | 0 checked / 6 open | audit-ready | None | |
 | 685 | [685 — IDE / Playground / Extension product-claim vs compiler gate audit](685-ide-playground-extension-claim-audit.md) | docs-audit | none | 679 | none | 0 checked / 6 open | audit-ready | None | |
-| 686 | [Wasm GC Selfhost Implementation](686-wasm-gc-selfhost-implementation.md) | main | none | none | none | 0 checked / 16 open | — | — | |
+| 686 | [Wasm GC Selfhost Implementation](686-wasm-gc-selfhost-implementation.md) | main | none | none | none | 5 checked / 11 open | — | — | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | none | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 673 | [673 — Component export aggregate expansion (Tier 2 blocked shapes)](673-component-export-aggregate-expansion.md) | component-model | none | 648, 660, 667 | none | 0 checked / 12 open | implementation-ready | None | |
 | 682 | [682 — Component / WIT product-claim verification audit](682-component-wit-product-claim-audit.md) | docs-audit | none | 679, 680 | 683 | 0 checked / 6 open | audit-ready | wasm-tools (CI install policy) | |

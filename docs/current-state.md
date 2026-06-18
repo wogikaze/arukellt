@@ -73,10 +73,12 @@ linear-memory data model. GC targets (`wasm32-freestanding`, `wasm32-wasi-p2`,
 and `wasm32-wasi-p3`) now emit initial Wasm GC reference locals/types and
 `struct.*` / `array.*` instructions for the current `i32` aggregate lowering
 shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
-locals, but struct parameter/return ABI migration is still incomplete. This is
-a Phase 1 implementation slice for issue #686, not the complete GC-native data
-model: strings, Vec, enums, options/results, and generic payloads still use the
-existing linear-memory representation.
+locals, params, and struct/enum returns, and current-source T3 outputs validate
+top-level `i32`-field struct parameter/return signatures as `(ref null ...)`.
+This is a Phase 1 implementation slice for issue #686, not the complete
+GC-native data model: f64/i64 aggregate shapes, strings, Vec, enums,
+options/results, and generic payloads still use the existing linear-memory or
+fixed-shape representation.
 
 The data model across all targets:
 
