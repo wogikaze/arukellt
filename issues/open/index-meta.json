@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-16T21:23:08Z",
+  "generated_at": "2026-06-17T14:29:40Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -47,7 +47,7 @@
         "646"
       ],
       "acceptance": {
-        "checked": 0,
+        "checked": 4,
         "unchecked": 4
       },
       "orchestration": {
@@ -459,6 +459,28 @@
       }
     },
     {
+      "id": "686",
+      "path": "686-wasm-gc-selfhost-implementation.md",
+      "title": "Wasm GC Selfhost Implementation",
+      "track": "main",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "646",
       "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
@@ -474,8 +496,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 3
+        "checked": 3,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "design-ready",
