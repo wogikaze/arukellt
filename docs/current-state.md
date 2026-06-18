@@ -68,10 +68,13 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 
 ## Data Model (all Wasm targets)
 
-**Important:** All Wasm targets (P1, P2, freestanding) currently use the **same
-linear-memory data model**. Wasm GC instructions (`struct.new`, `array.new`,
-`ref.cast`) are **not emitted**. The `struct`/`array` MIR operations are lowered
-to linear-memory bump allocation with `i32.load`/`i32.store`.
+**Important:** The T1 (`wasm32-wasi-p1`) compatibility path still uses the
+linear-memory data model. GC targets (`wasm32-freestanding`, `wasm32-wasi-p2`,
+and `wasm32-wasi-p3`) now emit initial Wasm GC reference locals/types and
+`struct.*` / `array.*` instructions for the current `i32` aggregate lowering
+shape. This is a Phase 1 implementation slice for issue #686, not the complete
+GC-native data model: strings, Vec, enums, options/results, and generic payloads
+still use the existing linear-memory representation.
 
 The data model across all targets:
 
@@ -82,16 +85,17 @@ The data model across all targets:
 | `f64` | `f64` |
 | `String` | `i32` pointer to heap-allocated length-prefixed bytes |
 | `Vec<T>` | `i32` pointer to heap-allocated buffer with length/capacity |
-| Structs | `i32` pointer to heap-allocated struct (bump-allocated in linear memory) |
+| Structs | T1: `i32` pointer to heap-allocated struct; GC targets: initial GC struct references for `i32` field shapes |
 | Enums / Option / Result | Discriminated union in linear memory |
 | Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
 
-The T3 target (`wasm32-wasi-p2`) differs from T1 only in its WASI import
-signatures (P2 vs P1) and component model output support. The underlying
-value representation is identical.
+The T3 target (`wasm32-wasi-p2`) now differs from T1 both in its WASI import
+signatures/component model output support and in this initial GC aggregate
+emission path. T1 remains the linear-memory compatibility backend.
 
-**Future:** A Wasm GC backend is planned as part of the Wasm 3.0 / P3 track
-(see [ADR-008 — Wasm GC Post-MVP](adr/ADR-008-wasm-gc-post-mvp.md)).
+**Future:** Completing the Wasm GC backend remains tracked by issue #686 and
+ADR-035, including GC strings, Vec/enum representations, cast-based dispatch,
+full fixture coverage, and T1/T3 parity gates.
 
 ## Performance Snapshot
 

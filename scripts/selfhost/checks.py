@@ -81,19 +81,10 @@ BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "emit_wat.ark",
     "emitter.ark",
     "parser.ark",
-    "mir/inst_gc_hint.ark",
-    "wasm/ctx_gc_hint.ark",
-    "wasm/inst_dispatch_gc_hint.ark",
-    "wasm/sections_gc_hint.ark",
-    "wasm/sections_tail.ark",
 )
 
 # Bootstrap overlay: freeze wasm/mir gc_hint files at pre-ff8f8ded (selfhost trap).
-BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {
-    "wasm/inst_dispatch.ark": "4b859775",
-    "wasm/inst_dispatch_struct.ark": "4b859775",
-    "wasm/inst_struct_record.ark": "4b859775",
-}
+BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {}
 
 # ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
 BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})

@@ -1,23 +1,43 @@
 // Arukellt Selfhost - Wasm function local and scratch declarations.
 
 use wasm::constants
+use wasm::ctx_record
+use wasm::code_ref_locals
+use wasm::emit_target
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use wasm::writer_core
 use wasm::writer_leb
 
-fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32) {
+fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
     let body_local_count = local_count - param_count
     writer_leb::emit_leb128_u(body, body_local_count + scratch_local_count())
     let mut li = param_count
     while li < local_count {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         writer_leb::emit_leb128_u(body, 1)
-        writer_core::emit_byte(body, val_type_to_wasm(local_access::MirLocal_val_type(loc)))
+        emit_local_val_type(body, f, li, local_access::MirLocal_val_type(loc), ctx)
         li = li + 1
     }
     emit_scratch_local_decls(body)
+}
+
+fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+        if gc_type >= 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, gc_type)
+            return
+        }
+        if vt == value_types::VT_REF() {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx))
+            return
+        }
+    }
+    writer_core::emit_byte(body, val_type_to_wasm(vt))
 }
 
 fn val_type_to_wasm(vt: i32) -> i32 {

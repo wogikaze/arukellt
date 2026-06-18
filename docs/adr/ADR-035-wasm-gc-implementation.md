@@ -1,6 +1,6 @@
 # ADR-035: Wasm GC Implementation Plan
 
-ステータス: **DRAFT** — 設計検討中、未実装
+ステータス: **DRAFT** — 段階実装中
 
 決定日: 2026-06-17
 
@@ -19,16 +19,18 @@ ADR-007 (Targets) は以下のメモリモデルを定義している：
 | ターゲット | メモリモデル | 現状 |
 |------------|-------------|------|
 | T1 `wasm32-wasi-p1` | Linear memory | ✅ 実装済み、iwasm 互換 |
-| T2 `wasm32-freestanding` | **Wasm GC** | ❌ 未実装（現在は linear memory） |
-| T3 `wasm32-wasi-p2` | **Wasm GC** | ❌ 未実装（現在は linear memory、P2 imports のみ） |
+| T2 `wasm32-freestanding` | **Wasm GC** | 🟡 Phase 1 部分実装（GC struct/array 命令基盤、compile/validate slice） |
+| T3 `wasm32-wasi-p2` | **Wasm GC** | 🟡 Phase 1 部分実装（GC struct/array 命令基盤、P2 imports） |
 | T4 native | LLVM 依存 | scaffold のみ |
 | T5 `wasm32-wasi-p3` | **Wasm GC** | ❌ 未実装（target ID のみ） |
 
 selfhost エミッタには GC 命令基盤 (`writer_gc.ark`、`sections_types_gc.ark`、
-`ctx_gc_type.ark`) と struct/array 発行の target dispatch が追加されたが、
-value representation が `i32-as-pointer` のままであるため Wasm バリデーション
-を通らない。GC 命令 (`array.new` など) はスタックに reference type を要求する
-が、現在の MIR は全値を `i32` として扱っている。
+`ctx_gc_type.ark`) と struct/array 発行の target dispatch が追加された。
+2026-06-18 の Phase 1 スライスで、GC ターゲットは `i32` aggregate lowering
+shape に対して reference local/type encoding と `struct.*` / `array.*` 命令を
+出力し、基本的な array/struct fixture は `wasm-tools validate --features gc`
+を通る。完全な MIR reference type model と String/Vec/Enum/Option/Result の
+GC 表現は未完了。
 
 ## 決定
 

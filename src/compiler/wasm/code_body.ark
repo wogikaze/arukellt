@@ -23,7 +23,7 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
     let body = writer_core::WasmWriter_new()
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
-    code_locals::emit_local_decls(body, f, local_count, param_count)
+    code_locals::emit_local_decls(body, f, local_count, param_count, ctx)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
     emit_function_instructions(body, f, ctx, bindings)

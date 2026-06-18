@@ -48,3 +48,11 @@ fn SelfEmitCtx_function_at(ctx: SelfEmitCtx, idx: i32) -> MirFunction {
 fn SelfEmitCtx_functions(ctx: SelfEmitCtx) -> Vec<MirFunction> {
     ctx.functions
 }
+
+fn SelfEmitCtx_gc_type_base(ctx: SelfEmitCtx) -> i32 {
+    ctx.gc_type_base
+}
+
+fn SelfEmitCtx_set_gc_type_base(ctx: SelfEmitCtx, gc_type_base: i32) {
+    ctx.gc_type_base = gc_type_base
+}

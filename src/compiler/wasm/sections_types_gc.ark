@@ -27,26 +27,18 @@ fn emit_array_type_entry(type_sec: WasmWriter, sig: String) {
 }
 
 fn struct_field_sigs(sig: String) -> Vec<String> {
-    let body = substring(sig, 2, len(sig))
-    let body_len = len(body)
     let mut fields = Vec_new_String()
-    let mut seg_start = 0
+    let sig_len = len(sig)
     let mut si = 0
-    while si < body_len {
-        if char_at(clone(body), si) == 95 && si > 0 {
-            let seg = substring(clone(body), seg_start, si)
-            let under_pos = find_char(clone(seg), 95)
-            if under_pos >= 0 {
-                push(fields, substring(seg, under_pos + 1, len(seg)))
+    while si < sig_len {
+        if char_at(clone(sig), si) == 102 {
+            let at_start = si == 2
+            let after_sep = si > 0 && char_at(clone(sig), si - 1) == 95
+            if at_start || after_sep {
+                push(fields, String_from("i32"))
             }
-            seg_start = si + 1
         }
         si = si + 1
-    }
-    let last_seg = substring(body, seg_start, body_len)
-    let under_pos = find_char(clone(last_seg), 95)
-    if under_pos >= 0 {
-        push(fields, substring(last_seg, under_pos + 1, len(last_seg)))
     }
     fields
 }
@@ -67,4 +59,12 @@ fn find_char(s: String, c: i32) -> i32 {
 
 fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("A_i32"))
+    push(type_sigs, String_from("S_f0_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
 }

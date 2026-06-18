@@ -24,9 +24,10 @@ fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
+    let gc_type_base = first_gc_type_index(canon_types)
     let type_sec = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(type_sec, len(canon_types))
-    emit_canon_type_entries(type_sec, canon_types)
+    emit_canon_type_entries(type_sec, canon_types, gc_type_base)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
     let plan = sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, fn_count, needs_wrapper)
     plan
@@ -163,7 +164,19 @@ fn find_canon_type_index(canon_types: Vec<String>, sig: String) -> i32 {
     found
 }
 
-fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>) {
+fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
+    let mut i = 0
+    while i < len(canon_types) {
+        let sig = get_unchecked(canon_types, i)
+        if char_at(clone(sig), 0) == 65 || char_at(clone(sig), 0) == 83 {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_type_base: i32) {
     let mut cti2 = 0
     while cti2 < len(canon_types) {
         let csig = get_unchecked(canon_types, cti2)
@@ -183,8 +196,8 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>) {
                     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
                     let param_segments = sections_type_plan::type_sig_param_segments(csig)
                     let result_seg = sections_type_plan::type_sig_result_segment(csig)
-                    emit_type_param_entries(type_sec, param_segments)
-                    emit_type_result_entry(type_sec, result_seg)
+                    emit_type_param_entries(type_sec, param_segments, gc_type_base)
+                    emit_type_result_entry(type_sec, result_seg, gc_type_base)
                 }
             }
         }
@@ -194,18 +207,18 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>) {
 
 
 
-fn emit_type_param_entries(type_sec: WasmWriter, param_segments: Vec<String>) {
+fn emit_type_param_entries(type_sec: WasmWriter, param_segments: Vec<String>, gc_type_base: i32) {
     let param_count = len(param_segments)
     writer_leb::emit_leb128_u(type_sec, param_count)
     let mut pi = 0
     while pi < param_count {
         let seg = get_unchecked(param_segments, pi)
-        writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(seg))
+        emit_sig_val_type(type_sec, seg, gc_type_base)
         pi = pi + 1
     }
 }
 
-fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String) {
+fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String, gc_type_base: i32) {
     if eq(clone(result_seg), "0") {
         writer_leb::emit_leb128_u(type_sec, 0)
     } else {
@@ -213,6 +226,15 @@ fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String) {
         // overruns substring and collapses the result type to the fallback.
         let rt = substring(result_seg, 1, len(result_seg))
         writer_leb::emit_leb128_u(type_sec, 1)
-        writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(rt))
+        emit_sig_val_type(type_sec, rt, gc_type_base)
     }
+}
+
+fn emit_sig_val_type(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+    if eq(clone(sig), "ref") && gc_type_base >= 0 {
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_leb::emit_leb128_s(type_sec, gc_type_base)
+        return
+    }
+    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(sig))
 }

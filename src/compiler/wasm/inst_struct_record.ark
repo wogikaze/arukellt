@@ -7,20 +7,15 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_gc
-use wasm::ctx_gc_hint
+use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
-use wasm::sections_type_plan
-use mir::inst_gc_hint
 use mir::value_types
 
 fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    if prev_op == inst_gc_hint::mir_gc_hint_opcode() {
-        ctx_gc_hint::SelfEmitCtx_push_gc_hint_offset(ctx, writer_core::writer_size(w))
-    }
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
-        writer_gc::emit_gc_struct_new(w, gc_type_idx)
+        writer_gc::emit_gc_struct_new_default(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
     } else {
@@ -41,7 +36,7 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
 fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
-        let field_idx = 0
+        let field_idx = inst_accessors_literals::MirInst_int_val(inst) / 4
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
     } else {
         if inst_accessors_literals::MirInst_int_val(inst) > 0 {
@@ -71,7 +66,9 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
-        let field_idx = 0
+        let field_idx = inst_accessors_literals::MirInst_int_val(inst) / 4
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
         writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)

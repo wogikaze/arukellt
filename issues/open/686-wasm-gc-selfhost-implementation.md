@@ -17,10 +17,17 @@ ADR-035's phased plan.
 ### Phase 1: Value Representation GC-化 (`035-gc-value-representation.md`)
 
 - [ ] MIR type system に GC reference type を追加 (`value_types.ark`, `MirLocal`)
-- [ ] sig_to_wasm_type で GC type を出力 (reference type encoding)
-- [ ] struct.new/struct.get/struct.set の Wasm GC 命令出力
-- [ ] array.new/array.get/array.set の Wasm GC 命令出力
-- [ ] 関数シグニチャの GC reference type 対応 (Wasm バリデーション通過)
+- [x] sig_to_wasm_type で GC type を出力 (reference type encoding)
+- [x] struct.new/struct.get/struct.set の Wasm GC 命令出力
+- [x] array.new/array.get/array.set の Wasm GC 命令出力
+- [x] 関数シグニチャの GC reference type 対応 (Wasm バリデーション通過)
+
+2026-06-18: selfhost emitter now emits GC reference type encodings and
+GC struct/array instructions for the current `i32` aggregate lowering shape.
+`wasm32-wasi-p2` outputs for `tests/fixtures/arrays/array_literal.ark` and
+`tests/fixtures/structs/basic_struct.ark` validate with `wasm-tools --features gc`.
+The broader MIR type-system item remains open because reference semantics are
+still inferred at emit time rather than represented as a complete MIR type model.
 
 ### Phase 2: 文字列 GC 表現 (`035-gc-strings.md`)
 

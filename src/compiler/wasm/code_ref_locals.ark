@@ -1,0 +1,69 @@
+// Arukellt Selfhost - GC reference local type inference.
+
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+use wasm::ctx_gc_type
+
+fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
+    infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
+}
+
+fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    if depth > 4 {
+        return 0 - 1
+    }
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let found = infer_ref_local_from_block(f, block, inst_count, local_idx, ctx, depth)
+        if found >= 0 {
+            return found
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
+fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    let mut ii = 0
+    let mut prev_op = 0 - 1
+    let mut prev_arg0 = 0 - 1
+    let mut prev_dest = 0 - 1
+    while ii < inst_count {
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+            if op == opcodes::MIR_ARRAY_NEW() {
+                return ctx_gc_type::SelfEmitCtx_array_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
+            }
+            if op == opcodes::MIR_STRUCT_NEW() {
+                return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
+            }
+        }
+        if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+            let source = inst_accessors_operands::MirInst_arg1(inst)
+            if source >= 0 {
+                return infer_ref_local_gc_type_depth(f, source, ctx, depth + 1)
+            }
+            if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
+                return infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
+            }
+            if prev_dest >= 0 {
+                return infer_ref_local_gc_type_depth(f, prev_dest, ctx, depth + 1)
+            }
+        }
+        prev_op = op
+        prev_arg0 = arg0
+        prev_dest = dest
+        ii = ii + 1
+    }
+    0 - 1
+}

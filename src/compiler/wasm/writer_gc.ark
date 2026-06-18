@@ -14,6 +14,12 @@ fn emit_gc_struct_new(w: WasmWriter, type_idx: i32) {
     writer_leb::emit_leb128_u(w, type_idx)
 }
 
+fn emit_gc_struct_new_default(w: WasmWriter, type_idx: i32) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_NEW_DEFAULT())
+    writer_leb::emit_leb128_u(w, type_idx)
+}
+
 fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
     emit_gc_prefix(w)
     writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_GET())

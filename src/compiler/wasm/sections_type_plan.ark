@@ -42,7 +42,11 @@ fn build_type_section_plan(type_map: Vec<i32>, num_host_types: i32, wit_import_c
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
     let fn_type_map = build_function_type_map(type_map, num_host_types, wit_import_count, fn_count)
     let wrapper_type_idx = wrapper_type_index(type_map, num_host_types, wit_import_count, fn_count, needs_wrapper)
-    let gc_type_base = num_host_types + wit_import_count + fn_count + (if needs_wrapper == 1 { 1 } else { 0 })
+    let gc_sig_offset = num_host_types + wit_import_count + fn_count + (if needs_wrapper == 1 { 1 } else { 0 })
+    let mut gc_type_base = gc_sig_offset
+    if len(type_map) > gc_sig_offset {
+        gc_type_base = get_unchecked(type_map, gc_sig_offset)
+    }
     TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_type_base)
 }
 

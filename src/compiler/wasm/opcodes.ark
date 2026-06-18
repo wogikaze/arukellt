@@ -3,12 +3,13 @@
 // GC prefix byte and sub-opcodes (0xfb + sub).
 fn GC_PREFIX() -> i32 { 251 }
 fn GC_STRUCT_NEW() -> i32 { 0 }
-fn GC_STRUCT_GET() -> i32 { 3 }
+fn GC_STRUCT_NEW_DEFAULT() -> i32 { 1 }
+fn GC_STRUCT_GET() -> i32 { 2 }
 fn GC_STRUCT_SET() -> i32 { 5 }
 fn GC_ARRAY_NEW() -> i32 { 6 }
-fn GC_ARRAY_GET() -> i32 { 8 }
-fn GC_ARRAY_SET() -> i32 { 11 }
-fn GC_ARRAY_LEN() -> i32 { 12 }
+fn GC_ARRAY_GET() -> i32 { 11 }
+fn GC_ARRAY_SET() -> i32 { 14 }
+fn GC_ARRAY_LEN() -> i32 { 15 }
 fn GC_REF_I31() -> i32 { 28 }
 fn GC_I31_GET_S() -> i32 { 29 }
 fn GC_I31_GET_U() -> i32 { 30 }
