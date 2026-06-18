@@ -4481,6 +4481,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-wasm-debug-smoke.py",
         ),
         (
+            "GC array smoke gate",
+            "python3 scripts/check/check-gc-array-smoke.py",
+        ),
+        (
             "init template gate (#464)",
             "python3 scripts/check/check-init-templates.py",
         ),
