@@ -1153,3 +1153,6 @@ component-compile:wasi_fs_p2.ark
 component-compile:wasi_http_p2.ark
 t3-compile:t3/wasm_dead_fn_elim.ark
 t3-run:scalar/gc_hint_short_lived.ark
+run:t3/array_gc.ark
+t3-compile:t3/array_gc.ark
+t3-run:t3/array_gc.ark
