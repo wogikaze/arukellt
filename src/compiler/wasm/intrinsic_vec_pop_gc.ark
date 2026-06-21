@@ -1,0 +1,154 @@
+// Arukellt Selfhost - GC vec pop intrinsic handler.
+//
+// GC target: Vec<T> = (struct (field (mut (ref null (array (mut i32))))
+//                              (field (mut i32)))
+//   pop: struct.get 1 (len) → decrement → struct.set 1 → struct.get 0 (data) → array.get
+
+use wasm::opcodes
+use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_gc
+use wasm::ctx_gc_type
+use mir::inst_accessors_operands
+
+fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // GC Vec pop
+    //
+    // Stack: [vec_ref]
+    // After: [opt_ptr]  (Option<i32> on linear-memory heap)
+    //
+    // 1. Drop vec_ref from stack (re-read from MIR local)
+    // 2. Get len from vec
+    // 3. If len > 0: decrement, save new_len, read last element
+    // 4. Return Some(value) or None
+
+    let s_newlen = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_optptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let arr_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let vec_local = inst_accessors_operands::MirInst_arg0(inst)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+
+    // Step 1: Drop vec_ref from stack
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+
+    // Step 2: Get len, save to s_newlen
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_leb::emit_leb128_u(w, s_newlen)
+
+    // Step 3: Check if len > 0
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 127)
+
+    // Some branch: len > 0
+    emit_gc_pop_some(w, vec_local, vec_type, i32_array_type, arr_tmp, s_newlen, s_optptr)
+    writer_core::emit_byte(w, opcodes::OP_ELSE())
+
+    // None branch: len == 0
+    emit_gc_pop_none(w, s_optptr)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    return true
+}
+
+fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32) {
+    // len was left on stack from step 2's struct.get
+    // new_len = len - 1
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_newlen)
+
+    // vec.len = new_len
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_newlen)
+    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+
+    // Read last element: data[new_len]
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_local)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_newlen)
+    writer_gc::emit_gc_array_get(w, i32_array_type)
+
+    // Save value from array.get to i32 scratch (s_newlen is done with)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_newlen)
+
+    // Allocate Some on linear-memory heap
+    emit_gc_alloc_option_some(w, s_newlen, s_optptr)
+}
+
+fn emit_gc_alloc_option_some(w: WasmWriter, s_value: i32, s_optptr: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_optptr)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_value)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_optptr)
+}
+
+fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32) {
+    emit_gc_alloc_option_none(w, s_optptr)
+}
+
+fn emit_gc_alloc_option_none(w: WasmWriter, s_optptr: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_optptr)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_optptr)
+}

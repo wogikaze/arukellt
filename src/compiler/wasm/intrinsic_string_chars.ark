@@ -1,6 +1,11 @@
 // Arukellt Selfhost - string chars intrinsic handler
+//
+// GC target delegated to intrinsic_string_chars_gc.ark.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::intrinsic_string_chars_gc
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_memory_access
@@ -9,6 +14,9 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: text::chars
 fn emit_text_chars(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return intrinsic_string_chars_gc::emit_text_chars_gc(w, ctx)
+    }
     let s_ch_src = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_ch_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_chars_setup(w, s_ch_src, s_ch_vec)

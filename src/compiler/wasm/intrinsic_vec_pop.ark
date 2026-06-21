@@ -1,10 +1,20 @@
-use wasm::opcodes
 // Arukellt Selfhost - vec pop intrinsic handler.
+//
+// GC target delegated to intrinsic_vec_pop_gc.ark.
 
+use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::intrinsic_vec_pop_gc
 
 // Handler for: vec_pop
 fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return intrinsic_vec_pop_gc::emit_vec_pop_gc(w, inst, ctx)
+    }
     let s_vec_pop = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_optptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)

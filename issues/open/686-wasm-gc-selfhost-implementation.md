@@ -110,9 +110,10 @@ ADR-035's phased plan.
     - [x] `emit_vec_len` GC パス — struct.get vec_type 1 ✅ (2026-06-22)
     - [x] `emit_vec_get` / `get_unchecked` GC パス ✅ (2026-06-22)
     - [x] `emit_vec_push` GC パス — array.set + growth ✅ (2026-06-22)
-    - [ ] `emit_vec_pop` GC パス ⏳
-    - [ ] `emit_vec_set` GC パス ⏳
-    - [ ] `emit_chars` Vec GC 使用 ⏳
+    - [x] `emit_vec_pop` GC パス ✅ (2026-06-22)
+    - [x] `emit_vec_set` GC パス ✅ (2026-06-22)
+    - [x] `emit_chars` Vec GC 使用 ✅ (2026-06-22)
+    - [x] `emit_is_empty` GC パス ✅ (2026-06-22)
   - **Verify (全ステップ完了後):**
     ```
     # Vec 型が GC struct として出力されること
