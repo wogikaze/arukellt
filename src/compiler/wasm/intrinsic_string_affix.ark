@@ -1,6 +1,9 @@
 // Arukellt Selfhost - string affix intrinsic handlers.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::intrinsic_string_affix_gc
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -13,29 +16,37 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: starts_with, text::starts_with
 fn emit_starts_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
-    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
-    emit_starts_with_init(w, s0, s1, s2, s3, s4, s5)
-    emit_starts_with_loop(w, s0, s1, s3, s4, s5)
-    helpers_core_locals::emit_local_get(w, s5)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        intrinsic_string_affix_gc::emit_starts_with_gc(w, inst, ctx)
+    } else {
+        let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+        let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+        let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+        let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+        emit_starts_with_init(w, s0, s1, s2, s3, s4, s5)
+        emit_starts_with_loop(w, s0, s1, s3, s4, s5)
+        helpers_core_locals::emit_local_get(w, s5)
+    }
     return true
 }
 
 // Handler for: ends_with, text::ends_with
 fn emit_ends_with(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
-    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
-    emit_ends_with_init(w, s0, s1, s2, s3, s4, s5)
-    emit_ends_with_loop(w, s0, s1, s2, s3, s4, s5)
-    helpers_core_locals::emit_local_get(w, s5)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        intrinsic_string_affix_gc::emit_ends_with_gc(w, inst, ctx)
+    } else {
+        let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+        let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+        let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+        let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+        emit_ends_with_init(w, s0, s1, s2, s3, s4, s5)
+        emit_ends_with_loop(w, s0, s1, s2, s3, s4, s5)
+        helpers_core_locals::emit_local_get(w, s5)
+    }
     return true
 }
 

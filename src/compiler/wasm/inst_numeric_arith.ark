@@ -1,9 +1,12 @@
-use mir::inst_accessors_shape
-use wasm::opcodes
 // Arukellt Selfhost - Wasm Binary Emitter: numeric arithmetic instruction handlers.
 
-use wasm::writer_core
+use mir::inst_accessors_shape
 use mir::value_types
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::intrinsic_string_basic
+use wasm::opcodes
+use wasm::writer_core
 
 fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
@@ -13,7 +16,11 @@ fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if val_type == value_types::VT_I64() {
             writer_core::emit_byte(w, opcodes::OP_I64_ADD())
         } else {
-            writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+            if val_type == value_types::VT_REF() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                intrinsic_string_basic::emit_concat(w, inst, ctx)
+            } else {
+                writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+            }
         }
     }
 }

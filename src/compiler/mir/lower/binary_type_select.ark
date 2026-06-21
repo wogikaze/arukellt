@@ -7,8 +7,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::value_types
 
-// CoreHIR idents carry VT_I32 statically; resolve their real value type from
-// the allocated local so the left operand widens before the right is lowered.
 fn mir_peek_core_expr_vt(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
         let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
@@ -28,6 +26,9 @@ fn mir_initial_binop_vt(lhs_vt: i32, rhs_vt: i32) -> i32 {
     }
     if lhs_vt == value_types::VT_I64() || rhs_vt == value_types::VT_I64() {
         return value_types::VT_I64()
+    }
+    if lhs_vt == value_types::VT_REF() || rhs_vt == value_types::VT_REF() {
+        return value_types::VT_REF()
     }
     value_types::VT_I32()
 }

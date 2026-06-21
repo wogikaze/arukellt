@@ -13,3 +13,7 @@ fn SelfEmitCtx_string_type(ctx: SelfEmitCtx) -> i32 {
 fn SelfEmitCtx_struct_type(ctx: SelfEmitCtx, byte_size: i32) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
 }
+
+fn SelfEmitCtx_vec_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 10
+}

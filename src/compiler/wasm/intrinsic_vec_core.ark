@@ -1,12 +1,23 @@
 // Arukellt Selfhost - vec allocation/length intrinsic handlers
+//
+// GC target: Vec<T> = (struct (field (mut (ref null (array (mut i32))))
+//                              (field (mut i32)))
+//   vec_len: struct.get vec_type 1 (len field)
 
 use mir::inst_accessors_operands
 use wasm::inst_ctx
 use wasm::intrinsic_vec_new_layout
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_gc
+use wasm::ctx_gc_type
+use wasm::ctx_record
+use wasm::emit_target
 
 // Handler for: Vec_new_i64, Vec_new_f64
 fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_vec_new_layout::emit_vec_new_layout(w, 64, 76)
+    intrinsic_vec_new_layout::emit_vec_new_layout(w, 64, 76, ctx)
     inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
     return true
 }
@@ -14,8 +25,15 @@ fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: vec_len
 fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                                                                                                                                                                    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-                                                                                                                                                                                                                                                                    writer_core::emit_byte(w, 2)
-                                                                                                                                                                                                                                                                    writer_core::emit_byte(w, 0)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // GC Vec: struct.get vec_type 1 (len field)
+        let vec_gc_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+        writer_gc::emit_gc_struct_get(w, vec_gc_type, 1)
+    } else {
+        // Linear-memory Vec: i32.load at offset 0 (len field)
+        writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+        writer_core::emit_byte(w, 2)
+        writer_core::emit_byte(w, 0)
+    }
     return true
 }

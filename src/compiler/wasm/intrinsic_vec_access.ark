@@ -1,10 +1,24 @@
 // Arukellt Selfhost - vec access intrinsic handlers.
+//
+// GC target: Vec<T> = (struct (field (mut (ref null (array (mut i32))))
+//                              (field (mut i32)))
+//   get_unchecked: local.set idx → struct.get vec_type 0 (data) → local.get idx → array.get A_i32
+//   vec_get: bounds check + struct.get + array.get
 
 use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_gc
+use wasm::ctx_gc_type
 
 // Handler for: vec_get_unchecked, get_unchecked
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_get_unchecked_gc(w, ctx)
+    }
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_vec_access_setup(w, s_idx, s_vec2)
@@ -17,6 +31,9 @@ fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: vec_get
 fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_vec_get_gc(w, ctx)
+    }
     let s_idx2 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_res = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -28,6 +45,89 @@ fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, 11)
     return true
 }
+
+// ── GC paths ────────────────────────────────────────────────
+
+fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    // Stack: [vec_ref, idx]  (idx on top)
+    // After: [value]
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+
+    // Save idx, vec_ref stays on stack
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_idx)
+
+    // Get data array: struct.get vec_type 0  → [arr_ref]
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+
+    // Push idx
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+
+    // Get element: array.get A_i32  → [value]
+    writer_gc::emit_gc_array_get(w, i32_array_type)
+    return true
+}
+
+fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    // Stack: [vec_ref, idx]  (idx on top)
+    // After: [result value]  (Some/None result using heap allocation for now)
+    //
+    // The Option<i32> result still uses linear-memory heap representation;
+    // only the element read uses GC array access.
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_res = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+
+    // Save idx and vec_ref
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_vec)
+
+    // Bounds check: idx < vec.len?
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_vec)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)  // vec.len
+    writer_core::emit_byte(w, 73)  // I32_LT_U
+    writer_core::emit_byte(w, 4)   // IF (void)
+    writer_core::emit_byte(w, 127) // (empty block marker?)
+
+    // Some branch: idx < len → read element via GC array access
+    emit_vec_get_gc_some_i32(w, s_idx, s_vec, s_res, i32_array_type, vec_type)
+    writer_core::emit_byte(w, 5)   // ELSE
+
+    // None branch
+    emit_vec_get_none(w, s_res)
+    writer_core::emit_byte(w, 11)  // END
+    return true
+}
+
+fn emit_vec_get_gc_some_i32(w: WasmWriter, s_idx: i32, s_vec: i32, s_res: i32, i32_array_type: i32, vec_type: i32) {
+    // Allocate Some(i32) on linear-memory heap (same as LM path for now)
+    emit_vec_get_some_i32_begin_payload(w, s_res)
+
+    // Read element via GC array access instead of LM emit_vec_i32_element_addr
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_vec)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_gc::emit_gc_array_get(w, i32_array_type)  // element value
+
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    emit_vec_get_some_i32_finish(w, s_res)
+}
+
+// ── Linear-memory helpers (unchanged) ──────────────────────
 
 fn emit_vec_access_setup(w: WasmWriter, idx_local: i32, vec_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())

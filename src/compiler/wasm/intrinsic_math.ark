@@ -1,14 +1,33 @@
-use wasm::opcodes
 // Arukellt Selfhost - math intrinsic handlers.
 
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
+use wasm::opcodes
+use wasm::string_gc_helpers
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
 
 fn emit_string_eq_intrinsic(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s_a = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let s_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s_la = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s_result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_string_eq_gc(w, inst, ctx)
+    } else {
+        let s_a = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        let s_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        let s_la = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+        let s_result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+        emit_string_eq_setup(w, s_a, s_b, s_la, s_i, s_result)
+    }
+    return true
+}
+
+fn emit_string_eq_setup(w: WasmWriter, s_a: i32, s_b: i32, s_la: i32, s_i: i32, s_result: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_b)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -32,7 +51,81 @@ fn emit_string_eq_intrinsic(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> b
     writer_core::emit_byte(w, opcodes::OP_END())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_result)
-    return true
+}
+
+fn emit_string_eq_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let s_gc0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_gc1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let s_la = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+
+    // Save GC refs from stack to GC scratch locals
+    helpers_core_locals::emit_local_set(w, s_gc1)
+    helpers_core_locals::emit_local_set(w, s_gc0)
+
+    // result = 0 (default: not equal)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_result)
+
+    // len_a = array.len(A)
+    helpers_core_locals::emit_local_get(w, s_gc0)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_la)
+
+    // if len(A) == len(B):
+    emit_eq_gc_len_check(w, s_gc1, s_la, s_result, s_i, s_gc0, s_gc1, string_type)
+
+    // Push result
+    helpers_core_locals::emit_local_get(w, s_result)
+}
+
+fn emit_eq_gc_len_check(w: WasmWriter, s_gc1: i32, s_la: i32, s_result: i32, s_i: i32, s_gc0: i32, s_gc1b: i32, string_type: i32) {
+    helpers_core_locals::emit_local_get(w, s_gc1)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_get(w, s_la)
+    helpers_numeric_i32_compare::emit_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core_locals::emit_local_set(w, s_result)
+
+    emit_eq_gc_loop(w, s_i, s_la, s_gc0, s_gc1b, s_result, string_type)
+
+    string_gc_helpers::emit_gc_end(w)
+}
+
+fn emit_eq_gc_loop(w: WasmWriter, s_i: i32, s_la: i32, s_gc0: i32, s_gc1: i32, s_result: i32, string_type: i32) {
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core_locals::emit_local_get(w, s_la)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_gc0)
+    helpers_core_locals::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    helpers_core_locals::emit_local_get(w, s_gc1)
+    helpers_core_locals::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    emit_eq_gc_mismatch_check(w, s_result)
+    helpers_core_locals::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+}
+
+fn emit_eq_gc_mismatch_check(w: WasmWriter, s_result: i32) {
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_result)
+    string_gc_helpers::emit_gc_br(w, 2)
+    string_gc_helpers::emit_gc_end(w)
 }
 
 fn emit_sqrt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

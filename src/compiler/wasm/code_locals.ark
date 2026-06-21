@@ -20,7 +20,7 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
         emit_local_val_type(body, f, li, local_access::MirLocal_val_type(loc), ctx)
         li = li + 1
     }
-    emit_scratch_local_decls(body)
+    emit_scratch_local_decls(body, ctx)
 }
 
 fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) {
@@ -65,39 +65,51 @@ fn scratch_f64_local_count() -> i32 { 2 }
 
 fn scratch_i64_local_count() -> i32 { 1 }
 
+fn scratch_gc_local_count() -> i32 { 2 }
+
+fn scratch_gc_i32_array_local_count() -> i32 { 2 }
+
 fn scratch_local_count() -> i32 {
-    scratch_i32_local_count() + scratch_f64_local_count() + scratch_i64_local_count()
+    scratch_i32_local_count() + scratch_f64_local_count() + scratch_i64_local_count() + scratch_gc_local_count() + scratch_gc_i32_array_local_count()
 }
 
-fn emit_scratch_local_decls(body: WasmWriter) {
+fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
     emit_i32_scratch_local_decls(body, scratch_i32_local_count())
     emit_f64_scratch_local_decls(body, scratch_f64_local_count())
     emit_i64_scratch_local_decls(body, scratch_i64_local_count())
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_gc_scratch_local_decls(body, scratch_gc_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx))
+        emit_gc_scratch_local_decls(body, scratch_gc_i32_array_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1)
+    }
 }
 
 fn emit_i32_scratch_local_decls(body: WasmWriter, count: i32) {
-    let mut i = 0
-    while i < count {
-        writer_leb::emit_leb128_u(body, 1)
+    if count > 0 {
+        writer_leb::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_I32())
-        i = i + 1
     }
 }
 
 fn emit_f64_scratch_local_decls(body: WasmWriter, count: i32) {
-    let mut i = 0
-    while i < count {
-        writer_leb::emit_leb128_u(body, 1)
+    if count > 0 {
+        writer_leb::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_F64())
-        i = i + 1
     }
 }
 
 fn emit_i64_scratch_local_decls(body: WasmWriter, count: i32) {
+    if count > 0 {
+        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_byte(body, constants::WASM_I64())
+    }
+}
+
+fn emit_gc_scratch_local_decls(body: WasmWriter, count: i32, gc_type_base: i32) {
     let mut i = 0
     while i < count {
         writer_leb::emit_leb128_u(body, 1)
-        writer_core::emit_byte(body, constants::WASM_I64())
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_leb::emit_leb128_s(body, gc_type_base)
         i = i + 1
     }
 }

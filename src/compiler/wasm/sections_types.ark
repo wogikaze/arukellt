@@ -1,16 +1,18 @@
-use wasm::opcodes
+// Arukellt Selfhost - Wasm type section emission.
+
+use mir::function_param_view
+use mir::function_return_view
+use mir::local_access
+use mir::module_wit_imports
 use wasm::constants
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::opcodes
+use wasm::sections_type_plan
+use wasm::sections_types_gc
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
-use wasm::sections_type_plan
-use wasm::sections_types_gc
-use wasm::emit_target
-use wasm::ctx_gc_type
-use mir::function_return_view
-use mir::function_param_view
-use mir::local_access
-use mir::module_wit_imports
 
 struct TypeCanonPlan {
     canon_types: Vec<String>,
@@ -191,8 +193,8 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
             writer_core::emit_byte(type_sec, constants::WASM_I64())
             writer_core::emit_byte(type_sec, constants::WASM_I32())
         } else {
-                if char_at(clone(csig), 0) == 83 {
-                sections_types_gc::emit_struct_type_entry(type_sec, csig)
+            if char_at(clone(csig), 0) == 83 {
+                sections_types_gc::emit_struct_type_entry(type_sec, csig, gc_type_base)
             } else {
                 if char_at(clone(csig), 0) == 65 {
                     sections_types_gc::emit_array_type_entry(type_sec, csig)
@@ -209,8 +211,6 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
     }
 }
 
-
-
 fn emit_type_param_entries(type_sec: WasmWriter, param_segments: Vec<String>, gc_type_base: i32) {
     let param_count = len(param_segments)
     writer_leb::emit_leb128_u(type_sec, param_count)
@@ -226,8 +226,6 @@ fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String, gc_type_base
     if eq(clone(result_seg), "0") {
         writer_leb::emit_leb128_u(type_sec, 0)
     } else {
-        // Slice within the result segment itself; the full-signature length
-        // overruns substring and collapses the result type to the fallback.
         let rt = substring(result_seg, 1, len(result_seg))
         writer_leb::emit_leb128_u(type_sec, 1)
         emit_sig_val_type(type_sec, rt, gc_type_base)

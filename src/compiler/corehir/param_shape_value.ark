@@ -13,6 +13,9 @@ fn fn_param_value_type(node: AstNode) -> i32 {
         if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) || decl_ann_name::decl_ann_is_name(ann, String_from("u64")) {
             return value_types::VT_I64()
         }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("String")) || decl_ann_name::decl_ann_is_name(ann, String_from("string")) {
+            return value_types::VT_REF()
+        }
     }
     value_types::VT_I32()
 }
@@ -25,6 +28,9 @@ fn method_param_value_type(node: AstNode) -> i32 {
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) {
             return value_types::VT_I64()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("String")) || decl_ann_name::decl_ann_is_name(ann, String_from("string")) {
+            return value_types::VT_REF()
         }
     }
     value_types::VT_I32()

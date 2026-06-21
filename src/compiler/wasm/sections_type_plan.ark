@@ -152,7 +152,11 @@ fn sig_to_wasm_type(sig: String) -> i32 {
             if eq(clone(sig), "f64") {
                 constants::WASM_F64()
             } else {
-                constants::WASM_I32()
+                if eq(clone(sig), "i8") {
+                    constants::WASM_I8()
+                } else {
+                    constants::WASM_I32()
+                }
             }
         }
     }

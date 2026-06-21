@@ -6,17 +6,42 @@ use wasm::writer_core
 use wasm::writer_leb
 use wasm::sections_type_plan
 
-fn emit_struct_type_entry(type_sec: WasmWriter, sig: String) {
+fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
     writer_leb::emit_leb128_u(type_sec, len(field_sigs))
     let mut fi = 0
     while fi < len(field_sigs) {
-        let ft = get_unchecked(field_sigs, fi)
-        writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(ft))
-        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
         fi = fi + 1
     }
+}
+
+fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
+    if starts_with(clone(ft), String_from("ref")) {
+        let offset_str = substring(ft, 3, len(ft))
+        let offset = parse_int(offset_str)
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_leb::emit_leb128_s(type_sec, gc_type_base + offset)
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        return
+    }
+    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(ft))
+    writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+}
+
+fn parse_int(s: String) -> i32 {
+    let n = len(s)
+    let mut val = 0
+    let mut i = 0
+    while i < n {
+        let c = char_at(clone(s), i)
+        if c >= 48 && c <= 57 {
+            val = val * 10 + (c - 48)
+        }
+        i = i + 1
+    }
+    val
 }
 
 fn emit_array_type_entry(type_sec: WasmWriter, sig: String) {
@@ -29,16 +54,32 @@ fn emit_array_type_entry(type_sec: WasmWriter, sig: String) {
 fn struct_field_sigs(sig: String) -> Vec<String> {
     let mut fields = Vec_new_String()
     let sig_len = len(sig)
+    // Format: S_f{N}_{TYPE}_f{N+1}_{TYPE}_...
+    // Find each type segment after _f{N}_
     let mut si = 0
     while si < sig_len {
-        if char_at(clone(sig), si) == 102 {
-            let at_start = si == 2
-            let after_sep = si > 0 && char_at(clone(sig), si - 1) == 95
-            if at_start || after_sep {
-                push(fields, String_from("i32"))
+        // Look for '_f'
+        if char_at(clone(sig), si) == 95 && si + 1 < sig_len && char_at(clone(sig), si + 1) == 102 {
+            // Found '_f', skip past 'f' and the field number
+            let mut pi = si + 2
+            while pi < sig_len && char_at(clone(sig), pi) != 95 {
+                pi = pi + 1
             }
+            // Now at '_' after field number, extract type starting at pi+1
+            if pi < sig_len {
+                let type_start = pi + 1
+                let mut type_end = type_start
+                while type_end < sig_len && char_at(clone(sig), type_end) != 95 {
+                    type_end = type_end + 1
+                }
+                push(fields, substring(clone(sig), type_start, type_end))
+                si = type_end
+            } else {
+                si = si + 2
+            }
+        } else {
+            si = si + 1
         }
-        si = si + 1
     }
     fields
 }
@@ -68,8 +109,11 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
+    // Vec<T> shape: ref to backing array (A_i32) + len (i32)
+    // Enum base (S_f0_i32) is the same as index 2
+    push(type_sigs, String_from("S_f0_ref1_f1_i32"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    10
+    11
 }

@@ -10,6 +10,7 @@ use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::inst_ctx
 
 fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
@@ -57,6 +58,9 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
                     return call_type
                 }
             }
+            if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+            }
         }
         if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
             let source = inst_accessors_operands::MirInst_arg1(inst)
@@ -79,6 +83,10 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
 }
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    // Vec_new returns (ref null S_f0_ref1_f1_i32) = vec_type
+    if eq(clone(callee), "Vec_new_i64") || eq(clone(callee), "Vec_new_f64") {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
     let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
     if fn_idx < 0 {
         return 0 - 1

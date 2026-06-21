@@ -20,5 +20,8 @@ fn return_value_type_tag(node: AstNode) -> i32 {
     if eq(clone(name), String_from("void")) || eq(clone(name), String_from("()")) {
         return value_types::VT_VOID()
     }
+    if eq(clone(name), String_from("String")) || eq(clone(name), String_from("string")) {
+        return value_types::VT_REF()
+    }
     value_types::VT_I32()
 }

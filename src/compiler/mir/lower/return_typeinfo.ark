@@ -20,6 +20,9 @@ fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
     if tag == 2 {
         return value_types::VT_I64()
     }
+    if tag == 5 {
+        return value_types::VT_REF()
+    }
     if tag == 7 || tag == 8 || tag == 0 {
         return value_types::VT_VOID()
     }

@@ -10,6 +10,14 @@ fn SelfEmitCtx_scratch_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
     ctx.scratch_base + offset
 }
 
+fn SelfEmitCtx_scratch_gc_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + 15 + offset
+}
+
+fn SelfEmitCtx_scratch_gc_i32_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + 17 + offset
+}
+
 fn SelfEmitCtx_set_scratch_base(ctx: SelfEmitCtx, scratch_base: i32) {
     ctx.scratch_base = scratch_base
 }

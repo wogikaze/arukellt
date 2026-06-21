@@ -1156,3 +1156,5 @@ t3-run:scalar/gc_hint_short_lived.ark
 run:t3/array_gc.ark
 t3-compile:t3/array_gc.ark
 t3-run:t3/array_gc.ark
+t3-compile:t3/string_gc.ark
+t3-run:t3/string_gc.ark

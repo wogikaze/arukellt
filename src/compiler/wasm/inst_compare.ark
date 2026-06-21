@@ -1,9 +1,13 @@
-use mir::inst_accessors_shape
-use wasm::opcodes
 // Arukellt Selfhost - Wasm Binary Emitter: comparison instruction handlers.
 
-use wasm::writer_core
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
 use mir::value_types
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::intrinsic_math
+use wasm::opcodes
+use wasm::writer_core
 
 fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
@@ -13,7 +17,12 @@ fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if val_type == value_types::VT_I64() {
             writer_core::emit_byte(w, opcodes::OP_I64_EQ())
         } else {
-            writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+            if val_type == value_types::VT_REF() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                // String comparison on GC target: delegate to byte-by-byte intrinsic
+                intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+            } else {
+                writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+            }
         }
     }
 }
@@ -26,7 +35,13 @@ fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if val_type == value_types::VT_I64() {
             writer_core::emit_byte(w, opcodes::OP_I64_NE())
         } else {
-            writer_core::emit_byte(w, opcodes::OP_I32_NE())
+            if val_type == value_types::VT_REF() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                // String comparison on GC target: delegate to eq intrinsic, then invert
+                intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+                writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+            } else {
+                writer_core::emit_byte(w, opcodes::OP_I32_NE())
+            }
         }
     }
 }

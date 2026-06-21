@@ -5,8 +5,12 @@
 
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
+use wasm::ctx_record
+use wasm::ctx_scratch
 use wasm::ctx_string_view
+use wasm::emit_target
 use wasm::opcodes
+use wasm::string_gc_helpers
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_numbers
@@ -35,22 +39,66 @@ fn emit_const_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_const_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    let str_count = ctx_string_view::SelfEmitCtx_string_offset_count(ctx)
-    let mut found = false
-    let mut si = 0
-    while si < str_count && !found {
-        si = si + 1
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_const_string_gc(w, inst, ctx)
+    } else {
+        emit_const_string_linear(w, inst, ctx)
     }
-    let target_str = clone(inst_accessors_literals::MirInst_str_val(inst))
-    let mut str_idx = 0 - 1
-    let mut si2 = 0
-    let sc2 = ctx_string_view::SelfEmitCtx_string_offset_count(ctx)
-    while si2 < sc2 {
-        si2 = si2 + 1
+}
+
+fn emit_const_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let str_idx = inst_accessors_operands::MirInst_arg0(inst)
+    if str_idx >= 0 && str_idx < ctx_string_view::SelfEmitCtx_string_offset_count(ctx) {
+        let offset = ctx_string_view::SelfEmitCtx_string_offset_at(ctx, str_idx)
+        let target_str = clone(inst_accessors_literals::MirInst_str_val(inst))
+        let str_len = len(target_str)
+        let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        let s_i = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+
+        // result = array.new_default $string_type (str_len)
+        string_gc_helpers::emit_gc_i32_const(w, str_len)
+        string_gc_helpers::emit_gc_array_new(w, string_type)
+        string_gc_helpers::emit_gc_local_set(w, dest)
+
+        // Loop: for i = 0 to str_len-1: result[i] = i32.load8_u(memory[offset + i])
+        string_gc_helpers::emit_gc_i32_const(w, 0)
+        string_gc_helpers::emit_gc_local_set(w, s_i)
+
+        string_gc_helpers::emit_gc_block_loop(w)
+        string_gc_helpers::emit_gc_local_get(w, s_i)
+        string_gc_helpers::emit_gc_i32_const(w, str_len)
+        string_gc_helpers::emit_gc_i32_ge_s(w)
+        string_gc_helpers::emit_gc_br_if(w, 1)
+
+        string_gc_helpers::emit_gc_local_get(w, dest)
+        string_gc_helpers::emit_gc_local_get(w, s_i)
+        // Read byte from data section memory
+        string_gc_helpers::emit_gc_i32_const(w, offset)
+        string_gc_helpers::emit_gc_local_get(w, s_i)
+        string_gc_helpers::emit_gc_i32_add(w)
+        writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        string_gc_helpers::emit_gc_array_set(w, string_type)
+
+        string_gc_helpers::emit_gc_local_get(w, s_i)
+        string_gc_helpers::emit_gc_i32_const(w, 1)
+        string_gc_helpers::emit_gc_i32_add(w)
+        string_gc_helpers::emit_gc_local_set(w, s_i)
+        string_gc_helpers::emit_gc_br(w, 0)
+        string_gc_helpers::emit_gc_block_loop_end(w)
+
+        // Push result on stack
+        string_gc_helpers::emit_gc_local_get(w, dest)
+    } else {
+        // Fallback for invalid string index: push null
+        string_gc_helpers::emit_gc_ref_null(w, ctx_record::SelfEmitCtx_gc_type_base(ctx))
     }
-    if inst_accessors_operands::MirInst_arg0(inst) >= 0 {
-        str_idx = inst_accessors_operands::MirInst_arg0(inst)
-    }
+}
+
+fn emit_const_string_linear(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let str_idx = inst_accessors_operands::MirInst_arg0(inst)
     if str_idx >= 0 && str_idx < ctx_string_view::SelfEmitCtx_string_offset_count(ctx) {
         let offset = ctx_string_view::SelfEmitCtx_string_offset_at(ctx, str_idx)
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
