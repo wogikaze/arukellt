@@ -1,4 +1,10 @@
 // Arukellt Selfhost - Wasm type section GC type entry emission.
+//
+// Type sig format:
+//   A_{elem}      - array type with element type {elem}
+//   S_f{N}_{T}... - struct type with fields at offsets {N} of types {T}
+//   Sub{N}_S_...  - subtype of type at index {N} with struct body S_...
+//   SubF{N}_S_... - final subtype of type at index {N} with struct body S_...
 
 use wasm::opcodes
 use wasm::constants
@@ -28,6 +34,32 @@ fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
     }
     writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(ft))
     writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+}
+
+// Emit a subtype type entry (subtype of an existing type).
+// Sig format: Sub{N}_S_{struct_fields...} or SubF{N}_S_{struct_fields...}
+//   Sub{N}: non-final sub of type index {N}
+//   SubF{N}: final sub of type index {N}
+//   S_{fields}: struct body (same as S_ sig format)
+fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+    // Parse sig: "SubF{N}_S_{fields}" or "Sub{N}_S_{fields}"
+    let sub_len = len(sig)
+    // Check for "SubF" vs "Sub"
+    let is_final = char_at(clone(sig), 3) == 70  // 'F'
+    let super_start = is_final ? 4 : 3
+    // Find '_S_' marker
+    let mut pi = super_start
+    while pi < sub_len && char_at(clone(sig), pi) != 95 { pi = pi + 1 }
+    let super_idx_str = substring(clone(sig), super_start, pi)
+    let super_idx = parse_int(super_idx_str)
+    let struct_body = substring(clone(sig), pi + 1, sub_len)  // "S_..."
+
+    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
+    writer_core::emit_byte(type_sec, is_final ? 1 : 0)
+    writer_leb::emit_leb128_u(type_sec, super_idx)
+
+    // Emit struct body
+    emit_struct_type_entry(type_sec, struct_body, gc_type_base)
 }
 
 fn parse_int(s: String) -> i32 {
