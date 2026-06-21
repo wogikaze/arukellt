@@ -2,7 +2,7 @@
 
 > 対応 ADR: [ADR-035](adr/ADR-035-wasm-gc-implementation.md)
 > 追跡 issue: [#686](../issues/open/686-wasm-gc-selfhost-implementation.md)
-> ステータス: Phase 0/1/2 完了 🎉, Phase 3 一部 (vec_new/vec_len/vec_get ✅), Phase 4 一部
+> ステータス: Phase 0/1/2 完了 🎉, Phase 3 Vec ✅ (全基本操作), Phase 4 一部
 > 動作確認: GC array smoke test ✅, string_gc compile ✅, string_gc run ✅
 > 検証通過: len, ==, starts_with, ends_with, concat, to_string (i32/i64/f64), print/println
 > 検証コマンド: 全チェックボックスに Verify コマンド付き (#686 更新済み)

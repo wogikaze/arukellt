@@ -112,8 +112,13 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     // Vec<T> shape: ref to backing array (A_i32) + len (i32)
     // Enum base (S_f0_i32) is the same as index 2
     push(type_sigs, String_from("S_f0_ref1_f1_i32"))
+    // Numeric array types for Vec<i64>/Vec<f64> GC support
+    push(type_sigs, String_from("A_i64"))
+    push(type_sigs, String_from("A_f64"))
+    // Single i64 field struct shape (for precision work)
+    push(type_sigs, String_from("S_f0_i64"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    11
+    14
 }

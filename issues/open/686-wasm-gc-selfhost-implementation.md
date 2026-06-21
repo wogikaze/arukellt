@@ -101,7 +101,7 @@ ADR-035's phased plan.
 
 ### Phase 3: Vec/Enum/Struct GC 表現 (`035-gc-vec-enum-struct.md`)
 
-- [ ] Vec&lt;T&gt; の GC struct + GC array backing
+- [x] Vec&lt;T&gt; の GC struct + GC array backing ✅ 全基本操作完了
   - 内部ステップ:
     - [x] GC Vec 型定義 (`S_f0_ref1_f1_i32` in `sections_types_gc.ark`) — 事前完了
     - [x] struct ref フィールド対応 (`emit_struct_field_type`) — 事前完了
