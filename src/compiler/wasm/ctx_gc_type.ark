@@ -11,7 +11,28 @@ fn SelfEmitCtx_string_type(ctx: SelfEmitCtx) -> i32 {
 }
 
 fn SelfEmitCtx_struct_type(ctx: SelfEmitCtx, byte_size: i32) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
+    // Map byte_size to the matching GC struct type index.
+    // Available: S_f0_i32 (idx 2) through S_f0_i32_..._f7_i32 (idx 9)
+    // Each i32 field is 4 bytes; struct type count = ceil(byte_size / 4) fields.
+    let field_count = (byte_size + 3) / 4
+    if field_count <= 1 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
+    } else if field_count == 2 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 3
+    } else if field_count == 3 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 4
+    } else if field_count == 4 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 5
+    } else if field_count == 5 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 6
+    } else if field_count == 6 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 7
+    } else if field_count == 7 {
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 8
+    } else {
+        // 8+ fields → use S_f0_i32_..._f7_i32 (idx 9)
+        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 9
+    }
 }
 
 fn SelfEmitCtx_vec_type(ctx: SelfEmitCtx) -> i32 {

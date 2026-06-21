@@ -35,8 +35,12 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
 
 fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
-        let field_idx = inst_accessors_literals::MirInst_int_val(inst) / 4
+        let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
+        // MIR encodes field offset as int_val; compute struct type by assuming
+        // struct has at least offset + 4 bytes (i32 field at offset).
+        let struct_size_est = byte_offset + 4
+        let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
+        let field_idx = byte_offset / 4
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
     } else {
         if inst_accessors_literals::MirInst_int_val(inst) > 0 {
@@ -65,8 +69,10 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
 fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
-        let field_idx = inst_accessors_literals::MirInst_int_val(inst) / 4
+        let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
+        let struct_size_est = byte_offset + 4
+        let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
+        let field_idx = byte_offset / 4
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
