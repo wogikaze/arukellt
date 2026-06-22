@@ -27,9 +27,11 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
 }
 
 fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
-    let mut count = 3  // i32 scratch (1 group) + f64 scratch (1 group) + i64 scratch (1 group)
+    // Each scratch type is one group (batched count + type).
+    let mut count = 3  // i32 (12), f64 (2), i64 (1)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        count = count + 2  // gc_ref (A_i8) + gc_ref (A_i32)
+        // Each GC scratch local is emitted as a separate group (1 local per group).
+        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count()
     }
     count
 }
