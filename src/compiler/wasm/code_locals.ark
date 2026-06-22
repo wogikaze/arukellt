@@ -12,7 +12,7 @@ use wasm::writer_leb
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
     let body_local_count = local_count - param_count
-    writer_leb::emit_leb128_u(body, body_local_count + scratch_local_count())
+    writer_leb::emit_leb128_u(body, body_local_count + scratch_local_count(ctx))
     let mut li = param_count
     while li < local_count {
         let loc = function_locals_view::MirFunction_local_at(f, li)
@@ -69,8 +69,12 @@ fn scratch_gc_local_count() -> i32 { 2 }
 
 fn scratch_gc_i32_array_local_count() -> i32 { 2 }
 
-fn scratch_local_count() -> i32 {
-    scratch_i32_local_count() + scratch_f64_local_count() + scratch_i64_local_count() + scratch_gc_local_count() + scratch_gc_i32_array_local_count()
+fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
+    let mut count = scratch_i32_local_count() + scratch_f64_local_count() + scratch_i64_local_count()
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count()
+    }
+    count
 }
 
 fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
