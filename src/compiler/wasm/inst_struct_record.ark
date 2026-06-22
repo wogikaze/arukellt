@@ -20,8 +20,6 @@ use mir::value_types
 fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        // GC target: use struct.new_default. Local type inference will match
-        // the struct type with the MIR_STRUCT_NEW byte_size.
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
         writer_gc::emit_gc_struct_new_default(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -42,9 +40,6 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
 }
 
 fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    // GC path: use struct.get when on GC target. The struct was created by
-    // emit_struct_new which may use GC or bump alloc; for GC-created structs
-    // the value on the stack is a GC ref and struct.get is correct.
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
         let struct_size_est = byte_offset + 4

@@ -130,6 +130,13 @@ ADR-035's phased plan.
     runtime テストが正しく動作する
 
 - [ ] Enum subtype hierarchy + br_on_cast dispatch
+  - 内部進捗:
+    - [x] `MIR_BR_ON_CAST` / `MIR_BR_ON_CAST_FAIL` オペコード追加 (82, 83)
+    - [x] 命令コンストラクタ (`mir/inst_br_on_cast.ark`)
+    - [x] wasm backend 発行 (`inst_control.ark`, `inst_dispatch_control.ark`)
+    - [x] LowerCtx に `is_gc_target` / `gc_type_base` フィールド追加
+    - [ ] MIR match lowering で br_on_cast を使用
+    - [ ] Enum variant 構築を VT_GC_REF 化
   - **Verify (実装後):**
     ```
     arukeit compile tests/fixtures/enums/exhaustive_match.ark -o /tmp/enum_gc.wasm --target wasm32-wasi-p2

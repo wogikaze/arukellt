@@ -18,7 +18,7 @@ fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> 
 }
 
 fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
-    if depth > 4 {
+    if depth > 8 {
         return 0 - 1
     }
     let block_count = function_block_queries::MirFunction_block_count(f)

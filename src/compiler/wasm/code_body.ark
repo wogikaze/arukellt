@@ -27,6 +27,7 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
     emit_function_instructions(body, f, ctx, bindings)
+
     writer_core::emit_byte(body, opcodes::OP_END())
     body
 }

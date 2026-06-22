@@ -1,8 +1,11 @@
+// Arukellt Selfhost - array MIR instruction emission.
+//
+// GC target: use array.new_default/get/set for all arrays.
+// Linear-memory target: bump allocator + i32 load/store.
+
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::opcodes
-// Arukellt Selfhost - array MIR instruction emission.
-
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_gc
