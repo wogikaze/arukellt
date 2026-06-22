@@ -74,6 +74,8 @@ fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count()
     }
+    // Ensure count matches what emit_scratch_local_decls actually emits.
+    // For GC targets, include GC locals. For non-GC, exclude them.
     count
 }
 
