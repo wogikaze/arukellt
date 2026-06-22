@@ -12,7 +12,10 @@ use wasm::writer_leb
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
     let body_local_count = local_count - param_count
-    writer_leb::emit_leb128_u(body, body_local_count + scratch_local_count(ctx))
+    // The header is the NUMBER OF LOCAL GROUPS (each group = count + type),
+    // not the total number of locals.
+    let scratch_group_count = scratch_group_count(ctx)
+    writer_leb::emit_leb128_u(body, body_local_count + scratch_group_count)
     let mut li = param_count
     while li < local_count {
         let loc = function_locals_view::MirFunction_local_at(f, li)
@@ -21,6 +24,14 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
         li = li + 1
     }
     emit_scratch_local_decls(body, ctx)
+}
+
+fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
+    let mut count = 3  // i32 scratch (1 group) + f64 scratch (1 group) + i64 scratch (1 group)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        count = count + 2  // gc_ref (A_i8) + gc_ref (A_i32)
+    }
+    count
 }
 
 fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) {
@@ -74,8 +85,6 @@ fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count()
     }
-    // Ensure count matches what emit_scratch_local_decls actually emits.
-    // For GC targets, include GC locals. For non-GC, exclude them.
     count
 }
 
