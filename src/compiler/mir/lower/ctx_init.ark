@@ -45,5 +45,7 @@ fn LowerCtx_new(m: MirModule) -> ctx_types::LowerCtx {
         wit_call_names: Vec_new_String(),
         wit_call_iface_ids: Vec_new_String(),
         wit_call_func_names: Vec_new_String(),
+        is_gc_target: false,
+        gc_type_base: 0,
     }
 }
