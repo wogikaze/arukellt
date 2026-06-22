@@ -74,7 +74,7 @@ if [[ "${1:-}" == "run" ]]; then
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   set +e
-  wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then
@@ -95,7 +95,7 @@ if [[ "${1:-}" == "run" ]]; then
   if grep -aq 'arukellt_host' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
-  exec wasmtime run --dir="$REPO_ROOT" "$out_path"
+  exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
 fi
 
 # #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
@@ -110,7 +110,7 @@ if [[ "${1:-}" == "compose" ]]; then
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
     set +e
-    wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
     rc=$?
     set -e
     cat "$tmpdir/stdout"
@@ -159,7 +159,7 @@ fi
 
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
-    exec wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@"
+    exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@"
   fi
   DEBUG_ADAPTER="$REPO_ROOT/tools/host-linker/target/release/arukellt-debug-adapter"
   if [[ ! -x "$DEBUG_ADAPTER" ]]; then
@@ -171,4 +171,4 @@ if [[ "${1:-}" == "debug-adapter" ]]; then
   fi
 fi
 
-exec wasmtime run --dir="$REPO_ROOT" "$wasm" -- "$@"
+exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@"

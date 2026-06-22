@@ -311,7 +311,7 @@ def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
         if hosted.is_file():
             return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", f"--dir={root}", str(wasm_path)]
+    return [wasmtime or "wasmtime", "run", "--wasm", "gc", "--wasm", "function-references", f"--dir={root}", str(wasm_path)]
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -346,7 +346,7 @@ def _wasm_compile(
         guest_out = "bootstrap-out.wasm"
     dirs.extend(["--dir", str(root)])
     result = _run(
-        [wasmtime, "run", *dirs, str(compiler_wasm), "--",
+        [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", *dirs, str(compiler_wasm), "--",
          "compile", src, "--target", SELFHOST_TARGET, "-o", guest_out],
         root,
         timeout=timeout,
@@ -1775,7 +1775,7 @@ def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | N
     shutil.copyfile(bootstrap, work_dir / "hop-compiler.wasm")
     hop_s2 = work_dir / "hop-s2.wasm"
     compile = subprocess.run(
-        [wasmtime, "run", "--dir", ".", "hop-compiler.wasm", "--",
+        [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", ".", "hop-compiler.wasm", "--",
          "compile", "src/compiler/main.ark", "--target", SELFHOST_TARGET, "-o", "hop-s2.wasm"],
         cwd=str(work_dir),
         capture_output=True,
@@ -2086,7 +2086,7 @@ def _wasm_fmt(
     timeout: int | None = None,
 ) -> subprocess.CompletedProcess:
     return _run(
-        [wasmtime, "run", "--dir", str(root), str(compiler_wasm), "--",
+        [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", str(root), str(compiler_wasm), "--",
          "fmt", src],
         root,
         timeout=timeout,
@@ -2101,7 +2101,7 @@ def _wasm_check(
     timeout: int | None = None,
     extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
-    cmd = [wasmtime, "run", "--dir", str(root), str(compiler_wasm), "--"]
+    cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", str(root), str(compiler_wasm), "--"]
     cmd.extend(["check"])
     if extra_args:
         cmd.extend(extra_args)
@@ -2740,7 +2740,7 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
     fail_count = 0
 
     def run_self_with_dirs(dirs: list[Path], *args: str) -> tuple[int, str]:
-        cmd = [wasmtime, "run"]
+        cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references"]
         for mount in dirs:
             cmd.extend(["--dir", str(mount)])
         cmd.extend([str(current), "--", *args])
@@ -2821,7 +2821,7 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
         tmp = Path(tmpdir)
         (tmp / "test_project" / "src").mkdir(parents=True)
         r = _run(
-            [wasmtime, "run", "--dir", ".", str(current), "--", "init", "test_project"],
+            [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", ".", str(current), "--", "init", "test_project"],
             tmp,
         )
         rc_i, out_i = r.returncode, (r.stdout + r.stderr)
@@ -2866,7 +2866,7 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
                         dirs_exist_ok=True)
         project_dir = tmp / "basic-project"
         r = _run(
-            [wasmtime, "run", "--dir", str(project_dir), str(current), "--", "script"],
+            [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", str(project_dir), str(current), "--", "script"],
             project_dir,
         )
         rc_s, out_s = r.returncode, (r.stdout + r.stderr)

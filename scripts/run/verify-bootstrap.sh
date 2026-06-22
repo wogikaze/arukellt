@@ -274,7 +274,7 @@ stage1() {
     if [[ -n "${MIR_LOWER_TRACE:-}" ]]; then
         wt_env+=(--env "MIR_LOWER_TRACE=${MIR_LOWER_TRACE}")
     fi
-    if timeout 120 wasmtime run --dir="${REPO_ROOT}" \
+    if timeout 120 wasmtime run --wasm gc --wasm function-references --dir="${REPO_ROOT}" \
         "${wt_env[@]}" \
         "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
         -o "$rel_out" 2>"$stderr_file"; then
@@ -322,7 +322,7 @@ stage2() {
         wt_env+=(--env "MIR_LOWER_TRACE=${MIR_LOWER_TRACE}")
     fi
     echo -e "  Compiling main.ark → arukellt-s3.wasm (via s2)..."
-    if ! timeout 120 wasmtime run --dir="${REPO_ROOT}"         "${wt_env[@]}"         "$S2_WASM" -- compile "$rel_src" --target wasm32-wasi-p1         -o "$rel_out" 2>"$stderr_file"; then
+    if ! timeout 120 wasmtime run --wasm gc --wasm function-references --dir="${REPO_ROOT}"         "${wt_env[@]}"         "$S2_WASM" -- compile "$rel_src" --target wasm32-wasi-p1         -o "$rel_out" 2>"$stderr_file"; then
         local exit_code=$?
         echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s2 (exit ${exit_code})" >&2
         if [[ -s "$stderr_file" ]]; then
