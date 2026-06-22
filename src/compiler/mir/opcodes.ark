@@ -78,6 +78,10 @@ fn MIR_GC_HINT_SHORT_LIVED() -> i32 { 0 }
 fn MIR_FUTURE_NEW() -> i32 { 80 }
 fn MIR_AWAIT() -> i32 { 81 }
 
+// GC cast opcodes.
+fn MIR_BR_ON_CAST() -> i32 { 82 }
+fn MIR_BR_ON_CAST_FAIL() -> i32 { 83 }
+
 fn is_arith_opcode(op: i32) -> bool {
     op >= MIR_ADD() && op <= MIR_SHR()
 }

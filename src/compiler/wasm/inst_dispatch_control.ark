@@ -33,5 +33,13 @@ fn try_emit_control_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
         inst_control::emit_end(w, inst, ctx)
         return true
     }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR_ON_CAST() {
+        inst_control::emit_br_on_cast(w, inst, ctx)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_BR_ON_CAST_FAIL() {
+        inst_control::emit_br_on_cast_fail(w, inst, ctx)
+        return true
+    }
     false
 }

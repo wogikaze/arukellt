@@ -3,6 +3,7 @@
 // Extracted from emitter.ark for module-level organization.
 
 use mir::inst_accessors_literals
+use mir::inst_accessors_operands
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_leb
@@ -38,4 +39,18 @@ fn emit_else(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
 fn emit_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_br_on_cast(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_leb::emit_leb128_u(w, opcodes::GC_BR_ON_CAST())
+    writer_leb::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
+    writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+}
+
+fn emit_br_on_cast_fail(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_leb::emit_leb128_u(w, opcodes::GC_BR_ON_CAST_FAIL())
+    writer_leb::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
+    writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
 }

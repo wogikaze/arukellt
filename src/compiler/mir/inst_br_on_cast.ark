@@ -1,0 +1,17 @@
+// Arukellt Selfhost - MIR br_on_cast / br_on_cast_fail instruction constructors.
+//
+// Arguments:
+//   arg0: GC type index to cast the scrutinee to (variant subtype index)
+//   int_val: label depth for the branch target
+
+use mir::inst_factory
+use mir::opcodes
+use mir::value_types
+
+fn MirInst_br_on_cast(gc_type_idx: i32, label_depth: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_BR_ON_CAST(), 0 - 1, gc_type_idx, 0 - 1, label_depth, 0.0, String_new(), value_types::VT_VOID())
+}
+
+fn MirInst_br_on_cast_fail(gc_type_idx: i32, label_depth: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_BR_ON_CAST_FAIL(), 0 - 1, gc_type_idx, 0 - 1, label_depth, 0.0, String_new(), value_types::VT_VOID())
+}
