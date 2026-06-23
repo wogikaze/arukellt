@@ -7,11 +7,12 @@ struct MirLowerInput {
     body_source: MirLowerEntryBodySource,
     wit_paths: Vec<String>,
     decl_nodes: Vec<AstNode>,
+    target: String,
 }
 
-fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>) -> MirLowerInput {
+fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>, target: String) -> MirLowerInput {
     let body_source = entry_body_source::mir_entry_body_source_new(entry_body_source::mir_entry_body_source_view_from_core(view), fallback_source)
-    MirLowerInput { view: view, body_source: body_source, wit_paths: wit_paths, decl_nodes: decl_nodes }
+    MirLowerInput { view: view, body_source: body_source, wit_paths: wit_paths, decl_nodes: decl_nodes, target: target }
 }
 
 fn mir_lower_input_wit_paths(input: MirLowerInput) -> Vec<String> {
@@ -28,4 +29,8 @@ fn mir_lower_input_view(input: MirLowerInput) -> CoreHirMirView {
 
 fn mir_lower_input_body_source(input: MirLowerInput) -> MirLowerEntryBodySource {
     input.body_source
+}
+
+fn mir_lower_input_target(input: MirLowerInput) -> String {
+    clone(input.target)
 }

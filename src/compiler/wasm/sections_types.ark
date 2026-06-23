@@ -4,36 +4,42 @@ use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
 use mir::module_wit_imports
-use wasm::constants
-use wasm::ctx_gc_type
+use mir::module_gc_enum
 use wasm::emit_target
 use wasm::opcodes
 use wasm::sections_type_plan
 use wasm::sections_types_gc
+use wasm::sections_types_emit
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
 
 struct TypeCanonPlan { canon_types: Vec<String>, type_map: Vec<i32> }
 
-fn emit_type_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
+fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
     let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
-    let mut gc_type_count = 0
+    let mut gc_fixed_count = 0
+    let mut enum_variant_count = 0
     if emit_target::is_gc_target(clone(target)) {
-        gc_type_count = sections_types_gc::gc_type_sig_count()
+        gc_fixed_count = sections_types_gc::gc_type_sig_count()
+        enum_variant_count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
     }
-    let type_sigs = build_type_sigs(functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
+    let gc_type_count = gc_fixed_count + enum_variant_count
+    let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
     let gc_type_base = first_gc_type_index(canon_types)
+    let mut gc_enum_variant_base = 0 - 1
+    if enum_variant_count > 0 && gc_type_base >= 0 {
+        gc_enum_variant_base = gc_type_base + gc_fixed_count
+    }
     let type_sec = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(type_sec, len(canon_types))
-    emit_canon_type_entries(type_sec, canon_types, gc_type_base)
+    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    let plan = sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper)
-    plan
+    sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper, gc_type_base, gc_enum_variant_base)
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -48,7 +54,7 @@ fn TypeCanonPlan_type_map(plan: TypeCanonPlan) -> Vec<i32> {
     plan.type_map
 }
 
-fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<String> {
+fn build_type_sigs(mir: MirModule, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<String> {
     let type_sigs = Vec_new_String()
     if emit_target::is_freestanding_target(clone(target)) {
         append_t2_type_sigs(type_sigs)
@@ -58,6 +64,7 @@ fn build_type_sigs(functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i3
     append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
+        sections_types_gc::append_enum_variant_sigs(type_sigs, mir)
     }
     append_function_type_sigs(type_sigs, functions, fn_count, clone(target))
     append_wrapper_type_sig(type_sigs, needs_wrapper)
@@ -177,73 +184,4 @@ fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
         i = i + 1
     }
     0 - 1
-}
-
-fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_type_base: i32) {
-    let mut cti2 = 0
-    while cti2 < len(canon_types) {
-        let csig = get_unchecked(canon_types, cti2)
-        if eq(clone(csig), String_from("MR_i64_i32")) {
-            writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
-            writer_leb::emit_leb128_u(type_sec, 0)
-            writer_leb::emit_leb128_u(type_sec, 2)
-            writer_core::emit_byte(type_sec, constants::WASM_I64())
-            writer_core::emit_byte(type_sec, constants::WASM_I32())
-        } else {
-            if char_at(clone(csig), 0) == 83 {
-                if char_at(clone(csig), 1) == 117 {
-                    // Starts with "Su" → subtype (Sub/SubF format)
-                    sections_types_gc::emit_sub_type_entry(type_sec, csig, gc_type_base)
-                } else {
-                    sections_types_gc::emit_struct_type_entry(type_sec, csig, gc_type_base)
-                }
-            } else {
-                if char_at(clone(csig), 0) == 65 {
-                    sections_types_gc::emit_array_type_entry(type_sec, csig)
-                } else {
-                    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
-                    let param_segments = sections_type_plan::type_sig_param_segments(csig)
-                    let result_seg = sections_type_plan::type_sig_result_segment(csig)
-                    emit_type_param_entries(type_sec, param_segments, gc_type_base)
-                    emit_type_result_entry(type_sec, result_seg, gc_type_base)
-                }
-            }
-        }
-        cti2 = cti2 + 1
-    }
-}
-
-fn emit_type_param_entries(type_sec: WasmWriter, param_segments: Vec<String>, gc_type_base: i32) {
-    let param_count = len(param_segments)
-    writer_leb::emit_leb128_u(type_sec, param_count)
-    let mut pi = 0
-    while pi < param_count {
-        let seg = get_unchecked(param_segments, pi)
-        emit_sig_val_type(type_sec, seg, gc_type_base)
-        pi = pi + 1
-    }
-}
-
-fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String, gc_type_base: i32) {
-    if eq(clone(result_seg), "0") {
-        writer_leb::emit_leb128_u(type_sec, 0)
-    } else {
-        let rt = substring(result_seg, 1, len(result_seg))
-        writer_leb::emit_leb128_u(type_sec, 1)
-        emit_sig_val_type(type_sec, rt, gc_type_base)
-    }
-}
-
-fn emit_sig_val_type(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
-    if eq(clone(sig), "gcref") && gc_type_base >= 0 {
-        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(type_sec, gc_type_base + 8)
-        return
-    }
-    if eq(clone(sig), "ref") && gc_type_base >= 0 {
-        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(type_sec, gc_type_base)
-        return
-    }
-    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(sig))
 }

@@ -1,0 +1,86 @@
+// Arukellt Selfhost - MIR lowering GC enum variant registration.
+
+use mir::lower::ctx_types
+use mir::module_gc_enum
+
+fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
+    ctx.is_gc_target
+}
+
+fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String) {
+    push(ctx.gc_enum_variant_names, variant_name)
+    push(ctx.gc_enum_variant_sigs, sig)
+}
+
+fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
+    let count = len(ctx.gc_enum_variant_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_enum_variant_names, i), clone(variant_name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
+    let m = ctx.module
+    let count = len(ctx.gc_enum_variant_names)
+    let mut i = 0
+    while i < count {
+        module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(get_unchecked(ctx.gc_enum_variant_sigs, i)))
+        i = i + 1
+    }
+}
+
+fn gc_enum_unit_variant_sig(slot: i32) -> String {
+    concat(String_from("SubF+2_S_f0_i32@"), to_string(slot))
+}
+
+fn gc_enum_payload_variant_sig(slot: i32, field_sigs: String) -> String {
+    concat(concat(String_from("SubF+2_S_f0_i32"), field_sigs), concat(String_from("@"), to_string(slot)))
+}
+
+fn gc_enum_field_sig_for_type(type_name: String) -> String {
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+        return String_from("_f1_f64")
+    }
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+        return String_from("_f1_i64")
+    }
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+        return String_from("_f1_ref0")
+    }
+    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+        return String_from("_f1_i32")
+    }
+    String_from("_f1_i32")
+}
+
+fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
+    let mut sig = String_new()
+    let layout_count = len(ctx.struct_names)
+    let mut li = 0
+    while li < layout_count {
+        if eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
+            let field_count = get_unchecked(ctx.struct_field_counts, li)
+            let mut fi = 1
+            while fi < field_count {
+                let mut off = 0
+                let mut si = 0
+                while si < li {
+                    off = off + get_unchecked(ctx.struct_field_counts, si)
+                    si = si + 1
+                }
+                off = off + fi
+                let ft = get_unchecked(ctx.struct_field_types, off)
+                sig = concat(sig, gc_enum_field_sig_for_type(clone(ft)))
+                fi = fi + 1
+            }
+            return sig
+        }
+        li = li + 1
+    }
+    sig
+}

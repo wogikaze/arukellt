@@ -2,18 +2,25 @@ use mir::lower::ast_node
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
-use mir::opcodes
+use mir::lower::ctx_gc_enum
+use mir::lower_kinds
 use mir::lower::ctx_types
 // Arukellt MIR lowering body - single-pattern match comparison prefix.
 
 use mir::inst_structured_control
 use mir::inst_local_get
 use mir::inst_op
+use mir::inst_br_on_cast
+use mir::opcodes
 use mir::lower::match
 use mir::value_types
 
 fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
     let mut depth = if_depth
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) {
+        depth = lower_gc_variant_match_prefix(ctx, arm_node, pat, payload_info, scrut_idx, has_guard, depth)
+        return depth
+    }
     let compare_idx = match::mir_match_payload_compare_idx(payload_info)
     ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
     let pat_idx = lower_expr(ctx, pat)
@@ -22,6 +29,25 @@ fn lower_single_match_compare_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstN
     ctx_emit(ctx, inst_structured_control::MirInst_if())
     ctx_api_nesting::ctx_push_nesting(ctx)
     depth = depth + 1
+    match::mir_emit_payload_variant_binds_if_needed(ctx, payload_info, pat, scrut_idx)
+    if has_guard {
+        let guard2 = ast_node::node_child_at(arm_node, 1)
+        lower_expr(ctx, guard2)
+        match::mir_emit_match_guard_begin(ctx)
+        depth = depth + 1
+    }
+    depth
+}
+
+fn lower_gc_variant_match_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {
+    let mut depth = if_depth
+    let variant_name = ast_node::node_text(pat)
+    let type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_block())
+    ctx_api_nesting::ctx_push_nesting(ctx)
+    depth = depth + 1
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
+    ctx_api_emit::ctx_emit(ctx, inst_br_on_cast::MirInst_br_on_cast_fail(type_slot, 0))
     match::mir_emit_payload_variant_binds_if_needed(ctx, payload_info, pat, scrut_idx)
     if has_guard {
         let guard2 = ast_node::node_child_at(arm_node, 1)

@@ -18,7 +18,7 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirMo
         return lower_t3_wasm_program(program, config)
     }
     let decls = checked_program::checked_program_wit_decls(program)
-    session::session_lower_mir(checked_program::checked_program_session(program), decls, config_record::config_wit_paths(config))
+    session::session_lower_mir(checked_program::checked_program_session(program), decls, config_record::config_wit_paths(config), config_record::config_target(config))
 }
 
 fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
@@ -32,14 +32,14 @@ fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig) -> MirMo
     let core_program = checked_program::checked_program_core_program(program)
     let decls = checked_program::checked_program_wit_decls(program)
     let export_roots = export_surface_names_from_program(core_program)
-    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config))
+    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config), config_record::config_target(config))
 }
 
 fn lower_component_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
     let core_program = checked_program::checked_program_core_program(program)
     let decls = checked_program::checked_program_wit_decls(program)
     let export_roots = export_surface_names_from_program(core_program)
-    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config))
+    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config), config_record::config_target(config))
 }
 
 fn export_surface_names_from_program(program: CoreHirRawProgram) -> Vec<String> {

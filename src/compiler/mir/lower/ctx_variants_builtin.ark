@@ -1,6 +1,7 @@
 // Arukellt MIR lowering context - builtin variant registration.
 
 use mir::lower::ctx_variant_storage
+use mir::lower::ctx_gc_enum
 
 fn ctx_register_builtin_variant_tags(ctx: LowerCtx) {
     ctx_variant_storage::ctx_variant_push_tag(ctx, String_from("Some"), 0)
@@ -22,4 +23,24 @@ fn ctx_register_builtin_payload_variants(ctx: LowerCtx) {
     ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Option::None"))
     ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Result::Ok"))
     ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Result::Err"))
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        register_builtin_gc_variant(ctx, String_from("None"), false)
+        register_builtin_gc_variant(ctx, String_from("Option::None"), false)
+        register_builtin_gc_variant(ctx, String_from("Some"), true)
+        register_builtin_gc_variant(ctx, String_from("Option::Some"), true)
+        register_builtin_gc_variant(ctx, String_from("Ok"), true)
+        register_builtin_gc_variant(ctx, String_from("Result::Ok"), true)
+        register_builtin_gc_variant(ctx, String_from("Err"), true)
+        register_builtin_gc_variant(ctx, String_from("Result::Err"), true)
+    }
+}
+
+fn register_builtin_gc_variant(ctx: LowerCtx, name: String, has_payload: bool) {
+    let slot = len(ctx.gc_enum_variant_names)
+    let sig = if has_payload {
+        ctx_gc_enum::gc_enum_payload_variant_sig(slot, String_from("_f1_i32"))
+    } else {
+        ctx_gc_enum::gc_enum_unit_variant_sig(slot)
+    }
+    ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(name), sig)
 }

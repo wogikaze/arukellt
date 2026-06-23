@@ -2,6 +2,7 @@ use mir::lower::ctx_fn_mono
 use mir::lower::ctx_api_init
 use mir::lower::ctx_types
 use mir::lower::wit_ctx_init
+use wasm::emit_target
 // Arukellt Selfhost - MIR lowering entry context preparation.
 
 use mir::lower::entry_trace
@@ -9,8 +10,9 @@ use mir::lower::fn_index
 use mir::lower::mono_calls
 use mir::lower::mono_view
 
-fn mir_prepare_lower_ctx(m: MirModule, fn_index_info: MirLowerFnIndex, mono_view: MirLowerMonoView, mir_tr: i32, wit_paths: Vec<String>, decls: Vec<AstNode>) -> LowerCtx {
+fn mir_prepare_lower_ctx(m: MirModule, fn_index_info: MirLowerFnIndex, mono_view: MirLowerMonoView, mir_tr: i32, wit_paths: Vec<String>, decls: Vec<AstNode>, target: String) -> LowerCtx {
     let mut ctx = LowerCtx_new(m)
+    ctx.is_gc_target = emit_target::is_gc_target(clone(target))
     ctx_fn_mono::ctx_replace_fn_index(ctx, fn_index::mir_fn_index_names(fn_index_info), fn_index::mir_fn_index_return_vts(fn_index_info), fn_index::mir_fn_index_return_type_names(fn_index_info))
     mono_calls::mir_register_mono_rewrites(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     wit_ctx_init::mir_init_wit_bindings(ctx, wit_paths, decls)
