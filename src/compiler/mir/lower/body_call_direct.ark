@@ -30,11 +30,6 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             let needs_convert = call_args::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
             if needs_convert {
                 arg_idx = call_args::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
-                ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
-            } else {
-                if !ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) {
-                    ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
-                }
             }
         }
         if stage_call_args && arg_idx >= 0 {

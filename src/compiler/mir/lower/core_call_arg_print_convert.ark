@@ -35,9 +35,7 @@ fn mir_core_convert_print_arg_to_string(ctx: LowerCtx, arg: CoreHirExpr, arg_idx
     }
     let wrap_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, wrap_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, wrap_dest, String_from("String"))
-    if !core_expr_shape_atoms::mir_core_expr_is_ident(arg) {
-        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
-    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(wrap_callee, 1, wrap_dest))
     wrap_dest
 }

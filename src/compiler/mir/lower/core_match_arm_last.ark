@@ -1,8 +1,8 @@
 // Arukellt Selfhost - CoreHIR final match arm MIR lowering.
 
+use mir::inst_misc_control
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
-use mir::inst_misc_control
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::core_match_control

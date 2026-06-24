@@ -11,6 +11,7 @@ use wasm::string_gc_helpers
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_io_calls
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_p2
 
@@ -50,6 +51,7 @@ fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
     helpers_io_p2::emit_p2_write_newline(w, 0)
+    helpers_io_calls::emit_drop(w)
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -100,12 +102,47 @@ fn emit_gc_copy_loop(w: WasmWriter, s_buf: i32, s_gc: i32, s_len: i32, s_i: i32,
 }
 
 fn emit_gc_string_to_heap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
+    let arg_local = inst_accessors_operands::MirInst_arg0(inst)
+    if arg_local >= 0 {
+        return emit_gc_string_to_heap_from_local(w, arg_local, ctx)
+    }
     let s_buf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
 
+    helpers_core_locals::emit_local_set(w, s_gc)
+    helpers_core_locals::emit_local_get(w, s_gc)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_len)
+
+    emit_gc_alloc_heap_buf(w, s_buf, s_len)
+
+    helpers_core_locals::emit_local_get(w, s_buf)
+    helpers_core_locals::emit_local_get(w, s_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+
+    emit_gc_copy_loop(w, s_buf, s_gc, s_len, s_i, string_type)
+
+    helpers_core_locals::emit_local_get(w, s_buf)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    helpers_core_locals::emit_local_set(w, s_buf)
+    s_buf
+}
+
+fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: SelfEmitCtx) -> i32 {
+    let s_buf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+
+    helpers_core_locals::emit_local_get(w, string_local)
     helpers_core_locals::emit_local_set(w, s_gc)
     helpers_core_locals::emit_local_get(w, s_gc)
     string_gc_helpers::emit_gc_array_len(w)
