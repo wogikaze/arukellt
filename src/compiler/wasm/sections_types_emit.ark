@@ -31,7 +31,7 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
                     emit_struct_type_entry(type_sec, csig, gc_type_base)
                 } else {
                     if char_at(clone(csig), 0) == 65 {
-                        sections_types_gc::emit_array_type_entry(type_sec, csig)
+                        sections_types_gc::emit_array_type_entry(type_sec, csig, gc_type_base)
                     } else {
                         writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
                         let param_segments = sections_type_plan::type_sig_param_segments(csig)

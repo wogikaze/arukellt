@@ -38,13 +38,14 @@ fn emit_vec_new_layout_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     //   7. local.get $gc1             → [vec_ref]   (return vec_ref)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    let arr_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    let vec_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let arr_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let vec_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
 
     // Step 1-2: Create backing array with initial capacity 8, save ref
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 8)
     writer_gc::emit_gc_array_new(w, i32_array_type)
+    writer_gc::emit_gc_ref_cast(w, i32_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, arr_tmp)
 
@@ -55,7 +56,11 @@ fn emit_vec_new_layout_gc(w: WasmWriter, ctx: SelfEmitCtx) {
 
     // Step 5-6: Set field 0 = data array ref
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, vec_tmp)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_gc::emit_gc_ref_cast(w, i32_array_type)
     writer_gc::emit_gc_struct_set(w, vec_type, 0)
 
     // Step 7: Return vec_ref

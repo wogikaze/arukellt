@@ -15,8 +15,8 @@ fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     intrinsic_vec_core::emit_vec_len(w, inst, ctx)
 }
 
-fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool) -> bool {
-    intrinsic_vec_push::emit_push(w, inst, ctx, is_void_push)
+fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
+    intrinsic_vec_push::emit_push(w, inst, ctx, is_void_push, next_op)
 }
 
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

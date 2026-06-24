@@ -1,9 +1,11 @@
 use typechecker::kinds
 // Arukellt Typechecker - builtin call type facts
 
+use typechecker::contract_type_access
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::types
+use typechecker::builtins_hash
 
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
@@ -15,6 +17,10 @@ fn builtin_call_return_type(name: String) -> TypeInfo {
     }
     if eq(clone(name), "len") {
         return simple_type(commands::TY_I32())
+    }
+    let hash_ty = builtins_hash::hashmap_builtin_return_type(clone(name))
+    if contract_type_access::TypeInfo_tag(hash_ty) != commands::TY_UNKNOWN() {
+        return hash_ty
     }
     if starts_with(clone(name), "Vec_new_") {
         let elem_name = substring(name, 8, len(name))

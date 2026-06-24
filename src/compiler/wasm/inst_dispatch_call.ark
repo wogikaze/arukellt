@@ -3,6 +3,7 @@ use mir::inst_accessors_shape
 // Arukellt Selfhost - MIR call instruction dispatch.
 
 use wasm::call_fallback
+use wasm::call_hash
 use wasm::call_host
 use wasm::call_parse
 use wasm::call_seq
@@ -28,6 +29,9 @@ fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
             return true
         }
         if call_scalar::try_emit_scalar_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_hash::try_emit_hash_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, len(bindings)) {
             return true
         }
         if call_parse::try_emit_parse_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
