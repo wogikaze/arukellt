@@ -9,6 +9,10 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::variants
 
+fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
+    ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+}
+
 fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
         let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))

@@ -1,12 +1,22 @@
 // Arukellt Selfhost - MIR lowering for direct CoreHIR call arguments.
 
+use mir::inst_local_get
 use mir::lower::core_call_args
+use mir::lower::core_expr_shape_atoms
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
 
 fn mir_lower_core_direct_print_arg(ctx: LowerCtx, arg_expr: CoreHirExpr, arg_idx: i32, is_println: bool, arg_position: i32) -> i32 {
     let mut actual_arg_idx = arg_idx
     if is_println && arg_position == 1 && actual_arg_idx >= 0 {
-        if core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, actual_arg_idx) {
+        let needs_convert = core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, actual_arg_idx)
+        if needs_convert {
             actual_arg_idx = core_call_args::mir_core_convert_print_arg_to_string(ctx, arg_expr, actual_arg_idx)
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(actual_arg_idx))
+        } else {
+            if !core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) {
+                ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(actual_arg_idx))
+            }
         }
     }
     actual_arg_idx

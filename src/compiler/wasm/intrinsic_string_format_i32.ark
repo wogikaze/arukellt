@@ -1,6 +1,7 @@
 use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::string_gc_helpers
+use mir::inst_accessors_operands
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -25,7 +26,7 @@ fn emit_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_i32_digits(w, s_val, s_wpos, s_neg)
     if emit_target::is_gc_target(clone(ctx.target)) {
         let string_type = ctx.gc_type_base
-        emit_i32_string_alloc_gc(w, buf_end, s_wpos, s_len, string_type, ctx)
+        emit_i32_string_alloc_gc(w, buf_end, s_wpos, s_len, string_type, ctx, inst)
     } else {
         let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
         emit_i32_string_alloc(w, buf_end, s_wpos, s_len, s_alloc)
@@ -104,7 +105,7 @@ fn emit_i32_minus_if_needed(w: WasmWriter, s_wpos: i32, s_neg: i32) {
     helpers_control_structured::emit_end(w)
 }
 
-fn emit_i32_string_alloc_gc(w: WasmWriter, buf_end: i32, s_wpos: i32, s_len: i32, string_type: i32, ctx: SelfEmitCtx) {
+fn emit_i32_string_alloc_gc(w: WasmWriter, buf_end: i32, s_wpos: i32, s_len: i32, string_type: i32, ctx: SelfEmitCtx, inst: MirInst) {
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
 
@@ -122,8 +123,11 @@ fn emit_i32_string_alloc_gc(w: WasmWriter, buf_end: i32, s_wpos: i32, s_len: i32
     // Copy loop: for i=0..s_len: gc_arr[i] = scratch_buf[s_wpos + i]
     emit_gc_i32_digit_copy_loop(w, s_gc, s_wpos, s_len, s_i, string_type)
 
-    // Push GC ref on stack as result
+    let dest = inst_accessors_operands::MirInst_dest(inst)
     helpers_core_locals::emit_local_get(w, s_gc)
+    if dest >= 0 {
+        helpers_core_locals::emit_local_set(w, dest)
+    }
 }
 
 fn emit_gc_i32_digit_copy_loop(w: WasmWriter, s_gc: i32, s_wpos: i32, s_len: i32, s_i: i32, string_type: i32) {

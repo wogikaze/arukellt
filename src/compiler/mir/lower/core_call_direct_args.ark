@@ -4,6 +4,8 @@ use mir::lower::call_emit
 use mir::lower::core_call_args
 use mir::lower::core_call_direct_arg
 use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_atoms
+use mir::lower::core_names
 
 fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
@@ -15,7 +17,13 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     let mut a = 1
     while a < child_count {
         let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
-        let mut arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        let mut arg_idx = 0 - 1
+        let needs_print_convert = is_println && a == 1 && core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) && core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, core_names::mir_core_lookup_local(ctx, arg_expr))
+        if needs_print_convert {
+            arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
+        } else {
+            arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        }
         arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
         arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(ctx, staged_arg_locals, arg_idx, stage_call_args)
         if a == 1 {

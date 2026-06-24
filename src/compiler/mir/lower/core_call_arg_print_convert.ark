@@ -5,7 +5,9 @@ use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR print argument string conversion emission.
 
 use mir::inst_call
+use mir::inst_local_get
 use mir::lower::core_expr_shape_atoms
+use mir::lower::ctx_gc_enum
 use mir::value_types
 
 fn mir_core_convert_print_arg_to_string(ctx: LowerCtx, arg: CoreHirExpr, arg_idx: i32) -> i32 {
@@ -26,7 +28,16 @@ fn mir_core_convert_print_arg_to_string(ctx: LowerCtx, arg: CoreHirExpr, arg_idx
             }
         }
     }
-    let wrap_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let wrap_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        value_types::VT_GC_REF()
+    } else {
+        value_types::VT_REF()
+    }
+    let wrap_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, wrap_vt)
+    ctx_api_local_types::ctx_set_local_type(ctx, wrap_dest, String_from("String"))
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(arg) {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_idx))
+    }
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(wrap_callee, 1, wrap_dest))
     wrap_dest
 }

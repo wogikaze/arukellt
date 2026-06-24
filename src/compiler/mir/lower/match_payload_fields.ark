@@ -61,6 +61,7 @@ fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind
     if bind_vt == value_types::VT_I32() && scrut_ok_is_i32 && field_idx == 0 {
         if match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
             ctx_set_local_type(ctx, bind_local, String_from("i32"))
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
         }
     }
 }

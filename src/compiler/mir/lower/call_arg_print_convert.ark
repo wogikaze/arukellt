@@ -7,6 +7,9 @@ use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering print argument conversion emission.
 
 use mir::inst_call
+use mir::inst_local_get
+use mir::inst_local_set
+use mir::lower::ctx_gc_enum
 use mir::value_types
 
 fn mir_convert_print_arg_to_string(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> i32 {
@@ -27,7 +30,20 @@ fn mir_convert_print_arg_to_string(ctx: LowerCtx, arg: AstNode, arg_idx: i32) ->
             }
         }
     }
-    let wrap_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let wrap_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        value_types::VT_GC_REF()
+    } else {
+        value_types::VT_REF()
+    }
+    let wrap_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, wrap_vt)
+    ctx_api_local_types::ctx_set_local_type(ctx, wrap_dest, String_from("String"))
+    let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
+    let arg_temp = ctx_api_local_alloc::ctx_fresh_local(ctx, arg_vt)
+    if len(wrap_lt) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_temp, wrap_lt)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(arg_temp, arg_idx))
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(arg_temp))
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(wrap_callee, 1, wrap_dest))
     wrap_dest
 }
