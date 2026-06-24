@@ -19,7 +19,7 @@ fn mir_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
     if len(arm_type) > 0 {
         ctx_set_local_type(ctx, result, arm_type)
     }
-    ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set_from(result, arm_result))
 }
 
 fn mir_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {

@@ -9,11 +9,20 @@ use mir::lower::match_payload_fields
 use mir::lower::match_payload_prepare
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::value_types
 
 fn mir_emit_match_ident_bind(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
-    let bind_local = ctx_alloc_local(ctx, ast_node::node_text(pat), value_types::VT_I32())
+    let bind_vt = ctx_api_local_types::ctx_local_vt(ctx, scrut_idx)
+    let bind_local = ctx_alloc_local(ctx, ast_node::node_text(pat), bind_vt)
+    let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
+    if len(scrut_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, scrut_type)
+        if starts_with(clone(scrut_type), String_from("enum:")) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        }
+    }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
 }

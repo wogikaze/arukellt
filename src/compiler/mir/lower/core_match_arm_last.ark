@@ -2,6 +2,9 @@
 
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
+use mir::inst_misc_control
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
 use mir::lower::core_match_control
 use mir::lower::core_match_patterns
 use mir::lower::core_match_payload
@@ -25,6 +28,9 @@ fn lower_core_match_last_arm(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, arm_node: C
     }
     let arm_result = lower_core_expr(ctx, exprs, body)
     core_match_result::core_store_match_arm_result(ctx, result, arm_result)
+    if arm_result < 0 {
+        ctx_api_emit::ctx_emit(ctx, inst_misc_control::MirInst_drop())
+    }
     if core_match_arm_has_guard(arm_node) {
         core_match_control::core_emit_match_guard_end(ctx)
         next_if_depth = next_if_depth - 1

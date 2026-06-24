@@ -25,7 +25,7 @@ fn mir_store_if_branch_result(ctx: LowerCtx, result: i32, branch_result: i32) {
     if branch_vt == value_types::VT_I64() || branch_vt == value_types::VT_F64() {
         ctx_set_local_vt(ctx, result, branch_vt)
     }
-    ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set_from(result, branch_result))
 }
 
 fn mir_emit_if_else(ctx: LowerCtx) {

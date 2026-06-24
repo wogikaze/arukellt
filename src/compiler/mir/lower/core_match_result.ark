@@ -15,7 +15,7 @@ fn core_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
     if arm_vt == value_types::VT_I64() || arm_vt == value_types::VT_F64() {
         ctx_api_local_types::ctx_set_local_vt(ctx, result, arm_vt)
     }
-    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(result, arm_result))
 }
 
 fn core_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {

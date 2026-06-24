@@ -48,4 +48,6 @@ pub struct LowerCtx {
     gc_type_base: i32,
     gc_enum_variant_names: Vec<String>,
     gc_enum_variant_sigs: Vec<String>,
+    gc_enum_variant_alias_names: Vec<String>,
+    gc_enum_variant_alias_slots: Vec<i32>,
 }

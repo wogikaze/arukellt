@@ -22,7 +22,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                     return String_from("Result_i64")
                 }
             }
-            return String_new()
+            return String_from("enum:Result")
         }
         if eq(clone(ann_name), String_from("Option")) {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
@@ -34,7 +34,7 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                     return String_from("Option_i64")
                 }
             }
-            return String_new()
+            return String_from("enum:Option")
         }
         return String_new()
     }

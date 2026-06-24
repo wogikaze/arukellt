@@ -24,21 +24,17 @@ fn ctx_register_builtin_payload_variants(ctx: LowerCtx) {
     ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Result::Ok"))
     ctx_variant_storage::ctx_payload_variant_push(ctx, String_from("Result::Err"))
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        register_builtin_gc_variant(ctx, String_from("None"), false)
-        register_builtin_gc_variant(ctx, String_from("Option::None"), false)
-        register_builtin_gc_variant(ctx, String_from("Some"), true)
-        register_builtin_gc_variant(ctx, String_from("Option::Some"), true)
-        register_builtin_gc_variant(ctx, String_from("Ok"), true)
-        register_builtin_gc_variant(ctx, String_from("Result::Ok"), true)
-        register_builtin_gc_variant(ctx, String_from("Err"), true)
-        register_builtin_gc_variant(ctx, String_from("Result::Err"), true)
+        register_builtin_gc_variant(ctx, String_from("Option::None"), false, String_new())
+        register_builtin_gc_variant(ctx, String_from("Option::Some"), true, String_from("_f1_i32"))
+        register_builtin_gc_variant(ctx, String_from("Result::Ok"), true, String_from("_f1_i32"))
+        register_builtin_gc_variant(ctx, String_from("Result::Err"), true, String_from("_f1_ref0"))
     }
 }
 
-fn register_builtin_gc_variant(ctx: LowerCtx, name: String, has_payload: bool) {
+fn register_builtin_gc_variant(ctx: LowerCtx, name: String, has_payload: bool, field_sigs: String) {
     let slot = len(ctx.gc_enum_variant_names)
     let sig = if has_payload {
-        ctx_gc_enum::gc_enum_payload_variant_sig(slot, String_from("_f1_i32"))
+        ctx_gc_enum::gc_enum_payload_variant_sig(slot, field_sigs)
     } else {
         ctx_gc_enum::gc_enum_unit_variant_sig(slot)
     }

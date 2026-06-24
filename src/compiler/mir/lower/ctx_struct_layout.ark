@@ -17,6 +17,10 @@ fn ctx_struct_field_is_f64(ctx: LowerCtx, struct_name: String, field_idx: i32) -
     ctx_struct_field_type::ctx_struct_field_is_f64(ctx, struct_name, field_idx)
 }
 
+fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
+    ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, struct_name, field_idx)
+}
+
 fn ctx_struct_field_byte_size(field_type: String) -> i32 {
     ctx_struct_size::ctx_struct_field_byte_size(field_type)
 }

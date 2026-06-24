@@ -140,6 +140,7 @@ ADR-035's phased plan.
     - [x] Enum variant 構築を VT_GC_REF 化
     - [x] `exhaustive_match.ark` が `wasm-tools validate --features gc` + host-run で `stop/caution/go` を出力
   - **注記 (2026-06-24):** match dispatch は `br_on_cast` ではなく GC struct タグ比較を採用（wasm validate / 実行の安定性優先）。`br_on_cast` インフラは将来の payload cast 用に残置。
+  - **注記 (2026-06-24, landing):** variant slot → canonical wasm type index の lookup テーブル (`gc_enum_variant_type_map`) を導入。`decl_layout_payload_field_type_name` が `i32` 等を空文字にしていたバグを修正（`B(i32)` が `ref14` payload になる問題）。`tests/fixtures/enums/*.ark` 全件が `wasm-tools validate --features gc` + host-run 通過。
   - **Verify:**
     ```
     ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm \

@@ -62,8 +62,12 @@ fn decl_layout_field_type_name(field: AstNode) -> String {
 }
 
 fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
-    if eq(type_ann_node::type_ann_name(pfield), "f64") {
-        return String_from("f64")
+    if type_ann_node::type_ann_is_named(pfield) {
+        let ty_text = type_ann_node::type_ann_name(pfield)
+        if eq(clone(ty_text), "u8") {
+            return String_from("i32")
+        }
+        return ty_text
     }
     String_from("")
 }

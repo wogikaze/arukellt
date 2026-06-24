@@ -16,7 +16,7 @@ fn GC_REF_I31() -> i32 { 28 }
 fn GC_I31_GET_S() -> i32 { 29 }
 fn GC_I31_GET_U() -> i32 { 30 }
 fn GC_REF_TEST() -> i32 { 20 }
-fn GC_REF_CAST() -> i32 { 33 }
+fn GC_REF_CAST() -> i32 { 23 }
 fn GC_BR_ON_CAST() -> i32 { 24 }
 fn GC_BR_ON_CAST_FAIL() -> i32 { 25 }
 

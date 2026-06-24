@@ -8,6 +8,7 @@ use mir::lower::ctx_types
 use mir::lower::ann_types
 use mir::lower::stmt_let_closure
 use mir::lower::stmt_let_store
+use mir::value_types
 
 fn mir_finish_let_stmt(ctx: LowerCtx, node: AstNode, vt: i32, pre_val_idx: i32, pre_init_kind: i32) {
     let ta_count = ast_node::node_type_ann_count(node)
@@ -27,6 +28,9 @@ fn apply_let_annotation_type(ctx: LowerCtx, node: AstNode, local_idx: i32, ta_co
         let local_type_name = ann_types::mir_local_type_name_from_ann(ta, ctx_struct_lookup::ctx_struct_field_count(ctx, clone(ta_name)))
         if len(local_type_name) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, local_type_name)
+            if starts_with(clone(local_type_name), String_from("enum:")) {
+                ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
+            }
         }
     }
 }

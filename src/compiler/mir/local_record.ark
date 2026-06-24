@@ -41,6 +41,10 @@ fn mir_local_set_val_type(local: MirLocal, val_type: i32) {
     local.val_type = val_type
 }
 
+fn mir_local_set_type_name(local: MirLocal, type_name: String) {
+    local.type_name = type_name
+}
+
 fn mir_local_copy_with_ssa(source: MirLocal, ssa_name: String, ssa_version: i32) -> MirLocal {
     MirLocal { name: clone(source.name), val_type: source.val_type, type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version }
 }

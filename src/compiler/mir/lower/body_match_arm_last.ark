@@ -1,7 +1,10 @@
 use mir::lower::ast_node
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
 use mir::lower_kinds
 // Arukellt MIR lowering body - final match arm.
 
+use mir::inst_misc_control
 use mir::lower::match
 
 fn lower_last_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
@@ -18,6 +21,9 @@ fn lower_last_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, 
     }
     let arm_result = lower_expr(ctx, body)
     match::mir_store_match_arm_result(ctx, result, arm_result)
+    if arm_result < 0 {
+        ctx_emit(ctx, inst_misc_control::MirInst_drop())
+    }
     if match::mir_match_arm_has_guard(arm_child_count) {
         match::mir_emit_match_guard_end(ctx)
         depth = depth - 1

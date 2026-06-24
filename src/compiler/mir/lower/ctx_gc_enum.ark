@@ -9,11 +9,26 @@ fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
 }
 
 fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String) {
+    let canon = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let count = len(ctx.gc_enum_variant_sigs)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), clone(sig)) {
+            let existing = clone(get_unchecked(ctx.gc_enum_variant_names, i))
+            let existing_canon = ctx_gc_enum_normalize_variant_name(clone(existing))
+            if eq(existing_canon, clone(canon)) || eq(existing, clone(variant_name)) {
+                push(ctx.gc_enum_variant_alias_names, variant_name)
+                push(ctx.gc_enum_variant_alias_slots, i)
+                return
+            }
+        }
+        i = i + 1
+    }
     push(ctx.gc_enum_variant_names, variant_name)
     push(ctx.gc_enum_variant_sigs, sig)
 }
 
-fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
+fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     let count = len(ctx.gc_enum_variant_names)
     let mut i = 0
     while i < count {
@@ -22,7 +37,40 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
         }
         i = i + 1
     }
+    let alias_count = len(ctx.gc_enum_variant_alias_names)
+    let mut ai = 0
+    while ai < alias_count {
+        if eq(get_unchecked(ctx.gc_enum_variant_alias_names, ai), clone(variant_name)) {
+            return get_unchecked(ctx.gc_enum_variant_alias_slots, ai)
+        }
+        ai = ai + 1
+    }
     0 - 1
+}
+
+fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
+    if eq(clone(variant_name), String_from("Some")) {
+        return String_from("Option::Some")
+    }
+    if eq(clone(variant_name), String_from("None")) {
+        return String_from("Option::None")
+    }
+    if eq(clone(variant_name), String_from("Ok")) {
+        return String_from("Result::Ok")
+    }
+    if eq(clone(variant_name), String_from("Err")) {
+        return String_from("Result::Err")
+    }
+    variant_name
+}
+
+fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
+    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let found = ctx_gc_enum_lookup_slot(ctx, clone(normalized))
+    if found >= 0 {
+        return found
+    }
+    ctx_gc_enum_lookup_slot(ctx, clone(variant_name))
 }
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
@@ -36,11 +84,11 @@ fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
 }
 
 fn gc_enum_unit_variant_sig(slot: i32) -> String {
-    concat(String_from("SubF+14_S_f0_i32@"), to_string(slot))
+    String_from("SubF+14_S_f0_i32")
 }
 
 fn gc_enum_payload_variant_sig(slot: i32, field_sigs: String) -> String {
-    concat(concat(String_from("SubF+14_S_f0_i32"), field_sigs), concat(String_from("@"), to_string(slot)))
+    concat(String_from("SubF+14_S_f0_i32"), field_sigs)
 }
 
 fn gc_enum_field_sig_for_type(type_name: String) -> String {
@@ -56,7 +104,13 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
     if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
         return String_from("_f1_i32")
     }
-    String_from("_f1_i32")
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+        return String_from("_f1_i32")
+    }
+    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") || eq(clone(type_name), "i64") {
+        return String_from("_f1_i32")
+    }
+    String_from("_f1_ref14")
 }
 
 fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {

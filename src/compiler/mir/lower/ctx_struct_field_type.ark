@@ -1,6 +1,43 @@
 // Arukellt MIR lowering context - struct field type queries.
 
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_storage
+
+fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        if eq(clone(sn), clone(struct_name)) {
+            if field_idx < fc {
+                return ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, offset + field_idx)
+            }
+            return String_new()
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    String_new()
+}
+
+fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
+    let ft = ctx_struct_field_type_name(ctx, clone(struct_name), field_idx)
+    if len(ft) == 0 {
+        return false
+    }
+    if eq(clone(ft), "String") || eq(clone(ft), "string") {
+        return true
+    }
+    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(ft)) {
+        return true
+    }
+    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(ft)) {
+        return true
+    }
+    false
+}
 
 fn ctx_struct_field_is_f64(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)

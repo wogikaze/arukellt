@@ -42,10 +42,10 @@ fn mir_register_enum_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
         let variant = layout_decl_variants::layout_decl_variant_at(decl, vi)
         let full_name = concat(clone(enum_name), concat(String_from("::"), layout_variant::layout_variant_name(variant)))
         ctx_api_variants::ctx_register_variant_tag(ctx, clone(full_name), vi)
-        if has_payload {
+        if layout_variant::layout_variant_has_payload(variant) {
             mir_register_payload_variant_layout(ctx, clone(full_name), variant)
         }
-        mir_register_enum_variant_gc_sig(ctx, clone(full_name), has_payload)
+        mir_register_enum_variant_gc_sig(ctx, clone(full_name), layout_variant::layout_variant_has_payload(variant))
         vi = vi + 1
     }
 }

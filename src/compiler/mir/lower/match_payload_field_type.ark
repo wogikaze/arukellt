@@ -1,9 +1,21 @@
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR match payload field value-type selection.
 
 use mir::value_types
 
 fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {
+    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), field_idx + 1) {
+        return value_types::VT_GC_REF()
+    }
+    if len(field_type) > 0 && !mir_payload_scalar_type_name(clone(field_type)) {
+        return value_types::VT_GC_REF()
+    }
+    if mir_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
+        return value_types::VT_GC_REF()
+    }
     let mut field_is_f64 = ctx_struct_field_is_f64(ctx, clone(variant_name), field_idx + 1)
     if !field_is_f64 && scrut_ok_is_f64 && field_idx == 0 {
         if mir_match_variant_is_some_or_ok(clone(variant_name)) {
@@ -18,7 +30,50 @@ fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scr
             return value_types::VT_I64()
         }
     }
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
+        return value_types::VT_GC_REF()
+    }
     value_types::VT_I32()
+}
+
+fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
+    let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    if slot < 0 {
+        return false
+    }
+    let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
+    if field_idx == 0 {
+        if contains(clone(sig), String_from("_f1_ref")) {
+            return true
+        }
+    }
+    false
+}
+
+fn mir_match_variant_is_err(variant_name: String) -> bool {
+    eq(clone(variant_name), "Err") || eq(clone(variant_name), "Result::Err")
+}
+
+fn mir_payload_scalar_type_name(type_name: String) -> bool {
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+        return true
+    }
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+        return true
+    }
+    if eq(clone(type_name), "u64") || eq(clone(type_name), "U64") {
+        return true
+    }
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+        return true
+    }
+    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+        return true
+    }
+    if eq(clone(type_name), "char") {
+        return true
+    }
+    false
 }
 
 fn mir_match_variant_is_some_or_ok(variant_name: String) -> bool {

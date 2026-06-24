@@ -10,6 +10,14 @@ use mir::value_types
 
 fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
     ctx_local_type_storage::ctx_local_type_push(ctx, local_idx, type_name)
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(func) {
+        let mut f = func
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        local_mutation::MirLocal_set_type_name(loc, clone(type_name))
+        function_local_mutation::MirFunction_set_local(f, local_idx, loc)
+        ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    }
 }
 
 fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {

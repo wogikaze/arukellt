@@ -60,6 +60,10 @@ fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
     if type_slot < 0 {
         return SelfEmitCtx_enum_open_type(ctx)
     }
+    let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    if type_slot >= 0 && type_slot < len(map) {
+        return get_unchecked(map, type_slot)
+    }
     let base = ctx_record::SelfEmitCtx_gc_enum_variant_base(ctx)
     if base < 0 {
         return ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2

@@ -2,6 +2,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR non-final match arm MIR lowering.
 
+use mir::inst_misc_control
 use mir::inst_structured_control
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
@@ -49,6 +50,9 @@ fn lower_core_match_branch_arm(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, arm_node:
     }
     let arm_result = lower_core_expr(ctx, exprs, body)
     core_match_result::core_store_match_arm_result(ctx, result, arm_result)
+    if arm_result < 0 {
+        ctx_api_emit::ctx_emit(ctx, inst_misc_control::MirInst_drop())
+    }
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_else())
     next_if_depth
 }

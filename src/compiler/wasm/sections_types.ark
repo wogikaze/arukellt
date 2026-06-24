@@ -35,11 +35,23 @@ fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction
     if enum_variant_count > 0 && gc_type_base >= 0 {
         gc_enum_variant_base = gc_type_base + gc_fixed_count
     }
+    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, enum_variant_count)
     let type_sec = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(type_sec, len(canon_types))
     sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper, gc_type_base, gc_enum_variant_base)
+    sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map)
+}
+
+fn build_gc_enum_variant_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, enum_variant_count: i32) -> Vec<i32> {
+    let mut variant_map = Vec_new_i32()
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count
+    let mut si = 0
+    while si < enum_variant_count {
+        push(variant_map, get_unchecked(type_map, base_idx + si))
+        si = si + 1
+    }
+    variant_map
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
