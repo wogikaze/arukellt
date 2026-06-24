@@ -32,3 +32,26 @@ fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
     }
     false
 }
+
+fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(enum_name)) {
+            if ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) == 1 {
+                let mut off = 0
+                let mut li = 0
+                while li < si {
+                    off = off + ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
+                    li = li + 1
+                }
+                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), String_from("_tag")) {
+                    return true
+                }
+            }
+            return false
+        }
+        si = si + 1
+    }
+    false
+}

@@ -12,8 +12,12 @@ fn mir_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
         return
     }
     let arm_vt = ctx_local_vt(ctx, arm_result)
-    if arm_vt == value_types::VT_I64() || arm_vt == value_types::VT_F64() {
+    if arm_vt == value_types::VT_I64() || arm_vt == value_types::VT_F64() || arm_vt == value_types::VT_REF() || arm_vt == value_types::VT_GC_REF() {
         ctx_set_local_vt(ctx, result, arm_vt)
+    }
+    let arm_type = ctx_get_local_type(ctx, arm_result)
+    if len(arm_type) > 0 {
+        ctx_set_local_type(ctx, result, arm_type)
     }
     ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
 }

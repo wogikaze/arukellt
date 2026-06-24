@@ -17,8 +17,8 @@ fn GC_I31_GET_S() -> i32 { 29 }
 fn GC_I31_GET_U() -> i32 { 30 }
 fn GC_REF_TEST() -> i32 { 20 }
 fn GC_REF_CAST() -> i32 { 33 }
-fn GC_BR_ON_CAST() -> i32 { 39 }
-fn GC_BR_ON_CAST_FAIL() -> i32 { 40 }
+fn GC_BR_ON_CAST() -> i32 { 24 }
+fn GC_BR_ON_CAST_FAIL() -> i32 { 25 }
 
 // Reference type opcodes.
 fn OP_REF_NULL() -> i32 { 208 }
@@ -30,6 +30,7 @@ fn SEC_TYPE_FUNCTYPE() -> i32 { 96 }
 fn SEC_TYPE_STRUCT() -> i32 { 95 }
 fn SEC_TYPE_ARRAY() -> i32 { 94 }
 fn SEC_TYPE_SUB() -> i32 { 80 }
+fn SEC_TYPE_FINAL_SUB() -> i32 { 79 }
 
 // Structured control opcodes.
 fn OP_UNREACHABLE() -> i32 { 0 }

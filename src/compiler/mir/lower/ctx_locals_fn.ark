@@ -36,8 +36,12 @@ fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
         if rt_tag == 2 {
             function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I64())
         } else {
-            if rt_tag >= 1 && rt_tag <= 6 {
-                function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+            if rt_tag == 5 {
+                function_return_mutation::MirFunction_set_return_type(f, value_types::VT_REF())
+            } else {
+                if rt_tag >= 1 && rt_tag <= 6 {
+                    function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+                }
             }
         }
     }

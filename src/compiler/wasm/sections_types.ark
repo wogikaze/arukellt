@@ -123,7 +123,12 @@ fn build_function_type_sig(uf: MirFunction, target: String) -> String {
     let mut pi = 0
     while pi < pc {
         let p = function_param_view::MirFunction_param_at(uf, pi)
-        sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
+        let p_type_name = local_access::MirLocal_type_name(p)
+        if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
+            sig = concat(sig, sections_types_gc::gc_enum_open_type_sig())
+        } else {
+            sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
+        }
         sig = concat(sig, String_from("_"))
         pi = pi + 1
     }

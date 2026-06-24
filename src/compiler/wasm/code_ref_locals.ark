@@ -49,6 +49,9 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
             if op == opcodes::MIR_ARRAY_NEW() {
                 return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
             }
+            if op == opcodes::MIR_GC_STRUCT_NEW() {
+                return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
+            }
             if op == opcodes::MIR_STRUCT_NEW() {
                 return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
             }
@@ -83,6 +86,9 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
 }
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    if eq(clone(callee), "String_from") || eq(clone(callee), "concat") || eq(clone(callee), "clone") || eq(clone(callee), "to_string") || eq(clone(callee), "char_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "f64_to_string") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
     // Vec_new returns (ref null S_f0_ref1_f1_i32) = vec_type
     if eq(clone(callee), "Vec_new_i64") || eq(clone(callee), "Vec_new_f64") {
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)

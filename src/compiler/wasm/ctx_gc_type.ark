@@ -1,6 +1,7 @@
 // Arukellt Selfhost - GC type index tracking for the emitter context.
 
 use wasm::ctx_record
+use wasm::sections_types_gc
 
 fn SelfEmitCtx_i32_array_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1
@@ -51,9 +52,13 @@ fn SelfEmitCtx_i64_struct_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 13
 }
 
+fn SelfEmitCtx_enum_open_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset()
+}
+
 fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
     if type_slot < 0 {
-        return ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
+        return SelfEmitCtx_enum_open_type(ctx)
     }
     let base = ctx_record::SelfEmitCtx_gc_enum_variant_base(ctx)
     if base < 0 {

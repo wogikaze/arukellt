@@ -47,12 +47,13 @@ fn core_match_payload_info_compare_idx(info: CoreMatchPayloadInfo) -> i32 {
 
 fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, scrut_idx: i32) -> CoreMatchPayloadInfo {
     let is_payload_match = core_match_has_payload_pattern(exprs, expr)
+    let has_variant_arm = core_match_has_variant_pattern(exprs, expr)
     let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
     let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
     let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64")
     let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32")
     let mut compare_idx = scrut_idx
-    if is_payload_match {
+    if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
         compare_idx = core_emit_payload_tag_local(ctx, scrut_idx)
     }
     core_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, compare_idx)
@@ -61,15 +62,39 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
 fn core_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
     let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        let tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tmp, scrut_idx, 0 - 1, 0, value_types::VT_VOID()))
-        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, scrut_idx, 0 - 1, 0, value_types::VT_VOID()))
         return tag_local
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
     tag_local
+}
+
+fn core_match_has_variant_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {
+    let mut arm_scan = 1
+    while arm_scan < core_expr_shape_accessors::mir_core_expr_child_count(expr) {
+        let scan_arm = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, arm_scan))
+        if core_expr_shape_accessors::mir_core_expr_child_count(scan_arm) > 0 {
+            let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
+            if core_expr_shape_patterns::mir_core_expr_is_pat_variant(scan_pat) {
+                return true
+            }
+            if core_expr_shape_patterns::mir_core_expr_is_pat_or(scan_pat) {
+                let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(scan_pat)
+                let mut or_oi = 0
+                while or_oi < alt_count {
+                    let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_pat, or_oi))
+                    if core_expr_shape_patterns::mir_core_expr_is_pat_variant(or_alt) {
+                        return true
+                    }
+                    or_oi = or_oi + 1
+                }
+            }
+        }
+        arm_scan = arm_scan + 1
+    }
+    false
 }
 
 fn core_match_has_payload_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> bool {

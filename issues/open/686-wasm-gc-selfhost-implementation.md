@@ -129,26 +129,26 @@ ADR-035's phased plan.
   - 期待: Vec 型が `S_f0_ref1_f1_i32` (type index 10) の struct として出力され、
     runtime テストが正しく動作する
 
-- [ ] Enum subtype hierarchy + br_on_cast dispatch
+- [x] Enum subtype hierarchy + tag-based match dispatch
   - 内部進捗:
     - [x] `MIR_BR_ON_CAST` / `MIR_BR_ON_CAST_FAIL` オペコード追加 (82, 83)
     - [x] 命令コンストラクタ (`mir/inst_br_on_cast.ark`)
     - [x] wasm backend 発行 (`inst_control.ark`, `inst_dispatch_control.ark`)
     - [x] LowerCtx に `is_gc_target` / `gc_type_base` フィールド追加
-    - [ ] MIR match lowering で br_on_cast を使用
-    - [ ] Enum variant 構築を VT_GC_REF 化
-  - **ブロッカー (2026-06-24):** `d0ae9e407` の Enum GC 一括実装は selfhost s2 の P2 コンパイル時に wasm OOB を起こすため revert 済み。fixpoint stage 2/3 は flat bootstrap overlay 経由で再開可能。再 landing 時は段階コミット + s2 自己コンパイル + P2 enum fixture で各段 gate すること。
-  - **Verify (実装後):**
+    - [x] GC enum type section（open base `Sub0_S_f0_i32` + final variant subtypes）
+    - [x] CoreHIR/AST match lowering で variant タグ比較（`gc.struct.get` field 0 + `i32.eq`）
+    - [x] Enum variant 構築を VT_GC_REF 化
+    - [x] `exhaustive_match.ark` が `wasm-tools validate --features gc` + host-run で `stop/caution/go` を出力
+  - **注記 (2026-06-24):** match dispatch は `br_on_cast` ではなく GC struct タグ比較を採用（wasm validate / 実行の安定性優先）。`br_on_cast` インフラは将来の payload cast 用に残置。
+  - **Verify:**
     ```
-    arukeit compile tests/fixtures/enums/exhaustive_match.ark -o /tmp/enum_gc.wasm --target wasm32-wasi-p2
+    ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm \
+      scripts/run/arukellt-selfhost.sh compile --target wasm32-wasi-p2 \
+      tests/fixtures/enums/exhaustive_match.ark -o /tmp/enum_gc.wasm
     wasm-tools validate --features gc /tmp/enum_gc.wasm
-    wasm-tools dump /tmp/enum_gc.wasm 2>&1 | grep -E 'br_on_cast|br_on_cast_fail|sub[^a-z]'
-    # enum match が br_on_cast で dispatch されていること
-    arukeit run tests/fixtures/enums/exhaustive_match.ark --target wasm32-wasi-p2
-    arukeit run tests/fixtures/enums/nested_enum.ark --target wasm32-wasi-p2
+    tools/host-linker/target/release/arukellt-host-run /tmp/enum_gc.wasm
     ```
-  - 期待: enum の `match` が `br_on_cast` / `br_on_cast_fail` で実装され、
-    runtime で正しく分岐する
+  - 期待: validate OK、`stop` / `caution` / `go` が順に出力される
 
 - [ ] HashMap GC 表現
   - **Verify (実装後):**

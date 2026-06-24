@@ -1,0 +1,48 @@
+// Arukellt Selfhost - shared stdin buffer helpers for read intrinsics.
+
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+
+fn emit_begin_stdin_string_buffer(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_core_heap::emit_heap_get(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+}
+
+fn emit_finalize_stdin_string_buffer(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_store_default(w)
+}
+
+fn emit_advance_stdin_buffer_or_break(w: WasmWriter) {
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
+    helpers_memory_access::emit_i32_load_default(w)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_heap::emit_heap_set(w)
+}

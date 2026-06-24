@@ -36,11 +36,11 @@ fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
 }
 
 fn gc_enum_unit_variant_sig(slot: i32) -> String {
-    concat(String_from("SubF+2_S_f0_i32@"), to_string(slot))
+    concat(String_from("SubF+14_S_f0_i32@"), to_string(slot))
 }
 
 fn gc_enum_payload_variant_sig(slot: i32, field_sigs: String) -> String {
-    concat(concat(String_from("SubF+2_S_f0_i32"), field_sigs), concat(String_from("@"), to_string(slot)))
+    concat(concat(String_from("SubF+14_S_f0_i32"), field_sigs), concat(String_from("@"), to_string(slot)))
 }
 
 fn gc_enum_field_sig_for_type(type_name: String) -> String {

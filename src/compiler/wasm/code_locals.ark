@@ -4,6 +4,7 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
 use wasm::emit_target
+use wasm::sections_types_gc
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types
@@ -38,6 +39,13 @@ fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
 
 fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let type_name = local_access::MirLocal_type_name(loc)
+        if starts_with(clone(type_name), String_from("enum:")) {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+            return
+        }
         let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
         if gc_type >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
