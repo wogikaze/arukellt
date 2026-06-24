@@ -31,11 +31,11 @@ fn lower_core_match_branch_arm(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, arm_node:
         }
     } else {
         if core_expr_shape_patterns::mir_core_expr_is_pat_or(pat) {
-            core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, pat, core_match_payload::core_match_payload_compare_idx(payload_info))
+            core_match_conditions::core_emit_or_pattern_condition(ctx, exprs, pat, core_match_payload::core_match_payload_compare_idx(payload_info), scrut_idx)
             core_match_control::core_emit_if_begin(ctx)
             next_if_depth = next_if_depth + 1
         } else {
-            core_match_conditions::core_emit_value_pattern_condition(ctx, pat, core_match_payload::core_match_payload_compare_idx(payload_info))
+            core_match_conditions::core_emit_value_pattern_condition(ctx, pat, core_match_payload::core_match_payload_compare_idx(payload_info), scrut_idx)
             core_match_control::core_emit_if_begin(ctx)
             next_if_depth = next_if_depth + 1
             core_match_payload::core_emit_payload_variant_binds_if_needed(ctx, exprs, payload_info, pat, scrut_idx)

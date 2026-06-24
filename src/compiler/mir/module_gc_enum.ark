@@ -1,0 +1,32 @@
+// Arukellt Selfhost - MIR module GC enum metadata accessors.
+
+use mir::module_record
+
+fn MirModule_gc_enum_variant_sig_count(m: MirModule) -> i32 {
+    len(m.gc_enum_variant_sigs)
+}
+
+fn MirModule_gc_enum_variant_sig_at(m: MirModule, idx: i32) -> String {
+    clone(get_unchecked(m.gc_enum_variant_sigs, idx))
+}
+
+fn MirModule_gc_enum_variant_name_at(m: MirModule, idx: i32) -> String {
+    clone(get_unchecked(m.gc_enum_variant_names, idx))
+}
+
+fn MirModule_push_gc_enum_variant(m: MirModule, name: String, sig: String) {
+    push(m.gc_enum_variant_names, name)
+    push(m.gc_enum_variant_sigs, sig)
+}
+
+fn MirModule_gc_enum_variant_slot(m: MirModule, name: String) -> i32 {
+    let count = MirModule_gc_enum_variant_sig_count(m)
+    let mut i = 0
+    while i < count {
+        if eq(MirModule_gc_enum_variant_name_at(m, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}

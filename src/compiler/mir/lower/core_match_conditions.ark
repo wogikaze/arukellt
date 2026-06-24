@@ -1,24 +1,35 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_gc_enum
 use mir::opcodes
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR match pattern condition emit helpers.
 
 use mir::inst_local_get
 use mir::inst_op
+use mir::inst_ref_test
+use mir::inst_structured_control
 use mir::lower::core_expr_shape_accessors
+use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_patterns
 use mir::value_types
 
-fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32) {
+fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
     let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(pat)
     let mut or_oi = 0
     while or_oi < alt_count {
         let or_alt = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, or_oi))
-        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
-        let alt_idx = core_match_patterns::lower_core_pattern_value(ctx, or_alt)
-        let or_cmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, alt_idx))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) && core_expr_shape_patterns::mir_core_expr_is_pat_variant(or_alt) {
+            let variant_name = core_expr_shape_accessors::mir_core_expr_text(or_alt)
+            let type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+            let or_cmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_ref_test::MirInst_ref_test(or_cmp, type_slot, scrut_idx))
+        } else {
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
+            let alt_idx = core_match_patterns::lower_core_pattern_value(ctx, or_alt)
+            let or_cmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), or_cmp, compare_idx, alt_idx))
+        }
         if or_oi > 0 {
             let or_dummy = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
             ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_BIT_OR(), or_dummy, or_cmp, or_cmp))
@@ -27,7 +38,15 @@ fn core_emit_or_pattern_condition(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: C
     }
 }
 
-fn core_emit_value_pattern_condition(ctx: LowerCtx, pat: CoreHirExpr, compare_idx: i32) {
+fn core_emit_value_pattern_condition(ctx: LowerCtx, pat: CoreHirExpr, compare_idx: i32, scrut_idx: i32) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) {
+        let variant_name = core_expr_shape_accessors::mir_core_expr_text(pat)
+        let type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+        let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_ref_test::MirInst_ref_test(cmp_dest, type_slot, scrut_idx))
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(cmp_dest))
+        return
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(compare_idx))
     let pat_idx = core_match_patterns::lower_core_pattern_value(ctx, pat)
     let cmp_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())

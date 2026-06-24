@@ -50,3 +50,14 @@ fn SelfEmitCtx_f64_array_type(ctx: SelfEmitCtx) -> i32 {
 fn SelfEmitCtx_i64_struct_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 13
 }
+
+fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
+    if type_slot < 0 {
+        return ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
+    }
+    let base = ctx_record::SelfEmitCtx_gc_enum_variant_base(ctx)
+    if base < 0 {
+        return ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
+    }
+    base + type_slot
+}

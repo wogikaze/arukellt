@@ -1,5 +1,7 @@
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - MIR lowering enum and variant layout registration.
 
 use corehir::layout_decl_name
@@ -15,17 +17,35 @@ fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant
     registry_enum_payload::mir_register_payload_variant_layout(ctx, full_name, variant)
 }
 
+fn mir_register_enum_variant_gc_sig(ctx: LowerCtx, full_name: String, has_payload: bool) {
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return
+    }
+    let slot = len(ctx.gc_enum_variant_names)
+    let sig = if has_payload {
+        let fields = ctx_gc_enum::gc_enum_build_payload_field_sigs(ctx, clone(full_name))
+        ctx_gc_enum::gc_enum_payload_variant_sig(slot, fields)
+    } else {
+        ctx_gc_enum::gc_enum_unit_variant_sig(slot)
+    }
+    ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(full_name), sig)
+}
+
 fn mir_register_enum_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
-    let vc = layout_decl_variants::layout_decl_variant_count(decl)
+    let ec = layout_decl_variants::layout_decl_variant_count(decl)
     let has_payload = mir_enum_has_payload(decl)
+    let enum_name = layout_decl_name::layout_decl_name(decl)
+    ctx_struct_storage::ctx_struct_push_layout(ctx, clone(enum_name), 1)
+    ctx_struct_storage::ctx_struct_push_field(ctx, String_from("_tag"), String_from(""))
     let mut vi = 0
-    while vi < vc {
+    while vi < ec {
         let variant = layout_decl_variants::layout_decl_variant_at(decl, vi)
-        let full_name = concat(layout_decl_name::layout_decl_name(decl), concat(String_from("::"), layout_variant::layout_variant_name(variant)))
+        let full_name = concat(clone(enum_name), concat(String_from("::"), layout_variant::layout_variant_name(variant)))
         ctx_api_variants::ctx_register_variant_tag(ctx, clone(full_name), vi)
         if has_payload {
             mir_register_payload_variant_layout(ctx, clone(full_name), variant)
         }
+        mir_register_enum_variant_gc_sig(ctx, clone(full_name), has_payload)
         vi = vi + 1
     }
 }

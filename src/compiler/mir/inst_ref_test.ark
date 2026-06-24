@@ -1,0 +1,25 @@
+// Arukellt Selfhost - MIR ref.test / ref.cast instruction constructors.
+//
+// ref.test: test if a GC ref is instance of a given type, pushes i32
+// Arguments:
+//   dest: local index to store the test result (i32: 1 = match, 0 = no match)
+//   arg0: GC type index to test against
+//   arg1: local index of the GC ref to test
+//
+// ref.cast: cast a GC ref to a specific type
+// Arguments:
+//   dest: local index to store the cast result
+//   arg0: GC type index to cast to
+//   arg1: local index of the GC ref to cast
+
+use mir::inst_factory
+use mir::opcodes
+use mir::value_types
+
+fn MirInst_ref_test(dest: i32, gc_type_idx: i32, scrut_local: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_REF_TEST(), dest, gc_type_idx, scrut_local, 0, 0.0, String_new(), value_types::VT_I32())
+}
+
+fn MirInst_ref_cast(dest: i32, gc_type_idx: i32, scrut_local: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_REF_CAST(), dest, gc_type_idx, scrut_local, 0, 0.0, String_new(), value_types::VT_GC_REF())
+}

@@ -34,5 +34,5 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         }
         pa = pa + 1
     }
-    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes)
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, core_expr_shape_accessors::mir_core_expr_text(expr))
 }

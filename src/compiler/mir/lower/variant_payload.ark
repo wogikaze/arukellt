@@ -1,26 +1,64 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering payload enum variant values.
 
 use mir::inst_const_i32
 use mir::inst_struct_new
 use mir::inst_struct_set
+use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::lower::variant_payload_fields
 use mir::value_types
 
-fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, total_bytes: i32) -> i32 {
+fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, total_bytes: i32, variant_name: String) -> i32 {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return lower_gc_payload_variant_from_locals(ctx, tag, payload_locals, payload_vts, clone(variant_name))
+    }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
-    emit_variant_tag_field(ctx, dest, tag)
+    emit_variant_tag_field(ctx, dest, tag, 0 - 1)
     variant_payload_fields::emit_variant_payload_fields(ctx, dest, payload_locals, payload_vts)
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
     dest
 }
 
-fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32) {
+fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {
+    let type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
+    ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
+    emit_variant_tag_field(ctx, dest, tag, type_slot)
+    emit_gc_variant_payload_fields(ctx, dest, type_slot, payload_locals, payload_vts)
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
+    dest
+}
+
+fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
     let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_tmp))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, tag_tmp, 0, value_types::VT_VOID()))
+    if type_slot >= 0 {
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, tag_tmp, type_slot, 0, value_types::VT_VOID()))
+    } else {
+        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, tag_tmp, 0, value_types::VT_VOID()))
+    }
+}
+
+fn emit_gc_variant_payload_fields(ctx: LowerCtx, dest: i32, type_slot: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>) {
+    let mut fi = 0
+    let child_count = len(payload_locals)
+    while fi < child_count {
+        let field_local = get_unchecked(payload_locals, fi)
+        let field_vt = get_unchecked(payload_vts, fi)
+        let mut set_vt = value_types::VT_VOID()
+        if field_vt == value_types::VT_F64() {
+            set_vt = value_types::VT_F64()
+        } else {
+            if field_vt == value_types::VT_I64() {
+                set_vt = value_types::VT_I64()
+            }
+        }
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, field_local, type_slot, fi + 1, set_vt))
+        fi = fi + 1
+    }
 }
