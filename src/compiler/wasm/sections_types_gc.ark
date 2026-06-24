@@ -27,7 +27,7 @@ fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) 
 fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
     if starts_with(clone(ft), String_from("ref")) {
         let offset_str = substring(ft, 3, len(ft))
-        let offset = parse_int(offset_str)
+        let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_leb::emit_leb128_s(type_sec, gc_type_base + offset)
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
@@ -37,41 +37,7 @@ fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
 }
 
-// Emit a subtype type entry (subtype of an existing type).
-// Sig format: Sub{N}_S_{struct_fields...} or SubF{N}_S_{struct_fields...}
-//   Sub{N}: non-final sub of type index {N}
-//   SubF{N}: final sub of type index {N}
-//   S_{fields}: struct body (same as S_ sig format)
-fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
-    // Parse sig: "SubF{N}_S_{fields}" or "Sub{N}_S_{fields}" or "SubF+2_S_...@slot"
-    let sub_len = len(sig)
-    // Check for "SubF" vs "Sub"
-    let is_final = char_at(clone(sig), 3) == 70  // 'F'
-    let super_start = is_final ? 4 : 3
-    // Find '_S_' marker
-    let mut pi = super_start
-    while pi < sub_len && char_at(clone(sig), pi) != 95 { pi = pi + 1 }
-    let super_idx_str = substring(clone(sig), super_start, pi)
-    let mut super_idx = parse_int(super_idx_str)
-    if char_at(clone(super_idx_str), 0) == 43 {
-        let offset_str = substring(clone(super_idx_str), 1, len(super_idx_str))
-        super_idx = gc_type_base + parse_int(offset_str)
-    }
-    let mut struct_body = substring(clone(sig), pi + 1, sub_len)
-    let at_pos = find_char(clone(struct_body), 64)
-    if at_pos >= 0 {
-        struct_body = substring(clone(struct_body), 0, at_pos)
-    }
-
-    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
-    writer_core::emit_byte(type_sec, is_final ? 1 : 0)
-    writer_leb::emit_leb128_u(type_sec, super_idx)
-
-    // Emit struct body
-    emit_struct_type_entry(type_sec, struct_body, gc_type_base)
-}
-
-fn parse_int(s: String) -> i32 {
+fn parse_type_sig_int(s: String) -> i32 {
     let n = len(s)
     let mut val = 0
     let mut i = 0
@@ -95,18 +61,13 @@ fn emit_array_type_entry(type_sec: WasmWriter, sig: String) {
 fn struct_field_sigs(sig: String) -> Vec<String> {
     let mut fields = Vec_new_String()
     let sig_len = len(sig)
-    // Format: S_f{N}_{TYPE}_f{N+1}_{TYPE}_...
-    // Find each type segment after _f{N}_
     let mut si = 0
     while si < sig_len {
-        // Look for '_f'
         if char_at(clone(sig), si) == 95 && si + 1 < sig_len && char_at(clone(sig), si + 1) == 102 {
-            // Found '_f', skip past 'f' and the field number
             let mut pi = si + 2
             while pi < sig_len && char_at(clone(sig), pi) != 95 {
                 pi = pi + 1
             }
-            // Now at '_' after field number, extract type starting at pi+1
             if pi < sig_len {
                 let type_start = pi + 1
                 let mut type_end = type_start
@@ -129,7 +90,7 @@ fn array_elem_type(sig: String) -> String {
     substring(sig, 2, len(sig))
 }
 
-fn find_char(s: String, c: i32) -> i32 {
+fn find_type_sig_char(s: String, c: i32) -> i32 {
     let n = len(s)
     let mut i = 0
     while i < n {
@@ -150,13 +111,9 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
     push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
-    // Vec<T> shape: ref to backing array (A_i32) + len (i32)
-    // Enum base (S_f0_i32) is the same as index 2
     push(type_sigs, String_from("S_f0_ref1_f1_i32"))
-    // Numeric array types for Vec<i64>/Vec<f64> GC support
     push(type_sigs, String_from("A_i64"))
     push(type_sigs, String_from("A_f64"))
-    // Single i64 field struct shape (for precision work)
     push(type_sigs, String_from("S_f0_i64"))
 }
 

@@ -178,7 +178,10 @@ fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
     let mut i = 0
     while i < len(canon_types) {
         let sig = get_unchecked(canon_types, i)
-        if char_at(clone(sig), 0) == 65 || char_at(clone(sig), 0) == 83 {
+        if char_at(clone(sig), 0) == 65 {
+            return i
+        }
+        if starts_with(clone(sig), String_from("S_f")) {
             return i
         }
         i = i + 1

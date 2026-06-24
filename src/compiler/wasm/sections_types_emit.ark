@@ -18,26 +18,99 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
             writer_core::emit_byte(type_sec, constants::WASM_I64())
             writer_core::emit_byte(type_sec, constants::WASM_I32())
         } else {
-            if char_at(clone(csig), 0) == 83 {
-                if char_at(clone(csig), 1) == 117 {
-                    sections_types_gc::emit_sub_type_entry(type_sec, csig, gc_type_base)
-                } else {
-                    sections_types_gc::emit_struct_type_entry(type_sec, csig, gc_type_base)
-                }
+            if starts_with(clone(csig), String_from("Sub")) {
+                writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
+                writer_core::emit_byte(type_sec, 1)
+                writer_leb::emit_leb128_u(type_sec, 1)
+                writer_leb::emit_leb128_u(type_sec, gc_type_base + 2)
+                writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
+                writer_leb::emit_leb128_u(type_sec, 1)
+                writer_core::emit_byte(type_sec, constants::WASM_I32())
+                writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
             } else {
-                if char_at(clone(csig), 0) == 65 {
-                    sections_types_gc::emit_array_type_entry(type_sec, csig)
+                if starts_with(clone(csig), String_from("S_f")) {
+                    emit_struct_type_entry(type_sec, csig, gc_type_base)
                 } else {
-                    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
-                    let param_segments = sections_type_plan::type_sig_param_segments(csig)
-                    let result_seg = sections_type_plan::type_sig_result_segment(csig)
-                    emit_type_param_entries(type_sec, param_segments, gc_type_base)
-                    emit_type_result_entry(type_sec, result_seg, gc_type_base)
+                    if char_at(clone(csig), 0) == 65 {
+                        sections_types_gc::emit_array_type_entry(type_sec, csig)
+                    } else {
+                        writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
+                        let param_segments = sections_type_plan::type_sig_param_segments(csig)
+                        let result_seg = sections_type_plan::type_sig_result_segment(csig)
+                        emit_type_param_entries(type_sec, param_segments, gc_type_base)
+                        emit_type_result_entry(type_sec, result_seg, gc_type_base)
+                    }
                 }
             }
         }
         cti2 = cti2 + 1
     }
+}
+
+fn parse_type_sig_int(s: String) -> i32 {
+    let n = len(s)
+    let mut val = 0
+    let mut i = 0
+    while i < n {
+        let c = char_at(clone(s), i)
+        if c >= 48 && c <= 57 {
+            val = val * 10 + (c - 48)
+        }
+        i = i + 1
+    }
+    val
+}
+
+fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+    writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
+    let field_sigs = struct_field_sigs(sig)
+    writer_leb::emit_leb128_u(type_sec, len(field_sigs))
+    let mut fi = 0
+    while fi < len(field_sigs) {
+        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
+        fi = fi + 1
+    }
+}
+
+fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
+    if starts_with(clone(ft), String_from("ref")) {
+        let offset_str = substring(ft, 3, len(ft))
+        let offset = parse_type_sig_int(offset_str)
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_leb::emit_leb128_s(type_sec, gc_type_base + offset)
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        return
+    }
+    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(ft))
+    writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+}
+
+fn struct_field_sigs(sig: String) -> Vec<String> {
+    let mut fields = Vec_new_String()
+    let sig_len = len(sig)
+    let mut si = 0
+    while si < sig_len {
+        if char_at(clone(sig), si) == 95 && si + 1 < sig_len && char_at(clone(sig), si + 1) == 102 {
+            let mut pi = si + 2
+            while pi < sig_len && char_at(clone(sig), pi) != 95 {
+                pi = pi + 1
+            }
+            if pi < sig_len {
+                let type_start = pi + 1
+                let mut type_end = type_start
+                while type_end < sig_len && char_at(clone(sig), type_end) != 95 {
+                    type_end = type_end + 1
+                }
+                push(fields, substring(clone(sig), type_start, type_end))
+                si = type_end
+            } else {
+                si = si + 2
+            }
+        } else {
+            si = si + 1
+        }
+    }
+    fields
 }
 
 fn emit_type_param_entries(type_sec: WasmWriter, param_segments: Vec<String>, gc_type_base: i32) {
@@ -64,7 +137,7 @@ fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String, gc_type_base
 fn emit_sig_val_type(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     if eq(clone(sig), "gcref") && gc_type_base >= 0 {
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(type_sec, gc_type_base + 8)
+        writer_leb::emit_leb128_s(type_sec, gc_type_base + 2)
         return
     }
     if eq(clone(sig), "ref") && gc_type_base >= 0 {
