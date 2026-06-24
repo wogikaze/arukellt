@@ -77,15 +77,3 @@ fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_REF_NULL())
     writer_leb::emit_leb128_u(w, type_idx)
 }
-
-fn emit_gc_ref_test(w: WasmWriter, type_idx: i32) {
-    emit_gc_prefix(w)
-    writer_leb::emit_leb128_u(w, opcodes::GC_REF_TEST())
-    writer_leb::emit_leb128_u(w, type_idx)
-}
-
-fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
-    emit_gc_prefix(w)
-    writer_leb::emit_leb128_u(w, opcodes::GC_REF_CAST())
-    writer_leb::emit_leb128_u(w, type_idx)
-}

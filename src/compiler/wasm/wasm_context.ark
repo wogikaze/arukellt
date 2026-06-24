@@ -11,7 +11,3 @@ fn emit_wasm_context_new(functions: Vec<MirFunction>, strings: EmitStringTablePl
 fn emit_wasm_context_set_gc_type_base(ctx: SelfEmitCtx, gc_type_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_type_base(ctx, gc_type_base)
 }
-
-fn emit_wasm_context_set_gc_enum_variant_base(ctx: SelfEmitCtx, gc_enum_variant_base: i32) {
-    ctx_record::SelfEmitCtx_set_gc_enum_variant_base(ctx, gc_enum_variant_base)
-}

@@ -33,6 +33,7 @@ resolve_selfhost_wasm() {
   fi
   for cand in \
     "$REPO_ROOT/.build/selfhost/arukellt-s3.wasm" \
+    "$REPO_ROOT/.build/selfhost/arukellt-s2-runtime.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-s2.wasm" \
     "$REPO_ROOT/.bootstrap-build/arukellt-s2.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-pinned-bootstrap.wasm" \

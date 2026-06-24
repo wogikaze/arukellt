@@ -4,7 +4,6 @@ use mir::inst_accessors_shape
 use wasm::inst_array
 use wasm::inst_dispatch_result
 use wasm::inst_struct_record
-use wasm::inst_gc_struct
 use mir::opcodes
 
 fn try_emit_struct_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
@@ -30,19 +29,6 @@ fn try_emit_struct_record_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, p
     }
     if op == opcodes::MIR_STRUCT_SET() {
         inst_struct_record::emit_struct_set(w, inst, ctx)
-        return true
-    }
-    if op == opcodes::MIR_GC_STRUCT_NEW() {
-        inst_gc_struct::emit_gc_struct_new(w, inst, ctx)
-        return true
-    }
-    if op == opcodes::MIR_GC_STRUCT_GET() {
-        inst_gc_struct::emit_gc_struct_get(w, inst, ctx)
-        inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
-        return true
-    }
-    if op == opcodes::MIR_GC_STRUCT_SET() {
-        inst_gc_struct::emit_gc_struct_set(w, inst, ctx)
         return true
     }
     false

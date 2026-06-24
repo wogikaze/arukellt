@@ -6,9 +6,8 @@
 //   Sub{N}_S_...  - subtype of type at index {N} with struct body S_...
 //   SubF{N}_S_... - final subtype of type at index {N} with struct body S_...
 
-use mir::module_gc_enum
-use wasm::constants
 use wasm::opcodes
+use wasm::constants
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::sections_type_plan
@@ -43,7 +42,7 @@ fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
 //   SubF{N}: final sub of type index {N}
 //   S_{fields}: struct body (same as S_ sig format)
 fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
-    // Parse sig: "SubF{N}_S_{fields}" or "Sub{N}_S_{fields}" or "SubF+2_S_...@slot"
+    // Parse sig: "SubF{N}_S_{fields}" or "Sub{N}_S_{fields}"
     let sub_len = len(sig)
     // Check for "SubF" vs "Sub"
     let is_final = char_at(clone(sig), 3) == 70  // 'F'
@@ -52,16 +51,8 @@ fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     let mut pi = super_start
     while pi < sub_len && char_at(clone(sig), pi) != 95 { pi = pi + 1 }
     let super_idx_str = substring(clone(sig), super_start, pi)
-    let mut super_idx = parse_int(super_idx_str)
-    if char_at(clone(super_idx_str), 0) == 43 {
-        let offset_str = substring(clone(super_idx_str), 1, len(super_idx_str))
-        super_idx = gc_type_base + parse_int(offset_str)
-    }
-    let mut struct_body = substring(clone(sig), pi + 1, sub_len)
-    let at_pos = find_char(clone(struct_body), 64)
-    if at_pos >= 0 {
-        struct_body = substring(clone(struct_body), 0, at_pos)
-    }
+    let super_idx = parse_int(super_idx_str)
+    let struct_body = substring(clone(sig), pi + 1, sub_len)  // "S_..."
 
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
     writer_core::emit_byte(type_sec, is_final ? 1 : 0)
@@ -162,13 +153,4 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
 
 fn gc_type_sig_count() -> i32 {
     14
-}
-
-fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
-    let count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
-    let mut i = 0
-    while i < count {
-        push(type_sigs, module_gc_enum::MirModule_gc_enum_variant_sig_at(mir, i))
-        i = i + 1
-    }
 }

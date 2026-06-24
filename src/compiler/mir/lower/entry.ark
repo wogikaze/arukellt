@@ -1,5 +1,4 @@
 use mir::lower::ctx_api_module
-use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - MIR lowering entry assembly
 
 use mir::lower::decl_source
@@ -29,10 +28,9 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> M
     let fn_index_info = fn_index_view::mir_build_fn_index_from_view(view, midx)
     let mir_tr = entry_trace::mir_lower_entry_trace_enabled()
     mir_lower_trace_line(mir_tr, -1, decl_count, fn_index::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
-    let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target)
+    let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes)
     registry_view::mir_register_view_layouts(ctx, view)
     entry_decls::mir_emit_view_decls(ctx, view, body_source, fn_index_info, midx, mir_tr)
-    ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     if prune_enabled {
         let _mono_pruned = ctx_api_module::ctx_prune_unreachable(ctx)
     }

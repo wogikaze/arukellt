@@ -29,5 +29,5 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         }
         pa = pa + 1
     }
-    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, ast_node::node_text(node))
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes)
 }

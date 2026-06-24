@@ -6,10 +6,8 @@ use mir::lower::ctx_types
 // Arukellt Selfhost - MIR match payload field binding emission.
 
 use mir::inst_struct_get
-use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::inst_local_set
-use mir::lower::ctx_gc_enum
 use mir::lower::match_payload_field_type
 use mir::value_types
 
@@ -35,6 +33,7 @@ fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind
 }
 
 fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, bind_local: i32, bind_vt: i32, field_idx: i32) {
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     let mut field_vt = value_types::VT_VOID()
     if bind_vt == value_types::VT_F64() {
         field_vt = value_types::VT_F64()
@@ -43,14 +42,6 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
             field_vt = value_types::VT_I64()
         }
     }
-    if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        let type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
-        let tmp = ctx_fresh_local(ctx, field_vt)
-        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tmp, scrut_idx, type_slot, field_idx + 1, field_vt))
-        ctx_emit(ctx, inst_local_set::MirInst_local_set_from(bind_local, tmp))
-        return
-    }
-    ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get(ctx_struct_field_offset(ctx, clone(variant_name), field_idx + 1), field_vt))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
 }

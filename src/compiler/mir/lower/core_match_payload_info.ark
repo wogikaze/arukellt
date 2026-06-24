@@ -1,12 +1,10 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
-use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR match payload analysis.
 
 use mir::inst_struct_get
-use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::core_expr_shape_accessors
@@ -60,12 +58,6 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
 
 fn core_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
     let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        let tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tmp, scrut_idx, 0 - 1, 0, value_types::VT_VOID()))
-        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
-        return tag_local
-    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))

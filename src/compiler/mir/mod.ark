@@ -19,8 +19,8 @@ pub fn dump_mir(m: MirModule) {
     dump_core::dump_mir(m)
 }
 
-pub fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>, target: String) -> MirLowerInput {
-    input::mir_lower_input_new(view, fallback_source, wit_paths, decl_nodes, target)
+pub fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>) -> MirLowerInput {
+    input::mir_lower_input_new(view, fallback_source, wit_paths, decl_nodes)
 }
 
 pub fn mir_fallback_source_from_decls(decls: Vec<MirLowerLegacyDecl>) -> MirLowerFallbackSource {

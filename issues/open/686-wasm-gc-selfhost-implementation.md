@@ -132,14 +132,13 @@ ADR-035's phased plan.
 - [ ] Enum subtype hierarchy + br_on_cast dispatch
   - 内部進捗:
     - [x] `MIR_BR_ON_CAST` / `MIR_BR_ON_CAST_FAIL` オペコード追加 (82, 83)
-    - [x] `MIR_REF_TEST` / `MIR_REF_CAST` / `MIR_GC_STRUCT_*` オペコード追加 (84-88)
-    - [x] 命令コンストラクタ (`mir/inst_br_on_cast.ark`, `mir/inst_gc_struct.ark`, `mir/inst_ref_test.ark`)
-    - [x] wasm backend 発行 (`inst_control.ark`, `inst_dispatch.ark`, `inst_gc_struct.ark`)
-    - [x] `LowerCtx.is_gc_target` を driver target から配線
-    - [x] Enum subtype 型を `MirModule` メタデータ経由で type section に動的追加
-    - [x] MIR match lowering で `br_on_cast_fail` + `ref.test` を使用
-    - [x] Enum variant 構築を VT_GC_REF + `MIR_GC_STRUCT_*` 化
-  - **Verify (コンパイラ再ビルド後):**
+    - [x] 命令コンストラクタ (`mir/inst_br_on_cast.ark`)
+    - [x] wasm backend 発行 (`inst_control.ark`, `inst_dispatch_control.ark`)
+    - [x] LowerCtx に `is_gc_target` / `gc_type_base` フィールド追加
+    - [ ] MIR match lowering で br_on_cast を使用
+    - [ ] Enum variant 構築を VT_GC_REF 化
+  - **ブロッカー (2026-06-24):** `d0ae9e407` の Enum GC 一括実装は selfhost s2 の P2 コンパイル時に wasm OOB を起こすため revert 済み。fixpoint stage 2/3 は flat bootstrap overlay 経由で再開可能。再 landing 時は段階コミット + s2 自己コンパイル + P2 enum fixture で各段 gate すること。
+  - **Verify (実装後):**
     ```
     arukeit compile tests/fixtures/enums/exhaustive_match.ark -o /tmp/enum_gc.wasm --target wasm32-wasi-p2
     wasm-tools validate --features gc /tmp/enum_gc.wasm

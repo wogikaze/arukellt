@@ -1,0 +1,35 @@
+// Arukellt Parser — Self-hosted recursive descent + Pratt parser.
+//
+// Consumes a Vec<Token> from the lexer and produces an AST.
+// Uses i32 tag constants for node kinds (same pattern as lexer).
+
+use parser::mod
+
+pub fn parse_program(tokens: Vec<Token>) -> ParseResult {
+    mod::parse_program(tokens)
+}
+
+pub fn ParseResult_decls(result: ParseResult) -> Vec<AstNode> {
+    mod::ParseResult_decls(result)
+}
+
+pub fn ParseResult_decl_count(result: ParseResult) -> i32 {
+    mod::ParseResult_decl_count(result)
+}
+
+pub fn ParseResult_error_count(result: ParseResult) -> i32 {
+    mod::ParseResult_error_count(result)
+}
+
+pub fn ParseResult_error_at(result: ParseResult, index: i32) -> Diagnostic {
+    mod::ParseResult_error_at(result, index)
+}
+
+pub fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {
+    mod::ParseResult_errors(result)
+}
+
+// ── Top-level Module ─────────────────────────────────────────────────────────
+pub fn parse_module(p: Parser) -> Vec<AstNode> {
+    mod::parse_module(p)
+}

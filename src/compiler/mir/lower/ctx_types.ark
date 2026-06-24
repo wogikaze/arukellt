@@ -45,6 +45,4 @@ pub struct LowerCtx {
     wit_call_func_names: Vec<String>,
     is_gc_target: bool,
     gc_type_base: i32,
-    gc_enum_variant_names: Vec<String>,
-    gc_enum_variant_sigs: Vec<String>,
 }
