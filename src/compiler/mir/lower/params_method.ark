@@ -21,12 +21,20 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
     }
     let mut pvt = param::param_value_type(param)
     let p_type_name = param::param_type_name(param)
-    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
-        pvt = value_types::VT_GC_REF()
+    let local_type_name = param::param_local_type_name(param)
+    let mut mir_type_name = clone(p_type_name)
+    if len(local_type_name) > 0 {
+        mir_type_name = clone(local_type_name)
+        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
+            pvt = value_types::VT_GC_REF()
+        }
+    } else {
+        if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+            pvt = value_types::VT_GC_REF()
+        }
     }
     let param_local = ctx_alloc_local(ctx, clone(p_name), pvt)
-    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, p_type_name))
-    let local_type_name = param::param_local_type_name(param)
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, mir_type_name))
     if len(local_type_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, param_local, local_type_name)
     }

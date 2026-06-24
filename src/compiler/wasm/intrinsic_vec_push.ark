@@ -11,9 +11,9 @@ use wasm::writer_leb
 use wasm::intrinsic_vec_push_gc
 
 // Handler for: vec_push, push
-fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool) -> bool {
+fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return intrinsic_vec_push_gc::emit_push_gc(w, inst, ctx, is_void_push)
+        return intrinsic_vec_push_gc::emit_push_gc(w, inst, ctx, is_void_push, next_op)
     }
     let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -29,7 +29,7 @@ fn emit_push(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool)
     if is_void_push {
         writer_core::emit_byte(w, opcodes::OP_DROP())
     }
-    return true
+    return !is_void_push
 }
 
 fn emit_vec_push_grow_if_full(w: WasmWriter, vec_local: i32, data_local: i32, cap_local: i32, newdata_local: i32, elem_size: i32) {

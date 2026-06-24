@@ -12,14 +12,14 @@ fn try_emit_local_set_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_LOCAL_SET() {
         return false
     }
-    if try_emit_local_set_peephole(w, inst, prev_op, prev_arg0, next_op, next_arg1) {
+    if try_emit_local_set_peephole(w, inst, ctx, prev_op, prev_arg0, next_op, next_arg1) {
         return true
     }
     inst_locals::emit_local_set(w, inst, ctx)
     true
 }
 
-fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, prev_op: i32, prev_arg0: i32, next_op: i32, next_arg1: i32) -> bool {
+fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, next_op: i32, next_arg1: i32) -> bool {
     if inst_accessors_operands::MirInst_arg1(inst) < 0 && prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 == inst_accessors_operands::MirInst_arg0(inst) {
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
@@ -28,19 +28,19 @@ fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, prev_op: i32, prev_
     if inst_accessors_operands::MirInst_arg1(inst) >= 0 && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
+        inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         return true
     }
     if inst_accessors_operands::MirInst_arg1(inst) < 0 && next_op == opcodes::MIR_LOCAL_SET() {
+        inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         return true
     }
     if inst_accessors_operands::MirInst_arg1(inst) >= 0 && prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 == inst_accessors_operands::MirInst_arg1(inst) {
-        // The previous local.get left the value on the stack. Tee only when a
-        // stack-consuming local.set follows; otherwise set to keep the stack
-        // balanced (an unconditional tee strands a value at block end).
+        inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
         if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
             writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
         } else {

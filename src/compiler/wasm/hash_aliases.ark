@@ -65,23 +65,23 @@ fn hashmap_i32_string_builtin_alias(name: String) -> String {
 }
 
 fn hashmap_string_i32_builtin_alias(name: String) -> String {
-    if eq(clone(name), String_from("HashMap_new_String_i32")) {
-        return String_from("hashmap_new")
+    if eq(clone(name), String_from("HashMap_new_String_i32")) || eq(clone(name), String_from("HashMap_String_i32_new")) {
+        return String_from("hash_string::hashmap_str_i32_new")
     }
     if eq(clone(name), String_from("HashMap_String_i32_insert")) {
-        return String_from("hashmap_str_set")
+        return String_from("hash_string::hashmap_str_set")
     }
     if eq(clone(name), String_from("HashMap_String_i32_get")) {
-        return String_from("hashmap_str_get")
+        return String_from("hash_string::hashmap_str_get")
     }
     if eq(clone(name), String_from("HashMap_String_i32_contains_key")) {
-        return String_from("hashmap_str_contains")
+        return String_from("hash_string::hashmap_str_contains")
     }
     if eq(clone(name), String_from("HashMap_String_i32_remove")) {
-        return String_from("hashmap_str_remove")
+        return String_from("hash_string::hashmap_str_remove")
     }
     if eq(clone(name), String_from("HashMap_String_i32_len")) {
-        return String_from("hashmap_str_len")
+        return String_from("hash_string::hashmap_str_len")
     }
     clone(name)
 }

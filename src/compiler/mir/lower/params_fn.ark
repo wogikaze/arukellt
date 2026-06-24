@@ -16,19 +16,26 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     }
     let mut pvt = param::param_value_type(param)
     let p_type_name = param::param_type_name(param)
+    let local_type_name = param::param_local_type_name(param)
     let mut mir_type_name = clone(p_type_name)
-    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
-        pvt = value_types::VT_GC_REF()
-        mir_type_name = concat(String_from("enum:"), p_type_name)
-    } else {
-        if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+    if len(local_type_name) > 0 {
+        mir_type_name = clone(local_type_name)
+        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
             pvt = value_types::VT_GC_REF()
+        }
+    } else {
+        if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
+            pvt = value_types::VT_GC_REF()
+            mir_type_name = concat(String_from("enum:"), p_type_name)
+        } else {
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+                pvt = value_types::VT_GC_REF()
+            }
         }
     }
     let param_name = param::param_name(param)
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, mir_type_name))
-    let local_type_name = param::param_local_type_name(param)
     if len(local_type_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, param_local, local_type_name)
     }

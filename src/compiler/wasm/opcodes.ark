@@ -12,6 +12,7 @@ fn GC_ARRAY_GET() -> i32 { 11 }
 fn GC_ARRAY_GET_U() -> i32 { 13 }
 fn GC_ARRAY_SET() -> i32 { 14 }
 fn GC_ARRAY_LEN() -> i32 { 15 }
+fn GC_I31_NEW() -> i32 { 31 }
 fn GC_REF_I31() -> i32 { 28 }
 fn GC_I31_GET_S() -> i32 { 29 }
 fn GC_I31_GET_U() -> i32 { 30 }

@@ -68,6 +68,11 @@ fn emit_gc_ref_i31(w: WasmWriter) {
     writer_leb::emit_leb128_u(w, opcodes::GC_REF_I31())
 }
 
+fn emit_gc_i31_new(w: WasmWriter) {
+    emit_gc_prefix(w)
+    writer_leb::emit_leb128_u(w, opcodes::GC_I31_NEW())
+}
+
 fn emit_gc_i31_get_s(w: WasmWriter) {
     emit_gc_prefix(w)
     writer_leb::emit_leb128_u(w, opcodes::GC_I31_GET_S())

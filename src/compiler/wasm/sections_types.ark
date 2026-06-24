@@ -1,5 +1,6 @@
 // Arukellt Selfhost - Wasm type section emission.
 
+use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
@@ -139,17 +140,49 @@ fn build_function_type_sig(uf: MirFunction, target: String) -> String {
         if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
             sig = concat(sig, sections_types_gc::gc_enum_open_type_sig())
         } else {
-            sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
+            let gc_param_sig = gc_param_type_sig_override(function_identity::MirFunction_name(uf), pi, clone(p_type_name), clone(target))
+            if len(gc_param_sig) > 0 {
+                sig = concat(sig, gc_param_sig)
+            } else {
+            if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
+                sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+            } else {
+                if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("hashmap:")) {
+                    sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+                } else {
+                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
+                }
+            }
+            }
         }
         sig = concat(sig, String_from("_"))
         pi = pi + 1
     }
     let return_type = function_return_view::MirFunction_return_type(uf)
+    let return_type_name = function_return_view::MirFunction_return_type_name(uf)
     if return_type == 0 {
         sig = concat(sig, String_from("0"))
     } else {
         sig = concat(sig, String_from("1"))
-        sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
+        if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
+            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+        } else {
+        if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
+            sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+        } else {
+            let gc_enum_ret_sig = gc_enum_return_type_sig(clone(return_type_name), clone(target))
+            if len(gc_enum_ret_sig) > 0 {
+                sig = concat(sig, gc_enum_ret_sig)
+            } else {
+                let gc_ret_sig = gc_return_type_sig_override(function_identity::MirFunction_name(uf), clone(return_type_name), clone(target))
+                if len(gc_ret_sig) > 0 {
+                    sig = concat(sig, gc_ret_sig)
+                } else {
+                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
+                }
+            }
+        }
+        }
     }
     sig
 }
@@ -158,6 +191,83 @@ fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32) {
     if needs_wrapper == 1 {
         push(type_sigs, String_from("0"))
     }
+}
+
+fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String, target: String) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
+    if len(type_name) > 0 {
+        return String_new()
+    }
+    if param_idx != 0 {
+        return String_new()
+    }
+    if starts_with(clone(fn_name), String_from("hashmap_str_")) || starts_with(clone(fn_name), String_from("hashmap_str_val_")) || eq(clone(fn_name), String_from("hashmap_str_i32_new")) || starts_with(clone(fn_name), String_from("hash_string::hashmap_str_")) {
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    }
+    if starts_with(clone(fn_name), String_from("hashmap_")) || starts_with(clone(fn_name), String_from("hashset_")) || starts_with(clone(fn_name), String_from("hash::hashmap_")) || starts_with(clone(fn_name), String_from("hash::hashset_")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    String_new()
+}
+
+fn gc_enum_return_type_sig(type_name: String, target: String) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if starts_with(clone(type_name), String_from("Option_")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if eq(clone(type_name), String_from("Option")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    String_new()
+}
+
+fn gc_return_type_sig_override(fn_name: String, type_name: String, target: String) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
+    let enum_sig = gc_enum_return_type_sig(clone(type_name), clone(target))
+    if len(enum_sig) > 0 {
+        return enum_sig
+    }
+    if gc_fn_returns_option(clone(fn_name)) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if len(type_name) > 0 {
+        return String_new()
+    }
+    if starts_with(clone(fn_name), String_from("hashmap_str_i32_new")) || eq(clone(fn_name), String_from("hashmap_str_i32_new")) {
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    }
+    if starts_with(clone(fn_name), String_from("hashmap_new")) || starts_with(clone(fn_name), String_from("hashmap_with_capacity")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    String_new()
+}
+
+fn gc_fn_returns_option(fn_name: String) -> bool {
+    if eq(clone(fn_name), String_from("hashmap_get_option")) || eq(clone(fn_name), String_from("hash::hashmap_get_option")) || eq(clone(fn_name), String_from("HashMap_i32_i32_get")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("hashmap_remove")) || eq(clone(fn_name), String_from("hash::hashmap_remove")) || eq(clone(fn_name), String_from("HashMap_i32_i32_remove")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("hash_string::hashmap_str_get")) || eq(clone(fn_name), String_from("HashMap_String_i32_get")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("hash_string::hashmap_str_remove")) || eq(clone(fn_name), String_from("HashMap_String_i32_remove")) {
+        return true
+    }
+    false
 }
 
 fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {

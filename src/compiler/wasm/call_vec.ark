@@ -6,6 +6,8 @@ use wasm::intrinsic_vec_remove
 use wasm::intrinsic_vec_reverse
 use wasm::intrinsic_vec_contains
 use wasm::intrinsic_vec_numeric
+use wasm::ctx_record
+use wasm::emit_target
 
 // Arukellt Selfhost - Wasm vector call dispatch
 
@@ -97,16 +99,24 @@ fn try_emit_vec_core_mutation_call(w: WasmWriter, callee: String, inst: MirInst,
 
 fn try_emit_vec_push_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
         if eq(clone(callee), "vec_push") {
-            let _result_on_stack = intrinsic_vec::emit_push(w, inst, ctx, false)
+            let is_void_push = vec_push_is_void(ctx, inst, next_op, next_arg0, next_arg1, next2_op)
+            let _result_on_stack = intrinsic_vec::emit_push(w, inst, ctx, is_void_push, next_op)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true
         }
         if eq(clone(callee), "push") {
-            let _result_on_stack = intrinsic_vec::emit_push(w, inst, ctx, true)
+            let _result_on_stack = intrinsic_vec::emit_push(w, inst, ctx, true, next_op)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true
         }
         false
+}
+
+fn vec_push_is_void(ctx: SelfEmitCtx, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - Wasm numeric vector call dispatch

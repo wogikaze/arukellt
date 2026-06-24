@@ -1,0 +1,108 @@
+use typechecker::kinds
+// Arukellt Typechecker - HashMap builtin call return types.
+
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::types
+
+fn simple_type(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}
+
+fn hashmap_type(key: String, val: String) -> TypeInfo {
+    let mut hm = simple_type(commands::TY_HASHMAP())
+    contract_type_mutation::TypeInfo_push_type_arg(hm, types::resolve_type_name(key))
+    contract_type_mutation::TypeInfo_push_type_arg(hm, types::resolve_type_name(val))
+    hm
+}
+
+fn option_type(inner: String) -> TypeInfo {
+    let mut opt = simple_type(commands::TY_OPTION())
+    contract_type_mutation::TypeInfo_push_type_arg(opt, types::resolve_type_name(inner))
+    opt
+}
+
+fn hashmap_i32_i32_type() -> TypeInfo {
+    hashmap_type(String_from("i32"), String_from("i32"))
+}
+
+fn hashmap_string_i32_type() -> TypeInfo {
+    hashmap_type(String_from("String"), String_from("i32"))
+}
+
+fn hashmap_i32_string_type() -> TypeInfo {
+    hashmap_type(String_from("i32"), String_from("String"))
+}
+
+fn hashmap_string_string_type() -> TypeInfo {
+    hashmap_type(String_from("String"), String_from("String"))
+}
+
+fn hashmap_new_return_type(name: String) -> TypeInfo {
+    if eq(clone(name), String_from("HashMap_i32_i32_new")) || eq(clone(name), String_from("HashMap_new_i32_i32")) {
+        return hashmap_i32_i32_type()
+    }
+    if eq(clone(name), String_from("HashMap_new_String_i32")) || eq(clone(name), String_from("HashMap_String_i32_new")) {
+        return hashmap_string_i32_type()
+    }
+    if eq(clone(name), String_from("HashMap_new_i32_String")) || eq(clone(name), String_from("HashMap_i32_String_new")) {
+        return hashmap_i32_string_type()
+    }
+    if eq(clone(name), String_from("HashMap_new_String_String")) || eq(clone(name), String_from("HashMap_String_String_new")) {
+        return hashmap_string_string_type()
+    }
+    simple_type(commands::TY_UNKNOWN())
+}
+
+fn hashmap_get_return_type(name: String) -> TypeInfo {
+    if eq(clone(name), String_from("HashMap_i32_i32_get")) {
+        return option_type(String_from("i32"))
+    }
+    if eq(clone(name), String_from("HashMap_String_i32_get")) {
+        return option_type(String_from("i32"))
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_get")) {
+        return option_type(String_from("String"))
+    }
+    if eq(clone(name), String_from("HashMap_String_String_get")) {
+        return option_type(String_from("String"))
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_remove")) || eq(clone(name), String_from("HashMap_String_i32_remove")) {
+        return option_type(String_from("i32"))
+    }
+    if eq(clone(name), String_from("HashMap_i32_String_remove")) || eq(clone(name), String_from("HashMap_String_String_remove")) {
+        return option_type(String_from("String"))
+    }
+    simple_type(commands::TY_UNKNOWN())
+}
+
+fn hashmap_builtin_return_type(name: String) -> TypeInfo {
+    let new_ty = hashmap_new_return_type(clone(name))
+    if contract_type_access::TypeInfo_tag(new_ty) != commands::TY_UNKNOWN() {
+        return new_ty
+    }
+    let get_ty = hashmap_get_return_type(clone(name))
+    if contract_type_access::TypeInfo_tag(get_ty) != commands::TY_UNKNOWN() {
+        return get_ty
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_len")) || eq(clone(name), String_from("HashMap_String_i32_len")) || eq(clone(name), String_from("HashMap_i32_String_len")) || eq(clone(name), String_from("HashMap_String_String_len")) {
+        return simple_type(commands::TY_I32())
+    }
+    if eq(clone(name), String_from("HashMap_i32_i32_contains_key")) || eq(clone(name), String_from("HashMap_String_i32_contains_key")) || eq(clone(name), String_from("HashMap_i32_String_contains_key")) || eq(clone(name), String_from("HashMap_String_String_contains_key")) {
+        return simple_type(commands::TY_BOOL())
+    }
+    if eq(clone(name), String_from("__hm_si_new")) {
+        return hashmap_string_i32_type()
+    }
+    if eq(clone(name), String_from("__hm_si_cap")) || eq(clone(name), String_from("__hm_si_size")) || eq(clone(name), String_from("__hm_si_get_flag")) || eq(clone(name), String_from("__hm_si_get_val")) {
+        return simple_type(commands::TY_I32())
+    }
+    if eq(clone(name), String_from("__hm_si_get_key")) {
+        return simple_type(commands::TY_STRING())
+    }
+    if eq(clone(name), String_from("__intrinsic_i31_box")) || eq(clone(name), String_from("i31_box")) {
+        return simple_type(commands::TY_I32())
+    }
+    simple_type(commands::TY_UNKNOWN())
+}

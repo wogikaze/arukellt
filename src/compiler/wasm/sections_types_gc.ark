@@ -51,11 +51,21 @@ fn parse_type_sig_int(s: String) -> i32 {
     val
 }
 
-fn emit_array_type_entry(type_sec: WasmWriter, sig: String) {
+fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
-    let elem_type = array_elem_type(sig)
-    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(elem_type))
+    emit_array_elem_type(type_sec, array_elem_type(sig), gc_type_base)
     writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+}
+
+fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i32) {
+    if starts_with(clone(elem_type), String_from("ref")) {
+        let offset_str = substring(elem_type, 3, len(elem_type))
+        let offset = parse_type_sig_int(offset_str)
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_leb::emit_leb128_s(type_sec, gc_type_base + offset)
+        return
+    }
+    writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(elem_type))
 }
 
 fn struct_field_sigs(sig: String) -> Vec<String> {
@@ -116,10 +126,12 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("A_f64"))
     push(type_sigs, String_from("S_f0_i64"))
     push(type_sigs, String_from("Sub0_S_f0_i32"))
+    push(type_sigs, String_from("A_ref0"))
+    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    15
+    17
 }
 
 fn gc_enum_open_type_offset() -> i32 {
@@ -128,6 +140,14 @@ fn gc_enum_open_type_offset() -> i32 {
 
 fn gc_enum_open_type_sig() -> String {
     String_from("gcref14")
+}
+
+fn gc_vec_type_sig() -> String {
+    String_from("gcref10")
+}
+
+fn gc_hashmap_str_i32_type_sig() -> String {
+    String_from("gcref16")
 }
 
 fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {

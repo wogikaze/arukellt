@@ -6,6 +6,9 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::function_return_view
+use mir::function_identity
+use mir::function_locals_view
+use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
@@ -13,8 +16,120 @@ use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::inst_ctx
 
+fn is_gc_container_type_name(type_name: String) -> bool {
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    false
+}
+
+fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    let storage = infer_local_storage_gc_type(f, local_idx, ctx)
+    if storage < 0 {
+        return false
+    }
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return false
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let type_name = local_access::MirLocal_type_name(loc)
+    if is_gc_container_type_name(clone(type_name)) {
+        return false
+    }
+    if is_option_type_name(clone(type_name)) {
+        return true
+    }
+    if mir_function_returns_option(f) && storage == ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) {
+        return true
+    }
+    false
+}
+
+fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
+                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+                if ret_local == local_idx {
+                    return true
+                }
+                if ret_local < 0 && ii > 0 {
+                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_arg0(prev) == local_idx {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
+    let raw = infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
+    if raw < 0 {
+        return raw
+    }
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return raw
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let type_name = local_access::MirLocal_type_name(loc)
+    if is_gc_container_type_name(clone(type_name)) {
+        return raw
+    }
+    if is_option_type_name(clone(type_name)) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    if mir_function_returns_option(f) && local_feeds_return(f, local_idx) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    raw
+}
+
 fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
-    infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
+    infer_local_storage_gc_type(f, local_idx, ctx)
+}
+
+fn is_option_type_name(type_name: String) -> bool {
+    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) || eq(clone(type_name), String_from("enum:Option")) {
+        return true
+    }
+    false
+}
+
+fn mir_fn_returns_option_by_name(fn_name: String) -> bool {
+    if eq(clone(fn_name), String_from("hashmap_get_option")) || eq(clone(fn_name), String_from("hash::hashmap_get_option")) || eq(clone(fn_name), String_from("HashMap_i32_i32_get")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("hashmap_remove")) || eq(clone(fn_name), String_from("hash::hashmap_remove")) || eq(clone(fn_name), String_from("HashMap_i32_i32_remove")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("hash_string::hashmap_str_get")) || eq(clone(fn_name), String_from("HashMap_String_i32_get")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("hash_string::hashmap_str_remove")) || eq(clone(fn_name), String_from("HashMap_String_i32_remove")) {
+        return true
+    }
+    false
+}
+
+fn mir_function_returns_option(f: MirFunction) -> bool {
+    if mir_fn_returns_option_by_name(function_identity::MirFunction_name(f)) {
+        return true
+    }
+    if function_return_view::MirFunction_return_type(f) != value_types::VT_GC_REF() {
+        return false
+    }
+    is_option_type_name(function_return_view::MirFunction_return_type_name(f))
 }
 
 fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
@@ -89,8 +204,11 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "String_from") || eq(clone(callee), "concat") || eq(clone(callee), "clone") || eq(clone(callee), "to_string") || eq(clone(callee), "char_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "f64_to_string") {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
+    if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    }
     // Vec_new returns (ref null S_f0_ref1_f1_i32) = vec_type
-    if eq(clone(callee), "Vec_new_i64") || eq(clone(callee), "Vec_new_f64") {
+    if starts_with(clone(callee), String_from("Vec_new_")) {
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
     let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
@@ -99,6 +217,9 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     }
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     if function_return_view::MirFunction_return_type(called) == value_types::VT_GC_REF() {
+        if is_option_type_name(function_return_view::MirFunction_return_type_name(called)) {
+            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
     }
     0 - 1

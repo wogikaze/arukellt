@@ -33,6 +33,9 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 if type_ann_node::type_ann_is_name(some_ty, String_from("i64")) {
                     return String_from("Option_i64")
                 }
+                if type_ann_node::type_ann_is_name(some_ty, String_from("i32")) {
+                    return String_from("Option_i32")
+                }
             }
             return String_from("enum:Option")
         }

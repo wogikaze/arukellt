@@ -8,12 +8,14 @@ use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::inst_locals
 
 fn emit_gc_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let dest = inst_accessors_shape::MirInst_dest(inst)
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     writer_gc::emit_gc_struct_new_default(w, gc_type_idx)
+    inst_locals::emit_gc_ref_cast_to_dest(w, ctx, dest)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, dest)
 }

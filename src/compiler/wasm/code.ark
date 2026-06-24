@@ -17,6 +17,7 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
     let mut ci = 0
     while ci < fn_count {
         let f = get_unchecked(functions, ci)
+        ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
         let body = code_body::emit_function_body(f, ctx, bindings)
         emit_code_body_entry(code_sec, body)
         ci = ci + 1
