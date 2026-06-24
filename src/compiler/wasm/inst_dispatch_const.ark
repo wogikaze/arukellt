@@ -1,9 +1,11 @@
+use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 // Arukellt Selfhost - const/local-get MIR instruction dispatch.
 
 use wasm::inst_const
 use wasm::inst_dispatch_result
 use wasm::inst_locals
+use wasm::inst_store
 use mir::opcodes
 
 fn try_emit_const_or_get_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
@@ -39,7 +41,8 @@ fn try_emit_const_literal_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, n
     }
     if op == opcodes::MIR_CONST_STRING() {
         inst_const::emit_const_string(w, inst, ctx)
-        emit_const_literal_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
+        let on_stack = inst_accessors_operands::MirInst_dest(inst) < 0
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
         return true
     }
     false

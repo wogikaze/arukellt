@@ -6,7 +6,6 @@ use mir::lower_kinds
 // Arukellt MIR lowering body - non-final match arm.
 
 use mir::inst_structured_control
-use mir::inst_misc_control
 use mir::lower::body_match_compare_or
 use mir::lower::body_match_compare_single
 use mir::lower::match
@@ -22,9 +21,6 @@ fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i3
     }
     let arm_result = lower_expr(ctx, body)
     match::mir_store_match_arm_result(ctx, result, arm_result)
-    if arm_result < 0 {
-        ctx_emit(ctx, inst_misc_control::MirInst_drop())
-    }
     ctx_emit(ctx, inst_structured_control::MirInst_else())
     depth
 }

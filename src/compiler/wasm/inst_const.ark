@@ -89,8 +89,9 @@ fn emit_const_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         string_gc_helpers::emit_gc_br(w, 0)
         string_gc_helpers::emit_gc_block_loop_end(w)
 
-        // Push result on stack
-        string_gc_helpers::emit_gc_local_get(w, dest)
+        if dest < 0 {
+            string_gc_helpers::emit_gc_local_get(w, dest)
+        }
     } else {
         // Fallback for invalid string index: push null
         string_gc_helpers::emit_gc_ref_null(w, ctx_record::SelfEmitCtx_gc_type_base(ctx))

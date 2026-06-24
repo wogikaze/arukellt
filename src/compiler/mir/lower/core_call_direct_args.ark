@@ -5,9 +5,17 @@ use mir::lower::core_call_args
 use mir::lower::core_call_direct_arg
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
+use mir::lower::core_literals
 use mir::lower::core_names
 
 fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
+    let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    if eq(clone(callee_name), "String_from") && child_count == 2 {
+        let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+        if core_expr_shape_atoms::mir_core_expr_is_string(arg_expr) {
+            return core_literals::lower_core_literal_value(ctx, arg_expr)
+        }
+    }
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
     let stage_call_args = eq(clone(callee_name), "push")

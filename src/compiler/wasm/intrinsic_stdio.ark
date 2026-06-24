@@ -1,6 +1,7 @@
 // Arukellt Selfhost - stdio intrinsic handlers
 
 use mir::inst_accessors_operands
+use mir::opcodes as mir_opcodes
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
@@ -19,9 +20,9 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
     intrinsic_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }
 
-fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        emit_gc_println(w, inst, ctx)
+        emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op)
     } else {
         emit_println_t1(w, inst, ctx)
     }
@@ -47,11 +48,23 @@ fn emit_gc_heap_set(w: WasmWriter) {
     writer_leb::emit_leb128_u(w, 0)
 }
 
-fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32) {
+    let arg_local = inst_accessors_operands::MirInst_arg0(inst)
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
     helpers_io_p2::emit_p2_write_newline(w, 0)
-    helpers_io_calls::emit_drop(w)
+    if drop_stray_text_ref {
+        helpers_io_calls::emit_drop(w)
+        if gc_println_needs_nested_block_drop(next_op) {
+            helpers_io_calls::emit_drop(w)
+        }
+    } else if arg_local >= 0 {
+        helpers_io_calls::emit_drop(w)
+    }
+}
+
+fn gc_println_needs_nested_block_drop(next_op: i32) -> bool {
+    next_op == mir_opcodes::MIR_END()
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

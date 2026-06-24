@@ -152,6 +152,7 @@ ADR-035's phased plan.
   - 期待: validate OK、`stop` / `caution` / `go` が順に出力される
 
 - [ ] HashMap GC 表現
+  - **注記 (2026-06-25):** `hashmap_basic.ark` は `wasm-tools validate --features gc` 通過。`stdio::println(String_from(...))` / match arm 内 `println` の GC スタック修復（`String_from` literal fold、`gc_println` stray ref drop、match arm void drop 削除）済み。残: `hashmap_string_i32.ark` validate（array.set ref/i32）、host-run runtime。
   - **Verify (実装後):**
     ```
     arukeit compile tests/fixtures/stdlib_hashmap/hashmap_basic.ark -o /tmp/hm_gc.wasm --target wasm32-wasi-p2
@@ -162,6 +163,7 @@ ADR-035's phased plan.
   - 期待: HashMap が GC struct と GC array で実装され、runtime で正しく動作する
 
 - [ ] i31ref boxing for small integers in generics
+  - **注記 (2026-06-25):** `boxing_i31.ark` validate 通過。`vec_push.ark` は `array.set` で ref/i32 mismatch 残存（push 値の scratch local 型）。
   - **Verify (実装後):**
     ```
     wasm-tools dump /tmp/boxing_test.wasm 2>&1 | grep -E 'i31.new|ref.i31'

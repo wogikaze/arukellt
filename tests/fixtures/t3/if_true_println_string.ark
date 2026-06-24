@@ -1,0 +1,7 @@
+use std::host::stdio
+
+fn main() {
+    if true {
+        stdio::println(String_from("found"))
+    }
+}

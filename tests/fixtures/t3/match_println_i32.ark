@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let m = HashMap_i32_i32_new()
+    HashMap_i32_i32_insert(m, 2, 200)
+    match HashMap_i32_i32_get(m, 2) {
+        Option::Some(v) => stdio::println(v),
+        None => stdio::println(-1),
+    }
+}

@@ -136,14 +136,15 @@ fn try_emit_process_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 
 // Arukellt Selfhost - Wasm stdio host call dispatch
 
-fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
         if eq(clone(callee), "stdio::read_to_string") || eq(clone(callee), "stdin_read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
             let _result_on_stack = intrinsic_stdio::emit_read_stdin_to_string(w, inst, ctx)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true
         }
         if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
-            let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx)
+            let drop_stray_text_ref = gc_println_should_drop_stray_text_ref(prev_op, prev_callee)
+            let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx, drop_stray_text_ref, next_op)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true
         }
@@ -158,4 +159,35 @@ fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEm
             return true
         }
         false
+}
+
+fn gc_println_should_drop_stray_text_ref(prev_op: i32, prev_callee: String) -> bool {
+    if prev_op != mir::opcodes::MIR_CALL() {
+        return false
+    }
+    let name = normalize_gc_println_prev_callee(clone(prev_callee))
+    if eq(clone(name), "to_string") || eq(clone(name), "i32_to_string") || eq(clone(name), "text::format_i32") || eq(clone(name), "convert::i32_to_string") || eq(clone(name), "__intrinsic_i32_to_string") {
+        return true
+    }
+    if eq(clone(name), "i64_to_string") || eq(clone(name), "text::format_i64") || eq(clone(name), "convert::i64_to_string") {
+        return true
+    }
+    if eq(clone(name), "f64_to_string") || eq(clone(name), "text::format_f64") || eq(clone(name), "convert::f64_to_string") || eq(clone(name), "__intrinsic_f64_to_string") {
+        return true
+    }
+    if eq(clone(name), "bool_to_string") || eq(clone(name), "text::format_bool") || eq(clone(name), "convert::bool_to_string") {
+        return true
+    }
+    if eq(clone(name), "char_to_string") {
+        return true
+    }
+    false
+}
+
+fn normalize_gc_println_prev_callee(raw_callee: String) -> String {
+    let callee_n = len(raw_callee)
+    if callee_n > 12 && char_at(clone(raw_callee), 0) == 95 && char_at(clone(raw_callee), 1) == 95 {
+        return substring(clone(raw_callee), 12, callee_n)
+    }
+    raw_callee
 }
