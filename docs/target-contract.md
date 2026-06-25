@@ -57,7 +57,7 @@ contract remains the single docs source for target verification status.
 | parse | guaranteed | shared frontend; same parser as T1 |
 | typecheck | guaranteed | shared frontend; same typechecker as T1 |
 | compile (core Wasm) | guaranteed | 175 `t3-run` + 170 `t3-compile` fixtures |
-| run (wasmtime) | guaranteed | 175 `t3-run` fixtures with stdout comparison (uses null GC collector) |
+| run (wasmtime) | guaranteed | 175 `t3-run` fixtures with stdout comparison (wasmtime 46+ uses copying GC collector by default) |
 | emit component | smoke | 16 `component-compile` fixtures; skipped if `wasm-tools` absent |
 | emit WIT | smoke | `--emit wit` tested in component-compile fixtures |
 | host capabilities | guaranteed | WASI P2 imports conditionally emitted per reachability |

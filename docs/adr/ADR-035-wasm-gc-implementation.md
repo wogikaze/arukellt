@@ -117,8 +117,9 @@ Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は T
 
 1. **jco GC 非対応**: JS interop パスがブロックされる。影響範囲: browser target。
    upstream jco が Wasm GC をサポートするまで待つ必要がある (#037)。
-2. **wasmtime GC perf**: GC ランタイムの最適化度合い。wasmtime 30.x の GC
-   実装はまだ進化途中。fixture parity と benchmark で監視する。
+2. **wasmtime GC perf**: GC ランタイムの最適化度合い。wasmtime 46.x では
+   copying collector がデフォルトになり、DRC のバグ (29.x で問題となった) は
+   回避済み。fixture parity と benchmark で監視する。
 3. **Migration cost**: `i32-as-pointer` から GC reference への移行で
    MIR lowering の多くの箇所に影響。段階的移行が難しい場合、一度に切り替える
    「flag day」アプローチも検討。
