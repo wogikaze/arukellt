@@ -77,6 +77,10 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
       equivalent section that describes intentional differences from Rust.
 - [x] `HashSet<String>` insert/contains/remove are implemented or removed from
       the public facade until implemented.
+      - 2026-06-25: `std::collections::hash_map::hashset_str_*` no longer
+        returns fixed stub values; `hashset_string_facades.ark` covers both
+        `hash::hashset_str_*` and the compatibility `hash_map::hashset_str_*`
+        facade.
 - [x] `HashMap` facade APIs consistently return `Option<V>` for replacement and
       lookup where the type system can represent it; legacy bool/unit behavior
       is documented as raw compatibility.
