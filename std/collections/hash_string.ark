@@ -439,20 +439,52 @@ pub fn hashmap_str_val_get(_m: HashMap<i32, String>, _key: i32) -> Option<String
 
 // ─── HashSet<String> API (linear scan over Vec<String>) ──────────────────────
 
+fn vec_string_index_of(items: Vec<String>, value: String) -> i32 {
+    let mut i: i32 = 0
+    while i < len(items) {
+        if eq(get_unchecked(items, i), value) {
+            return i
+        }
+        i = i + 1
+    }
+    -1
+}
+
+fn vec_string_remove_at(items: Vec<String>, index: i32) {
+    let n: i32 = len(items)
+    let mut i: i32 = index
+    while i < n - 1 {
+        set(items, i, get_unchecked(items, i + 1))
+        i = i + 1
+    }
+    let _last: Option<String> = pop(items)
+}
+
 pub fn hashset_str_new() -> Vec<String> {
     Vec_new_String()
 }
 
-pub fn hashset_str_insert(_s: Vec<String>, _value: String) -> bool {
-    false
+pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
+    if vec_string_index_of(s, clone(value)) >= 0 {
+        false
+    } else {
+        let _updated: Vec<String> = push(s, value)
+        true
+    }
 }
 
-pub fn hashset_str_contains(_s: Vec<String>, _value: String) -> bool {
-    false
+pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
+    vec_string_index_of(s, value) >= 0
 }
 
-pub fn hashset_str_remove(_s: Vec<String>, _value: String) -> bool {
-    false
+pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
+    let idx: i32 = vec_string_index_of(s, value)
+    if idx < 0 {
+        false
+    } else {
+        vec_string_remove_at(s, idx)
+        true
+    }
 }
 
 pub fn hashset_str_len(s: Vec<String>) -> i32 {

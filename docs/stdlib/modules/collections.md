@@ -143,8 +143,8 @@ Return the number of interned strings.
 ## `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 22
-- Stability: stable 22
+- Manifest-backed functions: 28
+- Stability: stable 28
 
 Hash-based collection helpers.
 
@@ -213,6 +213,12 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the union of two sets (all elements present in a or b). |
 | `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the intersection of two sets (elements present in both a and b). |
 | `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the difference a - b (elements in a that are not in b). |
+| `hashset_str_new` | `() -> Vec<String>` | `stable` | - |
+| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `stable` | - |
+| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `stable` | - |
+| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `stable` | - |
+| `hashset_str_len` | `(Vec<String>) -> i32` | `stable` | - |
+| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `stable` | - |
 
 ## `std::collections::linear`
 

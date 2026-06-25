@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 395 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 28 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 180 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
@@ -235,6 +235,12 @@
 | `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_len` | `(Vec<String>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_new` | `() -> Vec<String>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
@@ -1294,6 +1300,12 @@ Expected output: `hello world`
 | `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_len` | `(Vec<String>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_new` | `() -> Vec<String>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |

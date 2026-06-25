@@ -3563,6 +3563,56 @@ stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Vec<i32>"
 
+# --- HashSet<String> facade (Vec<String>-backed) ---
+
+[[functions]]
+name = "hashset_str_new"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<String>"
+
+[[functions]]
+name = "hashset_str_insert"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_str_contains"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_str_remove"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_str_len"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<String>"]
+returns = "i32"
+
+[[functions]]
+name = "hashset_str_is_empty"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<String>"]
+returns = "bool"
+
 # === std::collections::linear ===
 
 [[functions]]

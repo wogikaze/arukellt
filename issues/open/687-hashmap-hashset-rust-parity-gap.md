@@ -75,7 +75,7 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
 
 - [ ] Add a user-facing `docs/stdlib/collections-hashmap-rust-diff.md` or
       equivalent section that describes intentional differences from Rust.
-- [ ] `HashSet<String>` insert/contains/remove are implemented or removed from
+- [x] `HashSet<String>` insert/contains/remove are implemented or removed from
       the public facade until implemented.
 - [ ] `HashMap` facade APIs consistently return `Option<V>` for replacement and
       lookup where the type system can represent it; legacy bool/unit behavior

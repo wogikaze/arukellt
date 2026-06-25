@@ -372,3 +372,61 @@ pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     }
     result
 }
+
+// ─── HashSet<String> facade (Vec<String>-backed) ────────────────────────────
+
+fn hash_vec_string_index_of(items: Vec<String>, value: String) -> i32 {
+    let mut i: i32 = 0
+    while i < len(items) {
+        if eq(get_unchecked(items, i), value) {
+            return i
+        }
+        i = i + 1
+    }
+    -1
+}
+
+fn hash_vec_string_remove_at(items: Vec<String>, index: i32) {
+    let n: i32 = len(items)
+    let mut i: i32 = index
+    while i < n - 1 {
+        set(items, i, get_unchecked(items, i + 1))
+        i = i + 1
+    }
+    let _last: Option<String> = pop(items)
+}
+
+pub fn hashset_str_new() -> Vec<String> {
+    Vec_new_String()
+}
+
+pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
+    if hash_vec_string_index_of(s, clone(value)) >= 0 {
+        false
+    } else {
+        let _updated: Vec<String> = push(s, value)
+        true
+    }
+}
+
+pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
+    hash_vec_string_index_of(s, value) >= 0
+}
+
+pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
+    let idx: i32 = hash_vec_string_index_of(s, value)
+    if idx < 0 {
+        false
+    } else {
+        hash_vec_string_remove_at(s, idx)
+        true
+    }
+}
+
+pub fn hashset_str_len(s: Vec<String>) -> i32 {
+    len(s)
+}
+
+pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
+    len(s) == 0
+}

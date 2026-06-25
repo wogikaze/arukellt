@@ -9,7 +9,7 @@
 | `std::bytes` | 45 | 45 | 0 | 0 | 40/45 (89%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 18 | 0 | 18 | 0 | 18/18 (100%) | no |
-| `std::collections::hash` | 22 | 22 | 0 | 0 | 22/22 (100%) | no |
+| `std::collections::hash` | 28 | 28 | 0 | 0 | 27/28 (96%) | no |
 | `std::collections::linear` | 31 | 31 | 0 | 0 | 31/31 (100%) | no |
 | `std::collections::ordered` | 37 | 10 | 27 | 0 | 36/37 (97%) | no |
 | `std::component` | 2 | 0 | 2 | 0 | 2/2 (100%) | no |
@@ -47,7 +47,7 @@
 | `std::wasm` | 61 | 0 | 61 | 0 | 37/61 (61%) | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 622 APIs, 389 stable, 208 experimental, 25 deprecated, 501/597 (84%) fixture coverage
+**Total**: 628 APIs, 395 stable, 208 experimental, 25 deprecated, 506/603 (84%) fixture coverage
 
 ## Legend
 

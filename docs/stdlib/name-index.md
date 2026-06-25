@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 597
+- **Canonical names:** 603
 - **Historical/deprecated names:** 25
-- **Total entries:** 622
+- **Total entries:** 628
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -260,6 +260,12 @@ Current public API names, sorted alphabetically.
 | `hashset_len` | `std::collections::hash` | `stable` | Collections |
 | `hashset_new` | `std::collections::hash` | `stable` | Collections |
 | `hashset_remove` | `std::collections::hash` | `stable` | Collections |
+| `hashset_str_contains` | `std::collections::hash` | `stable` | Collections |
+| `hashset_str_insert` | `std::collections::hash` | `stable` | Collections |
+| `hashset_str_is_empty` | `std::collections::hash` | `stable` | Collections |
+| `hashset_str_len` | `std::collections::hash` | `stable` | Collections |
+| `hashset_str_new` | `std::collections::hash` | `stable` | Collections |
+| `hashset_str_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashset_to_vec` | `std::collections::hash` | `stable` | Collections |
 | `hashset_union` | `std::collections::hash` | `stable` | Collections |
 | `hex_decode` | `std::bytes` | `stable` | Bytes |
@@ -923,6 +929,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashset_len` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_new` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_remove` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_str_contains` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_str_insert` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_str_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_str_len` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_str_new` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_str_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_to_vec` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_union` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hex_decode` | ✅ `stable` | `std::bytes` | Bytes |
