@@ -1,0 +1,8 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let m = hash::hashmap_new()
+    let _ = hash::hashmap_set(m, 42, 100)
+    stdio::println(i32_to_string(hash::hashmap_size(m)))
+}
