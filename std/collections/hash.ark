@@ -344,6 +344,30 @@ pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
     result
 }
 
+/// Return a flat Vec<i32> snapshot of key/value pairs:
+/// [key0, value0, key1, value1, ...].
+pub fn hashmap_entries(m: Vec<i32>) -> Vec<i32> {
+    let cap: i32 = get_unchecked(m, 0)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < cap {
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
+        if flag == 1 {
+            push(result, get_unchecked(m, hashmap_key_index(i)))
+            push(result, get_unchecked(m, hashmap_value_index(cap, i)))
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Return all entries as flat key/value pairs and clear the map.
+pub fn hashmap_drain(m: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = hashmap_entries(m)
+    hashmap_clear(m)
+    result
+}
+
 /// Remove a key from the map and return its previous value, or None if absent.
 /// Removal is implemented by collecting all live entries, clearing the map,
 /// and re-inserting everything except the removed key (O(n) but correct).
@@ -367,6 +391,19 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
         }
         Some(old_val)
     }
+}
+
+/// Remove a key and return a flat [key, value] pair, or an empty Vec if absent.
+pub fn hashmap_remove_entry(m: Vec<i32>, key: i32) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    match hashmap_remove(m, key) {
+        Option::Some(v) => {
+            push(result, key)
+            push(result, v)
+        },
+        None => {}
+    }
+    result
 }
 
 // ─── HashSet API (monomorphic i32, backed by HashMap<i32,i32>) ──────────────

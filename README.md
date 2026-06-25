@@ -12,9 +12,9 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - Canonical target: `wasm32-wasi-p2`
 - Component/WIT target: `wasm32-wasi-p2`
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
-- Fixture harness: 642 passed, 29 skipped / 1135 entries
+- Fixture harness: 642 passed, 29 skipped / 1138 entries
 - Verification: `python3 scripts/manager.py verify quick` — 167/167 checks pass
-- Stdlib manifest-backed public API: 633 functions
+- Stdlib manifest-backed public API: 636 functions
 <!-- END GENERATED:README_STATUS -->
 
 ## Start here

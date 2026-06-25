@@ -59,6 +59,7 @@ These files are authored and maintained by human contributors. Changes require r
 | `module-system.md` | Import syntax documentation | language team | — (manual review) |
 | `generation-schema.md` | Schema enforced by the docs generator | docs tooling maintainers | — (manual review) |
 | `expansion-policy.md` | Policy for which modules accept new APIs | project leads | — (manual review) |
+| `collections-hashmap-rust-diff.md` | HashMap / HashSet Rust compatibility notes | stdlib maintainers | — (manual review) |
 | `migration-guidance.md` | Deprecated API migration paths and examples | stdlib maintainers | `check_deprecated_badge_presence` (cross-check) |
 | `monomorphic-deprecation.md` | Monomorphic API deprecation plan | stdlib maintainers | — (manual review) |
 | `prelude-dedup.md` | Prelude namespace deduplication rules | language team | — (manual review) |

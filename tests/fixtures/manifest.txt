@@ -552,6 +552,7 @@ run:stdlib_hashmap/hashset_string_basic.ark
 run:stdlib_hashmap/hashmap_generic_demo.ark
 run:stdlib_hashmap/hashmap_insert_return.ark
 run:stdlib_hashmap/hashset_string_facades.ark
+run:stdlib_hashmap/hashmap_parity_edges.ark
 run:stdlib_hashmap/property_disjoint_commutativity.ark
 run:stdlib_hashmap/property_insert_remove_balance.ark
 run:stdlib_hashmap/property_snapshot_normalized.ark
@@ -843,6 +844,7 @@ t3-compile:stdlib_hashmap/hashset_string_basic.ark
 t3-compile:stdlib_hashmap/hashmap_generic_demo.ark
 t3-compile:stdlib_hashmap/hashmap_insert_return.ark
 t3-compile:stdlib_hashmap/hashset_string_facades.ark
+t3-compile:stdlib_hashmap/hashmap_parity_edges.ark
 t3-compile:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
 t3-compile:stdlib_io/f64_to_string.ark
@@ -1035,6 +1037,7 @@ t3-run:stdlib_hashmap/hashset_string_basic.ark
 t3-run:stdlib_hashmap/hashmap_generic_demo.ark
 t3-run:stdlib_hashmap/hashmap_insert_return.ark
 t3-run:stdlib_hashmap/hashset_string_facades.ark
+t3-run:stdlib_hashmap/hashmap_parity_edges.ark
 t3-run:stdlib_io/clock_random.ark
 t3-run:stdlib_io/eprintln.ark
 t3-run:stdlib_io/f64_to_string.ark

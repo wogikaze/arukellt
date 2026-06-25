@@ -143,8 +143,8 @@ Return the number of interned strings.
 ## `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 33
-- Stability: stable 33
+- Manifest-backed functions: 36
+- Stability: stable 36
 
 Hash-based collection helpers.
 
@@ -207,7 +207,10 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashmap_clear` | `(Vec<i32>) -> ()` | `stable` | Remove all entries from the map, resetting size to 0. |
 | `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a Vec<i32> of all keys currently in the map. |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a Vec<i32> of all values currently in the map. |
+| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a flat Vec<i32> snapshot of key/value pairs: |
+| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return all entries as flat key/value pairs and clear the map. |
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Remove a key from the map and return its previous value, or None if absent. |
+| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
 | `hashset_new` | `() -> Vec<i32>` | `stable` | Create a new empty HashSet. |
 | `hashset_insert` | `(Vec<i32>, i32) -> bool` | `stable` | Insert a value into the set. Returns true if the value was newly added, |
 | `hashset_contains` | `(Vec<i32>, i32) -> bool` | `stable` | Return true if the set contains the given value. |

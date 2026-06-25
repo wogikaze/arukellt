@@ -73,8 +73,12 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
 
 ## Acceptance
 
-- [ ] Add a user-facing `docs/stdlib/collections-hashmap-rust-diff.md` or
+- [x] Add a user-facing `docs/stdlib/collections-hashmap-rust-diff.md` or
       equivalent section that describes intentional differences from Rust.
+      - 2026-06-26: Added `docs/stdlib/collections-hashmap-rust-diff.md`
+        documenting raw representation, deterministic hashing, capacity/growth
+        behavior, snapshot entries/drain APIs, and deferred iterator/entry
+        parity.
 - [x] `HashSet<String>` insert/contains/remove are implemented or removed from
       the public facade until implemented.
       - 2026-06-25: `std::collections::hash_map::hashset_str_*` no longer
@@ -97,14 +101,29 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
         `hashmap_capacity`, `hashmap_reserve`, `hashmap_try_reserve`, and
         `hashmap_shrink_to_fit`. `hashmap_capacity_reserve.ark` covers reserve,
         automatic insertion growth, shrink, and value preservation.
-- [ ] Add fixtures covering collision, update-return, deletion-after-collision,
+- [x] Add fixtures covering collision, update-return, deletion-after-collision,
       zero-value lookup, full-table behavior, and string set membership.
-- [ ] Decide and document whether Arukellt will support Rust-like randomized
+      - 2026-06-26: Added `hashmap_parity_edges.ark` covering colliding inserts,
+        `hashmap_insert` replacement returns, zero-value lookup,
+        deletion-after-collision lookup, insertion growth beyond the old
+        full-table case, flat entries/drain/remove-entry snapshots, and String
+        HashSet membership through the compatibility facade.
+- [x] Decide and document whether Arukellt will support Rust-like randomized
       hashing/custom hashers or keep deterministic hashing for reproducibility.
-- [ ] Decide and document whether `entry` / iterator / `FromIterator` parity is
+      - 2026-06-26: Documented deterministic FNV-1 hashing as the current
+        contract; randomized seeding/custom hashers are deferred to a separate
+        design task.
+- [x] Decide and document whether `entry` / iterator / `FromIterator` parity is
       in scope for this issue or tracked separately.
-- [ ] Generated stdlib reference and name index are regenerated after any API
+      - 2026-06-26: Documented snapshot-style `hashmap_entries`,
+        `hashmap_drain`, and `hashmap_remove_entry` as the current raw
+        compatibility surface; Rust-style borrowed iterators, `entry`, `retain`,
+        and `FromIterator` are deferred until the required abstraction layer
+        exists.
+- [x] Generated stdlib reference and name index are regenerated after any API
       surface change.
+      - 2026-06-26: Regenerated manifest-backed stdlib docs after adding
+        `hashmap_entries`, `hashmap_drain`, and `hashmap_remove_entry`.
 - [ ] `python3 scripts/manager.py verify quick` exits 0.
 
 ## References
