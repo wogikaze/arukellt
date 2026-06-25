@@ -15,7 +15,7 @@ use wasm::intrinsic_string_format_i64_digit_loop
 
 // Handler for: i64_to_string, text::format_i64, convert::i64_to_string
 fn emit_i64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s_val64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14)
+    let s_val64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_wpos64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_neg64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_len64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)

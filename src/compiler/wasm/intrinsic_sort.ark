@@ -8,7 +8,7 @@ fn emit_sort_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_sort_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14), 8, opcodes::OP_I64_LOAD(), opcodes::OP_I64_STORE(), 3, opcodes::OP_I64_LE_S())
+    emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15), 8, opcodes::OP_I64_LOAD(), opcodes::OP_I64_STORE(), 3, opcodes::OP_I64_LE_S())
 }
 
 fn emit_sort_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

@@ -3,6 +3,7 @@
 // Atom node kinds.
 fn NK_INT_LIT() -> i32 { 1 }
 fn NK_FLOAT_LIT() -> i32 { 2 }
+fn NK_F32_LIT() -> i32 { 39 }
 fn NK_STRING_LIT() -> i32 { 3 }
 fn NK_BOOL_LIT() -> i32 { 4 }
 fn NK_IDENT() -> i32 { 5 }
@@ -80,6 +81,7 @@ fn UOP_NOT() -> i32 { 2 }
 fn TY_I32() -> i32 { 1 }
 fn TY_I64() -> i32 { 2 }
 fn TY_F64() -> i32 { 3 }
+fn TY_F32() -> i32 { 9 }
 fn TY_BOOL() -> i32 { 4 }
 fn TY_STRING() -> i32 { 5 }
 fn TY_UNIT() -> i32 { 7 }

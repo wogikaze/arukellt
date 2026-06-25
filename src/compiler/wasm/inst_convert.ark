@@ -61,16 +61,21 @@ fn emit_eqz_dup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_F64() {
+    let vt = inst_accessors_shape::MirInst_val_type(inst)
+    if vt == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_NEG())
     } else {
-        let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, scratch)
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, 0)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, scratch)
-        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        if vt == value_types::VT_F32() {
+            writer_core::emit_byte(w, opcodes::OP_F32_NEG())
+        } else {
+            let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+            writer_leb::emit_leb128_u(w, scratch)
+            writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+            writer_leb::emit_leb128_s(w, 0)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_leb::emit_leb128_u(w, scratch)
+            writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        }
     }
 }

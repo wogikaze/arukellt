@@ -41,6 +41,7 @@ fn TY_UNKNOWN() -> i32 { 0 }
 fn TY_I32() -> i32 { 1 }
 fn TY_I64() -> i32 { 2 }
 fn TY_F64() -> i32 { 3 }
+fn TY_F32() -> i32 { 9 }
 fn TY_BOOL() -> i32 { 4 }
 fn TY_STRING() -> i32 { 5 }
 fn TY_CHAR() -> i32 { 6 }

@@ -2,6 +2,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 // Arukellt Selfhost - const/local-get MIR instruction dispatch.
 
+use mir::value_types
 use wasm::inst_const
 use wasm::inst_dispatch_result
 use wasm::inst_locals
@@ -35,7 +36,11 @@ fn try_emit_const_literal_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, n
         return true
     }
     if op == opcodes::MIR_CONST_F64() {
-        inst_const::emit_const_f64(w, inst, ctx)
+        if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_F32() {
+            inst_const::emit_const_f32(w, inst, ctx)
+        } else {
+            inst_const::emit_const_f64(w, inst, ctx)
+        }
         emit_const_literal_result(w, inst, next_op, next_arg0, next_arg1, next2_op)
         return true
     }

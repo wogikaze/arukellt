@@ -59,14 +59,20 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_core::emit_byte(w, 3)
         writer_core::emit_byte(w, 0)
     } else {
-        if val_type == value_types::VT_I64() {
-            writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+        if val_type == value_types::VT_F32() {
+            writer_core::emit_byte(w, opcodes::OP_F32_LOAD())
             writer_core::emit_byte(w, 2)
             writer_core::emit_byte(w, 0)
         } else {
-            writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-            writer_core::emit_byte(w, 2)
-            writer_core::emit_byte(w, 0)
+            if val_type == value_types::VT_I64() {
+                writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
+                writer_core::emit_byte(w, 2)
+                writer_core::emit_byte(w, 0)
+            } else {
+                writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+                writer_core::emit_byte(w, 2)
+                writer_core::emit_byte(w, 0)
+            }
         }
     }
 }
@@ -88,10 +94,14 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if val_type == value_types::VT_F64() {
         emit_struct_store_value(w, inst, inst_accessors_operands::MirInst_arg1(inst), opcodes::OP_F64_STORE(), 3)
     } else {
-        if val_type == value_types::VT_I64() {
-            emit_struct_store_value(w, inst, inst_accessors_operands::MirInst_arg1(inst), opcodes::OP_I64_STORE(), 2)
+        if val_type == value_types::VT_F32() {
+            emit_struct_store_value(w, inst, inst_accessors_operands::MirInst_arg1(inst), opcodes::OP_F32_STORE(), 2)
         } else {
-            emit_struct_store_value(w, inst, inst_accessors_operands::MirInst_arg1(inst), opcodes::OP_I32_STORE(), 2)
+            if val_type == value_types::VT_I64() {
+                emit_struct_store_value(w, inst, inst_accessors_operands::MirInst_arg1(inst), opcodes::OP_I64_STORE(), 2)
+            } else {
+                emit_struct_store_value(w, inst, inst_accessors_operands::MirInst_arg1(inst), opcodes::OP_I32_STORE(), 2)
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ fn primitive_type_name(ty: HirType) -> String {
     if tag == commands::TY_I32() { return String_from("i32") }
     if tag == commands::TY_I64() { return String_from("i64") }
     if tag == commands::TY_F64() { return String_from("f64") }
+    if tag == commands::TY_F32() { return String_from("f32") }
     if tag == commands::TY_BOOL() { return String_from("bool") }
     if tag == commands::TY_STRING() { return String_from("String") }
     if tag == commands::TY_CHAR() { return String_from("char") }

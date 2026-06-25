@@ -38,6 +38,12 @@ fn emit_const_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_u32_le(w, hi)
 }
 
+fn emit_const_f32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    writer_core::emit_byte(w, opcodes::OP_F32_CONST())
+    let lo: i32 = f64_bits_lo(inst_accessors_literals::MirInst_float_val(inst))
+    writer_core::emit_u32_le(w, lo)
+}
+
 fn emit_const_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_const_string_gc(w, inst, ctx)

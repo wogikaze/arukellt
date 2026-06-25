@@ -50,6 +50,7 @@ fn GcShapeRegistry_struct_field_type_at(reg: GcShapeRegistry, struct_idx: i32, f
     let c = char_at(clone(types_code), field_idx)
     if c == 108 { value_types::VT_I64() }
     else if c == 100 { value_types::VT_F64() }
+    else if c == 102 { value_types::VT_F32() }
     else if c == 114 { value_types::VT_REF() }
     else { value_types::VT_I32() }
 }
@@ -84,12 +85,14 @@ fn GcShapeRegistry_total_gc_type_count(reg: GcShapeRegistry) -> i32 {
 fn code_to_gc_sig(c: i32) -> String {
     if c == 108 { String_from("i64") }
     else if c == 100 { String_from("f64") }
+    else if c == 102 { String_from("f32") }
     else { String_from("i32") }
 }
 
 fn val_type_to_gc_sig(vt: i32) -> String {
     if vt == value_types::VT_I64() { String_from("i64") }
     else if vt == value_types::VT_F64() { String_from("f64") }
+    else if vt == value_types::VT_F32() { String_from("f32") }
     else { String_from("i32") }
 }
 

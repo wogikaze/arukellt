@@ -11,23 +11,23 @@ fn SelfEmitCtx_scratch_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
 }
 
 fn SelfEmitCtx_scratch_gc_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 15 + offset
+    ctx.scratch_base + 16 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_i32_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 17 + offset
+    ctx.scratch_base + 18 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_vec_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 19 + offset
-}
-
-fn SelfEmitCtx_scratch_gc_string_ref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
     ctx.scratch_base + 20 + offset
 }
 
-fn SelfEmitCtx_scratch_gc_hashmap_str_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+fn SelfEmitCtx_scratch_gc_string_ref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
     ctx.scratch_base + 21 + offset
+}
+
+fn SelfEmitCtx_scratch_gc_hashmap_str_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + 22 + offset
 }
 
 fn SelfEmitCtx_set_scratch_base(ctx: SelfEmitCtx, scratch_base: i32) {

@@ -5,7 +5,7 @@ use wasm::opcodes
 use wasm::intrinsic_vec_push
 
 fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
-    let s_val_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14)
+    let s_val_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_vec_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_data_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_cap_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)

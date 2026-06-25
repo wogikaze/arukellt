@@ -14,14 +14,18 @@ fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_EQ())
     } else {
-        if val_type == value_types::VT_I64() {
-            writer_core::emit_byte(w, opcodes::OP_I64_EQ())
+        if val_type == value_types::VT_F32() {
+            writer_core::emit_byte(w, opcodes::OP_F32_EQ())
         } else {
-            if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-                // String comparison on GC target: delegate to byte-by-byte intrinsic
-                intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+            if val_type == value_types::VT_I64() {
+                writer_core::emit_byte(w, opcodes::OP_I64_EQ())
             } else {
-                writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+                if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                    // String comparison on GC target: delegate to byte-by-byte intrinsic
+                    intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+                } else {
+                    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+                }
             }
         }
     }
@@ -32,45 +36,53 @@ fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, opcodes::OP_F64_NE())
     } else {
-        if val_type == value_types::VT_I64() {
-            writer_core::emit_byte(w, opcodes::OP_I64_NE())
+        if val_type == value_types::VT_F32() {
+            writer_core::emit_byte(w, opcodes::OP_F32_NE())
         } else {
-            if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-                // String comparison on GC target: delegate to eq intrinsic, then invert
-                intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
-                writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+            if val_type == value_types::VT_I64() {
+                writer_core::emit_byte(w, opcodes::OP_I64_NE())
             } else {
-                writer_core::emit_byte(w, opcodes::OP_I32_NE())
+                if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                    // String comparison on GC target: delegate to eq intrinsic, then invert
+                    intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+                    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+                } else {
+                    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+                }
             }
         }
     }
 }
 
 fn emit_lt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    emit_order_compare_by_type(w, inst, opcodes::OP_F64_LT(), opcodes::OP_I64_LT_S(), opcodes::OP_I32_LT_S())
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_LT(), opcodes::OP_F32_LT(), opcodes::OP_I64_LT_S(), opcodes::OP_I32_LT_S())
 }
 
 fn emit_le(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    emit_order_compare_by_type(w, inst, opcodes::OP_F64_LE(), opcodes::OP_I64_LE_S(), opcodes::OP_I32_LE_S())
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_LE(), opcodes::OP_F32_LE(), opcodes::OP_I64_LE_S(), opcodes::OP_I32_LE_S())
 }
 
 fn emit_gt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    emit_order_compare_by_type(w, inst, opcodes::OP_F64_GT(), opcodes::OP_I64_GT_S(), opcodes::OP_I32_GT_S())
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_GT(), opcodes::OP_F32_GT(), opcodes::OP_I64_GT_S(), opcodes::OP_I32_GT_S())
 }
 
 fn emit_ge(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    emit_order_compare_by_type(w, inst, opcodes::OP_F64_GE(), opcodes::OP_I64_GE_S(), opcodes::OP_I32_GE_S())
+    emit_order_compare_by_type(w, inst, opcodes::OP_F64_GE(), opcodes::OP_F32_GE(), opcodes::OP_I64_GE_S(), opcodes::OP_I32_GE_S())
 }
 
-fn emit_order_compare_by_type(w: WasmWriter, inst: MirInst, f64_op: i32, i64_op: i32, i32_op: i32) {
+fn emit_order_compare_by_type(w: WasmWriter, inst: MirInst, f64_op: i32, f32_op: i32, i64_op: i32, i32_op: i32) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
     if val_type == value_types::VT_F64() {
         writer_core::emit_byte(w, f64_op)
     } else {
-        if val_type == value_types::VT_I64() {
-            writer_core::emit_byte(w, i64_op)
+        if val_type == value_types::VT_F32() {
+            writer_core::emit_byte(w, f32_op)
         } else {
-            writer_core::emit_byte(w, i32_op)
+            if val_type == value_types::VT_I64() {
+                writer_core::emit_byte(w, i64_op)
+            } else {
+                writer_core::emit_byte(w, i32_op)
+            }
         }
     }
 }

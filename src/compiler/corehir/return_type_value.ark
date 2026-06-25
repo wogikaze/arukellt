@@ -13,6 +13,9 @@ fn return_value_type_tag(node: AstNode) -> i32 {
     let name = decl_ann_name::decl_ann_name(ret)
     if eq(clone(name), String_from("f64")) {
         return value_types::VT_F64()
+    if eq(clone(name), String_from("f32")) {
+        return value_types::VT_F32()
+    }
     }
     if eq(clone(name), String_from("i64")) || eq(clone(name), String_from("u64")) {
         return value_types::VT_I64()
