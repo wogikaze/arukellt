@@ -109,7 +109,7 @@ ADR-035's phased plan.
     - [x] `emit_vec_new_gc` — GC struct.new + array.new_default ✅ (2026-06-22)
     - [x] `emit_vec_len` GC パス — struct.get vec_type 1 ✅ (2026-06-22)
     - [x] `emit_vec_get` / `get_unchecked` GC パス ✅ (2026-06-22)
-    - [x] `emit_vec_push` GC パス — array.set + growth ✅ (2026-06-22)
+    - [x] `emit_vec_push` GC パス — array.set + growth + `array.copy` on resize ✅ (2026-06-24: growth copy 欠落修復)
     - [x] `emit_vec_pop` GC パス ✅ (2026-06-22)
     - [x] `emit_vec_set` GC パス ✅ (2026-06-22)
     - [x] `emit_chars` Vec GC 使用 ✅ (2026-06-22)
@@ -152,7 +152,7 @@ ADR-035's phased plan.
   - 期待: validate OK、`stop` / `caution` / `go` が順に出力される
 
 - [ ] HashMap GC 表現
-  - **注記 (2026-06-24):** `hashmap_basic.ark` / `hashmap_string_i32.ark` ともに `wasm-tools validate --features gc` 通過。`i32_to_string` 戻り値ローカルを GC string ref 型として宣言する MIR 修復（`call_types.ark`）済み。`vec_push.ark` validate + host-run（`3` 出力）OK。残: HashMap / match host-run runtime（func 16/35）。
+  - **注記 (2026-06-24):** `hashmap_basic.ark` validate + host-run 通過（`200` / `found` / `not found` 出力）。根因は GC `vec_push` growth が `array.new_default` 後に旧要素をコピーしておらず、`hashmap_new` の 9 回目 push で `capacity`（index 0）が 0 に戻り `hashmap_set` が `i32.rem_s` trap していたこと。`intrinsic_vec_push_gc.ark` に `array.copy`（opcode `0xfb11`）を追加して修復。`match_println_i32.ark` host-run も通過。`vec_push.ark` validate + host-run 継続 OK。残: `hashmap_string_i32.ark` host-run runtime、`HashMap_i32_i32_len` が `0` を返す可能性（要追跡）。
   - **Verify (実装後):**
     ```
     arukeit compile tests/fixtures/stdlib_hashmap/hashmap_basic.ark -o /tmp/hm_gc.wasm --target wasm32-wasi-p2

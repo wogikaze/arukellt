@@ -18,6 +18,7 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let arr_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let arr_old = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
 
@@ -30,7 +31,7 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_len)
 
-    emit_gc_growth_check(w, arr_tmp, s_len, s_cap, i32_array_type, vec_type, s_vec)
+    emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, i32_array_type, vec_type, s_vec)
 
     emit_gc_push_store_finish(w, arr_tmp, s_len, s_val, i32_array_type, s_vec, vec_type, is_void_push, next_op)
     return !is_void_push
@@ -83,7 +84,7 @@ fn emit_gc_push_store_finish(w: WasmWriter, arr_tmp: i32, s_len: i32, s_val: i32
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
-fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, s_len: i32, s_cap: i32, i32_array_type: i32, vec_type: i32, vec_local: i32) {
+fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s_cap: i32, i32_array_type: i32, vec_type: i32, vec_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, arr_tmp)
     writer_gc::emit_gc_array_len(w)
@@ -98,6 +99,11 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, s_len: i32, s_cap: i32, i32
     writer_core::emit_byte(w, 64)
 
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, arr_old)
+
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_cap)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 2)
@@ -106,6 +112,18 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, s_len: i32, s_cap: i32, i32
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, arr_tmp)
+
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, arr_old)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_len)
+    writer_gc::emit_gc_array_copy(w, i32_array_type, i32_array_type)
 
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, vec_local)
