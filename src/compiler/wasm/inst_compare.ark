@@ -17,7 +17,7 @@ fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if val_type == value_types::VT_I64() {
             writer_core::emit_byte(w, opcodes::OP_I64_EQ())
         } else {
-            if val_type == value_types::VT_REF() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                 // String comparison on GC target: delegate to byte-by-byte intrinsic
                 intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
             } else {
@@ -35,7 +35,7 @@ fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if val_type == value_types::VT_I64() {
             writer_core::emit_byte(w, opcodes::OP_I64_NE())
         } else {
-            if val_type == value_types::VT_REF() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                 // String comparison on GC target: delegate to eq intrinsic, then invert
                 intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
                 writer_core::emit_byte(w, opcodes::OP_I32_EQZ())

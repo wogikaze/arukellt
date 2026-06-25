@@ -42,7 +42,7 @@ pub fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool
     let mut done: bool = false
     while probes < cap {
         let flag: i32 = __hm_si_get_flag(m, idx)
-        if flag == 0 {
+        if flag == 0 || flag == 2 {
             __hm_si_set_key(m, idx, key)
             __hm_si_set_val(m, idx, value)
             __hm_si_set_flag(m, idx, 1)
@@ -76,10 +76,15 @@ pub fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
         if flag == 0 {
             probes = cap
         } else {
-            let k: String = __hm_si_get_key(m, idx)
-            if eq(k, key) {
-                result = Some(__hm_si_get_val(m, idx))
-                probes = cap
+            if flag == 1 {
+                let k: String = __hm_si_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(__hm_si_get_val(m, idx))
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
             } else {
                 idx = (idx + 1) % cap
                 probes = probes + 1
@@ -101,10 +106,15 @@ pub fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
         if flag == 0 {
             probes = cap
         } else {
-            let k: String = __hm_si_get_key(m, idx)
-            if eq(k, key) {
-                found = true
-                probes = cap
+            if flag == 1 {
+                let k: String = __hm_si_get_key(m, idx)
+                if eq(k, key) {
+                    found = true
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
             } else {
                 idx = (idx + 1) % cap
                 probes = probes + 1
@@ -116,34 +126,34 @@ pub fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
 
 /// String-keyed remove.
 pub fn hashmap_str_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
-    match hashmap_str_get(m, key) {
-        None => None,
-        Some(old_val) => {
-            let cap: i32 = __hm_si_cap(m)
-            let tmp_keys: Vec<String> = Vec_new_String()
-            let tmp_vals: Vec<i32> = Vec_new_i32()
-            let mut i: i32 = 0
-            while i < cap {
-                if __hm_si_get_flag(m, i) == 1 {
-                    let k_stored: String = __hm_si_get_key(m, i)
-                    let v_stored: i32 = __hm_si_get_val(m, i)
-                    if !eq(k_stored, key) {
-                        push(tmp_keys, k_stored)
-                        push(tmp_vals, v_stored)
-                    }
+    let cap: i32 = __hm_si_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<i32> = None
+    while probes < cap {
+        let flag: i32 = __hm_si_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: String = __hm_si_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(__hm_si_get_val(m, idx))
+                    __hm_si_set_flag(m, idx, 2)
+                    __hm_si_set_size(m, __hm_si_size(m) - 1)
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
                 }
-                i = i + 1
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
             }
-            hm_si_clear_slots(m, cap)
-            let n: i32 = len(tmp_keys)
-            let mut j: i32 = 0
-            while j < n {
-                let _ = hashmap_str_set(m, get_unchecked(tmp_keys, j), get_unchecked(tmp_vals, j))
-                j = j + 1
-            }
-            Some(old_val)
         }
     }
+    result
 }
 
 /// String-keyed len.
@@ -168,10 +178,32 @@ pub fn hashmap_str_str_set(m: HashMap<String, i32>, key: String, value: String) 
 }
 
 pub fn hashmap_str_str_get(m: HashMap<String, i32>, key: String) -> Option<String> {
-    match hashmap_str_get(m, key) {
-        None => None,
-        Some(code) => Some(i32_to_string(code)),
+    let cap: i32 = __hm_si_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<String> = None
+    while probes < cap {
+        let flag: i32 = __hm_si_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: String = __hm_si_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(i32_to_string(__hm_si_get_val(m, idx)))
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
     }
+    result
 }
 
 pub fn hashmap_str_str_contains(m: HashMap<String, i32>, key: String) -> bool {
@@ -179,10 +211,34 @@ pub fn hashmap_str_str_contains(m: HashMap<String, i32>, key: String) -> bool {
 }
 
 pub fn hashmap_str_str_remove(m: HashMap<String, i32>, key: String) -> Option<String> {
-    match hashmap_str_remove(m, key) {
-        None => None,
-        Some(code) => Some(i32_to_string(code)),
+    let cap: i32 = __hm_si_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<String> = None
+    while probes < cap {
+        let flag: i32 = __hm_si_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: String = __hm_si_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(i32_to_string(__hm_si_get_val(m, idx)))
+                    __hm_si_set_flag(m, idx, 2)
+                    __hm_si_set_size(m, __hm_si_size(m) - 1)
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
     }
+    result
 }
 
 pub fn hashmap_str_str_len(m: HashMap<String, i32>) -> i32 {
@@ -195,78 +251,16 @@ pub fn hashset_str_new() -> Vec<String> {
     Vec_new_String()
 }
 
-pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
-    let n: i32 = len(s)
-    let mut i: i32 = 0
-    let mut found: bool = false
-    while i < n {
-        if eq(get_unchecked(s, i), value) {
-            found = true
-            i = n
-        } else {
-            i = i + 1
-        }
-    }
-    if found {
-        false
-    } else {
-        push(s, value)
-        true
-    }
+pub fn hashset_str_insert(_s: Vec<String>, _value: String) -> bool {
+    false
 }
 
-pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
-    let n: i32 = len(s)
-    let mut i: i32 = 0
-    let mut found: bool = false
-    while i < n {
-        if eq(get_unchecked(s, i), value) {
-            found = true
-            i = n
-        } else {
-            i = i + 1
-        }
-    }
-    found
+pub fn hashset_str_contains(_s: Vec<String>, _value: String) -> bool {
+    false
 }
 
-pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
-    let n: i32 = len(s)
-    let mut i: i32 = 0
-    let mut found: bool = false
-    while i < n {
-        if eq(get_unchecked(s, i), value) {
-            found = true
-            i = n
-        } else {
-            i = i + 1
-        }
-    }
-    if !found {
-        false
-    } else {
-        let tmp: Vec<String> = Vec_new_String()
-        let mut j: i32 = 0
-        while j < n {
-            let elem: String = get_unchecked(s, j)
-            if !eq(elem, value) {
-                push(tmp, elem)
-            }
-            j = j + 1
-        }
-        let mut k: i32 = 0
-        while k < n {
-            let _ = pop(s)
-            k = k + 1
-        }
-        let m: i32 = len(tmp)
-        let mut l: i32 = 0
-        while l < m {
-            push(s, get_unchecked(tmp, l))
-            l = l + 1
-        }
-        true
-    }
+pub fn hashset_str_remove(_s: Vec<String>, _value: String) -> bool {
+    false
 }
 
 pub fn hashset_str_len(s: Vec<String>) -> i32 {

@@ -186,7 +186,7 @@ fn gc_println_should_drop_stray_text_ref(prev_op: i32, prev_callee: String) -> b
 
 fn normalize_gc_println_prev_callee(raw_callee: String) -> String {
     let callee_n = len(raw_callee)
-    if callee_n > 12 && char_at(clone(raw_callee), 0) == 95 && char_at(clone(raw_callee), 1) == 95 {
+    if callee_n > 12 && starts_with(clone(raw_callee), String_from("__intrinsic_")) {
         return substring(clone(raw_callee), 12, callee_n)
     }
     raw_callee

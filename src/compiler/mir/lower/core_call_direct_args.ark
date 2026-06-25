@@ -18,7 +18,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     }
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
-    let stage_call_args = eq(clone(callee_name), "push")
+    let stage_call_args = !is_println && child_count > 2
     let staged_arg_locals = Vec_new_i32()
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1

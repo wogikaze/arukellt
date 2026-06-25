@@ -33,7 +33,7 @@ fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
     let mut count = 3  // i32 (12), f64 (2), i64 (1)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // Each GC scratch local is emitted as a separate group (1 local per group).
-        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count()
+        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count() + scratch_gc_string_ref_array_local_count() + scratch_gc_hashmap_str_local_count()
     }
     count
 }
@@ -57,15 +57,20 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
             writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
             return
         }
-        if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+        if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
             return
         }
         let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
         if gc_type >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_leb::emit_leb128_s(body, gc_type)
+            return
+        }
+        if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
             return
         }
         if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
@@ -108,10 +113,14 @@ fn scratch_gc_i32_array_local_count() -> i32 { 2 }
 
 fn scratch_gc_vec_local_count() -> i32 { 1 }
 
+fn scratch_gc_string_ref_array_local_count() -> i32 { 1 }
+
+fn scratch_gc_hashmap_str_local_count() -> i32 { 1 }
+
 fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
     let mut count = scratch_i32_local_count() + scratch_f64_local_count() + scratch_i64_local_count()
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count()
+        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count() + scratch_gc_string_ref_array_local_count() + scratch_gc_hashmap_str_local_count()
     }
     count
 }
@@ -124,6 +133,8 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
         emit_gc_scratch_local_decls(body, scratch_gc_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_i32_array_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1)
         emit_gc_scratch_local_decls(body, scratch_gc_vec_local_count(), ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+        emit_gc_scratch_local_decls(body, scratch_gc_string_ref_array_local_count(), ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx))
+        emit_gc_scratch_local_decls(body, scratch_gc_hashmap_str_local_count(), ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
     }
 }
 

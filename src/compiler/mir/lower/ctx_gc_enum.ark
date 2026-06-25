@@ -2,6 +2,7 @@
 
 use mir::lower::ctx_types
 use mir::module_gc_enum
+use mir::value_types
 use wasm::emit_target
 
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
@@ -71,6 +72,59 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
         return found
     }
     ctx_gc_enum_lookup_slot(ctx, clone(variant_name))
+}
+
+fn gc_enum_field_sig_for_vt(vt: i32) -> String {
+    if vt == value_types::VT_F64() {
+        return String_from("_f1_f64")
+    }
+    if vt == value_types::VT_I64() {
+        return String_from("_f1_i64")
+    }
+    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        return String_from("_f1_ref0")
+    }
+    String_from("_f1_i32")
+}
+
+fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
+    let mut sig = String_new()
+    let mut i = 0
+    while i < len(payload_vts) {
+        sig = concat(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
+        i = i + 1
+    }
+    sig
+}
+
+fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
+    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+    let want_sig = gc_enum_payload_variant_sig(0, field_sigs)
+    let count = len(ctx.gc_enum_variant_sigs)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), clone(want_sig)) {
+            let name_canon = ctx_gc_enum_normalize_variant_name(clone(get_unchecked(ctx.gc_enum_variant_names, i)))
+            if eq(name_canon, normalized) {
+                return i
+            }
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
+    let found = ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
+    if found >= 0 {
+        return found
+    }
+    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+    let sig = gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
+    ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
+    len(ctx.gc_enum_variant_names) - 1
 }
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {

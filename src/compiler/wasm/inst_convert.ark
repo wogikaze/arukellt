@@ -2,18 +2,34 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::value_types
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::inst_locals
+use wasm::code_ref_locals
 use wasm::opcodes
 // Arukellt Selfhost - conversion/control-like instruction emitters.
 
 use wasm::writer_core
 use wasm::writer_leb
+use wasm::writer_gc
 
 fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_operands::MirInst_arg0(inst) >= 0 {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        inst_locals::emit_gc_ref_cast_to_dest(w, ctx, inst_accessors_operands::MirInst_arg0(inst))
+    } else {
+        emit_return_stack_gc_cast_if_needed(w, ctx)
     }
     writer_core::emit_byte(w, opcodes::OP_RETURN())
+}
+
+fn emit_return_stack_gc_cast_if_needed(w: WasmWriter, ctx: SelfEmitCtx) {
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    if !code_ref_locals::mir_function_returns_option(f) {
+        return
+    }
+    writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
 }
 
 fn emit_drop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

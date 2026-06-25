@@ -12,7 +12,7 @@ use mir::lower::ctx_types
 fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     let callee_name = ast_node::node_text(callee)
     let is_println = call_args::mir_is_printlike_callee(clone(callee_name))
-    let stage_call_args = eq(clone(callee_name), "push")
+    let stage_call_args = !is_println && child_count > 2
     let staged_arg_locals = Vec_new_i32()
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1

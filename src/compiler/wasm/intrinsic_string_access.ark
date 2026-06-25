@@ -14,12 +14,15 @@ use wasm::intrinsics::helpers_numeric_i32_compare
 
 // Handler for: text::is_empty
 fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
-    helpers_core_locals::emit_local_set(w, s0)
-    helpers_core_locals::emit_local_get(w, s0)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        helpers_core_locals::emit_local_set(w, s0)
+        helpers_core_locals::emit_local_get(w, s0)
         writer_gc::emit_gc_array_len(w)
     } else {
+        let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+        helpers_core_locals::emit_local_set(w, s0)
+        helpers_core_locals::emit_local_get(w, s0)
         helpers_memory_stack::emit_string_len_from_stack(w)
     }
     helpers_numeric_i32_compare::emit_i32_eqz(w)
@@ -29,12 +32,15 @@ fn emit_text_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: text::len_bytes
 fn emit_text_len_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
-    helpers_core_locals::emit_local_set(w, s0)
-    helpers_core_locals::emit_local_get(w, s0)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        helpers_core_locals::emit_local_set(w, s0)
+        helpers_core_locals::emit_local_get(w, s0)
         writer_gc::emit_gc_array_len(w)
     } else {
+        let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+        helpers_core_locals::emit_local_set(w, s0)
+        helpers_core_locals::emit_local_get(w, s0)
         helpers_memory_stack::emit_string_len_from_stack(w)
     }
     return true
@@ -43,15 +49,17 @@ fn emit_text_len_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: char_at
 fn emit_char_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s_ca_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_ca_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     helpers_core_locals::emit_local_set(w, s_ca_i)
-    helpers_core_locals::emit_local_set(w, s_ca_str)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s_ca_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        helpers_core_locals::emit_local_set(w, s_ca_str)
         helpers_core_locals::emit_local_get(w, s_ca_str)
         helpers_core_locals::emit_local_get(w, s_ca_i)
         writer_gc::emit_gc_array_get_u(w, ctx_gc_type::SelfEmitCtx_string_type(ctx))
     } else {
+        let s_ca_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+        helpers_core_locals::emit_local_set(w, s_ca_str)
         helpers_core_locals::emit_local_get(w, s_ca_str)
         helpers_core_locals::emit_local_get(w, s_ca_i)
         helpers_numeric_i32_arith::emit_i32_add(w)

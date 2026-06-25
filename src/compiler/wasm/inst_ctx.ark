@@ -57,9 +57,16 @@ fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     }
     let alias = hash_aliases::hashmap_builtin_alias(clone(name))
     if !eq(clone(alias), clone(name)) {
-        let alias_idx = resolve_fn_index_by_name(ctx, alias)
+        let alias_idx = resolve_fn_index_by_name(ctx, clone(alias))
         if alias_idx >= 0 {
             return call_resolve::mir_resolve_self_delegate_collision(functions, alias_idx, clone(name))
+        }
+        let alias_short = strip_module_prefix(clone(alias))
+        if !eq(clone(alias_short), clone(alias)) {
+            let alias_short_idx = resolve_fn_index_by_name(ctx, clone(alias_short))
+            if alias_short_idx >= 0 {
+                return call_resolve::mir_resolve_self_delegate_collision(functions, alias_short_idx, clone(name))
+            }
         }
     }
     0 - 1

@@ -48,7 +48,7 @@ fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i
 
 fn normalize_callee_name(raw_callee: String) -> String {
     let callee_n = len(raw_callee)
-    if callee_n > 12 && char_at(clone(raw_callee), 0) == 95 && char_at(clone(raw_callee), 1) == 95 {
+    if callee_n > 12 && starts_with(clone(raw_callee), String_from("__intrinsic_")) {
         return substring(clone(raw_callee), 12, callee_n)
     }
     raw_callee
