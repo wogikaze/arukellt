@@ -30,6 +30,7 @@ graph LR
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
+  I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I689["689 689 — Operator overload trait surface (Add / Index / Deref / ...)"]
   I690["690 690 — `?` operator and `From<E>` error conversion"]
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
@@ -44,6 +45,8 @@ graph LR
   I474 --> I646
   I667 --> I673
   I680 --> I682
+  I686 --> I698
+  I649 --> I698
   I688 --> I689
   I688 --> I690
   I688 --> I691
@@ -65,7 +68,7 @@ graph LR
 
 - **30** depends on: 27; blocks: none
 - **474** depends on: 035, done), 074; blocks: 646
-- **649** depends on: 641; blocks: none
+- **649** depends on: 641; blocks: 698
 - **667** depends on: 666; blocks: 673
 - **668** depends on: 074, done), 510, done); blocks: none
 - **669** depends on: 652, done); blocks: none
@@ -81,12 +84,13 @@ graph LR
 - **681** depends on: 679; blocks: none
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: none
+- **686** depends on: none; blocks: 698
 - **687** depends on: 495; blocks: none
 - **688** depends on: none; blocks: 689, 690, 691, 692, 693, 695, 696
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
+- **698** depends on: 686, 649; blocks: none
 - **689** depends on: 688; blocks: none
 - **690** depends on: 688; blocks: 694
 - **691** depends on: 688; blocks: 697

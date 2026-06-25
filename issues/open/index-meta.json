@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-25T21:19:59Z",
+  "generated_at": "2026-06-25T22:17:29Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -69,7 +69,9 @@
       "depends_on": [
         "641"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "698"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 6
@@ -470,7 +472,9 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "698"
+      ],
       "acceptance": {
         "checked": 11,
         "unchecked": 5
@@ -609,6 +613,31 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "wasm-tools (CI install policy)"
+      }
+    },
+    {
+      "id": "698",
+      "path": "698-std-simd-explicit-library.md",
+      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "686",
+        "649"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 49
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {
