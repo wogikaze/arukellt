@@ -11,7 +11,7 @@ pub use source_map::{parse_source_map, SourceMapEntry};
 pub use wasm_debug_patch::prepare_debug_wasm;
 
 use wasmtime::*;
-use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
 
 pub struct DirGrant {
@@ -75,7 +75,7 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     }
 
     let mut linker = Linker::<WasiP1Ctx>::new(&engine);
-    wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
+    wasmtime_wasi::p1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
     linker.allow_shadowing(true);
     linker

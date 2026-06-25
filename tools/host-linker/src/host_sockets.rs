@@ -7,7 +7,7 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
 use wasmtime::*;
-use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::p1::WasiP1Ctx;
 
 const SOCKET_FD: i32 = 3;
 const LISTENER_FD: i32 = 4;

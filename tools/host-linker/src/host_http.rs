@@ -6,7 +6,7 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::OnceLock;
 use std::time::Duration;
 use wasmtime::*;
-use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::p1::WasiP1Ctx;
 
 static INCOMING_PORT: OnceLock<u16> = OnceLock::new();
 
