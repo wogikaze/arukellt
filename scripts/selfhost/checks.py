@@ -25,6 +25,59 @@ GREEN  = "\033[0;32m"
 YELLOW = "\033[1;33m"
 NC     = "\033[0m"
 
+# ── Bootstrap overlay patch guards ───────────────────────────────────────────
+#
+# The pinned-reference wasm is built from an older source snapshot.  To compile
+# the *current* selfhost source with that pinned wasm, _prepare_flattened_selfhost_source
+# rewrites the source tree via a series of regex / string patches (_patch_* family).
+# Historically every patch used bare re.sub / str.replace, which fail *silently*
+# when the source has drifted.  The checked helpers below make patch failure explicit.
+
+
+class BootstrapOverlayError(RuntimeError):
+    """Raised when a mandatory bootstrap overlay patch does not match.
+
+    The message includes a human-readable label and the pattern that was
+    expected, so the stale patch can be identified immediately.
+    """
+
+
+def _sub_required(text, pattern, repl, label, *, flags=0, count=0):
+    """re.sub that raises BootstrapOverlayError on zero matches."""
+    out, n = re.subn(pattern, repl, text, flags=flags, count=count)
+    if n == 0:
+        raise BootstrapOverlayError(
+            f"bootstrap overlay patch did not match: {label}\n"
+            f"  pattern: {pattern}"
+        )
+    return out
+
+
+def _replace_required(text, old, new, label):
+    """str.replace that raises BootstrapOverlayError when old is absent."""
+    if old not in text:
+        raise BootstrapOverlayError(
+            f"bootstrap overlay replace did not match: {label}\n"
+            f"  expected snippet: {old[:200]}"
+        )
+    return text.replace(old, new)
+
+
+def _sub_optional(text, pattern, repl, label, *, flags=0, count=0):
+    """re.sub that prints a labelled skip notice on zero matches (no raise)."""
+    out, n = re.subn(pattern, repl, text, flags=flags, count=count)
+    if n == 0:
+        print(f"[bootstrap-overlay] optional patch skipped: {label}")
+    return out
+
+
+def _replace_optional(text, old, new, label):
+    """str.replace that prints a labelled skip notice when old is absent."""
+    if old not in text:
+        print(f"[bootstrap-overlay] optional replace skipped: {label}")
+        return text
+    return text.replace(old, new)
+
 
 def _remove_tree(path: Path) -> None:
     """Remove a directory tree; retry on WSL where shutil/rm can race."""
@@ -452,7 +505,7 @@ _OVERLAY_LEXER_CHARS_RENAMES: dict[str, str] = {
 
 def _rewrite_overlay_lexer_chars(text: str) -> str:
     for old, new in _OVERLAY_LEXER_CHARS_RENAMES.items():
-        text = text.replace(old, new)
+        text = _replace_optional(text, old, new, f"lexer chars rename {old} -> {new}")
     lines = text.splitlines()
     out: list[str] = []
     for line in lines:
@@ -470,7 +523,13 @@ def _rename_overlay_publish_symbols(text: str, rel_name: str) -> str:
     if not renames:
         return text
     for old, new in renames.items():
-        text = re.sub(rf"^pub fn {re.escape(old)}\b", f"pub fn {new}", text, flags=re.M)
+        text = _sub_required(
+            text,
+            rf"^(?:pub )?fn {re.escape(old)}\b",
+            f"fn {new}",
+            f"rename publish symbol {old} -> {new} in {rel_name}",
+            flags=re.M,
+        )
         text = re.sub(rf"\b{re.escape(old)}\b", new, text)
     return text
 
@@ -481,7 +540,7 @@ _OVERLAY_MAIN_ENTRY_REL = "main.ark"
 def _rewrite_overlay_call_sites(text: str) -> str:
     text = _rewrite_overlay_lexer_chars(text)
     for old, new in _OVERLAY_CALL_RENAMES.items():
-        text = text.replace(old, new)
+        text = _replace_optional(text, old, new, f"call site rename {old} -> {new}")
     return text
 
 
@@ -938,7 +997,12 @@ def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
         return
     text = path.read_text(encoding="utf-8")
     if "use component_wit_text" not in text:
-        text = text.replace("use component\n", "use component\nuse component_wit_text\n")
+        text = _replace_required(
+            text,
+            "use component\n",
+            "use component\nuse component_wit_text\n",
+            "add use component_wit_text import in driver_emit",
+        )
     old = (
         "let wit_output = component::emit_wit_text_from_decls_with_world("
         "all_decls, driver_config_record::config_world(config))"
@@ -948,7 +1012,12 @@ def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
         "all_decls, driver_config_record::config_world(config))"
     )
     if old in text:
-        text = text.replace(old, new)
+        text = _replace_required(
+            text,
+            old,
+            new,
+            "route emit_wit_text through component_wit_text bridge in driver_emit",
+        )
         path.write_text(text, encoding="utf-8")
 
 
@@ -972,7 +1041,12 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
         "    }"
     )
     if old in text and "emit_library_component" not in text:
-        text = text.replace(old, new)
+        text = _replace_required(
+            text,
+            old,
+            new,
+            "route library component emit through wasm::emit_library_component in driver_emit",
+        )
         path.write_text(text, encoding="utf-8")
 
 
@@ -1050,10 +1124,17 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
 
 def _patch_bootstrap_wasm_sections_data_only(text: str) -> str:
     """Bootstrap overlay excludes gc_hint tail; emit data section directly."""
-    text = text.replace("use wasm::sections_tail", "use wasm::sections_data")
-    text = text.replace(
+    text = _replace_required(
+        text,
+        "use wasm::sections_tail",
+        "use wasm::sections_data",
+        "rewrite sections_tail import to sections_data for bootstrap",
+    )
+    text = _replace_required(
+        text,
         "sections_tail::emit_tail_sections(out, ctx, strings, opt_level)",
         "sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))",
+        "replace emit_tail_sections call with emit_data_section for bootstrap",
     )
     return text
 
@@ -1075,7 +1156,7 @@ def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
     new_emit = """pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
     String_from("")
 }"""
-    return text.replace(old_emit, new_emit)
+    return _replace_required(text, old_emit, new_emit, "stub emit_wat to empty string for bootstrap")
 
 
 def _patch_bootstrap_component_wit_bridge(compiler_out: Path) -> None:
@@ -1163,9 +1244,9 @@ def _overlay_namespace_covered_by_monolithic_fallback(rel: Path) -> bool:
 
 def _promote_top_level_fns_public(text: str) -> str:
     """Flat overlay modules lose parent-namespace visibility; expose top-level items."""
-    text = re.sub(r"^fn ", "pub fn ", text, flags=re.M)
-    text = re.sub(r"^struct ", "pub struct ", text, flags=re.M)
-    text = re.sub(r"^enum ", "pub enum ", text, flags=re.M)
+    text = _sub_optional(text, r"^fn ", "pub fn ", "promote fn to pub fn", flags=re.M)
+    text = _sub_optional(text, r"^struct ", "pub struct ", "promote struct to pub struct", flags=re.M)
+    text = _sub_optional(text, r"^enum ", "pub enum ", "promote enum to pub enum", flags=re.M)
     return text
 
 
@@ -1571,7 +1652,7 @@ fn resolve_type_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
 }"""
     if old_resolve not in text:
         return text
-    text = text.replace(old_resolve, new_resolve, 1)
+    text = _replace_required(text, old_resolve, new_resolve, "replace resolve_type with depth-limited variant")
     old_deep = """fn resolve_type_deep(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
     let head = resolve_type(env, ty)
     let arg_count = len(head.type_args)
@@ -1609,7 +1690,7 @@ fn resolve_type_deep_depth(env: TypeEnv, ty: TypeInfo, depth: i32) -> TypeInfo {
     }
     res
 }"""
-    return text.replace(old_deep, new_deep, 1)
+    return _replace_required(text, old_deep, new_deep, "replace resolve_type_deep with depth-limited variant")
 
 
 def _patch_monolithic_typechecker_per_fn_env(text: str) -> str:
@@ -1670,7 +1751,7 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
 """
     if insert_after not in text:
         return text
-    text = text.replace(insert_after, helpers, 1)
+    text = _replace_required(text, insert_after, helpers, "insert merge_type_env helpers after TypeEnv_new")
     old_fn_check = """            push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
             check_fn_body(env, fn_sigs, node)
         }
@@ -1700,14 +1781,15 @@ fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {
                 }
 """
     # Fix typo - should be NK_FN_DECL not NK_IMPL_DECL for meth
-    new_fn_check = new_fn_check.replace(
+    new_fn_check = _replace_required(
+        new_fn_check,
         "if meth.kind == typechecker_kinds::NK_IMPL_DECL()",
         "if meth.kind == typechecker_kinds::NK_FN_DECL()",
-        1,
+        "fix NK_IMPL_DECL typo to NK_FN_DECL in new_fn_check template",
     )
     if old_fn_check not in text:
         return text
-    return text.replace(old_fn_check, new_fn_check, 1)
+    return _replace_required(text, old_fn_check, new_fn_check, "replace check_fn_body call with per-fn env variant")
 
 
 def _patch_monolithic_typechecker(text: str) -> str:
@@ -1959,20 +2041,25 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
             host_text,
         ):
             continue
-        text = re.sub(
+        text = _sub_required(
+            text,
             rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool \{{[^}}]+\}}\n+",
             "",
-            text,
+            f"drop recursive host-call facade {symbol} from mir_module_functions",
             count=1,
         )
-        text = text.replace(
+        text = _replace_required(
+            text,
             f"{symbol}(",
             f"mir_module_host_calls::{symbol}(",
+            f"rewrite {symbol} call sites to mir_module_host_calls delegation",
         )
     if "use mir_module_host_calls" not in text:
-        text = text.replace(
+        text = _replace_required(
+            text,
             "use mir_opcodes\n",
             "use mir_opcodes\nuse mir_module_host_calls\n",
+            "add use mir_module_host_calls import after mir_opcodes",
         )
     fn_path.write_text(text, encoding="utf-8")
 
@@ -1989,10 +2076,11 @@ def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
         ("mir_module_needs_wasi_http_outgoing_if_p2", "mir: MirModule, wasi_version: String"),
     )
     for name, params in stubs:
-        text = re.sub(
+        text = _sub_required(
+            text,
             rf"pub fn {re.escape(name)}\({re.escape(params)}\) -> i32 \{{[\s\S]*?\n\}}",
             f"pub fn {name}({params}) -> i32 {{\n    0\n}}",
-            text,
+            f"stub {name} to return 0 for pinned bootstrap",
             count=1,
         )
     path.write_text(text, encoding="utf-8")
@@ -2193,7 +2281,12 @@ def run_fixpoint(
     # Stage 2: bootstrap wasm compiles current selfhost source → s2.wasm
     if build or not s2.is_file():
         emit(f"{YELLOW}[selfhost] Building stage 2 (bootstrap wasm → s2.wasm)...{NC}")
-        r = _compile_selfhost_bootstrap_chain(wasmtime, root, s2_rel, bootstrap)
+        try:
+            r = _compile_selfhost_bootstrap_chain(wasmtime, root, s2_rel, bootstrap)
+        except BootstrapOverlayError as e:
+            emit(f"{RED}✗ bootstrap overlay patch failed during stage 2:{NC}")
+            emit(f"  {e}")
+            return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         if r.returncode != 0:
             emit(f"{RED}✗ stage 2 compilation failed{NC}")
             if r.stderr:
@@ -2212,7 +2305,12 @@ def run_fixpoint(
         if stage3_compiler is None:
             emit(f"{RED}error: failed to prepare stage-3 compiler wasm{NC}")
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
-        r = _wasm_compile_selfhost_source(wasmtime, stage3_compiler, s3_rel, root)
+        try:
+            r = _wasm_compile_selfhost_source(wasmtime, stage3_compiler, s3_rel, root)
+        except BootstrapOverlayError as e:
+            emit(f"{RED}✗ bootstrap overlay patch failed during stage 3:{NC}")
+            emit(f"  {e}")
+            return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         if r.returncode != 0:
             emit(f"{RED}✗ stage 3 compilation failed{NC}")
             if r.stderr:
@@ -2280,7 +2378,12 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
         return None, (
             f"{RED}error: failed to prepare bootstrap compiler wasm from {PINNED_WASM_REL}{NC}"
         )
-    r = _compile_selfhost_bootstrap_chain(wasmtime, root, out_rel, bootstrap)
+    try:
+        r = _compile_selfhost_bootstrap_chain(wasmtime, root, out_rel, bootstrap)
+    except BootstrapOverlayError as e:
+        return None, (
+            f"{RED}error: bootstrap overlay patch failed:{NC}\n  {e}"
+        )
     if r.returncode != 0:
         return None, (
             f"{RED}error: failed to bootstrap current-selfhost wasm from pinned wasm{NC}\n"
