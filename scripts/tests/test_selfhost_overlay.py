@@ -13,7 +13,7 @@ from __future__ import annotations
 import io
 import re
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, redirect_stderr
 
 import sys
 from pathlib import Path
@@ -110,7 +110,7 @@ class TestSubOptional(unittest.TestCase):
 
     def test_no_match_does_not_raise(self) -> None:
         buf = io.StringIO()
-        with redirect_stdout(buf):
+        with redirect_stderr(buf):
             result = _sub_optional(
                 "nothing here",
                 r"^fn ",
@@ -138,7 +138,7 @@ class TestReplaceOptional(unittest.TestCase):
 
     def test_no_match_does_not_raise(self) -> None:
         buf = io.StringIO()
-        with redirect_stdout(buf):
+        with redirect_stderr(buf):
             result = _replace_optional(
                 "nothing here",
                 "chars::skip_whitespace",
@@ -146,7 +146,7 @@ class TestReplaceOptional(unittest.TestCase):
                 "lexer chars rename",
             )
         self.assertEqual(result, "nothing here")
-        self.assertIn("optional replace skipped", buf.getvalue())
+        self.assertIn("optional patch skipped", buf.getvalue())
         self.assertIn("lexer chars rename", buf.getvalue())
 
 

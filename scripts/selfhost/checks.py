@@ -64,19 +64,34 @@ def _replace_required(text, old, new, label):
 
 
 def _sub_optional(text, pattern, repl, label, *, flags=0, count=0):
-    """re.sub that prints a labelled skip notice on zero matches (no raise)."""
+    """re.sub that prints a labelled skip notice on zero matches (no raise).
+
+    The notice goes to **stderr** so it does not flood stdout and obscure
+    fixpoint/parity output.  Set ``ARUKELLT_OVERLAY_VERBOSE=1`` to also
+    print to stdout for interactive debugging.
+    """
     out, n = re.subn(pattern, repl, text, flags=flags, count=count)
     if n == 0:
-        print(f"[bootstrap-overlay] optional patch skipped: {label}")
+        _overlay_skip(label)
     return out
 
 
 def _replace_optional(text, old, new, label):
     """str.replace that prints a labelled skip notice when old is absent."""
     if old not in text:
-        print(f"[bootstrap-overlay] optional replace skipped: {label}")
+        _overlay_skip(label)
         return text
     return text.replace(old, new)
+
+
+def _overlay_skip(label: str) -> None:
+    """Emit an overlay skip notice to stderr (stdout if verbose)."""
+    import sys as _sys
+    msg = f"[bootstrap-overlay] optional patch skipped: {label}"
+    if os.environ.get("ARUKELLT_OVERLAY_VERBOSE"):
+        print(msg)
+    else:
+        print(msg, file=_sys.stderr)
 
 
 def _remove_tree(path: Path) -> None:
