@@ -143,8 +143,8 @@ Return the number of interned strings.
 ## `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 28
-- Stability: stable 28
+- Manifest-backed functions: 29
+- Stability: stable 29
 
 Hash-based collection helpers.
 
@@ -195,6 +195,7 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | Insert or update a key. Returns true when the value was stored, or false |
+| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `stable` | Insert or update a key and return the previous value, matching Rust's |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Create a new HashMap with a specific initial capacity. |
 | `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Look up a key and return Some(value) or None. |

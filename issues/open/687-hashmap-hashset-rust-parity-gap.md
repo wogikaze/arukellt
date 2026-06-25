@@ -77,9 +77,15 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
       equivalent section that describes intentional differences from Rust.
 - [x] `HashSet<String>` insert/contains/remove are implemented or removed from
       the public facade until implemented.
-- [ ] `HashMap` facade APIs consistently return `Option<V>` for replacement and
+- [x] `HashMap` facade APIs consistently return `Option<V>` for replacement and
       lookup where the type system can represent it; legacy bool/unit behavior
       is documented as raw compatibility.
+      - 2026-06-25: `std::collections::hash::hashmap_insert` now returns
+        `Option<i32>`, and `std::collections::hash_map::*_insert` facade
+        wrappers return the previous value for `HashMap<i32,i32>`,
+        `HashMap<String,i32>`, `HashMap<i32,String>`, and
+        `HashMap<String,String>`. The lower-level `hashmap_set` bool API remains
+        the fixed-capacity raw store primitive.
 - [ ] Add resize/growth behavior for new insertions, or document fixed-capacity
       failure semantics and expose tests for full-table insertion failure.
 - [ ] Add fixtures covering collision, update-return, deletion-after-collision,

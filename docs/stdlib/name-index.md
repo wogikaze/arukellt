@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 603
+- **Canonical names:** 604
 - **Historical/deprecated names:** 25
-- **Total entries:** 628
+- **Total entries:** 629
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -244,6 +244,7 @@ Current public API names, sorted alphabetically.
 | `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_insert` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_new` | `std::collections::hash` | `stable` | Collections |
@@ -902,6 +903,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`HashMap_i32_String_get`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_get` · [migration guide](migration-guidance.md) |
 | ~~`HashMap_i32_String_insert`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_insert` · [migration guide](migration-guidance.md) |
 | ~~`HashMap_i32_String_len`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_len` · [migration guide](migration-guidance.md) |
+| `hashmap_insert` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |

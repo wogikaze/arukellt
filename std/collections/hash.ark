@@ -160,6 +160,14 @@ pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
     done
 }
 
+/// Insert or update a key and return the previous value, matching Rust's
+/// `HashMap::insert` contract for the monomorphic i32->i32 fallback.
+pub fn hashmap_insert(m: Vec<i32>, key: i32, value: i32) -> Option<i32> {
+    let old: Option<i32> = hashmap_get_option(m, key)
+    let _stored: bool = hashmap_set(m, key, value)
+    old
+}
+
 pub fn hashmap_size(m: Vec<i32>) -> i32 {
     get_unchecked(m, 1)
 }

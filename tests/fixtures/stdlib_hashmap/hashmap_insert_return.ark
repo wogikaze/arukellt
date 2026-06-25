@@ -1,0 +1,22 @@
+use std::collections::hash
+use std::collections::hash_map
+use std::host::stdio
+
+fn print_i32_option(v: Option<i32>) {
+    match v {
+        Option::Some(n) => stdio::println(i32_to_string(n)),
+        None => stdio::println("none"),
+    }
+}
+
+fn main() {
+    let raw = hash::hashmap_new()
+    print_i32_option(hash::hashmap_insert(raw, 7, 70))
+    print_i32_option(hash::hashmap_insert(raw, 7, 700))
+    print_i32_option(hash::hashmap_get_option(raw, 7))
+
+    let m = HashMap_i32_i32_new()
+    print_i32_option(hash_map::hashmap_i32_i32_insert(m, 1, 10))
+    print_i32_option(hash_map::hashmap_i32_i32_insert(m, 1, 11))
+    print_i32_option(hash_map::hashmap_i32_i32_get(m, 1))
+}

@@ -3416,6 +3416,14 @@ params = ["Vec<i32>", "i32", "i32"]
 returns = "bool"
 
 [[functions]]
+name = "hashmap_insert"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "Option<i32>"
+
+[[functions]]
 name = "hashmap_size"
 module = "std::collections::hash"
 doc_category = "collections"
