@@ -197,12 +197,12 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
     }
-    if len(type_name) > 0 {
-        return String_new()
-    }
     if param_idx != 0 {
         return String_new()
     }
+    // Check function name before type_name: hashmap functions may have "vec:..."
+    // type names (from their linear-memory representation) but need their proper
+    // GC struct type assigned on GC targets.
     if starts_with(clone(fn_name), String_from("hash_string::hashmap_str_str_")) {
         return sections_types_gc::gc_hashmap_str_str_type_sig()
     }
@@ -214,6 +214,9 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     }
     if starts_with(clone(fn_name), String_from("hashmap_")) || starts_with(clone(fn_name), String_from("hashset_")) || starts_with(clone(fn_name), String_from("hash::hashmap_")) || starts_with(clone(fn_name), String_from("hash::hashset_")) {
         return sections_types_gc::gc_vec_type_sig()
+    }
+    if len(type_name) > 0 {
+        return String_new()
     }
     String_new()
 }
