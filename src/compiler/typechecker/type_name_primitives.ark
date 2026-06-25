@@ -15,6 +15,9 @@ fn resolve_primitive_type_name(name: String) -> TypeInfo {
     if eq(clone(name), "f32") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_F32())
     }
+    if eq(clone(name), "v128") {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_V128())
+    }
     }
     if eq(clone(name), "bool") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_BOOL())

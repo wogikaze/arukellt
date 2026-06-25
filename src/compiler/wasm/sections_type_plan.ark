@@ -134,10 +134,14 @@ fn val_type_to_sig(vt: i32) -> String {
                 if vt == 6 {
                     String_from("f32")
                 } else {
-                    if vt == 5 {
-                        return String_from("gcref")
+                    if vt == 7 {
+                        String_from("v128")
+                    } else {
+                        if vt == 5 {
+                            return String_from("gcref")
+                        }
+                        String_from("ref")
                     }
-                    String_from("ref")
                 }
             }
         }
@@ -164,10 +168,14 @@ fn sig_to_wasm_type(sig: String) -> i32 {
                 if eq(clone(sig), "f32") {
                     constants::WASM_F32()
                 } else {
-                    if eq(clone(sig), "i8") {
-                        constants::WASM_I8()
+                    if eq(clone(sig), "v128") {
+                        constants::WASM_V128()
                     } else {
-                        constants::WASM_I32()
+                        if eq(clone(sig), "i8") {
+                            constants::WASM_I8()
+                        } else {
+                            constants::WASM_I32()
+                        }
                     }
                 }
             }

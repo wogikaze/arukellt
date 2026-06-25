@@ -214,3 +214,135 @@ fn OP_I64_TRUNC_F32_S() -> i32 { 0xae }
 fn OP_I64_TRUNC_F32_U() -> i32 { 0xaf }
 fn OP_F32_DEMOTE_F64() -> i32 { 0xc6 }
 fn OP_F64_PROMOTE_F32() -> i32 { 0xbb }
+
+// SIMD prefix byte (0xFD) and sub-opcodes (LEB128-encoded after prefix)
+fn SIMD_PREFIX() -> i32 { 0xfd }
+
+// Memory lane SIMD instructions
+fn SIMD_V128_LOAD() -> i32 { 0x00 }
+fn SIMD_V128_LOAD8X8_S() -> i32 { 0x01 }
+fn SIMD_V128_LOAD8X8_U() -> i32 { 0x02 }
+fn SIMD_V128_LOAD16X4_S() -> i32 { 0x03 }
+fn SIMD_V128_LOAD16X4_U() -> i32 { 0x04 }
+fn SIMD_V128_LOAD32X2_S() -> i32 { 0x05 }
+fn SIMD_V128_LOAD32X2_U() -> i32 { 0x06 }
+fn SIMD_V128_LOAD8_SPLAT() -> i32 { 0x07 }
+fn SIMD_V128_LOAD16_SPLAT() -> i32 { 0x08 }
+fn SIMD_V128_LOAD32_SPLAT() -> i32 { 0x09 }
+fn SIMD_V128_LOAD64_SPLAT() -> i32 { 0x0a }
+fn SIMD_V128_STORE() -> i32 { 0x0b }
+fn SIMD_V128_LOAD8_LANE() -> i32 { 0x0c }
+fn SIMD_V128_LOAD16_LANE() -> i32 { 0x0d }
+fn SIMD_V128_LOAD32_LANE() -> i32 { 0x0e }
+fn SIMD_V128_LOAD64_LANE() -> i32 { 0x0f }
+fn SIMD_V128_STORE8_LANE() -> i32 { 0x10 }
+fn SIMD_V128_STORE16_LANE() -> i32 { 0x11 }
+fn SIMD_V128_STORE32_LANE() -> i32 { 0x12 }
+fn SIMD_V128_STORE64_LANE() -> i32 { 0x13 }
+fn SIMD_V128_LOAD32_ZERO() -> i32 { 0x14 }
+fn SIMD_V128_LOAD64_ZERO() -> i32 { 0x15 }
+
+// Basic v128 operations
+fn SIMD_V128_CONST() -> i32 { 0x0c }
+fn SIMD_I8X16_SHUFFLE() -> i32 { 0x0d }
+fn SIMD_I8X16_SWIZZLE() -> i32 { 0x0e }
+fn SIMD_I8X16_SPLAT() -> i32 { 0x0f }
+fn SIMD_I16X8_SPLAT() -> i32 { 0x10 }
+fn SIMD_I32X4_SPLAT() -> i32 { 0x11 }
+fn SIMD_I64X2_SPLAT() -> i32 { 0x12 }
+fn SIMD_F32X4_SPLAT() -> i32 { 0x13 }
+fn SIMD_F64X2_SPLAT() -> i32 { 0x14 }
+
+// Extract lane
+fn SIMD_I8X16_EXTRACT_LANE_S() -> i32 { 0x15 }
+fn SIMD_I8X16_EXTRACT_LANE_U() -> i32 { 0x16 }
+fn SIMD_I16X8_EXTRACT_LANE_S() -> i32 { 0x17 }
+fn SIMD_I16X8_EXTRACT_LANE_U() -> i32 { 0x18 }
+fn SIMD_I32X4_EXTRACT_LANE() -> i32 { 0x19 }
+fn SIMD_I64X2_EXTRACT_LANE() -> i32 { 0x1a }
+fn SIMD_F32X4_EXTRACT_LANE() -> i32 { 0x1b }
+fn SIMD_F64X2_EXTRACT_LANE() -> i32 { 0x1c }
+
+// Replace lane
+fn SIMD_I8X16_REPLACE_LANE() -> i32 { 0x1d }
+fn SIMD_I16X8_REPLACE_LANE() -> i32 { 0x1e }
+fn SIMD_I32X4_REPLACE_LANE() -> i32 { 0x1f }
+fn SIMD_I64X2_REPLACE_LANE() -> i32 { 0x20 }
+fn SIMD_F32X4_REPLACE_LANE() -> i32 { 0x21 }
+fn SIMD_F64X2_REPLACE_LANE() -> i32 { 0x22 }
+
+// v128 comparison
+fn SIMD_V128_EQ() -> i32 { 0x29 }
+fn SIMD_V128_NE() -> i32 { 0x2a }
+fn SIMD_V128_LT() -> i32 { 0x2b }
+fn SIMD_V128_LE() -> i32 { 0x2c }
+fn SIMD_V128_GT() -> i32 { 0x2d }
+fn SIMD_V128_GE() -> i32 { 0x2e }
+
+// Bitwise operations
+fn SIMD_V128_NOT() -> i32 { 0x2f }
+fn SIMD_V128_AND() -> i32 { 0x30 }
+fn SIMD_V128_ANDNOT() -> i32 { 0x31 }
+fn SIMD_V128_OR() -> i32 { 0x32 }
+fn SIMD_V128_XOR() -> i32 { 0x33 }
+fn SIMD_V128_BITSELECT() -> i32 { 0x34 }
+fn SIMD_V128_ANY_TRUE() -> i32 { 0x35 }
+
+// Load/store lane (for v128)
+fn SIMD_V128_LOAD8_LANE_OP() -> i32 { 0x54 }
+fn SIMD_V128_LOAD16_LANE_OP() -> i32 { 0x55 }
+fn SIMD_V128_LOAD32_LANE_OP() -> i32 { 0x56 }
+fn SIMD_V128_LOAD64_LANE_OP() -> i32 { 0x57 }
+
+// Arithmetic - i8x16
+fn SIMD_I8X16_ADD() -> i32 { 0x7e }
+fn SIMD_I8X16_ADD_SAT_S() -> i32 { 0x7f }
+fn SIMD_I8X16_ADD_SAT_U() -> i32 { 0x80 }
+fn SIMD_I8X16_SUB() -> i32 { 0x81 }
+fn SIMD_I8X16_SUB_SAT_S() -> i32 { 0x82 }
+fn SIMD_I8X16_SUB_SAT_U() -> i32 { 0x83 }
+fn SIMD_I8X16_MUL() -> i32 { 0x89 }
+fn SIMD_I8X16_NEG() -> i32 { 0x6f }
+fn SIMD_I8X16_ABS() -> i32 { 0x60 }
+
+// Arithmetic - i16x8
+fn SIMD_I16X8_ADD() -> i32 { 0xae }
+fn SIMD_I16X8_ADD_SAT_S() -> i32 { 0xaf }
+fn SIMD_I16X8_ADD_SAT_U() -> i32 { 0xb0 }
+fn SIMD_I16X8_SUB() -> i32 { 0xb1 }
+fn SIMD_I16X8_SUB_SAT_S() -> i32 { 0xb2 }
+fn SIMD_I16X8_SUB_SAT_U() -> i32 { 0xb3 }
+fn SIMD_I16X8_MUL() -> i32 { 0xb9 }
+fn SIMD_I16X8_NEG() -> i32 { 0x9f }
+fn SIMD_I16X8_ABS() -> i32 { 0x90 }
+
+// Arithmetic - i32x4
+fn SIMD_I32X4_ADD() -> i32 { 0xce }
+fn SIMD_I32X4_SUB() -> i32 { 0xd1 }
+fn SIMD_I32X4_MUL() -> i32 { 0xd9 }
+fn SIMD_I32X4_NEG() -> i32 { 0xbf }
+fn SIMD_I32X4_ABS() -> i32 { 0xb0 }
+
+// Arithmetic - i64x2
+fn SIMD_I64X2_ADD() -> i32 { 0xee }
+fn SIMD_I64X2_SUB() -> i32 { 0xf1 }
+fn SIMD_I64X2_MUL() -> i32 { 0xf9 }
+fn SIMD_I64X2_NEG() -> i32 { 0xdf }
+fn SIMD_I64X2_ABS() -> i32 { 0xd0 }
+
+// Arithmetic - f32x4
+fn SIMD_F32X4_ADD() -> i32 { 0xe4 }
+fn SIMD_F32X4_SUB() -> i32 { 0xe5 }
+fn SIMD_F32X4_MUL() -> i32 { 0xe6 }
+fn SIMD_F32X4_DIV() -> i32 { 0xe7 }
+fn SIMD_F32X4_NEG() -> i32 { 0xe0 }
+fn SIMD_F32X4_ABS() -> i32 { 0xe0 }
+fn SIMD_F32X4_SQRT() -> i32 { 0xe3 }
+
+// Arithmetic - f64x2
+fn SIMD_F64X2_ADD() -> i32 { 0xf4 }
+fn SIMD_F64X2_SUB() -> i32 { 0xf5 }
+fn SIMD_F64X2_MUL() -> i32 { 0xf6 }
+fn SIMD_F64X2_DIV() -> i32 { 0xf7 }
+fn SIMD_F64X2_NEG() -> i32 { 0xf0 }
+fn SIMD_F64X2_SQRT() -> i32 { 0xf3 }

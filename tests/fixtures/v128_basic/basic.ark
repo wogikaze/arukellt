@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn make_v128() -> v128 {
+    v128_const(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+
+fn main() {
+    let v: v128 = make_v128()
+    stdio::println("v128 created")
+}

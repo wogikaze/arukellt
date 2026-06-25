@@ -4,6 +4,7 @@
 fn WASM_I32() -> i32 { 127 }
 fn WASM_I64() -> i32 { 126 }
 fn WASM_F32() -> i32 { 125 }
+fn WASM_V128() -> i32 { 123 }
 fn WASM_F64() -> i32 { 124 }
 fn WASM_I8() -> i32 { 120 }
 fn WASM_REF_NULL() -> i32 { 99 }

@@ -95,6 +95,9 @@ fn val_type_to_wasm(vt: i32) -> i32 {
     if vt == value_types::VT_F32() {
         return constants::WASM_F32()
     }
+    if vt == value_types::VT_V128() {
+        return constants::WASM_V128()
+    }
     if vt == value_types::VT_REF() {
         return constants::WASM_I32()
     }
