@@ -1051,73 +1051,116 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
 
 
 def _patch_bootstrap_driver_timing(text: str) -> str:
-    """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32."""
-    text = text.replace("clock::monotonic_now()", "0")
+    """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32.
+
+    Applied to every file in the ``driver`` namespace; not every file contains
+    every pattern, so all substitutions are *optional* — a skip notice is printed
+    when a pattern does not match, making source drift visible without raising.
+    """
+    text = _replace_optional(text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now")
     for field in ("t0", "t_lex", "t_parse", "t_resolve", "t_typecheck"):
-        text = re.sub(rf"^    {field}: i64,$", f"    {field}: i32,", text, flags=re.M)
-    text = text.replace(
+        text = _sub_optional(
+            text,
+            rf"^    {field}: i64,$",
+            f"    {field}: i32,",
+            f"driver_timing: {field} i64→i32 struct field",
+            flags=re.M,
+        )
+    text = _replace_optional(
+        text,
         "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64)",
         "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i32, t_lex: i32, t_parse: i32)",
+        "driver_timing: DriverFrontendResult_new i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64)",
         "fn frontend_stop(result: CompileResult, t0: i32, t_lex: i32, t_parse: i32)",
+        "driver_timing: frontend_stop i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn frontend_continue(decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64)",
         "fn frontend_continue(decls: Vec<AstNode>, t0: i32, t_lex: i32, t_parse: i32)",
+        "driver_timing: frontend_continue i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn run_lex_parse(source: String, config: DriverConfig, t0: i64)",
         "fn run_lex_parse(source: String, config: DriverConfig, t0: i32)",
+        "driver_timing: run_lex_parse i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn DriverResolveResult_new(should_return: bool, result: CompileResult, load_state: LoadState, resolve_ctx: ResolveCtx, t_resolve: i64)",
         "fn DriverResolveResult_new(should_return: bool, result: CompileResult, load_state: LoadState, resolve_ctx: ResolveCtx, t_resolve: i32)",
+        "driver_timing: DriverResolveResult_new i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn DriverTypecheckResult_new(should_return: bool, result: CompileResult, check_result: TypeCheckResult, t_typecheck: i64)",
         "fn DriverTypecheckResult_new(should_return: bool, result: CompileResult, check_result: TypeCheckResult, t_typecheck: i32)",
+        "driver_timing: DriverTypecheckResult_new i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn frontend_result_t0(result: DriverFrontendResult) -> i64 {",
         "fn frontend_result_t0(result: DriverFrontendResult) -> i32 {",
+        "driver_timing: frontend_result_t0 return i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn frontend_result_t_lex(result: DriverFrontendResult) -> i64 {",
         "fn frontend_result_t_lex(result: DriverFrontendResult) -> i32 {",
+        "driver_timing: frontend_result_t_lex return i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn frontend_result_t_parse(result: DriverFrontendResult) -> i64 {",
         "fn frontend_result_t_parse(result: DriverFrontendResult) -> i32 {",
+        "driver_timing: frontend_result_t_parse return i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))",
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), i32_to_i64(pipeline_frontend::frontend_result_t0(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_lex(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_parse(frontend)))",
+        "driver_timing: run_backend i32_to_i64 wrapping",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn resolve_result_t_resolve(result: DriverResolveResult) -> i64 {",
         "fn resolve_result_t_resolve(result: DriverResolveResult) -> i32 {",
+        "driver_timing: resolve_result_t_resolve return i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {",
         "fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i32 {",
+        "driver_timing: typecheck_result_t_typecheck return i64→i32",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked)",
         "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)), i32_to_i64(backend_typecheck::typecheck_result_t_typecheck(checked))",
+        "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "typecheck_result_t_typecheck(checked)), t_lower)",
         "typecheck_result_t_typecheck(checked)), i32_to_i64(t_lower))",
+        "driver_timing: t_lower i32_to_i64 wrapping",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
         "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
+        "driver_timing: driver_debug::emit_phase_timing i32_to_i64(0)",
     )
-    text = text.replace(
+    text = _replace_optional(
+        text,
         "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
         "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
+        "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
     )
     return text
 
@@ -1936,7 +1979,12 @@ def _flatten_compiler_imports(text: str) -> str:
                 continue
         rewritten = line
         for alias, flat_name in sorted(alias_map.items(), key=lambda item: len(item[0]), reverse=True):
-            rewritten = re.sub(rf"\b{re.escape(alias)}::", f"{flat_name}::", rewritten)
+            rewritten = _sub_optional(
+                rewritten,
+                rf"\b{re.escape(alias)}::",
+                f"{flat_name}::",
+                f"flatten import alias {alias} -> {flat_name}",
+            )
         output.append(rewritten)
     trailing = "\n" if text.endswith("\n") else ""
     return "\n".join(output) + trailing

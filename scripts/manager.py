@@ -6610,8 +6610,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run selfhost CLI parity + diagnostic parity gates (#530)",
     )
     verify_parser.add_argument(
+        "--selfhost-fixpoint", action="store_true",
+        help="Run selfhost fixpoint gate (sha256(s2)==sha256(s3); fail on drift)",
+    )
+    verify_parser.add_argument(
         "--full", action="store_true",
-        help="Run quick + fixtures + size + wat + component + selfhost-parity sequentially",
+        help="Run quick + fixtures + size + wat + component + selfhost-parity + selfhost-fixpoint sequentially",
     )
 
     # ── Positional subcommand interface (legacy, preserved) ───────────────────
@@ -6802,6 +6806,7 @@ def main() -> int:
         if args.full:
             args.quick = args.fixtures = args.size = args.wat = args.component = True
             args.selfhost_parity = True
+            args.selfhost_fixpoint = True
 
         # Collect requested steps in a deterministic order.
         steps: list[tuple[str, object]] = []
@@ -6812,6 +6817,7 @@ def main() -> int:
             ("wat",       cmd_verify_wat),
             ("component", cmd_verify_component),
             ("selfhost_parity", cmd_verify_selfhost_parity),
+            ("selfhost_fixpoint", cmd_verify_full_fixpoint),
         ]:
             if getattr(args, flag, False):
                 steps.append((flag, fn))
@@ -6922,6 +6928,58 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
         h.check_pass("selfhost fixpoint reached")
     elif res.skipped:
         h.check_skip(f"selfhost fixpoint not yet reached (exit {res.exit_code})")
+    else:
+        h.check_fail(
+            "selfhost fixpoint check failed",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost fixpoint --build",
+            primary_path="src/compiler/main.ark",
+        )
+        for line in res.output.splitlines()[-30:]:
+            print(line)
+
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
+def cmd_verify_full_fixpoint(args: argparse.Namespace) -> int:
+    """Selfhost fixpoint gate for ``verify --full`` (ADR-029).
+
+    Unlike the standalone ``selfhost fixpoint`` command (which treats
+    "not yet reached" as a *skip*), this gate treats fixpoint drift as a
+    **failure** so that ``verify --full`` goes red when the selfhost
+    compiler can no longer reproduce itself.
+
+    The gate checks ``sha256(s2) == sha256(s3)`` (self-reproduction from
+    the current source).  It does **not** require ``pinned == s2`` — that
+    would force a pinned-wasm refresh on every behavioural change and is
+    deferred to a separate refresh workflow.
+    """
+    root = _repo_root()
+    dry_run: bool = args.dry_run
+    no_build: bool = not getattr(args, "build", False)
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(f"\n{YELLOW}[selfhost-fixpoint] Fixpoint gate (full verify)...{NC}")
+    res: SelfhostFixpointResult = run_fixpoint(root, dry_run, no_build=no_build)
+
+    if res.passed:
+        h.check_pass("selfhost fixpoint reached (full verify)")
+    elif res.skipped:
+        # In full verify, "not yet reached" is a FAILURE, not a skip.
+        h.check_fail(
+            f"selfhost fixpoint not reached (exit {res.exit_code}) — full verify requires fixpoint",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost fixpoint --build",
+            primary_path="src/compiler/main.ark",
+        )
+        for line in res.output.splitlines()[-30:]:
+            print(line)
     else:
         h.check_fail(
             "selfhost fixpoint check failed",

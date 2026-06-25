@@ -67,5 +67,23 @@ class TestSelfhostFixpointBuildFlag(unittest.TestCase):
         self.assertEqual(rc, 0, f"Expected exit 0, got {rc}. Output:\n{out}")
 
 
+class TestVerifyFullFixpointDryRun(unittest.TestCase):
+    """verify --full --dry-run must include the fixpoint gate and exit 0."""
+
+    def test_full_dry_run_includes_fixpoint(self) -> None:
+        # verify --full --dry-run may exit non-zero due to pre-existing gate
+        # failures (manifest drift, etc.); we only check that the fixpoint
+        # gate is included in the output.
+        rc, out = _run("verify", "--full", "--dry-run")
+        self.assertIn("fixpoint", out.lower())
+        self.assertIn("full verify", out)
+
+    def test_selfhost_fixpoint_flag_dry_run(self) -> None:
+        rc, out = _run("verify", "--selfhost-fixpoint", "--dry-run")
+        self.assertEqual(rc, 0, f"Expected exit 0, got {rc}. Output:\n{out}")
+        self.assertIn("fixpoint", out.lower())
+        self.assertIn("full verify", out)
+
+
 if __name__ == "__main__":
     unittest.main()
