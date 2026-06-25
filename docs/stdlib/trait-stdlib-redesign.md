@@ -469,4 +469,4 @@ python3 scripts/check/check-docs-consistency.py
 - [Stdlib Expansion Policy](expansion-policy.md)
 - [Monomorphic Deprecation Table](monomorphic-deprecation.md)
 - Issue #688-#697: trait dispatch + stdlib trait 化 issue 群
-- [Issue Dependency Graph](../issues/open/dependency-graph.md)
+- [Issue Dependency Graph](../../issues/open/dependency-graph.md)

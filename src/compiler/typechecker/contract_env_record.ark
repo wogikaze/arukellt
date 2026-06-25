@@ -5,6 +5,8 @@ use diagnostics::mod as diag_mod
 use diagnostics::record
 use typechecker::contract_mono
 use typechecker::contract_trait_impl_record
+use typechecker::contract_trait_method_record
+use typechecker::contract_type_param_bounds
 use typechecker::contract_typevar_record
 
 struct TypeEnv {
@@ -21,10 +23,13 @@ struct TypeEnv {
     mono_instances: Vec<MonoInstance>,
     mono_call_sites: Vec<MonoCallSite>,
     trait_impls: Vec<TraitImplInfo>,
+    trait_methods: Vec<TraitMethodEntry>,
+    current_fn_type_params: Vec<String>,
+    current_fn_bounds: Vec<TypeParamBounds>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
-    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, diagnostics: Vec_new_Diagnostic(), warnings: Vec_new_Diagnostic(), tracked_binding_names: Vec_new_String(), tracked_binding_spans_start: Vec_new_i32(), tracked_binding_spans_end: Vec_new_i32(), tracked_binding_used: Vec_new_i32(), mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo() }
+    TypeEnv { vars: Vec_new_TypeVar(), next_id: 0, errors: Vec_new_String(), error_count: 0, diagnostics: Vec_new_Diagnostic(), warnings: Vec_new_Diagnostic(), tracked_binding_names: Vec_new_String(), tracked_binding_spans_start: Vec_new_i32(), tracked_binding_spans_end: Vec_new_i32(), tracked_binding_used: Vec_new_i32(), mono_instances: Vec_new_MonoInstance(), mono_call_sites: Vec_new_MonoCallSite(), trait_impls: Vec_new_TraitImplInfo(), trait_methods: Vec_new_TraitMethodEntry(), current_fn_type_params: Vec_new_String(), current_fn_bounds: Vec_new_TypeParamBounds() }
 }
 
 fn i32_vec_set(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {

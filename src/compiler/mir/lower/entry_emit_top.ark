@@ -2,6 +2,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_api_module
+use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::function_factory
 // Arukellt Selfhost - top-level function MIR body emission.
@@ -18,6 +19,10 @@ fn mir_emit_top_level_fn_body(ctx: LowerCtx, body_input: MirLowerEntryBodyInput,
     trace::mir_lower_trace_line(mir_tr, -2, typed_index, 0, 0, 0)
     entry_params::mir_bind_top_level_params(ctx, entry_view, fn_info_index, param_count)
     trace::mir_lower_trace_ctx(mir_tr, ctx, 1)
+    // For monomorphized instances, setup the type parameter mapping so
+    // that trait method calls on type-variable receivers can resolve to
+    // the concrete type's impl method.
+    ctx_mono_type_params::ctx_setup_mono_type_params_by_ordinal(ctx, clone(emit_fn_name))
     ctx_api_function_frame::ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag)
     ctx_api_function_frame::ctx_set_current_return_type_name(ctx, ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(emit_fn_name)))
     trace::mir_lower_trace_ctx(mir_tr, ctx, 2)
@@ -25,5 +30,6 @@ fn mir_emit_top_level_fn_body(ctx: LowerCtx, body_input: MirLowerEntryBodyInput,
     trace::mir_lower_trace_ctx(mir_tr, ctx, 3)
     entry_body_result::mir_emit_entry_body_result(ctx, body_input)
     trace::mir_lower_trace_ctx(mir_tr, ctx, 4)
+    ctx_mono_type_params::ctx_clear_mono_type_params(ctx)
     ctx_api_module::ctx_push_current_function(ctx)
 }

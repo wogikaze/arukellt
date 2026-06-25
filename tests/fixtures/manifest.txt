@@ -349,6 +349,7 @@ run:generics_v1/mir_specialization.ark
 run:generics_v1/nested_option.ark
 run:generics_v1/trait_bound.ark
 run:generics_v1/trait_method_resolve.ark
+run:generics_v1/trait_method_dispatch.ark
 run:hello/empty_main.ark
 run:hello/exit_code.ark
 run:hello/hello.ark
@@ -808,6 +809,7 @@ t3-compile:generics_v1/mir_specialization.ark
 t3-compile:generics_v1/nested_option.ark
 t3-compile:generics_v1/trait_bound.ark
 t3-compile:generics_v1/trait_method_resolve.ark
+t3-compile:generics_v1/trait_method_dispatch.ark
 t3-compile:hello/empty_main.ark
 t3-compile:hello/exit_code.ark
 t3-compile:hello/hello.ark
@@ -1002,6 +1004,7 @@ t3-run:generics_v1/mir_specialization.ark
 t3-run:generics_v1/nested_option.ark
 t3-run:generics_v1/trait_bound.ark
 t3-run:generics_v1/trait_method_resolve.ark
+t3-run:generics_v1/trait_method_dispatch.ark
 t3-run:hello/empty_main.ark
 t3-run:hello/exit_code.ark
 t3-run:hello/hello.ark

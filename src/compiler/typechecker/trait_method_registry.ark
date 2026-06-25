@@ -1,0 +1,63 @@
+// Arukellt Typechecker - trait method signature registry.
+//
+// Collects method signatures from `trait` declarations and stores them
+// in `env.trait_methods` so that generic functions with `<T: Trait>`
+// bounds can resolve `x.method()` calls against the trait's method
+// signature when the receiver type is a type variable.
+
+use typechecker::ast_access
+use typechecker::ast_decl_predicates
+use typechecker::contract_env_record
+use typechecker::contract_fn_sig
+use typechecker::contract_trait_method_record
+use typechecker::contract_type_constructors
+use typechecker::kinds
+use typechecker::sigs
+
+fn register_trait_method_sigs(env: TypeEnv, decls: Vec<AstNode>) {
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        if is_trait_decl(node) {
+            register_trait_methods(env, node)
+        }
+        i = i + 1
+    }
+}
+
+fn is_trait_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_TRAIT_DECL())
+}
+
+fn register_trait_methods(env: TypeEnv, trait_node: AstNode) {
+    let trait_name = ast_access::node_text(trait_node)
+    let child_count = ast_access::node_child_count(trait_node)
+    let mut i = 0
+    while i < child_count {
+        let child = ast_access::node_child_at(trait_node, i)
+        if ast_decl_predicates::node_is_fn_decl(child) {
+            let method_name = ast_access::node_text(child)
+            let sig = sigs::fn_sig_from_fn_decl(child)
+            push(env.trait_methods, contract_trait_method_record::TraitMethodEntry_new(clone(trait_name), clone(method_name), sig))
+        }
+        i = i + 1
+    }
+}
+
+fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: String) -> FnSig {
+    let count = len(env.trait_methods)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(env.trait_methods, i)
+        if eq(contract_trait_method_record::trait_method_entry_trait_name(entry), clone(trait_name)) && eq(contract_trait_method_record::trait_method_entry_method_name(entry), clone(method_name)) {
+            return contract_trait_method_record::trait_method_entry_sig(entry)
+        }
+        i = i + 1
+    }
+    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+}
+
+fn simple_type(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}

@@ -1,0 +1,49 @@
+// Issue #688: trait method dispatch inside generic functions.
+//
+// A generic function `<T: Greet>` calls `x.greet()` on its parameter.
+// When instantiated with two distinct concrete types (Point and Vec2),
+// the call must resolve to the correct impl method for each type via
+// monomorphization-based static dispatch.
+use std::host::stdio
+
+trait Greet {
+    fn greet(self: Greet) -> String
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Greet for Point {
+    fn greet(self: Point) -> String {
+        concat(String_from("Point("), concat(i32_to_string(self.x), concat(String_from(", "), concat(i32_to_string(self.y), String_from(")")))))
+    }
+}
+
+struct Vec2 {
+    dx: i32,
+    dy: i32,
+}
+
+impl Greet for Vec2 {
+    fn greet(self: Vec2) -> String {
+        concat(String_from("Vec2("), concat(i32_to_string(self.dx), concat(String_from(", "), concat(i32_to_string(self.dy), String_from(")")))))
+    }
+}
+
+// Generic function that calls a trait method on its bounded parameter.
+// This is the core of #688: `item.greet()` must resolve to the correct
+// impl method after monomorphization.
+fn print_greeting<T: Greet>(item: T) {
+    let s: String = item.greet()
+    stdio::println(s)
+}
+
+fn main() {
+    let p = Point { x: 1, y: 2 }
+    print_greeting(p)
+
+    let v = Vec2 { dx: 3, dy: 4 }
+    print_greeting(v)
+}

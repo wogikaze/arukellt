@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering helpers for method calls.
 
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_mono_type_params
 use mir::lower::method_emit
 use mir::lower::method_resolve
 
@@ -8,6 +9,16 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     let mut struct_name = String_from("")
     if receiver_idx >= 0 {
         struct_name = ctx_get_local_type(ctx, receiver_idx)
+    }
+    // When the receiver type is a type variable (e.g. "?T"), try to
+    // resolve it to a concrete type via the monomorphization type
+    // parameter mapping. This enables `x.method()` inside generic
+    // functions `<T: Trait>` to resolve to `ConcreteType::method`.
+    if len(struct_name) > 0 && starts_with(clone(struct_name), String_from("?")) {
+        let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(struct_name))
+        if len(resolved) > 0 {
+            struct_name = resolved
+        }
     }
     if len(struct_name) > 0 {
         return concat(clone(struct_name), concat(String_from("::"), clone(method_name)))

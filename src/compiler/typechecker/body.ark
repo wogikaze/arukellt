@@ -14,6 +14,10 @@ use typechecker::sigs
 fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
     let scope = scope::LocalScope_new()
     body_params::bind_fn_params(scope, fn_node)
+    let bounds = sigs::collect_type_param_bounds(ast_access::node_type_ann(fn_node))
+    let type_param_names = sigs::collect_type_param_names(bounds)
+    env.current_fn_bounds = bounds
+    env.current_fn_type_params = type_param_names
     let child_count = ast_access::node_child_count(fn_node)
     if child_count > 0 {
         let body = ast_access::node_child_at(fn_node, child_count - 1)

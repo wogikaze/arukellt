@@ -1,0 +1,30 @@
+// Arukellt Typechecker - trait method signature record.
+//
+// Stores (trait_name, method_name) -> FnSig mapping so that generic
+// functions with `<T: Trait>` bounds can resolve `x.method()` calls
+// against the trait's method signature when the receiver type is a
+// type variable.
+
+use typechecker::contract_fn_sig
+
+struct TraitMethodEntry {
+    trait_name: String,
+    method_name: String,
+    sig: FnSig,
+}
+
+fn TraitMethodEntry_new(trait_name: String, method_name: String, sig: FnSig) -> TraitMethodEntry {
+    TraitMethodEntry { trait_name: trait_name, method_name: method_name, sig: sig }
+}
+
+fn trait_method_entry_trait_name(entry: TraitMethodEntry) -> String {
+    clone(entry.trait_name)
+}
+
+fn trait_method_entry_method_name(entry: TraitMethodEntry) -> String {
+    clone(entry.method_name)
+}
+
+fn trait_method_entry_sig(entry: TraitMethodEntry) -> FnSig {
+    entry.sig
+}

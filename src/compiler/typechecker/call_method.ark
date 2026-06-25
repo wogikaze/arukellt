@@ -5,30 +5,94 @@ use typechecker::ast_access
 use typechecker::call_method_args
 use typechecker::call_generic
 use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::contract_type_param_bounds
+use typechecker::contract_type_constructors
 use typechecker::sigs
+use typechecker::trait_method_registry
+
+fn simple_type(tag: i32) -> TypeInfo {
+    contract_type_constructors::TypeInfo_simple(tag)
+}
 
 fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
     if child_count < 1 {
-        return TypeInfo_simple(commands::TY_UNKNOWN())
+        return simple_type(commands::TY_UNKNOWN())
     }
-    let sig = sigs::lookup_fn_sig(fn_sigs, ast_access::node_text(node))
+    let method_name = ast_access::node_text(node)
+    let sig = sigs::lookup_fn_sig(fn_sigs, method_name)
     if !contract_fn_sig::FnSig_has_name(sig) {
-        return TypeInfo_simple(commands::TY_UNKNOWN())
+        // Fallback: receiver might be a type variable bounded by a trait.
+        // Try to resolve the method via trait bounds.
+        let trait_sig = try_resolve_trait_method_from_bounds(env, scope, fn_sigs, enum_defs, node, method_name)
+        if contract_fn_sig::FnSig_has_name(trait_sig) {
+            return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_sig)
+        }
+        return simple_type(commands::TY_UNKNOWN())
     }
     let recv_node = ast_access::node_child_at(node, 0)
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     let explicit_args = child_count - 1
     let param_count = contract_fn_sig::FnSig_param_count(sig)
     if param_count < 1 {
-        return TypeInfo_simple(commands::TY_UNKNOWN())
+        return simple_type(commands::TY_UNKNOWN())
     }
     if explicit_args + 1 != param_count {
-        return TypeInfo_simple(commands::TY_UNKNOWN())
+        return simple_type(commands::TY_UNKNOWN())
     }
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
         call_method_args::constrain_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
         return contract_fn_sig::FnSig_return_type(sig)
     }
     call_generic::infer_generic_method_call_expr(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
+}
+
+fn try_resolve_trait_method_from_bounds(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, method_name: String) -> FnSig {
+    let recv_node = ast_access::node_child_at(node, 0)
+    let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
+    // Only attempt trait resolution when the receiver is a type variable.
+    if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_TYPE_VAR() {
+        return contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+    }
+    let recv_ty_name = contract_type_access::TypeInfo_name(recv_ty)
+    // Search the current function's type parameter bounds for a trait
+    // that declares this method.
+    let bound_count = len(env.current_fn_bounds)
+    let mut i = 0
+    while i < bound_count {
+        let tp_bound = get_unchecked(env.current_fn_bounds, i)
+        let tp_name = contract_type_param_bounds::TypeParamBounds_name(tp_bound)
+        if eq(clone(tp_name), clone(recv_ty_name)) {
+            let inner_bound_count = contract_type_param_bounds::TypeParamBounds_bound_count(tp_bound)
+            let mut j = 0
+            while j < inner_bound_count {
+                let bound_ty = contract_type_param_bounds::TypeParamBounds_bound_at(tp_bound, j)
+                let trait_name = contract_type_access::TypeInfo_name(bound_ty)
+                let trait_sig = trait_method_registry::lookup_trait_method_sig(env, clone(trait_name), clone(method_name))
+                if contract_fn_sig::FnSig_has_name(trait_sig) {
+                    return trait_sig
+                }
+                j = j + 1
+            }
+        }
+        i = i + 1
+    }
+    contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
+}
+
+fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig) -> TypeInfo {
+    let child_count = ast_access::node_child_count(node)
+    let explicit_args = child_count - 1
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    if param_count < 1 {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    if explicit_args + 1 != param_count {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    let recv_node = ast_access::node_child_at(node, 0)
+    let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
+    call_method_args::constrain_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
+    contract_fn_sig::FnSig_return_type(sig)
 }

@@ -1,0 +1,104 @@
+// Arukellt Selfhost - MIR lowering monomorphization type parameter mapping.
+//
+// When a generic function `<T: Trait>` is monomorphized, the type variable
+// `T` is replaced by a concrete type. This module provides the mapping
+// from type parameter names to concrete type names so that method call
+// resolution can construct `ConcreteType::method` instead of `?T::method`.
+
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_types
+use mir::function_locals_view
+use mir::local_access
+use mir::mono_names
+use mir::type_contracts
+
+fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String>) {
+    ctx.mono_type_param_names = names
+    ctx.mono_type_param_types = types
+}
+
+fn ctx_clear_mono_type_params(ctx: LowerCtx) {
+    ctx.mono_type_param_names = Vec_new_String()
+    ctx.mono_type_param_types = Vec_new_String()
+}
+
+fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
+    let count = len(ctx.mono_type_param_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(type_var_name)) {
+            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn ctx_has_mono_type_params(ctx: LowerCtx) -> bool {
+    len(ctx.mono_type_param_names) > 0
+}
+
+// Collect type variable names (strings starting with "?") from the
+// current function's local type names, in order of local index.
+// Returns a deduplicated ordered list.
+fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
+    let result = Vec_new_String()
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let local_count = function_locals_view::MirFunction_local_count(func)
+    let mut i = 0
+    while i < local_count {
+        let loc = function_locals_view::MirFunction_local_at(func, i)
+        let ty_name = local_access::MirLocal_type_name(loc)
+        if starts_with(clone(ty_name), String_from("?")) {
+            let mut found = false
+            let rcount = len(result)
+            let mut k = 0
+            while k < rcount {
+                if eq(get_unchecked(result, k), clone(ty_name)) {
+                    found = true
+                }
+                k = k + 1
+            }
+            if !found {
+                push(result, ty_name)
+            }
+        }
+        i = i + 1
+    }
+    result
+}
+
+// Setup type parameter mapping by collecting type variable names from
+// the current function's locals and pairing them with the MonoInstance's
+// type arguments by ordinal.
+fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
+    let type_var_names = ctx_collect_type_var_names(ctx)
+    if len(type_var_names) == 0 {
+        ctx_clear_mono_type_params(ctx)
+        return
+    }
+    let count = len(ctx.mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(ctx.mono_instances, i)
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        let safe_mangled = mono_names::mono_safe_name(inst_mangled)
+        if eq(clone(safe_mangled), clone(mangled_name)) {
+            let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
+            let names = Vec_new_String()
+            let types = Vec_new_String()
+            let mut j = 0
+            while j < arg_count && j < len(type_var_names) {
+                let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
+                let ty_name = type_contracts::TypeInfo_name(ty)
+                push(names, clone(get_unchecked(type_var_names, j)))
+                push(types, ty_name)
+                j = j + 1
+            }
+            ctx_set_mono_type_params(ctx, names, types)
+            return
+        }
+        i = i + 1
+    }
+    ctx_clear_mono_type_params(ctx)
+}

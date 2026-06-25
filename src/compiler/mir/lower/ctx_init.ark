@@ -61,5 +61,8 @@ fn LowerCtx_new_for_target(m: MirModule, target: String) -> ctx_types::LowerCtx 
         gc_enum_variant_sigs: Vec_new_String(),
         gc_enum_variant_alias_names: Vec_new_String(),
         gc_enum_variant_alias_slots: Vec_new_i32(),
+        mono_type_param_names: Vec_new_String(),
+        mono_type_param_types: Vec_new_String(),
+        mono_instances: Vec_new_MonoInstance(),
     }
 }

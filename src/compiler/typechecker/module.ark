@@ -5,9 +5,11 @@ use typechecker::module_errors
 use typechecker::module_fns
 use typechecker::module_results
 use typechecker::module_traits
+use typechecker::trait_method_registry
 
 fn register_trait_impl_decls(env: TypeEnv, decls: Vec<AstNode>) {
     module_traits::register_trait_impl_decls(env, decls)
+    trait_method_registry::register_trait_method_sigs(env, decls)
 }
 
 fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
