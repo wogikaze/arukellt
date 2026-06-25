@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 604
+- **Canonical names:** 608
 - **Historical/deprecated names:** 25
-- **Total entries:** 629
+- **Total entries:** 633
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -240,6 +240,7 @@ Current public API names, sorted alphabetically.
 | `hash_combine` | `std::core::hash` | `stable` | Core |
 | `hash_i32` | `std::core::hash` | `stable` | Core |
 | `hash_string` | `std::core::hash` | `stable` | Core |
+| `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_clear` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
@@ -249,8 +250,11 @@ Current public API names, sorted alphabetically.
 | `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_new` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_set` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_size` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
 | `hashset_contains` | `std::collections::hash` | `stable` | Collections |
@@ -890,6 +894,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hash_combine` | ✅ `stable` | `std::core::hash` | Core |
 | `hash_i32` | ✅ `stable` | `std::core::hash` | Core |
 | `hash_string` | ✅ `stable` | `std::core::hash` | Core |
+| `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -911,7 +916,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`HashMap_new_String_i32`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_new` · [migration guide](migration-guidance.md) |
 | ~~`HashMap_new_String_String`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_new` · [migration guide](migration-guidance.md) |
 | `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
 | ~~`HashMap_String_i32_contains_key`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_contains` · [migration guide](migration-guidance.md) |
 | ~~`HashMap_String_i32_get`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_get` · [migration guide](migration-guidance.md) |
@@ -921,6 +928,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`HashMap_String_String_get`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_get` · [migration guide](migration-guidance.md) |
 | ~~`HashMap_String_String_insert`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_insert` · [migration guide](migration-guidance.md) |
 | ~~`HashMap_String_String_len`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_len` · [migration guide](migration-guidance.md) |
+| `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_contains` | ✅ `stable` | `std::collections::hash` | Collections |

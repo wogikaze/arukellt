@@ -90,8 +90,13 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
         `HashMap<String,i32>`, `HashMap<i32,String>`, and
         `HashMap<String,String>`. The lower-level `hashmap_set` bool API remains
         the fixed-capacity raw store primitive.
-- [ ] Add resize/growth behavior for new insertions, or document fixed-capacity
+- [x] Add resize/growth behavior for new insertions, or document fixed-capacity
       failure semantics and expose tests for full-table insertion failure.
+      - 2026-06-25: `std::collections::hash` now grows the raw i32 HashMap
+        before inserts exceed the 0.75 load-factor threshold, and exposes
+        `hashmap_capacity`, `hashmap_reserve`, `hashmap_try_reserve`, and
+        `hashmap_shrink_to_fit`. `hashmap_capacity_reserve.ark` covers reserve,
+        automatic insertion growth, shrink, and value preservation.
 - [ ] Add fixtures covering collision, update-return, deletion-after-collision,
       zero-value lookup, full-table behavior, and string set membership.
 - [ ] Decide and document whether Arukellt will support Rust-like randomized

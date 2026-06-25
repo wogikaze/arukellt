@@ -143,8 +143,8 @@ Return the number of interned strings.
 ## `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 29
-- Stability: stable 29
+- Manifest-backed functions: 33
+- Stability: stable 33
 
 Hash-based collection helpers.
 
@@ -194,10 +194,14 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashmap_new` | `() -> Vec<i32>` | `stable` | - |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | Insert or update a key. Returns true when the value was stored, or false |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | Insert or update a key. Returns true when the value was stored. |
 | `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `stable` | Insert or update a key and return the previous value, matching Rust's |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | - |
+| `hashmap_capacity` | `(Vec<i32>) -> i32` | `stable` | Return the current bucket capacity. |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Create a new HashMap with a specific initial capacity. |
+| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | Ensure the map can hold at least additional more inserted keys without |
+| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `stable` | Fallible reserve facade. The current Vec-backed implementation has no |
+| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | Shrink buckets to the minimum capacity that preserves the load-factor |
 | `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Look up a key and return Some(value) or None. |
 | `hashmap_is_empty` | `(Vec<i32>) -> bool` | `stable` | Return true if the map contains no entries. |
 | `hashmap_clear` | `(Vec<i32>) -> ()` | `stable` | Remove all entries from the map, resetting size to 0. |

@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 396 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 400 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 28 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 180 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
@@ -215,6 +215,7 @@
 | `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
 | `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `hashmap_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -224,8 +225,11 @@
 | `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -1281,6 +1285,7 @@ Expected output: `hello world`
 | `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hash_string` | `(String) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -1290,8 +1295,11 @@ Expected output: `hello world`
 | `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |

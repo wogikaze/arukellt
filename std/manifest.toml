@@ -3431,6 +3431,14 @@ stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
 
+[[functions]]
+name = "hashmap_capacity"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
 # --- Extended HashMap API (#044 — monomorphic i32→i32 fallback per STOP_IF) ---
 
 [[functions]]
@@ -3440,6 +3448,30 @@ doc_category = "collections"
 stability = "stable"
 params = ["i32"]
 returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_reserve"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "hashmap_try_reserve"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashmap_shrink_to_fit"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
 
 [[functions]]
 name = "hashmap_get_option"

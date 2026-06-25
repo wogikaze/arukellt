@@ -89,6 +89,10 @@ fn hashmap_flag_index(cap: i32, idx: i32) -> i32 {
     2 + cap * 2 + idx
 }
 
+fn hashmap_required_vec_len(cap: i32) -> i32 {
+    2 + cap * 3
+}
+
 fn hashmap_slot_for_key(m: Vec<i32>, key: i32) -> i32 {
     let cap: i32 = get_unchecked(m, 0)
     let h: i32 = hash_i32(key)
@@ -137,9 +141,14 @@ pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
     found
 }
 
-/// Insert or update a key. Returns true when the value was stored, or false
-/// when the fixed-capacity backing store is full.
-pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
+fn hashmap_ensure_storage_len(m: Vec<i32>, cap: i32) {
+    let need: i32 = hashmap_required_vec_len(cap)
+    while len(m) < need {
+        push(m, 0)
+    }
+}
+
+fn hashmap_set_no_resize(m: Vec<i32>, key: i32, value: i32) -> bool {
     let cap: i32 = get_unchecked(m, 0)
     let mut done: bool = false
     let idx: i32 = hashmap_slot_for_key(m, key)
@@ -160,6 +169,60 @@ pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
     done
 }
 
+fn hashmap_min_capacity_for_entries(entries: i32) -> i32 {
+    let mut cap: i32 = 1
+    while cap * 3 < entries * 4 {
+        cap = cap * 2
+    }
+    cap
+}
+
+fn hashmap_rehash_to_capacity(m: Vec<i32>, new_cap: i32) {
+    let old_keys: Vec<i32> = hashmap_keys(m)
+    let old_values: Vec<i32> = hashmap_values(m)
+    let cap: i32 = hashmap_min_capacity_for_entries(len(old_keys))
+    let mut target_cap: i32 = new_cap
+    if target_cap < cap {
+        target_cap = cap
+    }
+    if target_cap < 1 {
+        target_cap = 1
+    }
+    hashmap_ensure_storage_len(m, target_cap)
+    set(m, 0, target_cap)
+    set(m, 1, 0)
+    let mut i: i32 = 0
+    while i < target_cap {
+        set(m, hashmap_key_index(i), 0)
+        set(m, hashmap_value_index(target_cap, i), 0)
+        set(m, hashmap_flag_index(target_cap, i), 0)
+        i = i + 1
+    }
+    let n: i32 = len(old_keys)
+    let mut j: i32 = 0
+    while j < n {
+        let _stored: bool = hashmap_set_no_resize(m, get_unchecked(old_keys, j), get_unchecked(old_values, j))
+        j = j + 1
+    }
+}
+
+fn hashmap_ensure_insert_capacity(m: Vec<i32>, key: i32) {
+    if !hashmap_contains(m, key) {
+        let cap: i32 = get_unchecked(m, 0)
+        let needed: i32 = get_unchecked(m, 1) + 1
+        if cap * 3 < needed * 4 {
+            hashmap_rehash_to_capacity(m, cap * 2)
+        }
+    }
+}
+
+/// Insert or update a key. Returns true when the value was stored.
+/// The backing store grows before the load factor exceeds 0.75.
+pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
+    hashmap_ensure_insert_capacity(m, key)
+    hashmap_set_no_resize(m, key, value)
+}
+
 /// Insert or update a key and return the previous value, matching Rust's
 /// `HashMap::insert` contract for the monomorphic i32->i32 fallback.
 pub fn hashmap_insert(m: Vec<i32>, key: i32, value: i32) -> Option<i32> {
@@ -172,19 +235,53 @@ pub fn hashmap_size(m: Vec<i32>) -> i32 {
     get_unchecked(m, 1)
 }
 
+/// Return the current bucket capacity.
+pub fn hashmap_capacity(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 0)
+}
+
 // ─── Extended HashMap API (monomorphic i32→i32) ─────────────────────────────
 /// Create a new HashMap with a specific initial capacity.
 /// Capacity is rounded up to the given value; must be >= 1.
 pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
+    let mut actual_cap: i32 = cap
+    if actual_cap < 1 {
+        actual_cap = 1
+    }
     let m: Vec<i32> = Vec_new_i32()
-    push(m, cap)
+    push(m, actual_cap)
     push(m, 0)
     let mut i: i32 = 0
-    while i < cap * 3 {
+    while i < actual_cap * 3 {
         push(m, 0)
         i = i + 1
     }
     m
+}
+
+/// Ensure the map can hold at least `additional` more inserted keys without
+/// exceeding the load-factor threshold.
+pub fn hashmap_reserve(m: Vec<i32>, additional: i32) {
+    if additional > 0 {
+        let needed_entries: i32 = hashmap_size(m) + additional
+        let needed_cap: i32 = hashmap_min_capacity_for_entries(needed_entries)
+        if needed_cap > hashmap_capacity(m) {
+            hashmap_rehash_to_capacity(m, needed_cap)
+        }
+    }
+}
+
+/// Fallible reserve facade. The current Vec-backed implementation has no
+/// recoverable allocation error channel, so this returns true after reserving.
+pub fn hashmap_try_reserve(m: Vec<i32>, additional: i32) -> bool {
+    hashmap_reserve(m, additional)
+    true
+}
+
+/// Shrink buckets to the minimum capacity that preserves the load-factor
+/// invariant for the current number of entries.
+pub fn hashmap_shrink_to_fit(m: Vec<i32>) {
+    hashmap_rehash_to_capacity(m, hashmap_min_capacity_for_entries(hashmap_size(m)))
 }
 
 /// Look up a key and return Some(value) or None.
@@ -264,7 +361,7 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
             let k: i32 = get_unchecked(ks, i)
             let v: i32 = get_unchecked(vs, i)
             if k != key {
-                let _ = hashmap_set(m, k, v)
+                let _ = hashmap_set_no_resize(m, k, v)
             }
             i = i + 1
         }
