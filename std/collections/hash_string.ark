@@ -161,37 +161,65 @@ pub fn hashmap_str_len(m: HashMap<String, i32>) -> i32 {
     __hm_si_size(m)
 }
 
-// ─── String-value HashMap (i32 key) — T1-only flat layout pending GC port ─────
+// ─── HashMap<i32,String> — GC-aware implementation using __hm_is_* primitives ─────
 
-pub fn hashmap_str_val_set(_m: Vec<i32>, _key: i32, _value: String) -> bool {
-    false
+pub fn hashmap_i32_str_new() -> HashMap<i32, String> {
+    __hm_is_new()
 }
 
-pub fn hashmap_str_val_get(_m: Vec<i32>, _key: i32) -> Option<String> {
-    None
+fn hash_i32_key(key: i32) -> i32 {
+    let mut h = key
+    if h < 0 {
+        h = 0 - h
+    }
+    h
 }
 
-// ─── String-String HashMap primitives (String values stored as i32 hash codes) ─
-
-pub fn hashmap_str_str_set(m: HashMap<String, i32>, key: String, value: String) -> bool {
-    hashmap_str_set(m, key, hash_string_key(value))
+pub fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> bool {
+    let cap: i32 = __hm_is_cap(m)
+    let h: i32 = hash_i32_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut done: bool = false
+    while probes < cap {
+        let flag: i32 = __hm_is_get_flag(m, idx)
+        if flag == 0 || flag == 2 {
+            __hm_is_set_key(m, idx, key)
+            __hm_is_set_val(m, idx, value)
+            __hm_is_set_flag(m, idx, 1)
+            __hm_is_set_size(m, __hm_is_size(m) + 1)
+            done = true
+            probes = cap
+        } else {
+            let k: i32 = __hm_is_get_key(m, idx)
+            if eq(k, key) {
+                __hm_is_set_val(m, idx, value)
+                done = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    done
 }
 
-pub fn hashmap_str_str_get(m: HashMap<String, i32>, key: String) -> Option<String> {
-    let cap: i32 = __hm_si_cap(m)
-    let h: i32 = hash_string_key(key)
+pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> {
+    let cap: i32 = __hm_is_cap(m)
+    let h: i32 = hash_i32_key(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<String> = None
     while probes < cap {
-        let flag: i32 = __hm_si_get_flag(m, idx)
+        let flag: i32 = __hm_is_get_flag(m, idx)
         if flag == 0 {
             probes = cap
         } else {
             if flag == 1 {
-                let k: String = __hm_si_get_key(m, idx)
+                let k: i32 = __hm_is_get_key(m, idx)
                 if eq(k, key) {
-                    result = Some(i32_to_string(__hm_si_get_val(m, idx)))
+                    result = Some(__hm_is_get_val(m, idx))
                     probes = cap
                 } else {
                     idx = (idx + 1) % cap
@@ -206,27 +234,52 @@ pub fn hashmap_str_str_get(m: HashMap<String, i32>, key: String) -> Option<Strin
     result
 }
 
-pub fn hashmap_str_str_contains(m: HashMap<String, i32>, key: String) -> bool {
-    hashmap_str_contains(m, key)
-}
-
-pub fn hashmap_str_str_remove(m: HashMap<String, i32>, key: String) -> Option<String> {
-    let cap: i32 = __hm_si_cap(m)
-    let h: i32 = hash_string_key(key)
+pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
+    let cap: i32 = __hm_is_cap(m)
+    let h: i32 = hash_i32_key(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
-    let mut result: Option<String> = None
+    let mut found: bool = false
     while probes < cap {
-        let flag: i32 = __hm_si_get_flag(m, idx)
+        let flag: i32 = __hm_is_get_flag(m, idx)
         if flag == 0 {
             probes = cap
         } else {
             if flag == 1 {
-                let k: String = __hm_si_get_key(m, idx)
+                let k: i32 = __hm_is_get_key(m, idx)
                 if eq(k, key) {
-                    result = Some(i32_to_string(__hm_si_get_val(m, idx)))
-                    __hm_si_set_flag(m, idx, 2)
-                    __hm_si_set_size(m, __hm_si_size(m) - 1)
+                    found = true
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    found
+}
+
+pub fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<String> {
+    let cap: i32 = __hm_is_cap(m)
+    let h: i32 = hash_i32_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<String> = None
+    while probes < cap {
+        let flag: i32 = __hm_is_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: i32 = __hm_is_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(__hm_is_get_val(m, idx))
+                    __hm_is_set_flag(m, idx, 2)
+                    __hm_is_set_size(m, __hm_is_size(m) - 1)
                     probes = cap
                 } else {
                     idx = (idx + 1) % cap
@@ -241,8 +294,147 @@ pub fn hashmap_str_str_remove(m: HashMap<String, i32>, key: String) -> Option<St
     result
 }
 
-pub fn hashmap_str_str_len(m: HashMap<String, i32>) -> i32 {
-    hashmap_str_len(m)
+pub fn hashmap_i32_str_len(m: HashMap<i32, String>) -> i32 {
+    __hm_is_size(m)
+}
+
+// ─── HashMap<String,String> — GC-aware implementation using __hm_ss_* primitives ─
+
+pub fn hashmap_str_str_new() -> HashMap<String, String> {
+    __hm_ss_new()
+}
+
+pub fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: String) -> bool {
+    let cap: i32 = __hm_ss_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut done: bool = false
+    while probes < cap {
+        let flag: i32 = __hm_ss_get_flag(m, idx)
+        if flag == 0 || flag == 2 {
+            __hm_ss_set_key(m, idx, key)
+            __hm_ss_set_val(m, idx, value)
+            __hm_ss_set_flag(m, idx, 1)
+            __hm_ss_set_size(m, __hm_ss_size(m) + 1)
+            done = true
+            probes = cap
+        } else {
+            let k: String = __hm_ss_get_key(m, idx)
+            if eq(k, key) {
+                __hm_ss_set_val(m, idx, value)
+                done = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    done
+}
+
+pub fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<String> {
+    let cap: i32 = __hm_ss_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<String> = None
+    while probes < cap {
+        let flag: i32 = __hm_ss_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: String = __hm_ss_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(__hm_ss_get_val(m, idx))
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    result
+}
+
+pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool {
+    let cap: i32 = __hm_ss_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut found: bool = false
+    while probes < cap {
+        let flag: i32 = __hm_ss_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: String = __hm_ss_get_key(m, idx)
+                if eq(k, key) {
+                    found = true
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    found
+}
+
+pub fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option<String> {
+    let cap: i32 = __hm_ss_cap(m)
+    let h: i32 = hash_string_key(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<String> = None
+    while probes < cap {
+        let flag: i32 = __hm_ss_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            if flag == 1 {
+                let k: String = __hm_ss_get_key(m, idx)
+                if eq(k, key) {
+                    result = Some(__hm_ss_get_val(m, idx))
+                    __hm_ss_set_flag(m, idx, 2)
+                    __hm_ss_set_size(m, __hm_ss_size(m) - 1)
+                    probes = cap
+                } else {
+                    idx = (idx + 1) % cap
+                    probes = probes + 1
+                }
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    result
+}
+
+pub fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
+    __hm_ss_size(m)
+}
+
+// ─── Old i32→String stubs replaced by __hm_is_* above ──────────────────────
+
+pub fn hashmap_str_val_set(_m: HashMap<i32, String>, _key: i32, _value: String) -> bool {
+    hashmap_i32_str_set(_m, _key, _value)
+}
+
+pub fn hashmap_str_val_get(_m: HashMap<i32, String>, _key: i32) -> Option<String> {
+    hashmap_i32_str_get(_m, _key)
 }
 
 // ─── HashSet<String> API (linear scan over Vec<String>) ──────────────────────

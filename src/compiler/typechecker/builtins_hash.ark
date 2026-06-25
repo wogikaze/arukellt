@@ -101,6 +101,24 @@ fn hashmap_builtin_return_type(name: String) -> TypeInfo {
     if eq(clone(name), String_from("__hm_si_get_key")) {
         return simple_type(commands::TY_STRING())
     }
+    if eq(clone(name), String_from("__hm_is_new")) {
+        return hashmap_i32_string_type()
+    }
+    if eq(clone(name), String_from("__hm_is_cap")) || eq(clone(name), String_from("__hm_is_size")) || eq(clone(name), String_from("__hm_is_get_flag")) || eq(clone(name), String_from("__hm_is_get_key")) {
+        return simple_type(commands::TY_I32())
+    }
+    if eq(clone(name), String_from("__hm_is_get_val")) {
+        return simple_type(commands::TY_STRING())
+    }
+    if eq(clone(name), String_from("__hm_ss_new")) {
+        return hashmap_string_string_type()
+    }
+    if eq(clone(name), String_from("__hm_ss_cap")) || eq(clone(name), String_from("__hm_ss_size")) || eq(clone(name), String_from("__hm_ss_get_flag")) {
+        return simple_type(commands::TY_I32())
+    }
+    if eq(clone(name), String_from("__hm_ss_get_key")) || eq(clone(name), String_from("__hm_ss_get_val")) {
+        return simple_type(commands::TY_STRING())
+    }
     if eq(clone(name), String_from("__intrinsic_i31_box")) || eq(clone(name), String_from("i31_box")) {
         return simple_type(commands::TY_I32())
     }

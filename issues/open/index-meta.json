@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-20T06:50:00Z",
+  "generated_at": "2026-06-25T10:22:45Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -472,12 +472,36 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 5,
-        "unchecked": 11
+        "checked": 11,
+        "unchecked": 5
       },
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "687",
+      "path": "687-hashmap-hashset-rust-parity-gap.md",
+      "title": "687 — HashMap / HashSet Rust parity gap audit and closure",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "495"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
       }
     },
     {

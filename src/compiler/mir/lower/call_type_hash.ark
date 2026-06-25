@@ -12,7 +12,28 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }
     }
+    if eq(clone(callee_name), "__hm_is_new") || eq(clone(callee_name), "hash_string::hashmap_i32_str_new") || eq(clone(callee_name), "HashMap_new_i32_String") || eq(clone(callee_name), "HashMap_i32_String_new") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("hashmap:i32str"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
+    }
+    if eq(clone(callee_name), "__hm_ss_new") || eq(clone(callee_name), "hash_string::hashmap_str_str_new") || eq(clone(callee_name), "HashMap_new_String_String") || eq(clone(callee_name), "HashMap_String_String_new") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("hashmap:strstr"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
+    }
     if eq(clone(callee_name), "__hm_si_get_key") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
+    }
+    if eq(clone(callee_name), "__hm_is_get_key") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+    }
+    if eq(clone(callee_name), "__hm_is_get_val") || eq(clone(callee_name), "__hm_ss_get_key") || eq(clone(callee_name), "__hm_ss_get_val") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -24,8 +45,14 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
     }
-    if eq(clone(callee_name), "hashmap_get_option") || eq(clone(callee_name), "hash::hashmap_get_option") || eq(clone(callee_name), "HashMap_i32_i32_get") || eq(clone(callee_name), "hashmap_remove") || eq(clone(callee_name), "hash::hashmap_remove") || eq(clone(callee_name), "HashMap_i32_i32_remove") || eq(clone(callee_name), "hashmap_str_get") || eq(clone(callee_name), "hash::hashmap_str_get") || eq(clone(callee_name), "HashMap_String_i32_get") || eq(clone(callee_name), "hashmap_str_remove") || eq(clone(callee_name), "hash::hashmap_str_remove") || eq(clone(callee_name), "HashMap_String_i32_remove") || eq(clone(callee_name), "hashmap_str_val_get") || eq(clone(callee_name), "HashMap_i32_String_get") || eq(clone(callee_name), "hashmap_str_str_get") || eq(clone(callee_name), "HashMap_String_String_get") || eq(clone(callee_name), "hashmap_str_str_remove") || eq(clone(callee_name), "HashMap_String_String_remove") {
+    if eq(clone(callee_name), "hashmap_get_option") || eq(clone(callee_name), "hash::hashmap_get_option") || eq(clone(callee_name), "HashMap_i32_i32_get") || eq(clone(callee_name), "hashmap_remove") || eq(clone(callee_name), "hash::hashmap_remove") || eq(clone(callee_name), "HashMap_i32_i32_remove") || eq(clone(callee_name), "hashmap_str_get") || eq(clone(callee_name), "hash::hashmap_str_get") || eq(clone(callee_name), "HashMap_String_i32_get") || eq(clone(callee_name), "hashmap_str_remove") || eq(clone(callee_name), "hash::hashmap_str_remove") || eq(clone(callee_name), "HashMap_String_i32_remove") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+    }
+    if eq(clone(callee_name), "hashmap_str_val_get") || eq(clone(callee_name), "HashMap_i32_String_get") || eq(clone(callee_name), "hash_string::hashmap_i32_str_get") || eq(clone(callee_name), "hashmap_str_str_get") || eq(clone(callee_name), "HashMap_String_String_get") || eq(clone(callee_name), "hash_string::hashmap_str_str_get") || eq(clone(callee_name), "hashmap_str_str_remove") || eq(clone(callee_name), "HashMap_String_String_remove") || eq(clone(callee_name), "hash_string::hashmap_str_str_remove") || eq(clone(callee_name), "hash_string::hashmap_i32_str_remove") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
     }
     if eq(clone(callee_name), "hashmap_size") || eq(clone(callee_name), "hash::hashmap_size") || eq(clone(callee_name), "HashMap_i32_i32_len") || eq(clone(callee_name), "hashset_size") || eq(clone(callee_name), "hash::hashset_size") || eq(clone(callee_name), "HashMap_i32_i32_size") || eq(clone(callee_name), "hash_string::hashmap_str_len") || eq(clone(callee_name), "HashMap_String_i32_len") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))

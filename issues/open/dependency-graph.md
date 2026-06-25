@@ -25,6 +25,7 @@ graph LR
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I686["686 Wasm GC Selfhost Implementation"]
+  I687["687 687 — HashMap / HashSet Rust parity gap audit and closure"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -58,6 +59,7 @@ graph LR
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: none
+- **687** depends on: 495; blocks: none
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683

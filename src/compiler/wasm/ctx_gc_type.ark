@@ -64,6 +64,14 @@ fn SelfEmitCtx_hashmap_str_i32_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 16
 }
 
+fn SelfEmitCtx_hashmap_i32_str_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 17
+}
+
+fn SelfEmitCtx_hashmap_str_str_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 18
+}
+
 fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
     if type_slot < 0 {
         return SelfEmitCtx_enum_open_type(ctx)

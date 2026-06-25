@@ -13,6 +13,7 @@ use wasm::inst_store
 use wasm::function_indices
 
 fn try_emit_hashmap_str_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) -> bool {
+    // HashMap<String,i32> intrinsics
     if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") || eq(clone(callee), "HashMap_new_String_i32") || eq(clone(callee), "HashMap_String_i32_new") {
         emit_hm_si_new(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count)
         return true
@@ -53,6 +54,88 @@ fn try_emit_hashmap_str_call(w: WasmWriter, callee: String, inst: MirInst, ctx: 
         emit_hm_si_set_key(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
+    // HashMap<i32,String> intrinsics
+    if eq(clone(callee), "__hm_is_new") || eq(clone(callee), "hash_string::hashmap_i32_str_new") || eq(clone(callee), "HashMap_new_i32_String") || eq(clone(callee), "HashMap_i32_String_new") {
+        emit_hm_is_new(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_cap") {
+        emit_hm_is_meta_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_size") {
+        emit_hm_is_meta_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_set_size") {
+        emit_hm_is_meta_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_get_flag") {
+        emit_hm_is_slot_get(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_set_flag") {
+        emit_hm_is_slot_set(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_get_key") {
+        emit_hm_is_slot_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_set_key") {
+        emit_hm_is_slot_set(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
+        emit_hm_is_slot_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_set_val") {
+        emit_hm_is_slot_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    // HashMap<String,String> intrinsics
+    if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
+        emit_hm_ss_new(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_cap") {
+        emit_hm_ss_meta_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_size") {
+        emit_hm_ss_meta_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_set_size") {
+        emit_hm_ss_meta_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_get_flag") {
+        emit_hm_ss_slot_get(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_set_flag") {
+        emit_hm_ss_slot_set(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_get_key") {
+        emit_hm_ss_slot_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_set_key") {
+        emit_hm_ss_slot_set(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_get_val") {
+        emit_hm_ss_slot_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_set_val") {
+        emit_hm_ss_slot_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     false
 }
 
@@ -75,24 +158,28 @@ fn emit_hm_si_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_vals = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let s_flags = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
 
+    emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, i32_array_type, i32_array_type, s_keys, s_vals, s_flags)
+}
+
+fn emit_hm_struct_new_gc(w: WasmWriter, ctx: SelfEmitCtx, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 16)
-    writer_gc::emit_gc_array_new(w, string_ref_array_type)
-    writer_gc::emit_gc_ref_cast(w, string_ref_array_type)
+    writer_gc::emit_gc_array_new(w, keys_array_type)
+    writer_gc::emit_gc_ref_cast(w, keys_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_keys)
 
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 16)
-    writer_gc::emit_gc_array_new(w, i32_array_type)
-    writer_gc::emit_gc_ref_cast(w, i32_array_type)
+    writer_gc::emit_gc_array_new(w, vals_array_type)
+    writer_gc::emit_gc_ref_cast(w, vals_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_vals)
 
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 16)
-    writer_gc::emit_gc_array_new(w, i32_array_type)
-    writer_gc::emit_gc_ref_cast(w, i32_array_type)
+    writer_gc::emit_gc_array_new(w, flags_array_type)
+    writer_gc::emit_gc_ref_cast(w, flags_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_flags)
 
@@ -102,25 +189,81 @@ fn emit_hm_si_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     writer_leb::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_keys)
-    writer_gc::emit_gc_ref_cast(w, string_ref_array_type)
+    writer_gc::emit_gc_ref_cast(w, keys_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_vals)
-    writer_gc::emit_gc_ref_cast(w, i32_array_type)
+    writer_gc::emit_gc_ref_cast(w, vals_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_flags)
-    writer_gc::emit_gc_ref_cast(w, i32_array_type)
+    writer_gc::emit_gc_ref_cast(w, flags_array_type)
     writer_gc::emit_gc_struct_new(w, hm_type)
 }
 
+fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_hm_is_new_gc(w, ctx)
+    } else {
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_is_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let s_keys = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_vals = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_flags = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+
+    emit_hm_struct_new_gc(w, ctx, hm_type, i32_array_type, string_ref_array_type, i32_array_type, s_keys, s_vals, s_flags)
+}
+
+fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_hm_ss_new_gc(w, ctx)
+    } else {
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_ss_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let s_keys = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_vals = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 1)
+    let s_flags = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+
+    emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, string_ref_array_type, i32_array_type, s_keys, s_vals, s_flags)
+}
+
 fn emit_hm_si_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_get_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
+}
+
+fn emit_hm_is_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_get_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
+}
+
+fn emit_hm_ss_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_get_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
+}
+
+fn emit_hm_meta_get_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_leb::emit_leb128_u(w, s_map)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, s_map)
-        writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
-        writer_gc::emit_gc_struct_get(w, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx), field_idx)
+        writer_gc::emit_gc_ref_cast(w, hm_type)
+        writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     } else {
         let s_map = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -131,6 +274,18 @@ fn emit_hm_si_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx
 }
 
 fn emit_hm_si_meta_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_set_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
+}
+
+fn emit_hm_is_meta_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_set_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
+}
+
+fn emit_hm_ss_meta_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_set_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
+}
+
+fn emit_hm_meta_set_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {
     let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_val)
@@ -209,12 +364,141 @@ fn emit_hm_si_set_key(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i
     emit_hm_si_slot_set(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
 }
 
+fn emit_hm_is_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+        let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+        let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+        let field_idx = gc_slot_field(region)
+        let array_type = gc_slot_array_type_is(region, i32_array_type, string_ref_array_type)
+        emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_map, s_idx)
+    } else {
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        emit_lm_slot_get(w, ctx, s_map, s_idx, region)
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_is_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s_val = if region == 0 {
+            ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        } else {
+            ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        }
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_idx)
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+        let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+        let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+        let field_idx = gc_slot_field(region)
+        let array_type = gc_slot_array_type_is(region, i32_array_type, string_ref_array_type)
+        emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_map, s_idx, s_val)
+    } else {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_idx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
+}
+
+fn emit_hm_ss_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+        let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+        let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+        let field_idx = gc_slot_field(region)
+        let array_type = gc_slot_array_type_ss(region, i32_array_type, string_ref_array_type)
+        emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_map, s_idx)
+    } else {
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        emit_lm_slot_get(w, ctx, s_map, s_idx, region)
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_ss_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s_val = if region == 0 || region == 1 {
+            ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        } else {
+            ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        }
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_idx)
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+        let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+        let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+        let field_idx = gc_slot_field(region)
+        let array_type = gc_slot_array_type_ss(region, i32_array_type, string_ref_array_type)
+        emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_map, s_idx, s_val)
+    } else {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_idx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_map)
+        emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
+}
+
 fn emit_gc_slot_get(w: WasmWriter, s_map: i32, s_idx: i32, region: i32, ctx: SelfEmitCtx) {
     let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
     let field_idx = gc_slot_field(region)
-    let array_type = gc_slot_array_type(region, i32_array_type, string_ref_array_type)
+    let array_type = gc_slot_array_type_si(region, i32_array_type, string_ref_array_type)
+    emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_map, s_idx)
+}
+
+fn emit_gc_slot_set(w: WasmWriter, s_map: i32, s_idx: i32, s_val: i32, region: i32, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let field_idx = gc_slot_field(region)
+    let array_type = gc_slot_array_type_si(region, i32_array_type, string_ref_array_type)
+    emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_map, s_idx, s_val)
+}
+
+fn emit_hm_slot_get_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: i32, s_map: i32, s_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_map)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
@@ -223,12 +507,7 @@ fn emit_gc_slot_get(w: WasmWriter, s_map: i32, s_idx: i32, region: i32, ctx: Sel
     writer_gc::emit_gc_array_get(w, array_type)
 }
 
-fn emit_gc_slot_set(w: WasmWriter, s_map: i32, s_idx: i32, s_val: i32, region: i32, ctx: SelfEmitCtx) {
-    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
-    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
-    let field_idx = gc_slot_field(region)
-    let array_type = gc_slot_array_type(region, i32_array_type, string_ref_array_type)
+fn emit_hm_slot_set_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: i32, s_map: i32, s_idx: i32, s_val: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_map)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
@@ -249,8 +528,25 @@ fn gc_slot_field(region: i32) -> i32 {
     4
 }
 
-fn gc_slot_array_type(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
+fn gc_slot_array_type_si(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
     if region == 0 {
+        return string_ref_array_type
+    }
+    i32_array_type
+}
+
+fn gc_slot_array_type_is(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
+    if region == 0 {
+        return i32_array_type
+    }
+    if region == 1 {
+        return string_ref_array_type
+    }
+    i32_array_type
+}
+
+fn gc_slot_array_type_ss(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
+    if region == 0 || region == 1 {
         return string_ref_array_type
     }
     i32_array_type
