@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-25T19:51:51Z",
+  "generated_at": "2026-06-25T21:19:59Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -505,6 +505,36 @@
       }
     },
     {
+      "id": "688",
+      "path": "688-trait-method-dispatch.md",
+      "title": "688 — Trait method dispatch inside generic functions",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [
+        "689",
+        "690",
+        "691",
+        "692",
+        "693",
+        "695",
+        "696"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "646",
       "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
@@ -582,6 +612,136 @@
       }
     },
     {
+      "id": "689",
+      "path": "689-operator-overload-traits.md",
+      "title": "689 — Operator overload trait surface (Add / Index / Deref / ...)",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "design-required",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "690",
+      "path": "690-question-mark-operator.md",
+      "title": "690 — `?` operator and `From<E>` error conversion",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688"
+      ],
+      "blocks_issue_ids": [
+        "694"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "design-required",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "691",
+      "path": "691-iterator-trait-lazy-adapters.md",
+      "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688"
+      ],
+      "blocks_issue_ids": [
+        "697"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch"
+      }
+    },
+    {
+      "id": "692",
+      "path": "692-clone-default-from-into-traits.md",
+      "title": "692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` trait group",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688"
+      ],
+      "blocks_issue_ids": [
+        "693",
+        "694",
+        "696"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch"
+      }
+    },
+    {
+      "id": "695",
+      "path": "695-ord-partialord-traits.md",
+      "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688"
+      ],
+      "blocks_issue_ids": [
+        "697"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch"
+      }
+    },
+    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -604,6 +764,106 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "693",
+      "path": "693-read-write-traits-io-unification.md",
+      "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
+      }
+    },
+    {
+      "id": "694",
+      "path": "694-error-trait-unified-ecosystem.md",
+      "title": "694 — `Error` trait and unified error type ecosystem",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "690",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#690 ? operator + From, #692 From trait"
+      }
+    },
+    {
+      "id": "696",
+      "path": "696-debug-trait-format-macros.md",
+      "title": "696 — `Debug` trait and `format!` / `write!` formatting ecosystem",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait dispatch, #692 Display/From"
+      }
+    },
+    {
+      "id": "697",
+      "path": "697-vec-operation-extension.md",
+      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "691",
+        "695"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #695 Ord"
       }
     }
   ],

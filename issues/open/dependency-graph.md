@@ -26,15 +26,38 @@ graph LR
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I686["686 Wasm GC Selfhost Implementation"]
   I687["687 687 — HashMap / HashSet Rust parity gap audit and closure"]
+  I688["688 688 — Trait method dispatch inside generic functions"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
+  I689["689 689 — Operator overload trait surface (Add / Index / Deref / ...)"]
+  I690["690 690 — `?` operator and `From<E>` error conversion"]
+  I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
+  I692["692 692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` trait group"]
+  I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
+  I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
+  I694["694 694 — `Error` trait and unified error type ecosystem"]
+  I696["696 696 — `Debug` trait and `format!` / `write!` formatting ecosystem"]
+  I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I474 --> I646
   I667 --> I673
   I680 --> I682
+  I688 --> I689
+  I688 --> I690
+  I688 --> I691
+  I688 --> I692
+  I688 --> I695
   I682 --> I683
+  I688 --> I693
+  I692 --> I693
+  I690 --> I694
+  I692 --> I694
+  I688 --> I696
+  I692 --> I696
+  I691 --> I697
+  I695 --> I697
   I30 --> I31
 ```
 
@@ -60,10 +83,20 @@ graph LR
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: none
 - **687** depends on: 495; blocks: none
+- **688** depends on: none; blocks: 689, 690, 691, 692, 693, 695, 696
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
+- **689** depends on: 688; blocks: none
+- **690** depends on: 688; blocks: 694
+- **691** depends on: 688; blocks: 697
+- **692** depends on: 688; blocks: 693, 694, 696
+- **695** depends on: 688; blocks: 697
 - **683** depends on: 679, 682; blocks: none
+- **693** depends on: 688, 692; blocks: none
+- **694** depends on: 690, 692; blocks: none
+- **696** depends on: 688, 692; blocks: none
+- **697** depends on: 691, 695; blocks: none
 
 ### Blocked
 
