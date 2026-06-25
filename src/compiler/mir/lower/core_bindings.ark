@@ -41,7 +41,9 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
             let ext_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
             ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext_dest, val_idx))
         }
-        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+        if val_idx != local_idx {
+            ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, val_idx))
+        }
         // An explicit annotation wins over the initializer's inferred type name;
         // e.g. `let r: Result<f64, _> = ...` must keep the payload-typed name.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)

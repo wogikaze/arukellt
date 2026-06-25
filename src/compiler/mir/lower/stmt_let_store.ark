@@ -14,7 +14,9 @@ fn emit_let_initializer_store(ctx: LowerCtx, node: AstNode, vt: i32, local_idx: 
         return
     }
     sync_let_local_value_type(ctx, vt, local_idx, val_idx)
-    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(local_idx))
+    if val_idx != local_idx {
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, val_idx))
+    }
     sync_let_local_type_name(ctx, local_idx, val_idx, pre_init_kind, ta_count)
 }
 

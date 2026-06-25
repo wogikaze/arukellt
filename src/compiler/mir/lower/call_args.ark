@@ -27,7 +27,7 @@ fn mir_stage_call_arg(ctx: LowerCtx, staged_arg_locals: Vec<i32>, arg_idx: i32) 
     if len(staged_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, staged_local, staged_type)
     }
-    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(staged_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(staged_local, arg_idx))
     push(staged_arg_locals, staged_local)
     staged_local
 }
