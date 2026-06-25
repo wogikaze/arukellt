@@ -917,6 +917,12 @@ t3-compile:structs/struct_update.ark
 t3-compile:t3/arithmetic.ark
 t3-compile:t3/hello.ark
 t3-compile:t3/string_intern.ark
+t3-compile:t3/boxing_i31.ark
+t3-compile:t3/hashmap_match_only.ark
+t3-compile:t3/if_println_string.ark
+t3-compile:t3/if_true_println_string.ark
+t3-compile:t3/match_println_i32.ark
+t3-compile:t3/println_string.ark
 t3-compile:trait/basic_impl.ark
 t3-compile:trait/method_chain.ark
 t3-compile:trait/operator_overload.ark
