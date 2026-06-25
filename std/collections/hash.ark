@@ -77,22 +77,33 @@ pub fn hash_i32(key: i32) -> i32 {
     h
 }
 
-pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
+fn hashmap_key_index(idx: i32) -> i32 {
+    2 + idx
+}
+
+fn hashmap_value_index(cap: i32, idx: i32) -> i32 {
+    2 + cap + idx
+}
+
+fn hashmap_flag_index(cap: i32, idx: i32) -> i32 {
+    2 + cap * 2 + idx
+}
+
+fn hashmap_slot_for_key(m: Vec<i32>, key: i32) -> i32 {
     let cap: i32 = get_unchecked(m, 0)
     let h: i32 = hash_i32(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
-    let mut result: i32 = 0
-    let mut found: bool = false
+    let mut result: i32 = 0 - 1
     while probes < cap {
-        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, idx))
         if flag == 0 {
+            result = idx
             probes = cap
         } else {
-            let k: i32 = get_unchecked(m, 2 + idx)
+            let k: i32 = get_unchecked(m, hashmap_key_index(idx))
             if k == key {
-                result = get_unchecked(m, 2 + cap + idx)
-                found = true
+                result = idx
                 probes = cap
             } else {
                 idx = (idx + 1) % cap
@@ -103,26 +114,25 @@ pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
     result
 }
 
+pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
+    let cap: i32 = get_unchecked(m, 0)
+    let mut result: i32 = 0
+    let idx: i32 = hashmap_slot_for_key(m, key)
+    if idx >= 0 {
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, idx))
+        if flag == 1 {
+            result = get_unchecked(m, hashmap_value_index(cap, idx))
+        }
+    }
+    result
+}
+
 pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
     let cap: i32 = get_unchecked(m, 0)
-    let h: i32 = hash_i32(key)
-    let mut idx: i32 = h % cap
-    let mut probes: i32 = 0
     let mut found: bool = false
-    while probes < cap {
-        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
-        if flag == 0 {
-            probes = cap
-        } else {
-            let k: i32 = get_unchecked(m, 2 + idx)
-            if k == key {
-                found = true
-                probes = cap
-            } else {
-                idx = (idx + 1) % cap
-                probes = probes + 1
-            }
-        }
+    let idx: i32 = hashmap_slot_for_key(m, key)
+    if idx >= 0 {
+        found = get_unchecked(m, hashmap_flag_index(cap, idx)) == 1
     }
     found
 }
@@ -131,30 +141,20 @@ pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
 /// when the fixed-capacity backing store is full.
 pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) -> bool {
     let cap: i32 = get_unchecked(m, 0)
-    let h: i32 = hash_i32(key)
-    let mut idx: i32 = h % cap
-    let mut probes: i32 = 0
     let mut done: bool = false
-    while probes < cap {
-        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+    let idx: i32 = hashmap_slot_for_key(m, key)
+    if idx >= 0 {
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, idx))
         if flag == 0 {
-            set(m, 2 + idx, key)
-            set(m, 2 + cap + idx, value)
-            set(m, 2 + cap * 2 + idx, 1)
+            set(m, hashmap_key_index(idx), key)
+            set(m, hashmap_value_index(cap, idx), value)
+            set(m, hashmap_flag_index(cap, idx), 1)
             let sz: i32 = get_unchecked(m, 1) + 1
             set(m, 1, sz)
             done = true
-            probes = cap
         } else {
-            let k: i32 = get_unchecked(m, 2 + idx)
-            if k == key {
-                set(m, 2 + cap + idx, value)
-                done = true
-                probes = cap
-            } else {
-                idx = (idx + 1) % cap
-                probes = probes + 1
-            }
+            set(m, hashmap_value_index(cap, idx), value)
+            done = true
         }
     }
     done
@@ -182,23 +182,12 @@ pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
 /// Look up a key and return Some(value) or None.
 pub fn hashmap_get_option(m: Vec<i32>, key: i32) -> Option<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let h: i32 = hash_i32(key)
-    let mut idx: i32 = h % cap
-    let mut probes: i32 = 0
     let mut result: Option<i32> = None
-    while probes < cap {
-        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
-        if flag == 0 {
-            probes = cap
-        } else {
-            let k: i32 = get_unchecked(m, 2 + idx)
-            if k == key {
-                result = Some(get_unchecked(m, 2 + cap + idx))
-                probes = cap
-            } else {
-                idx = (idx + 1) % cap
-                probes = probes + 1
-            }
+    let idx: i32 = hashmap_slot_for_key(m, key)
+    if idx >= 0 {
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, idx))
+        if flag == 1 {
+            result = Some(get_unchecked(m, hashmap_value_index(cap, idx)))
         }
     }
     result
@@ -215,7 +204,7 @@ pub fn hashmap_clear(m: Vec<i32>) {
     set(m, 1, 0)
     let mut i: i32 = 0
     while i < cap {
-        set(m, 2 + cap * 2 + i, 0)
+        set(m, hashmap_flag_index(cap, i), 0)
         i = i + 1
     }
 }
@@ -226,9 +215,9 @@ pub fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
     let result: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
     while i < cap {
-        let flag: i32 = get_unchecked(m, 2 + cap * 2 + i)
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
         if flag == 1 {
-            push(result, get_unchecked(m, 2 + i))
+            push(result, get_unchecked(m, hashmap_key_index(i)))
         }
         i = i + 1
     }
@@ -241,9 +230,9 @@ pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
     let result: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
     while i < cap {
-        let flag: i32 = get_unchecked(m, 2 + cap * 2 + i)
+        let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
         if flag == 1 {
-            push(result, get_unchecked(m, 2 + cap + i))
+            push(result, get_unchecked(m, hashmap_value_index(cap, i)))
         }
         i = i + 1
     }
