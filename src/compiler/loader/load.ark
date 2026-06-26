@@ -1,8 +1,15 @@
 // Arukellt Selfhost - driver module loading phase.
 
 use loader::module_graph
-use driver::config_record
 use loader::module_state
+use loader::module_state_modules
+use driver::config_record
+
+pub fn load_prelude_modules() -> Vec<ModuleDecls> {
+    let state = module_state::LoadState_new()
+    module_graph::load_stdlib_module(String_from("std::prelude"), state)
+    module_state_modules::LoadState_modules(state)
+}
 
 fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverConfig) -> LoadState {
     let load_state = module_state::LoadState_new()

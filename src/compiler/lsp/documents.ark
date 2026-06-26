@@ -62,7 +62,7 @@ pub fn handle_did_save(state: LspState, body: String) {
 }
 
 fn publish_for(state: LspState, uri: String, text: String) {
-    let modules = project_resolve_modules::build_resolve_modules(state, clone(uri))
+    let modules = project_resolve_modules::build_resolve_modules_with_prelude(state, clone(uri))
     let snap = analysis::analyze_with_modules(clone(uri), clone(text), modules)
     framing::append_framed(state, diagnostics::build_publish_diagnostics(clone(uri), clone(text), snap))
 }

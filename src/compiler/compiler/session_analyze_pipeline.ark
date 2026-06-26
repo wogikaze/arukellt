@@ -12,6 +12,7 @@ use corehir::frontend_bundle
 use corehir::mod
 use diagnostics::severity
 use diagnostics::source_map_offsets
+use loader::load
 
 fn lex_diag_code_string(code: i32) -> String {
 	if code == 1 {
@@ -111,7 +112,7 @@ ti = ti + 1
 }
 
 fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
-	run_session_analyze_with_modules(uri, text, Vec_new_ModuleDecls())
+	run_session_analyze_with_modules(uri, text, load::load_prelude_modules())
 }
 
 pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {

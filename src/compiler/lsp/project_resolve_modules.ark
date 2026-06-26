@@ -4,6 +4,7 @@ use compiler::session_parse
 use lsp::state_docs
 use lsp::state_record
 use lsp::symbol_index_paths
+use loader::load
 use resolver
 use std::host::fs
 
@@ -73,4 +74,23 @@ pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<Module
         i = i + 1
     }
     out
+}
+
+pub fn build_resolve_modules_with_prelude(state: LspState, current_uri: String) -> Vec<ModuleDecls> {
+    let prelude_modules = load::load_prelude_modules()
+    let project_modules = build_resolve_modules(state, current_uri)
+    let combined = Vec_new_ModuleDecls()
+    let pn = len(prelude_modules)
+    let mut pi = 0
+    while pi < pn {
+        push(combined, get_unchecked(prelude_modules, pi))
+        pi = pi + 1
+    }
+    let mn = len(project_modules)
+    let mut mi = 0
+    while mi < mn {
+        push(combined, get_unchecked(project_modules, mi))
+        mi = mi + 1
+    }
+    combined
 }
