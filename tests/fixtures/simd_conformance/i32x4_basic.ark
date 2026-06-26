@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::simd::i32x4
+
+fn main() {
+    let a = i32x4::splat(10)
+    let b = i32x4::splat(20)
+    let c = i32x4::add(a, b)
+    let lane0 = i32x4::extract_lane(c, 0)
+    stdio::println(i32_to_string(lane0))
+}

@@ -2025,6 +2025,90 @@ def _bootstrap_overlay_root(root: Path) -> Path:
     return root / ".build" / "selfhost" / "flat-src"
 
 
+def _patch_bootstrap_stub_static_dispatch(compiler_out: Path) -> None:
+    """Stub out static-dispatch monomorphization for pinned bootstrap.
+
+    The static dispatch commit (#688) added 3 new fields to LowerCtx
+    (mono_type_param_names, mono_type_param_types, mono_instances) and
+    new functions in ctx_mono_type_params.ark.  The pinned wasm (from
+    before #688) produces incorrect field offsets for the 50-field
+    LowerCtx struct, corrupting the module pointer during MIR lowering.
+
+    We remove the 3 new fields from the struct definition and initializer
+    (reverting to 47 fields), and stub out all static-dispatch functions
+    to no-ops.  Static dispatch is not needed for bootstrap.
+    """
+    # 1. Remove the 3 new fields from LowerCtx struct definition
+    types_path = compiler_out / "mir_lower_ctx_types.ark"
+    if types_path.is_file():
+        text = types_path.read_text(encoding="utf-8")
+        text = _replace_required(
+            text,
+            "    mono_type_param_names: Vec<String>,\n    mono_type_param_types: Vec<String>,\n    mono_instances: Vec<MonoInstance>,\n",
+            "",
+            "remove mono_type_param fields from LowerCtx struct for bootstrap",
+        )
+        types_path.write_text(text, encoding="utf-8")
+
+    # 2. Remove the 3 new field initializers from LowerCtx_new_for_target
+    init_path = compiler_out / "mir_lower_ctx_init.ark"
+    if init_path.is_file():
+        text = init_path.read_text(encoding="utf-8")
+        text = _replace_required(
+            text,
+            "        mono_type_param_names: Vec_new_String(),\n        mono_type_param_types: Vec_new_String(),\n        mono_instances: Vec_new_MonoInstance(),\n",
+            "",
+            "remove mono_type_param initializers from LowerCtx_new_for_target for bootstrap",
+        )
+        init_path.write_text(text, encoding="utf-8")
+
+    # 3. Stub out all ctx_mono_type_params functions
+    path = compiler_out / "mir_lower_ctx_mono_type_params.ark"
+    if path.is_file():
+        path.write_text(
+            """// Arukellt Selfhost - Bootstrap stub: static dispatch disabled.
+// The pinned wasm cannot correctly compile the 50-field LowerCtx struct
+// introduced by #688, so we stub out all static-dispatch functions.
+
+use mir_lower_ctx_types
+
+pub fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String>) {
+}
+
+pub fn ctx_clear_mono_type_params(ctx: LowerCtx) {
+}
+
+pub fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
+    String_new()
+}
+
+pub fn ctx_has_mono_type_params(ctx: LowerCtx) -> bool {
+    false
+}
+
+pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
+    Vec_new_String()
+}
+
+pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
+}
+""",
+            encoding="utf-8",
+        )
+
+    # 4. Remove the ctx.mono_instances assignment in entry_context.ark
+    ctx_path = compiler_out / "mir_lower_entry_context.ark"
+    if ctx_path.is_file():
+        text = ctx_path.read_text(encoding="utf-8")
+        text = _replace_optional(
+            text,
+            "    ctx.mono_instances = mono_view::mir_lower_mono_view_instances(mono_view)\n",
+            "",
+            "remove ctx.mono_instances assignment for bootstrap",
+        )
+        ctx_path.write_text(text, encoding="utf-8")
+
+
 def _prepare_flattened_selfhost_source(root: Path) -> Path:
     """Generate a flat-module overlay for bootstrapping with the pinned wasm."""
     global _FLAT_OVERLAY_CACHE
@@ -2075,6 +2159,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     _reapply_global_overlay_dedupe(compiler_out, write_order)
     _patch_bootstrap_mir_host_call_delegates(compiler_out)
     _patch_bootstrap_mir_module_host_needs(compiler_out)
+    _patch_bootstrap_stub_static_dispatch(compiler_out)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
     _patch_bootstrap_component_wit_bridge(compiler_out)
     _reapply_post_stub_overlay_dedupe(compiler_out, write_order)

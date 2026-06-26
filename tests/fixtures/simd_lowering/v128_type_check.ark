@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn make_zero() -> v128 {
+    std::simd::v128::zero()
+}
+
+fn main() {
+    let v: v128 = make_zero()
+    stdio::println("v128 type accepted")
+}

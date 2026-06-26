@@ -6,6 +6,7 @@ use wasm::call_host
 use wasm::call_parse
 use wasm::call_seq
 use wasm::call_scalar
+use wasm::call_simd
 use wasm::call_text
 use wasm::call_vec
 
@@ -27,6 +28,9 @@ fn emit_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_
             return
         }
         if call_vec::try_emit_vec_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return
+        }
+        if call_simd::try_emit_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
             return
         }
         call_fallback::emit_fallback_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)

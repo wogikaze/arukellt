@@ -1,0 +1,160 @@
+// Arukellt Selfhost - SIMD intrinsic call dispatch.
+// Emits Wasm SIMD instructions (0xFD prefix + LEB128 sub-opcode).
+
+use mir::inst_accessors_operands
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+fn try_emit_simd_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    // v128 raw bitwise
+    if eq(clone(callee), String_from("__simd_v128_and")) { emit_simd_binary(w, inst, opcodes::SIMD_V128_AND()); return true }
+    if eq(clone(callee), String_from("__simd_v128_or")) { emit_simd_binary(w, inst, opcodes::SIMD_V128_OR()); return true }
+    if eq(clone(callee), String_from("__simd_v128_xor")) { emit_simd_binary(w, inst, opcodes::SIMD_V128_XOR()); return true }
+    if eq(clone(callee), String_from("__simd_v128_andnot")) { emit_simd_binary(w, inst, opcodes::SIMD_V128_ANDNOT()); return true }
+    if eq(clone(callee), String_from("__simd_v128_not")) { emit_simd_unary(w, inst, opcodes::SIMD_V128_NOT()); return true }
+    if eq(clone(callee), String_from("__simd_v128_bitselect")) { emit_simd_ternary(w, inst, opcodes::SIMD_V128_BITSELECT()); return true }
+    if eq(clone(callee), String_from("__simd_v128_any_true")) { emit_simd_unary(w, inst, opcodes::SIMD_V128_ANY_TRUE()); return true }
+
+    // f32x4 arithmetic
+    if eq(clone(callee), String_from("__simd_f32x4_add")) { emit_simd_binary(w, inst, opcodes::SIMD_F32X4_ADD()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_sub")) { emit_simd_binary(w, inst, opcodes::SIMD_F32X4_SUB()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_mul")) { emit_simd_binary(w, inst, opcodes::SIMD_F32X4_MUL()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_div")) { emit_simd_binary(w, inst, opcodes::SIMD_F32X4_DIV()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_neg")) { emit_simd_unary(w, inst, opcodes::SIMD_F32X4_NEG()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_sqrt")) { emit_simd_unary(w, inst, opcodes::SIMD_F32X4_SQRT()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_abs")) { emit_simd_unary(w, inst, opcodes::SIMD_F32X4_ABS()); return true }
+
+    // f32x4 splat
+    if eq(clone(callee), String_from("__simd_f32x4_splat")) { emit_simd_unary(w, inst, opcodes::SIMD_F32X4_SPLAT()); return true }
+
+    // f32x4 lane access
+    if eq(clone(callee), String_from("__simd_f32x4_extract_lane")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_F32X4_EXTRACT_LANE()); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_replace_lane")) { emit_simd_replace_lane(w, inst, opcodes::SIMD_F32X4_REPLACE_LANE()); return true }
+
+    // f64x2 arithmetic
+    if eq(clone(callee), String_from("__simd_f64x2_add")) { emit_simd_binary(w, inst, opcodes::SIMD_F64X2_ADD()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_sub")) { emit_simd_binary(w, inst, opcodes::SIMD_F64X2_SUB()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_mul")) { emit_simd_binary(w, inst, opcodes::SIMD_F64X2_MUL()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_div")) { emit_simd_binary(w, inst, opcodes::SIMD_F64X2_DIV()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_neg")) { emit_simd_unary(w, inst, opcodes::SIMD_F64X2_NEG()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_sqrt")) { emit_simd_unary(w, inst, opcodes::SIMD_F64X2_SQRT()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_abs")) { emit_simd_unary(w, inst, opcodes::SIMD_F64X2_ABS()); return true }
+
+    // f64x2 splat
+    if eq(clone(callee), String_from("__simd_f64x2_splat")) { emit_simd_unary(w, inst, opcodes::SIMD_F64X2_SPLAT()); return true }
+
+    // f64x2 lane access
+    if eq(clone(callee), String_from("__simd_f64x2_extract_lane")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_F64X2_EXTRACT_LANE()); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_replace_lane")) { emit_simd_replace_lane(w, inst, opcodes::SIMD_F64X2_REPLACE_LANE()); return true }
+
+    // i32x4 arithmetic
+    if eq(clone(callee), String_from("__simd_i32x4_add")) { emit_simd_binary(w, inst, opcodes::SIMD_I32X4_ADD()); return true }
+    if eq(clone(callee), String_from("__simd_i32x4_sub")) { emit_simd_binary(w, inst, opcodes::SIMD_I32X4_SUB()); return true }
+    if eq(clone(callee), String_from("__simd_i32x4_mul")) { emit_simd_binary(w, inst, opcodes::SIMD_I32X4_MUL()); return true }
+    if eq(clone(callee), String_from("__simd_i32x4_neg")) { emit_simd_unary(w, inst, opcodes::SIMD_I32X4_NEG()); return true }
+    if eq(clone(callee), String_from("__simd_i32x4_abs")) { emit_simd_unary(w, inst, opcodes::SIMD_I32X4_ABS()); return true }
+
+    // i32x4 splat
+    if eq(clone(callee), String_from("__simd_i32x4_splat")) { emit_simd_unary(w, inst, opcodes::SIMD_I32X4_SPLAT()); return true }
+
+    // i32x4 lane access
+    if eq(clone(callee), String_from("__simd_i32x4_extract_lane")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_I32X4_EXTRACT_LANE()); return true }
+    if eq(clone(callee), String_from("__simd_i32x4_replace_lane")) { emit_simd_replace_lane(w, inst, opcodes::SIMD_I32X4_REPLACE_LANE()); return true }
+
+    // i64x2 arithmetic
+    if eq(clone(callee), String_from("__simd_i64x2_add")) { emit_simd_binary(w, inst, opcodes::SIMD_I64X2_ADD()); return true }
+    if eq(clone(callee), String_from("__simd_i64x2_sub")) { emit_simd_binary(w, inst, opcodes::SIMD_I64X2_SUB()); return true }
+    if eq(clone(callee), String_from("__simd_i64x2_mul")) { emit_simd_binary(w, inst, opcodes::SIMD_I64X2_MUL()); return true }
+    if eq(clone(callee), String_from("__simd_i64x2_neg")) { emit_simd_unary(w, inst, opcodes::SIMD_I64X2_NEG()); return true }
+    if eq(clone(callee), String_from("__simd_i64x2_abs")) { emit_simd_unary(w, inst, opcodes::SIMD_I64X2_ABS()); return true }
+
+    // i64x2 splat
+    if eq(clone(callee), String_from("__simd_i64x2_splat")) { emit_simd_unary(w, inst, opcodes::SIMD_I64X2_SPLAT()); return true }
+
+    // i64x2 lane access
+    if eq(clone(callee), String_from("__simd_i64x2_extract_lane")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_I64X2_EXTRACT_LANE()); return true }
+    if eq(clone(callee), String_from("__simd_i64x2_replace_lane")) { emit_simd_replace_lane(w, inst, opcodes::SIMD_I64X2_REPLACE_LANE()); return true }
+
+    // i8x16 arithmetic
+    if eq(clone(callee), String_from("__simd_i8x16_add")) { emit_simd_binary(w, inst, opcodes::SIMD_I8X16_ADD()); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_sub")) { emit_simd_binary(w, inst, opcodes::SIMD_I8X16_SUB()); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_mul")) { emit_simd_binary(w, inst, opcodes::SIMD_I8X16_MUL()); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_neg")) { emit_simd_unary(w, inst, opcodes::SIMD_I8X16_NEG()); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_abs")) { emit_simd_unary(w, inst, opcodes::SIMD_I8X16_ABS()); return true }
+
+    // i8x16 splat
+    if eq(clone(callee), String_from("__simd_i8x16_splat")) { emit_simd_unary(w, inst, opcodes::SIMD_I8X16_SPLAT()); return true }
+
+    // i8x16 lane access
+    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_s")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_S()); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_u")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_U()); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_replace_lane")) { emit_simd_replace_lane(w, inst, opcodes::SIMD_I8X16_REPLACE_LANE()); return true }
+
+    // i16x8 arithmetic
+    if eq(clone(callee), String_from("__simd_i16x8_add")) { emit_simd_binary(w, inst, opcodes::SIMD_I16X8_ADD()); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_sub")) { emit_simd_binary(w, inst, opcodes::SIMD_I16X8_SUB()); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_mul")) { emit_simd_binary(w, inst, opcodes::SIMD_I16X8_MUL()); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_neg")) { emit_simd_unary(w, inst, opcodes::SIMD_I16X8_NEG()); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_abs")) { emit_simd_unary(w, inst, opcodes::SIMD_I16X8_ABS()); return true }
+
+    // i16x8 splat
+    if eq(clone(callee), String_from("__simd_i16x8_splat")) { emit_simd_unary(w, inst, opcodes::SIMD_I16X8_SPLAT()); return true }
+
+    // i16x8 lane access
+    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_s")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_S()); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_u")) { emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_U()); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_replace_lane")) { emit_simd_replace_lane(w, inst, opcodes::SIMD_I16X8_REPLACE_LANE()); return true }
+
+    false
+}
+
+// Emit a SIMD prefix byte + sub-opcode (LEB128-encoded)
+fn emit_simd_prefix(w: WasmWriter, sub_opcode: i32) {
+    writer_core::emit_byte(w, opcodes::SIMD_PREFIX())
+    writer_leb::emit_leb128_u(w, sub_opcode)
+}
+
+// Binary SIMD op: two v128 operands on stack, result v128 on stack
+fn emit_simd_binary(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Unary SIMD op: one v128 operand on stack, result on stack
+fn emit_simd_unary(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Ternary SIMD op: three v128 operands on stack (a, b, c), result on stack
+fn emit_simd_ternary(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Extract lane: v128 + lane index (immediate) on stack, scalar result
+fn emit_simd_extract_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    // Lane index is an immediate byte (0..N-1)
+    let lane = inst_accessors_operands::MirInst_arg1(inst)
+    writer_core::emit_byte(w, lane)
+    emit_store_result(w, inst)
+}
+
+// Replace lane: v128 + scalar value on stack, lane index is immediate
+fn emit_simd_replace_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    let lane = inst_accessors_operands::MirInst_arg1(inst)
+    writer_core::emit_byte(w, lane)
+    emit_store_result(w, inst)
+}
+
+// Store result to dest local if needed
+fn emit_store_result(w: WasmWriter, inst: MirInst) {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest >= 0 {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, dest)
+    }
+}

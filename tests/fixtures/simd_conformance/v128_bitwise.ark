@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::simd::v128
+
+fn main() {
+    let a = v128::zero()
+    let b = v128::zero()
+    let c = v128::or(a, b)
+    let result = v128::any_true(c)
+    stdio::println(i32_to_string(result))
+}
