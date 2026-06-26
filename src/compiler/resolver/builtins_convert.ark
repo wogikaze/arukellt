@@ -1,20 +1,11 @@
 // Arukellt Resolver - conversion builtin symbol names.
+// Prelude-provided conversions (parse_i64, i8_to_i32, i16_to_i32, u8_to_i32,
+// u16_to_i32, i32_to_u8, i32_to_i8, u32_to_u64, f32_to_f64, f64_to_f32) are
+// auto-imported from std/prelude.ark. __intrinsic_* names are registered
+// in builtins_intrinsics.ark. Only functions NOT in either remain here.
 
 fn push_convert_builtin_symbol_names(names: Vec<String>) {
-    push(names, String_from("parse_i64"))
-    push(names, String_from("__intrinsic_println"))
     push(names, String_from("__intrinsic_stdin_read_to_string"))
-    push(names, String_from("__intrinsic_i32_to_string"))
-    push(names, String_from("__intrinsic_f64_to_string"))
-    push(names, String_from("i8_to_i32"))
-    push(names, String_from("i16_to_i32"))
-    push(names, String_from("u8_to_i32"))
-    push(names, String_from("u16_to_i32"))
-    push(names, String_from("i32_to_u8"))
-    push(names, String_from("i32_to_i8"))
-    push(names, String_from("u32_to_u64"))
     push(names, String_from("i32_to_u32"))
-    push(names, String_from("f32_to_f64"))
-    push(names, String_from("f64_to_f32"))
     push(names, String_from("f32_to_string"))
 }

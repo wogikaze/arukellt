@@ -1,4 +1,7 @@
 // Arukellt Resolver - core collection builtin symbol names.
+// Prelude-provided collection functions (slice, split, join, contains,
+// reverse_*, sum_i32, product_i32, remove_i32) are auto-imported from
+// std/prelude.ark. Only functions NOT in prelude.ark remain here.
 
 fn push_core_collection_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("args"))
@@ -9,16 +12,5 @@ fn push_core_collection_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("is_empty"))
     push(names, String_from("unwrap"))
     push(names, String_from("unwrap_or"))
-    push(names, String_from("slice"))
-    push(names, String_from("split"))
-    push(names, String_from("join"))
-    push(names, String_from("reverse_i32"))
-    push(names, String_from("remove_i32"))
-    push(names, String_from("contains"))
-    push(names, String_from("contains_i32"))
     push(names, String_from("contains_string"))
-    push(names, String_from("contains_String"))
-    push(names, String_from("reverse_String"))
-    push(names, String_from("sum_i32"))
-    push(names, String_from("product_i32"))
 }
