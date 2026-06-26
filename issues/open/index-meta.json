@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-26T14:16:06Z",
+  "generated_at": "2026-06-26T14:47:22Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -528,7 +528,9 @@
         "692",
         "693",
         "695",
-        "696"
+        "696",
+        "700",
+        "702"
       ],
       "acceptance": {
         "checked": 11,
@@ -708,7 +710,8 @@
         "688"
       ],
       "blocks_issue_ids": [
-        "697"
+        "697",
+        "703"
       ],
       "acceptance": {
         "checked": 0,
@@ -736,7 +739,8 @@
       "blocks_issue_ids": [
         "693",
         "694",
-        "696"
+        "696",
+        "702"
       ],
       "acceptance": {
         "checked": 0,
@@ -762,7 +766,8 @@
         "688"
       ],
       "blocks_issue_ids": [
-        "697"
+        "697",
+        "703"
       ],
       "acceptance": {
         "checked": 0,
@@ -771,6 +776,34 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch"
+      }
+    },
+    {
+      "id": "700",
+      "path": "700-builtin-type-method-syntax.md",
+      "title": "700 — Builtin type method syntax (`impl Vec<T>`, `impl i32`, ...)",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688"
+      ],
+      "blocks_issue_ids": [
+        "701",
+        "702",
+        "703"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "design-required",
+        "upstream_notes": "None"
       }
     },
     {
@@ -921,6 +954,85 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord"
+      }
+    },
+    {
+      "id": "701",
+      "path": "701-associated-function-syntax.md",
+      "title": "701 — Associated function syntax (`Vec::new<T>()`, `String::from()`)",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "700"
+      ],
+      "blocks_issue_ids": [
+        "703"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "design-required",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "702",
+      "path": "702-to-string-clone-hash-trait-integration.md",
+      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "700",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+      }
+    },
+    {
+      "id": "703",
+      "path": "703-monomorphic-api-bold-cutover.md",
+      "title": "703 — Monomorphic API bold cutover (ADR-036 D2)",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "700",
+        "701",
+        "691",
+        "695"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 19
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
       }
     }
   ],

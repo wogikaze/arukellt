@@ -16,34 +16,38 @@ Scoring criteria (0-5 each, total 25):
 | 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 4 | 5 | 3 | 13 |
 | 4 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
 | 5 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
-| 6 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
-| 7 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 1 | 5 | 3 | 10 |
-| 8 | 692 | 692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` tra... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
-| 9 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 2 | 0 | 1 | 3 | 3 | 9 |
-| 10 | 670 | 670 — WIT import resolver hardening (duplicates, spans, col... | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 11 | 671 | 671 — WIT import callable type matrix (fixtures + gates) | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 12 | 672 | 672 — WIT type binding code generation | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 13 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
-| 14 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 15 | 689 | 689 — Operator overload trait surface (Add / Index / Deref ... | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 16 | 694 | 694 — `Error` trait and unified error type ecosystem | stdlib-api | 0 | 0 | 1 | 5 | 3 | 9 |
-| 17 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 2 | 3 | 2 | 8 |
-| 18 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 1 | 0 | 1 | 3 | 3 | 8 |
-| 19 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 20 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 1 | 0 | 1 | 3 | 3 | 8 |
-| 21 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 1 | 0 | 1 | 3 | 3 | 8 |
-| 22 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
-| 23 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
-| 24 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 0 | 0 | 1 | 3 | 3 | 7 |
-| 25 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 26 | 696 | 696 — `Debug` trait and `format!` / `write!` formatting eco... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 27 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 28 | 668 | 668 — P2 native component polish (post-#074) | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
-| 29 | 673 | 673 — Component export aggregate expansion (Tier 2 blocked ... | component-model | 0 | 0 | 1 | 3 | 2 | 6 |
-| 30 | 674 | 674 — Component composition: dependency wasm, lockfile, and... | component-composition | 0 | 0 | 1 | 3 | 2 | 6 |
-| 31 | 675 | 675 — Host capability user-reachability and runtime permiss... | capability | 0 | 0 | 1 | 3 | 2 | 6 |
-| 32 | 676 | 676 — std::host fs / env / process capability completion | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
-| 33 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 34 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
-| 35 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
-| 36 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 6 | 700 | 700 — Builtin type method syntax (`impl Vec<T>`, `impl i32`... | language-design | 3 | 0 | 1 | 5 | 3 | 12 |
+| 7 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
+| 8 | 692 | 692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` tra... | stdlib-api | 4 | 0 | 1 | 3 | 3 | 11 |
+| 9 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 1 | 5 | 3 | 10 |
+| 10 | 701 | 701 — Associated function syntax (`Vec::new<T>()`, `String:... | language-design | 1 | 0 | 1 | 5 | 3 | 10 |
+| 11 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 2 | 0 | 1 | 3 | 3 | 9 |
+| 12 | 670 | 670 — WIT import resolver hardening (duplicates, spans, col... | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 13 | 671 | 671 — WIT import callable type matrix (fixtures + gates) | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 14 | 672 | 672 — WIT type binding code generation | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 15 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
+| 16 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 17 | 689 | 689 — Operator overload trait surface (Add / Index / Deref ... | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 18 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
+| 19 | 694 | 694 — `Error` trait and unified error type ecosystem | stdlib-api | 0 | 0 | 1 | 5 | 3 | 9 |
+| 20 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
+| 21 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 2 | 3 | 2 | 8 |
+| 22 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 1 | 0 | 1 | 3 | 3 | 8 |
+| 23 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 24 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
+| 25 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
+| 26 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 0 | 0 | 1 | 3 | 3 | 7 |
+| 27 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 28 | 696 | 696 — `Debug` trait and `format!` / `write!` formatting eco... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 29 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 30 | 668 | 668 — P2 native component polish (post-#074) | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
+| 31 | 673 | 673 — Component export aggregate expansion (Tier 2 blocked ... | component-model | 0 | 0 | 1 | 3 | 2 | 6 |
+| 32 | 674 | 674 — Component composition: dependency wasm, lockfile, and... | component-composition | 0 | 0 | 1 | 3 | 2 | 6 |
+| 33 | 675 | 675 — Host capability user-reachability and runtime permiss... | capability | 0 | 0 | 1 | 3 | 2 | 6 |
+| 34 | 676 | 676 — std::host fs / env / process capability completion | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
+| 35 | 683 | 683 — User-facing executable example audit (Quickstart / sk... | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 36 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
+| 37 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
+| 38 | 703 | 703 — Monomorphic API bold cutover (ADR-036 D2) | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
+| 39 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
+| 40 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
