@@ -2161,6 +2161,15 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
+    # Copy std/prelude.ark so prelude auto-import can find it.
+    # Only prelude.ark is needed (it has no `use` statements).
+    # Copying the entire std/ would cause the pinned bootstrap to crash
+    # by finding std/collections/hash.ark which it cannot resolve.
+    prelude_src = root / "std" / "prelude.ark"
+    if prelude_src.is_file():
+        std_dst = overlay_root / "std"
+        std_dst.mkdir(exist_ok=True)
+        shutil.copyfile(prelude_src, std_dst / "prelude.ark")
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     return overlay_root
 

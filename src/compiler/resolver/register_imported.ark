@@ -21,6 +21,51 @@ fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
         register_imported_module_exports(ctx, m)
         mi = mi + 1
     }
+    register_prelude_bare_names(ctx, modules)
+}
+
+fn register_prelude_bare_names(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
+    let mod_count = len(modules)
+    let mut mi = 0
+    while mi < mod_count {
+        let m = get_unchecked(modules, mi)
+        let module_name = modules::module_name(m)
+        if eq(clone(module_name), String_from("prelude")) {
+            register_prelude_module_bare_names(ctx, m)
+        }
+        mi = mi + 1
+    }
+}
+
+fn register_prelude_module_bare_names(ctx: ResolveCtx, m: ModuleDecls) {
+    let mdecl_count = modules::module_decl_count(m)
+    let mut di = 0
+    while di < mdecl_count {
+        let d = modules::module_decl_at(m, di)
+        let is_pub = ast_access::node_is_pub(d)
+        if is_pub {
+            let symbol_name = ast_access::node_text(d)
+            let existing = scope_lookup::lookup(ctx, clone(symbol_name))
+            if existing < 0 {
+                if ast_decl_predicates::node_is_fn_decl(d) {
+                    scope_define::define(ctx, symbol_name, commands::SYM_FN())
+                } else {
+                    if ast_decl_predicates::node_is_struct_decl(d) {
+                        scope_define::define(ctx, symbol_name, commands::SYM_STRUCT())
+                    } else {
+                        if ast_decl_predicates::node_is_resource_decl(d) {
+                            scope_define::define(ctx, symbol_name, commands::SYM_RESOURCE())
+                        } else {
+                            if ast_decl_predicates::node_is_enum_decl(d) {
+                                scope_define::define(ctx, symbol_name, commands::SYM_ENUM())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        di = di + 1
+    }
 }
 
 fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {

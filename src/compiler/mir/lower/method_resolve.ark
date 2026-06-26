@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_exists
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR method callee monomorphization resolution.
 
@@ -44,5 +45,64 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     if len(named_mono_target) > 0 {
         return named_mono_target
     }
+    if ctx_has_fn_name(ctx, clone(callee_name)) {
+        return callee_name
+    }
+    // Fallback for builtin types: if the mangled callee (e.g. "Vec::push")
+    // is not a MIR function, check if the type prefix is a builtin type.
+    // If so, map to the corresponding compiler intrinsic name.
+    let bare_name = mir_bare_method_name(callee_name)
+    if len(bare_name) > 0 && mir_is_builtin_type_prefix(callee_name) {
+        let intrinsic_name = mir_builtin_method_to_intrinsic(callee_name, bare_name)
+        if len(intrinsic_name) > 0 {
+            return intrinsic_name
+        }
+        return bare_name
+    }
     callee_name
+}
+
+fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String {
+    let prefix = mir_type_prefix(mangled)
+    // Vec methods: some intrinsics use bare name, others use vec_ prefix.
+    if eq(clone(prefix), String_from("Vec")) {
+        if eq(clone(bare_name), String_from("len")) { return String_from("vec_len") }
+        if eq(clone(bare_name), String_from("get")) { return String_from("vec_get") }
+        if eq(clone(bare_name), String_from("set")) { return String_from("vec_set") }
+        if eq(clone(bare_name), String_from("pop")) { return String_from("vec_pop") }
+        // push, get_unchecked, is_empty use bare name — no mapping needed.
+        return String_from("")
+    }
+    // String methods: len, char_at, etc. use bare name — no mapping needed.
+    // Scalar methods: to_string, abs, etc. use bare name — no mapping needed.
+    String_from("")
+}
+
+fn mir_bare_method_name(mangled: String) -> String {
+    let pos = index_of(clone(mangled), String_from("::"))
+    if pos < 0 {
+        return String_from("")
+    }
+    substring(mangled, pos + 2, len(mangled))
+}
+
+fn mir_is_builtin_type_prefix(mangled: String) -> bool {
+    let prefix = mir_type_prefix(mangled)
+    if eq(clone(prefix), String_from("Vec")) { return true }
+    if eq(clone(prefix), String_from("String")) { return true }
+    if eq(clone(prefix), String_from("i32")) { return true }
+    if eq(clone(prefix), String_from("i64")) { return true }
+    if eq(clone(prefix), String_from("f64")) { return true }
+    if eq(clone(prefix), String_from("f32")) { return true }
+    if eq(clone(prefix), String_from("bool")) { return true }
+    if eq(clone(prefix), String_from("char")) { return true }
+    false
+}
+
+fn mir_type_prefix(mangled: String) -> String {
+    let pos = index_of(clone(mangled), String_from("::"))
+    if pos < 0 {
+        return String_from("")
+    }
+    substring(mangled, 0, pos)
 }

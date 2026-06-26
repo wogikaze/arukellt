@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering helpers for method calls.
 
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_exists
 use mir::lower::ctx_mono_type_params
 use mir::lower::method_emit
 use mir::lower::method_resolve
@@ -19,6 +20,15 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
         if len(resolved) > 0 {
             struct_name = resolved
         }
+    }
+    // Normalize builtin type names so method calls resolve correctly.
+    // Vec locals carry type "vec:i32" / "vec:String" etc.; normalize to "Vec".
+    // String locals carry type "string"; normalize to "String".
+    if starts_with(clone(struct_name), String_from("vec:")) {
+        struct_name = String_from("Vec")
+    }
+    if eq(clone(struct_name), String_from("string")) {
+        struct_name = String_from("String")
     }
     if len(struct_name) > 0 {
         return concat(clone(struct_name), concat(String_from("::"), clone(method_name)))

@@ -23,8 +23,10 @@ fn build_checked_program_bundle(all_decls: Vec<AstNode>, check_result: TypeCheck
     let mut mi = 0
     while mi < module_count {
         let md = get_unchecked(modules, mi)
-        push(module_names, md.name)
-        push(module_decl_counts, module_state_modules::ModuleDecls_decl_count(md))
+        if !eq(clone(md.name), String_from("prelude")) {
+            push(module_names, md.name)
+            push(module_decl_counts, module_state_modules::ModuleDecls_decl_count(md))
+        }
         mi = mi + 1
     }
     frontend_bundle::FrontendBundle_new(all_decls, check_result, module_names, module_decl_counts)

@@ -3,6 +3,8 @@ use mir::inst_accessors_shape
 // Arukellt Selfhost - const/local-get MIR instruction dispatch.
 
 use mir::value_types
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::inst_const
 use wasm::inst_dispatch_result
 use wasm::inst_locals
@@ -46,7 +48,11 @@ fn try_emit_const_literal_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, n
     }
     if op == opcodes::MIR_CONST_STRING() {
         inst_const::emit_const_string(w, inst, ctx)
-        let on_stack = inst_accessors_operands::MirInst_dest(inst) < 0
+        // For linear (non-GC) targets, emit_const_string_linear always pushes
+        // the string address onto the stack, so the result is on the stack.
+        // For GC targets, emit_const_string_gc stores to dest directly when
+        // dest >= 0, so the result is only on the stack when dest < 0.
+        let on_stack = !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) || inst_accessors_operands::MirInst_dest(inst) < 0
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
         return true
     }

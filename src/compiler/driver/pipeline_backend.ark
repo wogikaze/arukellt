@@ -30,7 +30,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if backend_resolve::resolve_result_should_return(resolved) {
         return backend_resolve::resolve_result_result(resolved)
     }
-    let all_decls = module_decls::combine_loaded_and_main_decls(backend_resolve::resolve_result_loaded_modules(resolved), decls)
+    let all_decls = module_decls::combine_loaded_and_main_decls_skip_prelude(backend_resolve::resolve_result_loaded_modules(resolved), decls)
     let checked = backend_typecheck::backend_typecheck(clone(source), config, all_decls, backend_resolve::resolve_result_ctx(resolved))
     if backend_typecheck::typecheck_result_should_return(checked) {
         return backend_typecheck::typecheck_result_result(checked)
