@@ -1,7 +1,7 @@
 // Arukellt Selfhost - GC reference local type inference.
 
 use mir::block_inst_access
-use mir::inst_accessors_literals
+use mir::inst_record
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::function_return_view
@@ -203,10 +203,10 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
                 return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
             }
             if op == opcodes::MIR_STRUCT_NEW() {
-                return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
+                return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
             }
             if op == opcodes::MIR_CALL() {
-                let call_type = infer_call_result_gc_type(ctx, inst_accessors_literals::MirInst_str_val(inst))
+                let call_type = infer_call_result_gc_type(ctx, inst_record::mir_inst_str_val(inst))
                 if call_type >= 0 {
                     return call_type
                 }
