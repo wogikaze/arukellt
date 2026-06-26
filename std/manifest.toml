@@ -6148,3 +6148,382 @@ stability = "experimental"
 params = ["String"]
 returns = "i32"
 doc = "Count the number of lines (newlines + 1) in the Rope."
+
+# === std::simd ===
+# All std::simd APIs are experimental (ADR-037, ADR-014).
+# v128 is a first-class type. std::simd does NOT provide load/store APIs
+# (those belong in std::wasm per ADR-037 §11).
+
+# --- std::simd::f32x4 ---
+
+[[functions]]
+name = "splat"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["f32"]
+returns = "v128"
+
+[[functions]]
+name = "new"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["f32", "f32", "f32", "f32"]
+returns = "v128"
+
+[[functions]]
+name = "zero"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = []
+returns = "v128"
+
+[[functions]]
+name = "extract_lane"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32"]
+returns = "f32"
+
+[[functions]]
+name = "replace_lane"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32", "f32"]
+returns = "v128"
+
+[[functions]]
+name = "add"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "sub"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "mul"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "div"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "neg"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "sqrt"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "eq"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "ne"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "lt"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "le"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "gt"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "ge"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "min"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "max"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "abs"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "ceil"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "floor"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "trunc"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "nearest"
+module = "std::simd::f32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+# --- std::simd::i32x4 ---
+
+[[functions]]
+name = "splat"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["i32"]
+returns = "v128"
+
+[[functions]]
+name = "new"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["i32", "i32", "i32", "i32"]
+returns = "v128"
+
+[[functions]]
+name = "zero"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = []
+returns = "v128"
+
+[[functions]]
+name = "extract_lane"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "replace_lane"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32", "i32"]
+returns = "v128"
+
+[[functions]]
+name = "add"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "sub"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "mul"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "neg"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "abs"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "eq"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "ne"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "shl"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32"]
+returns = "v128"
+
+[[functions]]
+name = "shr_s"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32"]
+returns = "v128"
+
+[[functions]]
+name = "shr_u"
+module = "std::simd::i32x4"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "i32"]
+returns = "v128"
+
+# --- std::simd::v128 ---
+
+[[functions]]
+name = "and"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "or"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "xor"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "not"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+
+[[functions]]
+name = "andnot"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "bitselect"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128", "v128", "v128"]
+returns = "v128"
+
+[[functions]]
+name = "any_true"
+module = "std::simd::v128"
+doc_category = "simd"
+stability = "experimental"
+params = ["v128"]
+returns = "i32"

@@ -1,0 +1,111 @@
+//! i64x2 — 2 × 64-bit signed integer SIMD lane type.
+//!
+//! Each value is a v128 with 2 i64 lanes.
+//! All APIs are experimental (ADR-014).
+
+// --- Construct ---
+
+/// Create a v128 with all 2 lanes set to the same i64 value.
+pub fn splat(x: i64) -> v128 {
+    __simd_i64x2_splat(x)
+}
+
+/// Create a v128 from 2 i64 lane values.
+pub fn new(a: i64, b: i64) -> v128 {
+    let v = splat(a)
+    v = __simd_i64x2_replace_lane(v, 1, b)
+    v
+}
+
+/// Create a v128 with all lanes zeroed.
+pub fn zero() -> v128 {
+    splat(0)
+}
+
+// --- Lane access ---
+
+/// Extract a single i64 lane (0..1) from a v128.
+pub fn extract_lane(v: v128, lane: i32) -> i64 {
+    __simd_i64x2_extract_lane(v, lane)
+}
+
+/// Replace a single i64 lane (0..1) in a v128, returning a new v128.
+pub fn replace_lane(v: v128, lane: i32, x: i64) -> v128 {
+    __simd_i64x2_replace_lane(v, lane, x)
+}
+
+// --- Arithmetic ---
+
+/// Lane-wise addition: a + b
+pub fn add(a: v128, b: v128) -> v128 {
+    __simd_i64x2_add(a, b)
+}
+
+/// Lane-wise subtraction: a - b
+pub fn sub(a: v128, b: v128) -> v128 {
+    __simd_i64x2_sub(a, b)
+}
+
+/// Lane-wise multiplication: a * b
+pub fn mul(a: v128, b: v128) -> v128 {
+    __simd_i64x2_mul(a, b)
+}
+
+/// Lane-wise negation: -a
+pub fn neg(a: v128) -> v128 {
+    __simd_i64x2_neg(a)
+}
+
+/// Lane-wise absolute value.
+pub fn abs(a: v128) -> v128 {
+    __simd_i64x2_abs(a)
+}
+
+// --- Comparison ---
+
+/// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
+pub fn eq(a: v128, b: v128) -> v128 {
+    __simd_i64x2_eq(a, b)
+}
+
+/// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
+pub fn ne(a: v128, b: v128) -> v128 {
+    __simd_i64x2_ne(a, b)
+}
+
+/// Lane-wise less-than (signed). Each lane is all-1s if a < b, all-0s otherwise.
+pub fn lt_s(a: v128, b: v128) -> v128 {
+    __simd_i64x2_lt_s(a, b)
+}
+
+/// Lane-wise less-than-or-equal (signed).
+pub fn le_s(a: v128, b: v128) -> v128 {
+    __simd_i64x2_le_s(a, b)
+}
+
+/// Lane-wise greater-than (signed).
+pub fn gt_s(a: v128, b: v128) -> v128 {
+    __simd_i64x2_gt_s(a, b)
+}
+
+/// Lane-wise greater-than-or-equal (signed).
+pub fn ge_s(a: v128, b: v128) -> v128 {
+    __simd_i64x2_ge_s(a, b)
+}
+
+// --- Shift ---
+
+/// Lane-wise left shift by a scalar shift amount.
+pub fn shl(a: v128, shift: i32) -> v128 {
+    __simd_i64x2_shl(a, shift)
+}
+
+/// Lane-wise right shift (signed / arithmetic).
+pub fn shr_s(a: v128, shift: i32) -> v128 {
+    __simd_i64x2_shr_s(a, shift)
+}
+
+/// Lane-wise right shift (unsigned / logical).
+pub fn shr_u(a: v128, shift: i32) -> v128 {
+    __simd_i64x2_shr_u(a, shift)
+}

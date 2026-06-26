@@ -1,0 +1,142 @@
+//! f32x4 — 4 × 32-bit float SIMD lane type.
+//!
+//! Each value is a v128 with 4 f32 lanes.
+//! All APIs are experimental (ADR-014).
+
+// --- Construct ---
+
+/// Create a v128 with all 4 lanes set to the same f32 value.
+pub fn splat(x: f32) -> v128 {
+    __simd_f32x4_splat(x)
+}
+
+/// Create a v128 from 4 f32 lane values.
+pub fn new(a: f32, b: f32, c: f32, d: f32) -> v128 {
+    let v = splat(a)
+    v = __simd_f32x4_replace_lane(v, 1, b)
+    v = __simd_f32x4_replace_lane(v, 2, c)
+    v = __simd_f32x4_replace_lane(v, 3, d)
+    v
+}
+
+/// Create a v128 with all lanes zeroed.
+pub fn zero() -> v128 {
+    splat(0.0f32)
+}
+
+// --- Lane access ---
+
+/// Extract a single f32 lane (0..3) from a v128.
+pub fn extract_lane(v: v128, lane: i32) -> f32 {
+    __simd_f32x4_extract_lane(v, lane)
+}
+
+/// Replace a single f32 lane (0..3) in a v128, returning a new v128.
+pub fn replace_lane(v: v128, lane: i32, x: f32) -> v128 {
+    __simd_f32x4_replace_lane(v, lane, x)
+}
+
+// --- Arithmetic ---
+
+/// Lane-wise addition: a + b
+pub fn add(a: v128, b: v128) -> v128 {
+    __simd_f32x4_add(a, b)
+}
+
+/// Lane-wise subtraction: a - b
+pub fn sub(a: v128, b: v128) -> v128 {
+    __simd_f32x4_sub(a, b)
+}
+
+/// Lane-wise multiplication: a * b
+pub fn mul(a: v128, b: v128) -> v128 {
+    __simd_f32x4_mul(a, b)
+}
+
+/// Lane-wise division: a / b
+pub fn div(a: v128, b: v128) -> v128 {
+    __simd_f32x4_div(a, b)
+}
+
+/// Lane-wise negation: -a
+pub fn neg(a: v128) -> v128 {
+    __simd_f32x4_neg(a)
+}
+
+/// Lane-wise square root.
+pub fn sqrt(a: v128) -> v128 {
+    __simd_f32x4_sqrt(a)
+}
+
+// --- Comparison ---
+
+/// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
+pub fn eq(a: v128, b: v128) -> v128 {
+    __simd_f32x4_eq(a, b)
+}
+
+/// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
+pub fn ne(a: v128, b: v128) -> v128 {
+    __simd_f32x4_ne(a, b)
+}
+
+/// Lane-wise less-than. Each lane is all-1s if a < b, all-0s otherwise.
+pub fn lt(a: v128, b: v128) -> v128 {
+    __simd_f32x4_lt(a, b)
+}
+
+/// Lane-wise less-than-or-equal. Each lane is all-1s if a <= b, all-0s otherwise.
+pub fn le(a: v128, b: v128) -> v128 {
+    __simd_f32x4_le(a, b)
+}
+
+/// Lane-wise greater-than. Each lane is all-1s if a > b, all-0s otherwise.
+pub fn gt(a: v128, b: v128) -> v128 {
+    __simd_f32x4_gt(a, b)
+}
+
+/// Lane-wise greater-than-or-equal. Each lane is all-1s if a >= b, all-0s otherwise.
+pub fn ge(a: v128, b: v128) -> v128 {
+    __simd_f32x4_ge(a, b)
+}
+
+// --- Min / Max ---
+
+/// Lane-wise minimum.
+pub fn min(a: v128, b: v128) -> v128 {
+    __simd_f32x4_min(a, b)
+}
+
+/// Lane-wise maximum.
+pub fn max(a: v128, b: v128) -> v128 {
+    __simd_f32x4_max(a, b)
+}
+
+// --- Rounding ---
+
+/// Lane-wise ceiling.
+pub fn ceil(a: v128) -> v128 {
+    __simd_f32x4_ceil(a)
+}
+
+/// Lane-wise floor.
+pub fn floor(a: v128) -> v128 {
+    __simd_f32x4_floor(a)
+}
+
+/// Lane-wise truncation toward zero.
+pub fn trunc(a: v128) -> v128 {
+    __simd_f32x4_trunc(a)
+}
+
+/// Lane-wise nearest integer (round to nearest even).
+pub fn nearest(a: v128) -> v128 {
+    __simd_f32x4_nearest(a)
+}
+
+// --- Abs ---
+
+/// Lane-wise absolute value.
+pub fn abs(a: v128) -> v128 {
+    __simd_f32x4_abs(a)
+}

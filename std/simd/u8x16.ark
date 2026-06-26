@@ -1,0 +1,147 @@
+//! u8x16 — 16 × 8-bit unsigned integer SIMD lane type.
+//!
+//! Each value is a v128 with 16 u8 lanes.
+//! All APIs are experimental (ADR-014).
+
+// --- Construct ---
+
+/// Create a v128 with all 16 lanes set to the same u8 value.
+pub fn splat(x: i32) -> v128 {
+    __simd_u8x16_splat(x)
+}
+
+/// Create a v128 from 16 u8 lane values.
+pub fn new(a0: i32, a1: i32, a2: i32, a3: i32,
+           a4: i32, a5: i32, a6: i32, a7: i32,
+           a8: i32, a9: i32, a10: i32, a11: i32,
+           a12: i32, a13: i32, a14: i32, a15: i32) -> v128 {
+    let v = splat(a0)
+    v = __simd_u8x16_replace_lane(v, 1, a1)
+    v = __simd_u8x16_replace_lane(v, 2, a2)
+    v = __simd_u8x16_replace_lane(v, 3, a3)
+    v = __simd_u8x16_replace_lane(v, 4, a4)
+    v = __simd_u8x16_replace_lane(v, 5, a5)
+    v = __simd_u8x16_replace_lane(v, 6, a6)
+    v = __simd_u8x16_replace_lane(v, 7, a7)
+    v = __simd_u8x16_replace_lane(v, 8, a8)
+    v = __simd_u8x16_replace_lane(v, 9, a9)
+    v = __simd_u8x16_replace_lane(v, 10, a10)
+    v = __simd_u8x16_replace_lane(v, 11, a11)
+    v = __simd_u8x16_replace_lane(v, 12, a12)
+    v = __simd_u8x16_replace_lane(v, 13, a13)
+    v = __simd_u8x16_replace_lane(v, 14, a14)
+    v = __simd_u8x16_replace_lane(v, 15, a15)
+    v
+}
+
+/// Create a v128 with all lanes zeroed.
+pub fn zero() -> v128 {
+    splat(0)
+}
+
+// --- Lane access ---
+
+/// Extract a single u8 lane (0..15) from a v128, zero-extended to i32.
+pub fn extract_lane(v: v128, lane: i32) -> i32 {
+    __simd_u8x16_extract_lane_u(v, lane)
+}
+
+/// Replace a single u8 lane (0..15) in a v128, returning a new v128.
+pub fn replace_lane(v: v128, lane: i32, x: i32) -> v128 {
+    __simd_u8x16_replace_lane(v, lane, x)
+}
+
+// --- Arithmetic ---
+
+/// Lane-wise addition: a + b
+pub fn add(a: v128, b: v128) -> v128 {
+    __simd_u8x16_add(a, b)
+}
+
+/// Lane-wise subtraction: a - b
+pub fn sub(a: v128, b: v128) -> v128 {
+    __simd_u8x16_sub(a, b)
+}
+
+/// Lane-wise multiplication: a * b
+pub fn mul(a: v128, b: v128) -> v128 {
+    __simd_u8x16_mul(a, b)
+}
+
+/// Lane-wise negation: -a
+pub fn neg(a: v128) -> v128 {
+    __simd_u8x16_neg(a)
+}
+
+/// Lane-wise absolute value.
+pub fn abs(a: v128) -> v128 {
+    __simd_u8x16_abs(a)
+}
+
+// --- Saturating arithmetic ---
+
+/// Lane-wise addition with unsigned saturation.
+pub fn add_sat_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_add_sat_u(a, b)
+}
+
+/// Lane-wise subtraction with unsigned saturation.
+pub fn sub_sat_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_sub_sat_u(a, b)
+}
+
+// --- Comparison ---
+
+/// Lane-wise equality. Each lane is all-1s if equal, all-0s otherwise.
+pub fn eq(a: v128, b: v128) -> v128 {
+    __simd_u8x16_eq(a, b)
+}
+
+/// Lane-wise inequality. Each lane is all-1s if not equal, all-0s otherwise.
+pub fn ne(a: v128, b: v128) -> v128 {
+    __simd_u8x16_ne(a, b)
+}
+
+/// Lane-wise less-than (unsigned). Each lane is all-1s if a < b, all-0s otherwise.
+pub fn lt_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_lt_u(a, b)
+}
+
+/// Lane-wise less-than-or-equal (unsigned).
+pub fn le_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_le_u(a, b)
+}
+
+/// Lane-wise greater-than (unsigned).
+pub fn gt_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_gt_u(a, b)
+}
+
+/// Lane-wise greater-than-or-equal (unsigned).
+pub fn ge_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_ge_u(a, b)
+}
+
+// --- Min / Max ---
+
+/// Lane-wise minimum (unsigned).
+pub fn min_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_min_u(a, b)
+}
+
+/// Lane-wise maximum (unsigned).
+pub fn max_u(a: v128, b: v128) -> v128 {
+    __simd_u8x16_max_u(a, b)
+}
+
+// --- Shift ---
+
+/// Lane-wise left shift by a scalar shift amount.
+pub fn shl(a: v128, shift: i32) -> v128 {
+    __simd_u8x16_shl(a, shift)
+}
+
+/// Lane-wise right shift (unsigned / logical).
+pub fn shr_u(a: v128, shift: i32) -> v128 {
+    __simd_u8x16_shr_u(a, shift)
+}

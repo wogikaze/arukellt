@@ -1,0 +1,24 @@
+//! Explicit SIMD library API (ADR-037).
+//!
+//! Provides portable SIMD operations via lane-type modules.
+//! v128 is a first-class type in the Arukellt type system.
+//!
+//! # Lane type modules
+//!
+//! - `i8x16` / `u8x16`   — 16 × 8-bit integers
+//! - `i16x8` / `u16x8`   — 8 × 16-bit integers
+//! - `i32x4` / `u32x4`   — 4 × 32-bit integers
+//! - `i64x2` / `u64x2`   — 2 × 64-bit integers
+//! - `f32x4`             — 4 × 32-bit floats
+//! - `f64x2`             — 2 × 64-bit floats
+//! - `v128`              — low-level raw 128-bit type
+//!
+//! # Stability
+//!
+//! All APIs are **experimental** (ADR-014).
+//!
+//! # Design
+//!
+//! `std::simd` does NOT provide load/store APIs.
+//! Wasm-specific `v128.load` / `v128.store` / bitwise raw intrinsics
+//! belong in `std::wasm`, not here.
