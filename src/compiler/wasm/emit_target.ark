@@ -13,6 +13,15 @@ fn is_gc_target(target: String) -> bool {
     false
 }
 
+fn is_simd_target(target: String) -> bool {
+    // SIMD (v128) is available on T2 (freestanding), T3 (p2), T5 (p3).
+    // T1 (wasm32-wasi-p1) does NOT support SIMD — scalar expansion is used.
+    if is_freestanding_target(clone(target)) { return true }
+    if contains(clone(target), String_from("-p2")) { return true }
+    if contains(clone(target), String_from("-p3")) { return true }
+    false
+}
+
 fn is_p2_wasi(wasi_version: String) -> bool {
     eq(clone(wasi_version), String_from("p2"))
 }

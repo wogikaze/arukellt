@@ -2108,6 +2108,40 @@ pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String
         )
         ctx_path.write_text(text, encoding="utf-8")
 
+    # 5. Remove GC enum variant fields from MirModule struct (added after
+    #    pinned wasm was built; the pinned wasm may miscompile struct literals
+    #    with more fields than it was compiled with).
+    mod_record_path = compiler_out / "mir_module_record.ark"
+    if mod_record_path.is_file():
+        text = mod_record_path.read_text(encoding="utf-8")
+        text = _replace_required(
+            text,
+            "    gc_enum_variant_sigs: Vec<String>,\n    gc_enum_variant_names: Vec<String>,\n",
+            "",
+            "remove gc_enum_variant fields from MirModule struct for bootstrap",
+        )
+        text = _replace_required(
+            text,
+            ", gc_enum_variant_sigs: Vec_new_String(), gc_enum_variant_names: Vec_new_String()",
+            "",
+            "remove gc_enum_variant initializers from MirModule_new for bootstrap",
+        )
+        mod_record_path.write_text(text, encoding="utf-8")
+
+    # 6. Stub out mir_prune_unreachable_for_t3 in session_corehir to avoid
+    #    crash when the pinned wasm's MIR pruning accesses corrupted
+    #    struct pointers (due to struct layout mismatch).
+    sess_path = compiler_out / "compiler_session_corehir.ark"
+    if sess_path.is_file():
+        text = sess_path.read_text(encoding="utf-8")
+        text = _replace_required(
+            text,
+            "    let _t3_pruned = mir::mir_prune_unreachable_for_t3(mir_module, export_roots)\n",
+            "    let _t3_pruned = 0\n",
+            "stub mir_prune_unreachable_for_t3 call for bootstrap",
+        )
+        sess_path.write_text(text, encoding="utf-8")
+
 
 def _prepare_flattened_selfhost_source(root: Path) -> Path:
     """Generate a flat-module overlay for bootstrapping with the pinned wasm."""
