@@ -1,0 +1,256 @@
+//! Operator overload trait definitions for `std::core::ops`.
+//!
+//! Defines the trait surface for operator overloading (Add, Sub, Mul, Div,
+//! Neg, Index, IndexMut, Deref) per ADR-038. Built-in scalar impls are
+//! provided for arithmetic operators.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+//!
+//! **Note:** Operator-to-trait resolution in the typechecker is tracked in
+//! #689. Until #689 is implemented, these traits are definable and implable
+//! but operator syntax (`+`, `[]`, `*`) does not yet resolve to them — only
+//! explicit method calls (`a.add(b)`) work via #688 trait method dispatch.
+
+use std::core
+
+/// Trait for types that support addition (`a + b`).
+trait Add {
+    fn add(self: Add, rhs: Add) -> Add
+}
+
+/// Trait for types that support subtraction (`a - b`).
+trait Sub {
+    fn sub(self: Sub, rhs: Sub) -> Sub
+}
+
+/// Trait for types that support multiplication (`a * b`).
+trait Mul {
+    fn mul(self: Mul, rhs: Mul) -> Mul
+}
+
+/// Trait for types that support division (`a / b`).
+trait Div {
+    fn div(self: Div, rhs: Div) -> Div
+}
+
+/// Trait for types that support remainder (`a % b`).
+trait Rem {
+    fn rem(self: Rem, rhs: Rem) -> Rem
+}
+
+/// Trait for types that support unary negation (`-a`).
+trait Neg {
+    fn neg(self: Neg) -> Neg
+}
+
+/// Trait for types that support bitwise AND (`a & b`).
+trait BitAnd {
+    fn bitand(self: BitAnd, rhs: BitAnd) -> BitAnd
+}
+
+/// Trait for types that support bitwise OR (`a | b`).
+trait BitOr {
+    fn bitor(self: BitOr, rhs: BitOr) -> BitOr
+}
+
+/// Trait for types that support bitwise XOR (`a ^ b`).
+trait BitXor {
+    fn bitxor(self: BitXor, rhs: BitXor) -> BitXor
+}
+
+/// Trait for types that support left shift (`a << b`).
+trait Shl {
+    fn shl(self: Shl, rhs: Shl) -> Shl
+}
+
+/// Trait for types that support right shift (`a >> b`).
+trait Shr {
+    fn shr(self: Shr, rhs: Shr) -> Shr
+}
+
+/// Trait for types that support logical NOT (`!a`).
+trait Not {
+    fn not(self: Not) -> Not
+}
+
+/// Trait for types that support indexed access (`a[i]`).
+trait Index {
+    fn index(self: Index, idx: i32) -> i32
+}
+
+/// Trait for types that support mutable indexed access (`a[i] = v`).
+trait IndexMut {
+    fn index_set(self: IndexMut, idx: i32, value: i32)
+}
+
+/// Trait for types that support dereference (`*a`).
+trait Deref {
+    fn deref(self: Deref) -> i32
+}
+
+// ---------------------------------------------------------------------------
+// Built-in scalar impls for arithmetic operators.
+// These allow `impl Add for i32` etc. to be used via trait method dispatch
+// (#688) once the typechecker resolves operator syntax to trait calls (#689).
+// ---------------------------------------------------------------------------
+
+/// `Add` impl for `i32` — delegates to the built-in `+` operator.
+impl Add for i32 {
+    fn add(self: i32, rhs: i32) -> i32 {
+        self + rhs
+    }
+}
+
+/// `Sub` impl for `i32` — delegates to the built-in `-` operator.
+impl Sub for i32 {
+    fn sub(self: i32, rhs: i32) -> i32 {
+        self - rhs
+    }
+}
+
+/// `Mul` impl for `i32` — delegates to the built-in `*` operator.
+impl Mul for i32 {
+    fn mul(self: i32, rhs: i32) -> i32 {
+        self * rhs
+    }
+}
+
+/// `Div` impl for `i32` — delegates to the built-in `/` operator.
+impl Div for i32 {
+    fn div(self: i32, rhs: i32) -> i32 {
+        self / rhs
+    }
+}
+
+/// `Rem` impl for `i32` — delegates to the built-in `%` operator.
+impl Rem for i32 {
+    fn rem(self: i32, rhs: i32) -> i32 {
+        self % rhs
+    }
+}
+
+/// `Neg` impl for `i32` — delegates to the built-in unary `-` operator.
+impl Neg for i32 {
+    fn neg(self: i32) -> i32 {
+        0 - self
+    }
+}
+
+/// `Add` impl for `i64` — delegates to the built-in `+` operator.
+impl Add for i64 {
+    fn add(self: i64, rhs: i64) -> i64 {
+        self + rhs
+    }
+}
+
+/// `Sub` impl for `i64` — delegates to the built-in `-` operator.
+impl Sub for i64 {
+    fn sub(self: i64, rhs: i64) -> i64 {
+        self - rhs
+    }
+}
+
+/// `Mul` impl for `i64` — delegates to the built-in `*` operator.
+impl Mul for i64 {
+    fn mul(self: i64, rhs: i64) -> i64 {
+        self * rhs
+    }
+}
+
+/// `Div` impl for `i64` — delegates to the built-in `/` operator.
+impl Div for i64 {
+    fn div(self: i64, rhs: i64) -> i64 {
+        self / rhs
+    }
+}
+
+/// `Neg` impl for `i64` — delegates to the built-in unary `-` operator.
+impl Neg for i64 {
+    fn neg(self: i64) -> i64 {
+        0 - self
+    }
+}
+
+/// `Add` impl for `f64` — delegates to the built-in `+` operator.
+impl Add for f64 {
+    fn add(self: f64, rhs: f64) -> f64 {
+        self + rhs
+    }
+}
+
+/// `Sub` impl for `f64` — delegates to the built-in `-` operator.
+impl Sub for f64 {
+    fn sub(self: f64, rhs: f64) -> f64 {
+        self - rhs
+    }
+}
+
+/// `Mul` impl for `f64` — delegates to the built-in `*` operator.
+impl Mul for f64 {
+    fn mul(self: f64, rhs: f64) -> f64 {
+        self * rhs
+    }
+}
+
+/// `Div` impl for `f64` — delegates to the built-in `/` operator.
+impl Div for f64 {
+    fn div(self: f64, rhs: f64) -> f64 {
+        self / rhs
+    }
+}
+
+/// `Neg` impl for `f64` — delegates to the built-in unary `-` operator.
+impl Neg for f64 {
+    fn neg(self: f64) -> f64 {
+        0.0 - self
+    }
+}
+
+/// `BitAnd` impl for `i32` — delegates to the built-in `&` operator.
+impl BitAnd for i32 {
+    fn bitand(self: i32, rhs: i32) -> i32 {
+        self & rhs
+    }
+}
+
+/// `BitOr` impl for `i32` — delegates to the built-in `|` operator.
+impl BitOr for i32 {
+    fn bitor(self: i32, rhs: i32) -> i32 {
+        self | rhs
+    }
+}
+
+/// `BitXor` impl for `i32` — delegates to the built-in `^` operator.
+impl BitXor for i32 {
+    fn bitxor(self: i32, rhs: i32) -> i32 {
+        self ^ rhs
+    }
+}
+
+/// `Shl` impl for `i32` — delegates to the built-in `<<` operator.
+impl Shl for i32 {
+    fn shl(self: i32, rhs: i32) -> i32 {
+        self << rhs
+    }
+}
+
+/// `Shr` impl for `i32` — delegates to the built-in `>>` operator.
+impl Shr for i32 {
+    fn shr(self: i32, rhs: i32) -> i32 {
+        self >> rhs
+    }
+}
+
+/// `Not` impl for `i32` — delegates to the built-in `!` operator.
+impl Not for i32 {
+    fn not(self: i32) -> i32 {
+        ! self
+    }
+}
+
+/// `Not` impl for `bool` — logical negation.
+impl Not for bool {
+    fn not(self: bool) -> bool {
+        ! self
+    }
+}
