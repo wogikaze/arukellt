@@ -76,10 +76,10 @@ run_supported = false
 role = "Not started: WASI p3 spec not finalized"
 
 [verification]
-fixture_passed = 651
+fixture_passed = 654
 fixture_skipped = 29
 fixture_failures = 0
-fixture_manifest_count = 1165
+fixture_manifest_count = 1168
 checks_passed = 168
 checks_total = 168
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"

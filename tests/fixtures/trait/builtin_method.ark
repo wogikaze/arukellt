@@ -1,0 +1,21 @@
+use std::host::stdio
+
+fn main() {
+    // String methods
+    let s = String_from("hello")
+    stdio::println(s.len())
+
+    // i32 methods
+    let n = 42
+    stdio::println(n.to_string())
+
+    // Vec methods
+    let v = Vec_new_i32()
+    v.push(10)
+    v.push(20)
+    v.push(30)
+    stdio::println(v.len())
+    stdio::println(v.get_unchecked(0))
+    stdio::println(v.get_unchecked(1))
+    stdio::println(v.get_unchecked(2))
+}

@@ -731,6 +731,7 @@ run:t3/hello.ark
 run:t3/string_intern.ark
 run:test_assert/assert_pass.ark
 run:trait/basic_impl.ark
+run:trait/builtin_method.ark
 run:trait/method_chain.ark
 run:trait/operator_overload.ark
 run:trait/trait_impl.ark
@@ -928,6 +929,7 @@ t3-compile:t3/if_true_println_string.ark
 t3-compile:t3/match_println_i32.ark
 t3-compile:t3/println_string.ark
 t3-compile:trait/basic_impl.ark
+t3-compile:trait/builtin_method.ark
 t3-compile:trait/method_chain.ark
 t3-compile:trait/operator_overload.ark
 t3-compile:trait/trait_impl.ark
@@ -1124,6 +1126,7 @@ t3-run:t3/arithmetic.ark
 t3-run:t3/hello.ark
 t3-run:t3/string_intern.ark
 t3-run:trait/basic_impl.ark
+t3-run:trait/builtin_method.ark
 t3-run:trait/method_chain.ark
 t3-run:trait/operator_overload.ark
 t3-run:trait/trait_impl.ark

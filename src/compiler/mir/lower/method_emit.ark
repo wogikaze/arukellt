@@ -15,8 +15,28 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32) -> i
     if len(rtn) > 0 {
         ctx_set_local_type(ctx, dest, rtn)
     }
+    // Override return type for builtin methods that return String.
+    // Without this, the return type defaults to "i32" (string pointer on
+    // linear memory), causing println to re-convert the result.
+    let builtin_rtn = mir_builtin_method_return_type(callee_name)
+    if len(builtin_rtn) > 0 {
+        ctx_set_local_type(ctx, dest, builtin_rtn)
+    }
     if call_ret_vt == value_types::VT_VOID() {
         return 0 - 1
     }
     dest
+}
+
+fn mir_builtin_method_return_type(callee: String) -> String {
+    if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "i64_to_string") || eq(clone(callee), "f64_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "char_to_string") {
+        return String_from("String")
+    }
+    if eq(clone(callee), "clone") || eq(clone(callee), "String_from") {
+        return String_from("String")
+    }
+    if eq(clone(callee), "concat") {
+        return String_from("String")
+    }
+    String_from("")
 }
