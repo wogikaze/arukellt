@@ -64,8 +64,10 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
         }
     }
     if next_op == opcodes::MIR_LOCAL_GET() {
-        if is_load_followed_by_consumer(next2_op) {
-            return true
+        if next_arg0 != inst_accessors_operands::MirInst_dest(inst) {
+            if is_load_followed_by_consumer(next2_op) {
+                return true
+            }
         }
     }
     if is_arith_consumer_op(next_op) {
