@@ -2358,9 +2358,46 @@ class SelfhostFixpointResult:
     output: str
 
 
+# ── Runtime lock helper ──────────────────────────────────────────────────────
+
+def _with_runtime_lock(fn):
+    """Serialize selfhost compile/parity operations across concurrent agents.
+
+    Wraps ``fn`` in an exclusive flock on ``.build/selfhost-runtime.lock``
+    so that concurrent agents cannot overwrite shared s2/s3 wasm artifacts
+    or read half-written files. See ``scripts/selfhost/runtime_lock.py``.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "runtime_lock",
+        Path(__file__).parent / "runtime_lock.py",
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.with_selfhost_runtime_lock(fn)
+
+
 # ── run_fixpoint ──────────────────────────────────────────────────────────────
 
 def run_fixpoint(
+    root: Path,
+    dry_run: bool,
+    no_build: bool = True,
+) -> SelfhostFixpointResult:
+    """Selfhost-native fixpoint gate (ADR-029).
+
+    Serialized via runtime_lock to prevent concurrent agents from
+    overwriting shared s2/s3 wasm artifacts.
+    """
+    if dry_run:
+        return _run_fixpoint_locked(root, dry_run, no_build)
+    return _with_runtime_lock(lambda: _run_fixpoint_locked(root, dry_run, no_build))
+
+
+def _run_fixpoint_locked(
     root: Path,
     dry_run: bool,
     no_build: bool = True,
@@ -2566,14 +2603,22 @@ def _normalize_fixture_parity_output(out: str) -> str:
 def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
-    For each ``run:`` fixture in the manifest:
-        - compile with pinned wasm and with current selfhost wasm
-        - execute both wasms; require stdout/stderr/exit-code equal
+    Serialized via runtime_lock to prevent concurrent agents from
+    overwriting shared s2/s3 wasm artifacts.
     """
     if dry_run:
         print("DRY-RUN: run_fixture_parity()")
         return (0, "")
+    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root))
 
+
+def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
+    """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
+
+    For each ``run:`` fixture in the manifest:
+        - compile with pinned wasm and with current selfhost wasm
+        - execute both wasms; require stdout/stderr/exit-code equal
+    """
     lines: list[str] = []
 
     pinned = _find_pinned_wasm(root)
@@ -2733,14 +2778,22 @@ DIAG_PARITY_SKIP: frozenset[str] = frozenset({
 def run_diag_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     """Pure-selfhost diagnostic snapshot gate (ADR-029).
 
-    For each ``diag:`` fixture, run the current selfhost compiler under
-    wasmtime with ``check`` and require its output to contain the
-    committed ``.selfhost.diag`` (or ``.diag`` fallback) pattern.
+    Serialized via runtime_lock to prevent concurrent agents from
+    overwriting shared s2/s3 wasm artifacts.
     """
     if dry_run:
         print("DRY-RUN: run_diag_parity()")
         return (0, "")
+    return _with_runtime_lock(lambda: _run_diag_parity_locked(root))
 
+
+def _run_diag_parity_locked(root: Path) -> tuple[int, str]:
+    """Pure-selfhost diagnostic snapshot gate (ADR-029).
+
+    For each ``diag:`` fixture, run the current selfhost compiler under
+    wasmtime with ``check`` and require its output to contain the
+    committed ``.selfhost.diag`` (or ``.diag`` fallback) pattern.
+    """
     lines: list[str] = []
 
     pinned = _find_pinned_wasm(root)
@@ -2834,18 +2887,7 @@ def run_fmt_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     if dry_run:
         print("DRY-RUN: run_fmt_parity()")
         return (0, "")
-
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(
-        "runtime_lock",
-        root / "scripts" / "selfhost" / "runtime_lock.py",
-    )
-    if spec is None or spec.loader is None:
-        return (1, f"{RED}error: missing scripts/selfhost/runtime_lock.py{NC}\n")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(lambda: _run_fmt_parity_locked(root))
+    return _with_runtime_lock(lambda: _run_fmt_parity_locked(root))
 
 
 def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
@@ -2947,6 +2989,15 @@ def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
 # ── run_parity ────────────────────────────────────────────────────────────────
 
 def _run_cli_parity(root: Path) -> tuple[int, str]:
+    """Pure-selfhost CLI snapshot gate (ADR-029).
+
+    Serialized via runtime_lock to prevent concurrent agents from
+    overwriting shared s2/s3 wasm artifacts.
+    """
+    return _with_runtime_lock(lambda: _run_cli_parity_locked(root))
+
+
+def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
     """Pure-selfhost CLI snapshot gate (ADR-029).
 
     Compares ``--version`` and ``--help`` byte-equal against committed
