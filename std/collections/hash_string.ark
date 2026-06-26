@@ -4,20 +4,7 @@
 //! Ark while backing storage differs between flat `HashMap<String, i32>` (T1) and a GC
 //! struct with parallel arrays (T3).
 
-fn hash_string_key(key: String) -> i32 {
-    let mut h = 216613626
-    let n = len(key)
-    let mut i = 0
-    while i < n {
-        let ch = char_at(key, i)
-        h = h * 16777619 ^ ch
-        if h < 0 {
-            h = 0 - h
-        }
-        i = i + 1
-    }
-    h
-}
+use std::core::hash
 
 fn hm_si_clear_slots(m: HashMap<String, i32>, cap: i32) {
     __hm_si_set_size(m, 0)
@@ -36,7 +23,7 @@ pub fn hashmap_str_i32_new() -> HashMap<String, i32> {
 /// String-keyed set: store key in keys array, value in values array.
 pub fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool {
     let cap: i32 = __hm_si_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut done: bool = false
@@ -67,7 +54,7 @@ pub fn hashmap_str_set(m: HashMap<String, i32>, key: String, value: i32) -> bool
 /// String-keyed get: return Some(value) or None.
 pub fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
     let cap: i32 = __hm_si_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<i32> = None
@@ -97,7 +84,7 @@ pub fn hashmap_str_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
 /// String-keyed contains.
 pub fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
     let cap: i32 = __hm_si_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut found: bool = false
@@ -127,7 +114,7 @@ pub fn hashmap_str_contains(m: HashMap<String, i32>, key: String) -> bool {
 /// String-keyed remove.
 pub fn hashmap_str_remove(m: HashMap<String, i32>, key: String) -> Option<i32> {
     let cap: i32 = __hm_si_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<i32> = None
@@ -167,17 +154,9 @@ pub fn hashmap_i32_str_new() -> HashMap<i32, String> {
     __hm_is_new()
 }
 
-fn hash_i32_key(key: i32) -> i32 {
-    let mut h = key
-    if h < 0 {
-        h = 0 - h
-    }
-    h
-}
-
 pub fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> bool {
     let cap: i32 = __hm_is_cap(m)
-    let h: i32 = hash_i32_key(key)
+    let h: i32 = hash::hash_i32(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut done: bool = false
@@ -207,7 +186,7 @@ pub fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> 
 
 pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> {
     let cap: i32 = __hm_is_cap(m)
-    let h: i32 = hash_i32_key(key)
+    let h: i32 = hash::hash_i32(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<String> = None
@@ -236,7 +215,7 @@ pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> 
 
 pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
     let cap: i32 = __hm_is_cap(m)
-    let h: i32 = hash_i32_key(key)
+    let h: i32 = hash::hash_i32(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut found: bool = false
@@ -265,7 +244,7 @@ pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
 
 pub fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<String> {
     let cap: i32 = __hm_is_cap(m)
-    let h: i32 = hash_i32_key(key)
+    let h: i32 = hash::hash_i32(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<String> = None
@@ -306,7 +285,7 @@ pub fn hashmap_str_str_new() -> HashMap<String, String> {
 
 pub fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: String) -> bool {
     let cap: i32 = __hm_ss_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut done: bool = false
@@ -336,7 +315,7 @@ pub fn hashmap_str_str_set(m: HashMap<String, String>, key: String, value: Strin
 
 pub fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<String> {
     let cap: i32 = __hm_ss_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<String> = None
@@ -365,7 +344,7 @@ pub fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<St
 
 pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool {
     let cap: i32 = __hm_ss_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut found: bool = false
@@ -394,7 +373,7 @@ pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool
 
 pub fn hashmap_str_str_remove(m: HashMap<String, String>, key: String) -> Option<String> {
     let cap: i32 = __hm_ss_cap(m)
-    let h: i32 = hash_string_key(key)
+    let h: i32 = hash::hash_string(key)
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: Option<String> = None
