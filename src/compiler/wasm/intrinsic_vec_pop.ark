@@ -8,6 +8,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_leb
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsic_vec_pop_gc
 
 // Handler for: vec_pop
@@ -131,6 +132,5 @@ fn emit_alloc_option_ptr(w: WasmWriter, s_optptr: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 8)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
 }

@@ -15,6 +15,7 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::intrinsics::helpers_core_heap
 use mir::value_types
 
 fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
@@ -35,8 +36,7 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
 }
 
 fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

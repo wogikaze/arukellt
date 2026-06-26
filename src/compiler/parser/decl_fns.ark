@@ -17,8 +17,11 @@ fn parse_fn_decl(p: Parser) -> AstNode {
         let body = expr::parse_expr(p)
         fn_sig::mark_expr_body(node, body)
     } else {
-        let body = stmt::parse_block(p)
-        core_ast_children::AstNode_push_child(node, body)
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_LBRACE() {
+            let body = stmt::parse_block(p)
+            core_ast_children::AstNode_push_child(node, body)
+        }
     }
     node
 }

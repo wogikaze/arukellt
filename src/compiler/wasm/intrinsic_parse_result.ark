@@ -2,6 +2,7 @@
 
 use wasm::intrinsic_parse_result_errors
 use wasm::opcodes
+use wasm::intrinsics::helpers_core_heap
 
 fn emit_invalid_float_error_result(w: WasmWriter) {
     intrinsic_parse_result_errors::emit_invalid_float_error_result(w)
@@ -39,8 +40,7 @@ fn emit_f64_ok_result(w: WasmWriter, value_addr: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 12)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
 }
 
 fn emit_i32_ok_result(w: WasmWriter, ok_local: i32, value_addr: i32) {
@@ -99,8 +99,7 @@ fn emit_integer_ok_finish(w: WasmWriter, ok_local: i32, alloc_size: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, alloc_size)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, ok_local)
 }

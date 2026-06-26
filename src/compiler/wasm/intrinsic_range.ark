@@ -2,6 +2,7 @@ use wasm::opcodes
 // Arukellt Selfhost - range intrinsic handlers.
 
 use wasm::ctx_scratch
+use wasm::intrinsics::helpers_core_heap
 
 fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -34,8 +35,7 @@ fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 8)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
     return true
 }
 

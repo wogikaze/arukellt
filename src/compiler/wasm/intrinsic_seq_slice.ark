@@ -2,6 +2,7 @@ use mir::inst_accessors_operands
 use wasm::ctx_scratch
 use wasm::inst_ctx
 use wasm::opcodes
+use wasm::intrinsics::helpers_core_heap
 
 // Handler for: seq::take_i32
 fn emit_seq_take_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -164,8 +165,7 @@ fn emit_seq_slice_alloc_header(w: WasmWriter, result_len_local: i32, result_vec_
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 12)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, 36)
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
 }
 
 fn emit_seq_slice_alloc_data(w: WasmWriter, result_vec_local: i32, result_data_local: i32) {
@@ -199,8 +199,7 @@ fn emit_seq_slice_reserve_payload(w: WasmWriter, result_len_local: i32, result_d
     writer_leb::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, 36)
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
 }
 
 fn emit_seq_slice_copy_memory(w: WasmWriter, result_len_local: i32, src_data_start_local: i32, result_data_local: i32) {

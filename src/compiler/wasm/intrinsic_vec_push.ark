@@ -8,6 +8,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_leb
+use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsic_vec_push_gc
 
 // Handler for: vec_push, push
@@ -77,8 +78,7 @@ fn emit_vec_push_growth_alloc(w: WasmWriter, cap_local: i32, newdata_local: i32,
     writer_leb::emit_leb128_s(w, elem_size)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_heap::emit_heap_set(w)
 }
 
 fn emit_vec_push_growth_copy_existing(w: WasmWriter, vec_local: i32, data_local: i32, newdata_local: i32, elem_size: i32) {
