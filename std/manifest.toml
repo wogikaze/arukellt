@@ -7039,3 +7039,167 @@ doc_category = "simd"
 stability = "experimental"
 params = ["v128", "v128"]
 returns = "v128"
+
+# === std::wasm v128 intrinsics ===
+
+[[functions]]
+name = "v128_load"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32"]
+returns = "v128"
+doc = "Load a v128 from linear memory at ptr + offset."
+
+[[functions]]
+name = "v128_store"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32", "v128"]
+returns = "()"
+doc = "Store a v128 to linear memory at ptr + offset."
+
+[[functions]]
+name = "v128_load_splat"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32"]
+returns = "v128"
+doc = "Load a single byte from linear memory and splat it to all 16 lanes."
+
+[[functions]]
+name = "v128_load_lane"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32", "v128", "i32"]
+returns = "v128"
+doc = "Load a single lane from linear memory into a v128 vector."
+
+[[functions]]
+name = "v128_store_lane"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32", "v128", "i32"]
+returns = "()"
+doc = "Store a single lane from a v128 vector to linear memory."
+
+[[functions]]
+name = "v128_and"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+doc = "Bitwise AND of two v128 vectors."
+
+[[functions]]
+name = "v128_or"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+doc = "Bitwise OR of two v128 vectors."
+
+[[functions]]
+name = "v128_xor"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+doc = "Bitwise XOR of two v128 vectors."
+
+[[functions]]
+name = "v128_not"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Bitwise NOT of a v128 vector."
+
+[[functions]]
+name = "v128_andnot"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128", "v128"]
+returns = "v128"
+doc = "Bitwise ANDNOT (a & ~b) of two v128 vectors."
+
+[[functions]]
+name = "v128_bitselect"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128", "v128", "v128"]
+returns = "v128"
+doc = "Bitwise select: for each bit, choose a if c bit is 1 else b."
+
+[[functions]]
+name = "v128_any_true"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "i32"
+doc = "Return 1 if any bit in the v128 is set, 0 otherwise."
+
+[[functions]]
+name = "v128_reinterpret_i8x16"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Reinterpret v128 as i8x16 (no-op, same bits)."
+
+[[functions]]
+name = "v128_reinterpret_i16x8"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Reinterpret v128 as i16x8 (no-op, same bits)."
+
+[[functions]]
+name = "v128_reinterpret_i32x4"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Reinterpret v128 as i32x4 (no-op, same bits)."
+
+[[functions]]
+name = "v128_reinterpret_i64x2"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Reinterpret v128 as i64x2 (no-op, same bits)."
+
+[[functions]]
+name = "v128_reinterpret_f32x4"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Reinterpret v128 as f32x4 (no-op, same bits)."
+
+[[functions]]
+name = "v128_reinterpret_f64x2"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["v128"]
+returns = "v128"
+doc = "Reinterpret v128 as f64x2 (no-op, same bits)."

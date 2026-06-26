@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-25T22:17:29Z",
+  "generated_at": "2026-06-26T00:59:00Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -70,7 +70,8 @@
         "641"
       ],
       "blocks_issue_ids": [
-        "698"
+        "698",
+        "699"
       ],
       "acceptance": {
         "checked": 0,
@@ -530,8 +531,8 @@
         "696"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 12
+        "checked": 7,
+        "unchecked": 5
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -630,10 +631,12 @@
         "686",
         "649"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "699"
+      ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 49
+        "checked": 38,
+        "unchecked": 11
       },
       "orchestration": {
         "class": "design-ready",
@@ -792,6 +795,31 @@
       },
       "orchestration": {
         "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "649",
+        "698"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "design-ready",
         "upstream_notes": "None"
       }
     },

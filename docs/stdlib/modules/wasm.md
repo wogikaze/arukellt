@@ -37,8 +37,8 @@ let i32_type = valtype_i32()       // 0x7f
 ## `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)
-- Manifest-backed functions: 61
-- Stability: experimental 61
+- Manifest-backed functions: 79
+- Stability: experimental 79
 
 Experimental WebAssembly helpers.
 
@@ -306,3 +306,103 @@ Wasm opcode: i32.sub (0x6b).
 #### `op_i32_mul`
 
 Wasm opcode: i32.mul (0x6c).
+
+### v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `v128_load` | `(i32, i32) -> v128` | `experimental` | Load a v128 from linear memory at ptr + offset. |
+| `v128_store` | `(i32, i32, v128) -> ()` | `experimental` | Store a v128 to linear memory at ptr + offset. |
+| `v128_load_splat` | `(i32, i32) -> v128` | `experimental` | Load a single byte and splat to all 16 lanes. |
+| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `experimental` | Load a single lane from linear memory. |
+| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `experimental` | Store a single lane to linear memory. |
+| `v128_and` | `(v128, v128) -> v128` | `experimental` | Bitwise AND of two v128 vectors. |
+| `v128_or` | `(v128, v128) -> v128` | `experimental` | Bitwise OR of two v128 vectors. |
+| `v128_xor` | `(v128, v128) -> v128` | `experimental` | Bitwise XOR of two v128 vectors. |
+| `v128_not` | `(v128) -> v128` | `experimental` | Bitwise NOT of a v128 vector. |
+| `v128_andnot` | `(v128, v128) -> v128` | `experimental` | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
+| `v128_bitselect` | `(v128, v128, v128) -> v128` | `experimental` | Bitwise select: for each bit, choose a if c bit is 1 else b. |
+| `v128_any_true` | `(v128) -> i32` | `experimental` | Return 1 if any bit in the v128 is set, 0 otherwise. |
+
+#### `v128_load`
+
+Load a v128 from linear memory at ptr + offset.
+
+#### `v128_store`
+
+Store a v128 to linear memory at ptr + offset.
+
+#### `v128_load_splat`
+
+Load a single byte from linear memory and splat it to all 16 lanes.
+
+#### `v128_load_lane`
+
+Load a single lane from linear memory into a v128 vector.
+
+#### `v128_store_lane`
+
+Store a single lane from a v128 vector to linear memory.
+
+#### `v128_and`
+
+Bitwise AND of two v128 vectors.
+
+#### `v128_or`
+
+Bitwise OR of two v128 vectors.
+
+#### `v128_xor`
+
+Bitwise XOR of two v128 vectors.
+
+#### `v128_not`
+
+Bitwise NOT of a v128 vector.
+
+#### `v128_andnot`
+
+Bitwise ANDNOT (a & ~b) of two v128 vectors.
+
+#### `v128_bitselect`
+
+Bitwise select: for each bit, choose a if c bit is 1 else b.
+
+#### `v128_any_true`
+
+Return 1 if any bit in the v128 is set, 0 otherwise.
+
+### v128 reinterpret family (no-op at v128 level, just type casting)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `v128_reinterpret_i8x16` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i8x16 (no-op, same bits). |
+| `v128_reinterpret_i16x8` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i16x8 (no-op, same bits). |
+| `v128_reinterpret_i32x4` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i32x4 (no-op, same bits). |
+| `v128_reinterpret_i64x2` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i64x2 (no-op, same bits). |
+| `v128_reinterpret_f32x4` | `(v128) -> v128` | `experimental` | Reinterpret v128 as f32x4 (no-op, same bits). |
+| `v128_reinterpret_f64x2` | `(v128) -> v128` | `experimental` | Reinterpret v128 as f64x2 (no-op, same bits). |
+
+#### `v128_reinterpret_i8x16`
+
+Reinterpret v128 as i8x16 (no-op, same bits).
+
+#### `v128_reinterpret_i16x8`
+
+Reinterpret v128 as i16x8 (no-op, same bits).
+
+#### `v128_reinterpret_i32x4`
+
+Reinterpret v128 as i32x4 (no-op, same bits).
+
+#### `v128_reinterpret_i64x2`
+
+Reinterpret v128 as i64x2 (no-op, same bits).
+
+#### `v128_reinterpret_f32x4`
+
+Reinterpret v128 as f32x4 (no-op, same bits).
+
+#### `v128_reinterpret_f64x2`
+
+Reinterpret v128 as f64x2 (no-op, same bits).

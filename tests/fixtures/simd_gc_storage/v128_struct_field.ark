@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::simd::i32x4
+
+struct Vec4 {
+    x: v128
+}
+
+fn main() {
+    let v = i32x4::splat(42)
+    let s = Vec4 { x: v }
+    let lane0 = i32x4::extract_lane(s.x, 0)
+    stdio::println(i32_to_string(lane0))
+}

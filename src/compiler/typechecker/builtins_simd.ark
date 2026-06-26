@@ -201,6 +201,15 @@ fn simd_builtin_call_return_type(name: String) -> TypeInfo {
     // i64-returning functions
     if eq(clone(name), String_from("__simd_i64x2_extract_lane")) { return simple_type(commands::TY_I64()) }
 
+    // std::wasm raw v128 load/store intrinsics (ADR-037 §11)
+    // v128-returning functions
+    if eq(clone(name), String_from("__wasm_v128_load")) { return simple_type(commands::TY_V128()) }
+    if eq(clone(name), String_from("__wasm_v128_load_splat")) { return simple_type(commands::TY_V128()) }
+    if eq(clone(name), String_from("__wasm_v128_load_lane")) { return simple_type(commands::TY_V128()) }
+    // void-returning functions
+    if eq(clone(name), String_from("__wasm_v128_store")) { return simple_type(commands::TY_UNIT()) }
+    if eq(clone(name), String_from("__wasm_v128_store_lane")) { return simple_type(commands::TY_UNIT()) }
+
     // Unknown
     simple_type(commands::TY_UNKNOWN())
 }

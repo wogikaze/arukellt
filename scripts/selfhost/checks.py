@@ -2026,49 +2026,24 @@ def _bootstrap_overlay_root(root: Path) -> Path:
 
 
 def _patch_bootstrap_stub_static_dispatch(compiler_out: Path) -> None:
-    """Stub out static-dispatch monomorphization for pinned bootstrap.
+    """Stub out problematic functions for pinned bootstrap.
 
-    The static dispatch commit (#688) added 3 new fields to LowerCtx
-    (mono_type_param_names, mono_type_param_types, mono_instances) and
-    new functions in ctx_mono_type_params.ark.  The pinned wasm (from
-    before #688) produces incorrect field offsets for the 50-field
-    LowerCtx struct, corrupting the module pointer during MIR lowering.
+    The pinned wasm computes struct layouts at runtime from the source code,
+    so struct field changes are handled correctly.  However, some new
+    functions introduced after the pinned wasm was built trigger crashes
+    during self-compilation.  We stub out these functions to allow bootstrap.
 
-    We remove the 3 new fields from the struct definition and initializer
-    (reverting to 47 fields), and stub out all static-dispatch functions
-    to no-ops.  Static dispatch is not needed for bootstrap.
+    Key insight: do NOT remove struct fields from definitions.  The pinned
+    wasm reads struct definitions from source and computes field offsets at
+    runtime, so adding fields is safe.  Removing fields while leaving
+    accessor functions intact causes memory corruption (accessors read/write
+    past the end of the allocated struct).
     """
-    # 1. Remove the 3 new fields from LowerCtx struct definition
-    types_path = compiler_out / "mir_lower_ctx_types.ark"
-    if types_path.is_file():
-        text = types_path.read_text(encoding="utf-8")
-        text = _replace_required(
-            text,
-            "    mono_type_param_names: Vec<String>,\n    mono_type_param_types: Vec<String>,\n    mono_instances: Vec<MonoInstance>,\n",
-            "",
-            "remove mono_type_param fields from LowerCtx struct for bootstrap",
-        )
-        types_path.write_text(text, encoding="utf-8")
-
-    # 2. Remove the 3 new field initializers from LowerCtx_new_for_target
-    init_path = compiler_out / "mir_lower_ctx_init.ark"
-    if init_path.is_file():
-        text = init_path.read_text(encoding="utf-8")
-        text = _replace_required(
-            text,
-            "        mono_type_param_names: Vec_new_String(),\n        mono_type_param_types: Vec_new_String(),\n        mono_instances: Vec_new_MonoInstance(),\n",
-            "",
-            "remove mono_type_param initializers from LowerCtx_new_for_target for bootstrap",
-        )
-        init_path.write_text(text, encoding="utf-8")
-
-    # 3. Stub out all ctx_mono_type_params functions
+    # 1. Stub out all ctx_mono_type_params functions (static dispatch)
     path = compiler_out / "mir_lower_ctx_mono_type_params.ark"
     if path.is_file():
         path.write_text(
             """// Arukellt Selfhost - Bootstrap stub: static dispatch disabled.
-// The pinned wasm cannot correctly compile the 50-field LowerCtx struct
-// introduced by #688, so we stub out all static-dispatch functions.
 
 use mir_lower_ctx_types
 
@@ -2096,41 +2071,22 @@ pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String
             encoding="utf-8",
         )
 
-    # 4. Remove the ctx.mono_instances assignment in entry_context.ark
-    ctx_path = compiler_out / "mir_lower_entry_context.ark"
-    if ctx_path.is_file():
-        text = ctx_path.read_text(encoding="utf-8")
-        text = _replace_optional(
-            text,
-            "    ctx.mono_instances = mono_view::mir_lower_mono_view_instances(mono_view)\n",
-            "",
-            "remove ctx.mono_instances assignment for bootstrap",
-        )
-        ctx_path.write_text(text, encoding="utf-8")
+    # 2. Stub out trait method registry (static dispatch)
+    tr_path = compiler_out / "typechecker_trait_method_registry.ark"
+    if tr_path.is_file():
+        tr_path.write_text(
+            """// Arukellt Selfhost - Bootstrap stub: trait method registry disabled.
+pub fn register_trait_method_sigs(env: TypeEnv, decls: Vec<AstNode>) {
+}
 
-    # 5. Remove GC enum variant fields from MirModule struct (added after
-    #    pinned wasm was built; the pinned wasm may miscompile struct literals
-    #    with more fields than it was compiled with).
-    mod_record_path = compiler_out / "mir_module_record.ark"
-    if mod_record_path.is_file():
-        text = mod_record_path.read_text(encoding="utf-8")
-        text = _replace_required(
-            text,
-            "    gc_enum_variant_sigs: Vec<String>,\n    gc_enum_variant_names: Vec<String>,\n",
-            "",
-            "remove gc_enum_variant fields from MirModule struct for bootstrap",
+pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: String) -> FnSig {
+    typechecker_contract_fn_sig::FnSig_empty(typechecker_commands::TY_UNKNOWN())
+}
+""",
+            encoding="utf-8",
         )
-        text = _replace_required(
-            text,
-            ", gc_enum_variant_sigs: Vec_new_String(), gc_enum_variant_names: Vec_new_String()",
-            "",
-            "remove gc_enum_variant initializers from MirModule_new for bootstrap",
-        )
-        mod_record_path.write_text(text, encoding="utf-8")
 
-    # 6. Stub out mir_prune_unreachable_for_t3 in session_corehir to avoid
-    #    crash when the pinned wasm's MIR pruning accesses corrupted
-    #    struct pointers (due to struct layout mismatch).
+    # 3. Stub out mir_prune_unreachable_for_t3 in session_corehir
     sess_path = compiler_out / "compiler_session_corehir.ark"
     if sess_path.is_file():
         text = sess_path.read_text(encoding="utf-8")

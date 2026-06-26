@@ -503,3 +503,85 @@ pub fn memory_fill(ptr: i32, val: i32, len: i32) {
 // export_count
 // magic: \0asm
 // version: 1
+
+// --- v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3) ---
+
+/// Load a v128 from linear memory at ptr + offset.
+pub fn v128_load(ptr: i32, offset: i32) -> v128 {
+    __wasm_v128_load(ptr, offset)
+}
+
+/// Store a v128 to linear memory at ptr + offset.
+pub fn v128_store(ptr: i32, offset: i32, val: v128) {
+    __wasm_v128_store(ptr, offset, val)
+}
+
+/// Load a single byte and splat to all 16 lanes.
+pub fn v128_load_splat(ptr: i32, offset: i32) -> v128 {
+    __wasm_v128_load_splat(ptr, offset)
+}
+
+/// Load a single lane from linear memory.
+pub fn v128_load_lane(ptr: i32, offset: i32, v: v128, lane: i32) -> v128 {
+    __wasm_v128_load_lane(ptr, offset, v, lane)
+}
+
+/// Store a single lane to linear memory.
+pub fn v128_store_lane(ptr: i32, offset: i32, v: v128, lane: i32) {
+    __wasm_v128_store_lane(ptr, offset, v, lane)
+}
+
+/// Bitwise AND of two v128 vectors.
+pub fn v128_and(a: v128, b: v128) -> v128 {
+    __simd_v128_and(a, b)
+}
+
+/// Bitwise OR of two v128 vectors.
+pub fn v128_or(a: v128, b: v128) -> v128 {
+    __simd_v128_or(a, b)
+}
+
+/// Bitwise XOR of two v128 vectors.
+pub fn v128_xor(a: v128, b: v128) -> v128 {
+    __simd_v128_xor(a, b)
+}
+
+/// Bitwise NOT of a v128 vector.
+pub fn v128_not(a: v128) -> v128 {
+    __simd_v128_not(a)
+}
+
+/// Bitwise ANDNOT (a & ~b) of two v128 vectors.
+pub fn v128_andnot(a: v128, b: v128) -> v128 {
+    __simd_v128_andnot(a, b)
+}
+
+/// Bitwise select: for each bit, choose a if c bit is 1 else b.
+pub fn v128_bitselect(a: v128, b: v128, c: v128) -> v128 {
+    __simd_v128_bitselect(a, b, c)
+}
+
+/// Return 1 if any bit in the v128 is set, 0 otherwise.
+pub fn v128_any_true(a: v128) -> i32 {
+    __simd_v128_any_true(a)
+}
+
+// --- v128 reinterpret family (no-op at v128 level, just type casting) ---
+
+/// Reinterpret v128 as i8x16 (no-op, same bits).
+pub fn v128_reinterpret_i8x16(v: v128) -> v128 { v }
+
+/// Reinterpret v128 as i16x8 (no-op, same bits).
+pub fn v128_reinterpret_i16x8(v: v128) -> v128 { v }
+
+/// Reinterpret v128 as i32x4 (no-op, same bits).
+pub fn v128_reinterpret_i32x4(v: v128) -> v128 { v }
+
+/// Reinterpret v128 as i64x2 (no-op, same bits).
+pub fn v128_reinterpret_i64x2(v: v128) -> v128 { v }
+
+/// Reinterpret v128 as f32x4 (no-op, same bits).
+pub fn v128_reinterpret_f32x4(v: v128) -> v128 { v }
+
+/// Reinterpret v128 as f64x2 (no-op, same bits).
+pub fn v128_reinterpret_f64x2(v: v128) -> v128 { v }

@@ -1185,3 +1185,13 @@ t3-compile:t3/array_gc.ark
 t3-run:t3/array_gc.ark
 t3-compile:t3/string_gc.ark
 t3-run:t3/string_gc.ark
+# SIMD fixtures (issue #698)
+run:simd_conformance/f32x4_basic.ark
+run:simd_conformance/i32x4_basic.ark
+run:simd_conformance/v128_bitwise.ark
+run:simd_lowering/v128_type_check.ark
+run:simd_lowering/t1_scalar_expansion.ark
+run:simd_gc_storage/v128_struct_field.ark
+run:simd_gc_storage/v128_array_element.ark
+run:f32_basic/basic.ark
+run:v128_basic/basic.ark

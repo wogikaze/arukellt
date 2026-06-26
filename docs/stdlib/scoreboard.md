@@ -39,15 +39,26 @@
 | `std::random` | 3 | 3 | 0 | 0 | 3/3 (100%) | no |
 | `std::seq` | 13 | 13 | 0 | 0 | 12/13 (92%) | no |
 | `std::signal` | 11 | 11 | 0 | 0 | 7/11 (64%) | no |
+| `std::simd::f32x4` | 24 | 0 | 24 | 0 | 15/24 (62%) | no |
+| `std::simd::f64x2` | 14 | 0 | 14 | 0 | 12/14 (86%) | no |
+| `std::simd::i16x8` | 10 | 0 | 10 | 0 | 7/10 (70%) | no |
+| `std::simd::i32x4` | 15 | 0 | 15 | 0 | 11/15 (73%) | no |
+| `std::simd::i64x2` | 10 | 0 | 10 | 0 | 9/10 (90%) | no |
+| `std::simd::i8x16` | 12 | 0 | 12 | 0 | 7/12 (58%) | no |
+| `std::simd::u16x8` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
+| `std::simd::u32x4` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
+| `std::simd::u64x2` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
+| `std::simd::u8x16` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
+| `std::simd::v128` | 7 | 0 | 7 | 0 | 4/7 (57%) | no |
 | `std::test` | 17 | 16 | 1 | 0 | 17/17 (100%) | no |
 | `std::text` | 34 | 32 | 2 | 0 | 29/34 (85%) | no |
 | `std::text::rope` | 8 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 8 | 0 | 8 | 0 | 8/8 (100%) | no |
-| `std::wasm` | 61 | 0 | 61 | 0 | 37/61 (61%) | no |
+| `std::wasm` | 79 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 636 APIs, 403 stable, 208 experimental, 25 deprecated, 514/611 (84%) fixture coverage
+**Total**: 762 APIs, 403 stable, 334 experimental, 25 deprecated, 595/737 (81%) fixture coverage
 
 ## Legend
 
@@ -62,4 +73,4 @@
 
 Families below 50% fixture coverage (denominator excludes deprecated APIs):
 
-`std::wit` (44%).
+`std::wasm` (47%), `std::wit` (44%).
