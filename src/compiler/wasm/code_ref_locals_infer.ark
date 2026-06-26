@@ -1,0 +1,165 @@
+// Arukellt Selfhost - GC reference local type inference helpers.
+
+use mir::block_inst_access
+use mir::inst_record
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::function_return_view
+use mir::opcodes
+use mir::value_types
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::inst_ctx
+use wasm::code_ref_locals_types
+
+fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
+                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+                if ret_local == local_idx {
+                    return true
+                }
+                if ret_local < 0 && ii > 0 {
+                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_arg0(prev) == local_idx {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                    return true
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    if depth > 8 {
+        return 0 - 1
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let found = infer_ref_local_from_block(f, block, inst_count, local_idx, ctx, depth)
+        if found >= 0 {
+            return found
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
+fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    let mut ii = 0
+    let mut prev_op = 0 - 1
+    let mut prev_arg0 = 0 - 1
+    let mut prev_dest = 0 - 1
+    while ii < inst_count {
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+            if op == opcodes::MIR_ARRAY_NEW() {
+                return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+            }
+            if op == opcodes::MIR_GC_STRUCT_NEW() {
+                return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
+            }
+            if op == opcodes::MIR_STRUCT_NEW() {
+                return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
+            }
+            if op == opcodes::MIR_CALL() {
+                let call_type = infer_call_result_gc_type(ctx, inst_record::mir_inst_str_val(inst))
+                if call_type >= 0 {
+                    return call_type
+                }
+            }
+            if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+            }
+        }
+        if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+            let source = inst_accessors_operands::MirInst_arg1(inst)
+            if source >= 0 {
+                return infer_ref_local_gc_type_depth(f, source, ctx, depth + 1)
+            }
+            if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
+                return infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
+            }
+            if prev_dest >= 0 {
+                return infer_ref_local_gc_type_depth(f, prev_dest, ctx, depth + 1)
+            }
+        }
+        prev_op = op
+        prev_arg0 = arg0
+        prev_dest = dest
+        ii = ii + 1
+    }
+    0 - 1
+}
+
+fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    if eq(clone(callee), "String_from") || eq(clone(callee), "concat") || eq(clone(callee), "clone") || eq(clone(callee), "to_string") || eq(clone(callee), "char_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "f64_to_string") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    }
+    if eq(clone(callee), "hash_string::hashmap_i32_str_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+    }
+    if eq(clone(callee), "hash_string::hashmap_str_str_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+    }
+    if eq(clone(callee), "__hm_si_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    // Vec_new returns (ref null S_f0_ref1_f1_i32) = vec_type
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
+    if fn_idx < 0 {
+        return 0 - 1
+    }
+    let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+    if function_return_view::MirFunction_return_type(called) == value_types::VT_GC_REF() {
+        if is_option_type_name(function_return_view::MirFunction_return_type_name(called)) {
+            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
+    }
+    0 - 1
+}

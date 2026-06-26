@@ -1,0 +1,79 @@
+// Arukellt Selfhost - GC slot helpers for HashMap<String,i32> storage builtins.
+
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_gc
+use wasm::ctx_gc_type
+
+fn emit_gc_slot_get(w: WasmWriter, s_map: i32, s_idx: i32, region: i32, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let field_idx = gc_slot_field(region)
+    let array_type = gc_slot_array_type_si(region, i32_array_type, string_ref_array_type)
+    emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_map, s_idx)
+}
+
+fn emit_gc_slot_set(w: WasmWriter, s_map: i32, s_idx: i32, s_val: i32, region: i32, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let field_idx = gc_slot_field(region)
+    let array_type = gc_slot_array_type_si(region, i32_array_type, string_ref_array_type)
+    emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_map, s_idx, s_val)
+}
+
+fn emit_hm_slot_get_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: i32, s_map: i32, s_idx: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_map)
+    writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_gc::emit_gc_array_get(w, array_type)
+}
+
+fn emit_hm_slot_set_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: i32, s_map: i32, s_idx: i32, s_val: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_map)
+    writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_val)
+    writer_gc::emit_gc_array_set(w, array_type)
+}
+
+fn gc_slot_field(region: i32) -> i32 {
+    if region == 0 {
+        return 2
+    }
+    if region == 1 {
+        return 3
+    }
+    4
+}
+
+fn gc_slot_array_type_si(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
+    if region == 0 {
+        return string_ref_array_type
+    }
+    i32_array_type
+}
+
+fn gc_slot_array_type_is(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
+    if region == 0 {
+        return i32_array_type
+    }
+    if region == 1 {
+        return string_ref_array_type
+    }
+    i32_array_type
+}
+
+fn gc_slot_array_type_ss(region: i32, i32_array_type: i32, string_ref_array_type: i32) -> i32 {
+    if region == 0 || region == 1 {
+        return string_ref_array_type
+    }
+    i32_array_type
+}

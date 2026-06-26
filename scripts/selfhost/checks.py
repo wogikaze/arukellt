@@ -2086,36 +2086,6 @@ pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: St
             encoding="utf-8",
         )
 
-    # DEBUG: Stub out mir_register_view_layouts to test if struct layout
-    # registration is the source of excessive string constants
-    registry_path = compiler_out / "mir_lower_registry_view.ark"
-    if registry_path.is_file():
-        registry_path.write_text(
-            """// Arukellt Selfhost - Bootstrap stub: struct layout registration disabled.
-use mir_lower_ctx_types
-
-fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
-}
-""",
-            encoding="utf-8",
-        )
-
-    # DEBUG: Stub out mir_build_fn_index_from_view to test if fn index building
-    # is the source of excessive string constants
-    # (disabled - caused regex match issues)
-
-    # DEBUG: Add str_count and fn_count debug print to prepare_string_table
-    strings_path = compiler_out / "wasm_strings.ark"
-    if strings_path.is_file():
-        text = strings_path.read_text(encoding="utf-8")
-        text = _replace_required(
-            text,
-            "    let str_count = mir_module_strings::MirModule_string_constant_count(mir)\n",
-            "    let str_count = mir_module_strings::MirModule_string_constant_count(mir)\n    stdio::eprintln(concat(String_from(\"DEBUG str_count=\"), to_string(str_count)))\n    let fn_count = mir_module_functions::MirModule_function_count(mir)\n    stdio::eprintln(concat(String_from(\"DEBUG fn_count=\"), to_string(fn_count)))\n",
-            "add debug print for str_count and fn_count",
-        )
-        strings_path.write_text(text, encoding="utf-8")
-
     # 3. Stub out mir_prune_unreachable_for_t3 in session_corehir
     sess_path = compiler_out / "compiler_session_corehir.ark"
     if sess_path.is_file():
@@ -2188,6 +2158,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     _patch_bootstrap_driver_component_delegate(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
+    _apply_debug_patches(compiler_out)
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
@@ -2270,6 +2241,74 @@ def _write_bootstrap_namespace_facades(compiler_out: Path) -> None:
             continue
         shutil.copyfile(mod_path, facade_path)
         mod_path.unlink()
+
+
+def _apply_debug_patches(compiler_out: Path) -> None:
+    """Apply debug patches AFTER all overlay dedupe to survive overwrites."""
+    import sys
+    print(f"[DEBUG] _apply_debug_patches called with {compiler_out}", file=sys.stderr)
+    ark_count = len(list(compiler_out.rglob("*.ark")))
+    print(f"[DEBUG] Found {ark_count} .ark files", file=sys.stderr)
+    # Check parser file before patching
+    parser_path = compiler_out / "parser_state_record.ark"
+    if parser_path.is_file():
+        before = parser_path.read_text(encoding="utf-8")
+        print(f"[DEBUG] parser has Vec_new_Diagnostic: {'Vec_new_Diagnostic' in before}", file=sys.stderr)
+    # CRITICAL FIX: Several Vec_new_* functions are used in struct constructors
+    # but are never defined in the source. The pinned wasm resolves them to
+    # wrong function indices, corrupting call targets and causing out-of-bounds
+    # memory access. Replace all missing Vec_new_* with Vec_new_String() since
+    # all Vec types share the same memory layout (ptr + len + cap = 12 bytes).
+    _MISSING_VEC_NEW_FNS = [
+        "Vec_new_Diagnostic",
+        "Vec_new_AnalysisDiagnostic",
+        "Vec_new_TraitMethodEntry",
+        "Vec_new_TypeParamBounds",
+        "Vec_new_LexDiagnostic",
+        "Vec_new_DeclSite",
+        "Vec_new_UseSite",
+        "Vec_new_ComposeWitFuncSig",
+        "Vec_new_WitParsedEnum",
+        "Vec_new_WitParsedFunc",
+        "Vec_new_WitParsedInterface",
+        "Vec_new_WitParsedRecord",
+        "Vec_new_WitImportBinding",
+        "Vec_new_DocFnEntry",
+        "Vec_new_DocModuleEntry",
+        "Vec_new_FmtImportEntry",
+        "Vec_new_PruneImportEntry",
+        "Vec_new_ReferenceLocation",
+        "Vec_new_IndexedSymbol",
+        "Vec_new_StdlibIndexedSymbol",
+        "Vec_new_HirEnumDef",
+        "Vec_new_HirStructDef",
+    ]
+    for ark_path in sorted(compiler_out.rglob("*.ark")):
+        text = ark_path.read_text(encoding="utf-8")
+        changed = False
+        for fn_name in _MISSING_VEC_NEW_FNS:
+            if fn_name in text:
+                text = text.replace(f"{fn_name}()", "Vec_new_String()")
+                changed = True
+        if changed:
+            ark_path.write_text(text, encoding="utf-8")
+    # Check parser file after patching
+    if parser_path.is_file():
+        after = parser_path.read_text(encoding="utf-8")
+        print(f"[DEBUG] parser after patch has Vec_new_Diagnostic: {'Vec_new_Diagnostic' in after}", file=sys.stderr)
+        print(f"[DEBUG] parser after patch has Vec_new_String: {'Vec_new_String' in after}", file=sys.stderr)
+
+    # DEBUG: Add str_count debug print to prepare_string_table
+    strings_path = compiler_out / "wasm_strings.ark"
+    if strings_path.is_file():
+        text = strings_path.read_text(encoding="utf-8")
+        text = _replace_required(
+            text,
+            "    let str_count = mir_module_strings::MirModule_string_constant_count(mir)\n",
+            "    let str_count = mir_module_strings::MirModule_string_constant_count(mir)\n    stdio::eprintln(concat(String_from(\"DEBUG str_count=\"), to_string(str_count)))\n",
+            "add debug print for str_count",
+        )
+        strings_path.write_text(text, encoding="utf-8")
 
 
 def _wasm_compile_selfhost_source(

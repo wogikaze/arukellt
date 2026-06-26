@@ -1,0 +1,112 @@
+// Arukellt Selfhost - HashMap new/create emitters for String/i32/i32/String/String/String variants.
+
+use wasm::opcodes
+use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_gc
+use wasm::ctx_gc_type
+use wasm::inst_ctx
+use wasm::inst_store
+use wasm::function_indices
+
+fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_hm_si_new_gc(w, ctx)
+    } else {
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_si_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let s_keys = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_vals = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_flags = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+
+    emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, i32_array_type, i32_array_type, s_keys, s_vals, s_flags)
+}
+
+fn emit_hm_struct_new_gc(w: WasmWriter, ctx: SelfEmitCtx, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32) {
+    emit_hm_struct_new_gc_array(w, keys_array_type, s_keys)
+    emit_hm_struct_new_gc_array(w, vals_array_type, s_vals)
+    emit_hm_struct_new_gc_array(w, flags_array_type, s_flags)
+    emit_hm_struct_new_gc_final(w, hm_type, keys_array_type, vals_array_type, flags_array_type, s_keys, s_vals, s_flags)
+}
+
+fn emit_hm_struct_new_gc_array(w: WasmWriter, array_type: i32, s_local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_gc::emit_gc_array_new(w, array_type)
+    writer_gc::emit_gc_ref_cast(w, array_type)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_local)
+}
+
+fn emit_hm_struct_new_gc_final(w: WasmWriter, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_keys)
+    writer_gc::emit_gc_ref_cast(w, keys_array_type)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_vals)
+    writer_gc::emit_gc_ref_cast(w, vals_array_type)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_flags)
+    writer_gc::emit_gc_ref_cast(w, flags_array_type)
+    writer_gc::emit_gc_struct_new(w, hm_type)
+}
+
+fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_hm_is_new_gc(w, ctx)
+    } else {
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_is_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let s_keys = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_vals = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_flags = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+
+    emit_hm_struct_new_gc(w, ctx, hm_type, i32_array_type, string_ref_array_type, i32_array_type, s_keys, s_vals, s_flags)
+}
+
+fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_hm_ss_new_gc(w, ctx)
+    } else {
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        writer_core::emit_byte(w, opcodes::OP_CALL())
+        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    }
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+}
+
+fn emit_hm_ss_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let hm_type = ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let s_keys = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_vals = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 1)
+    let s_flags = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+
+    emit_hm_struct_new_gc(w, ctx, hm_type, string_ref_array_type, string_ref_array_type, i32_array_type, s_keys, s_vals, s_flags)
+}

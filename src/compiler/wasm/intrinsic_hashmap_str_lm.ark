@@ -1,0 +1,132 @@
+// Arukellt Selfhost - linear memory slot helpers for HashMap<String,i32> storage builtins.
+
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::ctx_scratch
+
+fn emit_lm_flat_load_const(w: WasmWriter, s_map: i32, flat_idx: i32) {
+    emit_lm_push_data_addr_const(w, s_map, flat_idx)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_lm_flat_store_const(w: WasmWriter, s_map: i32, flat_idx: i32, s_val: i32) {
+    emit_lm_push_data_addr_const(w, s_map, flat_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_val)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_lm_push_data_addr_const(w: WasmWriter, s_map: i32, flat_idx: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_map)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, flat_idx)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+}
+
+fn emit_lm_slot_get(w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, region: i32) {
+    let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_flat = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    emit_lm_flat_load_const(w, s_map, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 2)
+    emit_lm_slot_get_region_offset(w, s_cap, region)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_flat)
+    emit_lm_slot_get_load(w, s_map, s_flat)
+}
+
+fn emit_lm_slot_get_region_offset(w: WasmWriter, s_cap: i32, region: i32) {
+    if region == 1 {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, s_cap)
+        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    } else {
+        if region == 2 {
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_leb::emit_leb128_u(w, s_cap)
+            writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_leb::emit_leb128_u(w, s_cap)
+            writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+        }
+    }
+}
+
+fn emit_lm_slot_get_load(w: WasmWriter, s_map: i32, s_flat: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_map)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_flat)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_lm_slot_set(w: WasmWriter, ctx: SelfEmitCtx, s_map: i32, s_idx: i32, s_val: i32, region: i32) {
+    let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_flat = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    emit_lm_flat_load_const(w, s_map, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 2)
+    emit_lm_slot_get_region_offset(w, s_cap, region)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_leb::emit_leb128_u(w, s_flat)
+    emit_lm_slot_set_store(w, s_map, s_flat, s_val)
+}
+
+fn emit_lm_slot_set_store(w: WasmWriter, s_map: i32, s_flat: i32, s_val: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_map)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_flat)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_leb::emit_leb128_u(w, s_val)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}

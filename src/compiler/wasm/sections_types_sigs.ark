@@ -1,0 +1,119 @@
+// Arukellt Selfhost - Wasm type section type signature builders.
+
+use mir::function_param_view
+use mir::function_return_view
+use mir::local_access
+use mir::module_wit_imports
+use wasm::emit_target
+use wasm::sections_type_plan
+use wasm::sections_types_gc
+use wasm::sections_types_gc_override
+
+fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+    let mut i = 0
+    while i < module_wit_imports::wit_import_count(bindings) {
+        push(type_sigs, module_wit_imports::wit_import_type_sig(bindings, i))
+        i = i + 1
+    }
+}
+
+fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
+    push(type_sigs, String_from("i32_i32_i32_i32_1i32"))
+    push(type_sigs, String_from("i32_i32_1i32"))
+    push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
+    push(type_sigs, String_from("i32_1i32"))
+    push(type_sigs, String_from("i32_0"))
+    if emit_target::is_component_stub_wasi(clone(wasi_version)) || emit_target::is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
+        return
+    }
+    if emit_target::is_p2_wasi(clone(wasi_version)) {
+        push(type_sigs, String_from("1i64"))
+        push(type_sigs, String_from("MR_i64_i32"))
+    } else {
+        push(type_sigs, String_from("i32_i64_i32_1i32"))
+    }
+    if needs_wasi_http_outgoing == 1 { push(type_sigs, String_from("i32_i32_1i32")) }
+    if needs_arukellt_host == 1 {
+        push(type_sigs, String_from("i32_i32_i32_1i32"))
+        push(type_sigs, String_from("i32_i32_i32_i32_i32_i32_i32_1i32"))
+        push(type_sigs, String_from("i32_i32_i32_i32_1i32"))
+    }
+}
+
+fn append_t2_type_sigs(type_sigs: Vec<String>) {
+    push(type_sigs, String_from("i32_i32_0"))
+    push(type_sigs, String_from("0"))
+    push(type_sigs, String_from("i32_i32_1i32"))
+}
+
+fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32, target: String) {
+    let mut ui = 0
+    while ui < fn_count {
+        let uf = get_unchecked(functions, ui)
+        push(type_sigs, build_function_type_sig(uf, clone(target)))
+        ui = ui + 1
+    }
+}
+
+fn build_function_type_sig(uf: MirFunction, target: String) -> String {
+    let mut sig = String_new()
+    let pc = function_param_view::MirFunction_param_count(uf)
+    let mut pi = 0
+    while pi < pc {
+        let p = function_param_view::MirFunction_param_at(uf, pi)
+        let p_type_name = local_access::MirLocal_type_name(p)
+        if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
+            sig = concat(sig, sections_types_gc::gc_enum_open_type_sig())
+        } else {
+            let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
+            if len(gc_param_sig) > 0 {
+                sig = concat(sig, gc_param_sig)
+            } else {
+            if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
+                sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+            } else {
+                if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("hashmap:")) {
+                    sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+                } else {
+                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
+                }
+            }
+            }
+        }
+        sig = concat(sig, String_from("_"))
+        pi = pi + 1
+    }
+    let return_type = function_return_view::MirFunction_return_type(uf)
+    let return_type_name = function_return_view::MirFunction_return_type_name(uf)
+    if return_type == 0 {
+        sig = concat(sig, String_from("0"))
+    } else {
+        sig = concat(sig, String_from("1"))
+        if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
+            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+        } else {
+        if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
+            sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+        } else {
+            let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
+            if len(gc_enum_ret_sig) > 0 {
+                sig = concat(sig, gc_enum_ret_sig)
+            } else {
+                let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
+                if len(gc_ret_sig) > 0 {
+                    sig = concat(sig, gc_ret_sig)
+                } else {
+                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
+                }
+            }
+        }
+        }
+    }
+    sig
+}
+
+fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32) {
+    if needs_wrapper == 1 {
+        push(type_sigs, String_from("0"))
+    }
+}
