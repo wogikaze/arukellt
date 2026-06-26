@@ -4,6 +4,7 @@ use resolver::builtins_convert
 use resolver::builtins_core
 use resolver::builtins_hash
 use resolver::builtins_hof
+use resolver::builtins_intrinsics
 use resolver::builtins_modules
 
 fn resolver_builtin_symbol_names() -> Vec<String> {
@@ -12,6 +13,7 @@ fn resolver_builtin_symbol_names() -> Vec<String> {
     builtins_convert::push_convert_builtin_symbol_names(names)
     builtins_hof::push_hof_builtin_symbol_names(names)
     builtins_hash::push_hash_builtin_symbol_names(names)
+    builtins_intrinsics::push_intrinsic_builtin_symbol_names(names)
     names
 }
 
