@@ -521,3 +521,205 @@ pub fn product_i32(v: Vec<i32>) -> i32 {
     }
     total
 }
+
+// =============================================================================
+// Extended prelude functions (previously compiler builtins)
+// These functions are handled by the MIR/WASM emitter by callee name.
+// The function bodies below are never compiled (prelude decls are excluded
+// from all_decls during typecheck/lower/emit), but are provided for
+// documentation and future self-compilation.
+// =============================================================================
+
+// IO
+pub fn println(s: String) {
+    __intrinsic_println(s)
+}
+
+pub fn print(s: String) {
+    __intrinsic_print(s)
+}
+
+pub fn to_string(n: i32) -> String {
+    __intrinsic_i32_to_string(n)
+}
+
+// Vec operations (polymorphic in practice; emitter dispatches by name)
+pub fn len(s: String) -> i32 {
+    __intrinsic_len(s)
+}
+
+pub fn push(v: Vec<i32>, val: i32) {
+    __intrinsic_push(v, val)
+}
+
+pub fn get(v: Vec<i32>, idx: i32) -> i32 {
+    __intrinsic_get(v, idx)
+}
+
+pub fn get_unchecked(v: Vec<i32>, idx: i32) -> i32 {
+    __intrinsic_get_unchecked(v, idx)
+}
+
+pub fn pop(v: Vec<i32>) -> i32 {
+    __intrinsic_pop(v)
+}
+
+pub fn set(v: Vec<i32>, idx: i32, val: i32) {
+    __intrinsic_set(v, idx, val)
+}
+
+pub fn values(v: Vec<i32>) -> Vec<i32> {
+    __intrinsic_values(v)
+}
+
+pub fn is_empty(v: Vec<i32>) -> bool {
+    __intrinsic_is_empty(v)
+}
+
+// Option / Result
+pub fn unwrap(o: Option<i32>) -> i32 {
+    __intrinsic_unwrap(o)
+}
+
+pub fn unwrap_or(o: Option<i32>, default: i32) -> i32 {
+    __intrinsic_unwrap_or(o, default)
+}
+
+pub fn is_some(o: Option<i32>) -> bool {
+    __intrinsic_is_some(o)
+}
+
+pub fn is_none(o: Option<i32>) -> bool {
+    __intrinsic_is_none(o)
+}
+
+pub fn is_ok(r: Result<i32, i32>) -> bool {
+    __intrinsic_is_ok(r)
+}
+
+pub fn is_err(r: Result<i32, i32>) -> bool {
+    __intrinsic_is_err(r)
+}
+
+// Collections
+pub fn contains_string(s: String, sub: String) -> bool {
+    __intrinsic_contains(s, sub)
+}
+
+// Process / env
+pub fn args() -> Vec<String> {
+    __intrinsic_args()
+}
+
+pub fn exit(code: i32) {
+    __intrinsic_process_exit(code)
+}
+
+// Math
+pub fn pow_i32(base: i32, exp: i32) -> i32 {
+    __intrinsic_pow_i32(base, exp)
+}
+
+pub fn gcd(a: i32, b: i32) -> i32 {
+    __intrinsic_gcd(a, b)
+}
+
+// Range
+pub fn range_new(start: i32, end: i32) -> Vec<i32> {
+    __intrinsic_range_new(start, end)
+}
+
+pub fn range_contains(r: Vec<i32>, val: i32) -> bool {
+    __intrinsic_range_contains(r, val)
+}
+
+pub fn range_len(r: Vec<i32>) -> i32 {
+    __intrinsic_range_len(r)
+}
+
+// String extended
+pub fn repeat(s: String, n: i32) -> String {
+    __intrinsic_repeat(s, n)
+}
+
+pub fn to_uppercase(s: String) -> String {
+    __intrinsic_to_upper(s)
+}
+
+pub fn to_lowercase(s: String) -> String {
+    __intrinsic_to_lower(s)
+}
+
+pub fn lines(s: String) -> Vec<String> {
+    __intrinsic_lines(s)
+}
+
+pub fn byte_len(s: String) -> i32 {
+    __intrinsic_byte_len(s)
+}
+
+pub fn byte_at(s: String, idx: i32) -> i32 {
+    __intrinsic_byte_at(s, idx)
+}
+
+pub fn trim_start(s: String) -> String {
+    __intrinsic_trim_start(s)
+}
+
+pub fn trim_end(s: String) -> String {
+    __intrinsic_trim_end(s)
+}
+
+pub fn pad_left(s: String, width: i32) -> String {
+    __intrinsic_pad_left(s, width)
+}
+
+pub fn pad_right(s: String, width: i32) -> String {
+    __intrinsic_pad_right(s, width)
+}
+
+pub fn format_i32(n: i32) -> String {
+    __intrinsic_i32_to_string(n)
+}
+
+pub fn format_bool(b: bool) -> String {
+    __intrinsic_bool_to_string(b)
+}
+
+// HOF extended (types not in prelude's monomorphic set)
+pub fn any_i64(v: Vec<i64>, f: fn(i64) -> bool) -> bool {
+    __intrinsic_any_i64(v, f)
+}
+
+pub fn any_f64(v: Vec<f64>, f: fn(f64) -> bool) -> bool {
+    __intrinsic_any_f64(v, f)
+}
+
+pub fn any_String(v: Vec<String>, f: fn(String) -> bool) -> bool {
+    __intrinsic_any_String(v, f)
+}
+
+pub fn find_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Option<i64> {
+    __intrinsic_find_i64(v, f)
+}
+
+pub fn find_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Option<f64> {
+    __intrinsic_find_f64(v, f)
+}
+
+pub fn find_String(v: Vec<String>, f: fn(String) -> bool) -> Option<String> {
+    __intrinsic_find_String(v, f)
+}
+
+pub fn fold_f64_f64(v: Vec<f64>, init: f64, f: fn(f64, f64) -> f64) -> f64 {
+    __intrinsic_fold_f64_f64(v, init, f)
+}
+
+// Conversions extended
+pub fn i32_to_u32(n: i32) -> u32 {
+    __intrinsic_i32_to_u32(n)
+}
+
+pub fn f32_to_string(n: f32) -> String {
+    __intrinsic_f32_to_string(n)
+}

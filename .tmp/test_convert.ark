@@ -1,0 +1,6 @@
+use std::host::stdio
+use std::core::convert
+
+fn main() {
+    stdio::println(42)
+}

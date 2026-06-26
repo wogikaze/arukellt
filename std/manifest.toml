@@ -7203,3 +7203,178 @@ stability = "experimental"
 params = ["v128"]
 returns = "v128"
 doc = "Reinterpret v128 as f64x2 (no-op, same bits)."
+
+[[functions]]
+name = "any_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_any_i64"
+params = ["Vec<i64>", "fn(i64) -> bool"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "any_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_any_f64"
+params = ["Vec<f64>", "fn(f64) -> bool"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "any_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_any_String"
+params = ["Vec<String>", "fn(String) -> bool"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "find_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_find_i64"
+params = ["Vec<i64>", "fn(i64) -> bool"]
+returns = "Option<i64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "find_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_find_f64"
+params = ["Vec<f64>", "fn(f64) -> bool"]
+returns = "Option<f64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "find_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_find_String"
+params = ["Vec<String>", "fn(String) -> bool"]
+returns = "Option<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "fold_f64_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fold_f64_f64"
+params = ["Vec<f64>", "f64", "fn(f64, f64) -> f64"]
+returns = "f64"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "byte_at"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_byte_at"
+params = ["String", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+
+[[functions]]
+name = "byte_len"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_byte_len"
+params = ["String"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+
+[[functions]]
+name = "contains_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+
+[[functions]]
+name = "to_uppercase"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_to_upper"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+
+[[functions]]
+name = "to_lowercase"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_to_lower"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+
+[[functions]]
+name = "gcd"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_gcd"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+
+[[functions]]
+name = "pow_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_pow_i32"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "math"
+
+
+[[functions]]
+name = "values"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_values"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+
+[[functions]]
+name = "i32_to_u32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_u32"
+params = ["i32"]
+returns = "u32"
+prelude = true
+stability = "stable"
+doc_category = "convert"

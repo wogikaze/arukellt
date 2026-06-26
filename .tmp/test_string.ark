@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::collections::string
+
+fn main() {
+    let s = String_from("hello")
+    stdio::println(s.len())
+}

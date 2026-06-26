@@ -14,7 +14,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 654 passed, 29 skipped / 1168 entries
 - Verification: `python3 scripts/manager.py verify quick` — 168/168 checks pass
-- Stdlib manifest-backed public API: 762 functions
+- Stdlib manifest-backed public API: 778 functions
 <!-- END GENERATED:README_STATUS -->
 
 ## Start here

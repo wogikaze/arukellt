@@ -1,16 +1,6 @@
 // Arukellt Resolver - option/result, range, math, and assert builtin names.
-// Prelude-provided math/assert functions (sqrt, abs, min, max, assert,
-// assert_eq, assert_ne, assert_eq_str, assert_eq_i64) are auto-imported
-// from std/prelude.ark. Only functions NOT in prelude.ark remain here.
+// All math/option/result/range functions are now auto-imported from
+// std/prelude.ark. This file is intentionally empty.
 
 fn push_core_result_math_builtin_symbol_names(names: Vec<String>) {
-    push(names, String_from("is_some"))
-    push(names, String_from("is_none"))
-    push(names, String_from("is_ok"))
-    push(names, String_from("is_err"))
-    push(names, String_from("pow_i32"))
-    push(names, String_from("gcd"))
-    push(names, String_from("range_new"))
-    push(names, String_from("range_contains"))
-    push(names, String_from("range_len"))
 }

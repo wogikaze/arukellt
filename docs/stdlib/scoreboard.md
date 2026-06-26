@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Exp | Depr | Fixture Coverage | Host Dep |
 |--------|------|--------|-----|------|------------------|----------|
-| `prelude` | 133 | 108 | 1 | 24 | 88/109 (81%) | no |
+| `prelude` | 149 | 124 | 1 | 24 | 91/125 (73%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 40/45 (89%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 18 | 0 | 18 | 0 | 18/18 (100%) | no |
@@ -58,7 +58,7 @@
 | `std::wasm` | 79 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 762 APIs, 403 stable, 334 experimental, 25 deprecated, 595/737 (81%) fixture coverage
+**Total**: 778 APIs, 419 stable, 334 experimental, 25 deprecated, 598/753 (79%) fixture coverage
 
 ## Legend
 

@@ -1,0 +1,12 @@
+use std::host::stdio
+
+impl i32 {
+    fn my_double(self: i32) -> i32 {
+        self + self
+    }
+}
+
+fn main() {
+    let n = 21
+    stdio::println(n.my_double())
+}

@@ -1,14 +1,6 @@
 // Arukellt Resolver - core prelude builtin symbol names.
-// Prelude-provided functions (eq, clone, concat, String_from, etc.) are
-// auto-imported from std/prelude.ark and registered as SYM_FN.
-// Only functions NOT in prelude.ark remain here as builtins.
+// All prelude functions are now auto-imported from std/prelude.ark.
+// This file is intentionally empty — no builtins remain in this category.
 
 fn push_core_prelude_builtin_symbol_names(names: Vec<String>) {
-    push(names, String_from("println"))
-    push(names, String_from("print"))
-    push(names, String_from("to_string"))
-    push(names, String_from("len"))
-    push(names, String_from("push"))
-    push(names, String_from("get"))
-    push(names, String_from("get_unchecked"))
 }

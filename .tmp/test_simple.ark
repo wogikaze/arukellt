@@ -1,0 +1,4 @@
+use std::host::stdio
+fn main() {
+    stdio::println(42)
+}

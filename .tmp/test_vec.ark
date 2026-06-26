@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::collections::vec
+
+fn main() {
+    let v = Vec_new_i32()
+    v.push(10)
+    stdio::println(v.len())
+    stdio::println(v.get_unchecked(0))
+}

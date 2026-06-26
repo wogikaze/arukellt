@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 737
+- **Canonical names:** 753
 - **Historical/deprecated names:** 25
-- **Total entries:** 762
+- **Total entries:** 778
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -46,7 +46,10 @@ Current public API names, sorted alphabetically.
 | `all_true` | `std::simd::i8x16` | `experimental` | Simd |
 | `and` | `std::simd::v128` | `experimental` | Simd |
 | `andnot` | `std::simd::v128` | `experimental` | Simd |
+| `any_f64` | `prelude` | `stable` | Collections |
 | `any_i32` | `prelude` | `stable` | Collections |
+| `any_i64` | `prelude` | `stable` | Collections |
+| `any_String` | `prelude` | `stable` | Collections |
 | `any_true` | `std::simd::v128` | `experimental` | Simd |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
@@ -135,6 +138,8 @@ Current public API names, sorted alphabetically.
 | `builder_build` | `std::text` | `stable` | Text |
 | `builder_len` | `std::text` | `stable` | Text |
 | `builder_new` | `std::text` | `stable` | Text |
+| `byte_at` | `prelude` | `stable` | String |
+| `byte_len` | `prelude` | `stable` | String |
 | `byte_length` | `std::bytes` | `stable` | Bytes |
 | `bytes_concat` | `std::bytes` | `stable` | Bytes |
 | `bytes_eq` | `std::bytes` | `stable` | Bytes |
@@ -166,6 +171,7 @@ Current public API names, sorted alphabetically.
 | `contains` | `std::text` | `stable` | Text |
 | `contains_i32` | `prelude` | `stable` | Collections |
 | `contains_String` | `prelude` | `stable` | Collections |
+| `contains_string` | `prelude` | `stable` | String |
 | `copy` | `std::io` | `stable` | Io |
 | `copy_bytes` | `std::io` | `stable` | Io |
 | `cos_approx` | `std::signal` | `stable` | Signal |
@@ -244,11 +250,15 @@ Current public API names, sorted alphabetically.
 | `filter_i32` | `std::seq` | `stable` | Seq |
 | `filter_i64` | `prelude` | `stable` | Collections |
 | `filter_String` | `prelude` | `stable` | Collections |
+| `find_f64` | `prelude` | `stable` | Collections |
 | `find_i32` | `prelude` | `stable` | Collections |
+| `find_i64` | `prelude` | `stable` | Collections |
+| `find_String` | `prelude` | `stable` | Collections |
 | `flag` | `std::cli` | `stable` | Cli |
 | `floor` | `std::simd::f32x4` | `experimental` | Simd |
 | `flush` | `std::host::streams` | `provisional` | Host Streams |
 | `flush` | `std::io` | `stable` | Io |
+| `fold_f64_f64` | `prelude` | `stable` | Collections |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
 | `fold_i32_i32` | `std::seq` | `stable` | Seq |
 | `fold_i64_i64` | `prelude` | `stable` | Collections |
@@ -263,6 +273,7 @@ Current public API names, sorted alphabetically.
 | `functype_new` | `std::wasm` | `experimental` | Wasm |
 | `functype_param_count` | `std::wasm` | `experimental` | Wasm |
 | `functype_result_count` | `std::wasm` | `experimental` | Wasm |
+| `gcd` | `prelude` | `stable` | Math |
 | `ge` | `std::simd::f32x4` | `experimental` | Simd |
 | `get` | `prelude` | `stable` | Collections |
 | `get` | `std::host::http` | `provisional` | Host Http |
@@ -322,6 +333,7 @@ Current public API names, sorted alphabetically.
 | `i32_to_i8` | `prelude` | `stable` | Scalar Conversion |
 | `i32_to_string` | `prelude` | `stable` | Conversion |
 | `i32_to_u16` | `prelude` | `stable` | Scalar Conversion |
+| `i32_to_u32` | `prelude` | `stable` | Convert |
 | `i32_to_u8` | `prelude` | `stable` | Scalar Conversion |
 | `i64_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `i64_to_string` | `prelude` | `stable` | Conversion |
@@ -489,6 +501,7 @@ Current public API names, sorted alphabetically.
 | `parse_i64` | `prelude` | `stable` | Conversion |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
+| `pow_i32` | `prelude` | `stable` | Math |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
@@ -648,9 +661,11 @@ Current public API names, sorted alphabetically.
 | `tau` | `std::signal` | `stable` | Signal |
 | `to_lower` | `prelude` | `stable` | String |
 | `to_lower` | `std::text` | `stable` | Text |
+| `to_lowercase` | `prelude` | `stable` | String |
 | `to_string` | `prelude` | `stable` | Conversion |
 | `to_upper` | `prelude` | `stable` | String |
 | `to_upper` | `std::text` | `stable` | Text |
+| `to_uppercase` | `prelude` | `stable` | String |
 | `to_utf8_bytes` | `std::text` | `experimental` | Text |
 | `toml_as_bool` | `std::toml` | `experimental` | Toml |
 | `toml_as_int` | `std::toml` | `experimental` | Toml |
@@ -705,6 +720,7 @@ Current public API names, sorted alphabetically.
 | `valtype_i32` | `std::wasm` | `experimental` | Wasm |
 | `valtype_i64` | `std::wasm` | `experimental` | Wasm |
 | `valtype_v128` | `std::wasm` | `experimental` | Wasm |
+| `values` | `prelude` | `stable` | Collections |
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
@@ -826,7 +842,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `all_true` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `and` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `andnot` | ✅ `experimental` | `std::simd::v128` | Simd |
+| `any_f64` | ✅ `stable` | `prelude` | Collections |
 | `any_i32` | ✅ `stable` | `prelude` | Collections |
+| `any_i64` | ✅ `stable` | `prelude` | Collections |
+| `any_String` | ✅ `stable` | `prelude` | Collections |
 | `any_true` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -915,6 +934,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `builder_build` | ✅ `stable` | `std::text` | Text |
 | `builder_len` | ✅ `stable` | `std::text` | Text |
 | `builder_new` | ✅ `stable` | `std::text` | Text |
+| `byte_at` | ✅ `stable` | `prelude` | String |
+| `byte_len` | ✅ `stable` | `prelude` | String |
 | `byte_length` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_concat` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_eq` | ✅ `stable` | `std::bytes` | Bytes |
@@ -947,6 +968,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `contains` | ✅ `stable` | `std::text` | Text |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
 | `contains_String` | ✅ `stable` | `prelude` | Collections |
+| `contains_string` | ✅ `stable` | `prelude` | String |
 | `copy` | ✅ `stable` | `std::io` | Io |
 | `copy_bytes` | ✅ `stable` | `std::io` | Io |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
@@ -1026,11 +1048,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`filter_i32`~~ | ⚠️ deprecated | `prelude` | → `filter<i32>` · [migration guide](migration-guidance.md) |
 | `filter_i64` | ✅ `stable` | `prelude` | Collections |
 | `filter_String` | ✅ `stable` | `prelude` | Collections |
+| `find_f64` | ✅ `stable` | `prelude` | Collections |
 | `find_i32` | ✅ `stable` | `prelude` | Collections |
+| `find_i64` | ✅ `stable` | `prelude` | Collections |
+| `find_String` | ✅ `stable` | `prelude` | Collections |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `flush` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `flush` | ✅ `stable` | `std::io` | Io |
+| `fold_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
 | `fold_i32_i32` | ✅ `stable` | `std::seq` | Seq |
 | `fold_i64_i64` | ✅ `stable` | `prelude` | Collections |
@@ -1045,6 +1071,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `functype_new` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_param_count` | ✅ `experimental` | `std::wasm` | Wasm |
 | `functype_result_count` | ✅ `experimental` | `std::wasm` | Wasm |
+| `gcd` | ✅ `stable` | `prelude` | Math |
 | `ge` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `get` | ✅ `stable` | `prelude` | Collections |
 | `get` | ✅ `provisional` | `std::host::http` | Host Http |
@@ -1125,6 +1152,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `i32_to_i8` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `i32_to_u16` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `i32_to_u32` | ✅ `stable` | `prelude` | Convert |
 | `i32_to_u8` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i64_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i64_to_string` | ✅ `stable` | `prelude` | Conversion |
@@ -1292,6 +1320,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
+| `pow_i32` | ✅ `stable` | `prelude` | Math |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -1451,9 +1480,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `tau` | ✅ `stable` | `std::signal` | Signal |
 | `to_lower` | ✅ `stable` | `prelude` | String |
 | `to_lower` | ✅ `stable` | `std::text` | Text |
+| `to_lowercase` | ✅ `stable` | `prelude` | String |
 | `to_string` | ✅ `stable` | `prelude` | Conversion |
 | `to_upper` | ✅ `stable` | `prelude` | String |
 | `to_upper` | ✅ `stable` | `std::text` | Text |
+| `to_uppercase` | ✅ `stable` | `prelude` | String |
 | `to_utf8_bytes` | ✅ `experimental` | `std::text` | Text |
 | `toml_as_bool` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_as_int` | ✅ `experimental` | `std::toml` | Toml |
@@ -1508,6 +1539,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `valtype_i32` | ✅ `experimental` | `std::wasm` | Wasm |
 | `valtype_i64` | ✅ `experimental` | `std::wasm` | Wasm |
 | `valtype_v128` | ✅ `experimental` | `std::wasm` | Wasm |
+| `values` | ✅ `stable` | `prelude` | Collections |
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
