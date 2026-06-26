@@ -1,0 +1,245 @@
+// Arukellt Selfhost - T1 scalar expansion: comparison/min/max/shift/all_true/bitmask/saturating.
+
+use wasm::call_simd_scalar_ops
+use wasm::opcodes
+use wasm::writer_core
+
+// i32x4 comparison: for each of 4 lanes, compare a[i] and b[i].
+// Result is 0xFFFFFFFF if true, 0x00000000 if false (per lane).
+// Pattern: push 0, compare (returns 0 or 1), i32.sub gives 0 - (0_or_1) = 0 or -1.
+fn emit_scalar_i32x4_cmp(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_i32_const(w, 0)
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// f32x4 comparison: for each of 4 lanes, compare a[i] and b[i] as f32.
+// Result is 0xFFFFFFFF if true, 0x00000000 if false (per lane, stored as i32).
+fn emit_scalar_f32x4_cmp(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_i32_const(w, 0)
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// f64x2 comparison: for each of 2 lanes, compare a[i] and b[i] as f64.
+// Result is 0xFFFFFFFF in both i32 slots of the lane if true, 0 if false.
+fn emit_scalar_f64x2_cmp(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 2 {
+        call_simd_scalar_ops::emit_i32_const(w, 0)
+        call_simd_scalar_ops::emit_local_get(w, a + i * 2)
+        call_simd_scalar_ops::emit_local_get(w, b + i * 2)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        call_simd_scalar_ops::emit_local_set(w, dest + i * 2)
+        call_simd_scalar_ops::emit_local_get(w, dest + i * 2)
+        call_simd_scalar_ops::emit_local_set(w, dest + i * 2 + 1)
+        i = i + 1
+    }
+}
+
+// i64x2 comparison: for each of 2 lanes, compare a[i] and b[i] as i64.
+// Result is 0xFFFFFFFF in both i32 slots of the lane if true, 0 if false.
+fn emit_scalar_i64x2_cmp(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 2 {
+        call_simd_scalar_ops::emit_i32_const(w, 0)
+        call_simd_scalar_ops::emit_local_get(w, a + i * 2)
+        call_simd_scalar_ops::emit_local_get(w, b + i * 2)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        call_simd_scalar_ops::emit_local_set(w, dest + i * 2)
+        call_simd_scalar_ops::emit_local_get(w, dest + i * 2)
+        call_simd_scalar_ops::emit_local_set(w, dest + i * 2 + 1)
+        i = i + 1
+    }
+}
+
+// i32x4 min: for each lane, select a[i] if a[i] < b[i] else b[i].
+// Uses Wasm select: stack [a, b, (a < b)] → select → a if true else b.
+fn emit_scalar_i32x4_minmax(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_SELECT())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// i32x4 max: for each lane, select a[i] if a[i] > b[i] else b[i].
+fn emit_scalar_i32x4_maxmax(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_SELECT())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// f32x4 min: for each lane, select a[i] if a[i] < b[i] else b[i].
+fn emit_scalar_f32x4_minmax(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_SELECT())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// f32x4 max: for each lane, select a[i] if a[i] > b[i] else b[i].
+fn emit_scalar_f32x4_maxmax(w: WasmWriter, a: i32, b: i32, dest: i32, cmp_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, cmp_op)
+        writer_core::emit_byte(w, opcodes::OP_SELECT())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// f64x2 unary: for each of 2 lanes, load a[lane], op, store dest[lane]
+fn emit_scalar_f64x2_unary(w: WasmWriter, a: i32, dest: i32, op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 2 {
+        call_simd_scalar_ops::emit_local_get(w, a + i * 2)
+        writer_core::emit_byte(w, op)
+        call_simd_scalar_ops::emit_local_set(w, dest + i * 2)
+        i = i + 1
+    }
+}
+
+// i32x4 shift: for each of 4 lanes, load a[i], load scalar shift, shift, store dest[i].
+// The shift amount (arg1) is a scalar i32 local.
+fn emit_scalar_i32x4_shift(w: WasmWriter, a: i32, shift: i32, dest: i32, shift_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, shift)
+        writer_core::emit_byte(w, shift_op)
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// i64x2 shift: for each of 2 lanes, load a[lane*2], load scalar shift, shift, store dest[lane*2].
+fn emit_scalar_i64x2_shift(w: WasmWriter, a: i32, shift: i32, dest: i32, shift_op: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 2 {
+        call_simd_scalar_ops::emit_local_get(w, a + i * 2)
+        call_simd_scalar_ops::emit_local_get(w, shift)
+        writer_core::emit_byte(w, shift_op)
+        call_simd_scalar_ops::emit_local_set(w, dest + i * 2)
+        i = i + 1
+    }
+}
+
+// all_true: OR all 4 i32 slots, then eqz twice to get 1 if all-nonzero, 0 otherwise.
+fn emit_scalar_all_true(w: WasmWriter, src: i32, dest: i32) {
+    if dest < 0 { return }
+    call_simd_scalar_ops::emit_local_get(w, src)
+    call_simd_scalar_ops::emit_local_get(w, src + 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_OR())
+    call_simd_scalar_ops::emit_local_get(w, src + 2)
+    writer_core::emit_byte(w, opcodes::OP_I32_OR())
+    call_simd_scalar_ops::emit_local_get(w, src + 3)
+    writer_core::emit_byte(w, opcodes::OP_I32_OR())
+    // eqz: 1 if all-zero, 0 if any-nonzero
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    // eqz again: 0 if all-zero, 1 if any-nonzero = all_true result
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    call_simd_scalar_ops::emit_local_set(w, dest)
+}
+
+// bitmask: for each of n_slots lanes, extract the sign bit (top bit) and pack into result i32.
+// For i32x4 (4 slots): bit i = (slot[i] >> 31) & 1, shifted into position i.
+// For i64x2 (2 slots): bit i = (slot[i*2] >> 31) & 1, shifted into position i.
+fn emit_scalar_bitmask(w: WasmWriter, src: i32, dest: i32, n_slots: i32) {
+    if dest < 0 { return }
+    // Start with 0
+    call_simd_scalar_ops::emit_i32_const(w, 0)
+    let mut i = 0
+    while i < n_slots {
+        // Current bitmask is on stack. Shift left by 1 to make room.
+        call_simd_scalar_ops::emit_i32_const(w, 1)
+        writer_core::emit_byte(w, opcodes::OP_I32_SHL())
+        // OR in the sign bit of slot[i] (or slot[i*2] for i64x2)
+        let slot = src + i * (4 / n_slots)
+        call_simd_scalar_ops::emit_local_get(w, slot)
+        call_simd_scalar_ops::emit_i32_const(w, 31)
+        writer_core::emit_byte(w, opcodes::OP_I32_SHR_U())
+        writer_core::emit_byte(w, opcodes::OP_I32_OR())
+        i = i + 1
+    }
+    call_simd_scalar_ops::emit_local_set(w, dest)
+}
+
+// Saturating add (simplified): for each of 4 lanes, compute a[i] + b[i].
+// This is a simplified version that does not clamp to 8/16-bit ranges.
+fn emit_scalar_i32x4_add_sat(w: WasmWriter, a: i32, b: i32, dest: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}
+
+// Saturating sub (simplified): for each of 4 lanes, compute a[i] - b[i].
+fn emit_scalar_i32x4_sub_sat(w: WasmWriter, a: i32, b: i32, dest: i32) {
+    if dest < 0 { return }
+    let mut i = 0
+    while i < 4 {
+        call_simd_scalar_ops::emit_local_get(w, a + i)
+        call_simd_scalar_ops::emit_local_get(w, b + i)
+        writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+        call_simd_scalar_ops::emit_local_set(w, dest + i)
+        i = i + 1
+    }
+}

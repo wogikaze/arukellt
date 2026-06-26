@@ -1,0 +1,129 @@
+// Arukellt Typechecker - SIMD intrinsic classifiers: i8x16/i16x8/scalar/wasm.
+
+// i8x16 (except extract_lane_s/u, all_true, bitmask -> i32)
+fn simd_return_i8x16(name: String) -> bool {
+    if eq(clone(name), String_from("__simd_i8x16_splat")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_replace_lane")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_add")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_sub")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_mul")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_neg")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_abs")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_add_sat_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_add_sat_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_sub_sat_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_sub_sat_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_eq")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_ne")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_lt_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_le_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_gt_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_ge_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_lt_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_le_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_gt_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_ge_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_min_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_max_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_min_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_max_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_shl")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_shr_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_shr_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_narrow_i16x8_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_narrow_i16x8_u")) { return true }
+    false
+}
+
+// i16x8 (except extract_lane_s/u -> i32)
+fn simd_return_i16x8(name: String) -> bool {
+    if eq(clone(name), String_from("__simd_i16x8_splat")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_replace_lane")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_add")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_sub")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_mul")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_neg")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_abs")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_add_sat_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_add_sat_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_sub_sat_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_sub_sat_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_eq")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_ne")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_lt_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_le_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_gt_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_ge_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_lt_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_le_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_gt_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_ge_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_min_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_max_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_min_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_max_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_shl")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_shr_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_shr_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extadd_pairwise_i8x16_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extadd_pairwise_i8x16_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extend_low_i8x16_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extend_high_i8x16_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extend_low_i8x16_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extend_high_i8x16_u")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_narrow_i32x4_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_narrow_i32x4_u")) { return true }
+    false
+}
+
+// i32-returning functions
+fn simd_return_i32(name: String) -> bool {
+    if eq(clone(name), String_from("__simd_v128_any_true")) { return true }
+    if eq(clone(name), String_from("__simd_i32x4_extract_lane")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_extract_lane_s")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_extract_lane_u")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_all_true")) { return true }
+    if eq(clone(name), String_from("__simd_i8x16_bitmask")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extract_lane_s")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_extract_lane_u")) { return true }
+    if eq(clone(name), String_from("__simd_i32x4_all_true")) { return true }
+    if eq(clone(name), String_from("__simd_i32x4_bitmask")) { return true }
+    if eq(clone(name), String_from("__simd_i64x2_all_true")) { return true }
+    if eq(clone(name), String_from("__simd_i64x2_bitmask")) { return true }
+    if eq(clone(name), String_from("__simd_i16x8_bitmask")) { return true }
+    false
+}
+
+// f32-returning functions
+fn simd_return_f32(name: String) -> bool {
+    if eq(clone(name), String_from("__simd_f32x4_extract_lane")) { return true }
+    false
+}
+
+// f64-returning functions
+fn simd_return_f64(name: String) -> bool {
+    if eq(clone(name), String_from("__simd_f64x2_extract_lane")) { return true }
+    false
+}
+
+// i64-returning functions
+fn simd_return_i64(name: String) -> bool {
+    if eq(clone(name), String_from("__simd_i64x2_extract_lane")) { return true }
+    false
+}
+
+// std::wasm raw v128 load/store intrinsics (ADR-037 §11)
+// v128-returning functions
+fn simd_return_wasm_v128(name: String) -> bool {
+    if eq(clone(name), String_from("__wasm_v128_load")) { return true }
+    if eq(clone(name), String_from("__wasm_v128_load_splat")) { return true }
+    if eq(clone(name), String_from("__wasm_v128_load_lane")) { return true }
+    false
+}
+
+// void-returning functions
+fn simd_return_wasm_unit(name: String) -> bool {
+    if eq(clone(name), String_from("__wasm_v128_store")) { return true }
+    if eq(clone(name), String_from("__wasm_v128_store_lane")) { return true }
+    false
+}

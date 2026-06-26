@@ -1,0 +1,62 @@
+// Arukellt Selfhost - SIMD emit helpers (shared by native and scalar paths).
+
+use mir::inst_accessors_operands
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+
+// Emit a SIMD prefix byte + sub-opcode (LEB128-encoded)
+fn emit_simd_prefix(w: WasmWriter, sub_opcode: i32) {
+    writer_core::emit_byte(w, opcodes::SIMD_PREFIX())
+    writer_leb::emit_leb128_u(w, sub_opcode)
+}
+
+// Binary SIMD op: two v128 operands on stack, result v128 on stack
+fn emit_simd_binary(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Unary SIMD op: one v128 operand on stack, result on stack
+fn emit_simd_unary(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Ternary SIMD op: three v128 operands on stack (a, b, c), result on stack
+fn emit_simd_ternary(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Extract lane: v128 + lane index (immediate) on stack, scalar result
+fn emit_simd_extract_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    // Lane index is an immediate byte (0..N-1)
+    let lane = inst_accessors_operands::MirInst_arg1(inst)
+    writer_core::emit_byte(w, lane)
+    emit_store_result(w, inst)
+}
+
+// Replace lane: v128 + scalar value on stack, lane index is immediate
+fn emit_simd_replace_lane(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    let lane = inst_accessors_operands::MirInst_arg1(inst)
+    writer_core::emit_byte(w, lane)
+    emit_store_result(w, inst)
+}
+
+// Shift: v128 + scalar i32 shift amount on stack, result v128 on stack
+fn emit_simd_shift(w: WasmWriter, inst: MirInst, sub_opcode: i32) {
+    emit_simd_prefix(w, sub_opcode)
+    emit_store_result(w, inst)
+}
+
+// Store result to dest local if needed
+fn emit_store_result(w: WasmWriter, inst: MirInst) {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest >= 0 {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, dest)
+    }
+}

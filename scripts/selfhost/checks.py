@@ -2086,6 +2086,36 @@ pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: St
             encoding="utf-8",
         )
 
+    # DEBUG: Stub out mir_register_view_layouts to test if struct layout
+    # registration is the source of excessive string constants
+    registry_path = compiler_out / "mir_lower_registry_view.ark"
+    if registry_path.is_file():
+        registry_path.write_text(
+            """// Arukellt Selfhost - Bootstrap stub: struct layout registration disabled.
+use mir_lower_ctx_types
+
+fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
+}
+""",
+            encoding="utf-8",
+        )
+
+    # DEBUG: Stub out mir_build_fn_index_from_view to test if fn index building
+    # is the source of excessive string constants
+    # (disabled - caused regex match issues)
+
+    # DEBUG: Add str_count and fn_count debug print to prepare_string_table
+    strings_path = compiler_out / "wasm_strings.ark"
+    if strings_path.is_file():
+        text = strings_path.read_text(encoding="utf-8")
+        text = _replace_required(
+            text,
+            "    let str_count = mir_module_strings::MirModule_string_constant_count(mir)\n",
+            "    let str_count = mir_module_strings::MirModule_string_constant_count(mir)\n    stdio::eprintln(concat(String_from(\"DEBUG str_count=\"), to_string(str_count)))\n    let fn_count = mir_module_functions::MirModule_function_count(mir)\n    stdio::eprintln(concat(String_from(\"DEBUG fn_count=\"), to_string(fn_count)))\n",
+            "add debug print for str_count and fn_count",
+        )
+        strings_path.write_text(text, encoding="utf-8")
+
     # 3. Stub out mir_prune_unreachable_for_t3 in session_corehir
     sess_path = compiler_out / "compiler_session_corehir.ark"
     if sess_path.is_file():
