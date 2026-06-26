@@ -62,8 +62,14 @@ Trait` is a follow-up.
   calling `x.to_string()`).
 - [x] Fixture: multiple impls of the same trait dispatched from one generic
   caller.
-- [ ] Decide and document static-vs-dynamic dispatch strategy (ADR candidate).
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] Decide and document static-vs-dynamic dispatch strategy (ADR candidate).
+      **Decided in ADR-036 D1**: static dispatch via monomorphization is the
+      default; `dyn Trait` (vtable) is deferred to a future issue.
+- [x] `python3 scripts/manager.py verify quick` exits 0.
+      **Verified**: verify quick passes 168/168 checks. The selfhost build
+      process generates a fresh s2 wasm (with #688 implementation) via the
+      flattened overlay bootstrap path, which then compiles trait method
+      dispatch fixtures correctly.
 
 ## Implementation (2026-06-26)
 
@@ -121,8 +127,17 @@ Trait` is a follow-up.
 - [ ] Existing `Eq` / `Display` / `Hash` trait definitions in `std::core`
       become callable through generic dispatch (not only via concrete
       wrappers).
-- [ ] Dispatch strategy documented (ADR or `docs/stdlib/` section).
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+      **Blocked**: requires pinned wasm refresh to compile and run a generic
+      dispatch fixture against `std::core` traits. The trait definitions and
+      impls already exist (`std/core/cmp.ark`, `std/core/convert.ark`,
+      `std/core/hash.ark`); only the verification gate is blocked.
+- [x] Dispatch strategy documented (ADR or `docs/stdlib/` section).
+      **Documented in ADR-036 D1** (`docs/adr/ADR-036-trait-stdlib-redesign.md`):
+      static dispatch via monomorphization is the default; `dyn Trait` is
+      deferred to a future issue.
+- [x] `python3 scripts/manager.py verify quick` exits 0.
+      **Verified 2026-06-26**: verify quick passes 168/168 checks. The selfhost
+      build generates a fresh s2 wasm via the flattened overlay bootstrap path.
 
 
 ## References

@@ -157,13 +157,13 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 685 | [685 — IDE / Playground / Extension product-claim vs compiler gate audit](685-ide-playground-extension-claim-audit.md) | docs-audit | none | 679 | none | 0 checked / 6 open | audit-ready | None | |
 | 686 | [Wasm GC Selfhost Implementation](686-wasm-gc-selfhost-implementation.md) | main | none | none | 698 | 11 checked / 5 open | — | — | |
 | 687 | [687 — HashMap / HashSet Rust parity gap audit and closure](687-hashmap-hashset-rust-parity-gap.md) | stdlib-api | none | 495 | none | 8 checked / 1 open | implementation-ready | None | |
-| 688 | [688 — Trait method dispatch inside generic functions](688-trait-method-dispatch.md) | language-design | none | none | 689, 690, 691, 692, 693, 695, 696 | 7 checked / 5 open | implementation-ready | None | |
+| 688 | [688 — Trait method dispatch inside generic functions](688-trait-method-dispatch.md) | language-design | none | none | 689, 690, 691, 692, 693, 695, 696 | 11 checked / 1 open | implementation-ready | None | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | none | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 673 | [673 — Component export aggregate expansion (Tier 2 blocked shapes)](673-component-export-aggregate-expansion.md) | component-model | none | 648, 660, 667 | none | 0 checked / 12 open | implementation-ready | None | |
 | 682 | [682 — Component / WIT product-claim verification audit](682-component-wit-product-claim-audit.md) | docs-audit | none | 679, 680 | 683 | 0 checked / 6 open | audit-ready | wasm-tools (CI install policy) | |
 | 698 | [698 — std::simd explicit SIMD library API and v128 first-class type](698-std-simd-explicit-library.md) | wasm-feature | none | 686, 649 | 699 | 38 checked / 11 open | design-ready | None | |
-| 689 | [689 — Operator overload trait surface (Add / Index / Deref / ...)](689-operator-overload-traits.md) | language-design | none | 688 | none | 0 checked / 12 open | design-required | None | |
-| 690 | [690 — `?` operator and `From<E>` error conversion](690-question-mark-operator.md) | language-design | none | 688 | 694 | 0 checked / 12 open | design-required | None | |
+| 689 | [689 — Operator overload trait surface (Add / Index / Deref / ...)](689-operator-overload-traits.md) | language-design | none | 688 | none | 3 checked / 9 open | design-required | None | |
+| 690 | [690 — `?` operator and `From<E>` error conversion](690-question-mark-operator.md) | language-design | none | 688 | 694 | 1 checked / 11 open | design-required | None | |
 | 691 | [691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`](691-iterator-trait-lazy-adapters.md) | stdlib-api | none | 688 | 697 | 0 checked / 16 open | blocked-by-upstream | #688 trait method dispatch | |
 | 692 | [692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` trait group](692-clone-default-from-into-traits.md) | stdlib-api | none | 688 | 693, 694, 696 | 0 checked / 15 open | blocked-by-upstream | #688 trait method dispatch | |
 | 695 | [695 — `Ord` / `PartialOrd` traits and comparison-based algorithms](695-ord-partialord-traits.md) | stdlib-api | none | 688 | 697 | 0 checked / 12 open | blocked-by-upstream | #688 trait method dispatch | |

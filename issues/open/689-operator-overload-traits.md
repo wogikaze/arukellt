@@ -41,15 +41,24 @@ Shl, Shr, Not, Index, IndexMut, Deref, DerefMut, RangeBounds}` and
       built-in scalar semantics when no user impl exists.
 - [ ] Language: resolve operator calls against trait impls (depends on #688
       trait method dispatch).
-- [ ] Stdlib: define `std::core::ops` module with `Add`/`Sub`/`Mul`/`Div`/
+- [x] Stdlib: define `std::core::ops` module with `Add`/`Sub`/`Mul`/`Div`/
       `Neg`/`Index`/`IndexMut`/`Deref`/`DerefMut` trait declarations.
-- [ ] Stdlib: provide built-in impls for scalars (`impl Add for i32`, ...).
+      **Done**: `std/core/ops.ark` created with all v0-scope trait declarations
+      (Add, Sub, Mul, Div, Rem, Neg, BitAnd, BitOr, BitXor, Shl, Shr, Not,
+      Index, IndexMut, Deref) per ADR-038.
+- [x] Stdlib: provide built-in impls for scalars (`impl Add for i32`, ...).
+      **Done**: `std/core/ops.ark` includes scalar impls for i32, i64, f64
+      (arithmetic) and i32/bool (bitwise/not).
 - [ ] Fixture: user type (e.g. `struct Vec2 { x: i32, y: i32 }`) with
       `impl Add for Vec2` and `v1 + v2` syntax.
 - [ ] Fixture: `Index` on a user collection type.
-- [ ] ADR documenting operator overloading semantics and precedence over
+- [x] ADR documenting operator overloading semantics and precedence over
       built-in scalar behavior.
+      **Documented in ADR-038** (`docs/adr/ADR-038-operator-overload-traits.md`):
+      operator-to-trait mapping, built-in scalar fallback, Index/IndexMut
+      value-return semantics, v0 scope.
 - [ ] `python3 scripts/manager.py verify quick` exits 0.
+      **Blocked**: pinned bootstrap wasm refresh required (same as #688).
 
 ## Acceptance
 

@@ -11,7 +11,7 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 688 | 688 — Trait method dispatch inside generic functions | language-design | 5 | 0 | 3 | 5 | 4 | 17 |
+| 1 | 688 | 688 — Trait method dispatch inside generic functions | language-design | 5 | 0 | 5 | 5 | 5 | 20 |
 | 2 | 686 | Wasm GC Selfhost Implementation | main | 1 | 0 | 3 | 5 | 4 | 13 |
 | 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 4 | 5 | 3 | 13 |
 | 4 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |

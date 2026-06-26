@@ -45,8 +45,12 @@ is the foundation of ergonomic error handling and the `Error` trait ecosystem
 - [ ] Fixture: function returning `Result<i32, AppError>` using `?` on a
       `parse_i32` call with `From<String> for AppError`.
 - [ ] Fixture: `Option` propagation with `?`.
-- [ ] ADR documenting `?` desugaring and conversion requirements.
+- [x] ADR documenting `?` desugaring and conversion requirements.
+      **Documented in ADR-039** (`docs/adr/ADR-039-question-mark-operator.md`):
+      desugaring rules for Result/Option, `From`-based error conversion,
+      parser syntax, type inference, MIR lowering strategy.
 - [ ] `python3 scripts/manager.py verify quick` exits 0.
+      **Blocked**: pinned bootstrap wasm refresh required (same as #688).
 
 ## Acceptance
 
