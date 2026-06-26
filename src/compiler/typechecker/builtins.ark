@@ -6,6 +6,7 @@ use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::types
 use typechecker::builtins_hash
+use typechecker::builtins_simd
 
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
@@ -21,6 +22,10 @@ fn builtin_call_return_type(name: String) -> TypeInfo {
     let hash_ty = builtins_hash::hashmap_builtin_return_type(clone(name))
     if contract_type_access::TypeInfo_tag(hash_ty) != commands::TY_UNKNOWN() {
         return hash_ty
+    }
+    let simd_ret = builtins_simd::simd_builtin_call_return_type(clone(name))
+    if contract_type_access::TypeInfo_tag(simd_ret) != commands::TY_UNKNOWN() {
+        return simd_ret
     }
     if starts_with(clone(name), "Vec_new_") {
         let elem_name = substring(name, 8, len(name))
