@@ -18,20 +18,20 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
     intrinsic_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }
 
-fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32) -> bool {
+fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_is_call: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op)
     } else {
-        emit_println_t1(w, inst, ctx)
+        emit_println_t1(w, inst, ctx, prev_is_call)
     }
     return false
 }
 
-fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         emit_gc_print(w, inst, ctx)
     } else {
-        emit_print_t1(w, inst, ctx)
+        emit_print_t1(w, inst, ctx, prev_is_call)
     }
     return false
 }
@@ -177,8 +177,14 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
     s_buf
 }
 
-fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) {
     let string_local = inst_accessors_operands::MirInst_dest(inst)
+    if prev_is_call {
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        if arg0 >= 0 {
+            helpers_core_locals::emit_local_get(w, arg0)
+        }
+    }
     helpers_core_locals::emit_local_set(w, string_local)
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
@@ -192,8 +198,14 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) {
     let string_local = inst_accessors_operands::MirInst_dest(inst)
+    if prev_is_call {
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        if arg0 >= 0 {
+            helpers_core_locals::emit_local_get(w, arg0)
+        }
+    }
     helpers_core_locals::emit_local_set(w, string_local)
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
@@ -205,8 +217,14 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
 }
 
-fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) -> bool {
     let string_local = inst_accessors_operands::MirInst_dest(inst)
+    if prev_is_call {
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        if arg0 >= 0 {
+            helpers_core_locals::emit_local_get(w, arg0)
+        }
+    }
     helpers_core_locals::emit_local_set(w, string_local)
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 1)
