@@ -88,6 +88,14 @@ trait Deref {
     fn deref(self: Deref) -> i32
 }
 
+/// Trait for types that support mutable dereference (`*a = v`).
+///
+/// v0 では定義のみを提供し、スカラー impl は将来 issueに切り出す
+/// (ADR-038 D6)。
+trait DerefMut {
+    fn deref_mut(self: DerefMut) -> i32
+}
+
 // ---------------------------------------------------------------------------
 // Built-in scalar impls for arithmetic operators.
 // These allow `impl Add for i32` etc. to be used via trait method dispatch
@@ -164,6 +172,13 @@ impl Div for i64 {
     }
 }
 
+/// `Rem` impl for `i64` — delegates to the built-in `%` operator.
+impl Rem for i64 {
+    fn rem(self: i64, rhs: i64) -> i64 {
+        self % rhs
+    }
+}
+
 /// `Neg` impl for `i64` — delegates to the built-in unary `-` operator.
 impl Neg for i64 {
     fn neg(self: i64) -> i64 {
@@ -196,6 +211,13 @@ impl Mul for f64 {
 impl Div for f64 {
     fn div(self: f64, rhs: f64) -> f64 {
         self / rhs
+    }
+}
+
+/// `Rem` impl for `f64` — delegates to the built-in `%` operator.
+impl Rem for f64 {
+    fn rem(self: f64, rhs: f64) -> f64 {
+        self % rhs
     }
 }
 

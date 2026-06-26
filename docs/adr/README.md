@@ -51,3 +51,5 @@
 | [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC Implementation Plan | Archive | ステータス: DRAFT — 段階実装中 |
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | Archive | ステータス: DRAFT — 688-697 完了後に実行される stdlib 再設計の戦略 ADR |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Explicit SIMD Library API | Archive | ステータス: PROPOSED — 明示的 SIMD ライブラリ API と v128 第一級型の導入を決定 |
+| [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: Operator Overload Trait Surface | Archive | ステータス: DRAFT — #688 完了後に実装される演算子オーバーロードの設計 ADR |
+| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: Question Mark Operator (?) and Error Conversion | Archive | ステータス: DRAFT — #688/#692 完了後に実装される ? 演算子の設計 ADR |

@@ -6,8 +6,8 @@
 ## Current Snapshot
 
 - Verification command: `python3 scripts/manager.py verify quick`
-- Current verification gate: 167/167 checks pass
-- Fixture manifest size: 1162 entries
+- Current verification gate: 168/168 checks pass
+- Fixture manifest size: 1165 entries
 - Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.
 
 ## Documents

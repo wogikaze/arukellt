@@ -66,10 +66,11 @@ Trait` is a follow-up.
       **Decided in ADR-036 D1**: static dispatch via monomorphization is the
       default; `dyn Trait` (vtable) is deferred to a future issue.
 - [x] `python3 scripts/manager.py verify quick` exits 0.
-      **Verified**: verify quick passes 168/168 checks. The selfhost build
-      process generates a fresh s2 wasm (with #688 implementation) via the
-      flattened overlay bootstrap path, which then compiles trait method
-      dispatch fixtures correctly.
+      **Verified**: verify quick passes 168/168 checks (after fixture manifest
+      registration and docs regeneration). The selfhost build process
+      generates a fresh s2 wasm (with #688 implementation) via the flattened
+      overlay bootstrap path, which then compiles trait method dispatch
+      fixtures correctly.
 
 ## Implementation (2026-06-26)
 
@@ -136,7 +137,8 @@ Trait` is a follow-up.
       static dispatch via monomorphization is the default; `dyn Trait` is
       deferred to a future issue.
 - [x] `python3 scripts/manager.py verify quick` exits 0.
-      **Verified 2026-06-26**: verify quick passes 168/168 checks. The selfhost
+      **Verified 2026-06-26**: verify quick passes 168/168 checks (after
+      fixture manifest registration and docs regeneration). The selfhost
       build generates a fresh s2 wasm via the flattened overlay bootstrap path.
 
 
