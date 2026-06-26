@@ -95,3 +95,77 @@ pub fn parse_i64(s: String) -> Option<i64> {
 pub fn parse_f64(s: String) -> Option<f64> {
     __intrinsic_parse_f64(s)
 }
+
+// ---------------------------------------------------------------------------
+// Inherent impl blocks for scalar types — method syntax (approach (a) #700).
+//
+// These provide method-syntax wrappers (`42.to_string()`, `(-5).abs()`, etc.)
+// that delegate to the existing intrinsics / prelude free functions.
+// ---------------------------------------------------------------------------
+
+/// Inherent methods on `i32`.
+impl i32 {
+    /// Returns the string representation of this integer.
+    fn to_string(self: i32) -> String {
+        __intrinsic_i32_to_string(self)
+    }
+
+    /// Returns the absolute value.
+    fn abs(self: i32) -> i32 {
+        if self < 0 {
+            0 - self
+        } else {
+            self
+        }
+    }
+
+    /// Returns the smaller of `self` and `other`.
+    fn min(self: i32, other: i32) -> i32 {
+        if self < other {
+            self
+        } else {
+            other
+        }
+    }
+
+    /// Returns the larger of `self` and `other`.
+    fn max(self: i32, other: i32) -> i32 {
+        if self > other {
+            self
+        } else {
+            other
+        }
+    }
+}
+
+/// Inherent methods on `i64`.
+impl i64 {
+    /// Returns the string representation of this integer.
+    fn to_string(self: i64) -> String {
+        __intrinsic_i64_to_string(self)
+    }
+}
+
+/// Inherent methods on `f64`.
+impl f64 {
+    /// Returns the string representation of this float.
+    fn to_string(self: f64) -> String {
+        __intrinsic_f64_to_string(self)
+    }
+}
+
+/// Inherent methods on `bool`.
+impl bool {
+    /// Returns the string representation (`"true"` or `"false"`).
+    fn to_string(self: bool) -> String {
+        __intrinsic_bool_to_string(self)
+    }
+}
+
+/// Inherent methods on `char`.
+impl char {
+    /// Returns the string representation of this character.
+    fn to_string(self: char) -> String {
+        __intrinsic_char_to_string(self)
+    }
+}

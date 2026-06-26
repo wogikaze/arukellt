@@ -2,6 +2,7 @@
 
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
+use typechecker::contract_fn_sig
 use typechecker::sigs
 
 fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
@@ -22,13 +23,30 @@ fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
 }
 
 fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode) {
+    let impl_target = impl_self_type_name(node)
     let impl_child_count = ast_access::node_child_count(node)
     let mut ic = 0
     while ic < impl_child_count {
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
-            push(fn_sigs, sigs::fn_sig_from_fn_decl(meth))
+            let bare_sig = sigs::fn_sig_from_fn_decl(meth)
+            let mangled_name = concat(clone(impl_target), concat(String_from("::"), contract_fn_sig::FnSig_name(bare_sig)))
+            push(fn_sigs, contract_fn_sig::FnSig_with_name(bare_sig, mangled_name))
         }
         ic = ic + 1
     }
+}
+
+// Extract the impl target type name from an impl declaration.
+// For `impl Type { ... }` returns "Type".
+// For `impl Trait for Type { ... }` returns "Type" (the implementing type).
+fn impl_self_type_name(decl: AstNode) -> String {
+    let ann_count = ast_access::node_type_ann_count(decl)
+    if ann_count >= 2 {
+        return ast_access::node_text(ast_access::node_type_ann_at(decl, 1))
+    }
+    if ann_count >= 1 {
+        return ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
+    }
+    ast_access::node_text(decl)
 }

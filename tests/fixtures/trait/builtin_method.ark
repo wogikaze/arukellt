@@ -1,15 +1,17 @@
 use std::host::stdio
+use std::collections::string
+use std::core::convert
 
 fn main() {
-    // String methods
+    // String methods (approach (a) — impl String block)
     let s = String_from("hello")
     stdio::println(s.len())
 
-    // i32 methods
+    // i32 methods (approach (a) — impl i32 block)
     let n = 42
     stdio::println(n.to_string())
 
-    // Vec methods
+    // Vec methods (approach (b) — compiler-internal fallback mapping)
     let v = Vec_new_i32()
     v.push(10)
     v.push(20)

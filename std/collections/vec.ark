@@ -5,3 +5,13 @@
 pub fn new_i32() -> Vec<i32> {
     __intrinsic_Vec_new_i32()
 }
+
+// ---------------------------------------------------------------------------
+// Inherent impl block for Vec<T> — method syntax (approach (a) for #700).
+//
+// NOTE: Generic inherent impls (`impl Vec<T>`) require typechecker support
+// for propagating type parameters from the impl block to method signatures.
+// Until that support is added, Vec method syntax relies on the
+// compiler-internal fallback mapping (approach (b)) in
+// `src/compiler/mir/lower/method_resolve.ark`.
+// ---------------------------------------------------------------------------

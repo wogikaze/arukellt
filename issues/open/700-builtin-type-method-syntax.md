@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-27
-Updated: 2026-06-27
+Updated: 2026-06-28
 ID: 700
 Track: language-design
 Depends on: 688
@@ -74,13 +74,22 @@ go through free functions.
 - [x] **Typechecker**: `infer_method_call_expr` (`src/compiler/typechecker/
       call_method.ark`) must resolve method calls on builtin-typed receivers
       to the corresponding `Type::method` signature.
-      *(Handled through `mir_initial_method_callee` normalization +
-      `mir_resolve_method_callee` intrinsic fallback.)*
+      *(Now uses mangled name lookup: `collect_impl_method_sigs` registers
+      impl methods as `Type::method` (e.g. `String::len`, `i32::to_string`)
+      and `infer_method_call_expr` constructs the mangled name from the
+      receiver's TypeInfo tag and looks it up first, falling back to
+      bare-name lookup for free functions / prelude builtins.)*
 - [x] **MIR lowering**: `mir_initial_method_callee`
       (`src/compiler/mir/lower/method.ark`) already constructs
       `Struct::method` from the receiver's local type — verify it works
       when the type is `vec`, `string`, `i32`, etc.
       *(Normalization for `vec:` → `Vec`, `string` → `String` added.)*
+- [x] **MIR self param**: `mir_bind_method_self_param`
+      (`src/compiler/mir/lower/params_method.ark`) must use the correct
+      value_type for `self` parameters of builtin types (scalar types use
+      direct value, not GC reference).
+      *(Fixed: `i32`/`i64`/`f64`/`bool`/`char` self params now use the
+      scalar value_type instead of hardcoded `VT_GC_REF`.)*
 - [x] **Intrinsic bridge**: When `v.push(42)` is called on `Vec<T>`, the
       resolved `Vec::push` method body should delegate to the existing
       `Vec_push_<T>` intrinsic. This may require:
@@ -88,23 +97,29 @@ go through free functions.
             in stdlib with intrinsic delegation, OR
       - (b) Compiler-recognized mapping from `Vec::push` directly to the
             intrinsic call in MIR lowering.
-      Approach (b) implemented via `mir_builtin_method_to_intrinsic` in
-      `src/compiler/mir/lower/method_resolve.ark`.
+      Approach (a) implemented for `String` and scalar types (`i32`, `i64`,
+      `f64`, `bool`, `char`) — user-written `impl` blocks delegate to
+      intrinsics. Approach (b) remains as fallback for `Vec<T>` (generic
+      inherent impls need typechecker support for impl-block type params).
 
 ### Stdlib
 
 - [ ] `impl Vec<T>` block in `std/collections/vec.ark` with methods:
       `push`, `pop`, `get`, `set`, `len`, `is_empty`, `clear`,
       `get_unchecked` (delegating to existing intrinsics).
-      *(Not yet — approach (b) compiler-recognized mapping used instead.)*
-- [ ] `impl String` block in `std/core/string.ark` with methods:
-      `len`, `char_at`, `index_of`, `slice`, `concat` (delegating to
-      existing intrinsics).
-      *(Not yet — approach (b) compiler-recognized mapping used instead.)*
-- [ ] `impl i32` block with methods: `to_string` (→ Display), `abs`,
-      `min`, `max`, `hash` (→ Hash trait).
-      Similarly for `i64`, `f64`, `bool`, `char`.
-      *(Not yet — approach (b) compiler-recognized mapping used instead.)*
+      *(Blocked: generic inherent impls (`impl Vec<T>`) require typechecker
+      support for propagating type parameters from the impl block to method
+      signatures. Vec method syntax uses approach (b) compiler-internal
+      fallback mapping in the meantime.)*
+- [x] `impl String` block in `std/collections/string.ark` with methods:
+      `len`, `char_at`, `index_of`, `slice`, `concat`, `clone`,
+      `starts_with`, `ends_with`, `contains`, `to_lower`, `to_upper`,
+      `trim`, `replace` (delegating to existing intrinsics / prelude
+      free functions).
+- [x] `impl i32` block with methods: `to_string`, `abs`, `min`, `max`.
+      Similarly for `i64` (`to_string`), `f64` (`to_string`),
+      `bool` (`to_string`), `char` (`to_string`).
+      *(In `std/core/convert.ark`, alongside existing `Display` trait impls.)*
 
 ### Fixtures
 
@@ -116,12 +131,17 @@ go through free functions.
 
 ## Acceptance
 
-- [x] `impl Vec<T> { fn push(self, x: T) { ... } }` compiles and
+- [ ] `impl Vec<T> { fn push(self, x: T) { ... } }` compiles and
       `v.push(42)` calls it.
-      *(Via compiler-recognized intrinsic mapping, not user-written impl.)*
+      *(Blocked: generic inherent impls need typechecker support for
+      impl-block type params. Vec method syntax works via approach (b)
+      compiler-recognized intrinsic mapping in the meantime.)*
+- [x] `impl String { fn len(self) -> i32 { ... } }` compiles and
+      `s.len()` returns the string length.
+      *(User-written impl block in `std/collections/string.ark`.)*
 - [x] `impl i32 { fn to_string(self) -> String { ... } }` compiles and
       `42.to_string()` returns `"42"`.
-      *(Via compiler-recognized intrinsic mapping.)*
+      *(User-written impl block in `std/core/convert.ark`.)*
 - [x] Existing free-function intrinsics (`Vec_push_i32`, `to_string`, etc.)
       continue to work (thin wrapper or direct).
 - [x] `python3 scripts/manager.py verify quick` exits 0.

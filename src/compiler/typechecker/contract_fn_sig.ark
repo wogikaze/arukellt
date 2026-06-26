@@ -19,6 +19,11 @@ fn FnSig_empty(return_type: TypeInfo) -> FnSig {
     FnSig_new(String_new(), Vec_new_TypeInfo(), return_type, Vec_new_String(), Vec_new_TypeParamBounds())
 }
 
+/// Return a copy of `sig` with the name replaced (used for impl method mangling).
+fn FnSig_with_name(sig: FnSig, name: String) -> FnSig {
+    FnSig_new(name, sig.param_types, sig.return_type, sig.type_params, sig.type_param_bounds)
+}
+
 fn FnSig_name(sig: FnSig) -> String {
     clone(sig.name)
 }

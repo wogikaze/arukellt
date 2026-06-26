@@ -46,3 +46,80 @@ pub fn join(parts: Vec<String>, sep: String) -> String {
 pub fn push_char(s: String, c: char) {
     __intrinsic_push_char(s, c)
 }
+
+// ---------------------------------------------------------------------------
+// Inherent impl blocks for String — method syntax (approach (a) for #700).
+//
+// These delegate to the existing compiler intrinsics / prelude free functions.
+// With these impl blocks, `s.len()`, `s.slice(0, 3)`, etc. resolve to
+// `String::len`, `String::slice`, etc. instead of the compiler-internal
+// fallback mapping.
+// ---------------------------------------------------------------------------
+
+/// Inherent methods on `String` — method-syntax wrappers around intrinsics.
+impl String {
+    /// Returns the length of the string in bytes.
+    fn len(self: String) -> i32 {
+        len(self)
+    }
+
+    /// Returns the byte value at index `i` (no bounds check).
+    fn char_at(self: String, i: i32) -> i32 {
+        char_at(self, i)
+    }
+
+    /// Returns the byte index of the first occurrence of `sub`, or -1.
+    fn index_of(self: String, sub: String) -> i32 {
+        index_of(self, sub)
+    }
+
+    /// Returns a substring `[start, end)`.
+    fn slice(self: String, start: i32, end: i32) -> String {
+        slice(self, start, end)
+    }
+
+    /// Concatenates `other` onto the end of `self`.
+    fn concat(self: String, other: String) -> String {
+        concat(self, other)
+    }
+
+    /// Returns a copy of the string.
+    fn clone(self: String) -> String {
+        clone(self)
+    }
+
+    /// Returns true if the string starts with `prefix`.
+    fn starts_with(self: String, prefix: String) -> bool {
+        starts_with(self, prefix)
+    }
+
+    /// Returns true if the string ends with `suffix`.
+    fn ends_with(self: String, suffix: String) -> bool {
+        ends_with(self, suffix)
+    }
+
+    /// Returns true if the string contains `sub`.
+    fn contains(self: String, sub: String) -> bool {
+        contains(self, sub)
+    }
+
+    /// Returns a lowercased copy of the string.
+    fn to_lower(self: String) -> String {
+        to_lower(self)
+    }
+
+    /// Returns an uppercased copy of the string.
+    fn to_upper(self: String) -> String {
+        to_upper(self)
+    }
+
+    /// Returns a copy with leading/trailing whitespace removed.
+    fn trim(self: String) -> String {
+        trim(self)
+    }
+
+    /// Returns a copy with all occurrences of `from` replaced by `to`.
+    fn replace(self: String, from: String, to: String) -> String {
+        replace(self, from, to)
+    }
+}
