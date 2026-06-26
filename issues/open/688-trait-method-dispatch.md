@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-26
+Updated: 2026-06-28
 ID: 688
 Track: language-design
 Depends on: none
@@ -128,10 +128,29 @@ Trait` is a follow-up.
 - [ ] Existing `Eq` / `Display` / `Hash` trait definitions in `std::core`
       become callable through generic dispatch (not only via concrete
       wrappers).
-      **Blocked**: requires pinned wasm refresh to compile and run a generic
-      dispatch fixture against `std::core` traits. The trait definitions and
-      impls already exist (`std/core/cmp.ark`, `std/core/convert.ark`,
-      `std/core/hash.ark`); only the verification gate is blocked.
+      **Blocked by MIR codegen bug**: the selfhost compiler produces invalid
+      wasm for generic trait method dispatch. The fixture
+      `tests/fixtures/generics_v1/trait_dispatch_stdlib.ark` typechecks
+      correctly and exercises all three traits (`Eq`, `Display`, `Hash`)
+      through generic dispatch, but the compiled wasm contains `unreachable`
+      instructions instead of resolved method calls.
+
+      Root cause: `entry_fns_mono.ark` emits only the original generic
+      function body, not monomorphized copies per type argument
+      (`mono_index_count` returns 0 for generic functions called from
+      `main`). As a result, `ctx_setup_mono_type_params_by_ordinal` cannot
+      resolve `?T` to a concrete type, `mir_initial_method_callee` returns
+      an unresolvable callee name, and the wasm emitter falls back to
+      `emit_unresolved_fallback_call` → `OP_UNREACHABLE`.
+
+      The trait definitions and impls already exist (`std/core/cmp.ark`,
+      `std/core/convert.ark`, `std/core/hash.ark`); the fixture is
+      registered in `tests/fixtures/manifest.txt`. The fix requires:
+      1. Ensuring the typechecker records mono instances for generic
+         functions called from non-generic code.
+      2. Ensuring `entry_fns_mono.ark` emits one function copy per mono
+         instance with the correct `emit_fn_name`.
+      3. Rebuilding the pinned wasm after the codegen fix.
 - [x] Dispatch strategy documented (ADR or `docs/stdlib/` section).
       **Documented in ADR-036 D1** (`docs/adr/ADR-036-trait-stdlib-redesign.md`):
       static dispatch via monomorphization is the default; `dyn Trait` is
