@@ -6,14 +6,12 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::function_return_view
-use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
-use wasm::emit_target
 use wasm::inst_ctx
 
 fn is_gc_container_type_name(type_name: String) -> bool {
@@ -161,7 +159,7 @@ fn mir_fn_returns_option_by_name(fn_name: String) -> bool {
 }
 
 fn mir_function_returns_option(f: MirFunction) -> bool {
-    if mir_fn_returns_option_by_name(function_identity::MirFunction_name(f)) {
+    if mir_fn_returns_option_by_name(clone(f.name)) {
         return true
     }
     if function_return_view::MirFunction_return_type(f) != value_types::VT_GC_REF() {
@@ -214,7 +212,7 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
                     return call_type
                 }
             }
-            if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            if op == opcodes::MIR_CONST_STRING() && is_gc_target_inline(ctx_record::SelfEmitCtx_target(ctx)) {
                 return ctx_gc_type::SelfEmitCtx_string_type(ctx)
             }
         }
@@ -270,4 +268,10 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
     }
     0 - 1
+}
+
+fn is_gc_target_inline(target: String) -> bool {
+    if contains(clone(target), String_from("-p2")) { return true }
+    if contains(clone(target), String_from("-p3")) { return true }
+    false
 }

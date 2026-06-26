@@ -4,8 +4,6 @@ use mir::inst_accessors_operands
 use wasm::ctx_scratch
 use wasm::ctx_string_view
 use wasm::ctx_record
-use wasm::emit_target
-use wasm::opcodes
 use wasm::string_gc_helpers
 use wasm::writer_core
 use wasm::intrinsics::helpers_control_structured
@@ -24,7 +22,7 @@ fn emit_clone(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: len
 fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+    if is_gc_target_local(ctx_record::SelfEmitCtx_target(ctx)) {
         string_gc_helpers::emit_gc_array_len(w)
     } else {
         helpers_memory_stack::emit_string_len_from_stack(w)
@@ -34,7 +32,7 @@ fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: bool_to_string, text::format_bool, convert::bool_to_string
 fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+    if is_gc_target_local(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_bool_to_string_gc(w, inst, ctx)
         return true
     }
@@ -84,7 +82,7 @@ fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32,
     string_gc_helpers::emit_gc_i32_const(w, data_offset)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_add(w)
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
+    writer_core::emit_byte(w, 45)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
     string_gc_helpers::emit_gc_array_set(w, string_type)
@@ -103,7 +101,7 @@ fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32,
 
 // Handler for: concat, text::concat
 fn emit_concat(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+    if is_gc_target_local(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_concat_gc(w, inst, ctx)
     } else {
         let s_a = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
@@ -248,4 +246,10 @@ fn emit_concat_copy(w: WasmWriter, a_local: i32, b_local: i32, len_a_local: i32,
     helpers_core_locals::emit_local_get(w, len_a_local)
     helpers_numeric_i32_arith::emit_i32_sub(w)
     helpers_memory_access::emit_memory_copy(w)
+}
+
+fn is_gc_target_local(target: String) -> bool {
+    if contains(clone(target), String_from("-p2")) { return true }
+    if contains(clone(target), String_from("-p3")) { return true }
+    false
 }

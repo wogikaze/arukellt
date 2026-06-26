@@ -1,6 +1,5 @@
 // Arukellt Selfhost - Wasm call namespace: call_fallback
 
-use mir::types
 use mir::opcodes as mir_opcodes
 use wasm::opcodes
 use mir::function_return_view

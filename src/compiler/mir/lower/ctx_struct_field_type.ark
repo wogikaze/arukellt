@@ -1,6 +1,5 @@
 // Arukellt MIR lowering context - struct field type queries.
 
-use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_storage
 
 fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
@@ -30,11 +29,46 @@ fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32
     if eq(clone(ft), "String") || eq(clone(ft), "string") {
         return true
     }
-    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(ft)) {
+    if field_type_is_registered_enum(ctx, clone(ft)) {
         return true
     }
-    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(ft)) {
+    if field_type_is_registered_struct(ctx, clone(ft)) {
         return true
+    }
+    false
+}
+
+fn field_type_is_registered_struct(ctx: LowerCtx, type_name: String) -> bool {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(type_name)) {
+            return true
+        }
+        si = si + 1
+    }
+    false
+}
+
+fn field_type_is_registered_enum(ctx: LowerCtx, type_name: String) -> bool {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(type_name)) {
+            if ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) == 1 {
+                let mut off = 0
+                let mut li = 0
+                while li < si {
+                    off = off + ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
+                    li = li + 1
+                }
+                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), String_from("_tag")) {
+                    return true
+                }
+            }
+            return false
+        }
+        si = si + 1
     }
     false
 }
