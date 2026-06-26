@@ -1,7 +1,6 @@
 // Arukellt Resolver - SIMD intrinsic builtin symbol names.
 
-fn push_simd_builtin_symbol_names(names: Vec<String>) {
-    // v128 raw bitwise
+fn push_simd_v128_bitwise(names: Vec<String>) {
     push(names, String_from("__simd_v128_and"))
     push(names, String_from("__simd_v128_or"))
     push(names, String_from("__simd_v128_xor"))
@@ -10,8 +9,9 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_v128_bitselect"))
     push(names, String_from("__simd_v128_any_true"))
     push(names, String_from("__simd_v128_const"))
+}
 
-    // f32x4
+fn push_simd_f32x4(names: Vec<String>) {
     push(names, String_from("__simd_f32x4_splat"))
     push(names, String_from("__simd_f32x4_extract_lane"))
     push(names, String_from("__simd_f32x4_replace_lane"))
@@ -34,8 +34,9 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_f32x4_floor"))
     push(names, String_from("__simd_f32x4_trunc"))
     push(names, String_from("__simd_f32x4_nearest"))
+}
 
-    // f64x2
+fn push_simd_f64x2(names: Vec<String>) {
     push(names, String_from("__simd_f64x2_splat"))
     push(names, String_from("__simd_f64x2_extract_lane"))
     push(names, String_from("__simd_f64x2_replace_lane"))
@@ -61,8 +62,9 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_f64x2_promote_low_f32x4"))
     push(names, String_from("__simd_f64x2_convert_low_i32x4_s"))
     push(names, String_from("__simd_f64x2_convert_low_i32x4_u"))
+}
 
-    // i32x4
+fn push_simd_i32x4(names: Vec<String>) {
     push(names, String_from("__simd_i32x4_splat"))
     push(names, String_from("__simd_i32x4_extract_lane"))
     push(names, String_from("__simd_i32x4_replace_lane"))
@@ -88,8 +90,9 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_i32x4_shl"))
     push(names, String_from("__simd_i32x4_shr_s"))
     push(names, String_from("__simd_i32x4_shr_u"))
+}
 
-    // i64x2
+fn push_simd_i64x2(names: Vec<String>) {
     push(names, String_from("__simd_i64x2_splat"))
     push(names, String_from("__simd_i64x2_extract_lane"))
     push(names, String_from("__simd_i64x2_replace_lane"))
@@ -107,8 +110,9 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_i64x2_shl"))
     push(names, String_from("__simd_i64x2_shr_s"))
     push(names, String_from("__simd_i64x2_shr_u"))
+}
 
-    // i8x16
+fn push_simd_i8x16(names: Vec<String>) {
     push(names, String_from("__simd_i8x16_splat"))
     push(names, String_from("__simd_i8x16_extract_lane_s"))
     push(names, String_from("__simd_i8x16_extract_lane_u"))
@@ -143,8 +147,9 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_i8x16_bitmask"))
     push(names, String_from("__simd_i8x16_narrow_i16x8_s"))
     push(names, String_from("__simd_i8x16_narrow_i16x8_u"))
+}
 
-    // i16x8
+fn push_simd_i16x8(names: Vec<String>) {
     push(names, String_from("__simd_i16x8_splat"))
     push(names, String_from("__simd_i16x8_extract_lane_s"))
     push(names, String_from("__simd_i16x8_extract_lane_u"))
@@ -183,4 +188,14 @@ fn push_simd_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__simd_i16x8_extend_high_i8x16_u"))
     push(names, String_from("__simd_i16x8_narrow_i32x4_s"))
     push(names, String_from("__simd_i16x8_narrow_i32x4_u"))
+}
+
+fn push_simd_builtin_symbol_names(names: Vec<String>) {
+    push_simd_v128_bitwise(names)
+    push_simd_f32x4(names)
+    push_simd_f64x2(names)
+    push_simd_i32x4(names)
+    push_simd_i64x2(names)
+    push_simd_i8x16(names)
+    push_simd_i16x8(names)
 }

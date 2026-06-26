@@ -1,6 +1,6 @@
 // Arukellt Resolver - HashMap builtin symbol names.
 
-fn push_hash_builtin_symbol_names(names: Vec<String>) {
+fn push_hash_typed(names: Vec<String>) {
     push(names, String_from("HashMap_i32_i32_new"))
     push(names, String_from("HashMap_i32_i32_insert"))
     push(names, String_from("HashMap_i32_i32_get"))
@@ -29,6 +29,9 @@ fn push_hash_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("HashMap_new_i32_String"))
     push(names, String_from("HashMap_new_String_i32"))
     push(names, String_from("HashMap_new_String_String"))
+}
+
+fn push_hash_lowlevel(names: Vec<String>) {
     push(names, String_from("__hm_si_new"))
     push(names, String_from("__hm_si_cap"))
     push(names, String_from("__hm_si_size"))
@@ -61,4 +64,9 @@ fn push_hash_builtin_symbol_names(names: Vec<String>) {
     push(names, String_from("__hm_ss_set_key"))
     push(names, String_from("__intrinsic_i31_box"))
     push(names, String_from("i31_box"))
+}
+
+fn push_hash_builtin_symbol_names(names: Vec<String>) {
+    push_hash_typed(names)
+    push_hash_lowlevel(names)
 }
