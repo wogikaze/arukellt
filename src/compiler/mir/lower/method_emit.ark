@@ -1,42 +1,23 @@
-use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::call_types
 // Arukellt Selfhost - MIR method call emission.
 
 use mir::inst_call
 use mir::value_types
 
-fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32) -> i32 {
+fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
     let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
     let dest = ctx_fresh_local(ctx, call_ret_vt)
-    let rtn = ctx_fn_return_type_name(ctx, clone(callee_name))
+    // Reuse the same result-type propagation as direct calls so that
+    // String/Vec/Hash/struct return types are inferred consistently.
+    // first_arg_idx is the receiver's local index, which corresponds to
+    // the first argument of the resolved intrinsic (e.g. vec_get_unchecked).
+    call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
     ctx_emit(ctx, inst_call::MirInst_call(callee_name, arg_count, dest))
-    if len(rtn) > 0 {
-        ctx_set_local_type(ctx, dest, rtn)
-    }
-    // Override return type for builtin methods that return String.
-    // Without this, the return type defaults to "i32" (string pointer on
-    // linear memory), causing println to re-convert the result.
-    let builtin_rtn = mir_builtin_method_return_type(callee_name)
-    if len(builtin_rtn) > 0 {
-        ctx_set_local_type(ctx, dest, builtin_rtn)
-    }
     if call_ret_vt == value_types::VT_VOID() {
         return 0 - 1
     }
     dest
-}
-
-fn mir_builtin_method_return_type(callee: String) -> String {
-    if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "i64_to_string") || eq(clone(callee), "f64_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "char_to_string") {
-        return String_from("String")
-    }
-    if eq(clone(callee), "clone") || eq(clone(callee), "String_from") {
-        return String_from("String")
-    }
-    if eq(clone(callee), "concat") {
-        return String_from("String")
-    }
-    String_from("")
 }

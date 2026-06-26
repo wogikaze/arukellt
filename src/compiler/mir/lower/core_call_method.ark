@@ -11,7 +11,7 @@ fn lower_core_method_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirE
     let receiver_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let callee_name = method::mir_initial_method_callee(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), receiver_idx)
     let first_method_arg_idx = lower_core_method_first_arg(ctx, exprs, expr, child_count)
-    method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, core_expr_shape_accessors::mir_core_expr_span_start(expr)), child_count)
+    method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, core_expr_shape_accessors::mir_core_expr_span_start(expr)), child_count, receiver_idx)
 }
 
 fn lower_core_method_first_arg(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {

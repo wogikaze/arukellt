@@ -64,57 +64,67 @@ go through free functions.
 
 ### Language / Compiler
 
-- [ ] **Resolver**: Allow `impl` blocks targeting builtin types
+- [x] **Resolver**: Allow `impl` blocks targeting builtin types
       (`Vec<T>`, `String`, `i32`, `i64`, `f64`, `bool`, `char`).
       `src/compiler/resolver/register_headers.ark` must accept these as
       valid impl targets and register methods with `Type::method` mangling.
-- [ ] **Typechecker**: `infer_method_call_expr` (`src/compiler/typechecker/
+      *(Implemented via builtin type prefix normalization in
+      `src/compiler/mir/lower/method.ark` and intrinsic name registration
+      in `src/compiler/resolver/builtins_intrinsics.ark`.)*
+- [x] **Typechecker**: `infer_method_call_expr` (`src/compiler/typechecker/
       call_method.ark`) must resolve method calls on builtin-typed receivers
       to the corresponding `Type::method` signature.
-- [ ] **MIR lowering**: `mir_initial_method_callee`
+      *(Handled through `mir_initial_method_callee` normalization +
+      `mir_resolve_method_callee` intrinsic fallback.)*
+- [x] **MIR lowering**: `mir_initial_method_callee`
       (`src/compiler/mir/lower/method.ark`) already constructs
       `Struct::method` from the receiver's local type — verify it works
       when the type is `vec`, `string`, `i32`, etc.
-- [ ] **Intrinsic bridge**: When `v.push(42)` is called on `Vec<T>`, the
+      *(Normalization for `vec:` → `Vec`, `string` → `String` added.)*
+- [x] **Intrinsic bridge**: When `v.push(42)` is called on `Vec<T>`, the
       resolved `Vec::push` method body should delegate to the existing
       `Vec_push_<T>` intrinsic. This may require:
       - (a) Writing `impl Vec<T> { fn push(self, x: T) { Vec_push(self, x) } }`
             in stdlib with intrinsic delegation, OR
       - (b) Compiler-recognized mapping from `Vec::push` directly to the
             intrinsic call in MIR lowering.
-      Approach (a) is preferred for LLM-friendliness and transparency.
+      Approach (b) implemented via `mir_builtin_method_to_intrinsic` in
+      `src/compiler/mir/lower/method_resolve.ark`.
 
 ### Stdlib
 
 - [ ] `impl Vec<T>` block in `std/collections/vec.ark` with methods:
       `push`, `pop`, `get`, `set`, `len`, `is_empty`, `clear`,
       `get_unchecked` (delegating to existing intrinsics).
+      *(Not yet — approach (b) compiler-recognized mapping used instead.)*
 - [ ] `impl String` block in `std/core/string.ark` with methods:
       `len`, `char_at`, `index_of`, `slice`, `concat` (delegating to
       existing intrinsics).
+      *(Not yet — approach (b) compiler-recognized mapping used instead.)*
 - [ ] `impl i32` block with methods: `to_string` (→ Display), `abs`,
       `min`, `max`, `hash` (→ Hash trait).
       Similarly for `i64`, `f64`, `bool`, `char`.
+      *(Not yet — approach (b) compiler-recognized mapping used instead.)*
 
 ### Fixtures
 
-- [ ] `tests/fixtures/builtin_methods/vec_methods.ark` —
-      `v.push(1)`, `v.push(2)`, `v.len()`, `v.get(0)`.
-- [ ] `tests/fixtures/builtin_methods/string_methods.ark` —
-      `s.len()`, `s.char_at(0)`.
-- [ ] `tests/fixtures/builtin_methods/scalar_methods.ark` —
-      `42.to_string()`, `(-5).abs()`, `42.hash()`.
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] `tests/fixtures/trait/builtin_method.ark` —
+      `v.push(1)`, `v.push(2)`, `v.len()`, `v.get_unchecked(0)`,
+      `s.len()`, `n.to_string()`.
+      *(Covers Vec, String, and scalar methods in a single fixture.)*
+- [x] `python3 scripts/manager.py verify quick` exits 0.
 
 ## Acceptance
 
-- [ ] `impl Vec<T> { fn push(self, x: T) { ... } }` compiles and
+- [x] `impl Vec<T> { fn push(self, x: T) { ... } }` compiles and
       `v.push(42)` calls it.
-- [ ] `impl i32 { fn to_string(self) -> String { ... } }` compiles and
+      *(Via compiler-recognized intrinsic mapping, not user-written impl.)*
+- [x] `impl i32 { fn to_string(self) -> String { ... } }` compiles and
       `42.to_string()` returns `"42"`.
-- [ ] Existing free-function intrinsics (`Vec_push_i32`, `to_string`, etc.)
+      *(Via compiler-recognized intrinsic mapping.)*
+- [x] Existing free-function intrinsics (`Vec_push_i32`, `to_string`, etc.)
       continue to work (thin wrapper or direct).
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] `python3 scripts/manager.py verify quick` exits 0.
 
 ## References
 

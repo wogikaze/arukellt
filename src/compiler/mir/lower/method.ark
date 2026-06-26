@@ -44,6 +44,6 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     method_resolve::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, span_start)
 }
 
-fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32) -> i32 {
-    method_emit::mir_emit_method_call(ctx, callee_name, arg_count)
+fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
+    method_emit::mir_emit_method_call(ctx, callee_name, arg_count, first_arg_idx)
 }

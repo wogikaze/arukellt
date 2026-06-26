@@ -19,7 +19,7 @@ fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
             a = a + 1
         }
-        return method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, ast_node::node_span_start(node)), child_count)
+        return method::mir_emit_method_call(ctx, method::mir_resolve_method_callee(ctx, callee_name, first_method_arg_idx, ast_node::node_span_start(node)), child_count, receiver_idx)
     }
     0 - 1
 }

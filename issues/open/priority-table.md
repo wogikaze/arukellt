@@ -12,11 +12,11 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 688 | 688 — Trait method dispatch inside generic functions | language-design | 5 | 0 | 5 | 5 | 5 | 20 |
-| 2 | 686 | Wasm GC Selfhost Implementation | main | 1 | 0 | 3 | 5 | 4 | 13 |
-| 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 4 | 5 | 3 | 13 |
-| 4 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 5 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
-| 6 | 700 | 700 — Builtin type method syntax (`impl Vec<T>`, `impl i32`... | language-design | 3 | 0 | 1 | 5 | 3 | 12 |
+| 2 | 700 | 700 — Builtin type method syntax (`impl Vec<T>`, `impl i32`... | language-design | 3 | 0 | 4 | 5 | 4 | 16 |
+| 3 | 686 | Wasm GC Selfhost Implementation | main | 1 | 0 | 3 | 5 | 4 | 13 |
+| 4 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 4 | 5 | 3 | 13 |
+| 5 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 6 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
 | 7 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
 | 8 | 692 | 692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` tra... | stdlib-api | 4 | 0 | 1 | 3 | 3 | 11 |
 | 9 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 1 | 5 | 3 | 10 |
