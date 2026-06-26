@@ -1,17 +1,16 @@
 // Arukellt Selfhost - GC reference local type inference.
 
 use mir::block_inst_access
-use mir::function_block_queries
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::function_return_view
 use mir::function_locals_view
-use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::inst_ctx
 
 fn is_gc_container_type_name(type_name: String) -> bool {
@@ -30,7 +29,7 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
         return false
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let type_name = local_access::MirLocal_type_name(loc)
+    let type_name = clone(loc.type_name)
     if is_gc_container_type_name(clone(type_name)) {
         return false
     }
@@ -44,10 +43,10 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
 }
 
 fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
-    let block_count = function_block_queries::MirFunction_block_count(f)
+    let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let block = get_unchecked(f.blocks, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
@@ -72,10 +71,10 @@ fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
 }
 
 fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
-    let block_count = function_block_queries::MirFunction_block_count(f)
+    let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let block = get_unchecked(f.blocks, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
@@ -101,7 +100,7 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
         return raw
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let type_name = local_access::MirLocal_type_name(loc)
+    let type_name = clone(loc.type_name)
     if is_gc_container_type_name(clone(type_name)) {
         return raw
     }
@@ -172,10 +171,10 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     if depth > 8 {
         return 0 - 1
     }
-    let block_count = function_block_queries::MirFunction_block_count(f)
+    let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let block = get_unchecked(f.blocks, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let found = infer_ref_local_from_block(f, block, inst_count, local_idx, ctx, depth)
         if found >= 0 {
@@ -212,7 +211,7 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
                     return call_type
                 }
             }
-            if op == opcodes::MIR_CONST_STRING() && is_gc_target_inline(ctx_record::SelfEmitCtx_target(ctx)) {
+            if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                 return ctx_gc_type::SelfEmitCtx_string_type(ctx)
             }
         }
@@ -268,10 +267,4 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
     }
     0 - 1
-}
-
-fn is_gc_target_inline(target: String) -> bool {
-    if contains(clone(target), String_from("-p2")) { return true }
-    if contains(clone(target), String_from("-p3")) { return true }
-    false
 }

@@ -1,6 +1,5 @@
 // Arukellt Selfhost - Wasm type section emission.
 
-use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
@@ -140,7 +139,7 @@ fn build_function_type_sig(uf: MirFunction, target: String) -> String {
         if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
             sig = concat(sig, sections_types_gc::gc_enum_open_type_sig())
         } else {
-            let gc_param_sig = gc_param_type_sig_override(function_identity::MirFunction_name(uf), pi, clone(p_type_name), clone(target))
+            let gc_param_sig = gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
             if len(gc_param_sig) > 0 {
                 sig = concat(sig, gc_param_sig)
             } else {
@@ -174,7 +173,7 @@ fn build_function_type_sig(uf: MirFunction, target: String) -> String {
             if len(gc_enum_ret_sig) > 0 {
                 sig = concat(sig, gc_enum_ret_sig)
             } else {
-                let gc_ret_sig = gc_return_type_sig_override(function_identity::MirFunction_name(uf), clone(return_type_name), clone(target))
+                let gc_ret_sig = gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
                 if len(gc_ret_sig) > 0 {
                     sig = concat(sig, gc_ret_sig)
                 } else {
