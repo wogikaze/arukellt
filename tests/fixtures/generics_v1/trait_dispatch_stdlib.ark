@@ -18,7 +18,7 @@ fn print_value<T: Display>(x: T) {
 
 // Generic function that uses Eq trait dispatch.
 // `a.eq(b)` must resolve to the correct impl after monomorphization.
-fn assert_eq<T: Eq>(a: T, b: T) -> bool {
+fn check_eq<T: Eq>(a: T, b: T) -> bool {
     a.eq(b)
 }
 
@@ -28,13 +28,13 @@ fn main() {
     print_value(String_from("hello"))
 
     // Eq dispatch: i32 and String both impl Eq in std::core::cmp
-    let eq_i32 = assert_eq(1, 1)
+    let eq_i32 = check_eq(1, 1)
     stdio::println(if eq_i32 { String_from("i32 eq: true") } else { String_from("i32 eq: false") } )
 
-    let eq_str = assert_eq(String_from("abc"), String_from("abc"))
+    let eq_str = check_eq(String_from("abc"), String_from("abc"))
     stdio::println(if eq_str { String_from("String eq: true") } else { String_from("String eq: false") } )
 
     // Negative case: different values should not be equal
-    let neq = assert_eq(1, 2)
+    let neq = check_eq(1, 2)
     stdio::println(if neq { String_from("1==2: true") } else { String_from("1==2: false") } )
 }
