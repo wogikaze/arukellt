@@ -137,7 +137,7 @@ impl Rem for i32 {
     }
 }
 
-/// `Neg` impl for `i32` — delegates to the built-in unary `-` operator.
+/// `Neg` impl for `i32` — computes `0 - self` (subtraction from zero).
 impl Neg for i32 {
     fn neg(self: i32) -> i32 {
         0 - self
@@ -179,7 +179,7 @@ impl Rem for i64 {
     }
 }
 
-/// `Neg` impl for `i64` — delegates to the built-in unary `-` operator.
+/// `Neg` impl for `i64` — computes `0 - self` (subtraction from zero).
 impl Neg for i64 {
     fn neg(self: i64) -> i64 {
         0 - self
@@ -221,7 +221,7 @@ impl Rem for f64 {
     }
 }
 
-/// `Neg` impl for `f64` — delegates to the built-in unary `-` operator.
+/// `Neg` impl for `f64` — computes `0.0 - self` (subtraction from zero).
 impl Neg for f64 {
     fn neg(self: f64) -> f64 {
         0.0 - self
