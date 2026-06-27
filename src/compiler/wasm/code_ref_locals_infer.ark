@@ -180,9 +180,6 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
         if starts_with(clone(type_name), String_from("hashmap:strstr")) {
             return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
         }
-        if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
-            return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-        }
         return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
     }
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {

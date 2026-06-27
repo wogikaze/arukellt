@@ -144,8 +144,7 @@ fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEm
         }
         if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
             let drop_stray_text_ref = gc_println_should_drop_stray_text_ref(prev_op, prev_callee)
-            let drop_concat_stray = gc_println_should_drop_concat_stray(prev_op, prev_callee)
-            let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx, drop_stray_text_ref, drop_concat_stray, next_op, prev_op == mir::opcodes::MIR_CALL())
+            let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op == mir::opcodes::MIR_CALL())
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true
         }
@@ -180,17 +179,6 @@ fn gc_println_should_drop_stray_text_ref(prev_op: i32, prev_callee: String) -> b
         return true
     }
     if eq(clone(name), "char_to_string") {
-        return true
-    }
-    false
-}
-
-fn gc_println_should_drop_concat_stray(prev_op: i32, prev_callee: String) -> bool {
-    if prev_op != mir::opcodes::MIR_CALL() {
-        return false
-    }
-    let name = normalize_gc_println_prev_callee(clone(prev_callee))
-    if eq(clone(name), "concat") || eq(clone(name), "text::concat") {
         return true
     }
     false

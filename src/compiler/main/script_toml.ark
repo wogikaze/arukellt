@@ -1,74 +1,13 @@
 // Arukellt Selfhost - TOML section/value helpers for script command.
 //
-// Inlined implementations of toml_find_section and toml_find_value to
-// avoid dependency on std::toml (which defines pub enum TomlValue that
-// the bootstrap compiler cannot parse, causing the entire module to be
-// stubbed). The full TOML parser remains in std::toml for non-selfhost
-// use (issue #705).
+// Delegates to std::toml (issue #705).
+
+use std::toml
 
 pub fn find_toml_section(content: String, section: String) -> String {
-    let section_header = concat(String_from("["), concat(clone(section), String_from("]")))
-    let header_len = len(section_header)
-    let content_len = len(content)
-    let mut i = 0
-    while i < content_len {
-        if i == 0 || char_at(content, i - 1) == 10 {
-            let j_max = content_len - i
-            let match_len = if header_len < j_max { header_len } else { j_max }
-            let mut j = 0
-            while j < match_len && char_at(content, i + j) == char_at(section_header, j) {
-                j = j + 1
-            }
-            if j == header_len && (i + j >= content_len || char_at(content, i + j) == 10) {
-                let section_start = i + j
-                if section_start >= content_len {
-                    return String_new()
-                }
-                let body_start = if char_at(content, section_start) == 10 { section_start + 1 } else { section_start }
-                let mut k = body_start
-                while k < content_len {
-                    if char_at(content, k) == 10 && k + 1 < content_len && char_at(content, k + 1) == 91 {
-                        return substring(content, body_start, k)
-                    }
-                    k = k + 1
-                }
-                return substring(content, body_start, content_len)
-            }
-        }
-        i = i + 1
-    }
-    String_new()
+    toml::toml_find_section(content, section)
 }
 
 pub fn find_toml_value(content: String, key: String) -> String {
-    let content_len = len(content)
-    let key_len = len(key)
-    let mut line_start = 0
-    let mut i = 0
-    while i < content_len {
-        if char_at(content, i) == 10 || i == content_len - 1 {
-            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
-            let line = substring(content, line_start, line_end)
-            let line_len = len(line)
-            if line_len > key_len + 3 {
-                if eq(substring(line, 0, key_len), clone(key)) {
-                    let mut j = key_len
-                    while j < line_len && char_at(line, j) == 32 { j = j + 1 }
-                    if j < line_len && char_at(line, j) == 61 {
-                        j = j + 1
-                        while j < line_len && char_at(line, j) == 32 { j = j + 1 }
-                        if j < line_len && char_at(line, j) == 34 {
-                            let val_start = j + 1
-                            let mut k = val_start
-                            while k < line_len && char_at(line, k) != 34 { k = k + 1 }
-                            return substring(line, val_start, k)
-                        }
-                    }
-                }
-            }
-            line_start = i + 1
-        }
-        i = i + 1
-    }
-    String_new()
+    toml::toml_find_value(content, key)
 }

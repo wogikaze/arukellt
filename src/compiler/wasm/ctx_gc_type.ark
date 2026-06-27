@@ -56,7 +56,7 @@ fn SelfEmitCtx_is_vec_string_context(ctx: SelfEmitCtx) -> bool {
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
     let name = function_identity::MirFunction_name(f)
     // Functions that operate on Vec<String> rather than Vec<i32>.
-    if starts_with(clone(name), String_from("hashset_str_")) || starts_with(clone(name), String_from("hash_vec_string_")) || starts_with(clone(name), String_from("vec_string_")) || starts_with(clone(name), String_from("hash_map_vec_string_")) {
+    if starts_with(clone(name), String_from("hashset_str_")) || starts_with(clone(name), String_from("hash_vec_string_")) || starts_with(clone(name), String_from("vec_string_")) {
         return true
     }
     false

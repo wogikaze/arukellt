@@ -21,28 +21,15 @@ fn emit_gc_heap_set(w: WasmWriter) {
     writer_leb::emit_leb128_u(w, 0)
 }
 
-fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, drop_concat_stray: bool, next_op: i32) {
+fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32) {
     let arg_local = inst_accessors_operands::MirInst_arg0(inst)
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
     helpers_io_p2::emit_p2_write_newline(w, 0)
-    // emit_gc_alloc_heap_buf always leaves the old stack pointer on the stack.
-    // When arg_local >= 0, emit_gc_string_to_heap_from_local reads from a local
-    // and does not consume the stray, so we must drop it.
-    // When arg_local < 0, emit_gc_string_to_heap pops the string ref from the
-    // stack but the sp stray remains; drop_stray_text_ref covers that case
-    // (prev was a to_string CALL with dest < 0).
-    if arg_local >= 0 {
+    if drop_stray_text_ref {
         helpers_io_calls::emit_drop(w)
-        // concat always pushes its result onto the stack (even when dest >= 0),
-        // so an extra drop is needed when the previous call was concat.
-        if drop_concat_stray {
-            helpers_io_calls::emit_drop(w)
-        }
-    } else {
-        if drop_stray_text_ref {
-            helpers_io_calls::emit_drop(w)
-        }
+    } else if arg_local >= 0 {
+        helpers_io_calls::emit_drop(w)
     }
 }
 
