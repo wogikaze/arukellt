@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-25
-Updated: 2026-06-25
+Updated: 2026-06-30
 ID: 687
 Track: stdlib-api
 Depends on: 495
@@ -125,6 +125,11 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
       - 2026-06-26: Regenerated manifest-backed stdlib docs after adding
         `hashmap_entries`, `hashmap_drain`, and `hashmap_remove_entry`.
 - [ ] `python3 scripts/manager.py verify quick` exits 0.
+      *(2026-06-30: 162/168 checks pass. Remaining 6 failures are all
+      pre-existing runtime wasm crashes (arukellt-s2-runtime.wasm
+      function 4163/548), unrelated to HashMap/HashSet. The #687-specific
+      checks (fixture manifest sync, docs consistency, false-done hygiene,
+      compiler boundary limits) all pass.)*
 
 ## References
 

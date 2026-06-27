@@ -25,11 +25,6 @@ fn emit_hm_ss_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx
 
 fn emit_hm_meta_get_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, s_map)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, s_map)
         writer_gc::emit_gc_ref_cast(w, hm_type)
         writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     } else {
@@ -58,15 +53,10 @@ fn emit_hm_meta_set_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, fiel
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_val)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        let s_map = ctx_scratch::SelfEmitCtx_scratch_gc_hashmap_str_local(ctx, 0)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, s_map)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, s_map)
-        writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
+        writer_gc::emit_gc_ref_cast(w, hm_type)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, s_val)
-        writer_gc::emit_gc_struct_set(w, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx), field_idx)
+        writer_gc::emit_gc_struct_set(w, hm_type, field_idx)
     } else {
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())

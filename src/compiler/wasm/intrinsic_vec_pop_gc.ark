@@ -15,16 +15,6 @@ use wasm::ctx_gc_type
 use mir::inst_accessors_operands
 
 fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    // GC Vec pop
-    //
-    // Stack: [vec_ref]
-    // After: [opt_ptr]  (Option<i32> on linear-memory heap, or GC enum ref for Vec<String>)
-    //
-    // 1. Drop vec_ref from stack (re-read from MIR local)
-    // 2. Get len from vec
-    // 3. If len > 0: decrement, save new_len, read last element
-    // 4. Return Some(value) or None
-
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_optptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
@@ -50,26 +40,34 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_leb::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
     writer_core::emit_byte(w, opcodes::OP_IF())
-    // Both branches use void block; result is saved to a local.
     writer_core::emit_byte(w, 64)  // void block
+    emit_vec_pop_some_branch(w, ctx, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr, is_vec_string)
+    writer_core::emit_byte(w, opcodes::OP_ELSE())
+    emit_vec_pop_none_branch(w, ctx, s_optptr, is_vec_string)
+    writer_core::emit_byte(w, opcodes::OP_END())
 
-    // Some branch: len > 0
+    // Load result from scratch
+    emit_vec_pop_load_result(w, ctx, is_vec_string)
+    return true
+}
+
+// Some branch: len > 0 — decrement, save, read last element
+fn emit_vec_pop_some_branch(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i32, array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32, is_vec_string: bool) {
     if is_vec_string {
         let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         let s_ref = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
         emit_gc_pop_some_string(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, enum_type)
-        // Save the ref result to a GC enum scratch local
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_leb::emit_leb128_u(w, s_ref)
     } else {
         emit_gc_pop_some(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr)
     }
-    writer_core::emit_byte(w, opcodes::OP_ELSE())
+}
 
-    // None branch: len == 0
+// None branch: len == 0
+fn emit_vec_pop_none_branch(w: WasmWriter, ctx: SelfEmitCtx, s_optptr: i32, is_vec_string: bool) {
     if is_vec_string {
         let s_ref = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
-        // Push null ref for Option<String> (GC enum), save to GC enum scratch
         writer_core::emit_byte(w, opcodes::OP_REF_NULL())
         writer_leb::emit_leb128_s(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -77,15 +75,15 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     } else {
         emit_gc_pop_none(w, s_optptr)
     }
-    writer_core::emit_byte(w, opcodes::OP_END())
+}
 
-    // Load result from scratch
+// Load result from scratch local for Vec<String> GC enum path
+fn emit_vec_pop_load_result(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool) {
     if is_vec_string {
         let s_ref = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, s_ref)
     }
-    return true
 }
 
 fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32) {

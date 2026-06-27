@@ -68,39 +68,39 @@ fn try_emit_hm_is_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEm
         intrinsic_hashmap_str_new::emit_hm_is_new(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_cap") {
+    if eq(clone(callee), "__hm_is_cap") || eq(clone(callee), "hash_string::hashmap_i32_str_cap") {
         intrinsic_hashmap_str_meta::emit_hm_is_meta_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_size") {
+    if eq(clone(callee), "__hm_is_size") || eq(clone(callee), "hash_string::hashmap_i32_str_size") {
         intrinsic_hashmap_str_meta::emit_hm_is_meta_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_set_size") {
+    if eq(clone(callee), "__hm_is_set_size") || eq(clone(callee), "hash_string::hashmap_i32_str_set_size") {
         intrinsic_hashmap_str_meta::emit_hm_is_meta_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_get_flag") {
+    if eq(clone(callee), "__hm_is_get_flag") || eq(clone(callee), "hash_string::hashmap_i32_str_get_flag") {
         intrinsic_hashmap_str_slot::emit_hm_is_slot_get(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_set_flag") {
+    if eq(clone(callee), "__hm_is_set_flag") || eq(clone(callee), "hash_string::hashmap_i32_str_set_flag") {
         intrinsic_hashmap_str_slot::emit_hm_is_slot_set(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_get_key") {
+    if eq(clone(callee), "__hm_is_get_key") || eq(clone(callee), "hash_string::hashmap_i32_str_get_key") {
         intrinsic_hashmap_str_slot::emit_hm_is_slot_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_set_key") {
+    if eq(clone(callee), "__hm_is_set_key") || eq(clone(callee), "hash_string::hashmap_i32_str_set_key") {
         intrinsic_hashmap_str_slot::emit_hm_is_slot_set(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
+    if eq(clone(callee), "__hm_is_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
         intrinsic_hashmap_str_slot::emit_hm_is_slot_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_set_val") {
+    if eq(clone(callee), "__hm_is_set_val") || eq(clone(callee), "hash_string::hashmap_i32_str_set_val") {
         intrinsic_hashmap_str_slot::emit_hm_is_slot_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
@@ -113,39 +113,39 @@ fn try_emit_hm_ss_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEm
         intrinsic_hashmap_str_new::emit_hm_ss_new(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_cap") {
+    if eq(clone(callee), "__hm_ss_cap") || eq(clone(callee), "hash_string::hashmap_str_str_cap") {
         intrinsic_hashmap_str_meta::emit_hm_ss_meta_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_size") {
+    if eq(clone(callee), "__hm_ss_size") || eq(clone(callee), "hash_string::hashmap_str_str_size") {
         intrinsic_hashmap_str_meta::emit_hm_ss_meta_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_set_size") {
+    if eq(clone(callee), "__hm_ss_set_size") || eq(clone(callee), "hash_string::hashmap_str_str_set_size") {
         intrinsic_hashmap_str_meta::emit_hm_ss_meta_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_get_flag") {
+    if eq(clone(callee), "__hm_ss_get_flag") || eq(clone(callee), "hash_string::hashmap_str_str_get_flag") {
         intrinsic_hashmap_str_slot::emit_hm_ss_slot_get(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_set_flag") {
+    if eq(clone(callee), "__hm_ss_set_flag") || eq(clone(callee), "hash_string::hashmap_str_str_set_flag") {
         intrinsic_hashmap_str_slot::emit_hm_ss_slot_set(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_get_key") {
+    if eq(clone(callee), "__hm_ss_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") {
         intrinsic_hashmap_str_slot::emit_hm_ss_slot_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_set_key") {
+    if eq(clone(callee), "__hm_ss_set_key") || eq(clone(callee), "hash_string::hashmap_str_str_set_key") {
         intrinsic_hashmap_str_slot::emit_hm_ss_slot_set(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_get_val") {
+    if eq(clone(callee), "__hm_ss_get_val") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") {
         intrinsic_hashmap_str_slot::emit_hm_ss_slot_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_set_val") {
+    if eq(clone(callee), "__hm_ss_set_val") || eq(clone(callee), "hash_string::hashmap_str_str_set_val") {
         intrinsic_hashmap_str_slot::emit_hm_ss_slot_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }

@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::core::cmp
+
+fn main() {
+    let r = cmp::cmp_i32(1, 2)
+    stdio::println(String_from("done"))
+}

@@ -27,7 +27,7 @@ fn SelfEmitCtx_scratch_gc_string_ref_array_local(ctx: SelfEmitCtx, offset: i32) 
 }
 
 fn SelfEmitCtx_scratch_gc_hashmap_str_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
-    ctx.scratch_base + 22 + offset
+    ctx.scratch_base + 23 + offset
 }
 
 fn SelfEmitCtx_scratch_gc_enum_local(ctx: SelfEmitCtx, offset: i32) -> i32 {

@@ -1,0 +1,8 @@
+use std::host::stdio
+use std::text
+
+fn main() {
+    let parts = text::split(String_from("hello,world"), String_from(","))
+    let n = len(parts)
+    stdio::println(format_i32(n))
+}

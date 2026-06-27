@@ -209,6 +209,9 @@ diag:diagnostics/missing_brace.ark
 diag:diagnostics/mutable_sharing.ark
 diag:diagnostics/non_exhaustive.ark
 run:hello_world.ark
+run:test_fmt.ark
+run:test_fmt_text.ark
+run:test_split.ark
 diag:diagnostics/question_type_mismatch.ark
 diag:diagnostics/type_mismatch.ark
 diag:diagnostics/unexpected_token.ark
@@ -351,6 +354,9 @@ run:generics_v1/trait_bound.ark
 run:generics_v1/trait_method_resolve.ark
 run:generics_v1/trait_method_dispatch.ark
 run:generics_v1/trait_dispatch_stdlib.ark
+run:generics_v1/test_enum_return.ark
+run:generics_v1/test_parse_gc.ark
+run:generics_v1/test_parse_i32.ark
 run:hello/empty_main.ark
 run:hello/exit_code.ark
 run:hello/hello.ark
@@ -536,6 +542,7 @@ run:stdlib_trait/display_trait.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/hash_trait.ark
 run:stdlib_trait/clone_default_from.ark
+run:stdlib_trait/self_return_clone.ark
 run:stdlib_csv/csv_basic.ark
 run:stdlib_csv/csv_parse_doc.ark
 run:stdlib_csv/csv_parse_row.ark
@@ -787,6 +794,7 @@ t3-compile:stdlib_trait/hash_trait.ark
 t3-compile:stdlib_trait/display_trait_vec.ark
 t3-compile:stdlib_trait/eq_trait_string.ark
 t3-compile:stdlib_trait/hash_trait_nested.ark
+t3-compile:stdlib_trait/self_return_clone.ark
 t3-compile:functions/basic_fn.ark
 t3-compile:functions/closure_basic.ark
 t3-compile:functions/closure_capture.ark
@@ -815,6 +823,9 @@ t3-compile:generics_v1/trait_bound.ark
 t3-compile:generics_v1/trait_method_resolve.ark
 t3-compile:generics_v1/trait_method_dispatch.ark
 t3-compile:generics_v1/trait_dispatch_stdlib.ark
+t3-compile:generics_v1/test_enum_return.ark
+t3-compile:generics_v1/test_parse_gc.ark
+t3-compile:generics_v1/test_parse_i32.ark
 t3-compile:hello/empty_main.ark
 t3-compile:hello/exit_code.ark
 t3-compile:hello/hello.ark
@@ -972,6 +983,7 @@ t3-run:stdlib_trait/hash_trait.ark
 t3-run:stdlib_trait/display_trait_vec.ark
 t3-run:stdlib_trait/eq_trait_string.ark
 t3-run:stdlib_trait/hash_trait_nested.ark
+t3-run:stdlib_trait/self_return_clone.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
 t3-run:enums/nested_enum.ark
@@ -1012,6 +1024,9 @@ t3-run:generics_v1/trait_bound.ark
 t3-run:generics_v1/trait_method_resolve.ark
 t3-run:generics_v1/trait_method_dispatch.ark
 t3-run:generics_v1/trait_dispatch_stdlib.ark
+t3-run:generics_v1/test_enum_return.ark
+t3-run:generics_v1/test_parse_gc.ark
+t3-run:generics_v1/test_parse_i32.ark
 t3-run:hello/empty_main.ark
 t3-run:hello/exit_code.ark
 t3-run:hello/hello.ark
@@ -1181,6 +1196,7 @@ run:stdlib_trait/hash_trait.ark
 run:stdlib_trait/display_trait_vec.ark
 run:stdlib_trait/eq_trait_string.ark
 run:stdlib_trait/hash_trait_nested.ark
+run:stdlib_trait/self_return_clone.ark
 run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 # issue 487: Vec<Struct> len() correctness (fix in mir_lower)
 run:regression/vec_struct_len.ark

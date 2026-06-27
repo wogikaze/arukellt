@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::prelude
+
+fn main() {
+    let r = parse_i32(String_from("42"))
+    stdio::println(String_from("done"))
+}

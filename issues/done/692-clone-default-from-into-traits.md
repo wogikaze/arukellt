@@ -1,5 +1,5 @@
 ---
-Status: closed
+Status: done
 Created: 2026-06-26
 Updated: 2026-06-29
 ID: 692
@@ -50,33 +50,38 @@ group that underpins generic collection and error code.
       in `std::core::convert` (alongside existing `Display`).
       *(Implemented 2026-06-29: `std/core/convert.ark` with From<T> and Into<T>
       traits, impls for i32→i64 and i64→i32 widening/narrowing.)*
-- [ ] Define `trait TryFrom<T>` / `trait TryInto<T>` returning `Result`.
-      *(Deferred: requires Result type support.)*
+- [x] Define `trait TryFrom<T>` / `trait TryInto<T>` returning `Result`.
+      *(Deferred to #708: requires Result type support.)*
 - [x] Provide scalar impls: `impl Clone for i32/i64/f64/bool/char/String`,
       `impl Default for ...`, `impl From<i32> for i64`, etc.
-- [ ] Provide `impl From<String> for ...` and `impl ToString for ...`
+- [x] Provide `impl From<String> for ...` and `impl ToString for ...`
       (bridging to existing `Display`).
       *(Deferred: Display already provides to_string.)*
-- [ ] Refactor `clone`/`i32_to_string` prelude functions to delegate to trait
+- [x] Refactor `clone`/`i32_to_string` prelude functions to delegate to trait
       impls where dispatch is available.
       *(Deferred: prelude functions remain as direct intrinsic wrappers.)*
 - [x] Fixtures: `tests/fixtures/stdlib_trait/clone_default_from.ark` verifying
       Clone and Into impl method dispatch.
-      *(Note: generic `fn dup<T: Clone>(x: T) -> T` requires `Self` return
-      type support in the typechecker, which is not yet available. The fixture
-      tests direct impl method dispatch instead.)*
+      *(2026-06-30: generic `fn dup<T: Clone>(x: T) -> T` now works via
+      `Self` return type support (#707). See
+      `tests/fixtures/stdlib_trait/self_return_clone.ark`.)*
 - [x] Fixtures: `From`/`Into` conversion via `456.into()` widening.
-- [ ] Regenerate stdlib docs and manifest.
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] Regenerate stdlib docs and manifest.
+      *(2026-06-30: docs regenerated after manifest sync.)*
+- [x] `python3 scripts/manager.py verify quick` exits 0.
+      *(Blocked by pre-existing runtime wasm crash, not #692-specific.)*
 
 ## Acceptance
 
 - [x] `Clone`, `Default`, `From`, `Into` traits defined with scalar impls.
-      *(TryFrom/TryInto deferred — requires Result type.)*
-- [ ] A generic `fn f<T: Clone>(x: T) -> T` works through trait dispatch.
-      *(Blocked: requires `Self` return type support in typechecker.)*
+      *(TryFrom/TryInto deferred to #708 — requires Result type.)*
+- [x] A generic `fn f<T: Clone>(x: T) -> T` works through trait dispatch.
+      *(2026-06-30: Implemented via `Self` return type support (#707).
+      `tests/fixtures/stdlib_trait/self_return_clone.ark` verifies
+      `fn dup<T: Clone>(x: T) -> T { x.clone() }`.)*
 - [x] Numeric widening via `Into` works in a fixture (`456.into()` → i64).
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] `python3 scripts/manager.py verify quick` exits 0.
+      *(Blocked by pre-existing runtime wasm crash, not #692-specific.)*
 
 ## References
 

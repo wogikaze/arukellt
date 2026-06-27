@@ -1,0 +1,6 @@
+use std::host::stdio
+use std::text
+
+fn main() {
+    stdio::println(format_i32(42))
+}

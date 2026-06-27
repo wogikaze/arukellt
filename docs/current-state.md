@@ -54,9 +54,9 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 654 passed, 0 failed, 29 skipped (manifest-driven)
-- Fixture manifest: 1168 entries
+- Fixture manifest: 1186 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **168/168 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **162/168 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
