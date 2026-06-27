@@ -1,95 +1,31 @@
 // WIT text scan helpers for minimal import parsing (#663).
 //
-// NOTE: The low-level scan helpers (wit_find_char_from, wit_trim,
-// wit_strip_version, wit_before_colon, wit_split_param,
-// wit_split_csv_items, wit_line_start, wit_line_end) are duplicated from
-// `std/wit/scan.ark` (issue #706).  They are kept inline here because the
-// bootstrap compiler has a limited call stack and adding `use std::wit::scan`
-// to a file in the compiler module tree causes a stack overflow during
-// module loading.  Once the bootstrap compiler's stack limit is raised,
-// these should delegate to `std::wit::scan`.
+// Delegates low-level scanning to std::wit::scan (issue #706).
+
+use std::wit::scan
 
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
-    let n = len(s)
-    let mut i = from
-    while i < n {
-        if char_at(s, i) == ch {
-            return i
-        }
-        i = i + 1
-    }
-    return 0 - 1
+    scan::wit_find_char(s, ch, from)
 }
 
 fn wit_trim(s: String) -> String {
-    let n = len(s)
-    let mut start = 0
-    while start < n {
-        let ch = char_at(s, start)
-        if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
-            break
-        }
-        start = start + 1
-    }
-    let mut end = n
-    while end > start {
-        let ch = char_at(s, end - 1)
-        if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
-            break
-        }
-        end = end - 1
-    }
-    substring(s, start, end)
+    scan::wit_trim(s)
 }
 
 fn wit_strip_version(pkg: String) -> String {
-    let at = wit_find_char_from(pkg, 64, 0)
-    if at < 0 {
-        return clone(pkg)
-    }
-    substring(pkg, 0, at)
+    scan::wit_strip_version(pkg)
 }
 
 fn wit_before_colon(s: String) -> String {
-    let colon = wit_find_char_from(s, 58, 0)
-    if colon < 0 {
-        return wit_trim(s)
-    }
-    wit_trim(substring(s, 0, colon))
+    scan::wit_before_colon(s)
 }
 
 fn wit_split_param(param: String) -> String {
-    let colon = wit_find_char_from(param, 58, 0)
-    if colon < 0 {
-        return wit_trim(param)
-    }
-    wit_trim(substring(param, colon + 1, len(param)))
+    scan::wit_split_param(param)
 }
 
 fn wit_split_csv_items(inner: String) -> Vec<String> {
-    let items = Vec_new_String()
-    let n = len(inner)
-    let mut start = 0
-    let mut depth = 0
-    let mut i = 0
-    while i < n {
-        let ch = char_at(inner, i)
-        if ch == 60 {
-            depth = depth + 1
-        }
-        if ch == 62 {
-            depth = depth - 1
-        }
-        if ch == 44 && depth == 0 {
-            push(items, wit_trim(substring(inner, start, i)))
-            start = i + 1
-        }
-        i = i + 1
-    }
-    if start < n {
-        push(items, wit_trim(substring(inner, start, n)))
-    }
-    items
+    scan::wit_split_csv_items(inner)
 }
 
 fn wit_extract_package(text: String) -> String {
@@ -145,24 +81,9 @@ fn wit_extract_interface_body(text: String) -> String {
 }
 
 fn wit_line_start(text: String, pos: i32) -> i32 {
-    let mut i = pos
-    while i > 0 {
-        if char_at(text, i - 1) == 10 {
-            return i
-        }
-        i = i - 1
-    }
-    0
+    scan::wit_line_start(text, pos)
 }
 
 fn wit_line_end(text: String, pos: i32) -> i32 {
-    let n = len(text)
-    let mut i = pos
-    while i < n {
-        if char_at(text, i) == 10 {
-            return i
-        }
-        i = i + 1
-    }
-    n
+    scan::wit_line_end(text, pos)
 }
