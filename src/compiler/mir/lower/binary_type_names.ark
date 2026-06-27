@@ -21,6 +21,22 @@ fn mir_is_primitive_operator_type(type_name: String) -> bool {
     false
 }
 
+fn mir_is_builtin_type_name(name: String) -> bool {
+    if eq(clone(name), "i32") { return true }
+    if eq(clone(name), "i64") { return true }
+    if eq(clone(name), "f64") { return true }
+    if eq(clone(name), "f32") { return true }
+    if eq(clone(name), "bool") { return true }
+    if eq(clone(name), "String") { return true }
+    if eq(clone(name), "char") { return true }
+    if eq(clone(name), "Vec") { return true }
+    if starts_with(clone(name), "vec:") { return true }
+    if starts_with(clone(name), "hashmap:") { return true }
+    if eq(clone(name), "enum") { return true }
+    if starts_with(clone(name), "enum:") { return true }
+    false
+}
+
 fn mir_binop_dest_type_name(dest_vt: i32, is_cmp: bool) -> String {
     if is_cmp {
         return String_from("bool")

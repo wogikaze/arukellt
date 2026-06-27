@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-28 (all acceptance criteria met)
+Updated: 2026-06-28
 ID: 688
 Track: language-design
 Depends on: none
@@ -125,12 +125,12 @@ Trait` is a follow-up.
       and the call resolves at compile time to the correct impl.
 - [x] At least two distinct types implementing the same trait are dispatched
       correctly from one generic function in a fixture.
-- [x] Existing `Eq` / `Display` / `Hash` trait definitions in `std::core`
+- [ ] Existing `Eq` / `Display` / `Hash` trait definitions in `std::core`
       become callable through generic dispatch (not only via concrete
       wrappers).
-      **Fixed 2026-06-28**: The typechecker now correctly records mono
-      instances for generic functions called with `String` arguments. The
-      root cause was in `merge_mono_instances` (`module_env_merge.ark`),
+      **Partially fixed 2026-06-28**: The typechecker now correctly records
+      mono instances for generic functions called with `String` arguments.
+      The root cause was in `merge_mono_instances` (`module_env_merge.ark`),
       which used direct struct field access (`existing.mangled_name`) instead
       of accessor functions (`MonoInstance_mangled_name(existing)`). The
       bootstrap compiler's struct field access returns the wrong field for
@@ -161,10 +161,11 @@ Trait` is a follow-up.
       and all trait method calls resolve to the correct impl functions
       (`i32::to_string`, `String::to_string`, `String::eq`, `String::hash`).
 
-      **Note**: The compiled wasm still fails validation due to a separate
-      pre-existing codegen bug in `std::core::cmp::cmp` (func 20: returns
-      `Ordering` enum struct ref where `i32` is expected). This is unrelated
-      to trait dispatch and tracked separately under #695.
+      **Remaining blocker**: The compiled wasm still fails validation due
+      to a separate pre-existing codegen bug in `std::core::cmp::cmp`
+      (func 20: returns `Ordering` enum struct ref where `i32` is expected).
+      Until that bug is fixed (tracked under #695), the traits cannot be
+      called end-to-end at runtime, so this criterion remains open.
 - [x] Dispatch strategy documented (ADR or `docs/stdlib/` section).
       **Documented in ADR-036 D1** (`docs/adr/ADR-036-trait-stdlib-redesign.md`):
       static dispatch via monomorphization is the default; `dyn Trait` is

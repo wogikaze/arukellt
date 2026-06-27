@@ -1,4 +1,5 @@
 use corehir::param
+use mir::lower::binary_type_names
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
@@ -9,22 +10,6 @@ use mir::local_factory
 
 use mir::types
 use mir::value_types
-
-fn mir_is_builtin_type_name(name: String) -> bool {
-    if eq(clone(name), "i32") { return true }
-    if eq(clone(name), "i64") { return true }
-    if eq(clone(name), "f64") { return true }
-    if eq(clone(name), "f32") { return true }
-    if eq(clone(name), "bool") { return true }
-    if eq(clone(name), "String") { return true }
-    if eq(clone(name), "char") { return true }
-    if eq(clone(name), "Vec") { return true }
-    if starts_with(clone(name), "vec:") { return true }
-    if starts_with(clone(name), "hashmap:") { return true }
-    if eq(clone(name), "enum") { return true }
-    if starts_with(clone(name), "enum:") { return true }
-    false
-}
 
 fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     if !param::param_is_bindable(param) {
@@ -48,7 +33,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
             if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
                 pvt = value_types::VT_GC_REF()
             } else {
-                if !mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
+                if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
                     is_type_var = true
                     mir_type_name = concat(String_from("?"), clone(p_type_name))
                 }
