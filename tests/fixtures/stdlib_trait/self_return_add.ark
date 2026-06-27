@@ -1,0 +1,27 @@
+// Issue #707: Self return type support for trait method dispatch.
+//
+// Verifies that `fn add_any<T: Add>(x: T, y: T) -> T { x.add(y) }` works
+// through generic trait dispatch when the trait method returns Self.
+use std::host::stdio
+use std::core::ops
+
+// Generic function with Add bound — calls `x.add(y)` via trait dispatch.
+// Add::add returns Self, so the return type must be substituted with
+// the receiver's concrete type (T).
+fn add_any<T: Add>(x: T, y: T) -> T {
+    x.add(y)
+}
+
+fn main() {
+    // Add dispatch on i32 (Self = i32).
+    let a: i32 = 10
+    let b: i32 = 32
+    let c: i32 = add_any(a, b)
+    stdio::println(i32_to_string(c))
+
+    // Add dispatch on f64 (Self = f64).
+    let x: f64 = 1.5
+    let y: f64 = 2.5
+    let z: f64 = add_any(x, y)
+    stdio::println(f64_to_string(z))
+}

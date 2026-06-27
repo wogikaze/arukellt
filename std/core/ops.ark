@@ -15,62 +15,62 @@ use std::core
 
 /// Trait for types that support addition (`a + b`).
 trait Add {
-    fn add(self: Add, rhs: Add) -> Add
+    fn add(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support subtraction (`a - b`).
 trait Sub {
-    fn sub(self: Sub, rhs: Sub) -> Sub
+    fn sub(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support multiplication (`a * b`).
 trait Mul {
-    fn mul(self: Mul, rhs: Mul) -> Mul
+    fn mul(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support division (`a / b`).
 trait Div {
-    fn div(self: Div, rhs: Div) -> Div
+    fn div(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support remainder (`a % b`).
 trait Rem {
-    fn rem(self: Rem, rhs: Rem) -> Rem
+    fn rem(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support unary negation (`-a`).
 trait Neg {
-    fn neg(self: Neg) -> Neg
+    fn neg(self: Self) -> Self
 }
 
 /// Trait for types that support bitwise AND (`a & b`).
 trait BitAnd {
-    fn bitand(self: BitAnd, rhs: BitAnd) -> BitAnd
+    fn bitand(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support bitwise OR (`a | b`).
 trait BitOr {
-    fn bitor(self: BitOr, rhs: BitOr) -> BitOr
+    fn bitor(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support bitwise XOR (`a ^ b`).
 trait BitXor {
-    fn bitxor(self: BitXor, rhs: BitXor) -> BitXor
+    fn bitxor(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support left shift (`a << b`).
 trait Shl {
-    fn shl(self: Shl, rhs: Shl) -> Shl
+    fn shl(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support right shift (`a >> b`).
 trait Shr {
-    fn shr(self: Shr, rhs: Shr) -> Shr
+    fn shr(self: Self, rhs: Self) -> Self
 }
 
 /// Trait for types that support logical NOT (`!a`).
 trait Not {
-    fn not(self: Not) -> Not
+    fn not(self: Self) -> Self
 }
 
 /// Trait for types that support indexed access (`a[i]`).
