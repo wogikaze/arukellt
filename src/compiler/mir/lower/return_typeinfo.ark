@@ -14,85 +14,85 @@ fn mir_return_tag_from_typed_fn(tf: TypedFn) -> i32 {
 
 fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
     let tag = mir_return_tag_from_type_info(ty)
-    if tag == 3 {
-        return value_types::VT_F64()
+    match tag {
+        0 => value_types::VT_VOID(),
+        2 => value_types::VT_I64(),
+        3 => value_types::VT_F64(),
+        5 => value_types::VT_REF(),
+        7 => value_types::VT_VOID(),
+        8 => value_types::VT_VOID(),
+        11 => value_types::VT_GC_REF(),
+        12 => value_types::VT_GC_REF(),
+        13 => value_types::VT_GC_REF(),
+        21 => value_types::VT_GC_REF(),
+        22 => value_types::VT_GC_REF(),
+        _ => value_types::VT_I32(),
     }
-    if tag == 2 {
-        return value_types::VT_I64()
-    }
-    if tag == 5 {
-        return value_types::VT_REF()
-    }
-    if tag == 7 || tag == 8 || tag == 0 {
-        return value_types::VT_VOID()
-    }
-    if tag == 21 || tag == 22 || tag == 11 || tag == 12 || tag == 13 {
-        return value_types::VT_GC_REF()
-    }
-    value_types::VT_I32()
 }
 
 fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
     mir_return_vt_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))
 }
 
-fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    let tag = mir_return_tag_from_type_info(ty)
-    if tag == 10 {
-        if typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
-            let vec_elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-            let elem_tag = mir_return_tag_from_type_info(vec_elem)
-            if elem_tag == 5 {
-                return String_from("vec:String")
-            }
-            if elem_tag == 1 {
-                return String_from("vec:i32")
-            }
-            if elem_tag == 2 {
-                return String_from("vec:i64")
-            }
-            if elem_tag == 3 {
-                return String_from("vec:f64")
-            }
-            return String_from("vec:i32")
-        }
+fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
+        return String_from("")
     }
-    if tag == 13 {
-        if typeinfo_shape::mir_type_info_type_arg_count(ty) >= 2 {
-            let key = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-            let val = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
-            let key_tag = mir_return_tag_from_type_info(key)
-            let val_tag = mir_return_tag_from_type_info(val)
-            if key_tag == 5 && val_tag == 1 {
-                return String_from("hashmap:si32")
-            }
-            if key_tag == 1 && val_tag == 5 {
-                return String_from("hashmap:i32str")
-            }
-            if key_tag == 5 && val_tag == 5 {
-                return String_from("hashmap:strstr")
-            }
-            if key_tag == 1 && val_tag == 1 {
-                return String_from("hashmap:i32i32")
-            }
-        }
+    let vec_elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+    let elem_tag = mir_return_tag_from_type_info(vec_elem)
+    match elem_tag {
+        1 => String_from("vec:i32"),
+        2 => String_from("vec:i64"),
+        3 => String_from("vec:f64"),
+        5 => String_from("vec:String"),
+        _ => String_from("vec:i32"),
+    }
+}
+
+fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    if typeinfo_shape::mir_type_info_type_arg_count(ty) < 2 {
         return String_from("hashmap:si32")
     }
-    if tag == 5 || tag == 21 {
-        return typeinfo_shape::mir_type_info_name(ty)
+    let key = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+    let val = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
+    let key_tag = mir_return_tag_from_type_info(key)
+    let val_tag = mir_return_tag_from_type_info(val)
+    if key_tag == 5 && val_tag == 1 {
+        return String_from("hashmap:si32")
     }
-    if tag == 22 {
-        return concat(String_from("enum:"), typeinfo_shape::mir_type_info_name(ty))
+    if key_tag == 1 && val_tag == 5 {
+        return String_from("hashmap:i32str")
     }
-    if tag == 11 || tag == 12 {
-        if typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
-            let inner = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-            let inner_name = typeinfo_shape::mir_type_info_name(inner)
-            return concat(String_from("option:"), inner_name)
-        }
+    if key_tag == 5 && val_tag == 5 {
+        return String_from("hashmap:strstr")
+    }
+    if key_tag == 1 && val_tag == 1 {
+        return String_from("hashmap:i32i32")
+    }
+    String_from("hashmap:si32")
+}
+
+fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
         return String_from("option:")
     }
-    String_from("")
+    let inner = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+    let inner_name = typeinfo_shape::mir_type_info_name(inner)
+    concat(String_from("option:"), inner_name)
+}
+
+fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    let tag = mir_return_tag_from_type_info(ty)
+    match tag {
+        5 => typeinfo_shape::mir_type_info_name(ty),
+        10 => mir_vec_return_type_name_from_type_info(ty),
+        11 => mir_option_return_type_name_from_type_info(ty),
+        12 => mir_option_return_type_name_from_type_info(ty),
+        13 => mir_hashmap_return_type_name_from_type_info(ty),
+        21 => typeinfo_shape::mir_type_info_name(ty),
+        22 => concat(String_from("enum:"), typeinfo_shape::mir_type_info_name(ty)),
+        _ => String_from(""),
+    }
 }
 
 fn mir_return_type_name_from_typed_fn(tf: TypedFn) -> String {

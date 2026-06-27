@@ -112,43 +112,40 @@ fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: St
     if return_type == 0 {
         return String_from("0")
     }
-    let mut sig = String_from("1")
+    concat(String_from("1"), build_return_type_value_sig(uf, return_type, return_type_name, target))
+}
+
+fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String) -> String {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
         if eq(clone(return_type_name), String_from("vec:String")) {
-            sig = concat(sig, sections_types_gc::gc_vec_string_type_sig())
-        } else {
-            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+            return sections_types_gc::gc_vec_string_type_sig()
         }
-    } else {
+        return sections_types_gc::gc_vec_type_sig()
+    }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
         if starts_with(clone(return_type_name), String_from("hashmap:i32str")) {
-            sig = concat(sig, sections_types_gc::gc_hashmap_i32_str_type_sig())
-        } else if starts_with(clone(return_type_name), String_from("hashmap:strstr")) {
-            sig = concat(sig, sections_types_gc::gc_hashmap_str_str_type_sig())
-        } else if starts_with(clone(return_type_name), String_from("hashmap:i32i32")) {
-            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
-        } else {
-            sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+            return sections_types_gc::gc_hashmap_i32_str_type_sig()
         }
-    } else {
+        if starts_with(clone(return_type_name), String_from("hashmap:strstr")) {
+            return sections_types_gc::gc_hashmap_str_str_type_sig()
+        }
+        if starts_with(clone(return_type_name), String_from("hashmap:i32i32")) {
+            return sections_types_gc::gc_vec_type_sig()
+        }
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
-        sig = concat(sig, gc_struct_return_sig_from_name(clone(return_type_name)))
-    } else {
-        let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
-        if len(gc_enum_ret_sig) > 0 {
-            sig = concat(sig, gc_enum_ret_sig)
-        } else {
-            let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
-            if len(gc_ret_sig) > 0 {
-                sig = concat(sig, gc_ret_sig)
-            } else {
-                sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
-            }
-        }
+        return gc_struct_return_sig_from_name(clone(return_type_name))
     }
+    let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
+    if len(gc_enum_ret_sig) > 0 {
+        return gc_enum_ret_sig
     }
+    let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
+    if len(gc_ret_sig) > 0 {
+        return gc_ret_sig
     }
-    sig
+    sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target)))
 }
 
 fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32) {
