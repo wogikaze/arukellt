@@ -1,0 +1,65 @@
+//! std::core::default — Default trait and built-in impls.
+//!
+//! Provides the `Default` trait for producing zero/empty values of a type.
+//! Scalar types default to 0 / 0.0 / false. `String` defaults to the empty
+//! string.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+
+/// Trait for types that have a default (zero/empty) value.
+///
+/// ## Protocol catalog: `Default`
+///
+/// | Type    | Status | Default value       |
+/// |---------|--------|---------------------|
+/// | i32     | impl   | 0                   |
+/// | i64     | impl   | 0                   |
+/// | f64     | impl   | 0.0                 |
+/// | bool    | impl   | false               |
+/// | char    | impl   | '\0' (0)            |
+/// | String  | impl   | "" (empty string)   |
+trait Default {
+    fn default() -> Default
+}
+
+/// `Default` impl for `i32` — returns 0.
+impl Default for i32 {
+    fn default() -> i32 {
+        0
+    }
+}
+
+/// `Default` impl for `i64` — returns 0.
+impl Default for i64 {
+    fn default() -> i64 {
+        i32_to_i64(0)
+    }
+}
+
+/// `Default` impl for `f64` — returns 0.0.
+impl Default for f64 {
+    fn default() -> f64 {
+        0.0
+    }
+}
+
+/// `Default` impl for `bool` — returns false.
+impl Default for bool {
+    fn default() -> bool {
+        false
+    }
+}
+
+/// `Default` impl for `char` — returns the null character (0).
+impl Default for char {
+    fn default() -> char {
+        0
+    }
+}
+
+/// `Default` impl for `String` — returns the empty string.
+impl Default for String {
+    fn default() -> String {
+        String_from("")
+    }
+}

@@ -169,3 +169,57 @@ impl char {
         __intrinsic_char_to_string(self)
     }
 }
+
+// ---------------------------------------------------------------------------
+// From / Into conversion traits (issue #692).
+//
+// `From<T>` is implemented for lossless conversions between types.
+// `Into<T>` is the dual — in Rust it has a blanket impl, but Arukellt's
+// static dispatch model requires explicit impls. We provide the most
+// common numeric widening conversions.
+// ---------------------------------------------------------------------------
+
+/// Trait for lossless conversion from `T` to `Self`.
+///
+/// ## Protocol catalog: `From`
+///
+/// | From    | To      | Status | Notes                        |
+/// |---------|---------|--------|------------------------------|
+/// | i32     | i64     | impl   | Widening via intrinsic       |
+/// | i64     | i32     | impl   | Narrowing (truncation)       |
+trait From<T> {
+    fn from(v: T) -> From
+}
+
+/// `From<i32>` impl for `i64` — widening conversion.
+impl From<i32> for i64 {
+    fn from(v: i32) -> i64 {
+        __intrinsic_i32_to_i64(v)
+    }
+}
+
+/// `From<i64>` impl for `i32` — narrowing conversion (truncation).
+impl From<i64> for i32 {
+    fn from(v: i64) -> i32 {
+        __intrinsic_i64_to_i32(v)
+    }
+}
+
+/// Trait for conversion into `T` (the dual of `From`).
+trait Into<T> {
+    fn into(self: Into) -> T
+}
+
+/// `Into<i64>` impl for `i32` — delegates to `From<i32> for i64`.
+impl Into<i64> for i32 {
+    fn into(self: i32) -> i64 {
+        __intrinsic_i32_to_i64(self)
+    }
+}
+
+/// `Into<i32>` impl for `i64` — delegates to `From<i64> for i32`.
+impl Into<i32> for i64 {
+    fn into(self: i64) -> i32 {
+        __intrinsic_i64_to_i32(self)
+    }
+}

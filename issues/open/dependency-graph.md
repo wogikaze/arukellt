@@ -29,9 +29,11 @@ graph LR
   I689["689 689 — Operator overload trait surface (Add / Index / Deref / ...)"]
   I690["690 690 — `?` operator and `From<E>` error conversion"]
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
-  I692["692 692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` trait group"]
+  I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
+  I696["696 696 — `Debug` trait and `format!` / `write!` formatting ecosystem"]
   I701["701 701 — Associated function syntax (`Vec::new<T>()`, `String::from()`)"]
+  I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I704["704 std::json Full JSON RFC 8259 Compliance"]
   I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
@@ -39,10 +41,7 @@ graph LR
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
-  I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
-  I696["696 696 — `Debug` trait and `format!` / `write!` formatting ecosystem"]
-  I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
@@ -53,11 +52,7 @@ graph LR
   I680 --> I682
   I686 --> I698
   I649 --> I698
-  I692 --> I693
   I690 --> I694
-  I692 --> I694
-  I692 --> I696
-  I692 --> I702
   I691 --> I697
   I695 --> I697
   I701 --> I703
@@ -94,9 +89,11 @@ graph LR
 - **689** depends on: 688; blocks: none
 - **690** depends on: 688; blocks: 694
 - **691** depends on: 688; blocks: 697, 703
-- **692** depends on: 688; blocks: 693, 694, 696, 702
+- **693** depends on: 688, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703
+- **696** depends on: 688, 692; blocks: none
 - **701** depends on: 700; blocks: 703
+- **702** depends on: 688, 700, 692; blocks: none
 - **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
@@ -104,10 +101,7 @@ graph LR
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
-- **693** depends on: 688, 692; blocks: none
 - **694** depends on: 690, 692; blocks: none
-- **696** depends on: 688, 692; blocks: none
-- **702** depends on: 688, 700, 692; blocks: none
 - **697** depends on: 691, 695; blocks: none
 - **703** depends on: 700, 701, 691, 695; blocks: none
 - **683** depends on: 679, 682; blocks: none

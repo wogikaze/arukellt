@@ -1,0 +1,65 @@
+//! std::core::clone — Clone trait and built-in impls.
+//!
+//! Provides the `Clone` trait for duplicating values. Scalar types (i32,
+//! i64, f64, bool, char) are trivially clonable (copy semantics). `String`
+//! delegates to the existing `__intrinsic_string_clone` intrinsic.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+
+/// Trait for types that can be duplicated.
+///
+/// ## Protocol catalog: `Clone`
+///
+/// | Type    | Status | Notes                              |
+/// |---------|--------|------------------------------------|
+/// | i32     | impl   | Copy semantics (returns self)      |
+/// | i64     | impl   | Copy semantics (returns self)      |
+/// | f64     | impl   | Copy semantics (returns self)      |
+/// | bool    | impl   | Copy semantics (returns self)      |
+/// | char    | impl   | Copy semantics (returns self)      |
+/// | String  | impl   | Via `__intrinsic_string_clone`     |
+trait Clone<T> {
+    fn clone(self: Clone<T>) -> T
+}
+
+/// `Clone` impl for `i32` — copy semantics.
+impl Clone for i32 {
+    fn clone(self: i32) -> i32 {
+        self
+    }
+}
+
+/// `Clone` impl for `i64` — copy semantics.
+impl Clone for i64 {
+    fn clone(self: i64) -> i64 {
+        self
+    }
+}
+
+/// `Clone` impl for `f64` — copy semantics.
+impl Clone for f64 {
+    fn clone(self: f64) -> f64 {
+        self
+    }
+}
+
+/// `Clone` impl for `bool` — copy semantics.
+impl Clone for bool {
+    fn clone(self: bool) -> bool {
+        self
+    }
+}
+
+/// `Clone` impl for `char` — copy semantics.
+impl Clone for char {
+    fn clone(self: char) -> char {
+        self
+    }
+}
+
+/// `Clone` impl for `String` — delegates to the prelude `clone` function.
+impl Clone for String {
+    fn clone(self: String) -> String {
+        clone(self)
+    }
+}

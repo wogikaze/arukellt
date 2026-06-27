@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-27T08:48:25Z",
+  "generated_at": "2026-06-27T09:16:33Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -587,9 +587,9 @@
       }
     },
     {
-      "id": "692",
-      "path": "692-clone-default-from-into-traits.md",
-      "title": "692 — `Clone` / `Default` / `From` / `Into` / `TryFrom` trait group",
+      "id": "693",
+      "path": "693-read-write-traits-io-unification.md",
+      "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
       "track": "stdlib-api",
       "status": "open",
       "blocks_v1": "none",
@@ -598,21 +598,17 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "688"
+        "688",
+        "692"
       ],
-      "blocks_issue_ids": [
-        "693",
-        "694",
-        "696",
-        "702"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 15
+        "unchecked": 16
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch"
+        "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
       }
     },
     {
@@ -643,6 +639,31 @@
       }
     },
     {
+      "id": "696",
+      "path": "696-debug-trait-format-macros.md",
+      "title": "696 — `Debug` trait and `format!` / `write!` formatting ecosystem",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait dispatch, #692 Display/From"
+      }
+    },
+    {
       "id": "701",
       "path": "701-associated-function-syntax.md",
       "title": "701 — Associated function syntax (`Vec::new<T>()`, `String::from()`)",
@@ -666,6 +687,32 @@
       "orchestration": {
         "class": "design-required",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "702",
+      "path": "702-to-string-clone-hash-trait-integration.md",
+      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "700",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
       }
     },
     {
@@ -845,31 +892,6 @@
       }
     },
     {
-      "id": "693",
-      "path": "693-read-write-traits-io-unification.md",
-      "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "688",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
-      }
-    },
-    {
       "id": "694",
       "path": "694-error-trait-unified-ecosystem.md",
       "title": "694 — `Error` trait and unified error type ecosystem",
@@ -892,57 +914,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#690 ? operator + From, #692 From trait"
-      }
-    },
-    {
-      "id": "696",
-      "path": "696-debug-trait-format-macros.md",
-      "title": "696 — `Debug` trait and `format!` / `write!` formatting ecosystem",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "688",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait dispatch, #692 Display/From"
-      }
-    },
-    {
-      "id": "702",
-      "path": "702-to-string-clone-hash-trait-integration.md",
-      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "688",
-        "700",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
       }
     },
     {
