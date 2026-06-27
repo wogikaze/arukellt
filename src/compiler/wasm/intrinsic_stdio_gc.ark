@@ -22,17 +22,14 @@ fn emit_gc_heap_set(w: WasmWriter) {
 }
 
 fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32) {
-    let arg_local = inst_accessors_operands::MirInst_arg0(inst)
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
     helpers_io_p2::emit_p2_write_newline(w, 0)
-    helpers_io_calls::emit_drop(w)
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
-    helpers_io_calls::emit_drop(w)
 }
 
 fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {
@@ -40,6 +37,7 @@ fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {
     helpers_core_locals::emit_local_set(w, s_buf)
     emit_gc_heap_get(w)
     helpers_core_locals::emit_local_get(w, s_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 7)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
@@ -143,11 +141,7 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
 }
 
 fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    let arg_local = inst_accessors_operands::MirInst_arg0(inst)
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 1)
     helpers_io_p2::emit_p2_write_newline(w, 1)
-    if arg_local >= 0 {
-        helpers_io_calls::emit_drop(w)
-    }
 }

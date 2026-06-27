@@ -100,6 +100,12 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
         let dest = inst_accessors_operands::MirInst_dest(inst)
         let arg0 = inst_accessors_operands::MirInst_arg0(inst)
         if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+            if op == opcodes::MIR_LOCAL_GET() {
+                let src = inst_accessors_operands::MirInst_arg0(inst)
+                if src >= 0 {
+                    return infer_ref_local_gc_type_depth(f, src, ctx, depth + 1)
+                }
+            }
             if op == opcodes::MIR_ARRAY_NEW() {
                 return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
             }
@@ -122,7 +128,10 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
         if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
             let source = inst_accessors_operands::MirInst_arg1(inst)
             if source >= 0 {
-                return infer_ref_local_gc_type_depth(f, source, ctx, depth + 1)
+                let inferred = infer_ref_local_gc_type_depth(f, source, ctx, depth + 1)
+                if inferred >= 0 {
+                    return inferred
+                }
             }
             if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
                 return infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
@@ -163,6 +172,10 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     // Return -1 so type inference doesn't override i32-typed reused locals.
     if eq(clone(callee), "vec_push") {
         return 0 - 1
+    }
+    // vec_set returns the vec_ref (same vec passed in) on GC targets.
+    if eq(clone(callee), "vec_set") {
+        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
     }
     code_ref_locals_infer_callee::infer_call_result_gc_type_from_fn(ctx, callee)
 }

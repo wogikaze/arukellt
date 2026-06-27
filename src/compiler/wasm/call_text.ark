@@ -6,11 +6,15 @@ use wasm::inst_store
 use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
 use mir::inst_accessors_operands
+use mir::opcodes as mir_opcodes
 use mir::value_types
 use mir::function_locals_view
 use mir::local_access
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
 
 fn try_emit_text_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
         if call_text_core::try_emit_text_core_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -142,8 +146,23 @@ fn try_emit_string_text_format_call(w: WasmWriter, callee: String, inst: MirInst
 // Arukellt Selfhost - shared text intrinsic result storage.
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {
-    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    if result_on_stack && inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_text_call_dest_store(next_op, next_arg0) {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
+    } else {
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    }
     true
+}
+
+fn should_force_text_call_dest_store(next_op: i32, next_arg0: i32) -> bool {
+    if next_op == mir_opcodes::MIR_CALL() && next_arg0 >= 0 {
+        return true
+    }
+    if next_op == mir_opcodes::MIR_WIT_CALL() && next_arg0 >= 0 {
+        return true
+    }
+    false
 }
 
 fn text_call_result_on_stack(inst: MirInst, default_on_stack: bool) -> bool {
