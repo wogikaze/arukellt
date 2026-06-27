@@ -534,10 +534,10 @@ def gate_641() -> tuple[int, str]:
     fixture = REPO_ROOT / "tests" / "fixtures" / "t4" / "native_scaffold.ark"
     if not fixture.is_file():
         return 1, "missing tests/fixtures/t4/native_scaffold.ark"
-    target_ark = REPO_ROOT / "src" / "compiler" / "target.ark"
-    native_ark = REPO_ROOT / "src" / "compiler" / "native.ark"
+    target_ark = REPO_ROOT / "src" / "compiler" / "driver" / "target.ark"
+    native_ark = REPO_ROOT / "src" / "compiler" / "driver" / "native.ark"
     if not target_ark.is_file() or not native_ark.is_file():
-        return 1, "missing src/compiler/target.ark or native.ark"
+        return 1, "missing src/compiler/driver/target.ark or native.ark"
     target_text = target_ark.read_text(encoding="utf-8")
     native_text = native_ark.read_text(encoding="utf-8")
     if "is_native_target" not in target_text:

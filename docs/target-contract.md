@@ -103,7 +103,7 @@ not require T2 and is not blocked on it (see ADR-017).
 
 The former Rust `ark-llvm` scaffold was removed in #586 (Phase 5 selfhost
 retirement). T4 now registers a **selfhost-native compile-only scaffold**
-(#641): `src/compiler/target.ark` + `src/compiler/native/scaffold_emit.ark`
+(#641): `src/compiler/driver/target.ark` + `src/compiler/driver/native.ark`
 emit a minimal GNU assembler stub; `run_supported=false`. Full MIR→native
 lowering remains follow-up per #529 Phase 7.
 
