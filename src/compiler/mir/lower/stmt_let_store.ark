@@ -13,21 +13,23 @@ fn emit_let_initializer_store(ctx: LowerCtx, node: AstNode, vt: i32, local_idx: 
     if val_idx < 0 {
         return
     }
-    sync_let_local_value_type(ctx, vt, local_idx, val_idx)
-    if val_idx != local_idx {
-        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, val_idx))
+    let actual_val_idx = sync_let_local_value_type(ctx, vt, local_idx, val_idx)
+    if actual_val_idx != local_idx {
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, actual_val_idx))
     }
-    sync_let_local_type_name(ctx, local_idx, val_idx, pre_init_kind, ta_count)
+    sync_let_local_type_name(ctx, local_idx, actual_val_idx, pre_init_kind, ta_count)
 }
 
-fn sync_let_local_value_type(ctx: LowerCtx, vt: i32, local_idx: i32, val_idx: i32) {
+fn sync_let_local_value_type(ctx: LowerCtx, vt: i32, local_idx: i32, val_idx: i32) -> i32 {
     if ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_F64() && ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
         ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_F64())
     }
     if vt == value_types::VT_I64() && ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_I32() {
         let ext_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
         ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext_dest, val_idx))
+        return ext_dest
     }
+    val_idx
 }
 
 fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_init_kind: i32, ta_count: i32) {
