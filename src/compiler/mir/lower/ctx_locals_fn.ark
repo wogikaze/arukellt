@@ -51,6 +51,9 @@ fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
     if rt_tag == 11 || rt_tag == 12 {
         function_return_mutation::MirFunction_set_return_type(f, value_types::VT_GC_REF())
     }
+    if rt_tag == 13 {
+        function_return_mutation::MirFunction_set_return_type(f, value_types::VT_GC_REF())
+    }
     if rt_tag == 21 || rt_tag == 22 {
         function_return_mutation::MirFunction_set_return_type(f, value_types::VT_GC_REF())
     } else {

@@ -87,7 +87,17 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -
         return sections_types_gc::gc_vec_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("hashmap:")) {
+        if starts_with(clone(p_type_name), String_from("hashmap:i32str")) {
+            return sections_types_gc::gc_hashmap_i32_str_type_sig()
+        } else if starts_with(clone(p_type_name), String_from("hashmap:strstr")) {
+            return sections_types_gc::gc_hashmap_str_str_type_sig()
+        } else if starts_with(clone(p_type_name), String_from("hashmap:i32i32")) {
+            return sections_types_gc::gc_vec_type_sig()
+        }
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    }
+    if emit_target::is_gc_target(clone(target)) && (starts_with(clone(p_type_name), String_from("Option_")) || starts_with(clone(p_type_name), String_from("option:")) || starts_with(clone(p_type_name), String_from("Option:")) || starts_with(clone(p_type_name), String_from("Option<"))) {
+        return sections_types_gc::gc_enum_open_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(p_type_name))
@@ -111,7 +121,15 @@ fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: St
         }
     } else {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
-        sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+        if starts_with(clone(return_type_name), String_from("hashmap:i32str")) {
+            sig = concat(sig, sections_types_gc::gc_hashmap_i32_str_type_sig())
+        } else if starts_with(clone(return_type_name), String_from("hashmap:strstr")) {
+            sig = concat(sig, sections_types_gc::gc_hashmap_str_str_type_sig())
+        } else if starts_with(clone(return_type_name), String_from("hashmap:i32i32")) {
+            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+        } else {
+            sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+        }
     } else {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
         sig = concat(sig, gc_struct_return_sig_from_name(clone(return_type_name)))

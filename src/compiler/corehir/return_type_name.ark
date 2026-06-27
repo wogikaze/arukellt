@@ -38,6 +38,24 @@ fn return_index_type_name(node: AstNode) -> String {
             let elem_opt = decl_ann_children::decl_ann_child_at(ret, 1)
             return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem_opt))
         }
+        if eq(clone(name), String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ret) >= 3 {
+            let key = decl_ann_children::decl_ann_child_at(ret, 1)
+            let val = decl_ann_children::decl_ann_child_at(ret, 2)
+            let key_name = decl_ann_name::decl_ann_name(key)
+            let val_name = decl_ann_name::decl_ann_name(val)
+            if eq(clone(key_name), String_from("String")) && eq(clone(val_name), String_from("i32")) {
+                return String_from("hashmap:si32")
+            }
+            if eq(clone(key_name), String_from("i32")) && eq(clone(val_name), String_from("String")) {
+                return String_from("hashmap:i32str")
+            }
+            if eq(clone(key_name), String_from("String")) && eq(clone(val_name), String_from("String")) {
+                return String_from("hashmap:strstr")
+            }
+            if eq(clone(key_name), String_from("i32")) && eq(clone(val_name), String_from("i32")) {
+                return String_from("hashmap:i32i32")
+            }
+        }
         return clone(name)
     }
     if len(name) > 1 {

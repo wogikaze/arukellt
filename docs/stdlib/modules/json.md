@@ -35,66 +35,60 @@ let parsed = json_parse_i32("42")    // 42
 
 ## `std::json`
 
-- Source: [`../../../std/json/mod.ark`](../../../std/json/mod.ark)
+- Source: [`../../../std/json.ark`](../../../std/json.ark)
 - Manifest-backed functions: 22
 - Stability: experimental 22
 
-JSON parser/serializer for `std::json`.
+JSON streaming scanner and escape utilities for `std::json`.
 
-**Status: experimental — recursive `JsonValue` enum DOM (#045) plus
-streaming scanner utilities (#704).**
-
-### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
-
-- The `JsonValue` DOM surface (`parse`, `stringify`, `stringify_pretty`,
-type predicates, accessors) is stable for well-formed JSON.
-- Streaming scanner utilities (`skip_ws`, `parse_int_at`,
-`parse_content_length`, `find_key_pos`, `json_parse_string_at`,
-`json_decode_escape`, `json_decode_unicode_ascii`, `json_get_str`,
-`json_get_int`) provide low-level field extraction without building a
-DOM.  `\uXXXX` surrogate pairs are not yet supported (#704).
-- Legacy primitive stringify/parse helpers (`json_stringify_i32`,
-`json_parse_i32`, etc.) are preserved for backward compatibility
-with existing fixtures and are not a complete typed serializer.
-- Full RFC 8259 conformance (surrogate pairs, strict number grammar) is
-tracked under #704.
+Low-level functions used by the compiler's LSP/DAP/diagnostics.
+The full JSON parser with `pub enum JsonValue` lives in
+`std/json/parser.ark` (loaded as `std::json::parser`).
 
 ### Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
-| `JsonValue` | `enum` | - |
-| `JsonField` | `struct` | - |
-| `JsonParseError` | `enum` | - |
-| `JsonParseStep` | `struct` | Result of parsing a single JSON value at a position: the parsed value |
 | `JsonStrResult` | `struct` | Result of a streaming string parse. |
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | Stringify an i32 as a JSON number. |
-| `json_stringify_bool` | `(bool) -> String` | `experimental` | Stringify a bool as a JSON boolean literal. |
-| `json_stringify_string` | `(String) -> String` | `experimental` | Stringify a string by wrapping it in double quotes. |
-| `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |
-| `json_parse_i32` | `(String) -> i32` | `experimental` | Parse a decimal integer from a JSON number string. |
-| `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | - |
-| `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize a JsonValue with newlines and indentation for arrays and objects. |
-| `is_null` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_bool` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_number` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_string` | `(JsonValue) -> bool` | `experimental` | - |
 | `is_array` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_bool` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_null` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_number` | `(JsonValue) -> bool` | `experimental` | - |
 | `is_object` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_string` | `(JsonValue) -> bool` | `experimental` | - |
 | `json_as_bool` | `(JsonValue) -> Option<bool>` | `experimental` | - |
-| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
-| `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | - |
 | `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | - |
+| `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
+| `json_encode_string` | `(String) -> String` | `experimental` | - |
 | `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | - |
 | `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | - |
-| `json_encode_string` | `(String) -> String` | `experimental` | Encode a plain string as a JSON string literal with surrounding quotes |
+| `json_null` | `() -> String` | `experimental` | - |
+| `json_parse_bool` | `(String) -> bool` | `experimental` | - |
+| `json_parse_i32` | `(String) -> i32` | `experimental` | - |
+| `json_stringify_bool` | `(bool) -> String` | `experimental` | - |
+| `json_stringify_i32` | `(i32) -> String` | `experimental` | - |
+| `json_stringify_string` | `(String) -> String` | `experimental` | - |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | - |
+| `stringify` | `(JsonValue) -> String` | `experimental` | - |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | - |
+
+#### `json_encode_string`
+
+Encode a plain string as a JSON string literal with escape sequences.
+
+#### `json_get`
+
+Look up a named field in a JSON object value.
+
+#### `json_get_index`
+
+Return the element at index in a JSON array value.
 
 #### `parse`
 
@@ -107,15 +101,3 @@ Serialize a JsonValue back to its JSON text.
 #### `stringify_pretty`
 
 Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged.
-
-#### `json_get`
-
-Look up a named field in a JSON object value.
-
-#### `json_get_index`
-
-Return the element at index in a JSON array value.
-
-#### `json_encode_string`
-
-Encode a plain string as a JSON string literal with escape sequences.

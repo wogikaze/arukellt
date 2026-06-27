@@ -1,6 +1,6 @@
 // Arukellt Selfhost - DAP JSON whitespace scanning
 
-use json
+use std::json
 
 fn dap_skip_ws(s: String, pos: i32) -> i32 {
     json::skip_ws(s, pos)

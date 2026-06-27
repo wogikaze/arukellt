@@ -26,7 +26,7 @@ fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
     if tag == 7 || tag == 8 || tag == 0 {
         return value_types::VT_VOID()
     }
-    if tag == 21 || tag == 22 || tag == 11 || tag == 12 {
+    if tag == 21 || tag == 22 || tag == 11 || tag == 12 || tag == 13 {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
@@ -56,6 +56,27 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
             }
             return String_from("vec:i32")
         }
+    }
+    if tag == 13 {
+        if typeinfo_shape::mir_type_info_type_arg_count(ty) >= 2 {
+            let key = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+            let val = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
+            let key_tag = mir_return_tag_from_type_info(key)
+            let val_tag = mir_return_tag_from_type_info(val)
+            if key_tag == 5 && val_tag == 1 {
+                return String_from("hashmap:si32")
+            }
+            if key_tag == 1 && val_tag == 5 {
+                return String_from("hashmap:i32str")
+            }
+            if key_tag == 5 && val_tag == 5 {
+                return String_from("hashmap:strstr")
+            }
+            if key_tag == 1 && val_tag == 1 {
+                return String_from("hashmap:i32i32")
+            }
+        }
+        return String_from("hashmap:si32")
     }
     if tag == 5 || tag == 21 {
         return typeinfo_shape::mir_type_info_name(ty)

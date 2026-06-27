@@ -28,7 +28,7 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
         sig_type_name = clone(local_type_name)
-        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
+        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) || starts_with(clone(local_type_name), String_from("Option_")) || starts_with(clone(local_type_name), String_from("option:")) {
             pvt = value_types::VT_GC_REF()
         } else {
             if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {

@@ -2266,6 +2266,14 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         std_dst = overlay_root / "std"
         std_dst.mkdir(exist_ok=True)
         shutil.copyfile(prelude_src, std_dst / "prelude.ark")
+    # Copy std/toml.ark and std/json.ark (top-level scanner files without
+    # pub enum) so the compiler's toml/json helpers are not stubbed.
+    # These files have no `use` statements and no pub enum, so they are
+    # safe for the pinned bootstrap to compile.
+    for std_file in ("toml.ark", "json.ark"):
+        src = root / "std" / std_file
+        if src.is_file():
+            shutil.copyfile(src, std_dst / std_file)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     return overlay_root
 

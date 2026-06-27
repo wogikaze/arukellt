@@ -26,16 +26,13 @@ fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_te
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
     helpers_io_p2::emit_p2_write_newline(w, 0)
-    if drop_stray_text_ref {
-        helpers_io_calls::emit_drop(w)
-    } else if arg_local >= 0 {
-        helpers_io_calls::emit_drop(w)
-    }
+    helpers_io_calls::emit_drop(w)
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let buf_local = emit_gc_string_to_heap(w, inst, ctx)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
+    helpers_io_calls::emit_drop(w)
 }
 
 fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {

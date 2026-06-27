@@ -1,6 +1,6 @@
 // Arukellt Selfhost - DAP Content-Length framing.
 
-use json
+use std::json
 
 struct DapFrameResult {
     body: String,

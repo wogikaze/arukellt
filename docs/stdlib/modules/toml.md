@@ -31,59 +31,34 @@ let value = toml_parse_line("name = \"arukellt\"")
 
 ## `std::toml`
 
-- Source: [`../../../std/toml/mod.ark`](../../../std/toml/mod.ark)
+- Source: [`../../../std/toml.ark`](../../../std/toml.ark)
 - Manifest-backed functions: 8
 - Stability: experimental 8
 
-TOML parser/serializer for `std::toml`.
+TOML streaming scanner utilities for `std::toml`.
 
-**Status: partial / experimental — see #604 / #705.**
-
-This module intentionally supports only a bounded TOML subset:
-blank lines, comment lines, and simple `key = value` entries (one
-assignment per non-comment line). Table headers, arrays of tables,
-empty keys or values, lines without `=`, unclosed quoted values, and
-other unsupported or malformed grammar are rejected by `toml_parse`
-with `Err(String)`.
-
-### Value representation
-
-`TomlValue` is a recursive enum for structured TOML values.
-
-### Streaming scanner utilities
-
-`toml_find_section` and `toml_find_value` provide low-level section
-and value extraction without building a full DOM.  These are used by
-the compiler's manifest/script/project parsers.
-
-### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
-
-- This is *not* a full TOML 1.0 implementation. Anything beyond the
-`key = value` subset above is rejected, not silently accepted.
-- `toml_parse_line` is preserved for backward compatibility with
-existing fixtures.
-- Full TOML 1.0 conformance is tracked under #705.
-
-### Public Types
-
-| Name | Kind | Summary |
-|------|------|---------|
-| `TomlValue` | `enum` | - |
-| `TomlField` | `struct` | - |
-| `TomlValueRaw` | `struct` | Legacy tagged struct accessors — prefer TomlValue enum variants. |
+This top-level file contains only the low-level section/value
+extraction functions that the compiler's manifest/script/project
+parsers need. The full TOML parser with `pub enum TomlValue` lives
+in `std/toml/parser.ark` (loaded as `std::toml::parser`) to avoid
+the bootstrap compiler stubbing the entire module.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `toml_parse_line` | `(String) -> String` | `experimental` | Filter a single TOML source line: returns the line unchanged for key=value |
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | Parse a multi-line TOML document made of blank lines, comment lines, |
-| `toml_stringify` | `(TomlValue) -> String` | `experimental` | Serialize a TomlValue back to text. |
-| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
-| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
 | `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | - |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | Look up a key in a TOML table value. |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | - |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | - |
+| `toml_stringify` | `(TomlValue) -> String` | `experimental` | - |
 | `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | - |
+
+#### `toml_get`
+
+Look up a key in a TOML table value.
 
 #### `toml_parse`
 
@@ -92,10 +67,6 @@ Parse a TOML document (key=value pairs).
 #### `toml_stringify`
 
 Serialize a TomlValue back to text.
-
-#### `toml_get`
-
-Look up a key in a TOML table value.
 
 #### `toml_table_keys`
 

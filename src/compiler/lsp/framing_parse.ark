@@ -1,6 +1,6 @@
 // Arukellt LSP - JSON-RPC frame parsing.
 
-use json
+use std::json
 use lsp::framing_record
 
 fn parse_frame(input: String, pos: i32) -> FrameResult {
