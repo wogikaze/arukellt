@@ -4548,6 +4548,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "opt-equivalence (O0 == O1)",
             "bash scripts/run/test-opt-equivalence.sh --quick",
         ),
+        (
+            "T3 fixture WASM validation gate (#686)",
+            "python3 scripts/check/check-t3-wasm-validate.py",
+        ),
     ]
 
     bg_results: list[tuple[str, str, int, str]] = []

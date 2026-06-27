@@ -347,6 +347,29 @@ def _find_wasmtime() -> str | None:
     return shutil.which("wasmtime")
 
 
+def _find_wasm_tools() -> str | None:
+    """Return path to ``wasm-tools`` binary or None."""
+    return shutil.which("wasm-tools")
+
+
+def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
+    """Validate a wasm binary with ``wasm-tools validate``.
+
+    Returns ``(exit_code, error_message)``.  exit_code 0 means valid.
+    """
+    tool = _find_wasm_tools()
+    if tool is None:
+        return 2, "wasm-tools not found in PATH"
+    try:
+        result = _run([tool, "validate", str(wasm_path)], wasm_path.parent, timeout=60)
+    except Exception as exc:  # timeout or other failure
+        return 3, f"wasm-tools validate crashed: {exc}"
+    if result.returncode != 0:
+        msg = (result.stderr or result.stdout or "").strip()[-800:]
+        return 1, msg
+    return 0, ""
+
+
 def _find_pinned_wasm(root: Path) -> Path | None:
     """Return the committed pinned-reference selfhost wasm, honouring override."""
     env_override = os.environ.get("ARUKELLT_PINNED_WASM", "")
@@ -2730,7 +2753,9 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
 
     For each ``run:`` fixture in the manifest:
         - compile with pinned wasm and with current selfhost wasm
+        - validate both wasms with ``wasm-tools validate``
         - execute both wasms; require stdout/stderr/exit-code equal
+        - if a ``.expected`` golden exists, assert output matches it
     """
     lines: list[str] = []
 
@@ -2762,6 +2787,7 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
     pass_count = 0
     fail_count = 0
     skip_count = 0
+    wasm_invalid_count = 0
 
     self_out_dir = root / ".ark-fixture-parity-tmp"
     self_out_dir.mkdir(exist_ok=True)
@@ -2801,7 +2827,33 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
                 skip_count += 1
                 continue
 
-            # Compare execution output
+            # ── WASM validation step ──────────────────────────────────────
+            # Validate both wasms with wasm-tools validate.
+            # - If the *current* wasm is invalid but pinned is valid → FAIL
+            #   (the current compiler introduced a new regression).
+            # - If *both* are invalid → skip (pre-existing emitter limitation
+            #   shared by pinned and current; tracked separately).
+            # - If *pinned* is invalid but current is valid → note it
+            #   (current fixed a pre-existing bug), continue to execution.
+            p_val_rc, p_val_msg = _wasm_tools_validate(out_pinned)
+            c_val_rc, c_val_msg = _wasm_tools_validate(out_current)
+
+            if c_val_rc != 0 and p_val_rc == 0:
+                lines.append(f"  FAIL: {fixture} (current wasm invalid, pinned OK: {c_val_msg[:120]})")
+                fail_count += 1
+                wasm_invalid_count += 1
+                continue
+
+            if c_val_rc != 0 and p_val_rc != 0:
+                lines.append(f"  skip: {fixture} (both wasms invalid — pre-existing emitter bug)")
+                skip_count += 1
+                wasm_invalid_count += 1
+                continue
+
+            if p_val_rc != 0 and c_val_rc == 0:
+                lines.append(f"  note: {fixture} (pinned wasm invalid, current OK — improvement!)")
+
+            # ── Execution ─────────────────────────────────────────────────
             r_p = _run(_wasm_run_argv(root, out_pinned), root, timeout=15)
             p_out = (r_p.stdout + r_p.stderr).strip()
             p_code = r_p.returncode
@@ -2810,17 +2862,46 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
 
-            # If either side traps as an invalid module (validation error from
-            # the emitter — same forgiving treatment as the pre-585 contract),
-            # treat as skip not fail.
-            def _is_trap_or_invalid(code: int, out: str) -> bool:
-                return code == 134 or (code == 1 and "failed to compile" in out)
+            # A trap (exit 134) after successful wasm validation indicates a
+            # runtime crash.
+            # - If only current traps → FAIL (new regression).
+            # - If both trap → skip (pre-existing runtime bug in both).
+            # - If only pinned traps → note (current improved).
+            def _is_trap(code: int) -> bool:
+                return code == 134
 
-            if _is_trap_or_invalid(p_code, p_out) or _is_trap_or_invalid(c_code, c_out):
-                lines.append(f"  skip: {fixture} (selfhost wasm trap/invalid)")
+            p_trapped = _is_trap(p_code)
+            c_trapped = _is_trap(c_code)
+
+            if c_trapped and not p_trapped:
+                lines.append(f"  FAIL: {fixture} (current wasm trap at runtime, pinned OK)")
+                fail_count += 1
+                continue
+
+            if c_trapped and p_trapped:
+                lines.append(f"  skip: {fixture} (both wasms trap — pre-existing runtime bug)")
                 skip_count += 1
                 continue
 
+            if p_trapped and not c_trapped:
+                lines.append(f"  note: {fixture} (pinned traps, current OK — improvement!)")
+
+            # ── .expected golden assertion ─────────────────────────────────
+            # If a .expected file exists, the current selfhost output must
+            # match it exactly (after normalisation).  This catches cases
+            # where pinned and current both produce the *same wrong output*.
+            expected_path = root / "tests" / "fixtures" / (fixture[:-4] + ".expected")
+            if expected_path.is_file():
+                expected = expected_path.read_text(encoding="utf-8").strip()
+                c_norm_exp = _normalize_fixture_parity_output(c_out)
+                if c_norm_exp != expected:
+                    lines.append(f"  FAIL: {fixture} (output mismatch vs .expected golden)")
+                    lines.append(f"    expected: {expected[:80]!r}")
+                    lines.append(f"    current : {c_norm_exp[:80]!r}")
+                    fail_count += 1
+                    continue
+
+            # ── Pinned-vs-current parity ──────────────────────────────────
             p_norm = _normalize_fixture_parity_output(p_out)
             c_norm = _normalize_fixture_parity_output(c_out)
             if p_norm == c_norm and p_code == c_code:
@@ -2838,12 +2919,13 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
         shutil.rmtree(str(self_out_dir), ignore_errors=True)
 
     lines.append("")
-    lines.append(f"{YELLOW}fixture-parity: PASS={pass_count} FAIL={fail_count} SKIP={skip_count}{NC}")
+    lines.append(f"{YELLOW}fixture-parity: PASS={pass_count} FAIL={fail_count} SKIP={skip_count}"
+                 f" (wasm-invalid={wasm_invalid_count}){NC}")
 
     if fail_count > 0:
         lines.append(
-            f"{RED}✗ fixture parity: {fail_count} fixture(s) drift between pinned and current selfhost — "
-            f"fix the regression or refresh bootstrap/arukellt-selfhost.wasm per ADR-029{NC}"
+            f"{RED}✗ fixture parity: {fail_count} fixture(s) failed — "
+            f"see details above (wasm validation, golden mismatch, or pinned↔current drift){NC}"
         )
         return (1, "\n".join(lines) + "\n")
 
