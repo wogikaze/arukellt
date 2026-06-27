@@ -61,53 +61,64 @@ fn build_function_type_sig(uf: MirFunction, target: String) -> String {
     let mut pi = 0
     while pi < pc {
         let p = function_param_view::MirFunction_param_at(uf, pi)
-        let p_type_name = local_access::MirLocal_type_name(p)
-        if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
-            sig = concat(sig, sections_types_gc::gc_enum_open_type_sig())
-        } else {
-            let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
-            if len(gc_param_sig) > 0 {
-                sig = concat(sig, gc_param_sig)
-            } else {
-            if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
-                sig = concat(sig, sections_types_gc::gc_vec_type_sig())
-            } else {
-                if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("hashmap:")) {
-                    sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
-                } else {
-                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target))))
-                }
-            }
-            }
-        }
+        sig = concat(sig, build_param_type_sig(uf, p, pi, clone(target)))
         sig = concat(sig, String_from("_"))
         pi = pi + 1
     }
     let return_type = function_return_view::MirFunction_return_type(uf)
     let return_type_name = function_return_view::MirFunction_return_type_name(uf)
+    sig = concat(sig, build_return_type_sig(uf, return_type, return_type_name, target))
+    sig
+}
+
+fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -> String {
+    let p_type_name = local_access::MirLocal_type_name(p)
+    if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
+    if len(gc_param_sig) > 0 {
+        return gc_param_sig
+    }
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("hashmap:")) {
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    }
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {
+        return gc_struct_return_sig_from_name(clone(p_type_name))
+    }
+    sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
+}
+
+fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String) -> String {
     if return_type == 0 {
-        sig = concat(sig, String_from("0"))
+        return String_from("0")
+    }
+    let mut sig = String_from("1")
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
+        sig = concat(sig, sections_types_gc::gc_vec_type_sig())
     } else {
-        sig = concat(sig, String_from("1"))
-        if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
-            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
+        sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
+    } else {
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
+        sig = concat(sig, gc_struct_return_sig_from_name(clone(return_type_name)))
+    } else {
+        let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
+        if len(gc_enum_ret_sig) > 0 {
+            sig = concat(sig, gc_enum_ret_sig)
         } else {
-        if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
-            sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())
-        } else {
-            let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
-            if len(gc_enum_ret_sig) > 0 {
-                sig = concat(sig, gc_enum_ret_sig)
+            let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
+            if len(gc_ret_sig) > 0 {
+                sig = concat(sig, gc_ret_sig)
             } else {
-                let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
-                if len(gc_ret_sig) > 0 {
-                    sig = concat(sig, gc_ret_sig)
-                } else {
-                    sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
-                }
+                sig = concat(sig, sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target))))
             }
         }
-        }
+    }
+    }
     }
     sig
 }
@@ -116,4 +127,33 @@ fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32) {
     if needs_wrapper == 1 {
         push(type_sigs, String_from("0"))
     }
+}
+
+fn gc_struct_return_sig_from_name(type_name: String) -> String {
+    // Format: "struct:TypeName:byte_size"
+    // Extract byte_size from the last colon-separated segment.
+    let mut last_colon = 0 - 1
+    let n = len(type_name)
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == ':' {
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if last_colon < 0 {
+        return sections_types_gc::gc_struct_type_sig_from_byte_size(4)
+    }
+    let mut byte_size = 0
+    let mut j = last_colon + 1
+    while j < n {
+        let d = char_at(type_name, j)
+        if d >= 48 && d <= 57 {
+            byte_size = byte_size * 10 + (d - 48)
+        } else {
+            j = n
+        }
+        j = j + 1
+    }
+    sections_types_gc::gc_struct_type_sig_from_byte_size(byte_size)
 }

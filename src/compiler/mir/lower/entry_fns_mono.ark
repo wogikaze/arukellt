@@ -11,12 +11,13 @@ fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBod
     let mono_emit_count = mono_emit_count_raw + 1
     let mut mono_emit_i = 0
     let rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
+    let rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
     while mono_emit_i < mono_emit_count {
         let mut emit_fn_name = clone(decl_name)
         if mono_emit_i > 0 {
             emit_fn_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i - 1))
         }
-        entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
+        entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, rt_type_name, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
         mono_emit_i = mono_emit_i + 1
     }
 }
@@ -24,4 +25,14 @@ fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBod
 fn mir_entry_typed_return_tag_at(view: MirLowerEntryView, typed_index: i32) -> i32 {
     let tf = type_source::mir_type_source_typed_fn_at(entry_view_record::entry_view_type_source(view), typed_index)
     return_types::mir_return_tag_from_typed_fn(tf)
+}
+
+fn mir_entry_typed_return_type_name_at(view: MirLowerEntryView, typed_index: i32) -> String {
+    let ts = entry_view_record::entry_view_type_source(view)
+    let count = type_source::mir_type_source_typed_fn_count(ts)
+    if typed_index < 0 || typed_index >= count {
+        return String_from("")
+    }
+    let tf = type_source::mir_type_source_typed_fn_at(ts, typed_index)
+    return_types::mir_return_type_name_from_typed_fn(tf)
 }

@@ -49,9 +49,10 @@ fn build_fn_infos(decls: Vec<AstNode>) -> Vec<CoreHirFnInfo> {
             push(infos, info)
             typed_fn_index = typed_fn_index + 1
         }
-        if decl_node::decl_is_impl(decl) {
-            typed_fn_index = typed_fn_index + decl_member_collections::decl_method_count(decl)
-        }
+        // Note: impl methods do NOT get TypedFn entries (the typechecker only
+        // appends TypedFn for top-level fn decls).  We must NOT increment
+        // typed_fn_index for impl methods, otherwise the typed_fn_index stored
+        // in CoreHirFnInfo will not match the actual index in the TypedFn array.
         i = i + 1
     }
     infos

@@ -24,22 +24,31 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
     let p_type_name = param::param_type_name(param)
     let local_type_name = param::param_local_type_name(param)
     let mut mir_type_name = clone(p_type_name)
+    let mut sig_type_name = clone(p_type_name)
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
+        sig_type_name = clone(local_type_name)
         if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
             pvt = value_types::VT_GC_REF()
+        } else {
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
+                pvt = value_types::VT_GC_REF()
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+            }
         }
     } else {
         if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
             pvt = value_types::VT_GC_REF()
+            sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name))
         } else {
             if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
                 mir_type_name = concat(String_from("?"), clone(p_type_name))
+                sig_type_name = clone(mir_type_name)
             }
         }
     }
     let param_local = ctx_alloc_local(ctx, clone(p_name), pvt)
-    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, mir_type_name))
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(p_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
 }
 
@@ -69,6 +78,11 @@ fn mir_bind_method_self_param(ctx: LowerCtx, struct_name: String, param: CoreHir
         }
     }
     let self_local = ctx_alloc_local(ctx, String_from("self"), self_vt)
-    ctx_push_func_param(ctx, local_factory::MirLocal_new(String_from("self"), self_vt, clone(struct_name)))
+    let self_sig_type_name = if self_vt == value_types::VT_GC_REF() {
+        ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(struct_name))
+    } else {
+        clone(struct_name)
+    }
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(String_from("self"), self_vt, clone(self_sig_type_name)))
     ctx_set_local_type(ctx, self_local, clone(struct_name))
 }

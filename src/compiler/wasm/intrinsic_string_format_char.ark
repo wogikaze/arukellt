@@ -1,6 +1,10 @@
 // Arukellt Selfhost - char string format intrinsic handlers
 
+use mir::inst_accessors_operands
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
+use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_memory_access
@@ -10,6 +14,10 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: char_to_string
 fn emit_char_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_char_to_string_gc(w, inst, ctx)
+        return inst_accessors_operands::MirInst_dest(inst) < 0
+    }
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     emit_char_to_string_setup(w, s_tmp)
@@ -19,6 +27,25 @@ fn emit_char_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_numeric_i32_arith::emit_i32_add(w)
     return true
+}
+
+fn emit_char_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let s_char = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    helpers_core_locals::emit_local_set(w, s_char)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    string_gc_helpers::emit_gc_local_set(w, s_gc)
+    string_gc_helpers::emit_gc_local_get(w, s_gc)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core_locals::emit_local_get(w, s_char)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+    string_gc_helpers::emit_gc_local_get(w, s_gc)
+    if dest >= 0 {
+        string_gc_helpers::emit_gc_local_set(w, dest)
+    }
 }
 
 

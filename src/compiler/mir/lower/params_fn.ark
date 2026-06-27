@@ -19,29 +19,39 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let p_type_name = param::param_type_name(param)
     let local_type_name = param::param_local_type_name(param)
     let mut mir_type_name = clone(p_type_name)
+    let mut sig_type_name = clone(p_type_name)
     let mut is_type_var = false
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
+        sig_type_name = clone(local_type_name)
         if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
             pvt = value_types::VT_GC_REF()
+        } else {
+            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
+                pvt = value_types::VT_GC_REF()
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+            }
         }
     } else {
         if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
             pvt = value_types::VT_GC_REF()
             mir_type_name = concat(String_from("enum:"), p_type_name)
+            sig_type_name = clone(mir_type_name)
         } else {
             if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
                 pvt = value_types::VT_GC_REF()
+                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name))
             } else {
                 if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
                     is_type_var = true
                     mir_type_name = concat(String_from("?"), clone(p_type_name))
+                    sig_type_name = clone(mir_type_name)
                 }
             }
         }
     }
     let param_name = param::param_name(param)
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
-    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, mir_type_name))
+    ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
 }

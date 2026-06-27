@@ -18,7 +18,11 @@ fn mir_emit_entry_body_result(ctx: LowerCtx, input: MirLowerEntryBodyInput) {
     if result >= 0 && ctx_api_function_frame::ctx_current_return_type(ctx) == value_types::VT_VOID() {
         ctx_emit(ctx, inst_misc_control::MirInst_drop())
     }
-    ctx_emit(ctx, inst_return::MirInst_return_void())
+    if result >= 0 && ctx_api_function_frame::ctx_current_return_type(ctx) != value_types::VT_VOID() {
+        ctx_emit(ctx, inst_return::MirInst_return_value(result))
+    } else {
+        ctx_emit(ctx, inst_return::MirInst_return_void())
+    }
 }
 
 fn mir_entry_body_input_can_emit_body(input: MirLowerEntryBodyInput) -> bool {

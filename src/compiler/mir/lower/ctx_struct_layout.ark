@@ -37,6 +37,32 @@ fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
     false
 }
 
+fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
+    if len(type_name) == 0 {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return type_name
+    }
+    if ctx_is_registered_enum_type(ctx, clone(type_name)) {
+        return concat(String_from("enum:"), type_name)
+    }
+    if ctx_is_registered_struct_type(ctx, clone(type_name)) {
+        let byte_size = ctx_struct_byte_size(ctx, clone(type_name))
+        return concat(concat(String_from("struct:"), type_name), concat(String_from(":"), i32_to_string(byte_size)))
+    }
+    type_name
+}
+
 fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut si = 0

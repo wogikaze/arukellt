@@ -34,7 +34,7 @@ fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_bool_to_string_gc(w, inst, ctx)
-        return true
+        return inst_accessors_operands::MirInst_dest(inst) < 0
     }
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     helpers_core_locals::emit_local_set(w, s_tmp)

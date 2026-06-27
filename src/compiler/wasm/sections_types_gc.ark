@@ -144,6 +144,22 @@ fn gc_enum_open_type_sig() -> String {
     String_from("gcref14")
 }
 
+fn gc_struct_type_sig_from_byte_size(byte_size: i32) -> String {
+    // Struct types are indexed by field count (each i32 field = 4 bytes).
+    // Offset 2 = 1 field, offset 3 = 2 fields, ..., offset 9 = 8+ fields.
+    let field_count = (byte_size + 3) / 4
+    let offset = if field_count <= 1 {
+        2
+    } else {
+        if field_count > 8 {
+            9
+        } else {
+            field_count + 1
+        }
+    }
+    concat(String_from("gcref"), i32_to_string(offset))
+}
+
 fn gc_vec_type_sig() -> String {
     String_from("gcref10")
 }

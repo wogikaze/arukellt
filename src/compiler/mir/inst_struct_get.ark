@@ -15,3 +15,7 @@ fn MirInst_struct_get_to(offset: i32, vt: i32, dest: i32) -> MirInst {
 fn MirInst_struct_get_field(base: i32, field_name: String, offset: i32, vt: i32, dest: i32) -> MirInst {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, base, 0 - 1, offset, 0.0, field_name, vt)
 }
+
+fn MirInst_struct_get_field_sized(base: i32, field_name: String, offset: i32, struct_byte_size: i32, vt: i32, dest: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_GET(), dest, base, struct_byte_size, offset, 0.0, field_name, vt)
+}
