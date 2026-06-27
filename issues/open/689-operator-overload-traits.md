@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-26
+Updated: 2026-06-29
 ID: 689
 Track: language-design
-Depends on: 688
+Depends on: "688, 707"
 Orchestration class: design-required
 Orchestration upstream: None
 Blocks v{N}: none

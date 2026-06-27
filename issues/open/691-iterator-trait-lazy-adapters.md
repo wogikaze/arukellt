@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-26
+Updated: 2026-06-29
 ID: 691
 Track: stdlib-api
-Depends on: 688
+Depends on: "688, 707"
 Orchestration class: blocked-by-upstream
 Orchestration upstream: "#688 trait method dispatch"
 Blocks v{N}: none
