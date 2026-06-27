@@ -45,3 +45,71 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     }
     contract_fn_sig::FnSig_new(ast_access::node_text(node), param_types, return_type, type_params, type_param_bounds)
 }
+
+// Like fn_sig_from_fn_decl but merges impl-level type parameters with the
+// method's own type parameters. This is needed for `impl Vec<T> { fn push(self, x: T) }`
+// where T comes from the impl block, not the method declaration.
+fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Vec<String>) -> FnSig {
+    let type_param_bounds = sig_bounds::collect_type_param_bounds(ast_access::node_type_ann(node))
+    let method_type_params = sig_bounds::collect_type_param_names(type_param_bounds)
+    let type_params = merge_type_params(impl_type_params, method_type_params)
+    let ann_count = ast_access::node_type_ann_count(node)
+    let mut j = 0
+    let param_types = Vec_new_TypeInfo()
+    let child_count = ast_access::node_child_count(node)
+    if child_count > 1 {
+        let mut p = 0
+        while p < child_count - 1 {
+            let param = ast_access::node_child_at(node, p)
+            let mut pty = simple_type(commands::TY_UNKNOWN())
+            if ast_access::node_type_ann_count(param) > 0 {
+                let type_node = ast_access::node_type_ann_at(param, 0)
+                pty = types::resolve_type_ann_node_generic(type_node, type_params)
+            }
+            push(param_types, pty)
+            p = p + 1
+        }
+    }
+    let mut return_type = simple_type(commands::TY_UNIT())
+    j = 0
+    while j < ann_count {
+        let ann = ast_access::node_type_ann_at(node, j)
+        if eq(ast_access::node_text(ann), String_from("__return")) {
+            if ast_access::node_child_count(ann) > 0 {
+                let ret_node = ast_access::node_child_at(ann, 0)
+                return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
+            }
+        }
+        j = j + 1
+    }
+    contract_fn_sig::FnSig_new(ast_access::node_text(node), param_types, return_type, type_params, type_param_bounds)
+}
+
+// Merge impl-level type params with method-level type params, avoiding duplicates.
+fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Vec<String> {
+    let merged = Vec_new_String()
+    let impl_count = len(impl_params)
+    let mut i = 0
+    while i < impl_count {
+        push(merged, clone(get_unchecked(impl_params, i)))
+        i = i + 1
+    }
+    let method_count = len(method_params)
+    let mut k = 0
+    while k < method_count {
+        let mp = clone(get_unchecked(method_params, k))
+        let mut found = false
+        let mut j = 0
+        while j < impl_count {
+            if eq(clone(get_unchecked(impl_params, j)), clone(mp)) {
+                found = true
+            }
+            j = j + 1
+        }
+        if !found {
+            push(merged, mp)
+        }
+        k = k + 1
+    }
+    merged
+}

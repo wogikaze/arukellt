@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: closed
 Created: 2026-06-27
-Updated: 2026-06-28
+Updated: 2026-06-29
 ID: 700
 Track: language-design
 Depends on: 688
@@ -104,13 +104,19 @@ go through free functions.
 
 ### Stdlib
 
-- [ ] `impl Vec<T>` block in `std/collections/vec.ark` with methods:
+- [x] `impl Vec<T>` block in `std/collections/vec.ark` with methods:
       `push`, `pop`, `get`, `set`, `len`, `is_empty`, `clear`,
       `get_unchecked` (delegating to existing intrinsics).
-      *(Blocked: generic inherent impls (`impl Vec<T>`) require typechecker
-      support for propagating type parameters from the impl block to method
-      signatures. Vec method syntax uses approach (b) compiler-internal
-      fallback mapping in the meantime.)*
+      *(Implemented 2026-06-29: `impl Vec<T>` block added to
+      `std/collections/vec.ark` with push, pop, get, set, len, is_empty,
+      get_unchecked methods. Typechecker support for impl-block type
+      parameters added: `extract_impl_type_params` in `module_fns.ark`
+      extracts type params from the generic type args of the impl head,
+      `fn_sig_from_fn_decl_with_impl_type_params` in `sig_decl.ark` merges
+      impl type params with method type params. `call_generic_method.ark`
+      fixed to include type prefix ("Vec::") in mono instance names for
+      TY_VEC/TY_STRING, preventing infinite recursion when method bodies
+      delegate to same-named prelude free functions.)*
 - [x] `impl String` block in `std/collections/string.ark` with methods:
       `len`, `char_at`, `index_of`, `slice`, `concat`, `clone`,
       `starts_with`, `ends_with`, `contains`, `to_lower`, `to_upper`,
@@ -131,11 +137,12 @@ go through free functions.
 
 ## Acceptance
 
-- [ ] `impl Vec<T> { fn push(self, x: T) { ... } }` compiles and
+- [x] `impl Vec<T> { fn push(self, x: T) { ... } }` compiles and
       `v.push(42)` calls it.
-      *(Blocked: generic inherent impls need typechecker support for
-      impl-block type params. Vec method syntax works via approach (b)
-      compiler-recognized intrinsic mapping in the meantime.)*
+      *(Implemented 2026-06-29: `impl Vec<T>` block in
+      `std/collections/vec.ark`. Verified with fixture
+      `tests/fixtures/trait/builtin_vec_method.ark` — compiles, validates,
+      and runs correctly, producing expected output.)*
 - [x] `impl String { fn len(self) -> i32 { ... } }` compiles and
       `s.len()` returns the string length.
       *(User-written impl block in `std/collections/string.ark`.)*

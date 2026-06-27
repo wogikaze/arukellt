@@ -25,10 +25,30 @@ fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<
     let resolved_recv_ty = unify::resolve_type_deep(infer_env, inst_p0)
     let method_name = ast_access::node_text(node)
     let mut mono_fn_name = clone(method_name)
-    if contract_type_access::TypeInfo_tag(resolved_recv_ty) == commands::TY_STRUCT() && contract_type_access::TypeInfo_has_name(resolved_recv_ty) {
-        mono_fn_name = concat(contract_type_access::TypeInfo_name(resolved_recv_ty), concat(String_from("::"), method_name))
+    let type_prefix = type_name_for_mono(resolved_recv_ty)
+    if len(type_prefix) > 0 {
+        mono_fn_name = concat(type_prefix, concat(String_from("::"), method_name))
     }
     let mangled_name = mono::record_mono_instance(env, clone(mono_fn_name), resolved_type_args)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name)
     ret_ty
+}
+
+// Map a receiver TypeInfo to the type name used for mono instance naming.
+// Returns empty string for types that don't have a type prefix.
+fn type_name_for_mono(ty: TypeInfo) -> String {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == commands::TY_VEC() {
+        return String_from("Vec")
+    }
+    if tag == commands::TY_STRING() {
+        return String_from("String")
+    }
+    if tag == commands::TY_STRUCT() {
+        let name = contract_type_access::TypeInfo_name(ty)
+        if len(name) > 0 {
+            return name
+        }
+    }
+    String_new()
 }

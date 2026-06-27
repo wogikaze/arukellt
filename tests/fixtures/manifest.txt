@@ -732,6 +732,7 @@ run:t3/string_intern.ark
 run:test_assert/assert_pass.ark
 run:trait/basic_impl.ark
 run:trait/builtin_method.ark
+run:trait/builtin_vec_method.ark
 run:trait/method_chain.ark
 run:trait/operator_overload.ark
 run:trait/trait_impl.ark

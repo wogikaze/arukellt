@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-27T08:24:23Z",
+  "generated_at": "2026-06-27T08:48:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -643,9 +643,9 @@
       }
     },
     {
-      "id": "700",
-      "path": "700-builtin-type-method-syntax.md",
-      "title": "700 — Builtin type method syntax (`impl Vec<T>`, `impl i32`, ...)",
+      "id": "701",
+      "path": "701-associated-function-syntax.md",
+      "title": "701 — Associated function syntax (`Vec::new<T>()`, `String::from()`)",
       "track": "language-design",
       "status": "open",
       "blocks_v1": "none",
@@ -654,16 +654,14 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "688"
+        "700"
       ],
       "blocks_issue_ids": [
-        "701",
-        "702",
         "703"
       ],
       "acceptance": {
-        "checked": 13,
-        "unchecked": 2
+        "checked": 0,
+        "unchecked": 15
       },
       "orchestration": {
         "class": "design-required",
@@ -922,6 +920,32 @@
       }
     },
     {
+      "id": "702",
+      "path": "702-to-string-clone-hash-trait-integration.md",
+      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "700",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+      }
+    },
+    {
       "id": "697",
       "path": "697-vec-operation-extension.md",
       "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
@@ -947,35 +971,9 @@
       }
     },
     {
-      "id": "701",
-      "path": "701-associated-function-syntax.md",
-      "title": "701 — Associated function syntax (`Vec::new<T>()`, `String::from()`)",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "700"
-      ],
-      "blocks_issue_ids": [
-        "703"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "design-required",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "702",
-      "path": "702-to-string-clone-hash-trait-integration.md",
-      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
+      "id": "703",
+      "path": "703-monomorphic-api-bold-cutover.md",
+      "title": "703 — Monomorphic API bold cutover (ADR-036 D2)",
       "track": "stdlib-api",
       "status": "open",
       "blocks_v1": "none",
@@ -984,18 +982,19 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "688",
         "700",
-        "692"
+        "701",
+        "691",
+        "695"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 15
+        "unchecked": 19
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
       }
     },
     {
@@ -1046,33 +1045,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "703",
-      "path": "703-monomorphic-api-bold-cutover.md",
-      "title": "703 — Monomorphic API bold cutover (ADR-036 D2)",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "700",
-        "701",
-        "691",
-        "695"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 19
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
       }
     }
   ],

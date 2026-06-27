@@ -9,9 +9,44 @@ pub fn new_i32() -> Vec<i32> {
 // ---------------------------------------------------------------------------
 // Inherent impl block for Vec<T> — method syntax (approach (a) for #700).
 //
-// NOTE: Generic inherent impls (`impl Vec<T>`) require typechecker support
-// for propagating type parameters from the impl block to method signatures.
-// Until that support is added, Vec method syntax relies on the
-// compiler-internal fallback mapping (approach (b)) in
-// `src/compiler/mir/lower/method_resolve.ark`.
+// Generic inherent impl (`impl Vec<T>`) with type parameters propagated to
+// method signatures. Method bodies delegate to existing prelude free
+// functions / bare intrinsics that are handled directly by the WASM emitter.
 // ---------------------------------------------------------------------------
+
+impl Vec<T> {
+    /// Appends `x` to the end of the vector.
+    fn push(self, x: T) {
+        push(self, x)
+    }
+
+    /// Removes and returns the last element, or -1 if empty.
+    fn pop(self) -> i32 {
+        vec_pop(self)
+    }
+
+    /// Returns the element at `idx` with bounds checking (returns -1 on out-of-bounds).
+    fn get(self, idx: i32) -> i32 {
+        vec_get(self, idx)
+    }
+
+    /// Sets the element at `idx` to `val`.
+    fn set(self, idx: i32, val: T) {
+        vec_set(self, idx, val)
+    }
+
+    /// Returns the number of elements.
+    fn len(self) -> i32 {
+        vec_len(self)
+    }
+
+    /// Returns true if the vector has no elements.
+    fn is_empty(self) -> bool {
+        is_empty(self)
+    }
+
+    /// Returns the element at `idx` without bounds checking.
+    fn get_unchecked(self, idx: i32) -> T {
+        get_unchecked(self, idx)
+    }
+}
