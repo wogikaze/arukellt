@@ -1,5 +1,6 @@
 // Arukellt Typechecker - merge per-function inference state into module env.
 
+use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_env_record
 
@@ -9,13 +10,14 @@ fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
     let mut i = 0
     while i < count {
         let incoming = get_unchecked(src_instances, i)
+        let incoming_mangled = contract_mono::MonoInstance_mangled_name(incoming)
         let dst_instances = contract_env_mono_record::type_env_mono_instances(dst)
         let dst_count = len(dst_instances)
         let mut found = false
         let mut j = 0
         while j < dst_count {
             let existing = get_unchecked(dst_instances, j)
-            if eq(clone(existing.mangled_name), clone(incoming.mangled_name)) {
+            if eq(contract_mono::MonoInstance_mangled_name(existing), clone(incoming_mangled)) {
                 found = true
             }
             j = j + 1

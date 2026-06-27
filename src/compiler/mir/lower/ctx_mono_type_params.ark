@@ -7,10 +7,38 @@
 
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_types
+use mir::lower_kinds
 use mir::function_locals_view
 use mir::local_access
 use mir::mono_names
 use mir::type_contracts
+
+// Convert a TypeInfo to a monomorphization type key string.
+// Primitive types (i32, f64, etc.) carry only a tag with an empty name,
+// so we must use the tag to produce the correct key.
+fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
+    let tag = type_contracts::TypeInfo_tag(ty)
+    if tag == lower_kinds::TY_TYPE_VAR() {
+        return concat(String_from("?"), type_contracts::TypeInfo_name(ty))
+    }
+    if tag == lower_kinds::TY_I32() { return String_from("i32") }
+    if tag == lower_kinds::TY_I64() { return String_from("i64") }
+    if tag == lower_kinds::TY_F64() { return String_from("f64") }
+    if tag == lower_kinds::TY_F32() { return String_from("f32") }
+    if tag == lower_kinds::TY_BOOL() { return String_from("bool") }
+    if tag == lower_kinds::TY_STRING() { return String_from("String") }
+    if tag == lower_kinds::TY_CHAR() { return String_from("char") }
+    if tag == lower_kinds::TY_UNIT() { return String_from("()") }
+    if tag == lower_kinds::TY_VEC() { return String_from("Vec") }
+    if tag == lower_kinds::TY_STRUCT() || tag == lower_kinds::TY_ENUM() {
+        return type_contracts::TypeInfo_name(ty)
+    }
+    let name = type_contracts::TypeInfo_name(ty)
+    if len(name) > 0 {
+        return name
+    }
+    String_new()
+}
 
 fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String>) {
     ctx.mono_type_param_names = names
@@ -90,7 +118,7 @@ fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
             let mut j = 0
             while j < arg_count && j < len(type_var_names) {
                 let ty = type_contracts::MonoInstance_type_arg_at(inst, j)
-                let ty_name = type_contracts::TypeInfo_name(ty)
+                let ty_name = mir_type_info_to_mono_key(ty)
                 push(names, clone(get_unchecked(type_var_names, j)))
                 push(types, ty_name)
                 j = j + 1

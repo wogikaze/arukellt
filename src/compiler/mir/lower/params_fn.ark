@@ -10,6 +10,22 @@ use mir::local_factory
 use mir::types
 use mir::value_types
 
+fn mir_is_builtin_type_name(name: String) -> bool {
+    if eq(clone(name), "i32") { return true }
+    if eq(clone(name), "i64") { return true }
+    if eq(clone(name), "f64") { return true }
+    if eq(clone(name), "f32") { return true }
+    if eq(clone(name), "bool") { return true }
+    if eq(clone(name), "String") { return true }
+    if eq(clone(name), "char") { return true }
+    if eq(clone(name), "Vec") { return true }
+    if starts_with(clone(name), "vec:") { return true }
+    if starts_with(clone(name), "hashmap:") { return true }
+    if eq(clone(name), "enum") { return true }
+    if starts_with(clone(name), "enum:") { return true }
+    false
+}
+
 fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     if !param::param_is_bindable(param) {
         return
@@ -18,6 +34,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let p_type_name = param::param_type_name(param)
     let local_type_name = param::param_local_type_name(param)
     let mut mir_type_name = clone(p_type_name)
+    let mut is_type_var = false
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
         if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
@@ -30,13 +47,16 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         } else {
             if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
                 pvt = value_types::VT_GC_REF()
+            } else {
+                if !mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
+                    is_type_var = true
+                    mir_type_name = concat(String_from("?"), clone(p_type_name))
+                }
             }
         }
     }
     let param_name = param::param_name(param)
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, mir_type_name))
-    if len(local_type_name) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, param_local, local_type_name)
-    }
+    ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
 }

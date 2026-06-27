@@ -20,6 +20,8 @@ fn lower_core_literal_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             let wide_type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
             if len(wide_type_name) > 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, wide_dest, wide_type_name)
+            } else {
+                ctx_api_local_types::ctx_set_local_type(ctx, wide_dest, String_from("i64"))
             }
             ctx_api_emit::ctx_emit(ctx, inst_const_i64::MirInst_const_i64_text(core_expr_shape_accessors::mir_core_expr_text(expr), wide_dest))
             return wide_dest
@@ -28,6 +30,8 @@ fn lower_core_literal_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         let int_type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
         if len(int_type_name) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, int_type_name)
+        } else {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
         }
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(core_expr_shape_accessors::mir_core_expr_int_val(expr), dest))
         return dest

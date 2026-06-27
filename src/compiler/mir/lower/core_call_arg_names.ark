@@ -1,7 +1,7 @@
 // Arukellt Selfhost - CoreHIR call argument name classification.
 
 fn mir_core_is_printlike_callee(name: String) -> bool {
-    eq(clone(name), "stdio::println") || eq(clone(name), "println") || eq(clone(name), "stdio::print") || eq(clone(name), "print") || eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") || eq(clone(name), "__intrinsic_println")
+    eq(clone(name), "stdio::println") || eq(clone(name), "println") || eq(clone(name), "stdio::print") || eq(clone(name), "print") || eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") || eq(clone(name), "__intrinsic_println") || eq(clone(name), "__intrinsic_eprintln") || eq(clone(name), "__intrinsic_print")
 }
 
 fn mir_core_call_bool_result_name(name: String) -> bool {

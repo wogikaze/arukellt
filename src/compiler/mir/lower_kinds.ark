@@ -86,6 +86,11 @@ fn TY_V128() -> i32 { 40 }
 fn TY_BOOL() -> i32 { 4 }
 fn TY_STRING() -> i32 { 5 }
 fn TY_UNIT() -> i32 { 7 }
+fn TY_CHAR() -> i32 { 6 }
+fn TY_VEC() -> i32 { 10 }
+fn TY_STRUCT() -> i32 { 21 }
+fn TY_ENUM() -> i32 { 22 }
+fn TY_TYPE_VAR() -> i32 { 30 }
 
 // Higher-order function call kind tags.
 fn MIR_HOF_KIND_NONE() -> i32 { 0 }

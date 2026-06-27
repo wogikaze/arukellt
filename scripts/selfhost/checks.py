@@ -2040,32 +2040,128 @@ def _patch_bootstrap_stub_static_dispatch(compiler_out: Path) -> None:
     past the end of the allocated struct).
     """
     # 1. Stub out all ctx_mono_type_params functions (static dispatch)
+    #    Keep real implementations where possible — the mono type param
+    #    mapping is needed for trait method dispatch in generic functions.
     path = compiler_out / "mir_lower_ctx_mono_type_params.ark"
     if path.is_file():
         path.write_text(
-            """// Arukellt Selfhost - Bootstrap stub: static dispatch disabled.
+            """// Arukellt Selfhost - Bootstrap stub: static dispatch (partial).
 
 use mir_lower_ctx_types
+use mir_lower_ctx_current_storage
+use mir_lower_kinds
+use mir_function_locals_view
+use mir_local_access
+use mir_mono_names
+use mir_type_contracts
+
+fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
+    let tag = mir_type_contracts::mir_type_contracts__TypeInfo_tag(ty)
+    if tag == mir_lower_kinds::TY_TYPE_VAR() {
+        return concat(String_from("?"), mir_type_contracts::mir_type_contracts__TypeInfo_name(ty))
+    }
+    if tag == mir_lower_kinds::TY_I32() { return String_from("i32") }
+    if tag == mir_lower_kinds::TY_I64() { return String_from("i64") }
+    if tag == mir_lower_kinds::TY_F64() { return String_from("f64") }
+    if tag == mir_lower_kinds::TY_F32() { return String_from("f32") }
+    if tag == mir_lower_kinds::TY_BOOL() { return String_from("bool") }
+    if tag == mir_lower_kinds::TY_STRING() { return String_from("String") }
+    if tag == mir_lower_kinds::TY_CHAR() { return String_from("char") }
+    if tag == mir_lower_kinds::TY_UNIT() { return String_from("()") }
+    if tag == mir_lower_kinds::TY_VEC() { return String_from("Vec") }
+    if tag == mir_lower_kinds::TY_STRUCT() || tag == mir_lower_kinds::TY_ENUM() {
+        return mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
+    }
+    let name = mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
+    if len(name) > 0 {
+        return name
+    }
+    String_new()
+}
 
 pub fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String>) {
+    ctx.mono_type_param_names = names
+    ctx.mono_type_param_types = types
 }
 
 pub fn ctx_clear_mono_type_params(ctx: LowerCtx) {
+    ctx.mono_type_param_names = Vec_new_String()
+    ctx.mono_type_param_types = Vec_new_String()
 }
 
 pub fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
+    let count = len(ctx.mono_type_param_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.mono_type_param_names, i), clone(type_var_name)) {
+            return clone(get_unchecked(ctx.mono_type_param_types, i))
+        }
+        i = i + 1
+    }
     String_new()
 }
 
 pub fn ctx_has_mono_type_params(ctx: LowerCtx) -> bool {
-    false
+    len(ctx.mono_type_param_names) > 0
 }
 
 pub fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
-    Vec_new_String()
+    let result = Vec_new_String()
+    let func = mir_lower_ctx_current_storage::ctx_current_func_value(ctx)
+    let local_count = mir_function_locals_view::MirFunction_local_count(func)
+    let mut i = 0
+    while i < local_count {
+        let loc = mir_function_locals_view::MirFunction_local_at(func, i)
+        let ty_name = mir_local_access::MirLocal_type_name(loc)
+        if starts_with(clone(ty_name), String_from("?")) {
+            let mut found = false
+            let rcount = len(result)
+            let mut k = 0
+            while k < rcount {
+                if eq(get_unchecked(result, k), clone(ty_name)) {
+                    found = true
+                }
+                k = k + 1
+            }
+            if !found {
+                push(result, ty_name)
+            }
+        }
+        i = i + 1
+    }
+    result
 }
 
 pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
+    let type_var_names = ctx_collect_type_var_names(ctx)
+    if len(type_var_names) == 0 {
+        ctx_clear_mono_type_params(ctx)
+        return
+    }
+    let count = len(ctx.mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(ctx.mono_instances, i)
+        let inst_mangled = mir_type_contracts::mir_type_contracts__MonoInstance_mangled_name(inst)
+        let safe_mangled = mir_mono_names::mono_safe_name(inst_mangled)
+        if eq(clone(safe_mangled), clone(mangled_name)) {
+            let arg_count = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_count(inst)
+            let names = Vec_new_String()
+            let types = Vec_new_String()
+            let mut j = 0
+            while j < arg_count && j < len(type_var_names) {
+                let ty = mir_type_contracts::mir_type_contracts__MonoInstance_type_arg_at(inst, j)
+                let ty_name = mir_type_info_to_mono_key(ty)
+                push(names, clone(get_unchecked(type_var_names, j)))
+                push(types, ty_name)
+                j = j + 1
+            }
+            ctx_set_mono_type_params(ctx, names, types)
+            return
+        }
+        i = i + 1
+    }
+    ctx_clear_mono_type_params(ctx)
 }
 """,
             encoding="utf-8",
