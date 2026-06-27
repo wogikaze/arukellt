@@ -2730,7 +2730,7 @@ FIXTURE_PARITY_SKIP: set[str] = {
 def _normalize_fixture_parity_output(out: str) -> str:
     """Normalize wasm runner output so path-only trap text compares equal."""
     out = re.sub(r"`[^`]*\.wasm`", "`<wasm>`", out)
-    out = re.sub(r"0x[0-9a-fA-F]+", "0x<addr>", out)
+    out = re.sub(r"(?<![0-9a-zA-Z.])0x[0-9a-fA-F]+", "0x<addr>", out)
     return out
 
 

@@ -1,10 +1,20 @@
 use wasm::ctx_scratch
 use wasm::intrinsic_env_var_lookup
+use wasm::intrinsic_env_var_option
 use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
+use wasm::emit_target
+use wasm::ctx_record
 
 fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let name_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     helpers_core_locals::emit_local_set(w, name_local)
+    if emit_target::is_minimal_p1_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx)) {
+        helpers_core_locals::emit_local_get(w, name_local)
+        helpers_core_stack::emit_drop(w)
+        intrinsic_env_var_option::emit_env_var_option_none(w, ctx)
+        return true
+    }
     intrinsic_env_var_lookup::emit_env_var_lookup(w, ctx, name_local)
     return true
 }
