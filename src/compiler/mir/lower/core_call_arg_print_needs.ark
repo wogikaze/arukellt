@@ -22,11 +22,13 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
             return false
         }
         let rv = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(cn))
-        if rv == value_types::VT_I32() || rv == value_types::VT_I64() || rv == value_types::VT_F64() {
-            return true
-        }
         if rv == value_types::VT_GC_REF() || rv == value_types::VT_REF() {
             return false
+        }
+        if len(return_type_name) > 0 {
+            if rv == value_types::VT_I32() || rv == value_types::VT_I64() || rv == value_types::VT_F64() {
+                return true
+            }
         }
     }
     if arg_idx >= 0 {

@@ -166,9 +166,6 @@ fn should_force_text_call_dest_store(next_op: i32, next_arg0: i32) -> bool {
 }
 
 fn text_call_result_on_stack(inst: MirInst, default_on_stack: bool) -> bool {
-    if inst_accessors_operands::MirInst_dest(inst) >= 0 {
-        return false
-    }
     default_on_stack
 }
 

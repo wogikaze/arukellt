@@ -22,8 +22,10 @@ fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i
         if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_GC_REF() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_REF() {
             return false
         }
-        if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I32() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I64() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_F64() {
-            return true
+        if len(rtn) > 0 {
+            if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I32() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I64() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_F64() {
+                return true
+            }
         }
     }
     if arg_idx >= 0 {

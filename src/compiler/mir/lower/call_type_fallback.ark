@@ -1,8 +1,11 @@
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR call result type fallback propagation.
+
+use mir::value_types
 
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
@@ -12,6 +15,35 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
         if len(rtn) > 1 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, rtn)
+        }
+    }
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+        mark_mono_call_result_type(ctx, callee_name, dest)
+    }
+}
+
+fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let cn_stripped = mir_strip_module_prefix(clone(callee_name))
+    let n = len(cn_stripped)
+    let mut sep = 0 - 1
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(cn_stripped, i) == 95 && char_at(cn_stripped, i + 1) == 95 {
+            sep = i
+            i = 0 - 1
+        }
+        i = i - 1
+    }
+    if sep < 0 {
+        return
+    }
+    let suffix = substring(cn_stripped, sep + 2, n)
+    if eq(clone(suffix), "String") || eq(clone(suffix), "string") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
 }

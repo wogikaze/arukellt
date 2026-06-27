@@ -1,6 +1,7 @@
 // Arukellt Selfhost - stdio intrinsic handlers
 
 use mir::inst_accessors_operands
+use mir::opcodes
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_stdio_gc
@@ -13,31 +14,29 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
     intrinsic_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }
 
-fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_is_call: bool) -> bool {
+fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         intrinsic_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op)
     } else {
-        emit_println_t1(w, inst, ctx, prev_is_call)
+        emit_println_t1(w, inst, ctx, prev_op)
     }
     return false
 }
 
-fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) -> bool {
+fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         intrinsic_stdio_gc::emit_gc_print(w, inst, ctx)
     } else {
-        emit_print_t1(w, inst, ctx, prev_is_call)
+        emit_print_t1(w, inst, ctx, prev_op)
     }
     return false
 }
 
-fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) {
+fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = inst_accessors_operands::MirInst_dest(inst)
-    if prev_is_call {
-        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-        if arg0 >= 0 {
-            helpers_core_locals::emit_local_get(w, arg0)
-        }
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
+        helpers_core_locals::emit_local_get(w, arg0)
     }
     helpers_core_locals::emit_local_set(w, string_local)
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -52,13 +51,11 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call:
     }
 }
 
-fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) {
+fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = inst_accessors_operands::MirInst_dest(inst)
-    if prev_is_call {
-        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-        if arg0 >= 0 {
-            helpers_core_locals::emit_local_get(w, arg0)
-        }
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
+        helpers_core_locals::emit_local_get(w, arg0)
     }
     helpers_core_locals::emit_local_set(w, string_local)
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -71,22 +68,20 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: b
     }
 }
 
-fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) -> bool {
+fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         intrinsic_stdio_gc::emit_gc_eprintln(w, inst, ctx)
     } else {
-        emit_eprintln_t1(w, inst, ctx, prev_is_call)
+        emit_eprintln_t1(w, inst, ctx, prev_op)
     }
     return false
 }
 
-fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_is_call: bool) {
+fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = inst_accessors_operands::MirInst_dest(inst)
-    if prev_is_call {
-        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-        if arg0 >= 0 {
-            helpers_core_locals::emit_local_get(w, arg0)
-        }
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
+        helpers_core_locals::emit_local_get(w, arg0)
     }
     helpers_core_locals::emit_local_set(w, string_local)
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
