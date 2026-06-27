@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: closed
 Created: 2026-06-26
-Updated: 2026-06-28
+Updated: 2026-06-29
 ID: 688
 Track: language-design
 Depends on: none
@@ -125,10 +125,10 @@ Trait` is a follow-up.
       and the call resolves at compile time to the correct impl.
 - [x] At least two distinct types implementing the same trait are dispatched
       correctly from one generic function in a fixture.
-- [ ] Existing `Eq` / `Display` / `Hash` trait definitions in `std::core`
+- [x] Existing `Eq` / `Display` / `Hash` trait definitions in `std::core`
       become callable through generic dispatch (not only via concrete
       wrappers).
-      **Partially fixed 2026-06-28**: The typechecker now correctly records
+      **Fixed 2026-06-28**: The typechecker now correctly records
       mono instances for generic functions called with `String` arguments.
       The root cause was in `merge_mono_instances` (`module_env_merge.ark`),
       which used direct struct field access (`existing.mangled_name`) instead
@@ -138,7 +138,7 @@ Trait` is a follow-up.
       all mono instances to appear as duplicates and only the first instance
       (`print_value__i32`) to survive the merge.
 
-      Additional fixes in this session:
+      Additional fixes across sessions:
       - `ctx_mono_type_params.ark`: `ctx_setup_mono_type_params_by_ordinal`
         now uses `mono_type_key` instead of `TypeInfo_name` for matching
         type variable names.
@@ -153,22 +153,6 @@ Trait` is a follow-up.
         under the 249-line file limit.
       - `core_literals.ark`: Fixed i32/i64 literal type name resolution for
         mono instance key generation.
-
-      The fixture `tests/fixtures/generics_v1/trait_dispatch_stdlib.ark`
-      now generates all 6 expected mono instances
-      (`print_value__i32`, `print_value__String`, `check_eq__i32`,
-      `check_eq__String`, `compute_hash__i32`, `compute_hash__String`)
-      and all trait method calls resolve to the correct impl functions
-      (`i32::to_string`, `String::to_string`, `String::eq`, `String::hash`).
-
-      **Remaining blocker**: The compiled wasm still fails validation due
-      to pre-existing GC target codegen issues in the println/string
-      handling path (func 71: `main` fails with type mismatch when
-      passing a GC String ref to the i32-oriented println scratch local
-      path). The original `std::core::cmp::cmp` enum return type bug
-      (func 20 returning `Ordering` as i32 instead of `(ref null $type)`)
-      has been fixed — `cmp` now correctly returns `(ref null 21)` on GC
-      targets. Additional fixes in this session:
       - `return_typeinfo.ark`: prefix enum return type names with "enum:"
         so the WASM type section emits `(ref null $type)` for enum returns.
       - `code_ref_locals_infer.ark`: recognize "enum:" prefix when
@@ -184,9 +168,34 @@ Trait` is a follow-up.
       - `intrinsic_parse_i32/i64/f64.ark`: emit `unreachable` on GC
         targets instead of returning false to fallback.
 
-      Until the GC println/string-handling issue is fixed, the traits
-      cannot be called end-to-end at runtime, so this criterion remains
-      open.
+      **Final blocker resolved 2026-06-29**: The GC println/string-handling
+      type mismatch (func 71: `main` failed validation with
+      `type mismatch: expected i32, found (ref null $type)`) was caused by
+      the if/else expression result local in `mir_store_if_branch_result`
+      (`src/compiler/mir/lower/if.ark`) always being allocated as `VT_I32`
+      and only updated for `VT_I64`/`VT_F64` branch types. On GC targets,
+      String-typed if/else results kept the wrong `VT_I32`, causing the
+      println argument conversion check to insert a spurious `i32_to_string`
+      call on a String ref. Fixed by propagating `VT_GC_REF`/`VT_REF` and
+      the branch local type name to the result local. A safety-net check
+      was also added in `call_text.ark` (`to_string_arg_is_ref`) to skip
+      `i32_to_string` emission when the argument local is typed String on
+      GC targets.
+
+      The fixture `tests/fixtures/generics_v1/trait_dispatch_stdlib.ark`
+      now compiles, validates, and runs end-to-end via
+      `arukellt-run-hosted.sh`, producing the expected output:
+      ```
+      42
+      hello
+      i32 eq: true
+      String eq: true
+      1==2: false
+      1304715532
+      397636326
+      ```
+      All 6 mono instances are generated and all trait method calls
+      resolve to the correct impl functions.
 - [x] Dispatch strategy documented (ADR or `docs/stdlib/` section).
       **Documented in ADR-036 D1** (`docs/adr/ADR-036-trait-stdlib-redesign.md`):
       static dispatch via monomorphization is the default; `dyn Trait` is
