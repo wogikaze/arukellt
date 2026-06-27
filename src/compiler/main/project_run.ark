@@ -3,7 +3,7 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
-use std::toml
+use main::script_toml
 use driver::file
 use driver::config_record
 use main::args_record
@@ -135,5 +135,5 @@ pub fn cmd_test(opts: CliOptions) {
 
 // ── TOML Value Extraction ────────────────────────────────────────────────────
 fn find_toml_value(content: String, key: String) -> String {
-    toml::toml_find_value(content, key)
+    script_toml::find_toml_value(content, key)
 }

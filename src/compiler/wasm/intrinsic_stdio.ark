@@ -13,9 +13,9 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
     intrinsic_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }
 
-fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_is_call: bool) -> bool {
+fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, drop_concat_stray: bool, next_op: i32, prev_is_call: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op)
+        intrinsic_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, drop_concat_stray, next_op)
     } else {
         emit_println_t1(w, inst, ctx, prev_is_call)
     }

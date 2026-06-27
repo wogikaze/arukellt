@@ -1,17 +1,65 @@
 // Arukellt Selfhost - LSP JSON string escaping helpers.
 //
-// Delegates to std::json (issue #704).
-
-use std::json
+// Inlined implementations to avoid dependency on std::json (which defines
+// pub enum JsonValue that the bootstrap compiler cannot parse, causing the
+// entire module to be stubbed). The full JSON parser remains in std::json
+// for non-selfhost use (issue #704).
 
 fn json_escape(s: String) -> String {
-    json::json_escape(s)
+    let n = len(s)
+    let mut out = ""
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, "\\\"")
+        } else {
+            if c == 92 {
+                out = concat(out, "\\\\")
+            } else {
+                if c == 10 {
+                    out = concat(out, "\\n")
+                } else {
+                    if c == 13 {
+                        out = concat(out, "\\r")
+                    } else {
+                        if c == 9 {
+                            out = concat(out, "\\t")
+                        } else {
+                            if c == 8 {
+                                out = concat(out, "\\b")
+                            } else {
+                                if c == 12 {
+                                    out = concat(out, "\\f")
+                                } else {
+                                    if c < 32 {
+                                        out = concat(out, "\\u00")
+                                        out = concat(out, json_hex_byte(c))
+                                    } else {
+                                        out = concat(out, slice(s, i, i + 1))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
 }
 
 fn hex_nibble(n: i32) -> String {
-    json::json_hex_nibble(n)
+    if n < 10 {
+        char_to_string(48 + n)
+    } else {
+        char_to_string(87 + n)
+    }
 }
 
-fn hex_byte(b: i32) -> String {
-    json::json_hex_byte(b)
+fn json_hex_byte(b: i32) -> String {
+    let hi = (b / 16) & 15
+    let lo = b & 15
+    concat(hex_nibble(hi), hex_nibble(lo))
 }

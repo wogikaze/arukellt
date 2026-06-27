@@ -1,6 +1,6 @@
 // Arukellt LSP - URI and filesystem path helpers for symbol indexing.
 
-use std::toml
+use main::script_toml
 
 pub fn file_path_to_uri(path: String) -> String {
     if starts_with(clone(path), String_from("file://")) {
@@ -72,7 +72,7 @@ pub fn extract_json_string_field(body: String, key: String) -> String {
 }
 
 pub fn find_toml_value(content: String, key: String) -> String {
-    toml::toml_find_value(content, key)
+    script_toml::find_toml_value(content, key)
 }
 
 pub fn join_path(base: String, rel: String) -> String {

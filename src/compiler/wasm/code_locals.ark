@@ -90,6 +90,8 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
         } else if starts_with(clone(type_name), String_from("hashmap:strstr")) {
             writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
+        } else if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
+            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         } else {
             writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
         }
