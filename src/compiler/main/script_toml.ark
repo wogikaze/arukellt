@@ -1,41 +1,13 @@
 // Arukellt Selfhost - TOML section/value helpers for script command.
+//
+// Delegates to std::toml (issue #705).
 
-use lsp::symbol_index_paths
+use std::toml
 
 pub fn find_toml_section(content: String, section: String) -> String {
-    let section_header = concat(String_from("["), concat(clone(section), String_from("]")))
-    let header_len = len(section_header)
-    let content_len = len(content)
-    let mut i = 0
-    while i < content_len {
-        if i == 0 || char_at(content, i - 1) == 10 {
-            let j_max = content_len - i
-            let match_len = if header_len < j_max { header_len } else { j_max }
-            let mut j = 0
-            while j < match_len && char_at(content, i + j) == char_at(section_header, j) {
-                j = j + 1
-            }
-            if j == header_len && (i + j >= content_len || char_at(content, i + j) == 10) {
-                let section_start = i + j
-                if section_start >= content_len {
-                    return String_new()
-                }
-                let body_start = if char_at(content, section_start) == 10 { section_start + 1 } else { section_start }
-                let mut k = body_start
-                while k < content_len {
-                    if char_at(content, k) == 10 && k + 1 < content_len && char_at(content, k + 1) == 91 {
-                        return substring(content, body_start, k)
-                    }
-                    k = k + 1
-                }
-                return substring(content, body_start, content_len)
-            }
-        }
-        i = i + 1
-    }
-    String_new()
+    toml::toml_find_section(content, section)
 }
 
 pub fn find_toml_value(content: String, key: String) -> String {
-    symbol_index_paths::find_toml_value(content, key)
+    toml::toml_find_value(content, key)
 }

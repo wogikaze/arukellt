@@ -41,17 +41,23 @@ let parsed = json_parse_i32("42")    // 42
 
 JSON parser/serializer for `std::json`.
 
-**Status: experimental — recursive `JsonValue` enum DOM (#045).**
+**Status: experimental — recursive `JsonValue` enum DOM (#045) plus
+streaming scanner utilities (#704).**
 
 ### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
-- Only the documented primitive helpers and the `JsonValue` surface are
-stable subsets; deeply nested structures, schema validation, and
-streaming parse are out of scope here.
+- The `JsonValue` DOM surface (`parse`, `stringify`, `stringify_pretty`,
+type predicates, accessors) is stable for well-formed JSON.
+- Streaming scanner utilities (`skip_ws`, `parse_int_at`,
+`parse_content_length`, `find_key_pos`, `json_parse_string_at`,
+`json_decode_escape`, `json_decode_unicode_ascii`, `json_get_str`,
+`json_get_int`) provide low-level field extraction without building a
+DOM.  `\uXXXX` surrogate pairs are not yet supported (#704).
 - Legacy primitive stringify/parse helpers (`json_stringify_i32`,
 `json_parse_i32`, etc.) are preserved for backward compatibility
 with existing fixtures and are not a complete typed serializer.
-- A full structured JSON facade is tracked under #606.
+- Full RFC 8259 conformance (surrogate pairs, strict number grammar) is
+tracked under #704.
 
 ### Public Types
 
@@ -60,6 +66,8 @@ with existing fixtures and are not a complete typed serializer.
 | `JsonValue` | `enum` | - |
 | `JsonField` | `struct` | - |
 | `JsonParseError` | `enum` | - |
+| `JsonParseStep` | `struct` | Result of parsing a single JSON value at a position: the parsed value |
+| `JsonStrResult` | `struct` | Result of a streaming string parse. |
 
 ### Public API
 

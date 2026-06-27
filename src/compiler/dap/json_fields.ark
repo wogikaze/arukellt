@@ -1,37 +1,17 @@
-// Arukellt Selfhost - DAP JSON field extraction helpers
+// Arukellt Selfhost - DAP JSON field extraction helpers.
+//
+// Delegates to std::json (issue #704).
 
-use dap::json_parse_core
-pub fn dap_get_str(json: String, key: String) -> String {
-	dap_get_str_after(clone(json), key, 0)
+use std::json
+
+pub fn dap_get_str(json_str: String, key: String) -> String {
+    json::json_get_str(json_str, key)
 }
 
-pub fn dap_get_str_after(json: String, key: String, from: i32) -> String {
-	let p = json_parse_core::dap_find_key(clone(json), key, from)
-	if p < 0 {
-		return String_new()
-	}
-	let q = json_parse_core::dap_skip_ws(clone(json), p)
-	let n = len(json)
-	if q >= n || char_at(json, q) != 58 {
-		return String_new()
-	}
-	let r = json_parse_core::dap_skip_ws(clone(json), q + 1)
-	let parsed = json_parse_core::dap_parse_string_at(clone(json), r)
-	if !json_parse_core::dap_str_result_ok(parsed) {
-		return String_new()
-	}
-	json_parse_core::dap_str_result_value(parsed)
+pub fn dap_get_str_after(json_str: String, key: String, from: i32) -> String {
+    json::json_get_str_after(json_str, key, from)
 }
 
-pub fn dap_get_int(json: String, key: String) -> i32 {
-	let p = json_parse_core::dap_find_key(clone(json), key, 0)
-	if p < 0 {
-		return 0
-	}
-	let q = json_parse_core::dap_skip_ws(clone(json), p)
-	let n = len(json)
-	if q >= n || char_at(json, q) != 58 {
-	return 0
-}
-json_parse_core::dap_parse_int_at(clone(json), q + 1)
+pub fn dap_get_int(json_str: String, key: String) -> i32 {
+    json::json_get_int(json_str, key)
 }

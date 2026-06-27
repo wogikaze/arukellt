@@ -1,16 +1,22 @@
 //! JSON parser/serializer for `std::json`.
 //!
-//! **Status: experimental — recursive `JsonValue` enum DOM (#045).**
+//! **Status: experimental — recursive `JsonValue` enum DOM (#045) plus
+//! streaming scanner utilities (#704).**
 //!
 //! ## Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
 //!
-//! - Only the documented primitive helpers and the `JsonValue` surface are
-//!   stable subsets; deeply nested structures, schema validation, and
-//!   streaming parse are out of scope here.
+//! - The `JsonValue` DOM surface (`parse`, `stringify`, `stringify_pretty`,
+//!   type predicates, accessors) is stable for well-formed JSON.
+//! - Streaming scanner utilities (`skip_ws`, `parse_int_at`,
+//!   `parse_content_length`, `find_key_pos`, `json_parse_string_at`,
+//!   `json_decode_escape`, `json_decode_unicode_ascii`, `json_get_str`,
+//!   `json_get_int`) provide low-level field extraction without building a
+//!   DOM.  `\uXXXX` surrogate pairs are not yet supported (#704).
 //! - Legacy primitive stringify/parse helpers (`json_stringify_i32`,
 //!   `json_parse_i32`, etc.) are preserved for backward compatibility
 //!   with existing fixtures and are not a complete typed serializer.
-//! - A full structured JSON facade is tracked under #606.
+//! - Full RFC 8259 conformance (surrogate pairs, strict number grammar) is
+//!   tracked under #704.
 
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
@@ -121,7 +127,10 @@ pub struct JsonField {
 }
 
 // ─── Internal parsing helpers ────────────────────────────────────────────────
-fn skip_ws(s: String, pos: i32) -> i32 {
+/// Skip whitespace (space, tab, LF, CR) starting at `pos`, returning the
+/// index of the first non-whitespace character (or `len(s)` if all remaining
+/// bytes are whitespace). Public so streaming callers (DAP/LSP) can share.
+pub fn skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
     while i < n {
@@ -248,6 +257,31 @@ pub enum JsonParseError {
     UnexpectedCharacter(i32),
 }
 
+/// Result of parsing a single JSON value at a position: the parsed value
+/// (or error) and the position after the value.  Used as a struct return
+/// type because the s2 bootstrap compiler does not support tuple
+/// destructuring (`let (a, b) = ...`).
+pub struct JsonParseStep {
+    value: Result<JsonValue, JsonParseError>,
+    next: i32,
+}
+
+pub fn JsonParseStep_ok(v: JsonValue, next: i32) -> JsonParseStep {
+    JsonParseStep { value: Ok(v), next: next }
+}
+
+pub fn JsonParseStep_err(e: JsonParseError, next: i32) -> JsonParseStep {
+    JsonParseStep { value: Err(e), next: next }
+}
+
+pub fn json_parse_step_value(step: JsonParseStep) -> Result<JsonValue, JsonParseError> {
+    step.value
+}
+
+pub fn json_parse_step_next(step: JsonParseStep) -> i32 {
+    step.next
+}
+
 pub fn parse_error_message(err: JsonParseError) -> String {
     match err {
         JsonParseError::EmptyInput => "empty input",
@@ -263,26 +297,26 @@ pub fn parse_error_message(err: JsonParseError) -> String {
 /// 
 /// Leading and trailing whitespace is ignored, but any non-whitespace
 /// characters after the first top-level value cause an error.
-fn parse_value_at(s: String, pos: i32) -> (Result<JsonValue, JsonParseError>, i32) {
+fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     let pos = skip_ws(s, pos)
     let n = len(s)
     if pos >= n {
-        return (Err(JsonParseError::EmptyInput), pos)
+        return JsonParseStep_err(JsonParseError::EmptyInput, pos)
     }
     let c = char_at(s, pos)
     if c == 110 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
-        return (Ok(JsonValue::Null), pos + 4)
+        return JsonParseStep_ok(JsonValue::Null, pos + 4)
     }
     if c == 116 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
-        return (Ok(JsonValue::Bool(true)), pos + 4)
+        return JsonParseStep_ok(JsonValue::Bool(true), pos + 4)
     }
     if c == 102 && n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
-        return (Ok(JsonValue::Bool(false)), pos + 5)
+        return JsonParseStep_ok(JsonValue::Bool(false), pos + 5)
     }
     if c == 34 {
         let end = find_string_end(s, pos + 1)
         let inner = json_decode_string(slice(s, pos + 1, end - 1))
-        return (Ok(JsonValue::Str(inner)), end)
+        return JsonParseStep_ok(JsonValue::Str(inner), end)
     }
     if c == 91 {
         let arr = Vec_new_JsonValue()
@@ -290,19 +324,19 @@ fn parse_value_at(s: String, pos: i32) -> (Result<JsonValue, JsonParseError>, i3
         while i < n {
             i = skip_ws(s, i)
             if i < n && char_at(s, i) == 93 {
-                return (Ok(JsonValue::Array(arr)), i + 1)
+                return JsonParseStep_ok(JsonValue::Array(arr), i + 1)
             }
-            let (elem, next) = parse_value_at(s, i)
-            match elem {
+            let step = parse_value_at(s, i)
+            match step.value {
                 Result::Ok(v) => push(arr, v),
-                Result::Err(e) => return (Err(e), i),
+                Result::Err(e) => return JsonParseStep_err(e, i),
             }
-            i = skip_ws(s, next)
+            i = skip_ws(s, step.next)
             if i < n && char_at(s, i) == 44 {
                 i = i + 1
             }
         }
-        return (Err(JsonParseError::UnexpectedCharacter(c)), pos)
+        return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c == 123 {
         let fields = Vec_new_JsonField()
@@ -310,38 +344,38 @@ fn parse_value_at(s: String, pos: i32) -> (Result<JsonValue, JsonParseError>, i3
         while i < n {
             i = skip_ws(s, i)
             if i < n && char_at(s, i) == 125 {
-                return (Ok(JsonValue::Object(fields)), i + 1)
+                return JsonParseStep_ok(JsonValue::Object(fields), i + 1)
             }
             if char_at(s, i) != 34 {
-                return (Err(JsonParseError::UnexpectedCharacter(char_at(s, i))), i)
+                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(char_at(s, i)), i)
             }
             let key_end = find_string_end(s, i + 1)
             let key = json_decode_string(slice(s, i + 1, key_end - 1))
             i = skip_ws(s, key_end)
             if i >= n || char_at(s, i) != 58 {
-                return (Err(JsonParseError::UnexpectedCharacter(58)), i)
+                return JsonParseStep_err(JsonParseError::UnexpectedCharacter(58), i)
             }
-            let (val, next) = parse_value_at(s, skip_ws(s, i + 1))
-            match val {
+            let step = parse_value_at(s, skip_ws(s, i + 1))
+            match step.value {
                 Result::Ok(v) => push(fields, JsonField { key: key, value: v }),
-                Result::Err(e) => return (Err(e), i),
+                Result::Err(e) => return JsonParseStep_err(e, i),
             }
-            i = skip_ws(s, next)
+            i = skip_ws(s, step.next)
             if i < n && char_at(s, i) == 44 {
                 i = i + 1
             }
         }
-        return (Err(JsonParseError::UnexpectedCharacter(c)), pos)
+        return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c >= 48 && c <= 57 || c == 45 {
         let end = find_number_end(s, pos)
         let raw = slice(s, pos, end)
         match parse_f64(raw) {
-            Result::Ok(num) => return (Ok(JsonValue::Number(num)), end),
-            Result::Err(_) => return (Err(JsonParseError::InvalidLiteral(String_from("number"))), pos),
+            Result::Ok(num) => return JsonParseStep_ok(JsonValue::Number(num), end),
+            Result::Err(_) => return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos),
         }
     }
-    (Err(JsonParseError::UnexpectedCharacter(c)), pos)
+    JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
 }
 
 pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
@@ -350,10 +384,10 @@ pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
     if pos >= n {
         return Err(JsonParseError::EmptyInput)
     }
-    let (value, end) = parse_value_at(s, pos)
-    match value {
+    let step = parse_value_at(s, pos)
+    match step.value {
         Result::Ok(v) => {
-            let after = skip_ws(s, end)
+            let after = skip_ws(s, step.next)
             if after == n {
                 Ok(v)
             } else {
@@ -701,26 +735,51 @@ fn json_decode_string(s: String) -> String {
             let nxt = char_at(s, i + 1)
             if nxt == 34 {
                 result = concat(result, "\"")
+                i = i + 2
             } else {
                 if nxt == 92 {
                     result = concat(result, "\\")
+                    i = i + 2
                 } else {
                     if nxt == 110 {
                         result = concat(result, "\n")
+                        i = i + 2
                     } else {
                         if nxt == 116 {
                             result = concat(result, "\t")
+                            i = i + 2
                         } else {
                             if nxt == 114 {
                                 result = concat(result, "\r")
+                                i = i + 2
                             } else {
-                                result = concat(result, slice(s, i + 1, i + 2))
+                                if nxt == 98 {
+                                    result = concat(result, char_to_string(8))
+                                    i = i + 2
+                                } else {
+                                    if nxt == 102 {
+                                        result = concat(result, char_to_string(12))
+                                        i = i + 2
+                                    } else {
+                                        if nxt == 47 {
+                                            result = concat(result, "/")
+                                            i = i + 2
+                                        } else {
+                                            if nxt == 117 && i + 5 < n {
+                                                result = concat(result, json_decode_unicode_ascii(s, i + 1))
+                                                i = i + 6
+                                            } else {
+                                                result = concat(result, slice(s, i + 1, i + 2))
+                                                i = i + 2
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-            i = i + 2
         } else {
             result = concat(result, slice(s, i, i + 1))
             i = i + 1
@@ -730,7 +789,11 @@ fn json_decode_string(s: String) -> String {
 }
 
 /// Encode a plain string as a JSON string literal with surrounding quotes
-/// and escape sequences for `"`, `\`, `\n`, `\r`, `\t`.
+/// and escape sequences for `"`, `\`, `\n`, `\r`, `\t`, `\b` (\u0008),
+/// `\f` (\u000C), and all other control characters below U+0020 via
+/// `\u00XX`.  This matches RFC 8259 §7 "All Unicode characters may be
+/// placed within the quotation marks except for the characters that must
+/// be escaped".
 pub fn json_encode_string(s: String) -> String {
     let n = len(s)
     let mut result = "\""
@@ -752,7 +815,20 @@ pub fn json_encode_string(s: String) -> String {
                         if c == 9 {
                             result = concat(result, "\\t")
                         } else {
-                            result = concat(result, slice(s, i, i + 1))
+                            if c == 8 {
+                                result = concat(result, "\\b")
+                            } else {
+                                if c == 12 {
+                                    result = concat(result, "\\f")
+                                } else {
+                                    if c < 32 {
+                                        result = concat(result, "\\u00")
+                                        result = concat(result, json_hex_byte(c))
+                                    } else {
+                                        result = concat(result, slice(s, i, i + 1))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -761,4 +837,340 @@ pub fn json_encode_string(s: String) -> String {
         i = i + 1
     }
     concat(result, "\"")
+}
+
+/// Encode a plain string as a JSON string body (without surrounding quotes),
+/// escaping `"`, `\`, `\n`, `\r`, `\t`, `\b`, `\f`, and all control
+/// characters below U+0020 via `\u00XX`.  This is the unquoted counterpart
+/// to `json_encode_string` and replaces the per-module `json_escape` /
+/// `diag_json_escape` helpers that LSP, DAP, and diagnostics each
+/// duplicated.
+pub fn json_escape(s: String) -> String {
+    let n = len(s)
+    let mut out = ""
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, "\\\"")
+        } else {
+            if c == 92 {
+                out = concat(out, "\\\\")
+            } else {
+                if c == 10 {
+                    out = concat(out, "\\n")
+                } else {
+                    if c == 13 {
+                        out = concat(out, "\\r")
+                    } else {
+                        if c == 9 {
+                            out = concat(out, "\\t")
+                        } else {
+                            if c == 8 {
+                                out = concat(out, "\\b")
+                            } else {
+                                if c == 12 {
+                                    out = concat(out, "\\f")
+                                } else {
+                                    if c < 32 {
+                                        out = concat(out, "\\u00")
+                                        out = concat(out, json_hex_byte(c))
+                                    } else {
+                                        out = concat(out, slice(s, i, i + 1))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+/// Return the lowercase hex nibble for `n` (0–15).
+pub fn json_hex_nibble(n: i32) -> String {
+    if n < 10 {
+        char_to_string(48 + n)
+    } else {
+        char_to_string(87 + n)
+    }
+}
+
+/// Return the two-character lowercase hex representation of byte `b`.
+pub fn json_hex_byte(b: i32) -> String {
+    let hi = (b / 16) & 15
+    let lo = b & 15
+    concat(json_hex_nibble(hi), json_hex_nibble(lo))
+}
+
+// ─── Streaming parser utilities ──────────────────────────────────────────────
+//
+// The functions below provide a low-level streaming JSON scanner that DAP,
+// LSP, and diagnostics previously each duplicated.  They operate on raw
+// byte offsets within a `String` and never build a full DOM, making them
+// suitable for framed message parsing where only a handful of fields are
+// needed.
+
+/// Parse a decimal integer (optionally signed) starting at `pos`, skipping
+/// leading whitespace.  Returns 0 if no digits are found.
+pub fn parse_int_at(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut p = skip_ws(s, pos)
+    if p >= n {
+        return 0
+    }
+    let mut neg = false
+    if char_at(s, p) == 45 {
+        neg = true
+        p = p + 1
+    }
+    let mut v = 0
+    let mut any = false
+    while p < n {
+        let c = char_at(s, p)
+        if c < 48 || c > 57 {
+            break
+        }
+        v = v * 10 + (c - 48)
+        any = true
+        p = p + 1
+    }
+    if !any {
+        return 0
+    }
+    if neg {
+        0 - v
+    } else {
+        v
+    }
+}
+
+/// Extract the `Content-Length` value from an LSP/DAP header block.
+/// Returns -1 if the header is absent, otherwise the parsed length.
+pub fn parse_content_length(header_block: String) -> i32 {
+    let cl_idx = index_of(header_block, "Content-Length:")
+    if cl_idx < 0 {
+        return 0 - 1
+    }
+    let block_len = len(header_block)
+    let mut q = cl_idx + 15
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c != 32 && c != 9 {
+            break
+        }
+        q = q + 1
+    }
+    let mut clen = 0
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c < 48 || c > 57 {
+            break
+        }
+        clen = clen * 10 + (c - 48)
+        q = q + 1
+    }
+    clen
+}
+
+/// Find the position immediately after the first occurrence of `"key"` in
+/// `json` at or after offset `from`.  Returns -1 if not found.  This is a
+/// simple substring search and does not validate JSON structure — callers
+/// must subsequently skip whitespace and expect `:` before the value.
+pub fn find_key_pos(json: String, key: String, from: i32) -> i32 {
+    let needle = concat("\"", concat(key, "\""))
+    let n = len(json)
+    let nlen = len(needle)
+    if from >= n {
+        return 0 - 1
+    }
+    let tail = substring(json, from, n)
+    let rel = index_of(tail, needle)
+    if rel < 0 {
+        return 0 - 1
+    }
+    from + rel + nlen
+}
+
+/// Return the numeric value of a single hex digit character, or 0 if the
+/// character is not a valid hex digit.
+pub fn json_hex_value(c: i32) -> i32 {
+    if c >= 48 && c <= 57 {
+        return c - 48
+    }
+    if c >= 97 && c <= 102 {
+        return c - 87
+    }
+    if c >= 65 && c <= 70 {
+        return c - 55
+    }
+    0
+}
+
+/// Decode a `\uXXXX` escape sequence.  `pos` points at the `u` character
+/// (i.e. `s[pos] == 'u'`).  Returns the decoded ASCII character string if
+/// the code point is in the ASCII range (1–127), otherwise an empty string.
+/// Surrogate pairs are not yet supported (tracked under #704).
+pub fn json_decode_unicode_ascii(s: String, pos: i32) -> String {
+    let n = len(s)
+    if pos + 4 >= n {
+        return ""
+    }
+    let hi = json_hex_value(char_at(s, pos + 1)) * 16 + json_hex_value(char_at(s, pos + 2))
+    let lo = json_hex_value(char_at(s, pos + 3)) * 16 + json_hex_value(char_at(s, pos + 4))
+    let cv = hi * 256 + lo
+    if cv > 0 && cv < 128 {
+        return char_to_string(cv)
+    }
+    ""
+}
+
+/// Decode a single JSON string escape character.  `pos` points at the
+/// character immediately after the backslash.  Handles `"`, `\`, `/`, `n`,
+/// `r`, `t`, `b`, `f`, and `u` (via `json_decode_unicode_ascii`).
+pub fn json_decode_escape(s: String, pos: i32) -> String {
+    let esc = char_at(s, pos)
+    if esc == 34 {
+        return "\""
+    }
+    if esc == 92 {
+        return "\\"
+    }
+    if esc == 47 {
+        return "/"
+    }
+    if esc == 110 {
+        return "\n"
+    }
+    if esc == 114 {
+        return "\r"
+    }
+    if esc == 116 {
+        return "\t"
+    }
+    if esc == 98 {
+        return char_to_string(8)
+    }
+    if esc == 102 {
+        return char_to_string(12)
+    }
+    if esc == 117 {
+        return json_decode_unicode_ascii(s, pos)
+    }
+    slice(s, pos, pos + 1)
+}
+
+/// Result of a streaming string parse.
+pub struct JsonStrResult {
+    value: String,
+    next: i32,
+    ok: bool,
+}
+
+/// Construct a `JsonStrResult`.
+pub fn JsonStrResult_new(value: String, next: i32, ok: bool) -> JsonStrResult {
+    JsonStrResult { value: value, next: next, ok: ok }
+}
+
+/// Return `true` if the parse succeeded.
+pub fn json_str_result_ok(result: JsonStrResult) -> bool {
+    result.ok
+}
+
+/// Return the decoded string value.
+pub fn json_str_result_value(result: JsonStrResult) -> String {
+    result.value
+}
+
+/// Return the position immediately after the closing quote.
+pub fn json_str_result_next(result: JsonStrResult) -> i32 {
+    result.next
+}
+
+/// Parse a JSON string literal starting at `pos` (which must point at `"`).
+/// Returns a `JsonStrResult` with the decoded value, the position after the
+/// closing quote, and an `ok` flag.  Handles all standard escape sequences
+/// including `\uXXXX` (ASCII range only).
+pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
+    let n = len(s)
+    if pos >= n || char_at(s, pos) != 34 {
+        return JsonStrResult_new("", pos, false)
+    }
+    let mut p = pos + 1
+    let mut out = ""
+    let mut span_start = p
+    while p < n {
+        let c = char_at(s, p)
+        if c == 34 {
+            if span_start < p {
+                out = concat(out, substring(s, span_start, p))
+            }
+            return JsonStrResult_new(out, p + 1, true)
+        }
+        if c == 92 {
+            if span_start < p {
+                out = concat(out, substring(s, span_start, p))
+            }
+            p = p + 1
+            if p >= n {
+                return JsonStrResult_new(out, p, false)
+            }
+            out = concat(out, json_decode_escape(s, p))
+            if char_at(s, p) == 117 && p + 4 < n {
+                p = p + 4
+            }
+            p = p + 1
+            span_start = p
+        } else {
+            p = p + 1
+        }
+    }
+    JsonStrResult_new(out, p, false)
+}
+
+/// Extract the string value of field `key` from `json`, searching from
+/// offset 0.  Returns an empty string if the key is not found or the value
+/// is not a string.
+pub fn json_get_str(json: String, key: String) -> String {
+    json_get_str_after(json, key, 0)
+}
+
+/// Extract the string value of field `key` from `json`, searching from
+/// offset `from`.  Returns an empty string if the key is not found or the
+/// value is not a string.
+pub fn json_get_str_after(json: String, key: String, from: i32) -> String {
+    let p = find_key_pos(json, key, from)
+    if p < 0 {
+        return ""
+    }
+    let q = skip_ws(json, p)
+    let n = len(json)
+    if q >= n || char_at(json, q) != 58 {
+        return ""
+    }
+    let r = skip_ws(json, q + 1)
+    let parsed = json_parse_string_at(json, r)
+    if !json_str_result_ok(parsed) {
+        return ""
+    }
+    json_str_result_value(parsed)
+}
+
+/// Extract the integer value of field `key` from `json`, searching from
+/// offset 0.  Returns 0 if the key is not found or the value is not an
+/// integer.
+pub fn json_get_int(json: String, key: String) -> i32 {
+    let p = find_key_pos(json, key, 0)
+    if p < 0 {
+        return 0
+    }
+    let q = skip_ws(json, p)
+    let n = len(json)
+    if q >= n || char_at(json, q) != 58 {
+        return 0
+    }
+    parse_int_at(json, q + 1)
 }

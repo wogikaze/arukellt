@@ -1,21 +1,9 @@
 // Arukellt Selfhost - DAP JSON string escape decoding.
+//
+// Delegates to std::json (issue #704).
+
+use std::json
 
 fn dap_decode_string_escape(s: String, pos: i32) -> String {
-	let esc = char_at(s, pos)
-	if esc == 34 {
-		return String_from("\"")
-	}
-	if esc == 92 {
-		return String_from("\\")
-	}
-	if esc == 110 {
-		return String_from("\n")
-	}
-	if esc == 114 {
-		return String_from("\r")
-	}
-	if esc == 116 {
-		return String_from("\t")
-	}
-	substring(s, pos, pos + 1)
+    json::json_decode_escape(s, pos)
 }

@@ -1,4 +1,13 @@
 // WIT text scan helpers for minimal import parsing (#663).
+//
+// NOTE: The low-level scan helpers (wit_find_char_from, wit_trim,
+// wit_strip_version, wit_before_colon, wit_split_param,
+// wit_split_csv_items, wit_line_start, wit_line_end) are duplicated from
+// `std/wit/scan.ark` (issue #706).  They are kept inline here because the
+// bootstrap compiler has a limited call stack and adding `use std::wit::scan`
+// to a file in the compiler module tree causes a stack overflow during
+// module loading.  Once the bootstrap compiler's stack limit is raised,
+// these should delegate to `std::wit::scan`.
 
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
     let n = len(s)

@@ -1,5 +1,7 @@
 // Arukellt LSP - URI and filesystem path helpers for symbol indexing.
 
+use std::toml
+
 pub fn file_path_to_uri(path: String) -> String {
     if starts_with(clone(path), String_from("file://")) {
         return path
@@ -70,36 +72,7 @@ pub fn extract_json_string_field(body: String, key: String) -> String {
 }
 
 pub fn find_toml_value(content: String, key: String) -> String {
-    let content_len = len(content)
-    let key_len = len(key)
-    let mut line_start = 0
-    let mut i = 0
-    while i < content_len {
-        if char_at(content, i) == 10 || i == content_len - 1 {
-            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
-            let line = substring(content, line_start, line_end)
-            let line_len = len(line)
-            if line_len > key_len + 3 {
-                if eq(substring(line, 0, key_len), clone(key)) {
-                    let mut j = key_len
-                    while j < line_len && char_at(line, j) == 32 { j = j + 1 }
-                    if j < line_len && char_at(line, j) == 61 {
-                        j = j + 1
-                        while j < line_len && char_at(line, j) == 32 { j = j + 1 }
-                        if j < line_len && char_at(line, j) == 34 {
-                            let val_start = j + 1
-                            let mut k = val_start
-                            while k < line_len && char_at(line, k) != 34 { k = k + 1 }
-                            return substring(line, val_start, k)
-                        }
-                    }
-                }
-            }
-            line_start = i + 1
-        }
-        i = i + 1
-    }
-    String_new()
+    toml::toml_find_value(content, key)
 }
 
 pub fn join_path(base: String, rel: String) -> String {

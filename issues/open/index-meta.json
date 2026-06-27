@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-26T22:28:05Z",
+  "generated_at": "2026-06-27T02:26:09Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -539,6 +539,78 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "704",
+      "path": "704-std-json-full-compliance.md",
+      "title": "std::json Full JSON RFC 8259 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "705",
+      "path": "705-std-toml-full-compliance.md",
+      "title": "std::toml Full TOML 1.0 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "706",
+      "path": "706-std-wit-full-compliance.md",
+      "title": "std::wit Full WIT 1.0 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {

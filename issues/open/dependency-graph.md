@@ -27,6 +27,9 @@ graph LR
   I686["686 Wasm GC Selfhost Implementation"]
   I687["687 687 — HashMap / HashSet Rust parity gap audit and closure"]
   I688["688 688 — Trait method dispatch inside generic functions"]
+  I704["704 std::json Full JSON RFC 8259 Compliance"]
+  I705["705 std::toml Full TOML 1.0 Compliance"]
+  I706["706 std::wit Full WIT 1.0 Compliance"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -103,6 +106,9 @@ graph LR
 - **686** depends on: none; blocks: 698
 - **687** depends on: 495; blocks: none
 - **688** depends on: none; blocks: 689, 690, 691, 692, 693, 695, 696, 700, 702
+- **704** depends on: 606; blocks: none
+- **705** depends on: 606; blocks: none
+- **706** depends on: 606; blocks: none
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683

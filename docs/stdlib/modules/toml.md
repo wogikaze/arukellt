@@ -37,7 +37,7 @@ let value = toml_parse_line("name = \"arukellt\"")
 
 TOML parser/serializer for `std::toml`.
 
-**Status: partial / experimental — see #604 / #606.**
+**Status: partial / experimental — see #604 / #705.**
 
 This module intentionally supports only a bounded TOML subset:
 blank lines, comment lines, and simple `key = value` entries (one
@@ -50,13 +50,19 @@ with `Err(String)`.
 
 `TomlValue` is a recursive enum for structured TOML values.
 
+### Streaming scanner utilities
+
+`toml_find_section` and `toml_find_value` provide low-level section
+and value extraction without building a full DOM.  These are used by
+the compiler's manifest/script/project parsers.
+
 ### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
 - This is *not* a full TOML 1.0 implementation. Anything beyond the
 `key = value` subset above is rejected, not silently accepted.
 - `toml_parse_line` is preserved for backward compatibility with
 existing fixtures.
-- A complete structured TOML facade is tracked under #606.
+- Full TOML 1.0 conformance is tracked under #705.
 
 ### Public Types
 

@@ -1,8 +1,12 @@
-// Arukellt Selfhost - DAP JSON low-level parsing helpers
+// Arukellt Selfhost - DAP JSON low-level parsing helpers.
+//
+// Delegates to std::json (issue #704). The local DapStrResult struct is
+// retained for API compatibility with existing DAP callers.
+
 use dap::json_parse_int
 use dap::json_parse_key
-use dap::json_parse_string_escape
 use dap::json_parse_ws
+use std::json
 
 pub struct DapStrResult {
 	value: String,
@@ -18,42 +22,17 @@ pub fn dap_skip_ws(s: String, pos: i32) -> i32 {
 	json_parse_ws::dap_skip_ws(s, pos)
 }
 
-pub fn dap_find_key(json: String, key: String, from: i32) -> i32 {
-	json_parse_key::dap_find_key(json, key, from)
+pub fn dap_find_key(json_str: String, key: String, from: i32) -> i32 {
+	json_parse_key::dap_find_key(json_str, key, from)
 }
 
 pub fn dap_parse_string_at(s: String, pos: i32) -> DapStrResult {
-	let n = len(s)
-	if pos >= n || char_at(s, pos) != 34 {
-		return DapStrResult_new(String_new(), pos, false)
+	let r = json::json_parse_string_at(s, pos)
+	DapStrResult {
+		value: json::json_str_result_value(r),
+		next: json::json_str_result_next(r),
+		ok: json::json_str_result_ok(r),
 	}
-	let mut p = pos + 1
-	let mut out = String_new()
-	let mut span_start = p
-	while p < n {
-		let c = char_at(s, p)
-		if c == 34 {
-			if span_start < p {
-				out = concat(out, substring(clone(s), span_start, p))
-			}
-			return DapStrResult_new(out, p + 1, true)
-		}
-		if c == 92 {
-			if span_start < p {
-				out = concat(out, substring(clone(s), span_start, p))
-			}
-			p = p + 1
-			if p >= n {
-				return DapStrResult_new(out, p, false)
-			}
-			out = concat(out, json_parse_string_escape::dap_decode_string_escape(clone(s), p))
-			p = p + 1
-			span_start = p
-		} else {
-			p = p + 1
-		}
-	}
-	DapStrResult_new(out, p, false)
 }
 
 pub fn dap_str_result_ok(result: DapStrResult) -> bool {

@@ -42,6 +42,16 @@ Experimental WIT helpers.
 Primitive helpers remain in this module for backward compatibility.
 Compound types, world builders, and parse/print live in submodules.
 
+### Text scan utilities (#706)
+
+`std::wit::scan` provides low-level text scanning helpers (`wit_find_char`,
+`wit_trim`, `wit_strip_version`, `wit_before_colon`, `wit_split_param`,
+`wit_split_csv_items`, `wit_line_start`, `wit_line_end`) used by both
+`std::wit::parser` and the compiler's `wit_parse_text_scan` module.
+The scan module is kept separate from `mod.ark` to avoid pulling
+`std::wit::types` (which has recursive enums) into the bootstrap
+compiler's module loading chain.
+
 ### Public API
 
 | Name | Signature | Stability | Summary |

@@ -3,6 +3,7 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use std::toml
 use driver::file
 use driver::config_record
 use main::args_record
@@ -134,45 +135,5 @@ pub fn cmd_test(opts: CliOptions) {
 
 // ── TOML Value Extraction ────────────────────────────────────────────────────
 fn find_toml_value(content: String, key: String) -> String {
-    let content_len = len(content)
-    let key_len = len(key)
-    let mut line_start = 0
-    let mut i = 0
-    while i < content_len {
-        if char_at(content, i) == 10 || i == content_len - 1 {
-            let line_end = if char_at(content, i) == 10 {
-                i
-            } else {
-                i + 1
-            }
-            let line = substring(content, line_start, line_end)
-            let line_len = len(line)
-            if line_len > key_len + 3 {
-                let prefix = substring(line, 0, key_len)
-                if eq(prefix, clone(key)) {
-                    let mut j = key_len
-                    while j < line_len && char_at(line, j) == 32 {
-                        j = j + 1
-                    }
-                    if j < line_len && char_at(line, j) == 61 {
-                        j = j + 1
-                        while j < line_len && char_at(line, j) == 32 {
-                            j = j + 1
-                        }
-                        if j < line_len && char_at(line, j) == 34 {
-                            j = j + 1
-                            let val_start = j
-                            while j < line_len && char_at(line, j) != 34 {
-                                j = j + 1
-                            }
-                            return substring(line, val_start, j)
-                        }
-                    }
-                }
-            }
-            line_start = i + 1
-        }
-        i = i + 1
-    }
-    String_new()
+    toml::toml_find_value(content, key)
 }
