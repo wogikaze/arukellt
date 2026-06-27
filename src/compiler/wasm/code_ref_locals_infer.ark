@@ -137,13 +137,13 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if ends_with(clone(callee), String_from("::to_string")) || ends_with(clone(callee), String_from("::to_string__1")) {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
-    if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") {
+    if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") || eq(clone(callee), "HashMap_new_String_i32") || eq(clone(callee), "HashMap_String_i32_new") {
         return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
     }
-    if eq(clone(callee), "hash_string::hashmap_i32_str_new") {
+    if eq(clone(callee), "__hm_is_new") || eq(clone(callee), "hash_string::hashmap_i32_str_new") || eq(clone(callee), "HashMap_new_i32_String") || eq(clone(callee), "HashMap_i32_String_new") {
         return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
     }
-    if eq(clone(callee), "hash_string::hashmap_str_str_new") {
+    if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
         return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
     }
     if eq(clone(callee), "__hm_si_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
@@ -160,13 +160,27 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "vec_pop") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
+    // vec_push returns Vec<T> but the result is often discarded (void push).
+    // Return -1 so type inference doesn't override i32-typed reused locals.
+    if eq(clone(callee), "vec_push") {
+        return 0 - 1
+    }
     let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
     if fn_idx < 0 {
         return 0 - 1
     }
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
-    if function_return_view::MirFunction_return_type(called) == value_types::VT_GC_REF() {
-        let ret_name = function_return_view::MirFunction_return_type_name(called)
+    let ret_type = function_return_view::MirFunction_return_type(called)
+    let ret_name = function_return_view::MirFunction_return_type_name(called)
+    // On GC targets, Vec<i32> has VT_I32 in MIR but is a struct ref.
+    // Check the return type name for vec: prefix.
+    if starts_with(clone(ret_name), String_from("vec:")) {
+        if eq(clone(ret_name), String_from("vec:String")) {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    if ret_type == value_types::VT_GC_REF() {
         if is_option_type_name(clone(ret_name)) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
