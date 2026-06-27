@@ -173,6 +173,9 @@ fn is_load_followed_by_consumer(op: i32) -> bool {
     if op == opcodes::MIR_LOCAL_GET() {
         return true
     }
+    if op == opcodes::MIR_LOCAL_SET() {
+        return true
+    }
     if is_arith_consumer_op(op) {
         return true
     }
