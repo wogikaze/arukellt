@@ -1,16 +1,9 @@
 // Arukellt Selfhost - LSP JSON scanner utilities
 
+use json
+
 fn json_skip_ws(s: String, pos: i32) -> i32 {
-    let n = len(s)
-    let mut p = pos
-    while p < n {
-        let c = char_at(s, p)
-        if c != 32 && c != 9 && c != 10 && c != 13 {
-            return p
-        }
-        p = p + 1
-    }
-    p
+    json::skip_ws(s, pos)
 }
 
 fn find_key_pos(json: String, key: String, from: i32) -> i32 {

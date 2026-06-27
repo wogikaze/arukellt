@@ -1,6 +1,7 @@
 // Arukellt Selfhost - parse std/manifest.toml for doc lookup (#456).
 
 use lsp::symbol_index_paths
+use lsp::symbol_index_stdlib
 use main::manifest_doc_record
 
 struct DocParseFnState {
@@ -33,25 +34,6 @@ fn DocParseModState_new() -> DocParseModState {
     DocParseModState { name: String_new(), stability: String_new(), target: String_new(), doc: String_new() }
 }
 
-fn doc_trim_brackets(raw: String) -> String {
-    let n = len(raw)
-    let mut start = 0
-    while start < n && char_at(raw, start) == 32 { start = start + 1 }
-    let mut end = n
-    while end > start && char_at(raw, end - 1) == 32 { end = end - 1 }
-    let s = substring(raw, start, end)
-    let sn = len(s)
-    if sn >= 2 && char_at(s, 0) == 91 {
-        let inner = substring(s, 1, sn - 1)
-        let in_n = len(inner)
-        if in_n >= 2 && char_at(inner, 0) == 34 {
-            return substring(inner, 1, in_n - 1)
-        }
-        return inner
-    }
-    s
-}
-
 fn doc_parse_availability_line(line: String, state: DocParseFnState) -> DocParseFnState {
     if contains(clone(line), String_from("t1 = false")) {
         state.avail_t1 = 0
@@ -82,13 +64,13 @@ fn doc_apply_fn_fields(state: DocParseFnState, line: String) -> DocParseFnState 
     if contains(clone(line), String_from("params =")) {
         let eq_pos = index_of(clone(line), String_from("="))
         if eq_pos >= 0 {
-            state.params = doc_trim_brackets(substring(line, eq_pos + 1, len(line)))
+            state.params = symbol_index_stdlib::trim_brackets(substring(line, eq_pos + 1, len(line)))
         }
     }
     if contains(clone(line), String_from("target =")) {
         let eq_pos = index_of(clone(line), String_from("="))
         if eq_pos >= 0 {
-            state.target = doc_trim_brackets(substring(line, eq_pos + 1, len(line)))
+            state.target = symbol_index_stdlib::trim_brackets(substring(line, eq_pos + 1, len(line)))
         }
     }
     if contains(clone(line), String_from("availability =")) {
@@ -115,7 +97,7 @@ fn doc_apply_mod_fields(state: DocParseModState, line: String) -> DocParseModSta
     if contains(clone(line), String_from("target =")) {
         let eq_pos = index_of(clone(line), String_from("="))
         if eq_pos >= 0 {
-            state.target = doc_trim_brackets(substring(line, eq_pos + 1, len(line)))
+            state.target = symbol_index_stdlib::trim_brackets(substring(line, eq_pos + 1, len(line)))
         }
     }
     state

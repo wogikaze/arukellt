@@ -1,6 +1,7 @@
 // Arukellt Selfhost - semantic import pruning and sorting (#440).
 
 use fmt::parse_gate
+use resolver
 use resolver::ast_access
 use resolver::ast_decl_predicates
 
@@ -46,25 +47,6 @@ fn path_symbol_part(path: String) -> String {
     substring(path, pos + 2, len(path))
 }
 
-fn use_module_short_name(path: String) -> String {
-    let n = len(path)
-    let mut last_sep = 0 - 1
-    let mut i = n - 2
-    while i >= 0 {
-        if eq(substring(path, i, i + 2), String_from("::")) {
-            last_sep = i
-            i = 0 - 1
-        } else {
-            i = i - 1
-        }
-    }
-    if last_sep < 0 {
-        clone(path)
-    } else {
-        substring(path, last_sep + 2, n)
-    }
-}
-
 fn is_ident_char(ch: i32) -> bool {
     if ch >= 97 && ch <= 122 { return true }
     if ch >= 65 && ch <= 90 { return true }
@@ -97,7 +79,7 @@ fn import_is_used(path: String, body: String) -> bool {
     if len(sym) > 0 {
         return contains_ident_usage(clone(body), sym)
     }
-    let short = use_module_short_name(clone(path))
+    let short = resolver::use_module_short_name(clone(path))
     let needle = concat(clone(short), String_from("::"))
     if index_of(clone(body), needle) >= 0 {
         return true

@@ -6,6 +6,7 @@ use mir::block_inst_access
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::opcodes
+use resolver
 
 fn mir_function_inst_count(f: MirFunction) -> i32 {
     let mut total = 0
@@ -17,23 +18,6 @@ fn mir_function_inst_count(f: MirFunction) -> i32 {
         bi = bi + 1
     }
     total
-}
-
-fn mir_short_name(name: String) -> String {
-    let nlen = len(name)
-    let mut colon_pos = 0 - 1
-    let mut ci = nlen - 1
-    while ci >= 0 {
-        if char_at(name, ci) == 58 {
-            colon_pos = ci
-            ci = 0 - 1
-        }
-        ci = ci - 1
-    }
-    if colon_pos >= 0 {
-        return substring(name, colon_pos + 1, nlen)
-    }
-    clone(name)
 }
 
 fn mir_module_stem_from_qualified(name: String) -> String {
@@ -129,7 +113,7 @@ fn mir_pick_largest_non_forwarder_index(functions: Vec<MirFunction>, short_name:
 }
 
 fn mir_resolve_duplicate_call_target(functions: Vec<MirFunction>, callee_name: String) -> i32 {
-    let short_name = mir_short_name(clone(callee_name))
+    let short_name = resolver::use_module_short_name(clone(callee_name))
     if mir_count_functions_named(functions, clone(short_name)) <= 1 {
         let mut i = 0
         while i < len(functions) {
@@ -168,7 +152,7 @@ fn mir_resolve_duplicate_call_target(functions: Vec<MirFunction>, callee_name: S
 }
 
 fn mir_resolve_self_delegate_collision(functions: Vec<MirFunction>, candidate_idx: i32, name: String) -> i32 {
-    let short_name = mir_short_name(clone(name))
+    let short_name = resolver::use_module_short_name(clone(name))
     if mir_count_functions_named(functions, clone(short_name)) <= 1 {
         return candidate_idx
     }

@@ -1,34 +1,7 @@
 // Arukellt Selfhost - DAP JSON integer parsing
 
-use dap::json_parse_ws
+use json
 
 fn dap_parse_int_at(s: String, pos: i32) -> i32 {
-	let n = len(s)
-	let mut p = json_parse_ws::dap_skip_ws(clone(s), pos)
-	if p >= n {
-		return 0
-	}
-	let mut neg = false
-	if char_at(s, p) == 45 {
-		neg = true
-		p = p + 1
-	}
-	let mut v = 0
-	let mut any = false
-	while p < n {
-		let c = char_at(s, p)
-		if c < 48 || c > 57 {
-			break
-		}
-		v = v * 10 + (c - 48)
-		any = true
-		p = p + 1
-	}
-	if !any {
-		return 0
-	}
-	if neg {
-		return 0 - v
-	}
-	v
+    json::parse_int_at(s, pos)
 }

@@ -1,20 +1,7 @@
 // Arukellt Selfhost - driver module name helpers.
 
+use resolver
+
 fn module_short_name(path: String) -> String {
-    let n = len(path)
-    let mut last_sep = 0 - 1
-    let mut i = n - 2
-    while i >= 0 {
-        if eq(substring(path, i, i + 2), String_from("::")) {
-            last_sep = i
-            i = 0 - 1
-        } else {
-            i = i - 1
-        }
-    }
-    if last_sep < 0 {
-        clone(path)
-    } else {
-        substring(path, last_sep + 2, n)
-    }
+    resolver::use_module_short_name(path)
 }

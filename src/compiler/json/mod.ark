@@ -1,0 +1,71 @@
+// Arukellt Selfhost - shared JSON parsing utilities for DAP and LSP.
+
+pub fn skip_ws(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut p = pos
+    while p < n {
+        let c = char_at(s, p)
+        if c != 32 && c != 9 && c != 10 && c != 13 {
+            return p
+        }
+        p = p + 1
+    }
+    p
+}
+
+pub fn parse_int_at(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut p = skip_ws(clone(s), pos)
+    if p >= n {
+        return 0
+    }
+    let mut neg = false
+    if char_at(s, p) == 45 {
+        neg = true
+        p = p + 1
+    }
+    let mut v = 0
+    let mut any = false
+    while p < n {
+        let c = char_at(s, p)
+        if c < 48 || c > 57 {
+            break
+        }
+        v = v * 10 + (c - 48)
+        any = true
+        p = p + 1
+    }
+    if !any {
+        return 0
+    }
+    if neg {
+        return 0 - v
+    }
+    v
+}
+
+pub fn parse_content_length(header_block: String) -> i32 {
+    let cl_idx = index_of(clone(header_block), String_from("Content-Length:"))
+    if cl_idx < 0 {
+        return 0 - 1
+    }
+    let block_len = len(header_block)
+    let mut q = cl_idx + 15
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c != 32 && c != 9 {
+            break
+        }
+        q = q + 1
+    }
+    let mut clen = 0
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c < 48 || c > 57 {
+            break
+        }
+        clen = clen * 10 + (c - 48)
+        q = q + 1
+    }
+    clen
+}

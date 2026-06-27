@@ -86,7 +86,7 @@ fn apply_manifest_line(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state
     state
 }
 
-fn trim_brackets(raw: String) -> String {
+pub fn trim_brackets(raw: String) -> String {
     let n = len(raw)
     let mut start = 0
     while start < n && char_at(raw, start) == 32 {
