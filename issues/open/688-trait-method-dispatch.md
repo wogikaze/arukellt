@@ -162,10 +162,31 @@ Trait` is a follow-up.
       (`i32::to_string`, `String::to_string`, `String::eq`, `String::hash`).
 
       **Remaining blocker**: The compiled wasm still fails validation due
-      to a separate pre-existing codegen bug in `std::core::cmp::cmp`
-      (func 20: returns `Ordering` enum struct ref where `i32` is expected).
-      Until that bug is fixed (tracked under #695), the traits cannot be
-      called end-to-end at runtime, so this criterion remains open.
+      to pre-existing GC target codegen issues in the println/string
+      handling path (func 71: `main` fails with type mismatch when
+      passing a GC String ref to the i32-oriented println scratch local
+      path). The original `std::core::cmp::cmp` enum return type bug
+      (func 20 returning `Ordering` as i32 instead of `(ref null $type)`)
+      has been fixed — `cmp` now correctly returns `(ref null 21)` on GC
+      targets. Additional fixes in this session:
+      - `return_typeinfo.ark`: prefix enum return type names with "enum:"
+        so the WASM type section emits `(ref null $type)` for enum returns.
+      - `code_ref_locals_infer.ark`: recognize "enum:" prefix when
+        inferring GC type for call results.
+      - `ctx_locals_fn.ark`: use `VT_GC_REF` for Option/Result return
+        types (rt_tag 11/12) instead of `VT_I32`.
+      - `ctx_fn_return_vt.ark`: return `VT_REF` for `to_string` variants
+        and look up bare builtin name in fn index so generic method call
+        dest locals are correctly typed as ref.
+      - `inst_dispatch_const.ark`: push `const.string` result back on
+        stack with `local.get` when next instruction is a direct consumer
+        on GC targets.
+      - `intrinsic_parse_i32/i64/f64.ark`: emit `unreachable` on GC
+        targets instead of returning false to fallback.
+
+      Until the GC println/string-handling issue is fixed, the traits
+      cannot be called end-to-end at runtime, so this criterion remains
+      open.
 - [x] Dispatch strategy documented (ADR or `docs/stdlib/` section).
       **Documented in ADR-036 D1** (`docs/adr/ADR-036-trait-stdlib-redesign.md`):
       static dispatch via monomorphization is the default; `dyn Trait` is
