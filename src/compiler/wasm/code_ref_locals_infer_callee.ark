@@ -1,0 +1,64 @@
+// Arukellt Selfhost - GC callee type inference for call result types.
+
+use mir::function_return_view
+use mir::value_types
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::inst_ctx
+
+// Infer GC type for string-returning callees. Returns -1 if not a string callee.
+fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    if eq(clone(callee), "String_from") || eq(clone(callee), "concat") || eq(clone(callee), "clone") || eq(clone(callee), "to_string") || eq(clone(callee), "char_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "f64_to_string") || eq(clone(callee), "__intrinsic_i32_to_string") || eq(clone(callee), "__intrinsic_i64_to_string") || eq(clone(callee), "__intrinsic_f64_to_string") || eq(clone(callee), "__intrinsic_bool_to_string") || eq(clone(callee), "__intrinsic_char_to_string") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if ends_with(clone(callee), String_from("::to_string")) || ends_with(clone(callee), String_from("::to_string__1")) {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if eq(clone(callee), "__hm_si_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    0 - 1
+}
+
+// Infer GC type for hashmap-returning callees. Returns -1 if not a hashmap callee.
+fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") || eq(clone(callee), "HashMap_new_String_i32") || eq(clone(callee), "HashMap_String_i32_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    }
+    if eq(clone(callee), "__hm_is_new") || eq(clone(callee), "hash_string::hashmap_i32_str_new") || eq(clone(callee), "HashMap_new_i32_String") || eq(clone(callee), "HashMap_i32_String_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+    }
+    if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
+        return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+    }
+    0 - 1
+}
+
+// Fallback: infer GC type from the called function's return type signature.
+fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
+    let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
+    if fn_idx < 0 {
+        return 0 - 1
+    }
+    let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+    let ret_type = function_return_view::MirFunction_return_type(called)
+    let ret_name = function_return_view::MirFunction_return_type_name(called)
+    // On GC targets, Vec<i32> has VT_I32 in MIR but is a struct ref.
+    // Check the return type name for vec: prefix.
+    if starts_with(clone(ret_name), String_from("vec:")) {
+        if eq(clone(ret_name), String_from("vec:String")) {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    if ret_type == value_types::VT_GC_REF() {
+        if is_option_type_name(clone(ret_name)) {
+            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
+        if starts_with(clone(ret_name), String_from("enum:")) {
+            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
+    }
+    0 - 1
+}

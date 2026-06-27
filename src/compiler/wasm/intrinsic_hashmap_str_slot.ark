@@ -84,7 +84,9 @@ fn emit_hm_is_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
 fn emit_hm_is_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        let s_val = if region == 0 {
+        // HashMap<i32,String>: region 0=key(i32), 1=value(String ref), 2=flag(i32)
+        // Only region 1 (value) needs a GC ref scratch; regions 0 and 2 use i32 scratch.
+        let s_val = if region == 2 || region == 0 {
             ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         } else {
             ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)

@@ -171,7 +171,7 @@ pub fn hashmap_i32_str_set(m: HashMap<i32, String>, key: i32, value: String) -> 
             probes = cap
         } else {
             let k: i32 = __hm_is_get_key(m, idx)
-            if eq(k, key) {
+            if k == key {
                 __hm_is_set_val(m, idx, value)
                 done = true
                 probes = cap
@@ -197,7 +197,7 @@ pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> 
         } else {
             if flag == 1 {
                 let k: i32 = __hm_is_get_key(m, idx)
-                if eq(k, key) {
+                if k == key {
                     result = Some(__hm_is_get_val(m, idx))
                     probes = cap
                 } else {
@@ -226,7 +226,7 @@ pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
         } else {
             if flag == 1 {
                 let k: i32 = __hm_is_get_key(m, idx)
-                if eq(k, key) {
+                if k == key {
                     found = true
                     probes = cap
                 } else {
@@ -255,7 +255,7 @@ pub fn hashmap_i32_str_remove(m: HashMap<i32, String>, key: i32) -> Option<Strin
         } else {
             if flag == 1 {
                 let k: i32 = __hm_is_get_key(m, idx)
-                if eq(k, key) {
+                if k == key {
                     result = Some(__hm_is_get_val(m, idx))
                     __hm_is_set_flag(m, idx, 2)
                     __hm_is_set_size(m, __hm_is_size(m) - 1)

@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-26
+Updated: 2026-06-30
 ID: 698
 Track: wasm-feature
 Depends on: "686 (wasm-gc-selfhost-implementation), 649 (t4-native-full-lowering)"
@@ -101,8 +101,14 @@ load/store boundary separation, and std::wasm raw v128 intrinsics.
 - [x] GC struct/array v128 field storage tests
 - [x] std::simd vs std::wasm boundary tests (no load/store in std::simd)
 - [x] Regenerate stdlib docs via `python3 scripts/gen/generate-docs.py`
-- [ ] Update `docs/platform/wasm-features.md` with SIMD feature status
+- [x] Update `docs/platform/wasm-features.md` with SIMD feature status
+      - 2026-06-30: Added SIMD feature status table (T1/T2/T3/T4/T5) covering
+        v128 first-class type, lane types, raw intrinsics, GC storage, and
+        shuffle/swizzle deferred status.
 - [ ] `python3 scripts/manager.py verify quick` exits 0 — pre-existing failures block this
+      *(2026-06-30: 162/168 checks pass. Remaining 6 failures are all
+      pre-existing runtime wasm crashes (arukellt-s2-runtime.wasm
+      function 4163/548), unrelated to SIMD.)*
 
 ## Acceptance
 

@@ -28,16 +28,9 @@ fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_te
     helpers_io_p2::emit_p2_write_newline(w, 0)
     if drop_stray_text_ref {
         helpers_io_calls::emit_drop(w)
-        if gc_println_needs_nested_block_drop(next_op) {
-            helpers_io_calls::emit_drop(w)
-        }
     } else if arg_local >= 0 {
         helpers_io_calls::emit_drop(w)
     }
-}
-
-fn gc_println_needs_nested_block_drop(next_op: i32) -> bool {
-    next_op == 57
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

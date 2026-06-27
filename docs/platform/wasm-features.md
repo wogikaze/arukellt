@@ -55,6 +55,29 @@
 - WASI Preview 3 / async-first runtime work
 - native backend completion
 
+## SIMD feature status (ADR-037, #698)
+
+`std::simd` は explicit SIMD library API として実装済み（`stability = "experimental"`）。
+
+| Feature | T1 (wasi-p1) | T2 (freestanding) | T3 (wasi-p2) | T4 (native) | T5 (wasi-p3) |
+|---------|-------------|-------------------|-------------|-------------|-------------|
+| v128 first-class type | ✅ scalar expansion | ✅ native SIMD | ✅ native SIMD | #699 split | not started |
+| `std::simd` lane types | ✅ 11 types | ✅ 11 types | ✅ 11 types | #699 | not started |
+| `std::wasm` raw v128 intrinsics | ✅ | ✅ | ✅ | #699 | not started |
+| GC struct/array v128 field | n/a (linear) | n/a | fixtures ready, runtime pending | #699 | not started |
+| shuffle / swizzle | deferred | deferred | deferred | deferred | deferred |
+
+- **T1**: v128 は4連続i32ローカルとしてスカラー展開（`call_simd_scalar*.ark`）。SIMD命令はemitしないが同一セマンティクス
+- **T2/T3**: Wasm SIMD命令を直接emit（`call_simd_native.ark`）。`+simd128` feature flag required
+- **T4**: LLVM native SIMD vector types（`<4 x i32>` 等）— #699に分離
+- **`std::simd`** に load/store API はなし（`std::wasm` との境界強制）
+- **Stability promotion criteria**: ADR-037 §14 — portable API凍結、スカラーfallback同一性、GC lowering準拠、raw API境界確定、conformance/lowering test完備
+
+### Non-goals
+
+- Compiler hint-based autovectorization（`#[vectorize]` 等）— ADR-037 で reject、v5+ evaluation対象
+- Relaxed-SIMD proposal — 現時点で対象外
+
 ## Runtime / capability notes
 
 - Filesystem access is deny-by-default unless `--dir` grants it

@@ -26,6 +26,12 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
                 return String_from("hashmap:si32")
             }
+            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
+                return String_from("hashmap:i32str")
+            }
+            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
+                return String_from("hashmap:strstr")
+            }
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
@@ -60,6 +66,12 @@ fn method_param_local_type_name(node: AstNode) -> String {
             let val = decl_ann_children::decl_ann_child_at(ann, 2)
             if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
                 return String_from("hashmap:si32")
+            }
+            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
+                return String_from("hashmap:i32str")
+            }
+            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
+                return String_from("hashmap:strstr")
             }
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {

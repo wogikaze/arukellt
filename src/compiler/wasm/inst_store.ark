@@ -38,8 +38,14 @@ fn emit_gc_const_string_repush_if_needed(w: WasmWriter, inst: MirInst, next_op: 
     if !is_gc_const_string_consumer(next_op) {
         return
     }
+    // If the next CALL/WIT_CALL reads the value from the same local (arg0 == dest),
+    // it does not need the value on the stack — skip the repush to avoid a stray.
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 == dest {
+        return
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
+    writer_leb::emit_leb128_u(w, dest)
 }
 
 fn is_gc_const_string_consumer(next_op: i32) -> bool {
