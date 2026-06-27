@@ -30,33 +30,31 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
 }
 
 fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
-    let raw = code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
-    if raw < 0 {
-        return raw
-    }
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
-        return raw
+        return code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
     if code_ref_locals_types::is_gc_container_type_name(clone(type_name)) {
-        return raw
+        return code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
     }
     if code_ref_locals_types::is_option_type_name(clone(type_name)) {
         let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-        if raw != open && code_ref_locals_infer::local_is_direct_gc_struct_new_dest(f, local_idx) {
+        let raw = code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
+        if raw >= 0 && raw != open && code_ref_locals_infer::local_is_direct_gc_struct_new_dest(f, local_idx) {
             return raw
         }
         return open
     }
     if mir_function_returns_option(f) && code_ref_locals_infer::local_feeds_return(f, local_idx) {
         let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-        if raw != open && code_ref_locals_infer::local_is_direct_gc_struct_new_dest(f, local_idx) {
+        let raw = code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
+        if raw >= 0 && raw != open && code_ref_locals_infer::local_is_direct_gc_struct_new_dest(f, local_idx) {
             return raw
         }
         return open
     }
-    raw
+    code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
 }
 
 fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {

@@ -7,6 +7,11 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
     }
+    // Generic monomorphizations: function names ending with __String have
+    // String-typed params that the MIR may still represent as i32.
+    if ends_with(clone(fn_name), String_from("__String")) {
+        return sections_types_gc::gc_string_type_sig()
+    }
     if param_idx != 0 {
         return String_new()
     }

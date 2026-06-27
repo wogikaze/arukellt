@@ -36,5 +36,8 @@ fn mir_fn_returns_option_by_name(fn_name: String) -> bool {
     if eq(clone(fn_name), String_from("hashmap_str_str_remove")) || eq(clone(fn_name), String_from("HashMap_String_String_remove")) {
         return true
     }
+    if eq(clone(fn_name), String_from("parse_i32")) || eq(clone(fn_name), String_from("convert::parse_i32")) || eq(clone(fn_name), String_from("parse_i64")) || eq(clone(fn_name), String_from("convert::parse_i64")) || eq(clone(fn_name), String_from("parse_f64")) || eq(clone(fn_name), String_from("convert::parse_f64")) {
+        return true
+    }
     false
 }

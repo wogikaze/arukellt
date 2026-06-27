@@ -26,8 +26,15 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
         }
     }
     let bare_name = ctx_bare_builtin_name(name)
+    let bare_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(bare_name))
+    if bare_found >= 0 {
+        return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, bare_found)
+    }
     if ctx_is_void_builtin(bare_name) {
         return value_types::VT_VOID()
+    }
+    if eq(clone(bare_name), "to_string") || eq(clone(bare_name), "i32_to_string") || eq(clone(bare_name), "i64_to_string") || eq(clone(bare_name), "f64_to_string") || eq(clone(bare_name), "bool_to_string") || eq(clone(bare_name), "char_to_string") || eq(clone(bare_name), "f32_to_string") {
+        return value_types::VT_REF()
     }
     if eq(clone(bare_name), "i32_to_i64") || eq(clone(bare_name), "u32_to_u64") {
         return value_types::VT_I64()

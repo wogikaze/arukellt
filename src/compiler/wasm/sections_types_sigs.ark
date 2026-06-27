@@ -89,6 +89,9 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(p_type_name))
     }
+    if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("string")) || eq(clone(p_type_name), String_from("String"))) {
+        return sections_types_gc::gc_string_type_sig()
+    }
     sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
 }
 

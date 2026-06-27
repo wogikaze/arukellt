@@ -26,7 +26,7 @@ fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
     if tag == 7 || tag == 8 || tag == 0 {
         return value_types::VT_VOID()
     }
-    if tag == 21 || tag == 22 {
+    if tag == 21 || tag == 22 || tag == 11 || tag == 12 {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()
@@ -62,6 +62,14 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
     }
     if tag == 22 {
         return concat(String_from("enum:"), typeinfo_shape::mir_type_info_name(ty))
+    }
+    if tag == 11 || tag == 12 {
+        if typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
+            let inner = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+            let inner_name = typeinfo_shape::mir_type_info_name(inner)
+            return concat(String_from("option:"), inner_name)
+        }
+        return String_from("option:")
     }
     String_from("")
 }

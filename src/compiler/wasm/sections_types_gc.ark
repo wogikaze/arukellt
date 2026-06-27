@@ -164,6 +164,10 @@ fn gc_vec_type_sig() -> String {
     String_from("gcref10")
 }
 
+fn gc_string_type_sig() -> String {
+    String_from("gcref0")
+}
+
 fn gc_hashmap_str_i32_type_sig() -> String {
     String_from("gcref16")
 }
