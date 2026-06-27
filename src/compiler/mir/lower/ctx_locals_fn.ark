@@ -58,5 +58,11 @@ fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
             function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
         }
     }
+    // TY_TYPE_VAR (30): generic function stubs have unreachable bodies,
+    // so the emitted type only needs to be valid for WASM validation.
+    // Use VT_I32 as the generic fallback (#707).
+    if rt_tag == 30 {
+        function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
+    }
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }

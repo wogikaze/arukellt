@@ -23,6 +23,11 @@ fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> Type
 }
 
 fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {
+    // "Self" resolves to a type variable that will be substituted with
+    // the receiver's concrete type during trait method dispatch (#707).
+    if eq(clone(name), String_from("Self")) {
+        return type_names::type_info_named(commands::TY_TYPE_VAR(), name)
+    }
     let tp_count = len(type_params)
     let mut k = 0
     while k < tp_count {

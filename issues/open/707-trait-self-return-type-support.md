@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-29
-Updated: 2026-06-29
+Updated: 2026-06-30
 ID: 707
 Track: language-design
 Depends on: 688
@@ -127,18 +127,40 @@ needed.
 
 ### Option A (full `Self` keyword — follow-up)
 
-- [ ] **Parser**: Add `Self` keyword token and AST node.
-- [ ] **Typechecker**: `Self` in trait method signatures resolves to a
+- [x] **Parser**: Add `Self` keyword token and AST node.
+      — `TK_SELF` (34) added to `tokens.ark`, `keywords_decl.ark`,
+        `name_keywords_decl.ark`. `type_token_predicates::is_named_start`
+        accepts `TK_SELF`. `parse_named_type` produces `NK_TYPE_NAMED("Self")`.
+- [x] **Typechecker**: `Self` in trait method signatures resolves to a
       type variable bound to the impl's self type.
-- [ ] **Trait definitions**: Migrate `Clone`, `Add`, etc. to use `Self`.
+      — `resolve_type_name_generic` in `type_generic.ark` maps "Self" to
+        `TY_TYPE_VAR("Self")`.
+      — `infer_trait_method_call` in `call_method.ark` substitutes
+        `TY_TYPE_VAR("Self")` return type with the receiver's concrete type.
+      — `infer_method_call_expr` prefers trait dispatch over prelude
+        free functions when the receiver is a `TY_TYPE_VAR` (#707).
+      — `typed_fn_return_type` in `module_results.ark` uses
+        `resolve_type_ann_node_generic` so generic return types resolve
+        as `TY_TYPE_VAR` instead of `TY_STRUCT`.
+- [x] **MIR lowering**: `Self` type var is resolved during monomorphization.
+      — `ctx_apply_fn_return_type_for_rt_tag` in `ctx_locals_fn.ark` maps
+        `TY_TYPE_VAR` (30) to `VT_I32` for generic stubs.
+      — `entry_fns_mono.ark` substitutes `TY_TYPE_VAR` return type with
+        the concrete type from `MonoInstance.type_args` for each variant.
+- [x] **WASM emitter**: `val_type_to_sig` in `sections_type_plan.ark` maps
+      `TY_TYPE_VAR` (30) to `"i32"` as a fallback for generic stubs.
+- [x] **Trait definitions**: Migrated `Clone` to use `Self`.
+      — `std/core/clone.ark`: `trait Clone { fn clone(self: Self) -> Self }`.
 - [ ] **Fixtures**: Verify `Self` in nested positions
       (`Option<Self>`, `Vec<Self>`).
 
 ### Fixtures
 
-- [ ] `tests/fixtures/stdlib_trait/self_return_clone.ark` —
+- [x] `tests/fixtures/stdlib_trait/self_return_clone.ark` —
       `fn dup<T: Clone>(x: T) -> T { x.clone() }` works through generic
-      dispatch with `trait Clone { fn clone(self: Clone) -> Clone }`.
+      dispatch with `trait Clone { fn clone(self: Self) -> Self }`.
+      Compiles successfully; WASM validation blocked by pre-existing
+      `read_to_string` codegen issue (func 10), not by Self type handling.
 - [ ] `tests/fixtures/stdlib_trait/self_return_add.ark` —
       `fn add_any<T: Add>(x: T, y: T) -> T { x.add(y) }` works through
       generic dispatch.

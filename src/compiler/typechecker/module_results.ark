@@ -3,10 +3,15 @@ use typechecker::kinds
 
 use typechecker::ast_access
 use typechecker::contract_result_state
+use typechecker::sig_bounds
 use typechecker::types
 
 fn typed_fn_return_type(node: AstNode) -> TypeInfo {
     let mut return_type = TypeInfo_simple(commands::TY_UNIT())
+    // Collect type parameter names so that generic return types (e.g. `T`)
+    // are resolved as TY_TYPE_VAR instead of TY_STRUCT (#707).
+    let type_param_bounds = sig_bounds::collect_type_param_bounds(ast_access::node_type_ann(node))
+    let type_params = sig_bounds::collect_type_param_names(type_param_bounds)
     let ann_count = ast_access::node_type_ann_count(node)
     let mut j = 0
     while j < ann_count {
@@ -14,7 +19,7 @@ fn typed_fn_return_type(node: AstNode) -> TypeInfo {
         if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
-                return_type = types::resolve_type_ann_node(ret_node)
+                return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
             }
         }
         j = j + 1

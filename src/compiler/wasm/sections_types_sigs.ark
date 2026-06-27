@@ -81,6 +81,9 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -
         return gc_param_sig
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
+        if eq(clone(p_type_name), String_from("vec:String")) {
+            return sections_types_gc::gc_vec_string_type_sig()
+        }
         return sections_types_gc::gc_vec_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("hashmap:")) {
@@ -101,7 +104,11 @@ fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: St
     }
     let mut sig = String_from("1")
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
-        sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+        if eq(clone(return_type_name), String_from("vec:String")) {
+            sig = concat(sig, sections_types_gc::gc_vec_string_type_sig())
+        } else {
+            sig = concat(sig, sections_types_gc::gc_vec_type_sig())
+        }
     } else {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
         sig = concat(sig, sections_types_gc::gc_hashmap_str_i32_type_sig())

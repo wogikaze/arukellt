@@ -53,8 +53,8 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref, idx]  (idx on top)
     // After: [value]
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
 
     // Save idx, vec_ref stays on stack
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -67,8 +67,8 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_idx)
 
-    // Get element: array.get A_i32  → [value]
-    writer_gc::emit_gc_array_get(w, i32_array_type)
+    // Get element: array.get array_type  → [value]
+    writer_gc::emit_gc_array_get(w, array_type)
     return true
 }
 
@@ -81,8 +81,8 @@ fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_res = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
 
     // Save idx and vec_ref
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -101,7 +101,7 @@ fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, 127) // (empty block marker?)
 
     // Some branch: idx < len → read element via GC array access
-    emit_vec_get_gc_some_i32(w, s_idx, s_vec, s_res, i32_array_type, vec_type)
+    emit_vec_get_gc_some_i32(w, s_idx, s_vec, s_res, array_type, vec_type)
     writer_core::emit_byte(w, 5)   // ELSE
 
     // None branch

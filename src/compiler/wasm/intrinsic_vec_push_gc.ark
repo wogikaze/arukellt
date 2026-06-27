@@ -13,14 +13,33 @@ use wasm::ctx_gc_type
 use mir::opcodes as mir_opcodes
 
 fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
-    let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    let arr_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
-    let arr_old = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let arr_old_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
+    let is_vec_string = ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx)
+
+    // For Vec<String>, value is a String ref → use GC ref scratch local.
+    // For Vec<i32>, value is i32 → use i32 scratch local.
+    let s_val = if is_vec_string {
+        ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    } else {
+        ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    }
+    // For Vec<String>, array scratch locals must be String ref array type.
+    let arr_tmp = if is_vec_string {
+        ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    } else {
+        arr_tmp_i32
+    }
+    let arr_old = if is_vec_string {
+        ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 1)
+    } else {
+        arr_old_i32
+    }
 
     emit_gc_push_setup(w, s_val, s_vec, vec_type, arr_tmp)
 
@@ -31,9 +50,9 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_len)
 
-    emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, i32_array_type, vec_type, s_vec)
+    emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, array_type, vec_type, s_vec)
 
-    emit_gc_push_store_finish(w, arr_tmp, s_len, s_val, i32_array_type, s_vec, vec_type, is_void_push, next_op)
+    emit_gc_push_store_finish(w, arr_tmp, s_len, s_val, array_type, s_vec, vec_type, is_void_push, next_op)
     return !is_void_push
 }
 

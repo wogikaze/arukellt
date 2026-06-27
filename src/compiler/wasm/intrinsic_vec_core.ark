@@ -27,7 +27,7 @@ fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // GC Vec: struct.get vec_type 1 (len field)
-        let vec_gc_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+        let vec_gc_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
         writer_gc::emit_gc_struct_get(w, vec_gc_type, 1)
     } else {
         // Linear-memory Vec: i32.load at offset 0 (len field)

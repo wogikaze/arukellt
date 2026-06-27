@@ -30,5 +30,8 @@ fn token_decl_keyword_name(kind: i32) -> String {
     if kind == tokens::TK_ASYNC() {
         return String_from("ASYNC")
     }
+    if kind == tokens::TK_SELF() {
+        return String_from("SELF")
+    }
     String_new()
 }

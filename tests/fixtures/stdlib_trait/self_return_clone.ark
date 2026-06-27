@@ -1,0 +1,25 @@
+// Issue #707: Self return type support for trait method dispatch.
+//
+// Verifies that `fn dup<T: Clone>(x: T) -> T { x.clone() }` works through
+// generic trait dispatch when the trait method returns Self.
+use std::host::stdio
+use std::core::clone
+
+// Generic function with Clone bound — calls `x.clone()` via trait dispatch.
+// Clone::clone returns Self, so the return type must be substituted with
+// the receiver's concrete type (T).
+fn dup<T: Clone>(x: T) -> T {
+    x.clone()
+}
+
+fn main() {
+    // Clone dispatch on i32 (copy semantics, Self = i32).
+    let n: i32 = 42
+    let m: i32 = dup(n)
+    stdio::println(i32_to_string(m))
+
+    // Clone dispatch on String (deep clone, Self = String).
+    let s: String = String_from("hello")
+    let t: String = dup(s)
+    stdio::println(t)
+}

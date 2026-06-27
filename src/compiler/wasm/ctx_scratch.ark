@@ -30,6 +30,10 @@ fn SelfEmitCtx_scratch_gc_hashmap_str_local(ctx: SelfEmitCtx, offset: i32) -> i3
     ctx.scratch_base + 22 + offset
 }
 
+fn SelfEmitCtx_scratch_gc_enum_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + 24 + offset
+}
+
 fn SelfEmitCtx_set_scratch_base(ctx: SelfEmitCtx, scratch_base: i32) {
     ctx.scratch_base = scratch_base
 }

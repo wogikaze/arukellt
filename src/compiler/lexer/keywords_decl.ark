@@ -30,5 +30,8 @@ pub fn keyword_kind_decl(word: String) -> i32 {
     if eq(word, "async") {
         return tokens::TK_ASYNC()
     }
+    if eq(word, "Self") {
+        return tokens::TK_SELF()
+    }
     0 - 1
 }

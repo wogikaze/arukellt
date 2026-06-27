@@ -140,6 +140,13 @@ fn val_type_to_sig(vt: i32) -> String {
                         if vt == 5 {
                             return String_from("gcref")
                         }
+                        // TY_TYPE_VAR (30): generic function stubs have
+                        // unreachable bodies, so the emitted type only
+                        // needs to be a valid WASM type for validation.
+                        // Use i32 as the generic fallback (#707).
+                        if vt == 30 {
+                            return String_from("i32")
+                        }
                         String_from("ref")
                     }
                 }

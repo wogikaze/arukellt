@@ -28,6 +28,14 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
     if starts_with(clone(fn_name), String_from("hashmap_")) || starts_with(clone(fn_name), String_from("hashset_")) || starts_with(clone(fn_name), String_from("hash::hashmap_")) || starts_with(clone(fn_name), String_from("hash::hashset_")) {
+        // Exclude helper functions whose first parameter is i32, not Vec.
+        if eq(clone(fn_name), String_from("hashmap_key_index")) || eq(clone(fn_name), String_from("hashmap_value_index")) || eq(clone(fn_name), String_from("hashmap_flag_index")) || eq(clone(fn_name), String_from("hashmap_required_vec_len")) || eq(clone(fn_name), String_from("hashmap_min_capacity_for_entries")) || eq(clone(fn_name), String_from("hashmap_with_capacity")) {
+            return String_new()
+        }
+        // hashset_str_* and hash_vec_string_* functions take Vec<String>, not Vec<i32>.
+        if starts_with(clone(fn_name), String_from("hashset_str_")) || starts_with(clone(fn_name), String_from("hash_vec_string_")) {
+            return sections_types_gc::gc_vec_string_type_sig()
+        }
         return sections_types_gc::gc_vec_type_sig()
     }
     if len(type_name) > 0 {

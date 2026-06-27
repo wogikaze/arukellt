@@ -18,8 +18,8 @@
 /// | bool    | impl   | Copy semantics (returns self)      |
 /// | char    | impl   | Copy semantics (returns self)      |
 /// | String  | impl   | Via `__intrinsic_string_clone`     |
-trait Clone<T> {
-    fn clone(self: Clone<T>) -> T
+trait Clone {
+    fn clone(self: Self) -> Self
 }
 
 /// `Clone` impl for `i32` — copy semantics.

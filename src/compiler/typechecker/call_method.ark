@@ -44,6 +44,16 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         }
         return simple_type(commands::TY_UNKNOWN())
     }
+    // Bare function found — but if receiver is a type variable, prefer
+    // trait dispatch to handle Self return types correctly (#707).
+    // Without this, `x.clone()` where `x: T: Clone` would resolve to the
+    // prelude `clone(s: String) -> String` instead of `Clone::clone -> Self`.
+    if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_TYPE_VAR() {
+        let trait_sig = try_resolve_trait_method_from_bounds(env, scope, fn_sigs, enum_defs, node, method_name)
+        if contract_fn_sig::FnSig_has_name(trait_sig) {
+            return infer_trait_method_call(env, scope, fn_sigs, enum_defs, node, trait_sig)
+        }
+    }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
 }
 
@@ -143,5 +153,14 @@ fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     let recv_node = ast_access::node_child_at(node, 0)
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     call_method_args::constrain_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args)
-    contract_fn_sig::FnSig_return_type(sig)
+    let ret_ty = contract_fn_sig::FnSig_return_type(sig)
+    // Self substitution: if the trait method's return type is a TY_TYPE_VAR
+    // named "Self", substitute the receiver's concrete type (#707).
+    if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_TYPE_VAR() {
+        let ret_name = contract_type_access::TypeInfo_name(ret_ty)
+        if eq(clone(ret_name), String_from("Self")) {
+            return recv_ty
+        }
+    }
+    ret_ty
 }

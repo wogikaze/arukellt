@@ -3,23 +3,60 @@
 use corehir::mir_type_source
 use mir::lower::entry_emit_top
 use mir::lower::entry_view_record
+use mir::lower::return_typeinfo
 use mir::lower::return_types
+use mir::lower_kinds
 use mir::mono
+use mir::mono_names
+use mir::type_contracts
 
 fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, decl_name: String, typed_index: i32, param_count: i32, entry_view: MirLowerEntryView, fn_info_index: i32, midx: MonoIndex, mir_tr: i32) {
     let mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
     let mono_emit_count = mono_emit_count_raw + 1
     let mut mono_emit_i = 0
-    let rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
-    let rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
+    let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
+    let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
     while mono_emit_i < mono_emit_count {
         let mut emit_fn_name = clone(decl_name)
+        let mut rt_tag = generic_rt_tag
+        let mut rt_type_name = clone(generic_rt_type_name)
         if mono_emit_i > 0 {
-            emit_fn_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i - 1))
+            let mangled = mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i - 1)
+            emit_fn_name = mono::mono_safe_name(mangled)
+            // For monomorphized variants, substitute the generic return type
+            // with the concrete type from the MonoInstance (#707).
+            if generic_rt_tag == lower_kinds::TY_TYPE_VAR() {
+                let mono_ty = lookup_mono_type_arg(ctx, clone(mangled))
+                if type_contracts::TypeInfo_tag(mono_ty) != 0 {
+                    rt_tag = return_typeinfo::mir_return_tag_from_type_info(mono_ty)
+                    rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
+                }
+            }
         }
         entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, rt_type_name, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
         mono_emit_i = mono_emit_i + 1
     }
+}
+
+// Find the first type argument from the MonoInstance matching `mangled`.
+// Returns TY_UNKNOWN (tag 0) if not found.
+fn lookup_mono_type_arg(ctx: LowerCtx, mangled: String) -> TypeInfo {
+    let safe = mono_names::mono_safe_name(mangled)
+    let count = len(ctx.mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(ctx.mono_instances, i)
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        let inst_safe = mono_names::mono_safe_name(inst_mangled)
+        if eq(clone(inst_safe), clone(safe)) {
+            if type_contracts::MonoInstance_type_arg_count(inst) > 0 {
+                return type_contracts::MonoInstance_type_arg_at(inst, 0)
+            }
+            return type_contracts::TypeInfo_simple(0)
+        }
+        i = i + 1
+    }
+    type_contracts::TypeInfo_simple(0)
 }
 
 fn mir_entry_typed_return_tag_at(view: MirLowerEntryView, typed_index: i32) -> i32 {

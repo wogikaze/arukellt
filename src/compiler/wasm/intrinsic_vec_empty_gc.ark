@@ -13,7 +13,7 @@ use wasm::emit_target
 fn emit_is_empty_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref]
     // After: [i32]  (1 if empty, 0 if not)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
 
     writer_gc::emit_gc_struct_get(w, vec_type, 1)  // len
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
