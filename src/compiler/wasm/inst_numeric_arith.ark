@@ -3,10 +3,12 @@
 use mir::inst_accessors_shape
 use mir::value_types
 use wasm::ctx_record
+use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::intrinsic_string_basic
 use wasm::opcodes
 use wasm::writer_core
+use wasm::writer_leb
 
 fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
@@ -81,9 +83,35 @@ fn emit_div(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_mod(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    if inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_I64() {
-        writer_core::emit_byte(w, opcodes::OP_I64_REM_S())
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if val_type == value_types::VT_F64() {
+        // WebAssembly has no f64.rem; compute a - b * trunc(a / b).
+        // Stack on entry: [a, b]. Use f64 scratch locals 12 and 13.
+        let scratch_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+        let scratch_a = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 13)
+        // Save b and a to scratch locals.
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, scratch_b)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, scratch_a)
+        // Compute trunc(a / b) * b, then subtract from a.
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, scratch_a)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, scratch_b)
+        writer_core::emit_byte(w, opcodes::OP_F64_DIV())
+        writer_core::emit_byte(w, opcodes::OP_F64_TRUNC())
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, scratch_b)
+        writer_core::emit_byte(w, opcodes::OP_F64_MUL())
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, scratch_a)
+        writer_core::emit_byte(w, opcodes::OP_F64_SUB())
     } else {
-        writer_core::emit_byte(w, opcodes::OP_I32_REM_S())
+        if val_type == value_types::VT_I64() {
+            writer_core::emit_byte(w, opcodes::OP_I64_REM_S())
+        } else {
+            writer_core::emit_byte(w, opcodes::OP_I32_REM_S())
+        }
     }
 }
