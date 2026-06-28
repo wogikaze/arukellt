@@ -7,9 +7,11 @@ use mir::lower::ctx_types
 
 use mir::inst_const_i32
 use mir::inst_local_get
+use mir::inst_ref_func
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::variants
+use mir::value_types
 
 fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
@@ -28,8 +30,8 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         }
         let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
         if fn_idx >= 0 {
-            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, 1)
-            ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(fn_idx, dest))
+            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(core_expr_shape_accessors::mir_core_expr_text(expr), dest))
             return dest
         }
         return 0 - 1

@@ -88,6 +88,7 @@ fn MIR_REF_CAST() -> i32 { 85 }
 fn MIR_GC_STRUCT_NEW() -> i32 { 86 }
 fn MIR_GC_STRUCT_GET() -> i32 { 87 }
 fn MIR_GC_STRUCT_SET() -> i32 { 88 }
+fn MIR_REF_FUNC() -> i32 { 89 }
 
 fn is_arith_opcode(op: i32) -> bool {
     op >= MIR_ADD() && op <= MIR_SHR()

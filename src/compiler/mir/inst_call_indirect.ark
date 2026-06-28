@@ -4,6 +4,6 @@ use mir::inst_factory
 use mir::opcodes
 use mir::value_types
 
-fn MirInst_call_indirect(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32) -> MirInst {
-    inst_factory::MirInst_full(opcodes::MIR_CALL_INDIRECT(), dest, callee_local, type_idx, arg_count, 0.0, String_new(), value_types::VT_VOID())
+fn MirInst_call_indirect(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32, return_vt: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_CALL_INDIRECT(), dest, callee_local, type_idx, arg_count, 0.0, String_new(), return_vt)
 }

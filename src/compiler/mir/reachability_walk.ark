@@ -34,7 +34,13 @@ fn mir_mark_function_call_targets(functions: Vec<MirFunction>, reachable: Vec<i3
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if op == opcodes::MIR_CALL() {
+                if reachability_names::mir_mark_reachable_name(functions, reachable, inst_accessors_literals::MirInst_str_val(inst)) {
+                    changed = true
+                }
+            }
+            if op == opcodes::MIR_REF_FUNC() {
                 if reachability_names::mir_mark_reachable_name(functions, reachable, inst_accessors_literals::MirInst_str_val(inst)) {
                     changed = true
                 }

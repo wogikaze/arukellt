@@ -361,7 +361,8 @@ def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
     if tool is None:
         return 2, "wasm-tools not found in PATH"
     try:
-        result = _run([tool, "validate", str(wasm_path)], wasm_path.parent, timeout=60)
+        abs_path = wasm_path.resolve()
+        result = _run([tool, "validate", str(abs_path)], wasm_path.parent, timeout=60)
     except Exception as exc:  # timeout or other failure
         return 3, f"wasm-tools validate crashed: {exc}"
     if result.returncode != 0:
@@ -2724,8 +2725,6 @@ FIXTURE_PARITY_SKIP: set[str] = {
                                  # precision issue itself is fixed (shortest round-trip),
                                  # but the fixture cannot compile due to this separate
                                  # push lowering bug on GC targets.
-    "functions/higher_order.ark",  # selfhost emitter lacks funcref table / call_indirect
-                                   # support; fn-pointer parameters are not yet lowered.
     "simd_conformance/i32x4_basic.ark",   # SIMD extract_lane lane index not passed as
                                           # immediate; native emitter reads arg1=-1
     "simd_lowering/t1_scalar_expansion.ark",  # same extract_lane lane index issue

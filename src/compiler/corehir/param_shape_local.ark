@@ -2,6 +2,8 @@
 
 use corehir::decl_ann_children
 use corehir::decl_ann_name
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 use corehir::param_shape_node
 
 fn param_named_local_type_name(ann: AstNode) -> String {
@@ -19,6 +21,9 @@ fn fn_param_local_type_name(node: AstNode) -> String {
         return String_new()
     }
     let ann = param_shape_node::param_type_ann(node)
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
+        return String_from("fnref")
+    }
     if decl_ann_name::decl_ann_is_generic(ann) {
         if decl_ann_name::decl_ann_is_name(ann, String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ann, 1)
