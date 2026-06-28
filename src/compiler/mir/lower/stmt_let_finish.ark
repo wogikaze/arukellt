@@ -34,7 +34,7 @@ fn apply_let_annotation_type(ctx: LowerCtx, node: AstNode, local_idx: i32, ta_co
                 if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) {
                     ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
                 } else {
-                    if starts_with(clone(local_type_name), String_from("Option_")) || starts_with(clone(local_type_name), String_from("option:")) || starts_with(clone(local_type_name), String_from("Option:")) {
+                    if starts_with(clone(local_type_name), String_from("Option_")) || starts_with(clone(local_type_name), String_from("option:")) || starts_with(clone(local_type_name), String_from("Option:")) || starts_with(clone(local_type_name), String_from("Result_")) || starts_with(clone(local_type_name), String_from("result:")) || starts_with(clone(local_type_name), String_from("Result:")) {
                         ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
                     }
                 }

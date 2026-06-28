@@ -35,6 +35,12 @@ fn sync_let_local_value_type(ctx: LowerCtx, vt: i32, local_idx: i32, val_idx: i3
 fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_init_kind: i32, ta_count: i32) {
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
     if starts_with(clone(existing), String_from("enum:")) {
+        if eq(clone(existing), String_from("enum:Option")) || eq(clone(existing), String_from("enum:Result")) {
+            let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+            if starts_with(clone(init_type), String_from("option:")) || starts_with(clone(init_type), String_from("result:")) || starts_with(clone(init_type), String_from("Option_")) || starts_with(clone(init_type), String_from("Result_")) {
+                ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
+            }
+        }
         return
     }
     let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)

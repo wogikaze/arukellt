@@ -18,11 +18,12 @@ struct CoreMatchPayloadInfo {
     scrut_ok_is_f64: bool,
     scrut_ok_is_i64: bool,
     scrut_ok_is_i32: bool,
+    scrut_ok_is_ref: bool,
     compare_idx: i32,
 }
 
-fn core_match_payload_info_new(is_payload_match: bool, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, compare_idx: i32) -> CoreMatchPayloadInfo {
-    CoreMatchPayloadInfo { is_payload_match: is_payload_match, scrut_ok_is_f64: scrut_ok_is_f64, scrut_ok_is_i64: scrut_ok_is_i64, scrut_ok_is_i32: scrut_ok_is_i32, compare_idx: compare_idx }
+fn core_match_payload_info_new(is_payload_match: bool, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, scrut_ok_is_ref: bool, compare_idx: i32) -> CoreMatchPayloadInfo {
+    CoreMatchPayloadInfo { is_payload_match: is_payload_match, scrut_ok_is_f64: scrut_ok_is_f64, scrut_ok_is_i64: scrut_ok_is_i64, scrut_ok_is_i32: scrut_ok_is_i32, scrut_ok_is_ref: scrut_ok_is_ref, compare_idx: compare_idx }
 }
 
 fn core_match_payload_info_is_payload_match(info: CoreMatchPayloadInfo) -> bool {
@@ -41,6 +42,10 @@ fn core_match_payload_info_scrut_ok_is_i32(info: CoreMatchPayloadInfo) -> bool {
     info.scrut_ok_is_i32
 }
 
+fn core_match_payload_info_scrut_ok_is_ref(info: CoreMatchPayloadInfo) -> bool {
+    info.scrut_ok_is_ref
+}
+
 fn core_match_payload_info_compare_idx(info: CoreMatchPayloadInfo) -> i32 {
     info.compare_idx
 }
@@ -52,11 +57,38 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
     let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
     let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64")
     let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32")
+    let scrut_ok_is_ref = core_scrut_type_is_ref(scrut_type)
     let mut compare_idx = scrut_idx
     if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
         compare_idx = core_emit_payload_tag_local(ctx, scrut_idx)
     }
-    core_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, compare_idx)
+    core_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, scrut_ok_is_ref, compare_idx)
+}
+
+fn core_scrut_type_is_ref(scrut_type: String) -> bool {
+    if starts_with(clone(scrut_type), String_from("Option_")) || starts_with(clone(scrut_type), String_from("Result_")) {
+        let suffix = substring(clone(scrut_type), 7, len(scrut_type))
+        return core_suffix_is_ref(suffix)
+    }
+    if starts_with(clone(scrut_type), String_from("option:")) {
+        let suffix = substring(clone(scrut_type), 7, len(scrut_type))
+        return core_suffix_is_ref(suffix)
+    }
+    if starts_with(clone(scrut_type), String_from("result:")) {
+        let suffix = substring(clone(scrut_type), 7, len(scrut_type))
+        return core_suffix_is_ref(suffix)
+    }
+    false
+}
+
+fn core_suffix_is_ref(suffix: String) -> bool {
+    if eq(clone(suffix), "string") || eq(clone(suffix), "String") || eq(clone(suffix), "str") {
+        return true
+    }
+    if eq(clone(suffix), "i32") || eq(clone(suffix), "i64") || eq(clone(suffix), "f64") || eq(clone(suffix), "bool") || eq(clone(suffix), "char") {
+        return false
+    }
+    true
 }
 
 fn core_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {

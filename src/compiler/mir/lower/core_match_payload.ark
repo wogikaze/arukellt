@@ -15,6 +15,6 @@ fn core_match_payload_compare_idx(info: CoreMatchPayloadInfo) -> i32 {
 
 fn core_emit_payload_variant_binds_if_needed(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, info: CoreMatchPayloadInfo, pat: CoreHirExpr, scrut_idx: i32) {
     if core_match_payload_info::core_match_payload_info_is_payload_match(info) && core_expr_shape_patterns::mir_core_expr_is_pat_variant(pat) && core_expr_shape_accessors::mir_core_expr_child_count(pat) > 0 {
-        core_match_payload_bind_core::core_emit_payload_variant_binds(ctx, exprs, pat, scrut_idx, core_match_payload_info::core_match_payload_info_scrut_ok_is_f64(info), core_match_payload_info::core_match_payload_info_scrut_ok_is_i64(info), core_match_payload_info::core_match_payload_info_scrut_ok_is_i32(info))
+        core_match_payload_bind_core::core_emit_payload_variant_binds(ctx, exprs, pat, scrut_idx, core_match_payload_info::core_match_payload_info_scrut_ok_is_f64(info), core_match_payload_info::core_match_payload_info_scrut_ok_is_i64(info), core_match_payload_info::core_match_payload_info_scrut_ok_is_i32(info), core_match_payload_info::core_match_payload_info_scrut_ok_is_ref(info))
     }
 }
