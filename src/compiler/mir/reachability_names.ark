@@ -20,18 +20,19 @@ fn mir_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i32>, nam
     }
     let short = resolver::use_module_short_name(clone(name))
     if !eq(clone(short), clone(name)) {
+        let mut changed = false
         let mut j = 0
         while j < count {
             let f = get_unchecked(functions, j)
             if eq(function_identity::MirFunction_name(f), clone(short)) {
                 if get_unchecked(reachable, j) == 0 {
                     set(reachable, j, 1)
-                    return true
+                    changed = true
                 }
-                return false
             }
             j = j + 1
         }
+        return changed
     }
     false
 }
