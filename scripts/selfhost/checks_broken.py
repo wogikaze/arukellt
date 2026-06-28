@@ -2267,8 +2267,8 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
 #
 # Format: "category/fixture.ark"  # reason
 FIXTURE_PARITY_SKIP: set[str] = {
-    "stdlib_sort/sort_f64.ark",  # selfhost f64_to_string uses naive digit extraction
-                                 # (1.2 → 1.199999999999999); reference uses Grisu2/shortest-repr
+    "stdlib_sort/sort_f64.ark",  # GC push handler does not support Vec<f64> (separate
+                                 # from f64_to_string precision, which is now fixed)
     "functions/higher_order.ark",  # selfhost emitter lacks funcref table / call_indirect
                                    # support; fn-pointer parameters are not yet lowered.
 }

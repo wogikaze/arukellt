@@ -145,7 +145,7 @@ fn OP_F64_NEG() -> i32 { 154 }
 fn OP_F64_CEIL() -> i32 { 155 }
 fn OP_F64_FLOOR() -> i32 { 156 }
 fn OP_F64_NEAREST() -> i32 { 158 }
-fn OP_F64_TRUNC() -> i32 { 159 }
+fn OP_F64_TRUNC() -> i32 { 157 }
 fn OP_F64_ADD() -> i32 { 160 }
 fn OP_F64_SUB() -> i32 { 161 }
 fn OP_F64_MUL() -> i32 { 162 }

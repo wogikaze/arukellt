@@ -2718,8 +2718,12 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
 #
 # Format: "category/fixture.ark"  # reason
 FIXTURE_PARITY_SKIP: set[str] = {
-    "stdlib_sort/sort_f64.ark",  # selfhost f64_to_string uses naive digit extraction
-                                 # (1.2 → 1.199999999999999); reference uses Grisu2/shortest-repr
+    "stdlib_sort/sort_f64.ark",  # GC push handler (emit_push_gc) does not support
+                                 # Vec<f64>: uses i32 scratch for f64 value and i32
+                                 # array type for f64 elements.  The f64_to_string
+                                 # precision issue itself is fixed (shortest round-trip),
+                                 # but the fixture cannot compile due to this separate
+                                 # push lowering bug on GC targets.
     "functions/higher_order.ark",  # selfhost emitter lacks funcref table / call_indirect
                                    # support; fn-pointer parameters are not yet lowered.
     "simd_conformance/i32x4_basic.ark",   # SIMD extract_lane lane index not passed as
