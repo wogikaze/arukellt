@@ -5,6 +5,7 @@ use mir::inst_const_string
 use mir::inst_local_get
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::lower_kinds
@@ -41,6 +42,7 @@ fn lower_atomic_string(ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_STRING_LIT()) {
         let str_idx = ctx_api_module::ctx_intern_string(ctx, ast_node::node_text(node))
         let dest = ctx_fresh_local(ctx, value_types::VT_REF())
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
         ctx_emit(ctx, inst_const_string::MirInst_const_string_indexed(ast_node::node_text(node), dest, str_idx))
         return dest
     }

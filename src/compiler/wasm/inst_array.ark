@@ -68,6 +68,8 @@ fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_gc::emit_gc_array_set(w, gc_type_idx)
     } else {
         let arr_val = inst_accessors_operands::MirInst_arg1(inst)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, arr_val)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         if inst_accessors_literals::MirInst_int_val(inst) > 0 {
