@@ -2,6 +2,8 @@
 
 use wasm::constants
 use wasm::ctx_scratch
+use wasm::opcodes
+use wasm::writer_core
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -68,6 +70,10 @@ fn emit_arg_at_alloc_argv(w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf: i
     helpers_core_heap::emit_heap_get(w)
     helpers_core_locals::emit_local_get(w, s_bufsize)
     helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 3)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, -4)
+    writer_core::emit_byte(w, opcodes::OP_I32_AND())
     helpers_core_heap::emit_heap_set(w)
 }
 
@@ -91,8 +97,14 @@ fn emit_arg_at_some_block(w: WasmWriter, s_idx: i32, s_argc: i32, s_argv: i32, s
     helpers_control_branch::emit_br_if(w, 0)
     helpers_core_locals::emit_local_get(w, s_idx)
     helpers_core_locals::emit_local_get(w, s_argc)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
     helpers_numeric_i32_compare::emit_i32_ge_s(w)
     helpers_control_branch::emit_br_if(w, 0)
+    helpers_core_locals::emit_local_get(w, s_idx)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_idx)
     emit_arg_at_load_cstr(w, s_argv, s_idx, s_cstr)
     emit_arg_at_strlen(w, s_cstr, s_clen)
     emit_arg_at_cstr_to_string(w, s_cstr, s_clen, s_str, s_k)

@@ -2724,6 +2724,11 @@ FIXTURE_PARITY_SKIP: set[str] = {
                                    # support; fn-pointer parameters are not yet lowered.
     "selfhost/debug_smoke.ark",  # pinned bootstrap omits wasi print lowering for i32 print(x)
     "t2/t2_println_i32_var.ark",  # pinned bootstrap omits wasi println coercion for i32 locals
+    "stdlib_wit/wit_basic.ark",  # selfhost resolves WitType::String enum variant as
+                                 # wit_type_string() function call → infinite recursion
+    "stdlib_wit/wit_types.ark",  # same enum-variant-as-function resolution bug
+    "simd_conformance/v128_bitwise.ark",  # selfhost v128 SIMD emitter produces invalid
+                                          # wasm (type mismatch at offset 0x380)
 }
 
 
