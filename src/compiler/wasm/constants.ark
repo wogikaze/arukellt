@@ -18,10 +18,10 @@ fn WASM_IMMUTABLE() -> i32 { 0 }
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }
-fn NUM_WASI_IMPORTS_COMPONENT() -> i32 { 7 }
+fn NUM_WASI_IMPORTS_COMPONENT() -> i32 { 9 }
 fn NUM_WASI_IMPORTS() -> i32 { 22 }
 fn NUM_WASI_TYPES_BASE() -> i32 { 6 }
-fn NUM_WASI_TYPES_COMPONENT() -> i32 { 5 }
+fn NUM_WASI_TYPES_COMPONENT() -> i32 { 6 }
 fn NUM_WASI_TYPES() -> i32 { 9 }
 fn WASI_IMPORT_PROC_EXIT() -> i32 { 6 }
 fn WASI_IMPORT_CLOCK_TIME_GET() -> i32 { 7 }

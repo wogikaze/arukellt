@@ -17,10 +17,6 @@ fn emit_random_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         helpers_numeric_i32_convert::emit_i32_wrap_i64(w)
         return true
     }
-    if emit_target::is_minimal_p1_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx)) {
-        helpers_numeric_i32_const::emit_i32_const(w, 0)
-        return true
-    }
     helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_I32BUF())
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_core_calls::emit_call(w, constants::WASI_IMPORT_RANDOM_GET())
