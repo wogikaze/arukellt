@@ -1,0 +1,14 @@
+// Test fixture: W0005 capability stub warning
+// Non-pub functions should be flagged when building for component targets.
+
+fn helper_not_exported() -> i32 {
+    42
+}
+
+pub fn exported_function() -> i32 {
+    helper_not_exported()
+}
+
+pub fn main() -> i32 {
+    exported_function()
+}

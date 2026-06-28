@@ -170,3 +170,5 @@ fn cli_lint_deny(opts: CliOptions) -> Vec<String> { clone(opts.lint_deny) }
 fn cli_lint_deny_count(opts: CliOptions) -> i32 { len(opts.lint_deny) }
 fn cli_add_lint_allow(opts: CliOptions, rule: String) { push(opts.lint_allow, rule) }
 fn cli_add_lint_deny(opts: CliOptions, rule: String) { push(opts.lint_deny, rule) }
+fn cli_set_lint_allow(opts: CliOptions, rules: Vec<String>) { opts.lint_allow = rules }
+fn cli_set_lint_deny(opts: CliOptions, rules: Vec<String>) { opts.lint_deny = rules }

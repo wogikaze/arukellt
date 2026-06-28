@@ -162,11 +162,19 @@ pub fn effective_severity(code: String, allow_codes: Vec<String>, deny_codes: Ve
 }
 
 // Check whether a diagnostic should be suppressed (allow).
+// Matches either by W-code (e.g. "W0006") or by rule name (e.g. "unused-import").
 pub fn should_suppress(code: String, allow_codes: Vec<String>) -> bool {
     let count = len(allow_codes)
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(allow_codes, i)), clone(code)) {
+        let entry = get_unchecked(allow_codes, i)
+        // Direct W-code match
+        if eq(clone(entry), clone(code)) {
+            return true
+        }
+        // Rule name match: resolve the name to a W-code and compare
+        let resolved = resolve_rule_code(clone(entry))
+        if len(clone(resolved)) > 0 && eq(clone(resolved), clone(code)) {
             return true
         }
         i = i + 1
@@ -175,11 +183,17 @@ pub fn should_suppress(code: String, allow_codes: Vec<String>) -> bool {
 }
 
 // Check whether a diagnostic should be escalated to an error (deny).
+// Matches either by W-code (e.g. "W0006") or by rule name (e.g. "unused-import").
 pub fn should_deny(code: String, deny_codes: Vec<String>) -> bool {
     let count = len(deny_codes)
     let mut i = 0
     while i < count {
-        if eq(clone(get_unchecked(deny_codes, i)), clone(code)) {
+        let entry = get_unchecked(deny_codes, i)
+        if eq(clone(entry), clone(code)) {
+            return true
+        }
+        let resolved = resolve_rule_code(clone(entry))
+        if len(clone(resolved)) > 0 && eq(clone(resolved), clone(code)) {
             return true
         }
         i = i + 1

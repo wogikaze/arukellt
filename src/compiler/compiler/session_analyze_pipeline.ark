@@ -2,6 +2,7 @@
 
 use analysis::diagnostic_record
 use analysis::snapshot_state_record
+use compiler::diag_facade
 use compiler::phases
 use compiler::session_lex_query
 use compiler::session_parse_tokens
@@ -10,8 +11,7 @@ use compiler::session
 use compiler::session_typecheck_query
 use corehir::frontend_bundle
 use corehir::mod
-use diagnostics::severity
-use diagnostics::source_map_offsets
+use lint::checks as lint_checks
 use loader::load
 
 fn lex_diag_code_string(code: i32) -> String {
@@ -111,6 +111,41 @@ ti = ti + 1
 }
 }
 
+// Record lint warnings (W0006 unused import, W0009 deprecated API, etc.) as
+// analysis diagnostics so the LSP can publish them via textDocument/publishDiagnostics.
+fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
+// Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
+let lint_warns = lint_checks::run_post_resolve_lint(decls, String_from("wasm32-wasi-p1"))
+let lw_count = len(lint_warns)
+let mut li = 0
+while li < lw_count {
+let w = get_unchecked(lint_warns, li)
+let code = diag_record::diagnostic_code(w)
+let msg = diag_record::diagnostic_message(w)
+let span = diag_record::diagnostic_span(w)
+let start = diag_record::diagnostic_span_start(span)
+let end = diag_record::diagnostic_span_end(span)
+let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
+snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
+li = li + 1
+}
+// Typecheck warnings (W0007 unused binding, W0001 shared-mut-alias)
+let tc_warns = session_typecheck_query::session_typecheck_warnings(check_result)
+let tw_count = len(tc_warns)
+let mut ti = 0
+while ti < tw_count {
+let w = get_unchecked(tc_warns, ti)
+let code = diag_record::diagnostic_code(w)
+let msg = diag_record::diagnostic_message(w)
+let span = diag_record::diagnostic_span(w)
+let start = diag_record::diagnostic_span_start(span)
+let end = diag_record::diagnostic_span_end(span)
+let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
+snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
+ti = ti + 1
+}
+}
+
 fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
 	run_session_analyze_with_modules(uri, text, load::load_prelude_modules())
 }
@@ -130,6 +165,8 @@ session_record_resolve_diagnostics(snap, resolve_ctx)
 	let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx, Vec_new_String())
 snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
 	session_record_typecheck_diagnostics(snap, check_result, res_err_count)
+	// Record lint warnings (W0006 unused import, W0009 deprecated API, etc.)
+	session_record_lint_diagnostics(snap, decls, check_result)
 	if res_err_count == 0 && session_typecheck_query::session_typecheck_error_count(check_result) == 0 {
 		let empty_names = Vec_new_String()
 		let empty_counts = Vec_new_i32()

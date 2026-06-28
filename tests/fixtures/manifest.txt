@@ -1227,3 +1227,4 @@ run:test_gc_struct.ark
 run:test_enum_gc.ark
 run:test_enum_payload_gc.ark
 run:test_gc_struct_min.ark
+diag:diagnostics/capability_stub.ark

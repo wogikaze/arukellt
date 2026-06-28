@@ -4,17 +4,10 @@ use wasm::code
 use wasm::wasm_context
 use wasm::wasm_start
 use wasm::strings
+use wasm::wasm_sections_facade
 use mir::module_functions
-use mir::module_gc_struct
 use mir::module_wit_imports
-use wasm::sections_tail
-use wasm::sections_exports
-use wasm::sections_functions
-use wasm::sections_imports
-use wasm::sections_memory
-use wasm::sections_table
-use wasm::sections_type_plan
-use wasm::sections_types
+use mir::module_gc_struct
 
 fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let fn_count = module_functions::MirModule_function_count(mir)
@@ -25,22 +18,22 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     let mut ctx = wasm_context::emit_wasm_context_new(functions, strings, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
     let needs_wrapper = wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
-    let type_plan = sections_types::emit_type_section(out, mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
-    wasm_context::emit_wasm_context_set_gc_type_base(ctx, sections_type_plan::TypeSectionPlan_gc_type_base(type_plan))
-    wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, sections_type_plan::TypeSectionPlan_gc_enum_variant_base(type_plan))
-    wasm_context::emit_wasm_context_set_gc_enum_variant_type_map(ctx, sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(type_plan))
-    wasm_context::emit_wasm_context_set_gc_struct_base(ctx, sections_type_plan::TypeSectionPlan_gc_struct_base(type_plan))
-    wasm_context::emit_wasm_context_set_gc_struct_type_map(ctx, sections_type_plan::TypeSectionPlan_gc_struct_type_map(type_plan))
+    let type_plan = wasm_sections_facade::emit_type_section(out, mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
+    wasm_context::emit_wasm_context_set_gc_type_base(ctx, wasm_sections_facade::type_plan_gc_type_base(type_plan))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, wasm_sections_facade::type_plan_gc_enum_variant_base(type_plan))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_type_map(ctx, wasm_sections_facade::type_plan_gc_enum_variant_type_map(type_plan))
+    wasm_context::emit_wasm_context_set_gc_struct_base(ctx, wasm_sections_facade::type_plan_gc_struct_base(type_plan))
+    wasm_context::emit_wasm_context_set_gc_struct_type_map(ctx, wasm_sections_facade::type_plan_gc_struct_type_map(type_plan))
     wasm_context::emit_wasm_context_set_gc_struct_names(ctx, module_gc_struct::MirModule_gc_struct_names(mir))
-    wasm_context::emit_wasm_context_set_fn_type_map(ctx, sections_type_plan::TypeSectionPlan_fn_type_map(type_plan))
-    sections_imports::emit_import_section(out, sections_type_plan::TypeSectionPlan_host_type_map(type_plan), clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings, sections_type_plan::TypeSectionPlan_wit_type_map(type_plan))
-    sections_functions::emit_function_section(out, fn_count, sections_type_plan::TypeSectionPlan_fn_type_map(type_plan), needs_wrapper, sections_type_plan::TypeSectionPlan_wrapper_type_idx(type_plan))
-    sections_table::emit_table_section(out, mir)
-    sections_memory::emit_memory_section(out, clone(target))
-    sections_memory::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
+    wasm_context::emit_wasm_context_set_fn_type_map(ctx, wasm_sections_facade::type_plan_fn_type_map(type_plan))
+    wasm_sections_facade::emit_import_section(out, wasm_sections_facade::type_plan_host_type_map(type_plan), clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings, wasm_sections_facade::type_plan_wit_type_map(type_plan))
+    wasm_sections_facade::emit_function_section(out, fn_count, wasm_sections_facade::type_plan_fn_type_map(type_plan), needs_wrapper, wasm_sections_facade::type_plan_wrapper_type_idx(type_plan))
+    wasm_sections_facade::emit_table_section(out, mir)
+    wasm_sections_facade::emit_memory_section(out, clone(target))
+    wasm_sections_facade::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
-    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
-    sections_table::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+    wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
-    sections_tail::emit_tail_sections(out, ctx, strings, opt_level)
+    wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level)
 }

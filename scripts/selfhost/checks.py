@@ -300,6 +300,7 @@ LOCAL_COMPILER_NAMESPACES = {
     "resolver",
     "typechecker",
     "wasm",
+    "lint",
 }
 
 # When the working tree is modular but bootstrap compilers are memory-bound,
@@ -326,6 +327,7 @@ WORKTREE_OVERLAY_NAMESPACES = frozenset({
     "resolver",
     "typechecker",
     "wasm",
+    "lint",
 })
 WORKTREE_LEGACY_FACADE_FILES: dict[str, tuple[str, ...]] = {
     "driver": ("driver.ark",),
@@ -3194,7 +3196,7 @@ def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
                 fail_count += 1
                 continue
 
-            check = _wasm_check(wasmtime, current, work_rel, root)
+            check = _wasm_check(wasmtime, current, work_rel, root, extra_args=["--target", "wasm32-wasi-p1"])
             if check.returncode != 0:
                 lines.append(f"  FAIL: {fixture} (formatted output does not parse)")
                 fail_count += 1

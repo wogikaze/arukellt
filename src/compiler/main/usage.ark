@@ -35,6 +35,9 @@ fn print_usage() {
     stdio::println(String_from("  --json         Emit machine-readable JSON diagnostics"))
     stdio::println(String_from("  --output json  Alias for --json on diagnostic/check output"))
     stdio::println(String_from("  --wit <path>   Add a WIT import file for component compilation"))
+    stdio::println(String_from("  --list         List available lint rules (with `lint` command)"))
+    stdio::println(String_from("  --allow <rule> Allow (suppress) a lint rule by W-code or name"))
+    stdio::println(String_from("  --deny <rule>  Deny (escalate to error) a lint rule by W-code or name"))
 }
 
 fn print_version() {

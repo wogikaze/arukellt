@@ -1,0 +1,2 @@
+warning[W0005|typecheck]: non-exportable function `helper_not_exported` will be skipped from component exports
+  --> tests/fixtures/diagnostics/capability_stub.ark:4:4

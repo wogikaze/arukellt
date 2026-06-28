@@ -1,0 +1,176 @@
+// Arukellt Selfhost - lint checks: deprecated API and unused symbols.
+
+use diagnostics::codes
+use diagnostics::mod as diag_mod
+use diagnostics::record
+use lint::deprecated_table
+use parser::ast
+use resolver::ast_access
+use resolver::ast_decl_predicates
+use resolver::ast_expr_predicates
+use resolver::paths
+
+pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        check_deprecated_api_in_node(get_unchecked(decls, i), warnings)
+        i = i + 1
+    }
+    warnings
+}
+
+fn check_deprecated_api_in_node(node: AstNode, warnings: Vec<Diagnostic>) {
+    if ast_decl_predicates::node_is_use(node) {
+        let path = ast_access::node_text(node)
+        let dep_msg = deprecated_table::deprecated_use_message(clone(path))
+        if len(clone(dep_msg)) > 0 {
+            let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+        }
+        return
+    }
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        let dep_msg = deprecated_table::deprecated_call_message(clone(name))
+        if len(clone(dep_msg)) > 0 {
+            let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+        }
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        check_deprecated_api_in_node(ast_access::node_child_at(node, ci), warnings)
+        ci = ci + 1
+    }
+}
+
+pub fn check_deprecated_target_alias(target: String) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    if deprecated_table::is_deprecated_target(clone(target)) {
+        let msg = deprecated_table::deprecated_target_message(clone(target))
+        let span = record::DiagnosticSpan_from_raw(0, 0)
+        push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_TARGET_ALIAS(), diag_mod::SEV_WARNING(), span, msg))
+    }
+    warnings
+}
+
+pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    let fn_names = Vec_new_String()
+    let fn_spans_start = Vec_new_i32()
+    let fn_spans_end = Vec_new_i32()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
+            let name = ast_access::node_text(node)
+            if !eq(clone(name), String_from("main")) {
+                push(fn_names, clone(name))
+                push(fn_spans_start, ast_access::node_decl_name_span_start(node))
+                push(fn_spans_end, ast_access::node_decl_name_span_end(node))
+            }
+        }
+        i = i + 1
+    }
+    let referenced = Vec_new_String()
+    let dcount = len(decls)
+    let mut di = 0
+    while di < dcount {
+        collect_referenced_idents(get_unchecked(decls, di), referenced)
+        di = di + 1
+    }
+    let fn_count = len(fn_names)
+    let mut fi = 0
+    while fi < fn_count {
+        let name = clone(get_unchecked(fn_names, fi))
+        if !name_in_vec(clone(name), referenced) {
+            let msg = concat(String_from("unused symbol `"), concat(clone(name), String_from("`")))
+            let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
+        }
+        fi = fi + 1
+    }
+    warnings
+}
+
+fn collect_referenced_idents(node: AstNode, referenced: Vec<String>) {
+    if ast_expr_predicates::node_is_ident(node) {
+        push(referenced, ast_access::node_text(node))
+        return
+    }
+    if ast_expr_predicates::node_is_path(node) {
+        let path = ast_access::node_text(node)
+        let sym_part = paths::path_symbol_part(clone(path))
+        if len(clone(sym_part)) > 0 {
+            push(referenced, sym_part)
+        }
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        collect_referenced_idents(ast_access::node_child_at(node, ci), referenced)
+        ci = ci + 1
+    }
+}
+
+// ── W0005: capability stub ─────────────────────────────────────────────
+// Warns when a non-pub function would be skipped from component exports
+// when building for a component target (wasm32-wasi-p2 / component-model).
+pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    // Only relevant for component targets
+    if !is_component_target(target) {
+        return warnings
+    }
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
+            let name = ast_access::node_text(node)
+            // Skip main and private helpers starting with _
+            if eq(clone(name), String_from("main")) {
+                i = i + 1
+                continue
+            }
+            if starts_with(clone(name), String_from("_")) {
+                i = i + 1
+                continue
+            }
+            let msg = concat(String_from("non-exportable function `"), concat(clone(name), String_from("` will be skipped from component exports")))
+            let span = record::DiagnosticSpan_from_raw(ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_CAPABILITY_STUB(), diag_mod::SEV_WARNING(), span, msg))
+        }
+        i = i + 1
+    }
+    warnings
+}
+
+fn is_component_target(target: String) -> bool {
+    if eq(clone(target), String_from("wasm32-wasi-p2")) {
+        return true
+    }
+    if eq(clone(target), String_from("component")) {
+        return true
+    }
+    if eq(clone(target), String_from("wasm32-wasi-preview2")) {
+        return true
+    }
+    false
+}
+
+// ── W0008: doc drift ───────────────────────────────────────────────────
+// Warns when a pub function's doc comment mentions a parameter name that
+// does not appear in the function signature (documentation drift).
+// NOTE: Full doc drift detection requires comment tracking which is not yet
+// available in the selfhost AST. This is a placeholder that returns no warnings.
+pub fn check_doc_drift(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let _ = decls
+    Vec_new_Diagnostic()
+}

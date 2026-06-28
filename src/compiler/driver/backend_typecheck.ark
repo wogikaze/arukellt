@@ -2,10 +2,13 @@
 
 use compiler::phases
 use compiler::session_typecheck_query
+use diagnostics::record as diag_record
 use driver::config_record
 use driver::debug
 use driver::errors
 use driver::result_record
+use lint::checks as lint_checks
+use lint::registry as lint_registry
 use std::host::clock
 
 struct DriverTypecheckResult {
@@ -35,6 +38,34 @@ fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {
     result.t_typecheck
 }
 
+// Filter lint warnings by --allow/--deny lists.
+fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>, deny_codes: Vec<String>) -> Vec<Diagnostic> {
+    let filtered = Vec_new_Diagnostic()
+    let count = len(warnings)
+    let mut i = 0
+    while i < count {
+        let diag = get_unchecked(warnings, i)
+        let code = diag_record::diagnostic_code(diag)
+        if lint_registry::should_suppress(clone(code), allow_codes) {
+            i = i + 1
+            continue
+        }
+        push(filtered, diag)
+        i = i + 1
+    }
+    filtered
+}
+
+// Merge two Vec<Diagnostic> into one.
+fn merge_warnings(into: Vec<Diagnostic>, from: Vec<Diagnostic>) {
+    let count = len(from)
+    let mut i = 0
+    while i < count {
+        push(into, get_unchecked(from, i))
+        i = i + 1
+    }
+}
+
 fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> DriverTypecheckResult {
     let check_result = session_typecheck_query::session_typecheck_decls(all_decls, resolve_ctx, config_record::config_wit_paths(config))
     debug::dump_typed_hir_if_enabled(config, check_result)
@@ -43,9 +74,21 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
         return DriverTypecheckResult_new(true, errors::type_errors_result(clone(source), config_record::config_source_file(config), error_count, session_typecheck_query::session_typecheck_diagnostics(check_result), session_typecheck_query::session_typecheck_errors(check_result)), check_result, 0)
     }
     if config_record::config_check_only(config) {
+        // Collect typecheck warnings (W0007 unused binding, W0001 shared-mut-alias, etc.)
         let warnings = session_typecheck_query::session_typecheck_warnings(check_result)
-        if len(warnings) > 0 {
-            return DriverTypecheckResult_new(true, errors::type_warnings_result(clone(source), config_record::config_source_file(config), warnings), check_result, clock::monotonic_now())
+        // Run post-resolution lint checks (W0006 unused import, W0009 deprecated API, etc.)
+        let lint_warnings = lint_checks::run_post_resolve_lint(all_decls, config_record::config_target(config))
+        // Filter by --allow/--deny
+        let allow_codes = config_record::config_lint_allow(config)
+        let deny_codes = config_record::config_lint_deny(config)
+        let filtered_typecheck = filter_lint_warnings(warnings, allow_codes, deny_codes)
+        let filtered_lint = filter_lint_warnings(lint_warnings, allow_codes, deny_codes)
+        // Merge all warnings
+        let merged = Vec_new_Diagnostic()
+        merge_warnings(merged, filtered_typecheck)
+        merge_warnings(merged, filtered_lint)
+        if len(merged) > 0 {
+            return DriverTypecheckResult_new(true, errors::type_warnings_result(clone(source), config_record::config_source_file(config), merged), check_result, clock::monotonic_now())
         }
         return DriverTypecheckResult_new(true, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, clock::monotonic_now())
     }

@@ -1,6 +1,7 @@
 // Arukellt Selfhost - CLI lint command implementation.
 
 use std::host::stdio
+use lint::config as lint_config
 use lint::registry
 use main::args_record
 use main::compile_core
@@ -13,7 +14,14 @@ pub fn cmd_lint(opts: CliOptions) {
         stdio::println(registry::format_lint_rule_list())
         return
     }
-    // Otherwise: run the compile pipeline in check-only mode (same as `check`)
-    // but with lint warnings collected and filtered by --allow/--deny.
+    // Load [lint] config from ark.toml and merge with CLI --allow/--deny
+    let config = lint_config::load_lint_config(String_from("."))
+    let cli_allow = args_record::cli_lint_allow(opts)
+    let cli_deny = args_record::cli_lint_deny(opts)
+    lint_config::merge_lint_config(cli_allow, cli_deny, config)
+    args_record::cli_set_lint_allow(opts, cli_allow)
+    args_record::cli_set_lint_deny(opts, cli_deny)
+    // Run the compile pipeline in check-only mode with lint warnings collected
+    // and filtered by --allow/--deny (merged with ark.toml [lint] config).
     compile_core::cmd_compile_single(opts)
 }

@@ -4,6 +4,7 @@ use main::args_record
 use main::commands
 use main::args_parse_flags
 use main::args_parse_opts
+use main::args_parse_opts_lint
 use main::kinds
 // Arukellt Selfhost - CLI argument parser.
 
@@ -179,10 +180,10 @@ fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index
                                         i = args_parse_opts::parse_template_option(argv, argc, opts, i)
                                     } else {
                                         if commands::cli_str_eq(clone(arg), String_from("--allow")) {
-                                            i = args_parse_opts::parse_lint_allow_option(argv, argc, opts, i)
+                                            i = args_parse_opts_lint::parse_lint_allow_option(argv, argc, opts, i)
                                         } else {
                                             if commands::cli_str_eq(clone(arg), String_from("--deny")) {
-                                                i = args_parse_opts::parse_lint_deny_option(argv, argc, opts, i)
+                                                i = args_parse_opts_lint::parse_lint_deny_option(argv, argc, opts, i)
                                             } else {
                                                 if !args_parse_flags::parse_flag_option(opts, arg) {
                                                     parse_input_or_error(opts, arg)

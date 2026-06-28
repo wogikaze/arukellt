@@ -18,6 +18,10 @@ fn ast_node_is_pub(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_pub(node)
 }
 
+fn ast_node_is_mut(node: AstNode) -> bool {
+    ast_fields_record::ast_node_is_mut(node)
+}
+
 fn ast_node_is_async(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_async(node)
 }

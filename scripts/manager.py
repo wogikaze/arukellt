@@ -1122,6 +1122,7 @@ def _compiler_table_like_file(path: Path) -> bool:
     name = path.name
     parts = set(path.parts)
     table_tokens = (
+        "codes",
         "constants",
         "kind",
         "kinds",
@@ -1157,6 +1158,7 @@ def _compiler_root_layout_violations(root: Path) -> list[str]:
         "emit_wat.ark",
         "emitter.ark",
         "hir.ark",
+        "lint.ark",
         "lsp.ark",
         "main.ark",
         "mir_dump.ark",
@@ -3680,6 +3682,7 @@ def _compiler_constant_function_layout_violations(root: Path) -> list[tuple[str,
         "kinds.ark",
         "lower_kinds.ark",
         "opcodes.ark",
+        "registry.ark",
         "tokens.ark",
         "type_tags.ark",
     }

@@ -41,3 +41,7 @@ fn node_span_start(node: AstNode) -> i32 {
 fn node_op(node: AstNode) -> i32 {
     ast::ast_node_op(node)
 }
+
+fn node_is_mut(node: AstNode) -> bool {
+    ast::ast_node_is_mut(node)
+}

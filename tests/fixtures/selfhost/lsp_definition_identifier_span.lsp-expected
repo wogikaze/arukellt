@@ -1,8 +1,8 @@
 Content-Length: 631
 
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"renameProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"documentFormattingProvider":true,"documentRangeFormattingProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 113
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"textDocumentSync":1,"hoverProvider":true,"definitionProvider":true,"typeDefinitionProvider":true,"referencesProvider":true,"documentHighlightProvider":true,"renameProvider":true,"completionProvider":{"resolveProvider":false,"triggerCharacters":[".",":"]},"signatureHelpProvider":{"triggerCharacters":["(",","]},"codeActionProvider":true,"workspaceSymbolProvider":true,"documentFormattingProvider":true,"documentRangeFormattingProvider":true,"diagnosticProvider":{"interFileDependencies":false,"workspaceDiagnostics":false}},"serverInfo":{"name":"arukellt-lsp","version":"0.1.0"}}}Content-Length: 457
 
-{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///span.ark","diagnostics":[]}}Content-Length: 134
+{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///span.ark","diagnostics":[{"range":{"start":{"line":2,"character":4},"end":{"line":2,"character":7}},"severity":2,"source":"arukellt","code":"arukellt-lint","message":"W0007|unused binding `item`"},{"range":{"start":{"line":4,"character":8},"end":{"line":4,"character":11}},"severity":2,"source":"arukellt","code":"arukellt-lint","message":"W0007|unused binding `item`"}]}}Content-Length: 134
 
 {"jsonrpc":"2.0","id":2,"result":{"uri":"file:///span.ark","range":{"start":{"line":0,"character":3},"end":{"line":0,"character":8}}}}Content-Length: 136
 

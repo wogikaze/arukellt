@@ -34,13 +34,13 @@ pub fn init_template_normalize(name: String) -> String {
 
 pub fn init_template_main_ark(template: String) -> String {
     if eq(clone(template), String_from("cli")) {
-        return String_from("use std::host::stdio\nuse std::host::process\n\nfn greet(name: String) -> String {\n    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\nfn main() {\n    stdio::println(greet(String_from(\"World\")))\n    process::exit(0)\n}\n")
+        return String_from("use std::host::stdio\nuse std::host::process\n\npub fn greet(name: String) -> String {\n    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\nfn main() {\n    stdio::println(greet(String_from(\"World\")))\n    process::exit(0)\n}\n")
     }
     if eq(clone(template), String_from("with-tests")) {
-        return String_from("use std::host::stdio\n\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\npub fn subtract(a: i32, b: i32) -> i32 {\n    a - b\n}\n\nfn test_add() {\n    let result = add(2, 3)\n    assert(result == 5)\n}\n\nfn test_subtract() {\n    let result = subtract(10, 4)\n    assert(result == 6)\n}\n\nfn main() {\n    let result = add(1, 2)\n    stdio::println(concat(String_from(\"1 + 2 = \"), i32_to_string(result)))\n}\n")
+        return String_from("use std::host::stdio\n\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\npub fn subtract(a: i32, b: i32) -> i32 {\n    a - b\n}\n\npub fn test_add() {\n    let result = add(2, 3)\n    assert(result == 5)\n}\n\npub fn test_subtract() {\n    let result = subtract(10, 4)\n    assert(result == 6)\n}\n\nfn main() {\n    let result = add(1, 2)\n    stdio::println(concat(String_from(\"1 + 2 = \"), i32_to_string(result)))\n}\n")
     }
     if eq(clone(template), String_from("wasi-host")) {
-        return String_from("// Build with: arukellt run --target wasm32-wasi-p2 main.ark\nuse std::host::stdio\nuse std::host::http\n\nfn main() {\n    stdio::println(String_from(\"Fetching example.com...\"))\n    // match http::get(String_from(\"http://example.com\")) {\n    //     Ok(body) => stdio::println(concat(String_from(\"Got \"), body))\n    //     Err(e) => stdio::eprintln(concat(String_from(\"Error: \"), e))\n    // }\n    stdio::println(String_from(\"Done. Uncomment the HTTP call in main.ark to try it.\"))\n}\n")
+        return String_from("// Build with: arukellt run --target wasm32-wasi-p2 main.ark\nuse std::host::stdio\n\nfn main() {\n    stdio::println(String_from(\"Fetching example.com...\"))\n    // Uncomment after enabling std::host::http:\n    // use std::host::http\n    // match http::get(String_from(\"http://example.com\")) {\n    //     Ok(body) => stdio::println(concat(String_from(\"Got \"), body))\n    //     Err(e) => stdio::eprintln(concat(String_from(\"Error: \"), e))\n    // }\n    stdio::println(String_from(\"Done. Uncomment the HTTP call in main.ark to try it.\"))\n}\n")
     }
     String_from("use std::host::stdio\n\nfn main() {\n    stdio::println(String_from(\"Hello, Arukellt!\"))\n}\n")
 }

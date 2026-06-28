@@ -1,0 +1,22 @@
+// Arukellt Selfhost - Diagnostics facade for session pipeline.
+
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
+use diagnostics::severity
+use diagnostics::source_map_offsets
+
+fn Diagnostic_new(code: String, sev: i32, span: diag_record::DiagnosticSpan, msg: String) -> diag_mod::Diagnostic {
+    diag_mod::Diagnostic_new(code, sev, span, msg)
+}
+
+fn SEV_WARNING() -> i32 { severity::SEV_WARNING() }
+fn SEV_ERROR() -> i32 { severity::SEV_ERROR() }
+fn SEV_INFO() -> i32 { severity::SEV_INFO() }
+
+fn DiagnosticSpan_from_raw(start: i32, end: i32) -> diag_record::DiagnosticSpan {
+    diag_record::DiagnosticSpan_from_raw(start, end)
+}
+
+fn source_map_offset_for(source_map: diag_record::SourceMap, line: i32, col: i32) -> i32 {
+    source_map_offsets::source_map_offset_for(source_map, line, col)
+}

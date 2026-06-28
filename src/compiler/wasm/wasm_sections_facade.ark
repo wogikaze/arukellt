@@ -1,0 +1,82 @@
+// Arukellt Selfhost - Wasm section emitter facade bundling section modules.
+
+use wasm::sections_tail
+use wasm::sections_exports
+use wasm::sections_functions
+use wasm::sections_imports
+use wasm::sections_memory
+use wasm::sections_table
+use wasm::sections_type_plan
+use wasm::sections_types
+
+fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: bool, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
+    sections_types::emit_type_section(out, mir, functions, fn_count, needs_wrapper, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, bindings)
+}
+
+fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
+    sections_imports::emit_import_section(out, host_type_map, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, bindings, wit_type_map)
+}
+
+fn emit_function_section(out: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>, needs_wrapper: bool, wrapper_type_idx: i32) {
+    sections_functions::emit_function_section(out, fn_count, fn_type_map, needs_wrapper, wrapper_type_idx)
+}
+
+fn emit_table_section(out: WasmWriter, mir: MirModule) {
+    sections_table::emit_table_section(out, mir)
+}
+
+fn emit_memory_section(out: WasmWriter, target: String) {
+    sections_memory::emit_memory_section(out, target)
+}
+
+fn emit_global_section(out: WasmWriter, data_offset: i32) {
+    sections_memory::emit_global_section(out, data_offset)
+}
+
+fn emit_export_section(out: WasmWriter, mir: MirModule, fn_count: i32, needs_wrapper: bool, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, wit_import_count: i32) {
+    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+}
+
+fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, wit_import_count: i32) {
+    sections_table::emit_element_section(out, mir, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+}
+
+fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32) {
+    sections_tail::emit_tail_sections(out, ctx, strings, opt_level)
+}
+
+fn type_plan_gc_type_base(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_gc_type_base(plan)
+}
+
+fn type_plan_gc_enum_variant_base(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_gc_enum_variant_base(plan)
+}
+
+fn type_plan_gc_enum_variant_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan)
+}
+
+fn type_plan_gc_struct_base(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_gc_struct_base(plan)
+}
+
+fn type_plan_gc_struct_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
+}
+
+fn type_plan_fn_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_fn_type_map(plan)
+}
+
+fn type_plan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_host_type_map(plan)
+}
+
+fn type_plan_wit_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_wit_type_map(plan)
+}
+
+fn type_plan_wrapper_type_idx(plan: TypeSectionPlan) -> i32 {
+    sections_type_plan::TypeSectionPlan_wrapper_type_idx(plan)
+}

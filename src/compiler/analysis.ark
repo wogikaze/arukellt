@@ -22,6 +22,10 @@ pub fn PHASE_TYPECHECK() -> i32 {
 phases::PHASE_TYPECHECK()
 }
 
+pub fn PHASE_LINT() -> i32 {
+phases::PHASE_LINT()
+}
+
 pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
 session_analyze_pipeline::run_session_analyze(uri, text)
 }

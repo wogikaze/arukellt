@@ -18,6 +18,9 @@ fn phase_code(phase: i32) -> String {
 	if phase == analysis::PHASE_TYPECHECK() {
 		return String_from("ark.typecheck")
 	}
+	if phase == analysis::PHASE_LINT() {
+		return String_from("arukellt-lint")
+	}
 	String_from("ark.unknown")
 }
 
@@ -32,7 +35,11 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
 	out = concat(out, to_string(diag_position::lsp_diag_position_line(e)))
 	out = concat(out, String_from(",\"character\":"))
 	out = concat(out, to_string(diag_position::lsp_diag_position_character(e)))
-	out = concat(out, String_from("}},\"severity\":1,\"source\":\"arukellt\",\"code\":"))
+	out = concat(out, String_from("}},\"severity\":"))
+	// Lint diagnostics are warnings (severity 2), others are errors (severity 1)
+	let sev = if diagnostic_record::analysis_diagnostic_phase(diag) == analysis::PHASE_LINT() { 2 } else { 1 }
+	out = concat(out, to_string(sev))
+	out = concat(out, String_from(",\"source\":\"arukellt\",\"code\":"))
 	out = concat(out, diag_json::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
 	out = concat(out, String_from(",\"message\":"))
 	out = concat(out, diag_json::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
