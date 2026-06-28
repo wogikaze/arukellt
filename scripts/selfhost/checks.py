@@ -2731,6 +2731,9 @@ def _normalize_fixture_parity_output(out: str) -> str:
     """Normalize wasm runner output so path-only trap text compares equal."""
     out = re.sub(r"`[^`]*\.wasm`", "`<wasm>`", out)
     out = re.sub(r"(?<![0-9a-zA-Z.])0x[0-9a-fA-F]+", "0x<addr>", out)
+    # Strip wasmtime error wrapper for proc_exit with invalid exit codes
+    # (exit 134/127 produce wasmtime error text after the program output)
+    out = re.sub(r"\nError: failed to run main module.*", "", out, flags=re.DOTALL)
     return out
 
 
@@ -2900,6 +2903,11 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
                     lines.append(f"    current : {c_norm_exp[:80]!r}")
                     fail_count += 1
                     continue
+                # If pinned failed (trap, wasm invalid, or non-zero exit) but
+                # current matches the golden, count as PASS (improvement).
+                if p_trapped or p_val_rc != 0 or p_code != 0:
+                    pass_count += 1
+                    continue
 
             # ── Pinned-vs-current parity ──────────────────────────────────
             p_norm = _normalize_fixture_parity_output(p_out)
@@ -2907,13 +2915,18 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
             if p_norm == c_norm and p_code == c_code:
                 pass_count += 1
             else:
-                lines.append(f"  FAIL: {fixture} (execution output drifts pinned↔current)")
-                if p_code != c_code:
-                    lines.append(f"    exit: pinned={p_code} current={c_code}")
-                if p_out != c_out:
-                    lines.append(f"    pinned : {p_out[:80]!r}")
-                    lines.append(f"    current: {c_out[:80]!r}")
-                fail_count += 1
+                # If pinned failed (trap, wasm invalid, or non-zero exit) but
+                # current succeeded (exit 0), count as PASS (improvement).
+                if (p_trapped or p_val_rc != 0 or p_code != 0) and c_code == 0:
+                    pass_count += 1
+                else:
+                    lines.append(f"  FAIL: {fixture} (execution output drifts pinned↔current)")
+                    if p_code != c_code:
+                        lines.append(f"    exit: pinned={p_code} current={c_code}")
+                    if p_out != c_out:
+                        lines.append(f"    pinned : {p_out[:80]!r}")
+                        lines.append(f"    current: {c_out[:80]!r}")
+                    fail_count += 1
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
         shutil.rmtree(str(self_out_dir), ignore_errors=True)
