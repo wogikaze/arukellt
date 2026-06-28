@@ -1,6 +1,11 @@
 // Arukellt Selfhost - string ASCII case intrinsic facade.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::string_gc_helpers
+use wasm::writer_gc
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -15,6 +20,10 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: to_uppercase, to_upper, text::to_upper, text::to_uppercase
 fn emit_to_upper(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_case_gc(w, inst, ctx, 97, 122, true)
+        return true
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -28,6 +37,10 @@ fn emit_to_upper(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: to_lowercase, to_lower, text::to_lower, text::to_lowercase
 fn emit_to_lower(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_case_gc(w, inst, ctx, 65, 90, false)
+        return true
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -37,6 +50,82 @@ fn emit_to_lower(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_ascii_case_loop(w, s0, s1, s2, s3, s4, 65, 90, false)
     emit_case_finish_heap_and_result(w, s1, s2)
     return true
+}
+
+// GC-target case conversion: strings are (ref null array_i8) refs.
+fn emit_case_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32, range_end: i32, to_upper: bool) {
+    let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let g1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_ch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+
+    // Store source string ref to g0
+    helpers_core_locals::emit_local_set(w, g0)
+
+    // s_len = array.len g0
+    helpers_core_locals::emit_local_get(w, g0)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_len)
+
+    // Allocate result array: array.new_default string_type s_len
+    helpers_core_locals::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core_locals::emit_local_set(w, g1)
+
+    // s_i = 0
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_i)
+
+    // Loop: for i = 0 to s_len-1
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core_locals::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // s_ch = src[i]
+    helpers_core_locals::emit_local_get(w, g0)
+    helpers_core_locals::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get_u(w, string_type)
+    helpers_core_locals::emit_local_set(w, s_ch)
+
+    // Convert if in range
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, range_start)
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, range_end)
+    helpers_numeric_i32_compare::emit_i32_le_s(w)
+    helpers_numeric_i32_bitwise::emit_i32_and(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, 32)
+    if to_upper {
+        helpers_numeric_i32_arith::emit_i32_sub(w)
+    } else {
+        helpers_numeric_i32_arith::emit_i32_add(w)
+    }
+    helpers_core_locals::emit_local_set(w, s_ch)
+    helpers_control_structured::emit_end(w)
+
+    // dest[i] = s_ch
+    helpers_core_locals::emit_local_get(w, g1)
+    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core_locals::emit_local_get(w, s_ch)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+
+    // i++
+    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // Leave result array ref on stack; caller handles dest store.
+    helpers_core_locals::emit_local_get(w, g1)
 }
 
 fn emit_case_read_source_and_alloc(w: WasmWriter, s_src: i32, s_len: i32, s_dst: i32) {
