@@ -19,3 +19,7 @@ fn emit_wasm_context_set_gc_enum_variant_base(ctx: SelfEmitCtx, gc_enum_variant_
 fn emit_wasm_context_set_gc_enum_variant_type_map(ctx: SelfEmitCtx, gc_enum_variant_type_map: Vec<i32>) {
     ctx_record::SelfEmitCtx_set_gc_enum_variant_type_map(ctx, gc_enum_variant_type_map)
 }
+
+fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
+    ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
+}

@@ -30,6 +30,7 @@ fn mir_is_builtin_type_name(name: String) -> bool {
     if eq(clone(name), "String") { return true }
     if eq(clone(name), "char") { return true }
     if eq(clone(name), "Vec") { return true }
+    if eq(clone(name), "fnref") { return true }
     if starts_with(clone(name), "vec:") { return true }
     if starts_with(clone(name), "hashmap:") { return true }
     if eq(clone(name), "enum") { return true }

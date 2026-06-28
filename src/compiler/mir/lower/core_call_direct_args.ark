@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering for direct CoreHIR call argument loop.
 
 use mir::lower::call_emit
+use mir::lower::call_indirect_emit
 use mir::lower::core_call_args
 use mir::lower::core_call_direct_arg
 use mir::lower::core_expr_shape_accessors
@@ -17,6 +18,13 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         }
     }
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let callee_node = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    if core_expr_shape_atoms::mir_core_expr_is_ident(callee_node) {
+        let callee_local = core_names::mir_core_lookup_local(ctx, callee_node)
+        if callee_local >= 0 && call_indirect_emit::mir_is_funcref_local(ctx, callee_local) {
+            return call_indirect_emit::mir_lower_indirect_call(ctx, exprs, expr, child_count, callee_local)
+        }
+    }
     let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
     let stage_call_args = !is_println && child_count > 2
     let staged_arg_locals = Vec_new_i32()

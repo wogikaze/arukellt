@@ -5,3 +5,4 @@ use corehir::frontend_kind_map
 fn corehir_kind_is_type_named(kind: i32) -> bool { kind == frontend_kind_map::nk_type_named() }
 fn corehir_kind_is_type_generic(kind: i32) -> bool { kind == frontend_kind_map::nk_type_generic() }
 fn corehir_kind_is_type_tuple(kind: i32) -> bool { kind == frontend_kind_map::nk_type_tuple() }
+fn corehir_kind_is_type_fn(kind: i32) -> bool { kind == frontend_kind_map::nk_type_fn() }

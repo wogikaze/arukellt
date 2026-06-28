@@ -33,6 +33,7 @@ fn return_vt_for_rt_tag(rt_tag: i32) -> i32 {
         2 => value_types::VT_I64(),
         3 => value_types::VT_F64(),
         5 => value_types::VT_REF(),
+        9 => value_types::VT_F32(),
         10 => value_types::VT_I32(),
         11 => value_types::VT_GC_REF(),
         12 => value_types::VT_GC_REF(),
@@ -40,6 +41,7 @@ fn return_vt_for_rt_tag(rt_tag: i32) -> i32 {
         21 => value_types::VT_GC_REF(),
         22 => value_types::VT_GC_REF(),
         30 => value_types::VT_I32(),
+        40 => value_types::VT_V128(),
         _ => {
             if rt_tag >= 1 && rt_tag <= 6 {
                 return value_types::VT_I32()

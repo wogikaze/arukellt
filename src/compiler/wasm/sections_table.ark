@@ -1,0 +1,68 @@
+// Arukellt Selfhost - Wasm table and element section emission for funcref HOF support.
+
+use mir::local_access
+use mir::module_functions
+use mir::function_param_view
+use wasm::constants
+use wasm::function_indices
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::writer_sections
+
+fn module_has_funcref_params(mir: MirModule) -> bool {
+    let fn_count = module_functions::MirModule_function_count(mir)
+    let functions = module_functions::MirModule_functions(mir)
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(functions, i)
+        let pc = function_param_view::MirFunction_param_count(f)
+        let mut pi = 0
+        while pi < pc {
+            let p = function_param_view::MirFunction_param_at(f, pi)
+            if local_access::MirLocal_val_type(p) == 8 {
+                return true
+            }
+            pi = pi + 1
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn emit_table_section(out: WasmWriter, mir: MirModule) {
+    if !module_has_funcref_params(mir) {
+        return
+    }
+    let table_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(table_sec, 1)
+    writer_core::emit_byte(table_sec, constants::WASM_FUNCREF())
+    writer_core::emit_byte(table_sec, 0)
+    let fn_count = module_functions::MirModule_function_count(mir)
+    writer_leb::emit_leb128_u(table_sec, fn_count)
+    writer_leb::emit_leb128_u(table_sec, fn_count)
+    writer_sections::emit_section(out, opcodes::SEC_TABLE(), table_sec)
+}
+
+fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
+    if !module_has_funcref_params(mir) {
+        return
+    }
+    let fn_count = module_functions::MirModule_function_count(mir)
+    let elem_sec = writer_core::WasmWriter_new()
+    writer_leb::emit_leb128_u(elem_sec, 1)
+    writer_leb::emit_leb128_u(elem_sec, 0)
+    writer_core::emit_byte(elem_sec, 0)
+    writer_core::emit_byte(elem_sec, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(elem_sec, 0)
+    writer_core::emit_byte(elem_sec, opcodes::OP_END())
+    writer_leb::emit_leb128_u(elem_sec, fn_count)
+    let mut i = 0
+    while i < fn_count {
+        writer_core::emit_byte(elem_sec, opcodes::OP_REF_FUNC())
+        let defined_idx = function_indices::defined_function_index(i, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+        writer_leb::emit_leb128_u(elem_sec, defined_idx)
+        i = i + 1
+    }
+    writer_sections::emit_section(out, opcodes::SEC_ELEMENT(), elem_sec)
+}

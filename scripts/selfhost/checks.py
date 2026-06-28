@@ -2722,14 +2722,10 @@ FIXTURE_PARITY_SKIP: set[str] = {
                                  # (1.2 → 1.199999999999999); reference uses Grisu2/shortest-repr
     "functions/higher_order.ark",  # selfhost emitter lacks funcref table / call_indirect
                                    # support; fn-pointer parameters are not yet lowered.
-    "simd_conformance/v128_bitwise.ark",  # v128 SIMD emitter produces invalid wasm
-                                          # (type mismatch at offset 0x3d2); native also fails
-    "simd_conformance/i32x4_basic.ark",   # T1 scalar v128 return via locals not implemented;
-                                          # native also produces wrong output (0 vs 30)
-    "simd_lowering/t1_scalar_expansion.ark",  # same v128 return-on-T1 limitation;
-                                              # native also produces wrong output (0 vs 30)
-    "simd_gc_storage/v128_struct_field.ark",  # same v128 return-on-T1 limitation;
-                                              # native also produces wrong output (0 vs 42)
+    "simd_conformance/i32x4_basic.ark",   # SIMD extract_lane lane index not passed as
+                                          # immediate; native emitter reads arg1=-1
+    "simd_lowering/t1_scalar_expansion.ark",  # same extract_lane lane index issue
+    "simd_gc_storage/v128_struct_field.ark",  # same extract_lane lane index issue
 }
 
 
@@ -2881,10 +2877,16 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
 
             p_trapped = _is_trap(p_code)
             c_trapped = _is_trap(c_code)
+            p_was_invalid = p_val_rc != 0
 
-            if c_trapped and not p_trapped:
+            if c_trapped and not p_trapped and not p_was_invalid:
                 lines.append(f"  FAIL: {fixture} (current wasm trap at runtime, pinned OK)")
                 fail_count += 1
+                continue
+
+            if c_trapped and not p_trapped and p_was_invalid:
+                lines.append(f"  note: {fixture} (pinned wasm invalid, current traps — improvement from invalid)")
+                skip_count += 1
                 continue
 
             if c_trapped and p_trapped:

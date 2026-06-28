@@ -50,6 +50,8 @@ fn OP_RETURN() -> i32 { 15 }
 
 // Call and stack opcodes.
 fn OP_CALL() -> i32 { 16 }
+fn OP_CALL_INDIRECT() -> i32 { 17 }
+fn OP_REF_FUNC() -> i32 { 210 }
 fn OP_DROP() -> i32 { 26 }
 fn OP_SELECT() -> i32 { 27 }
 
@@ -282,13 +284,13 @@ fn SIMD_V128_GT() -> i32 { 0x2d }
 fn SIMD_V128_GE() -> i32 { 0x2e }
 
 // Bitwise operations
-fn SIMD_V128_NOT() -> i32 { 0x2f }
-fn SIMD_V128_AND() -> i32 { 0x30 }
-fn SIMD_V128_ANDNOT() -> i32 { 0x31 }
-fn SIMD_V128_OR() -> i32 { 0x32 }
-fn SIMD_V128_XOR() -> i32 { 0x33 }
-fn SIMD_V128_BITSELECT() -> i32 { 0x34 }
-fn SIMD_V128_ANY_TRUE() -> i32 { 0x35 }
+fn SIMD_V128_NOT() -> i32 { 0x4d }
+fn SIMD_V128_AND() -> i32 { 0x4e }
+fn SIMD_V128_ANDNOT() -> i32 { 0x4f }
+fn SIMD_V128_OR() -> i32 { 0x50 }
+fn SIMD_V128_XOR() -> i32 { 0x51 }
+fn SIMD_V128_BITSELECT() -> i32 { 0x52 }
+fn SIMD_V128_ANY_TRUE() -> i32 { 0x53 }
 
 // Load/store lane (for v128)
 fn SIMD_V128_LOAD8_LANE_OP() -> i32 { 0x54 }

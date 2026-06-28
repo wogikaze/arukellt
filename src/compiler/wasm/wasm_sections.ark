@@ -11,6 +11,7 @@ use wasm::sections_exports
 use wasm::sections_functions
 use wasm::sections_imports
 use wasm::sections_memory
+use wasm::sections_table
 use wasm::sections_type_plan
 use wasm::sections_types
 
@@ -27,12 +28,15 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_context::emit_wasm_context_set_gc_type_base(ctx, sections_type_plan::TypeSectionPlan_gc_type_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, sections_type_plan::TypeSectionPlan_gc_enum_variant_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_type_map(ctx, sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(type_plan))
+    wasm_context::emit_wasm_context_set_fn_type_map(ctx, sections_type_plan::TypeSectionPlan_fn_type_map(type_plan))
     sections_imports::emit_import_section(out, sections_type_plan::TypeSectionPlan_host_type_map(type_plan), clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings, sections_type_plan::TypeSectionPlan_wit_type_map(type_plan))
     sections_functions::emit_function_section(out, fn_count, sections_type_plan::TypeSectionPlan_fn_type_map(type_plan), needs_wrapper, sections_type_plan::TypeSectionPlan_wrapper_type_idx(type_plan))
+    sections_table::emit_table_section(out, mir)
     sections_memory::emit_memory_section(out, clone(target))
     sections_memory::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
     sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+    sections_table::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
     sections_tail::emit_tail_sections(out, ctx, strings, opt_level)
 }

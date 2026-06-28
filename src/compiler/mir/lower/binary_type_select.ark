@@ -40,5 +40,11 @@ fn mir_call_return_dest_vt(return_vt: i32) -> i32 {
     if return_vt == value_types::VT_F64() {
         return value_types::VT_F64()
     }
+    if return_vt == value_types::VT_F32() {
+        return value_types::VT_F32()
+    }
+    if return_vt == value_types::VT_V128() {
+        return value_types::VT_V128()
+    }
     value_types::VT_I32()
 }

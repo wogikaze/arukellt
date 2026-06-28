@@ -1,14 +1,25 @@
 // Arukellt Selfhost - CoreHIR parameter value type selection.
 
 use corehir::decl_ann_name
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 use corehir::param_shape_node
 use corehir::value_types
 
 fn fn_param_value_type(node: AstNode) -> i32 {
     if param_shape_node::param_has_type_ann(node) {
         let ann = param_shape_node::param_type_ann(node)
+        if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
+            return value_types::VT_FUNCREF()
+        }
         if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
             return value_types::VT_F64()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("f32")) {
+            return value_types::VT_F32()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("v128")) {
+            return value_types::VT_V128()
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) || decl_ann_name::decl_ann_is_name(ann, String_from("u64")) {
             return value_types::VT_I64()
@@ -23,8 +34,17 @@ fn fn_param_value_type(node: AstNode) -> i32 {
 fn method_param_value_type(node: AstNode) -> i32 {
     if param_shape_node::param_has_type_ann(node) {
         let ann = param_shape_node::param_type_ann(node)
+        if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
+            return value_types::VT_FUNCREF()
+        }
         if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
             return value_types::VT_F64()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("f32")) {
+            return value_types::VT_F32()
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("v128")) {
+            return value_types::VT_V128()
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) {
             return value_types::VT_I64()

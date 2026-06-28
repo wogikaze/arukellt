@@ -1,8 +1,13 @@
 // Arukellt Selfhost - CoreHIR parameter annotation type names.
 
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 use corehir::type_ann_node
 
 fn type_ann_shape_param_type_name(ty: AstNode) -> String {
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ty)) {
+        return String_from("fnref")
+    }
     if type_ann_node::type_ann_is_generic(ty) {
         if type_ann_node::type_ann_is_name(ty, String_from("Option")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)

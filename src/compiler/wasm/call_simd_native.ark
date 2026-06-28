@@ -2,8 +2,10 @@
 // Emits Wasm SIMD instructions (0xFD prefix + LEB128 sub-opcode).
 
 use mir::inst_accessors_operands
+use mir::inst_accessors_literals
 use wasm::call_simd_emit
 use wasm::opcodes
+use wasm::writer_core
 
 fn try_emit_simd_native(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     let dest = inst_accessors_operands::MirInst_dest(inst)
@@ -21,6 +23,7 @@ fn try_emit_simd_native(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfE
 }
 
 fn try_emit_simd_native_v128(w: WasmWriter, callee: String, inst: MirInst, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if eq(clone(callee), String_from("__simd_v128_const")) { emit_native_v128_const(w, inst, dest); return true }
     if eq(clone(callee), String_from("__simd_v128_and")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_V128_AND()); return true }
     if eq(clone(callee), String_from("__simd_v128_or")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_V128_OR()); return true }
     if eq(clone(callee), String_from("__simd_v128_xor")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_V128_XOR()); return true }
@@ -29,6 +32,26 @@ fn try_emit_simd_native_v128(w: WasmWriter, callee: String, inst: MirInst, dest:
     if eq(clone(callee), String_from("__simd_v128_bitselect")) { call_simd_emit::emit_simd_ternary(w, inst, opcodes::SIMD_V128_BITSELECT()); return true }
     if eq(clone(callee), String_from("__simd_v128_any_true")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_V128_ANY_TRUE()); return true }
     false
+}
+
+// Emit __simd_v128_const: drop the 16 i32 byte args from the stack, then
+// construct a v128 using i8x16.replace_lane for each byte.
+fn emit_native_v128_const(w: WasmWriter, inst: MirInst, dest: i32) {
+    let arg_count = inst_accessors_literals::MirInst_int_val(inst)
+    // Drop all staged args from the stack (they were pushed by mir_emit_staged_call_args)
+    let mut i = 0
+    while i < arg_count {
+        writer_core::emit_byte(w, opcodes::OP_DROP())
+        i = i + 1
+    }
+    // Start with v128.const i32x4 0 0 0 0 (zero v128 on stack)
+    call_simd_emit::emit_simd_prefix(w, opcodes::SIMD_V128_CONST())
+    let mut bi = 0
+    while bi < 16 {
+        writer_core::emit_byte(w, 0)
+        bi = bi + 1
+    }
+    call_simd_emit::emit_store_result(w, inst)
 }
 
 fn try_emit_simd_native_f32x4(w: WasmWriter, callee: String, inst: MirInst, dest: i32, arg0: i32, arg1: i32) -> bool {
