@@ -42,6 +42,9 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     if eq(clone(bare_name), "clock_now") || eq(clone(bare_name), "clock_now_ms") || eq(clone(bare_name), "monotonic_now") || eq(clone(bare_name), "now_ms") {
         return value_types::VT_I64()
     }
+    if eq(clone(bare_name), "sqrt") || eq(clone(bare_name), "math::sqrt") || eq(clone(bare_name), "abs_f64") || eq(clone(bare_name), "f64_abs") || eq(clone(bare_name), "__intrinsic_sqrt") {
+        return value_types::VT_F64()
+    }
     value_types::VT_I32()
 }
 

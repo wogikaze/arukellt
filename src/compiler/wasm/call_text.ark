@@ -111,6 +111,19 @@ fn try_emit_char_text_format_call(w: WasmWriter, callee: String, inst: MirInst, 
 
 fn try_emit_numeric_text_format_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "convert::i32_to_string") || eq(clone(callee), "__intrinsic_i32_to_string") {
+        if eq(clone(callee), "to_string") {
+            let arg_vt = to_string_arg_vt(inst, ctx)
+            if arg_vt == value_types::VT_I64() {
+                let _result_on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
+                finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, text_call_result_on_stack(inst, _result_on_stack))
+                return true
+            }
+            if arg_vt == value_types::VT_F64() {
+                let _result_on_stack = intrinsic_string_format::emit_f64_to_string(w, inst, ctx)
+                finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, text_call_result_on_stack(inst, _result_on_stack))
+                return true
+            }
+        }
         if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && to_string_arg_is_ref(inst, ctx) {
             finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
             return true
@@ -190,4 +203,24 @@ fn to_string_arg_is_ref(inst: MirInst, ctx: SelfEmitCtx) -> bool {
         return true
     }
     false
+}
+
+fn to_string_arg_vt(inst: MirInst, ctx: SelfEmitCtx) -> i32 {
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 < 0 {
+        return value_types::VT_I32()
+    }
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    if arg0 >= function_locals_view::MirFunction_local_count(f) {
+        return value_types::VT_I32()
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, arg0)
+    let type_name = local_access::MirLocal_type_name(loc)
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
+        return value_types::VT_F64()
+    }
+    value_types::VT_I32()
 }
