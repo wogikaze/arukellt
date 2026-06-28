@@ -12,12 +12,14 @@ use mir::value_types
 
 fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
-    let var_tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+    let variant_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let var_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
     if var_tag < 0 || child_count <= 1 {
         return 0 - 2
     }
     let mut payload_locals = Vec_new_i32()
     let mut payload_vts = Vec_new_i32()
+    let struct_bytes = ctx_struct_byte_size(ctx, clone(variant_name))
     let mut total_bytes = 4
     let mut pa = 1
     while pa < child_count {
@@ -34,5 +36,8 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         }
         pa = pa + 1
     }
-    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, core_expr_shape_accessors::mir_core_expr_text(expr))
+    if struct_bytes > total_bytes {
+        total_bytes = struct_bytes
+    }
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, clone(variant_name))
 }

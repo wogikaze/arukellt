@@ -19,7 +19,7 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
     emit_variant_tag_field(ctx, dest, tag, 0 - 1)
-    variant_payload_fields::emit_variant_payload_fields(ctx, dest, payload_locals, payload_vts)
+    variant_payload_fields::emit_variant_payload_fields(ctx, dest, payload_locals, payload_vts, clone(variant_name))
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
     dest
 }

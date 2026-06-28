@@ -25,6 +25,10 @@ fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scr
     if field_is_f64 {
         return value_types::VT_F64()
     }
+    let field_is_i64 = ctx_struct_field_is_i64(ctx, clone(variant_name), field_idx + 1)
+    if field_is_i64 {
+        return value_types::VT_I64()
+    }
     if scrut_ok_is_i64 && field_idx == 0 {
         if mir_match_variant_is_some_or_ok(clone(variant_name)) {
             return value_types::VT_I64()

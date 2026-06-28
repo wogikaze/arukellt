@@ -95,3 +95,42 @@ pub fn toml_find_value(content: String, key: String) -> String {
     }
     String_new()
 }
+
+// ─── Re-exports from std/toml/parser.ark ────────────────────────────────────
+// The full TOML parser (toml_parse, toml_stringify, toml_get, etc.) lives in
+// std/toml/parser.ark.  These wrappers delegate to the parser submodule so
+// that `use std::toml` callers can invoke `toml::toml_parse(...)` directly.
+
+use std::toml::parser
+
+pub fn toml_parse(s: String) -> Result<parser::TomlValue, String> {
+    parser::toml_parse(s)
+}
+
+pub fn toml_stringify(v: parser::TomlValue) -> String {
+    parser::toml_stringify(v)
+}
+
+pub fn toml_as_string(v: parser::TomlValue) -> Option<String> {
+    parser::toml_as_string(v)
+}
+
+pub fn toml_as_int(v: parser::TomlValue) -> Option<i32> {
+    parser::toml_as_int(v)
+}
+
+pub fn toml_as_bool(v: parser::TomlValue) -> Option<bool> {
+    parser::toml_as_bool(v)
+}
+
+pub fn toml_get(v: parser::TomlValue, key: String) -> Option<parser::TomlValue> {
+    parser::toml_get(v, key)
+}
+
+pub fn toml_table_keys(v: parser::TomlValue) -> Vec<String> {
+    parser::toml_table_keys(v)
+}
+
+pub fn toml_test_wrapper() -> String {
+    String_from("wrapper_ok")
+}

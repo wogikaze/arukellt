@@ -29,5 +29,8 @@ fn ctx_struct_field_byte_size(field_type: String) -> i32 {
     if eq(clone(field_type), "f64") {
         return 8
     }
+    if eq(clone(field_type), "i64") || eq(clone(field_type), "u64") {
+        return 8
+    }
     4
 }
