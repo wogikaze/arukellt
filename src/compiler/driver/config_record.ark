@@ -17,14 +17,16 @@ struct DriverConfig {
     source_file: String,
     show_timing: bool,
     world: String,
+    lint_allow: Vec<String>,
+    lint_deny: Vec<String>,
 }
 
-fn DriverConfig_new(target: String, wasi_version: String, opt_level: i32, emit_mode: String, wit_paths: Vec<String>, dump_tokens: bool, dump_ast: bool, dump_hir: bool, dump_mir: bool, dump_wasm: bool, parse_only: bool, check_only: bool, source_dir: String, source_file: String, show_timing: bool, world: String) -> DriverConfig {
-    DriverConfig { target: target, wasi_version: wasi_version, opt_level: opt_level, emit_mode: emit_mode, wit_paths: wit_paths, dump_tokens: dump_tokens, dump_ast: dump_ast, dump_hir: dump_hir, dump_mir: dump_mir, dump_wasm: dump_wasm, parse_only: parse_only, check_only: check_only, source_dir: source_dir, source_file: source_file, show_timing: show_timing, world: world }
+fn DriverConfig_new(target: String, wasi_version: String, opt_level: i32, emit_mode: String, wit_paths: Vec<String>, dump_tokens: bool, dump_ast: bool, dump_hir: bool, dump_mir: bool, dump_wasm: bool, parse_only: bool, check_only: bool, source_dir: String, source_file: String, show_timing: bool, world: String, lint_allow: Vec<String>, lint_deny: Vec<String>) -> DriverConfig {
+    DriverConfig { target: target, wasi_version: wasi_version, opt_level: opt_level, emit_mode: emit_mode, wit_paths: wit_paths, dump_tokens: dump_tokens, dump_ast: dump_ast, dump_hir: dump_hir, dump_mir: dump_mir, dump_wasm: dump_wasm, parse_only: parse_only, check_only: check_only, source_dir: source_dir, source_file: source_file, show_timing: show_timing, world: world, lint_allow: lint_allow, lint_deny: lint_deny }
 }
 
 fn DriverConfig_default() -> DriverConfig {
-    DriverConfig_new(String_from("wasm32-wasi-p2"), String_from("p2"), 0, String_from("wasm"), Vec_new_String(), false, false, false, false, false, false, false, String_from("."), String_new(), false, String_new())
+    DriverConfig_new(String_from("wasm32-wasi-p2"), String_from("p2"), 0, String_from("wasm"), Vec_new_String(), false, false, false, false, false, false, false, String_from("."), String_new(), false, String_new(), Vec_new_String(), Vec_new_String())
 }
 
 fn config_target(config: DriverConfig) -> String { clone(config.target) }
@@ -59,3 +61,7 @@ fn config_set_source_dir(config: DriverConfig, source_dir: String) { config.sour
 fn config_set_source_file(config: DriverConfig, source_file: String) { config.source_file = source_file }
 fn config_world(config: DriverConfig) -> String { clone(config.world) }
 fn config_set_world(config: DriverConfig, world: String) { config.world = world }
+fn config_lint_allow(config: DriverConfig) -> Vec<String> { clone(config.lint_allow) }
+fn config_lint_deny(config: DriverConfig) -> Vec<String> { clone(config.lint_deny) }
+fn config_set_lint_allow(config: DriverConfig, lint_allow: Vec<String>) { config.lint_allow = lint_allow }
+fn config_set_lint_deny(config: DriverConfig, lint_deny: Vec<String>) { config.lint_deny = lint_deny }

@@ -99,30 +99,10 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
         let op = inst_accessors_shape::MirInst_op(inst)
         let dest = inst_accessors_operands::MirInst_dest(inst)
         let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-        if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-            if op == opcodes::MIR_LOCAL_GET() {
-                let src = inst_accessors_operands::MirInst_arg0(inst)
-                if src >= 0 {
-                    return infer_ref_local_gc_type_depth(f, src, ctx, depth + 1)
-                }
-            }
-            if op == opcodes::MIR_ARRAY_NEW() {
-                return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-            }
-            if op == opcodes::MIR_GC_STRUCT_NEW() {
-                return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
-            }
-            if op == opcodes::MIR_STRUCT_NEW() {
-                return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
-            }
-            if op == opcodes::MIR_CALL() {
-                let call_type = infer_call_result_gc_type(ctx, inst_record::mir_inst_str_val(inst))
-                if call_type >= 0 {
-                    return call_type
-                }
-            }
-            if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-                return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        if dest == local_idx {
+            let matched = infer_ref_local_from_dest_match(f, inst, op, ctx, depth)
+            if matched >= 0 {
+                return matched
             }
         }
         if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
@@ -144,6 +124,38 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
         prev_arg0 = arg0
         prev_dest = dest
         ii = ii + 1
+    }
+    0 - 1
+}
+
+fn infer_ref_local_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    if op == opcodes::MIR_LOCAL_GET() {
+        let src = inst_accessors_operands::MirInst_arg0(inst)
+        if src >= 0 {
+            return infer_ref_local_gc_type_depth(f, src, ctx, depth + 1)
+        }
+    }
+    if op == opcodes::MIR_ARRAY_NEW() {
+        return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    }
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
+    }
+    if op == opcodes::MIR_STRUCT_NEW() {
+        let struct_name = inst_record::mir_inst_str_val(inst)
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+        }
+        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
+    }
+    if op == opcodes::MIR_CALL() {
+        let call_type = infer_call_result_gc_type(ctx, inst_record::mir_inst_str_val(inst))
+        if call_type >= 0 {
+            return call_type
+        }
+    }
+    if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
     0 - 1
 }

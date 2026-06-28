@@ -48,17 +48,13 @@ the bootstrap compiler stubbing the entire module.
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `toml_parse_line` | `(String) -> String` | `experimental` | Filter a single TOML source line: returns the line unchanged for key=value |
-| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | - |
-| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
-| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | - |
 | `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | - |
 | `toml_stringify` | `(TomlValue) -> String` | `experimental` | - |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
+| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | - |
 | `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | - |
-
-#### `toml_get`
-
-Look up a key in a TOML table value.
 
 #### `toml_parse`
 
@@ -67,6 +63,10 @@ Parse a TOML document (key=value pairs).
 #### `toml_stringify`
 
 Serialize a TomlValue back to text.
+
+#### `toml_get`
+
+Look up a key in a TOML table value.
 
 #### `toml_table_keys`
 

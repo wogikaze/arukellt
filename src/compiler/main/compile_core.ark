@@ -28,6 +28,8 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
 		config_record::config_set_world(config, args_record::cli_world(opts))
 	}
 	config_record::config_set_show_timing(config, args_record::cli_show_timing(opts))
+	config_record::config_set_lint_allow(config, args_record::cli_lint_allow(opts))
+	config_record::config_set_lint_deny(config, args_record::cli_lint_deny(opts))
 	if include_dumps {
 		config_record::config_set_dump_tokens(config, should_dump(opts, String_from("tokens")))
 		config_record::config_set_dump_ast(config, should_dump(opts, String_from("ast")))
@@ -42,7 +44,7 @@ pub fn build_command_config(opts: CliOptions) -> DriverConfig {
 	let command = args_record::cli_command(opts)
 	let config = build_emit_config(opts, args_record::cli_emit_mode(opts), true)
 	config_record::config_set_parse_only(config, command == kinds::CMD_PARSE())
-	config_record::config_set_check_only(config, command == kinds::CMD_CHECK())
+	config_record::config_set_check_only(config, command == kinds::CMD_CHECK() || command == kinds::CMD_LINT())
 	config
 }
 

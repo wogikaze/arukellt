@@ -1,0 +1,29 @@
+// Arukellt Selfhost - Control flow helpers facade (branch, loop, structured).
+
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
+
+fn emit_br_if(w: WasmWriter, depth: i32) {
+    helpers_control_branch::emit_br_if(w, depth)
+}
+
+fn emit_br(w: WasmWriter, depth: i32) {
+    helpers_control_branch::emit_br(w, depth)
+}
+
+fn emit_block_loop_header(w: WasmWriter) {
+    helpers_control_loop::emit_block_loop_header(w)
+}
+
+fn emit_if_empty(w: WasmWriter) {
+    helpers_control_structured::emit_if_empty(w)
+}
+
+fn emit_else(w: WasmWriter) {
+    helpers_control_structured::emit_else(w)
+}
+
+fn emit_end(w: WasmWriter) {
+    helpers_control_structured::emit_end(w)
+}

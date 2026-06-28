@@ -1,0 +1,33 @@
+// Arukellt Selfhost - Mir local view facade for call_text.
+
+use mir::function_locals_view
+use mir::local_access
+use mir::value_types
+
+fn local_count(f: MirFunction) -> i32 {
+    function_locals_view::MirFunction_local_count(f)
+}
+
+fn local_at(f: MirFunction, idx: i32) -> MirLocal {
+    function_locals_view::MirFunction_local_at(f, idx)
+}
+
+fn local_type_name(loc: MirLocal) -> String {
+    local_access::MirLocal_type_name(loc)
+}
+
+fn local_val_type(loc: MirLocal) -> i32 {
+    local_access::MirLocal_val_type(loc)
+}
+
+fn VT_I32() -> i32 {
+    value_types::VT_I32()
+}
+
+fn VT_I64() -> i32 {
+    value_types::VT_I64()
+}
+
+fn VT_F64() -> i32 {
+    value_types::VT_F64()
+}

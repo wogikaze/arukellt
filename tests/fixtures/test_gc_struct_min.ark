@@ -1,0 +1,16 @@
+use std::host::stdio
+
+struct MyStruct {
+    name: String,
+    value: i32,
+}
+
+fn MyStruct_new(name: String, value: i32) -> MyStruct {
+    MyStruct { name: name, value: value }
+}
+
+fn main() {
+    let s = MyStruct_new(String_from("hello"), 42)
+    stdio::println(s.name)
+    stdio::println(i32_to_string(s.value))
+}

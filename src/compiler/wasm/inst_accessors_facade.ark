@@ -1,0 +1,33 @@
+// Arukellt Selfhost - Mir inst accessors facade bundling operands/shape/literals.
+
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+
+fn MirInst_op(inst: MirInst) -> i32 {
+    inst_accessors_shape::MirInst_op(inst)
+}
+
+fn MirInst_dest(inst: MirInst) -> i32 {
+    inst_accessors_operands::MirInst_dest(inst)
+}
+
+fn MirInst_arg0(inst: MirInst) -> i32 {
+    inst_accessors_operands::MirInst_arg0(inst)
+}
+
+fn MirInst_arg1(inst: MirInst) -> i32 {
+    inst_accessors_operands::MirInst_arg1(inst)
+}
+
+fn MirInst_int_val(inst: MirInst) -> i32 {
+    inst_accessors_literals::MirInst_int_val(inst)
+}
+
+fn MirInst_str_val(inst: MirInst) -> String {
+    inst_accessors_literals::MirInst_str_val(inst)
+}
+
+fn MirInst_val_type(inst: MirInst) -> i32 {
+    inst_accessors_shape::MirInst_val_type(inst)
+}

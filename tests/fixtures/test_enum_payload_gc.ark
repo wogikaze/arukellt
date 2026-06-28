@@ -1,0 +1,14 @@
+use std::host::stdio
+
+enum Opt {
+    Some(String),
+    None,
+}
+
+fn main() {
+    let x = Opt::Some(String_from("hello"))
+    match x {
+        Opt::Some(s) => stdio::println(s),
+        Opt::None => stdio::println(String_from("none")),
+    }
+}

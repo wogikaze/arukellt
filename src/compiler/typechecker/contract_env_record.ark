@@ -76,7 +76,7 @@ fn type_env_finalize_unused_bindings(env: TypeEnv) {
             let span_end = get_unchecked(env.tracked_binding_spans_end, i)
             let msg = concat(String_from("unused binding `"), concat(name, String_from("`")))
             let span = record::DiagnosticSpan_from_raw(span_start, span_end)
-            let warn = diag_mod::Diagnostic_new(codes::DIAG_WARN_EXPERIMENTAL_FEATURE(), diag_mod::SEV_WARNING(), span, msg)
+            let warn = diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_BINDING(), diag_mod::SEV_WARNING(), span, msg)
             push(env.warnings, warn)
         }
         i = i + 1

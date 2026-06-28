@@ -1206,17 +1206,19 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
 
 def _patch_bootstrap_wasm_sections_data_only(text: str) -> str:
     """Bootstrap overlay excludes gc_hint tail; emit data section directly."""
-    text = _replace_required(
-        text,
+    # Rewrite sections_tail import to sections_data (if present).
+    text = text.replace(
         "use wasm::sections_tail",
         "use wasm::sections_data",
-        "rewrite sections_tail import to sections_data for bootstrap",
     )
-    text = _replace_required(
-        text,
+    # Replace direct call (legacy) or facade-wrapped call (post-split).
+    text = text.replace(
         "sections_tail::emit_tail_sections(out, ctx, strings, opt_level)",
         "sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))",
-        "replace emit_tail_sections call with emit_data_section for bootstrap",
+    )
+    text = text.replace(
+        "wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level)",
+        "sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))",
     )
     return text
 
@@ -1372,6 +1374,8 @@ def _write_worktree_namespace_overlay(
             text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
             text = _patch_bootstrap_wasm_mod_p2_emit(text)
         if rel_name == "wasm/wasm_sections.ark":
+            text = _patch_bootstrap_wasm_sections_data_only(text)
+        if rel_name == "wasm/wasm_sections_facade.ark":
             text = _patch_bootstrap_wasm_sections_data_only(text)
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text)

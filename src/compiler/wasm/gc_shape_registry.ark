@@ -61,7 +61,7 @@ fn GcShapeRegistry_array_elem_type(reg: GcShapeRegistry, idx: i32) -> i32 {
 }
 
 fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
-    let mut sig = String_from("S")
+    let mut sig = String_from("GS")
     let types_code = get_unchecked(reg.struct_field_types, idx)
     let fc = len(types_code)
     let mut fi = 0

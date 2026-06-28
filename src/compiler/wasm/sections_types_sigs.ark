@@ -4,6 +4,7 @@ use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
 use mir::module_wit_imports
+use mir::module_gc_struct
 use wasm::emit_target
 use wasm::sections_type_plan
 use wasm::sections_types_gc
@@ -47,32 +48,32 @@ fn append_t2_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("i32_i32_1i32"))
 }
 
-fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32, target: String) {
+fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32, target: String, mir: MirModule) {
     let mut ui = 0
     while ui < fn_count {
         let uf = get_unchecked(functions, ui)
-        push(type_sigs, build_function_type_sig(uf, clone(target)))
+        push(type_sigs, build_function_type_sig(uf, clone(target), mir))
         ui = ui + 1
     }
 }
 
-fn build_function_type_sig(uf: MirFunction, target: String) -> String {
+fn build_function_type_sig(uf: MirFunction, target: String, mir: MirModule) -> String {
     let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
     let mut pi = 0
     while pi < pc {
         let p = function_param_view::MirFunction_param_at(uf, pi)
-        sig = concat(sig, build_param_type_sig(uf, p, pi, clone(target)))
+        sig = concat(sig, build_param_type_sig(uf, p, pi, clone(target), mir))
         sig = concat(sig, String_from("_"))
         pi = pi + 1
     }
     let return_type = function_return_view::MirFunction_return_type(uf)
     let return_type_name = function_return_view::MirFunction_return_type_name(uf)
-    sig = concat(sig, build_return_type_sig(uf, return_type, return_type_name, target))
+    sig = concat(sig, build_return_type_sig(uf, return_type, return_type_name, target, mir))
     sig
 }
 
-fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -> String {
+fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, mir: MirModule) -> String {
     let p_type_name = local_access::MirLocal_type_name(p)
     if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
         return sections_types_gc::gc_enum_open_type_sig()
@@ -101,7 +102,14 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -
         return sections_types_gc::gc_enum_open_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {
-        return gc_struct_return_sig_from_name(clone(p_type_name))
+        return gc_struct_return_sig_from_name(clone(p_type_name), mir)
+    }
+    // Check if the param type name is a registered gc_struct (raw name without "struct:" prefix).
+    if emit_target::is_gc_target(clone(target)) && len(p_type_name) > 0 {
+        let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(p_type_name))
+        if slot >= 0 {
+            return concat(String_from("gcsref"), i32_to_string(slot))
+        }
     }
     if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("string")) || eq(clone(p_type_name), String_from("String"))) {
         return sections_types_gc::gc_string_type_sig()
@@ -109,14 +117,14 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String) -
     sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
 }
 
-fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String) -> String {
+fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String, mir: MirModule) -> String {
     if return_type == 0 {
         return String_from("0")
     }
-    concat(String_from("1"), build_return_type_value_sig(uf, return_type, return_type_name, target))
+    concat(String_from("1"), build_return_type_value_sig(uf, return_type, return_type_name, target, mir))
 }
 
-fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String) -> String {
+fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String, mir: MirModule) -> String {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
         if eq(clone(return_type_name), String_from("vec:String")) {
             return sections_types_gc::gc_vec_string_type_sig()
@@ -136,7 +144,14 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
-        return gc_struct_return_sig_from_name(clone(return_type_name))
+        return gc_struct_return_sig_from_name(clone(return_type_name), mir)
+    }
+    // Check if the return type name is a registered gc_struct (raw name without "struct:" prefix).
+    if emit_target::is_gc_target(clone(target)) && len(return_type_name) > 0 {
+        let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
+        if slot >= 0 {
+            return concat(String_from("gcsref"), i32_to_string(slot))
+        }
     }
     let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
     if len(gc_enum_ret_sig) > 0 {
@@ -155,21 +170,34 @@ fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32) {
     }
 }
 
-fn gc_struct_return_sig_from_name(type_name: String) -> String {
+fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     // Format: "struct:TypeName:byte_size"
-    // Extract byte_size from the last colon-separated segment.
+    // Extract TypeName (between first and last colon).
+    let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
     let n = len(type_name)
     let mut i = 0
     while i < n {
         if char_at(type_name, i) == ':' {
+            if first_colon < 0 {
+                first_colon = i
+            }
             last_colon = i
         }
         i = i + 1
     }
-    if last_colon < 0 {
+    if first_colon < 0 || last_colon < 0 {
         return sections_types_gc::gc_struct_type_sig_from_byte_size(4)
     }
+    // Extract struct name between first and last colon.
+    let struct_name = substring(type_name, first_colon + 1, last_colon)
+    // Look up in MIR module's gc_struct list.
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(struct_name))
+    if slot >= 0 {
+        // Use "gcsref" + slot as placeholder; resolved during emission via gc_struct_type_map.
+        return concat(String_from("gcsref"), i32_to_string(slot))
+    }
+    // Fallback: extract byte_size and use size-based heuristic.
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {

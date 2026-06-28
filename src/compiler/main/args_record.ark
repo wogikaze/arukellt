@@ -28,14 +28,17 @@ struct CliOptions {
     compose_plug: String,
     compose_socket: String,
     compose_validate_only: bool,
+    lint_list: bool,
+    lint_allow: Vec<String>,
+    lint_deny: Vec<String>,
 }
 
-fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool, init_template: String, list_templates: bool, fmt_check: bool, fmt_fix: bool, world: String, compose_plug: String, compose_socket: String, compose_validate_only: bool) -> CliOptions {
-    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing, init_template: init_template, list_templates: list_templates, fmt_check: fmt_check, fmt_fix: fmt_fix, world: world, compose_plug: compose_plug, compose_socket: compose_socket, compose_validate_only: compose_validate_only }
+fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool, init_template: String, list_templates: bool, fmt_check: bool, fmt_fix: bool, world: String, compose_plug: String, compose_socket: String, compose_validate_only: bool, lint_list: bool, lint_allow: Vec<String>, lint_deny: Vec<String>) -> CliOptions {
+    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing, init_template: init_template, list_templates: list_templates, fmt_check: fmt_check, fmt_fix: fmt_fix, world: world, compose_plug: compose_plug, compose_socket: compose_socket, compose_validate_only: compose_validate_only, lint_list: lint_list, lint_allow: lint_allow, lint_deny: lint_deny }
 }
 
 fn CliOptions_default() -> CliOptions {
-    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false, String_from("minimal"), false, false, false, String_new(), String_new(), String_new(), false)
+    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false, String_from("minimal"), false, false, false, String_new(), String_new(), String_new(), false, false, Vec_new_String(), Vec_new_String())
 }
 
 fn cli_command(opts: CliOptions) -> i32 { opts.command }
@@ -158,3 +161,12 @@ fn cli_compose_validate_only(opts: CliOptions) -> bool { opts.compose_validate_o
 fn cli_set_compose_plug(opts: CliOptions, compose_plug: String) { opts.compose_plug = compose_plug }
 fn cli_set_compose_socket(opts: CliOptions, compose_socket: String) { opts.compose_socket = compose_socket }
 fn cli_set_compose_validate_only(opts: CliOptions, compose_validate_only: bool) { opts.compose_validate_only = compose_validate_only }
+
+fn cli_lint_list(opts: CliOptions) -> bool { opts.lint_list }
+fn cli_set_lint_list(opts: CliOptions, lint_list: bool) { opts.lint_list = lint_list }
+fn cli_lint_allow(opts: CliOptions) -> Vec<String> { clone(opts.lint_allow) }
+fn cli_lint_allow_count(opts: CliOptions) -> i32 { len(opts.lint_allow) }
+fn cli_lint_deny(opts: CliOptions) -> Vec<String> { clone(opts.lint_deny) }
+fn cli_lint_deny_count(opts: CliOptions) -> i32 { len(opts.lint_deny) }
+fn cli_add_lint_allow(opts: CliOptions, rule: String) { push(opts.lint_allow, rule) }
+fn cli_add_lint_deny(opts: CliOptions, rule: String) { push(opts.lint_deny, rule) }

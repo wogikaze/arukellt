@@ -1,14 +1,14 @@
 use mir::lower::ctx_api_module
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_struct
 // Arukellt Selfhost - MIR lowering entry assembly
 
 use mir::lower::decl_source
 use mir::lower::entry_context
 use mir::lower::entry_decls
 use mir::lower::entry_input
+use mir::lower::entry_fn_index_facade
 use mir::lower::entry_trace
-use mir::lower::fn_index
-use mir::lower::fn_index_view
 use mir::lower::mono_view
 use mir::lower::registry_view
 use mir::lower::trace
@@ -26,13 +26,14 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> M
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let mono_view = mono_view::mir_lower_mono_view_from_core(view)
     let midx = mono_view::mir_lower_mono_view_index(mono_view)
-    let fn_index_info = fn_index_view::mir_build_fn_index_from_view(view, midx)
+    let fn_index_info = entry_fn_index_facade::mir_build_fn_index_from_view(view, midx)
     let mir_tr = entry_trace::mir_lower_entry_trace_enabled()
-    mir_lower_trace_line(mir_tr, -1, decl_count, fn_index::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
+    mir_lower_trace_line(mir_tr, -1, decl_count, entry_fn_index_facade::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
     let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target)
     registry_view::mir_register_view_layouts(ctx, view)
     entry_decls::mir_emit_view_decls(ctx, view, body_source, fn_index_info, midx, mir_tr)
     ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
+    ctx_gc_struct::ctx_flush_gc_structs(ctx)
     if prune_enabled {
         let _mono_pruned = ctx_api_module::ctx_prune_unreachable(ctx)
     }

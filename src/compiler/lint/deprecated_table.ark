@@ -1,0 +1,69 @@
+// Arukellt Selfhost - deprecated API/target mapping table.
+//
+// Central registry of deprecated module paths, prelude function names,
+// and target aliases.  Used by lint::checks for W0009 and W0002.
+
+// ── Deprecated module paths (use std::io → use std::host::stdio) ───────
+
+// Returns a non-empty replacement message if the `use` path is deprecated.
+pub fn deprecated_use_message(path: String) -> String {
+    if eq(clone(path), String_from("std::io")) {
+        return String_from("module `std::io` has moved to `std::host::stdio`")
+    }
+    if eq(clone(path), String_from("std::time")) {
+        return String_from("import `use std::host::clock` and call `clock::monotonic_now()`")
+    }
+    if eq(clone(path), String_from("std::fs")) {
+        return String_from("module `std::fs` has moved to `std::host::fs`")
+    }
+    if eq(clone(path), String_from("std::env")) {
+        return String_from("module `std::env` has moved to `std::host::env`")
+    }
+    if eq(clone(path), String_from("std::process")) {
+        return String_from("module `std::process` has moved to `std::host::process`")
+    }
+    String_new()
+}
+
+// ── Deprecated bare prelude calls (println → stdio::println) ───────────
+
+// Returns a non-empty replacement message if the bare function name is deprecated.
+pub fn deprecated_call_message(name: String) -> String {
+    if eq(clone(name), String_from("println")) {
+        return String_from("import `use std::host::stdio` and call `stdio::println(...)`")
+    }
+    if eq(clone(name), String_from("print")) {
+        return String_from("import `use std::host::stdio` and call `stdio::print(...)`")
+    }
+    if eq(clone(name), String_from("eprintln")) {
+        return String_from("import `use std::host::stdio` and call `stdio::eprintln(...)`")
+    }
+    if eq(clone(name), String_from("read_to_string")) {
+        return String_from("import `use std::host::stdio` and call `stdio::read_to_string()`")
+    }
+    String_new()
+}
+
+// ── Deprecated target aliases ──────────────────────────────────────────
+
+// Returns true if the target name is a deprecated alias.
+pub fn is_deprecated_target(target: String) -> bool {
+    if eq(clone(target), String_from("wasm32-wasi")) {
+        return true
+    }
+    if eq(clone(target), String_from("wasm32-unknown-unknown")) {
+        return true
+    }
+    false
+}
+
+// Returns a deprecation message for the target alias.
+pub fn deprecated_target_message(target: String) -> String {
+    if eq(clone(target), String_from("wasm32-wasi")) {
+        return String_from("target `wasm32-wasi` is deprecated; use `wasm32-wasi-p2` or `wasm32-wasi-p1`")
+    }
+    if eq(clone(target), String_from("wasm32-unknown-unknown")) {
+        return String_from("target `wasm32-unknown-unknown` is deprecated; use `wasm32-wasi-p2`")
+    }
+    String_new()
+}

@@ -20,6 +20,18 @@ fn emit_wasm_context_set_gc_enum_variant_type_map(ctx: SelfEmitCtx, gc_enum_vari
     ctx_record::SelfEmitCtx_set_gc_enum_variant_type_map(ctx, gc_enum_variant_type_map)
 }
 
+fn emit_wasm_context_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
+    ctx_record::SelfEmitCtx_set_gc_struct_base(ctx, gc_struct_base)
+}
+
+fn emit_wasm_context_set_gc_struct_type_map(ctx: SelfEmitCtx, gc_struct_type_map: Vec<i32>) {
+    ctx_record::SelfEmitCtx_set_gc_struct_type_map(ctx, gc_struct_type_map)
+}
+
+fn emit_wasm_context_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
+    ctx_record::SelfEmitCtx_set_gc_struct_names(ctx, gc_struct_names)
+}
+
 fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
 }

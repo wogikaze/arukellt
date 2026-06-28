@@ -1,0 +1,110 @@
+// Arukellt Selfhost - MIR lowering GC struct type registration.
+
+use mir::lower::ctx_struct_storage
+use mir::lower::ctx_types
+use mir::lower::ctx_struct_field_type
+use mir::module_gc_struct
+
+fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
+    ctx.is_gc_target
+}
+
+fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
+    let count = len(ctx.gc_struct_sigs)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_struct_sigs, i), clone(sig)) {
+            return
+        }
+        i = i + 1
+    }
+    push(ctx.gc_struct_names, struct_name)
+    push(ctx.gc_struct_sigs, sig)
+}
+
+fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
+    let count = len(ctx.gc_struct_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn ctx_flush_gc_structs(ctx: LowerCtx) {
+    let m = ctx.module
+    let count = len(ctx.gc_struct_names)
+    let mut i = 0
+    while i < count {
+        module_gc_struct::MirModule_push_gc_struct(m, clone(get_unchecked(ctx.gc_struct_names, i)), clone(get_unchecked(ctx.gc_struct_sigs, i)))
+        i = i + 1
+    }
+}
+
+fn gc_struct_field_sig_for_type(type_name: String, field_idx: i32) -> String {
+    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+        return concat(prefix, String_from("_f64"))
+    }
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+        return concat(prefix, String_from("_i64"))
+    }
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+        return concat(prefix, String_from("_ref0"))
+    }
+    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+        return concat(prefix, String_from("_i32"))
+    }
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+        return concat(prefix, String_from("_i32"))
+    }
+    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
+        return concat(prefix, String_from("_i32"))
+    }
+    concat(prefix, String_from("_ref14"))
+}
+
+fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
+    let mut fi = 0
+    while fi < field_count {
+        if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(struct_name), fi) {
+            return true
+        }
+        fi = fi + 1
+    }
+    false
+}
+
+fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> String {
+    let mut sig = String_from("GS")
+    let mut fi = 0
+    while fi < field_count {
+        let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))
+        let field_sig = gc_struct_field_sig_for_type(ft, fi)
+        sig = concat(sig, field_sig)
+        fi = fi + 1
+    }
+    sig
+}
+
+fn ctx_struct_offset_for_field(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
+    let layout_count = len(ctx.struct_names)
+    let mut off = 0
+    let mut li = 0
+    while li < layout_count {
+        if eq(get_unchecked(ctx.struct_names, li), clone(struct_name)) {
+            let mut fi = 0
+            while fi < target_field_idx {
+                off = off + 1
+                fi = fi + 1
+            }
+            return off
+        }
+        off = off + get_unchecked(ctx.struct_field_counts, li)
+        li = li + 1
+    }
+    0
+}

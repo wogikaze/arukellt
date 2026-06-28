@@ -1,0 +1,21 @@
+// Arukellt Selfhost - Core misc helpers facade (calls, heap, stack).
+
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_stack
+
+fn emit_call(w: WasmWriter, idx: i32) {
+    helpers_core_calls::emit_call(w, idx)
+}
+
+fn emit_heap_get(w: WasmWriter) {
+    helpers_core_heap::emit_heap_get(w)
+}
+
+fn emit_heap_set(w: WasmWriter) {
+    helpers_core_heap::emit_heap_set(w)
+}
+
+fn emit_drop(w: WasmWriter) {
+    helpers_core_stack::emit_drop(w)
+}

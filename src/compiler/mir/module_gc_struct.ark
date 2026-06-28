@@ -1,0 +1,36 @@
+// Arukellt Selfhost - MIR module GC struct metadata accessors.
+
+use mir::module_record
+
+fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {
+    len(m.gc_struct_sigs)
+}
+
+fn MirModule_gc_struct_sig_at(m: MirModule, idx: i32) -> String {
+    clone(get_unchecked(m.gc_struct_sigs, idx))
+}
+
+fn MirModule_gc_struct_name_at(m: MirModule, idx: i32) -> String {
+    clone(get_unchecked(m.gc_struct_names, idx))
+}
+
+fn MirModule_gc_struct_names(m: MirModule) -> Vec<String> {
+    m.gc_struct_names
+}
+
+fn MirModule_push_gc_struct(m: MirModule, name: String, sig: String) {
+    push(m.gc_struct_names, name)
+    push(m.gc_struct_sigs, sig)
+}
+
+fn MirModule_gc_struct_slot(m: MirModule, name: String) -> i32 {
+    let count = MirModule_gc_struct_sig_count(m)
+    let mut i = 0
+    while i < count {
+        if eq(MirModule_gc_struct_name_at(m, i), clone(name)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}

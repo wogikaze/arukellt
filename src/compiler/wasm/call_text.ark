@@ -5,11 +5,9 @@ use wasm::call_text_extra
 use wasm::inst_store
 use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
+use wasm::call_text_mir_view
 use mir::inst_accessors_operands
 use mir::opcodes as mir_opcodes
-use mir::value_types
-use mir::function_locals_view
-use mir::local_access
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::opcodes
@@ -113,12 +111,12 @@ fn try_emit_numeric_text_format_call(w: WasmWriter, callee: String, inst: MirIns
     if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "convert::i32_to_string") || eq(clone(callee), "__intrinsic_i32_to_string") {
         if eq(clone(callee), "to_string") {
             let arg_vt = to_string_arg_vt(inst, ctx)
-            if arg_vt == value_types::VT_I64() {
+            if arg_vt == call_text_mir_view::VT_I64() {
                 let _result_on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
                 finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, text_call_result_on_stack(inst, _result_on_stack))
                 return true
             }
-            if arg_vt == value_types::VT_F64() {
+            if arg_vt == call_text_mir_view::VT_F64() {
                 let _result_on_stack = intrinsic_string_format::emit_f64_to_string(w, inst, ctx)
                 finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, text_call_result_on_stack(inst, _result_on_stack))
                 return true
@@ -194,11 +192,11 @@ fn to_string_arg_is_ref(inst: MirInst, ctx: SelfEmitCtx) -> bool {
         return false
     }
     let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    if arg0 >= function_locals_view::MirFunction_local_count(f) {
+    if arg0 >= call_text_mir_view::local_count(f) {
         return false
     }
-    let loc = function_locals_view::MirFunction_local_at(f, arg0)
-    let type_name = local_access::MirLocal_type_name(loc)
+    let loc = call_text_mir_view::local_at(f, arg0)
+    let type_name = call_text_mir_view::local_type_name(loc)
     if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
         return true
     }
@@ -208,19 +206,19 @@ fn to_string_arg_is_ref(inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn to_string_arg_vt(inst: MirInst, ctx: SelfEmitCtx) -> i32 {
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if arg0 < 0 {
-        return value_types::VT_I32()
+        return call_text_mir_view::VT_I32()
     }
     let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
-    if arg0 >= function_locals_view::MirFunction_local_count(f) {
-        return value_types::VT_I32()
+    if arg0 >= call_text_mir_view::local_count(f) {
+        return call_text_mir_view::VT_I32()
     }
-    let loc = function_locals_view::MirFunction_local_at(f, arg0)
-    let type_name = local_access::MirLocal_type_name(loc)
+    let loc = call_text_mir_view::local_at(f, arg0)
+    let type_name = call_text_mir_view::local_type_name(loc)
     if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) {
-        return value_types::VT_I64()
+        return call_text_mir_view::VT_I64()
     }
     if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
-        return value_types::VT_F64()
+        return call_text_mir_view::VT_F64()
     }
-    value_types::VT_I32()
+    call_text_mir_view::VT_I32()
 }

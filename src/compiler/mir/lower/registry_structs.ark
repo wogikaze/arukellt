@@ -1,5 +1,7 @@
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_struct
+use mir::lower::ctx_struct_field_type
 // Arukellt Selfhost - MIR lowering struct layout registration.
 
 use corehir::layout_decl_fields
@@ -8,11 +10,18 @@ use corehir::layout_field
 
 fn mir_register_struct_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
     let fc = layout_decl_fields::layout_decl_field_count(decl)
-    ctx_struct_storage::ctx_struct_push_layout(ctx, layout_decl_name::layout_decl_name(decl), fc)
+    let name = layout_decl_name::layout_decl_name(decl)
+    ctx_struct_storage::ctx_struct_push_layout(ctx, clone(name), fc)
     let mut fi = 0
     while fi < fc {
         let field = layout_decl_fields::layout_decl_field_at(decl, fi)
         ctx_struct_storage::ctx_struct_push_field(ctx, layout_field::layout_field_name(field), layout_field::layout_field_type_name(field))
         fi = fi + 1
+    }
+    if ctx_gc_struct::ctx_is_gc_target(ctx) {
+        if ctx_gc_struct::gc_struct_has_ref_field(ctx, clone(name), fc) {
+            let sig = ctx_gc_struct::gc_struct_build_sig(ctx, clone(name), fc)
+            ctx_gc_struct::ctx_register_gc_struct(ctx, clone(name), sig)
+        }
     }
 }

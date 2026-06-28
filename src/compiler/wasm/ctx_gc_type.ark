@@ -122,3 +122,32 @@ fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
     }
     base + type_slot
 }
+
+fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32 {
+    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
+            let map = ctx_record::SelfEmitCtx_gc_struct_type_map(ctx)
+            if i < len(map) {
+                return get_unchecked(map, i)
+            }
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn SelfEmitCtx_has_struct_type(ctx: SelfEmitCtx, struct_name: String) -> bool {
+    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}

@@ -1,0 +1,17 @@
+pub struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn Point_new(x: i32, y: i32) -> Point {
+    Point { x: x, y: y }
+}
+
+pub fn point_x(p: Point) -> i32 {
+    p.x
+}
+
+pub fn main() -> i32 {
+    let p = Point_new(1, 2)
+    point_x(p)
+}

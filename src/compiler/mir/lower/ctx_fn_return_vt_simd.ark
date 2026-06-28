@@ -1,0 +1,98 @@
+// Arukellt Selfhost - SIMD intrinsic v128 return-type classification.
+
+fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
+    if starts_with(clone(bare_name), String_from("__simd_v128_")) {
+        if eq(clone(bare_name), "__simd_v128_any_true") {
+            return false
+        }
+        return true
+    }
+    if starts_with(clone(bare_name), String_from("__simd_f32x4_")) {
+        if ends_with(clone(bare_name), String_from("_extract_lane")) {
+            return false
+        }
+        return true
+    }
+    if starts_with(clone(bare_name), String_from("__simd_f64x2_")) {
+        if ends_with(clone(bare_name), String_from("_extract_lane")) {
+            return false
+        }
+        if ends_with(clone(bare_name), String_from("_convert_low_i32x4_s")) {
+            return false
+        }
+        if ends_with(clone(bare_name), String_from("_convert_low_i32x4_u")) {
+            return false
+        }
+        return true
+    }
+    if simd_i32x4_is_v128(clone(bare_name)) {
+        return true
+    }
+    if starts_with(clone(bare_name), String_from("__simd_i64x2_")) {
+        if ends_with(clone(bare_name), String_from("_extract_lane")) {
+            return false
+        }
+        return true
+    }
+    if simd_i8x16_is_v128(clone(bare_name)) {
+        return true
+    }
+    if simd_i16x8_is_v128(clone(bare_name)) {
+        return true
+    }
+    false
+}
+
+fn simd_i32x4_is_v128(bare_name: String) -> bool {
+    if !starts_with(clone(bare_name), String_from("__simd_i32x4_")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_extract_lane")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_alltrue")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_bitmask")) {
+        return false
+    }
+    true
+}
+
+fn simd_i8x16_is_v128(bare_name: String) -> bool {
+    if !starts_with(clone(bare_name), String_from("__simd_i8x16_")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_extract_lane_s")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_extract_lane_u")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_alltrue")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_bitmask")) {
+        return false
+    }
+    true
+}
+
+fn simd_i16x8_is_v128(bare_name: String) -> bool {
+    if !starts_with(clone(bare_name), String_from("__simd_i16x8_")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_extract_lane_s")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_extract_lane_u")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_alltrue")) {
+        return false
+    }
+    if ends_with(clone(bare_name), String_from("_bitmask")) {
+        return false
+    }
+    true
+}

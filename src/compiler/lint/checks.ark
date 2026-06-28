@@ -1,0 +1,325 @@
+// Arukellt Selfhost - lint checks (post-resolution AST passes).
+//
+// Implements: W0006 unused import, W0009 deprecated API, W0002 deprecated
+// target alias, W0003 unused symbol.  W0001 shared-mut-alias and W0007
+// unused-binding are handled in the typechecker pass.
+
+use diagnostics::codes
+use diagnostics::mod as diag_mod
+use diagnostics::record
+use lint::deprecated_table
+use parser::ast
+use resolver::ast_access
+use resolver::ast_decl_predicates
+use resolver::ast_expr_predicates
+use resolver::kinds as res_kinds
+use resolver::paths
+
+// ── W0006: unused import ──────────────────────────────────────────────
+
+// Collect (short_name, span_start, span_end) for every `use` declaration.
+fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
+    let uses = Vec_new_UseDeclInfo()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        collect_use_decls_in_node(node, uses)
+        i = i + 1
+    }
+    uses
+}
+
+fn collect_use_decls_in_node(node: AstNode, uses: Vec<UseDeclInfo>) {
+    if ast_decl_predicates::node_is_use(node) {
+        let path = ast_access::node_text(node)
+        let short = paths::use_module_short_name(clone(path))
+        // Check for `as` alias via type_ann
+        let alias_name = if ast_access::node_type_ann_count(node) > 0 {
+            ast_access::node_text(ast_access::node_type_ann_at(node, 0))
+        } else {
+            String_new()
+        }
+        let effective_name = if len(clone(alias_name)) > 0 { alias_name } else { short }
+        push(uses, UseDeclInfo_new(effective_name, path, ast_access::node_span_start(node), ast_access::node_span_end(node)))
+        // Also register child use decls (grouped imports)
+        let child_count = ast_access::node_child_count(node)
+        let mut ci = 0
+        while ci < child_count {
+            let child = ast_access::node_child_at(node, ci)
+            if ast_decl_predicates::node_is_use(child) {
+                let child_path = ast_access::node_text(child)
+                let child_short = paths::use_module_short_name(clone(child_path))
+                push(uses, UseDeclInfo_new(child_short, child_path, ast_access::node_span_start(child), ast_access::node_span_end(child)))
+            }
+            ci = ci + 1
+        }
+        return
+    }
+    // Recurse into impl blocks
+    if ast_decl_predicates::node_is_impl_decl(node) {
+        let child_count = ast_access::node_child_count(node)
+        let mut ci = 0
+        while ci < child_count {
+            collect_use_decls_in_node(ast_access::node_child_at(node, ci), uses)
+            ci = ci + 1
+        }
+    }
+}
+
+// Walk the AST and collect every module-name token that appears as the
+// first segment of a qualified path (e.g. `stdio` in `stdio::println`).
+fn collect_referenced_modules(decls: Vec<AstNode>, referenced: Vec<String>) {
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        collect_referenced_modules_in_node(get_unchecked(decls, i), referenced)
+        i = i + 1
+    }
+}
+
+fn collect_referenced_modules_in_node(node: AstNode, referenced: Vec<String>) {
+    if ast_expr_predicates::node_is_path(node) {
+        let path = ast_access::node_text(node)
+        let mod_part = paths::path_module_part(clone(path))
+        if len(clone(mod_part)) > 0 {
+            push(referenced, mod_part)
+        }
+        return
+    }
+    // Recurse into children for all other node types
+    let child_count = ast_access::node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        collect_referenced_modules_in_node(ast_access::node_child_at(node, ci), referenced)
+        ci = ci + 1
+    }
+}
+
+fn name_in_vec(name: String, vec: Vec<String>) -> bool {
+    let count = len(vec)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(vec, i)), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+// Run W0006 unused-import check on the given decls.
+// Returns a Vec<Diagnostic> of warnings.
+pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    let uses = collect_use_decls(decls)
+    let referenced = Vec_new_String()
+    collect_referenced_modules(decls, referenced)
+    let use_count = len(uses)
+    let mut i = 0
+    while i < use_count {
+        let info = get_unchecked(uses, i)
+        let short_name = use_decl_info_short_name(info)
+        // Skip `_` prefix (intentionally unused)
+        if starts_with(clone(short_name), String_from("_")) {
+            i = i + 1
+            continue
+        }
+        if !name_in_vec(clone(short_name), referenced) {
+            let path = use_decl_info_path(info)
+            let msg = concat(String_from("unused import `"), concat(clone(path), String_from("`")))
+            let span = record::DiagnosticSpan_from_raw(use_decl_info_span_start(info), use_decl_info_span_end(info))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
+        }
+        i = i + 1
+    }
+    warnings
+}
+
+// ── W0009: deprecated API ─────────────────────────────────────────────
+
+// Run W0009 deprecated-API check on the given decls.
+// Detects: bare `println` calls (should use `stdio::println`),
+//          `use std::io` (moved to `std::host::stdio`),
+//          `use std::time` (moved to `std::host::clock`).
+pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        check_deprecated_api_in_node(get_unchecked(decls, i), warnings)
+        i = i + 1
+    }
+    warnings
+}
+
+fn check_deprecated_api_in_node(node: AstNode, warnings: Vec<Diagnostic>) {
+    // Check use declarations for deprecated module paths
+    if ast_decl_predicates::node_is_use(node) {
+        let path = ast_access::node_text(node)
+        let dep_msg = deprecated_table::deprecated_use_message(clone(path))
+        if len(clone(dep_msg)) > 0 {
+            let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+        }
+        return
+    }
+    // Check bare identifier calls for deprecated prelude functions
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        let dep_msg = deprecated_table::deprecated_call_message(clone(name))
+        if len(clone(dep_msg)) > 0 {
+            let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+        }
+        return
+    }
+    // Recurse into children
+    let child_count = ast_access::node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        check_deprecated_api_in_node(ast_access::node_child_at(node, ci), warnings)
+        ci = ci + 1
+    }
+}
+
+// ── W0002: deprecated target alias ────────────────────────────────────
+
+// Run W0002 deprecated-target-alias check.
+// Detects use of deprecated target names like "wasm32-wasi" (should use "wasm32-wasi-p2").
+pub fn check_deprecated_target_alias(target: String) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    if deprecated_table::is_deprecated_target(clone(target)) {
+        let msg = deprecated_table::deprecated_target_message(clone(target))
+        let span = record::DiagnosticSpan_from_raw(0, 0)
+        push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_TARGET_ALIAS(), diag_mod::SEV_WARNING(), span, msg))
+    }
+    warnings
+}
+
+// ── W0003: unused symbol (private fn/struct/enum never referenced) ────
+
+// Run W0003 unused-symbol check on the given decls.
+// Detects private (non-pub) functions that are never called.
+pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    // Collect all private fn names and their spans
+    let fn_names = Vec_new_String()
+    let fn_spans_start = Vec_new_i32()
+    let fn_spans_end = Vec_new_i32()
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let node = get_unchecked(decls, i)
+        if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
+            let name = ast_access::node_text(node)
+            // Skip main() — it's the entry point
+            if !eq(clone(name), String_from("main")) {
+                push(fn_names, clone(name))
+                push(fn_spans_start, ast_access::node_decl_name_span_start(node))
+                push(fn_spans_end, ast_access::node_decl_name_span_end(node))
+            }
+        }
+        i = i + 1
+    }
+    // Collect all referenced identifiers
+    let referenced = Vec_new_String()
+    let dcount = len(decls)
+    let mut di = 0
+    while di < dcount {
+        collect_referenced_idents(get_unchecked(decls, di), referenced)
+        di = di + 1
+    }
+    // Report unused private fns
+    let fn_count = len(fn_names)
+    let mut fi = 0
+    while fi < fn_count {
+        let name = clone(get_unchecked(fn_names, fi))
+        if !name_in_vec(clone(name), referenced) {
+            let msg = concat(String_from("unused symbol `"), concat(clone(name), String_from("`")))
+            let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
+        }
+        fi = fi + 1
+    }
+    warnings
+}
+
+fn collect_referenced_idents(node: AstNode, referenced: Vec<String>) {
+    if ast_expr_predicates::node_is_ident(node) {
+        push(referenced, ast_access::node_text(node))
+        return
+    }
+    if ast_expr_predicates::node_is_path(node) {
+        let path = ast_access::node_text(node)
+        let sym_part = paths::path_symbol_part(clone(path))
+        if len(clone(sym_part)) > 0 {
+            push(referenced, sym_part)
+        }
+        return
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        collect_referenced_idents(ast_access::node_child_at(node, ci), referenced)
+        ci = ci + 1
+    }
+}
+
+// ── Combined lint pass ─────────────────────────────────────────────────
+
+// Run all post-resolution lint checks and return combined warnings.
+pub fn run_post_resolve_lint(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    // W0006: unused imports
+    let unused_import_warns = check_unused_imports(decls)
+    let ui_count = len(unused_import_warns)
+    let mut ui = 0
+    while ui < ui_count {
+        push(warnings, get_unchecked(unused_import_warns, ui))
+        ui = ui + 1
+    }
+    // W0009: deprecated API
+    let dep_api_warns = check_deprecated_api(decls)
+    let da_count = len(dep_api_warns)
+    let mut da = 0
+    while da < da_count {
+        push(warnings, get_unchecked(dep_api_warns, da))
+        da = da + 1
+    }
+    // W0002: deprecated target alias
+    let dep_target_warns = check_deprecated_target_alias(target)
+    let dt_count = len(dep_target_warns)
+    let mut dt = 0
+    while dt < dt_count {
+        push(warnings, get_unchecked(dep_target_warns, dt))
+        dt = dt + 1
+    }
+    // W0003: unused symbols
+    let unused_sym_warns = check_unused_symbols(decls)
+    let us_count = len(unused_sym_warns)
+    let mut us = 0
+    while us < us_count {
+        push(warnings, get_unchecked(unused_sym_warns, us))
+        us = us + 1
+    }
+    warnings
+}
+
+// ── UseDeclInfo data record ────────────────────────────────────────────
+
+struct UseDeclInfo {
+    short_name: String,
+    path: String,
+    span_start: i32,
+    span_end: i32,
+}
+
+fn UseDeclInfo_new(short_name: String, path: String, span_start: i32, span_end: i32) -> UseDeclInfo {
+    UseDeclInfo { short_name: short_name, path: path, span_start: span_start, span_end: span_end }
+}
+
+fn use_decl_info_short_name(info: UseDeclInfo) -> String { clone(info.short_name) }
+fn use_decl_info_path(info: UseDeclInfo) -> String { clone(info.path) }
+fn use_decl_info_span_start(info: UseDeclInfo) -> i32 { info.span_start }
+fn use_decl_info_span_end(info: UseDeclInfo) -> i32 { info.span_end }

@@ -1,0 +1,20 @@
+use std::host::stdio
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fn color_to_string(c: Color) -> String {
+    match c {
+        Color::Red => String_from("red"),
+        Color::Green => String_from("green"),
+        Color::Blue => String_from("blue"),
+    }
+}
+
+fn main() {
+    let c = Color::Red
+    stdio::println(color_to_string(c))
+}

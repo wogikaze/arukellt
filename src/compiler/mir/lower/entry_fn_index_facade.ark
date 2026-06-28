@@ -1,0 +1,12 @@
+// Arukellt Selfhost - fn_index facade for entry.ark.
+
+use mir::lower::fn_index
+use mir::lower::fn_index_view
+
+fn mir_build_fn_index_from_view(view: MirLowerEntryView, midx: MonoIndex) -> FnIndexInfo {
+    fn_index_view::mir_build_fn_index_from_view(view, midx)
+}
+
+fn mir_fn_index_typed_fn_count(info: FnIndexInfo) -> i32 {
+    fn_index::mir_fn_index_typed_fn_count(info)
+}

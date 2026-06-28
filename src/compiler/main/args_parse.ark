@@ -178,8 +178,16 @@ fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index
                                     if commands::cli_str_eq(clone(arg), String_from("--template")) {
                                         i = args_parse_opts::parse_template_option(argv, argc, opts, i)
                                     } else {
-                                        if !args_parse_flags::parse_flag_option(opts, arg) {
-                                            parse_input_or_error(opts, arg)
+                                        if commands::cli_str_eq(clone(arg), String_from("--allow")) {
+                                            i = args_parse_opts::parse_lint_allow_option(argv, argc, opts, i)
+                                        } else {
+                                            if commands::cli_str_eq(clone(arg), String_from("--deny")) {
+                                                i = args_parse_opts::parse_lint_deny_option(argv, argc, opts, i)
+                                            } else {
+                                                if !args_parse_flags::parse_flag_option(opts, arg) {
+                                                    parse_input_or_error(opts, arg)
+                                                }
+                                            }
                                         }
                                     }
                                 }

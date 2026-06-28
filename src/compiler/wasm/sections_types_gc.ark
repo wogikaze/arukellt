@@ -7,6 +7,7 @@
 //   SubF{N}_S_... - final subtype of type at index {N} with struct body S_...
 
 use mir::module_gc_enum
+use mir::module_gc_struct
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
@@ -113,24 +114,24 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
 fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("A_i8"))
     push(type_sigs, String_from("A_i32"))
-    push(type_sigs, String_from("S_f0_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
-    push(type_sigs, String_from("S_f0_ref1_f1_i32"))
+    push(type_sigs, String_from("GS_f0_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
+    push(type_sigs, String_from("GS_f0_ref1_f1_i32"))
     push(type_sigs, String_from("A_i64"))
     push(type_sigs, String_from("A_f64"))
-    push(type_sigs, String_from("S_f0_i64"))
-    push(type_sigs, String_from("Sub0_S_f0_i32"))
+    push(type_sigs, String_from("GS_f0_i64"))
+    push(type_sigs, String_from("Sub0_GS_f0_i32"))
     push(type_sigs, String_from("A_ref0"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_ref1_f3_ref15_f4_ref1"))
-    push(type_sigs, String_from("S_f0_i32_f1_i32_f2_ref15_f3_ref15_f4_ref1"))
-    push(type_sigs, String_from("S_f0_ref15_f1_i32"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_ref1_f3_ref15_f4_ref1"))
+    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_ref15_f3_ref15_f4_ref1"))
+    push(type_sigs, String_from("GS_f0_ref15_f1_i32"))
 }
 
 fn gc_type_sig_count() -> i32 {
@@ -190,6 +191,15 @@ fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
     let mut i = 0
     while i < count {
         push(type_sigs, module_gc_enum::MirModule_gc_enum_variant_sig_at(mir, i))
+        i = i + 1
+    }
+}
+
+fn append_gc_struct_sigs(type_sigs: Vec<String>, mir: MirModule) {
+    let count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
+    let mut i = 0
+    while i < count {
+        push(type_sigs, module_gc_struct::MirModule_gc_struct_sig_at(mir, i))
         i = i + 1
     }
 }

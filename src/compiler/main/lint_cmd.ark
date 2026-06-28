@@ -1,0 +1,19 @@
+// Arukellt Selfhost - CLI lint command implementation.
+
+use std::host::stdio
+use lint::registry
+use main::args_record
+use main::compile_core
+use main::kinds
+
+// Entry point for `arukellt lint`.
+pub fn cmd_lint(opts: CliOptions) {
+    // --list: print available lint rules and exit
+    if args_record::cli_lint_list(opts) {
+        stdio::println(registry::format_lint_rule_list())
+        return
+    }
+    // Otherwise: run the compile pipeline in check-only mode (same as `check`)
+    // but with lint warnings collected and filtered by --allow/--deny.
+    compile_core::cmd_compile_single(opts)
+}

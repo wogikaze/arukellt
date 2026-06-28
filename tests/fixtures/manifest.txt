@@ -1223,3 +1223,7 @@ run:simd_gc_storage/v128_struct_field.ark
 run:simd_gc_storage/v128_array_element.ark
 run:f32_basic/basic.ark
 run:v128_basic/basic.ark
+run:test_gc_struct.ark
+run:test_enum_gc.ark
+run:test_enum_payload_gc.ark
+run:test_gc_struct_min.ark

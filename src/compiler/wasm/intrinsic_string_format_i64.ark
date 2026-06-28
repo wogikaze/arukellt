@@ -100,11 +100,8 @@ fn emit_i64_string_alloc_gc(w: WasmWriter, buf_end64: i32, s_wpos64: i32, s_len6
     // Copy loop: for i=0..s_len: gc_arr[i] = scratch_buf[s_wpos + i]
     emit_gc_i64_digit_copy_loop(w, s_gc, s_wpos64, s_len64, s_i, string_type)
 
-    let dest = inst_accessors_operands::MirInst_dest(inst)
+    // Leave the gc array ref on the stack; finish_text_call handles dest store.
     helpers_core_locals::emit_local_get(w, s_gc)
-    if dest >= 0 {
-        helpers_core_locals::emit_local_set(w, dest)
-    }
 }
 
 fn emit_gc_i64_digit_copy_loop(w: WasmWriter, s_gc: i32, s_wpos: i32, s_len: i32, s_i: i32, string_type: i32) {

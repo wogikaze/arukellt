@@ -45,13 +45,13 @@ fn DIAG_TARGET_DEPRECATED_ALIAS() -> String { String_from("E0305") }
 fn DIAG_TARGET_INVALID_EMIT() -> String { String_from("E0306") }
 fn DIAG_TARGET_COMPONENT_UNSUPPORTED() -> String { String_from("E0307") }
 
-fn DIAG_WARN_SHARED_MUT_ALIAS() -> String { String_from("W0001") }
-fn DIAG_WARN_DEPRECATED_TARGET_ALIAS() -> String { String_from("W0002") }
-fn DIAG_WARN_UNUSED_SYMBOL() -> String { String_from("W0003") }
-fn DIAG_WARN_WASM_VALIDATION() -> String { String_from("W0004") }
-fn DIAG_WARN_CAPABILITY_STUB() -> String { String_from("W0005") }
-fn DIAG_WARN_UNREACHABLE_CODE() -> String { String_from("W0006") }
-pub pub pub pub pub pub pub fn DIAG_WARN_EXPERIMENTAL_FEATURE() -> String { String_from("W0007") }
-fn DIAG_WARN_DOC_DRIFT() -> String { String_from("W0008") }
-fn DIAG_WARN_DEPRECATED_API() -> String { String_from("W0009") }
-fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0101") }
+pub fn DIAG_WARN_SHARED_MUT_ALIAS() -> String { String_from("W0001") }
+pub fn DIAG_WARN_DEPRECATED_TARGET_ALIAS() -> String { String_from("W0002") }
+pub fn DIAG_WARN_UNUSED_SYMBOL() -> String { String_from("W0003") }
+pub fn DIAG_WARN_WASM_VALIDATION() -> String { String_from("W0004") }
+pub fn DIAG_WARN_CAPABILITY_STUB() -> String { String_from("W0005") }
+pub fn DIAG_WARN_UNUSED_IMPORT() -> String { String_from("W0006") }
+pub fn DIAG_WARN_UNUSED_BINDING() -> String { String_from("W0007") }
+pub fn DIAG_WARN_DOC_DRIFT() -> String { String_from("W0008") }
+pub fn DIAG_WARN_DEPRECATED_API() -> String { String_from("W0009") }
+pub fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0101") }

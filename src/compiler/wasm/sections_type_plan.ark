@@ -9,10 +9,12 @@ pub struct TypeSectionPlan {
     gc_type_base: i32,
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
+    gc_struct_base: i32,
+    gc_struct_type_map: Vec<i32>,
 }
 
-fn TypeSectionPlan_new(host_type_map: Vec<i32>, fn_type_map: Vec<i32>, wrapper_type_idx: i32, wit_type_map: Vec<i32>, wit_import_count: i32, gc_type_base: i32, gc_enum_variant_base: i32, gc_enum_variant_type_map: Vec<i32>) -> TypeSectionPlan {
-    TypeSectionPlan { host_type_map: host_type_map, fn_type_map: fn_type_map, wrapper_type_idx: wrapper_type_idx, wit_type_map: wit_type_map, wit_import_count: wit_import_count, gc_type_base: gc_type_base, gc_enum_variant_base: gc_enum_variant_base, gc_enum_variant_type_map: gc_enum_variant_type_map }
+fn TypeSectionPlan_new(host_type_map: Vec<i32>, fn_type_map: Vec<i32>, wrapper_type_idx: i32, wit_type_map: Vec<i32>, wit_import_count: i32, gc_type_base: i32, gc_enum_variant_base: i32, gc_enum_variant_type_map: Vec<i32>, gc_struct_base: i32, gc_struct_type_map: Vec<i32>) -> TypeSectionPlan {
+    TypeSectionPlan { host_type_map: host_type_map, fn_type_map: fn_type_map, wrapper_type_idx: wrapper_type_idx, wit_type_map: wit_type_map, wit_import_count: wit_import_count, gc_type_base: gc_type_base, gc_enum_variant_base: gc_enum_variant_base, gc_enum_variant_type_map: gc_enum_variant_type_map, gc_struct_base: gc_struct_base, gc_struct_type_map: gc_struct_type_map }
 }
 
 fn TypeSectionPlan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {
@@ -47,12 +49,20 @@ fn TypeSectionPlan_gc_enum_variant_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     plan.gc_enum_variant_type_map
 }
 
-fn build_type_section_plan(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_type_count: i32, fn_count: i32, needs_wrapper: i32, gc_type_base: i32, gc_enum_variant_base: i32, gc_enum_variant_type_map: Vec<i32>) -> TypeSectionPlan {
+fn TypeSectionPlan_gc_struct_base(plan: TypeSectionPlan) -> i32 {
+    plan.gc_struct_base
+}
+
+fn TypeSectionPlan_gc_struct_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.gc_struct_type_map
+}
+
+fn build_type_section_plan(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_type_count: i32, fn_count: i32, needs_wrapper: i32, gc_type_base: i32, gc_enum_variant_base: i32, gc_enum_variant_type_map: Vec<i32>, gc_struct_base: i32, gc_struct_type_map: Vec<i32>) -> TypeSectionPlan {
     let host_type_map = build_host_type_map(type_map, num_host_types)
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
     let fn_type_map = build_function_type_map(type_map, num_host_types, wit_import_count, gc_type_count, fn_count)
     let wrapper_type_idx = wrapper_type_index(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper)
-    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map)
+    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map, gc_struct_base, gc_struct_type_map)
 }
 
 fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {
