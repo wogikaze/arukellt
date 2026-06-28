@@ -123,6 +123,11 @@ pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
     let total: i32 = len(r) - 1
     let mut line: String = ""
     let mut pos: i32 = cursor
+    if pos < total {
+        if get_unchecked(r, 1 + pos) == 10 {
+            pos = pos + 1
+        }
+    }
     let mut stop: bool = false
     while pos < total {
         let b: i32 = get_unchecked(r, 1 + pos)
