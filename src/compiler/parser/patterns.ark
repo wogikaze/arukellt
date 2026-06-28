@@ -1,4 +1,5 @@
 use lexer::tokens
+use parser::core_ast_children
 use parser::core_ast_factory
 // Arukellt Parser - pattern syntax parsing
 
@@ -19,9 +20,30 @@ fn parse_pattern(p: Parser) -> AstNode {
         || kind == tokens::TK_BOOL() {
         return pattern_literals::parse_literal_pattern(p, t)
     }
+    if kind == tokens::TK_LPAREN() {
+        return parse_tuple_pattern(p, t)
+    }
     if kind == tokens::TK_IDENT() {
         return pattern_ident::parse_ident_pattern(p, t)
     }
     error(p, String_from("expected pattern"))
     AstNode_leaf(kinds::NK_PAT_WILDCARD(), String_from("_"), tok_span(t))
+}
+
+fn parse_tuple_pattern(p: Parser, t: Token) -> AstNode {
+    p.pos = p.pos + 1
+    let node = AstNode_new(kinds::NK_PAT_TUPLE(), tok_span(t))
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_RPAREN()) && !core_api_cursor::at_eof(p) {
+        if !first {
+            expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        skip_newlines(p)
+        let elem = parse_pattern(p)
+        core_ast_children::AstNode_push_child(node, elem)
+        skip_newlines(p)
+    }
+    expect_token(p, tokens::TK_RPAREN())
+    node
 }

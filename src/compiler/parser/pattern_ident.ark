@@ -1,8 +1,11 @@
 use lexer::tokens
+use parser::core_ast_children
 use parser::core_ast_text_fields
 use parser::core_ast_factory
 // Arukellt Parser - identifier and enum variant patterns
 
+use parser::core_api_cursor
+use parser::core_api_expect
 use parser::kinds
 use parser::pattern_payload
 use parser::token_state
@@ -16,7 +19,17 @@ fn parse_ident_pattern(p: Parser, t: Token) -> AstNode {
         core_ast_text_fields::AstNode_set_text(node, concat(token_state::Token_text(t), concat(String_from("::"), token_state::Token_text(variant_tok))))
         if peek_kind(p) == tokens::TK_LPAREN() {
             pattern_payload::parse_pattern_payload(p, node)
+        } else {
+            if peek_kind(p) == tokens::TK_LBRACE() {
+                parse_struct_pattern_payload(p, node)
+            }
         }
+        return node
+    }
+    if peek_kind(p) == tokens::TK_LBRACE() {
+        let node = AstNode_new(kinds::NK_PAT_STRUCT(), tok_span(t))
+        core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
+        parse_struct_pattern_payload(p, node)
         return node
     }
     if peek_kind(p) == tokens::TK_LPAREN() {
@@ -26,4 +39,29 @@ fn parse_ident_pattern(p: Parser, t: Token) -> AstNode {
         return node
     }
     AstNode_leaf(kinds::NK_PAT_IDENT(), token_state::Token_text(t), tok_span(t))
+}
+
+fn parse_struct_pattern_payload(p: Parser, node: AstNode) {
+    p.pos = p.pos + 1
+    let mut first = true
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        if !first {
+            expect_token(p, tokens::TK_COMMA())
+        }
+        first = false
+        core_api_cursor::skip_newlines(p)
+        let field_tok = expect_token(p, tokens::TK_IDENT())
+        let field_name = token_state::Token_text(field_tok)
+        if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
+            p.pos = p.pos + 1
+            core_api_cursor::skip_newlines(p)
+            let sub_pat = parse_pattern(p)
+            core_ast_children::AstNode_push_child(node, sub_pat)
+        } else {
+            let bind = AstNode_leaf(kinds::NK_PAT_IDENT(), field_name, tok_span(field_tok))
+            core_ast_children::AstNode_push_child(node, bind)
+        }
+        core_api_cursor::skip_newlines(p)
+    }
+    expect_token(p, tokens::TK_RBRACE())
 }

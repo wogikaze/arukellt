@@ -44,6 +44,8 @@ fn NK_EXPR_STMT() -> i32 { 37 }
 fn NK_PAT_IDENT() -> i32 { 70 }
 fn NK_PAT_WILDCARD() -> i32 { 71 }
 fn NK_PAT_VARIANT() -> i32 { 73 }
+fn NK_PAT_STRUCT() -> i32 { 74 }
+fn NK_PAT_TUPLE() -> i32 { 75 }
 
 // Binding symbol kinds.
 fn SYM_LOCAL() -> i32 { 1 }

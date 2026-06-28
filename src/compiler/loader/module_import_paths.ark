@@ -24,6 +24,10 @@ pub fn collect_import_paths(decls: Vec<AstNode>) -> Vec<String> {
         let d = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_use(d) {
             push_import_decl_paths(paths, d)
+        } else {
+            if ast_decl_predicates::node_is_import(d) {
+                push(paths, ast_access::node_text(d))
+            }
         }
         i = i + 1
     }

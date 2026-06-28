@@ -1,4 +1,5 @@
 use lexer::tokens
+use parser::core_ast_children
 use parser::core_ast_text_fields
 use parser::core_ast_flag_fields
 use parser::core_ast_factory
@@ -8,6 +9,7 @@ use parser::core_ast_span_fields
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds
+use parser::patterns
 use parser::stmt_let_init
 use parser::stmt_let_type
 use parser::token_state
@@ -19,6 +21,13 @@ pub fn parse_let(p: Parser) -> AstNode {
     if core_api_cursor::peek_kind(p) == tokens::TK_MUT() {
         p.pos = p.pos + 1
         core_ast_flag_fields::AstNode_set_is_mut(node, true)
+    }
+    if core_api_cursor::peek_kind(p) == tokens::TK_LPAREN() {
+        let pat = patterns::parse_pattern(p)
+        core_ast_text_fields::AstNode_set_text(node, String_from("__tuple_destructure"))
+        core_ast_children::AstNode_push_child(node, pat)
+        stmt_let_init::parse_let_initializer(p, node)
+        return node
     }
     let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
     core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))

@@ -6,6 +6,10 @@ use parser::core_ast_factory
 use parser::core_ast_children
 // Arukellt Parser - path suffixes
 
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::expr_prefix_struct_fields
+use parser::expr_prefix_struct_probe
 use parser::token_state
 
 pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
@@ -14,5 +18,10 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
     let node = AstNode_new(kinds::NK_PATH(), core_ast_span_fields::AstNode_span(lhs))
     core_ast_text_fields::AstNode_set_text(node, concat(core_ast_text_fields::AstNode_text(lhs), concat(String_from("::"), token_state::Token_text(seg))))
     core_ast_children::AstNode_push_child(node, lhs)
+    if expr_prefix_struct_probe::next_prefix_is_struct_lit(p) {
+        let lit = expr_prefix_struct_fields::parse_struct_lit_fields(p, seg)
+        core_ast_text_fields::AstNode_set_text(lit, core_ast_text_fields::AstNode_text(node))
+        return lit
+    }
     node
 }

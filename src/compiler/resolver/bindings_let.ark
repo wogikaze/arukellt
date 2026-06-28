@@ -1,16 +1,29 @@
 // Arukellt Resolver - let binding rules.
 
+use resolver::bindings
 use resolver::scope_define
 use resolver::ast_access
 use resolver::kinds
 
 fn resolve_let(ctx: ResolveCtx, node: AstNode) {
+    let binding_name = ast_access::node_text(node)
+    let is_tuple_destructure = eq(clone(binding_name), String_from("__tuple_destructure"))
     let child_count = ast_access::node_child_count(node)
+    if is_tuple_destructure {
+        if child_count > 0 {
+            let pat = ast_access::node_child_at(node, 0)
+            if child_count > 1 {
+                let init = ast_access::node_child_at(node, 1)
+                resolve_node(ctx, init)
+            }
+            bindings::collect_pattern_bindings(ctx, pat)
+        }
+        return
+    }
     if child_count > 0 {
         let init = ast_access::node_child_at(node, 0)
         resolve_node(ctx, init)
     }
-    let binding_name = ast_access::node_text(node)
     if !eq(clone(binding_name), "_") {
         scope_define::define_span(ctx, binding_name, commands::SYM_LOCAL(), ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
     }

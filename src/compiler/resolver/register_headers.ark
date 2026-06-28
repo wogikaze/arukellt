@@ -2,6 +2,7 @@
 
 use resolver::impl_target
 use resolver::scope_define
+use resolver::scope_lookup
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::kinds
@@ -45,12 +46,21 @@ fn register_non_type_decl_header(ctx: ResolveCtx, d: AstNode) {
 
 fn register_impl_method_headers(ctx: ResolveCtx, d: AstNode) {
     let struct_name = impl_target::impl_self_type_name(d)
+    let trait_name = ast_access::node_text(d)
+    let has_trait = ast_access::node_type_ann_count(d) >= 2
     let mcount = ast_access::node_child_count(d)
     let mut mi = 0
     while mi < mcount {
         let method = ast_access::node_child_at(d, mi)
         let mangled = concat(clone(struct_name), concat(String_from("::"), ast_access::node_text(method)))
-        scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), ast_access::node_is_pub(d))
+        scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), true)
+        if has_trait && !eq(clone(trait_name), clone(struct_name)) {
+            let bare_name = ast_access::node_text(method)
+            let existing = scope_lookup::lookup(ctx, clone(bare_name))
+            if existing < 0 {
+                scope_define::define_with_vis(ctx, bare_name, commands::SYM_FN(), true)
+            }
+        }
         mi = mi + 1
     }
 }

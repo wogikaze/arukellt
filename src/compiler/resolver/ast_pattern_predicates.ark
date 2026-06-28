@@ -10,3 +10,11 @@ fn node_is_pat_ident(node: AstNode) -> bool {
 fn node_is_pat_variant(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_PAT_VARIANT())
 }
+
+fn node_is_pat_struct(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PAT_STRUCT())
+}
+
+fn node_is_pat_tuple(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_PAT_TUPLE())
+}

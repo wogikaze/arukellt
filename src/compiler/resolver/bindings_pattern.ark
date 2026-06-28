@@ -20,4 +20,24 @@ fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
         }
         return
     }
+    if ast_pattern_predicates::node_is_pat_struct(pat) {
+        let child_count = ast_access::node_child_count(pat)
+        let mut i = 0
+        while i < child_count {
+            let sub = ast_access::node_child_at(pat, i)
+            collect_pattern_bindings(ctx, sub)
+            i = i + 1
+        }
+        return
+    }
+    if ast_pattern_predicates::node_is_pat_tuple(pat) {
+        let child_count = ast_access::node_child_count(pat)
+        let mut i = 0
+        while i < child_count {
+            let sub = ast_access::node_child_at(pat, i)
+            collect_pattern_bindings(ctx, sub)
+            i = i + 1
+        }
+        return
+    }
 }

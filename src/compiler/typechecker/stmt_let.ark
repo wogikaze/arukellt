@@ -23,7 +23,11 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
     if ast_access::node_type_ann_count(node) > 0 {
         let ann = ast_access::node_type_ann_at(node, 0)
         let ann_ty = types::resolve_type_ann_node(ann)
-        bind_ty = unify::unify(env, bind_ty, ann_ty)
+        if should_prefer_annotation(bind_ty, ann_ty) {
+            bind_ty = ann_ty
+        } else {
+            bind_ty = unify::unify(env, bind_ty, ann_ty)
+        }
     }
     let bind_name = ast_access::node_text(node)
     if !eq(clone(bind_name), "_") {
@@ -75,6 +79,41 @@ fn is_reference_type(ty: TypeInfo) -> bool {
     }
     if tag == commands::TY_RESOURCE() {
         return true
+    }
+    false
+}
+
+// When the initializer type and annotation type share the same container tag
+// (e.g. Vec<i32> vs Vec<Vec<i32>>), the annotation should win because legacy
+// constructors like Vec_new_i32() return a concrete Vec<i32> that can be
+// re-typed to any Vec<T> via the annotation. This avoids spurious type
+// mismatches on nested generic annotations (issue #312).
+fn should_prefer_annotation(init_ty: TypeInfo, ann_ty: TypeInfo) -> bool {
+    let init_tag = contract_type_access::TypeInfo_tag(init_ty)
+    let ann_tag = contract_type_access::TypeInfo_tag(ann_ty)
+    if init_tag != ann_tag {
+        return false
+    }
+    if init_tag != commands::TY_VEC() && init_tag != commands::TY_OPTION() && init_tag != commands::TY_ENUM() && init_tag != commands::TY_STRUCT() {
+        return false
+    }
+    let init_args = contract_type_access::TypeInfo_type_arg_count(init_ty)
+    let ann_args = contract_type_access::TypeInfo_type_arg_count(ann_ty)
+    if init_args == 0 && ann_args > 0 {
+        return true
+    }
+    if init_args > 0 && ann_args > 0 && init_args == ann_args {
+        let mut k = 0
+        while k < init_args {
+            let ia = contract_type_access::TypeInfo_type_arg_at(init_ty, k)
+            let aa = contract_type_access::TypeInfo_type_arg_at(ann_ty, k)
+            let ia_tag = contract_type_access::TypeInfo_tag(ia)
+            let aa_tag = contract_type_access::TypeInfo_tag(aa)
+            if ia_tag != aa_tag {
+                return true
+            }
+            k = k + 1
+        }
     }
     false
 }
