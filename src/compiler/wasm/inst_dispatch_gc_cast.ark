@@ -4,6 +4,8 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::opcodes
 use wasm::ctx_gc_type
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::writer_leb
@@ -11,6 +13,15 @@ use wasm::writer_leb
 fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     if op == opcodes::MIR_REF_TEST() {
+        if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
+            let dest = inst_accessors_shape::MirInst_dest(inst)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_leb::emit_leb128_u(w, scrut_local)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+            writer_leb::emit_leb128_u(w, dest)
+            return true
+        }
         let type_slot = inst_accessors_operands::MirInst_arg0(inst)
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
         let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
@@ -23,6 +34,15 @@ fn try_emit_gc_cast_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool
         return true
     }
     if op == opcodes::MIR_REF_CAST() {
+        if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            let scrut_local = inst_accessors_operands::MirInst_arg1(inst)
+            let dest = inst_accessors_shape::MirInst_dest(inst)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_leb::emit_leb128_u(w, scrut_local)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+            writer_leb::emit_leb128_u(w, dest)
+            return true
+        }
         let type_slot = inst_accessors_operands::MirInst_arg0(inst)
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
         let scrut_local = inst_accessors_operands::MirInst_arg1(inst)

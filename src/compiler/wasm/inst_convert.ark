@@ -4,6 +4,7 @@ use mir::value_types
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::inst_locals
 use wasm::code_ref_locals
 use wasm::opcodes
@@ -25,6 +26,9 @@ fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_return_stack_gc_cast_if_needed(w: WasmWriter, ctx: SelfEmitCtx) {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return
+    }
     let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
     if !code_ref_locals::mir_function_returns_option(f) {
         return
