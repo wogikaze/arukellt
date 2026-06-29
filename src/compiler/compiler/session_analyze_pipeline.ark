@@ -13,6 +13,7 @@ use corehir::frontend_bundle
 use corehir::mod
 use lint::checks as lint_checks
 use loader::load
+use std::text
 
 fn lex_diag_code_string(code: i32) -> String {
 	if code == 1 {
@@ -69,13 +70,13 @@ let lcode = session_lex_query::session_lex_diagnostic_code(ld)
 let dfile = snapshot_state_record::snapshot_uri(snap)
 let dcode = lex_diag_code_string(lcode)
 let mut rmsg = String_from("[")
-rmsg = concat(rmsg, clone(dcode))
-rmsg = concat(rmsg, String_from(" "))
-rmsg = concat(rmsg, severity::severity_name(severity::SEV_ERROR()))
-rmsg = concat(rmsg, String_from(" "))
-rmsg = concat(rmsg, source_map_offsets::location_text(clone(text), dfile, lstart))
-rmsg = concat(rmsg, String_from("] "))
-rmsg = concat(rmsg, lex_diag_code_message(lcode))
+rmsg = text::builder_append(rmsg, clone(dcode))
+rmsg = text::builder_append(rmsg, String_from(" "))
+rmsg = text::builder_append(rmsg, severity::severity_name(severity::SEV_ERROR()))
+rmsg = text::builder_append(rmsg, String_from(" "))
+rmsg = text::builder_append(rmsg, source_map_offsets::location_text(clone(text), dfile, lstart))
+rmsg = text::builder_append(rmsg, String_from("] "))
+rmsg = text::builder_append(rmsg, lex_diag_code_message(lcode))
 snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LEX(), rmsg, lstart, lend))
 li = li + 1
 }

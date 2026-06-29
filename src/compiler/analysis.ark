@@ -5,6 +5,7 @@ use analysis::snapshot_state_record
 use compiler::session_analyze_pipeline
 use compiler::phase_tags
 use compiler::phases
+use std::text
 
 pub fn PHASE_LEX() -> i32 {
 phases::PHASE_LEX()
@@ -36,25 +37,25 @@ session_analyze_pipeline::run_session_analyze_with_modules(uri, text, modules)
 
 pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
 let mut out = String_from("analysis ")
-out = concat(out, snapshot_state_record::snapshot_uri(snap))
-out = concat(out, String_from("\n"))
-out = concat(out, String_from("decls="))
-out = concat(out, to_string(snapshot_state_record::snapshot_decl_count(snap)))
-out = concat(out, String_from(" symbols="))
-out = concat(out, to_string(snapshot_state_record::snapshot_symbol_count(snap)))
-out = concat(out, String_from(" typed="))
-out = concat(out, to_string(snapshot_state_record::snapshot_typed_fn_count(snap)))
-out = concat(out, String_from(" diagnostics="))
-out = concat(out, to_string(snapshot_state_record::snapshot_reported_diagnostic_count(snap)))
-out = concat(out, String_from("\n"))
+out = text::builder_append(out, snapshot_state_record::snapshot_uri(snap))
+out = text::builder_append(out, String_from("\n"))
+out = text::builder_append(out, String_from("decls="))
+out = text::builder_append(out, to_string(snapshot_state_record::snapshot_decl_count(snap)))
+out = text::builder_append(out, String_from(" symbols="))
+out = text::builder_append(out, to_string(snapshot_state_record::snapshot_symbol_count(snap)))
+out = text::builder_append(out, String_from(" typed="))
+out = text::builder_append(out, to_string(snapshot_state_record::snapshot_typed_fn_count(snap)))
+out = text::builder_append(out, String_from(" diagnostics="))
+out = text::builder_append(out, to_string(snapshot_state_record::snapshot_reported_diagnostic_count(snap)))
+out = text::builder_append(out, String_from("\n"))
 let dn = snapshot_state_record::snapshot_diagnostic_count(snap)
 let mut i = 0
 while i < dn {
 let d = snapshot_state_record::snapshot_diagnostic_at(snap, i)
-out = concat(out, phase_tags::phase_tag(diagnostic_record::analysis_diagnostic_phase(d)))
-out = concat(out, String_from(": "))
-out = concat(out, diagnostic_record::analysis_diagnostic_message(d))
-out = concat(out, String_from("\n"))
+out = text::builder_append(out, phase_tags::phase_tag(diagnostic_record::analysis_diagnostic_phase(d)))
+out = text::builder_append(out, String_from(": "))
+out = text::builder_append(out, diagnostic_record::analysis_diagnostic_message(d))
+out = text::builder_append(out, String_from("\n"))
 i = i + 1
 }
 out

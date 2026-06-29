@@ -2,6 +2,7 @@
 
 use parser::ast
 use parser::kinds
+use std::text
 
 fn AT_NK_FN_DECL() -> i32 { kinds::NK_FN_DECL() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }
@@ -53,22 +54,22 @@ fn infer_let_type(decl: AstNode) -> String {
 pub fn render_signature(decl: AstNode) -> String {
     if node_is_fn_decl(decl) {
         let mut sig = String_from("fn ")
-        sig = concat(sig, node_text(decl))
-        sig = concat(sig, String_from("("))
+        sig = text::builder_append(sig, node_text(decl))
+        sig = text::builder_append(sig, String_from("("))
         let cn = node_child_count(decl)
         let last = if cn > 0 { cn - 1 } else { 0 }
         let mut i = 0
         let mut first = true
         while i < last {
             let p = node_child_at(decl, i)
-            if !first { sig = concat(sig, String_from(", ")) }
+            if !first { sig = text::builder_append(sig, String_from(", ")) }
             first = false
-            sig = concat(sig, node_text(p))
+            sig = text::builder_append(sig, node_text(p))
             i = i + 1
         }
-        sig = concat(sig, String_from(")"))
+        sig = text::builder_append(sig, String_from(")"))
         let ret = fn_return_type_text(decl)
-        if len(ret) > 0 { sig = concat(sig, concat(String_from(" -> "), ret)) }
+        if len(ret) > 0 { sig = text::builder_append(sig, concat(String_from(" -> "), ret)) }
         return sig
     }
     if node_is_struct_decl(decl) { return concat(String_from("struct "), node_text(decl)) }

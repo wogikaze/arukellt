@@ -1,5 +1,7 @@
 // Arukellt Selfhost - WIT naming helpers
 
+use std::text
+
 fn wit_kebab_name(name: String) -> String {
 	let mut out = String_from("")
 	let n = len(name)
@@ -7,18 +9,18 @@ fn wit_kebab_name(name: String) -> String {
 	while i < n {
 		let ch = char_at(name, i)
 		if ch == 95 {
-			out = concat(out, String_from("-"))
+			out = text::builder_append(out, String_from("-"))
 		} else {
 			if ch >= 65 && ch <= 90 {
 				if len(out) > 0 {
 					let prev = char_at(out, len(out) - 1)
 					if prev != 45 {
-						out = concat(out, String_from("-"))
+						out = text::builder_append(out, String_from("-"))
 					}
 				}
-				out = concat(out, char_to_string(ch + 32))
+				out = text::builder_append(out, char_to_string(ch + 32))
 			} else {
-				out = concat(out, substring(name, i, i + 1))
+				out = text::builder_append(out, substring(name, i, i + 1))
 			}
 		}
 		i = i + 1

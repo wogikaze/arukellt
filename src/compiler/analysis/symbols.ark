@@ -10,6 +10,7 @@ use parser::ast
 use parser::kinds
 use resolver::ref_record
 use resolver::ref_sites
+use std::text
 
 fn AT_NK_IDENT() -> i32 { kinds::NK_IDENT() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }
@@ -179,9 +180,9 @@ pub fn render_hover_markdown(info: symbol_types::SymbolInfo, minimal: bool) -> S
     if !symbol_types::symbol_info_found(info) { return String_new() }
     if minimal { return symbol_types::symbol_info_signature(info) }
     let mut out = String_from("```ark\n")
-    out = concat(out, symbol_types::symbol_info_signature(info))
-    out = concat(out, String_from("\n```"))
+    out = text::builder_append(out, symbol_types::symbol_info_signature(info))
+    out = text::builder_append(out, String_from("\n```"))
     let doc = symbol_types::symbol_info_doc(info)
-    if len(doc) > 0 { out = concat(out, concat(String_from("\n\n"), doc)) }
+    if len(doc) > 0 { out = text::builder_append(out, concat(String_from("\n\n"), doc)) }
     out
 }

@@ -2,6 +2,7 @@
 
 use component::type_node
 use component::wit_names
+use std::text
 
 fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
 	if type_node::type_node_is_named_kind(ty) {
@@ -31,9 +32,9 @@ fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
 		let mut i = 0
 		while i < type_node::type_node_child_count(ty) {
 			if i > 0 {
-				out = concat(out, String_from(", "))
+				out = text::builder_append(out, String_from(", "))
 			}
-			out = concat(out, wit_type_from_ast(type_node::type_node_child_at(ty, i)))
+			out = text::builder_append(out, wit_type_from_ast(type_node::type_node_child_at(ty, i)))
 			i = i + 1
 		}
 		return concat(out, String_from(">"))

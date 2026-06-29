@@ -4,6 +4,7 @@ use component::constants_wit_values
 use mir::function_return_view
 use mir::local_access
 use mir::value_types
+use std::text
 
 fn comp_export_name(name: String) -> String {
 	let mut out = String_from("")
@@ -12,9 +13,9 @@ fn comp_export_name(name: String) -> String {
 	while i < n {
 		let ch = char_at(name, i)
 		if ch == 95 {
-			out = concat(out, String_from("-"))
+			out = text::builder_append(out, String_from("-"))
 		} else {
-			out = concat(out, substring(name, i, i + 1))
+			out = text::builder_append(out, substring(name, i, i + 1))
 		}
 		i = i + 1
 	}

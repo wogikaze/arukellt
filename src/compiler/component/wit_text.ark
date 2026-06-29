@@ -6,6 +6,7 @@ use component::wit_type_defs
 use component::wit_types
 use component::world_spec
 use std::host::fs
+use std::text
 
 fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
 	emit_wit_text_from_decls_with_world(decls, String_new())
@@ -15,18 +16,18 @@ fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> St
 	let package_name = if len(clone(world)) > 0 { String_from("arukellt:app") } else { String_from("arukellt:generated") }
 	let world_name = world_spec::world_spec_world_name(clone(world))
 	let mut out = concat(String_from("package "), concat(package_name, String_from(";\n\nworld ")))
-	out = concat(out, world_name)
-	out = concat(out, String_from(" {\n"))
-	out = concat(out, world_spec::world_spec_emit_use_block(clone(world)))
-	out = concat(out, wit_type_defs::emit_wit_type_defs(decls))
-	out = concat(out, emit_wit_func_exports_with_world(decls, clone(world)))
+	out = text::builder_append(out, world_name)
+	out = text::builder_append(out, String_from(" {\n"))
+	out = text::builder_append(out, world_spec::world_spec_emit_use_block(clone(world)))
+	out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
+	out = text::builder_append(out, emit_wit_func_exports_with_world(decls, clone(world)))
 	return concat(out, String_from("}\n"))
 }
 
 fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
 	let mut out = String_from("package arukellt:generated;\n\nworld arukellt {\n")
-	out = concat(out, wit_type_defs::emit_wit_type_defs(decls))
-	out = concat(out, emit_wit_func_exports(decls))
+	out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
+	out = text::builder_append(out, emit_wit_func_exports(decls))
 	concat(out, String_from("}\n"))
 }
 
@@ -46,9 +47,9 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 				let export_name = world_spec::world_spec_wit_export_name(fname, clone(world))
 				let export_key = concat(String_from("export "), concat(wit_names::wit_export_name(export_name), String_from(":")))
 				if !contains(clone(out), clone(export_key)) {
-					out = concat(out, String_from("    export "))
-					out = concat(out, wit_names::wit_export_name(export_name))
-					out = concat(out, String_from(": func();\n"))
+					out = text::builder_append(out, String_from("    export "))
+					out = text::builder_append(out, wit_names::wit_export_name(export_name))
+					out = text::builder_append(out, String_from(": func();\n"))
 				}
 			}
 		}
@@ -66,48 +67,48 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 				let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
 				let fname = wit_decl::wit_func_name(f)
 				if wit_decl::wit_func_is_export(f) {
-					out = concat(out, String_from("  export "))
-					out = concat(out, wit_names::wit_export_name(fname))
-					out = concat(out, String_from(": func("))
+					out = text::builder_append(out, String_from("  export "))
+					out = text::builder_append(out, wit_names::wit_export_name(fname))
+					out = text::builder_append(out, String_from(": func("))
 					let mut pi = 0
 					while pi < wit_decl::wit_func_param_count(f) {
 						if pi > 0 {
-							out = concat(out, String_from(", "))
+							out = text::builder_append(out, String_from(", "))
 						}
 						let pname = wit_decl::wit_func_param_name_at(f, pi)
 						if len(clone(pname)) > 0 {
-							out = concat(out, pname)
+							out = text::builder_append(out, pname)
 						} else {
-							out = concat(out, concat(String_from("arg"), to_string(pi)))
+							out = text::builder_append(out, concat(String_from("arg"), to_string(pi)))
 						}
-						out = concat(out, String_from(": "))
+						out = text::builder_append(out, String_from(": "))
 						if eq(clone(fname), String_from("flip_read")) {
-							out = concat(out, wit_type_defs::wit_export_flags_type_name())
+							out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
 						} else if eq(clone(fname), String_from("pass_handle")) {
-							out = concat(out, wit_type_defs::wit_export_own_handle_type())
+							out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type())
 						} else if wit_decl::wit_func_param_has_type_at(f, pi) {
-							out = concat(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
+							out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
 						} else {
-							out = concat(out, String_from("s32"))
+							out = text::builder_append(out, String_from("s32"))
 						}
 					pi = pi + 1
 				}
-				out = concat(out, String_from(")"))
+				out = text::builder_append(out, String_from(")"))
 				let mut ret = String_new()
 				if wit_decl::wit_func_return_has_type(f) {
 					ret = wit_types::wit_type_from_ast(wit_decl::wit_func_return_type_view(f))
 				}
 				if len(ret) > 0 {
-					out = concat(out, String_from(" -> "))
+					out = text::builder_append(out, String_from(" -> "))
 					if eq(clone(fname), String_from("flip_read")) {
-						out = concat(out, wit_type_defs::wit_export_flags_type_name())
+						out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
 					} else if eq(clone(fname), String_from("pass_handle")) {
-						out = concat(out, wit_type_defs::wit_export_own_handle_type())
+						out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type())
 					} else {
-						out = concat(out, ret)
+						out = text::builder_append(out, ret)
 					}
 				}
-				out = concat(out, String_from(";\n"))
+				out = text::builder_append(out, String_from(";\n"))
 			}
 		}
 		i = i + 1

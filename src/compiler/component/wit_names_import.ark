@@ -1,5 +1,7 @@
 // WIT import naming — kebab/snake and PascalCase for Arukellt surface (#653).
 
+use std::text
+
 fn wit_kebab_to_snake(name: String) -> String {
     let mut out = String_from("")
     let n = len(name)
@@ -7,9 +9,9 @@ fn wit_kebab_to_snake(name: String) -> String {
     while i < n {
         let ch = char_at(name, i)
         if ch == 45 {
-            out = concat(out, String_from("_"))
+            out = text::builder_append(out, String_from("_"))
         } else {
-            out = concat(out, substring(name, i, i + 1))
+            out = text::builder_append(out, substring(name, i, i + 1))
         }
         i = i + 1
     }
