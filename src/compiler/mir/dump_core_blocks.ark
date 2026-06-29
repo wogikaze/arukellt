@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR dump block-level output.
 
 use std::host::stdio
+use std::text
 use mir::block_dominance_access
 use mir::block_inst_access
 use mir::block_phi_access
@@ -22,18 +23,18 @@ fn dump_mir_function_blocks(f: MirFunction) {
         let phi_count = block_phi_access::MirBlock_phi_count(block)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut block_msg = concat(String_from("    bb"), to_string(b))
-        block_msg = concat(block_msg, String_from(": phis="))
-        block_msg = concat(block_msg, to_string(phi_count))
-        block_msg = concat(block_msg, String_from(" instructions="))
-        block_msg = concat(block_msg, to_string(inst_count))
-        block_msg = concat(block_msg, String_from(" succs="))
-        block_msg = concat(block_msg, dump_format_edges::mir_format_edges(block_successor_access::MirBlock_succ0(block), block_successor_access::MirBlock_succ1(block)))
-        block_msg = concat(block_msg, String_from(" preds="))
-        block_msg = concat(block_msg, dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))
-        block_msg = concat(block_msg, String_from(" idom="))
-        block_msg = concat(block_msg, dump_format_edges::mir_format_edge(block_dominance_access::MirBlock_idom(block)))
-        block_msg = concat(block_msg, String_from(" df="))
-        block_msg = concat(block_msg, dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))
+        block_msg = text::builder_append(block_msg, String_from(": phis="))
+        block_msg = text::builder_append(block_msg, to_string(phi_count))
+        block_msg = text::builder_append(block_msg, String_from(" instructions="))
+        block_msg = text::builder_append(block_msg, to_string(inst_count))
+        block_msg = text::builder_append(block_msg, String_from(" succs="))
+        block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_edges(block_successor_access::MirBlock_succ0(block), block_successor_access::MirBlock_succ1(block)))
+        block_msg = text::builder_append(block_msg, String_from(" preds="))
+        block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))
+        block_msg = text::builder_append(block_msg, String_from(" idom="))
+        block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_edge(block_dominance_access::MirBlock_idom(block)))
+        block_msg = text::builder_append(block_msg, String_from(" df="))
+        block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))
         stdio::eprintln(block_msg)
         let mut p = 0
         while p < phi_count {

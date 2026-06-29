@@ -4,6 +4,7 @@ use mir::block_phi_access
 
 use std::host::process
 use std::host::stdio
+use std::text
 use mir::dump_format_types
 use mir::dump_format_phi
 use mir::function_block_queries
@@ -14,20 +15,20 @@ fn mir_expect_single_phi(f: MirFunction, block_id: i32, expected_dest: i32, expe
     let actual_count = block_phi_access::MirBlock_phi_count(block)
     if actual_count != 1 {
         let mut msg = concat(String_from("phi check failed for bb"), to_string(block_id))
-        msg = concat(msg, String_from(": expected phi count=1 actual="))
-        msg = concat(msg, to_string(actual_count))
+        msg = text::builder_append(msg, String_from(": expected phi count=1 actual="))
+        msg = text::builder_append(msg, to_string(actual_count))
         stdio::eprintln(msg)
         process::exit(1)
     }
     let phi = block_phi_access::MirBlock_phi_at(block, 0)
     if phi_access::MirPhi_op(phi) != opcodes::MIR_PHI() || phi_access::MirPhi_dest(phi) != expected_dest || phi_access::MirPhi_val_type(phi) != expected_vt {
         let mut msg = concat(String_from("phi check failed for bb"), to_string(block_id))
-        msg = concat(msg, String_from(": expected dest=%"))
-        msg = concat(msg, to_string(expected_dest))
-        msg = concat(msg, String_from(" type="))
-        msg = concat(msg, dump_format_types::mir_value_type_name(expected_vt))
-        msg = concat(msg, String_from(" actual="))
-        msg = concat(msg, dump_format_phi::mir_format_phi(f, phi))
+        msg = text::builder_append(msg, String_from(": expected dest=%"))
+        msg = text::builder_append(msg, to_string(expected_dest))
+        msg = text::builder_append(msg, String_from(" type="))
+        msg = text::builder_append(msg, dump_format_types::mir_value_type_name(expected_vt))
+        msg = text::builder_append(msg, String_from(" actual="))
+        msg = text::builder_append(msg, dump_format_phi::mir_format_phi(f, phi))
         stdio::eprintln(msg)
         process::exit(1)
     }

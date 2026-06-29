@@ -4,6 +4,7 @@ use mir::local_access
 // Arukellt Selfhost - MIR dump phi elimination preview formatting
 
 use std::host::stdio
+use std::text
 use mir::dump_format_local
 use mir::dump_format_phi
 use mir::function_block_queries
@@ -34,21 +35,21 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
         while ai < ac {
             let a = phi_access::MirPhi_arg_at(phi, ai)
             let mut line = String_from("phi_elim_copy bb")
-            line = concat(line, to_string(phi_access::MirPhiArg_pred_block(a)))
-            line = concat(line, String_from("->bb"))
-            line = concat(line, to_string(join_block_id))
-            line = concat(line, String_from(": "))
-            line = concat(line, clone(merge_name))
-            line = concat(line, String_from(" <- "))
-            line = concat(line, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(a)))
+            line = text::builder_append(line, to_string(phi_access::MirPhiArg_pred_block(a)))
+            line = text::builder_append(line, String_from("->bb"))
+            line = text::builder_append(line, to_string(join_block_id))
+            line = text::builder_append(line, String_from(": "))
+            line = text::builder_append(line, clone(merge_name))
+            line = text::builder_append(line, String_from(" <- "))
+            line = text::builder_append(line, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(a)))
             stdio::println(line)
             ai = ai + 1
         }
         let mut tail = String_from("phi_elim_join bb")
-        tail = concat(tail, to_string(join_block_id))
-        tail = concat(tail, String_from(": "))
-        tail = concat(tail, clone(merge_name))
-        tail = concat(tail, String_from(" (phi removed)"))
+        tail = text::builder_append(tail, to_string(join_block_id))
+        tail = text::builder_append(tail, String_from(": "))
+        tail = text::builder_append(tail, clone(merge_name))
+        tail = text::builder_append(tail, String_from(" (phi removed)"))
         stdio::println(tail)
         pi = pi + 1
     }
