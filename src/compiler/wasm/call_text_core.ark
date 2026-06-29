@@ -123,7 +123,7 @@ fn try_emit_text_compare_call(w: WasmWriter, callee: String, inst: MirInst, ctx:
         let _result_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
-    if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") {
+    if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") || eq(clone(callee), "text::builder_append") || eq(clone(callee), "std::text::builder_append") {
         let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
@@ -137,6 +137,7 @@ fn try_emit_text_construct_call(w: WasmWriter, callee: String, inst: MirInst, ct
         let _result_on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
+
     if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") || eq(clone(callee), "__intrinsic_bool_to_string") {
         let _result_on_stack = intrinsic_string_basic::emit_bool_to_string(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
