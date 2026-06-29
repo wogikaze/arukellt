@@ -7,3 +7,4 @@ fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) { ctx_locals_fn::ctx_set_
 fn ctx_set_current_return_type_name(ctx: LowerCtx, type_name: String) { ctx_locals_fn::ctx_set_current_return_type_name(ctx, type_name) }
 fn ctx_current_return_type(ctx: LowerCtx) -> i32 { ctx_locals_fn::ctx_current_return_type(ctx) }
 fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) { ctx_locals_fn::ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag) }
+fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_name: String) { ctx_locals_fn::ctx_set_func_param_type(ctx, param_ordinal, pvt, type_name) }

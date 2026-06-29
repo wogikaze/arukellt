@@ -1,0 +1,61 @@
+// Arukellt Selfhost - mono return type lookup for call sites (#707).
+//
+// When a generic function returning T is monomorphized, the fn_index
+// registers the variant with the base return type (i32 for T). This
+// module looks up the concrete return type from the MonoInstance.
+
+use mir::lower::return_typeinfo
+use mir::lower_kinds
+use mir::mono_names
+use mir::type_contracts
+use mir::value_types
+
+fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
+    let inst_idx = mono_find_instance(ctx.mono_instances, clone(name))
+    if inst_idx < 0 {
+        return fallback_vt
+    }
+    let inst = get_unchecked(ctx.mono_instances, inst_idx)
+    if type_contracts::MonoInstance_type_arg_count(inst) == 0 {
+        return fallback_vt
+    }
+    let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, 0)
+    let mono_tag = type_contracts::TypeInfo_tag(mono_ty)
+    if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
+        return fallback_vt
+    }
+    return_typeinfo::mir_return_vt_from_type_info(mono_ty)
+}
+
+fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
+    let inst_idx = mono_find_instance(ctx.mono_instances, clone(name))
+    if inst_idx < 0 {
+        return fallback_name
+    }
+    let inst = get_unchecked(ctx.mono_instances, inst_idx)
+    if type_contracts::MonoInstance_type_arg_count(inst) == 0 {
+        return fallback_name
+    }
+    let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, 0)
+    let mono_tag = type_contracts::TypeInfo_tag(mono_ty)
+    if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
+        return fallback_name
+    }
+    return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
+}
+
+fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> i32 {
+    let safe = mono_names::mono_safe_name(mangled)
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(mono_instances, i)
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        let inst_safe = mono_names::mono_safe_name(inst_mangled)
+        if eq(clone(inst_safe), clone(safe)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}

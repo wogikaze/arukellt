@@ -4,6 +4,7 @@ use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_api_module
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
+use mir::lower::mono_param_subst
 use mir::function_factory
 // Arukellt Selfhost - top-level function MIR body emission.
 
@@ -23,6 +24,8 @@ fn mir_emit_top_level_fn_body(ctx: LowerCtx, body_input: MirLowerEntryBodyInput,
     // that trait method calls on type-variable receivers can resolve to
     // the concrete type's impl method.
     ctx_mono_type_params::ctx_setup_mono_type_params_by_ordinal(ctx, clone(emit_fn_name))
+    // Re-substitute type-variable param locals with concrete mono types (#707).
+    mono_param_subst::mir_substitute_mono_param_types(ctx)
     ctx_api_function_frame::ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag)
     ctx_api_function_frame::ctx_set_current_return_type_name(ctx, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rt_type_name))
     trace::mir_lower_trace_ctx(mir_tr, ctx, 2)

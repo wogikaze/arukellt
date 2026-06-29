@@ -2,12 +2,20 @@
 
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_return_vt_simd
+use mir::lower::mono_return_vt
 use mir::value_types
 
 fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
     if found >= 0 {
-        return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
+        let rvt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
+        if rvt == value_types::VT_I32() {
+            let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(name), rvt)
+            if mono_vt != value_types::VT_I32() {
+                return mono_vt
+            }
+        }
+        return rvt
     }
     let nlen = len(name)
     let mut colon_pos = 0 - 1

@@ -1,9 +1,29 @@
 // Arukellt Selfhost - MIR function parameter mutation API.
 
 use mir::function_core_record
+use mir::function_param_view
 use mir::local_record
+use mir::local_mutation
 use mir::types_function
 
 fn MirFunction_push_param(f: MirFunction, local: MirLocal) {
     push(f.params, local)
+}
+
+fn MirFunction_set_param_type(f: MirFunction, idx: i32, vt: i32, type_name: String) {
+    let p = function_param_view::MirFunction_param_at(f, idx)
+    local_mutation::MirLocal_set_val_type(p, vt)
+    local_mutation::MirLocal_set_type_name(p, clone(type_name))
+    let out = Vec_new_MirLocal()
+    let n = len(f.params)
+    let mut i = 0
+    while i < n {
+        if i == idx {
+            push(out, p)
+        } else {
+            push(out, get_unchecked(f.params, i))
+        }
+        i = i + 1
+    }
+    f.params = out
 }

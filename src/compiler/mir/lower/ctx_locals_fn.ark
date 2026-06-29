@@ -1,6 +1,7 @@
 use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
+use mir::function_param_view
 // Arukellt MIR lowering context - current function signature mutation.
 
 use mir::lower::ctx_current_storage
@@ -10,6 +11,14 @@ fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     function_param_mutation::MirFunction_push_param(f, ml)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_name: String) {
+    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
+    if param_ordinal >= 0 && param_ordinal < function_param_view::MirFunction_param_count(f) {
+        function_param_mutation::MirFunction_set_param_type(f, param_ordinal, pvt, type_name)
+        ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    }
 }
 
 fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) {
