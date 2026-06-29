@@ -6,6 +6,7 @@ use mir::function_locals_view
 
 use std::host::env
 use std::host::stdio
+use std::text
 use mir::function_block_queries
 use mir::lower::ctx_types
 
@@ -33,14 +34,14 @@ fn mir_lower_trace_line(on: i32, phase: i32, np: i32, nl: i32, nb: i32, rt: i32)
         return
     }
     let mut s = to_string(phase)
-    s = concat(s, String_from(" "))
-    s = concat(s, to_string(np))
-    s = concat(s, String_from(" "))
-    s = concat(s, to_string(nl))
-    s = concat(s, String_from(" "))
-    s = concat(s, to_string(nb))
-    s = concat(s, String_from(" "))
-    s = concat(s, to_string(rt))
+    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, to_string(np))
+    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, to_string(nl))
+    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, to_string(nb))
+    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, to_string(rt))
     stdio::eprintln(s)
 }
 

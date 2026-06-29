@@ -2,6 +2,7 @@
 
 use fmt::program
 use fmt::whitespace
+use std::text
 
 fn fmt_line_count(text: String) -> i32 {
     len(whitespace::fmt_split_lines(text))
@@ -33,13 +34,13 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
     let mut i = start
     while i <= end && i < len(lines) {
         if i > start {
-            out = concat(out, String_from("\n"))
+            out = text::builder_append(out, String_from("\n"))
         }
-        out = concat(out, clone(get_unchecked(lines, i)))
+        out = text::builder_append(out, clone(get_unchecked(lines, i)))
         i = i + 1
     }
     if end < max_line {
-        out = concat(out, String_from("\n"))
+        out = text::builder_append(out, String_from("\n"))
     }
     out
 }
@@ -53,25 +54,25 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
     let mut i = 0
     while i < start && i < len(lines) {
         if i > 0 {
-            out = concat(out, String_from("\n"))
+            out = text::builder_append(out, String_from("\n"))
         }
-        out = concat(out, clone(get_unchecked(lines, i)))
+        out = text::builder_append(out, clone(get_unchecked(lines, i)))
         i = i + 1
     }
     if len(replacement) > 0 {
         if start > 0 {
-            out = concat(out, String_from("\n"))
+            out = text::builder_append(out, String_from("\n"))
         }
-        out = concat(out, clone(replacement))
+        out = text::builder_append(out, clone(replacement))
     }
     let mut j = end + 1
     while j < len(lines) {
-        out = concat(out, String_from("\n"))
-        out = concat(out, clone(get_unchecked(lines, j)))
+        out = text::builder_append(out, String_from("\n"))
+        out = text::builder_append(out, clone(get_unchecked(lines, j)))
         j = j + 1
     }
     if len(lines) > 0 {
-        out = concat(out, String_from("\n"))
+        out = text::builder_append(out, String_from("\n"))
     }
     out
 }
