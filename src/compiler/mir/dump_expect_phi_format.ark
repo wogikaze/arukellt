@@ -3,6 +3,7 @@ use mir::block_phi_access
 
 use std::host::process
 use std::host::stdio
+use std::text
 use mir::dump_format_phi
 use mir::function_block_queries
 
@@ -20,9 +21,9 @@ fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected
     let actual = dump_format_phi::mir_format_phi(f, phi)
     if !eq(clone(actual), clone(expected)) {
         let mut msg = String_from("phi format check failed: expected ")
-        msg = concat(msg, expected)
-        msg = concat(msg, String_from(" actual "))
-        msg = concat(msg, actual)
+        msg = text::builder_append(msg, expected)
+        msg = text::builder_append(msg, String_from(" actual "))
+        msg = text::builder_append(msg, actual)
         stdio::eprintln(msg)
         process::exit(1)
     }

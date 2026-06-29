@@ -5,6 +5,7 @@ use parser::kinds
 use parser::core_ast_children
 // Arukellt Parser AST dump helpers.
 use std::host::stdio
+use std::text
 
 use parser::core_types
 use parser::names
@@ -17,7 +18,7 @@ fn print_ast(node: AstNode, depth: i32) {
     let mut indent = String_new()
     let mut d = 0
     while d < depth {
-        indent = concat(indent, String_from("  "))
+        indent = text::builder_append(indent, String_from("  "))
         d = d + 1
     }
     let node_kind = ast_kind_fields::AstNode_kind(node)
@@ -25,10 +26,10 @@ fn print_ast(node: AstNode, depth: i32) {
     let mut line = concat(indent, kind_str)
     let node_text = core_ast_text_fields::AstNode_text(node)
     if len(node_text) > 0 {
-        line = concat(line, concat(String_from("("), concat(node_text, String_from(")"))))
+        line = text::builder_append(line, concat(String_from("("), concat(node_text, String_from(")"))))
     }
     if node_kind == kinds::NK_INT_LIT() {
-        line = concat(line, concat(String_from("("), concat(to_string(core_ast_literal_fields::AstNode_int_val(node)), String_from(")"))))
+        line = text::builder_append(line, concat(String_from("("), concat(to_string(core_ast_literal_fields::AstNode_int_val(node)), String_from(")"))))
     }
     stdio::println(line)
     let mut i = 0

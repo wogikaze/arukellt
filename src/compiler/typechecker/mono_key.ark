@@ -3,6 +3,7 @@ use typechecker::kinds
 
 use typechecker::contract_type_access
 use typechecker::names
+use std::text
 
 fn mono_type_key(ty: TypeInfo) -> String {
     let tag = contract_type_access::TypeInfo_tag(ty)
@@ -24,11 +25,11 @@ fn mono_type_key(ty: TypeInfo) -> String {
     while i < arg_count {
         let arg = contract_type_access::TypeInfo_type_arg_at(ty, i)
         if i > 0 {
-            result = concat(result, String_from(","))
+            result = text::builder_append(result, String_from(","))
         }
-        result = concat(result, mono_type_key(arg))
+        result = text::builder_append(result, mono_type_key(arg))
         i = i + 1
     }
-    result = concat(result, String_from(">"))
+    result = text::builder_append(result, String_from(">"))
     result
 }

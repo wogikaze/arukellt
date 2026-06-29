@@ -1,6 +1,7 @@
 // Arukellt Selfhost - diagnostic source offset/position mapping.
 
 use diagnostics::record
+use std::text
 
 pub fn offset_to_line(source: String, offset: i32) -> i32 {
     let n = len(source)
@@ -69,9 +70,9 @@ fn span_from_offsets(source: String, file: String, start: i32, end: i32) -> Diag
 
 fn location_text(source: String, file: String, offset: i32) -> String {
     let mut out = file
-    out = concat(out, String_from(":"))
-    out = concat(out, to_string(offset_to_line(clone(source), offset)))
-    out = concat(out, String_from(":"))
-    out = concat(out, to_string(offset_to_column(source, offset)))
+    out = text::builder_append(out, String_from(":"))
+    out = text::builder_append(out, to_string(offset_to_line(clone(source), offset)))
+    out = text::builder_append(out, String_from(":"))
+    out = text::builder_append(out, to_string(offset_to_column(source, offset)))
     out
 }

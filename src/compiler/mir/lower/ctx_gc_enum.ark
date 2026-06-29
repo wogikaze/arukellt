@@ -4,6 +4,7 @@ use mir::lower::ctx_types
 use mir::module_gc_enum
 use mir::value_types
 use wasm::emit_target
+use std::text
 
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     emit_target::is_gc_target(clone(ctx.lower_target))
@@ -91,7 +92,7 @@ fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
     let mut i = 0
     while i < len(payload_vts) {
-        sig = concat(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
+        sig = text::builder_append(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
         i = i + 1
     }
     sig
@@ -184,7 +185,7 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 }
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
-                sig = concat(sig, gc_enum_field_sig_for_type(clone(ft)))
+                sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(ft)))
                 fi = fi + 1
             }
             return sig

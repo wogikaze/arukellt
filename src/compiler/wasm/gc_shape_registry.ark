@@ -3,6 +3,7 @@
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 
 use mir::value_types
+use std::text
 
 pub struct GcShapeRegistry {
     struct_names: Vec<String>,
@@ -66,10 +67,10 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
     let fc = len(types_code)
     let mut fi = 0
     while fi < fc {
-        sig = concat(sig, String_from("_f"))
-        sig = concat(sig, to_string(fi))
-        sig = concat(sig, String_from("_"))
-        sig = concat(sig, code_to_gc_sig(char_at(clone(types_code), fi)))
+        sig = text::builder_append(sig, String_from("_f"))
+        sig = text::builder_append(sig, to_string(fi))
+        sig = text::builder_append(sig, String_from("_"))
+        sig = text::builder_append(sig, code_to_gc_sig(char_at(clone(types_code), fi)))
         fi = fi + 1
     }
     sig

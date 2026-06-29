@@ -1,5 +1,7 @@
 // Arukellt Selfhost - formatter whitespace normalization.
 
+use std::text
+
 fn fmt_normalize_line(line: String) -> String {
     let n = len(clone(line))
     let mut end = n
@@ -15,9 +17,9 @@ fn fmt_normalize_line(line: String) -> String {
     while pos < end {
         let c = char_at(clone(line), pos)
         if c == 9 {
-            result = concat(result, String_from("    "))
+            result = text::builder_append(result, String_from("    "))
         } else {
-            result = concat(result, substring(clone(line), pos, pos + 1))
+            result = text::builder_append(result, substring(clone(line), pos, pos + 1))
         }
         pos = pos + 1
     }
@@ -56,12 +58,12 @@ fn fmt_join_lines(lines: Vec<String>) -> String {
     let mut k = 0
     while k < end {
         if k > 0 {
-            result = concat(result, String_from("\n"))
+            result = text::builder_append(result, String_from("\n"))
         }
-        result = concat(result, clone(get_unchecked(lines, k)))
+        result = text::builder_append(result, clone(get_unchecked(lines, k)))
         k = k + 1
     }
-    result = concat(result, String_from("\n"))
+    result = text::builder_append(result, String_from("\n"))
     result
 }
 

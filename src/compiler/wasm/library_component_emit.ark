@@ -10,6 +10,7 @@ use wasm::wasi_p1_component_stub
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_string
+use std::text
 
 fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     let out = lib_comp_new_component_writer()
@@ -103,9 +104,9 @@ fn lib_comp_export_name_kebab(name: String) -> String {
     while i < n {
         let ch = char_at(name, i)
         if ch == 95 {
-            out = concat(out, String_from("-"))
+            out = text::builder_append(out, String_from("-"))
         } else {
-            out = concat(out, substring(name, i, i + 1))
+            out = text::builder_append(out, substring(name, i, i + 1))
         }
         i = i + 1
     }

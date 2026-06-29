@@ -6,6 +6,7 @@ use mir::local_access
 use wasm::wat_ops
 use wasm::wat_types
 use mir::function_block_queries
+use std::text
 
 fn emit_wat_locals(f: MirFunction) -> String {
     let mut out = String_from("")
@@ -13,7 +14,7 @@ fn emit_wat_locals(f: MirFunction) -> String {
     let mut li = 0
     while li < local_count {
         let loc = function_locals_view::MirFunction_local_at(f, li)
-        out = concat(out, concat(String_from("    (local "), concat(wat_types::val_type_name(local_access::MirLocal_val_type(loc)), String_from(")
+        out = text::builder_append(out, concat(String_from("    (local "), concat(wat_types::val_type_name(local_access::MirLocal_val_type(loc)), String_from(")
 "))))
         li = li + 1
     }
@@ -30,7 +31,7 @@ fn emit_wat_instructions(f: MirFunction) -> String {
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            out = concat(out, concat(String_from("    "), concat(wat_ops::mir_op_to_wat(inst), String_from("
+            out = text::builder_append(out, concat(String_from("    "), concat(wat_ops::mir_op_to_wat(inst), String_from("
 "))))
             ii = ii + 1
         }

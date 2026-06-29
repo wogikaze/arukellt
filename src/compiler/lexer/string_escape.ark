@@ -2,6 +2,7 @@ use lexer::tokens
 // Arukellt Lexer - string literals with escapes.
 
 use lexer::string_escape_chars
+use std::text
 
 fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
     let mut result = String_new()
@@ -10,7 +11,7 @@ fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
         let c = peek(lex)
         if c == 34 {
             if span_start < lex.pos {
-                result = concat(result, substring(lex.src, span_start, lex.pos))
+                result = text::builder_append(result, substring(lex.src, span_start, lex.pos))
             }
             lex.pos = lex.pos + 1
             return Token_new(tokens::TK_STRING(), result, start, lex.pos)
@@ -20,7 +21,7 @@ fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
         }
         if c == 92 {
             if span_start < lex.pos {
-                result = concat(result, substring(lex.src, span_start, lex.pos))
+                result = text::builder_append(result, substring(lex.src, span_start, lex.pos))
             }
             lex.pos = lex.pos + 1
             if lex.pos >= lex.src_len {
@@ -28,7 +29,7 @@ fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
             }
             let esc = peek(lex)
             lex.pos = lex.pos + 1
-            result = concat(result, string_escape_chars::escaped_string_fragment(lex, esc))
+            result = text::builder_append(result, string_escape_chars::escaped_string_fragment(lex, esc))
             span_start = lex.pos
         } else {
             lex.pos = lex.pos + 1

@@ -3,21 +3,22 @@ use analysis::snapshot_state_record
 
 use lsp::json_escape
 use lsp::diag_object
+use std::text
 
 pub fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapshot) -> String {
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":")
-	body = concat(body, json_escape::quote_string(uri))
-	body = concat(body, String_from(",\"diagnostics\":["))
+	body = text::builder_append(body, json_escape::quote_string(uri))
+	body = text::builder_append(body, String_from(",\"diagnostics\":["))
 	let n = snapshot_state_record::snapshot_diagnostic_count(snap)
 	let mut i = 0
 	while i < n {
 		let d = snapshot_state_record::snapshot_diagnostic_at(snap, i)
 		if i > 0 {
-			body = concat(body, String_from(","))
+			body = text::builder_append(body, String_from(","))
 		}
-		body = concat(body, diag_object::build_diagnostic_object(clone(text), d))
+		body = text::builder_append(body, diag_object::build_diagnostic_object(clone(text), d))
 		i = i + 1
 	}
-	body = concat(body, String_from("]}}"))
+	body = text::builder_append(body, String_from("]}}"))
 	body
 }

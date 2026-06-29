@@ -2,6 +2,7 @@
 
 use lsp::completion_providers
 use lsp::positions
+use std::text
 
 fn is_ident_char(ch: i32) -> bool {
     if ch >= 97 && ch <= 122 {
@@ -33,9 +34,9 @@ pub fn build_completion_response(state: LspState, id: i32, text: String, offset:
     let prefix = prefix_at_offset(clone(text), offset)
     let items = completion_providers::collect_completion_items(state, clone(text), offset, prefix)
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
-    body = concat(body, items)
-    body = concat(body, String_from("]}}"))
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
+    body = text::builder_append(body, items)
+    body = text::builder_append(body, String_from("]}}"))
     body
 }

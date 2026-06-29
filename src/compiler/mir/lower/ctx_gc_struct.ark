@@ -4,6 +4,7 @@ use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::module_gc_struct
+use std::text
 
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
@@ -84,7 +85,7 @@ fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> 
     while fi < field_count {
         let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))
         let field_sig = gc_struct_field_sig_for_type(ft, fi)
-        sig = concat(sig, field_sig)
+        sig = text::builder_append(sig, field_sig)
         fi = fi + 1
     }
     sig
