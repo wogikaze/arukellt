@@ -8,6 +8,10 @@ fn corehir_build_array_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     body_collection_array::corehir_build_array_lit_expr(table, node)
 }
 
+fn corehir_build_array_repeat_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_collection_array::corehir_build_array_repeat_expr(table, node)
+}
+
 fn corehir_build_tuple_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     body_collection_tuple::corehir_build_tuple_expr(table, node)
 }

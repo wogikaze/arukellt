@@ -17,6 +17,7 @@ fn corehir_kind_is_expr_try(kind: i32) -> bool { kind == frontend_kind_map::nk_t
 fn corehir_kind_is_expr_field_access(kind: i32) -> bool { kind == frontend_kind_map::nk_field_access() }
 fn corehir_kind_is_expr_index(kind: i32) -> bool { kind == frontend_kind_map::nk_index() }
 fn corehir_kind_is_expr_array_lit(kind: i32) -> bool { kind == frontend_kind_map::nk_array_lit() }
+fn corehir_kind_is_expr_array_repeat(kind: i32) -> bool { kind == frontend_kind_map::nk_array_repeat() }
 fn corehir_kind_is_expr_tuple(kind: i32) -> bool { kind == frontend_kind_map::nk_tuple() }
 fn corehir_kind_is_expr_struct_lit(kind: i32) -> bool { kind == frontend_kind_map::nk_struct_lit() }
 fn corehir_kind_is_expr_comprehension(kind: i32) -> bool { kind == frontend_kind_map::nk_comprehension() }

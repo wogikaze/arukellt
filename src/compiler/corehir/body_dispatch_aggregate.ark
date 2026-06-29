@@ -8,6 +8,9 @@ fn corehir_dispatch_aggregate_expr(table: CoreHirBodyTable, node: AstNode) -> i3
     if expr_node_predicates::expr_is_array_lit(node) {
         return body_collections::corehir_build_array_lit_expr(table, node)
     }
+    if expr_node_predicates::expr_is_array_repeat(node) {
+        return body_collections::corehir_build_array_repeat_expr(table, node)
+    }
     if expr_node_predicates::expr_is_tuple(node) {
         return body_collections::corehir_build_tuple_expr(table, node)
     }

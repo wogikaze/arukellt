@@ -84,6 +84,9 @@ fn lower_aggregate_expr(ctx: LowerCtx, node: AstNode, kind: i32) -> i32 {
     if kind == lower_kinds::NK_ARRAY_LIT() {
         return body_aggregate::lower_array_lit_expr(ctx, node)
     }
+    if kind == lower_kinds::NK_ARRAY_REPEAT() {
+        return body_aggregate::lower_array_repeat_expr(ctx, node)
+    }
     if kind == lower_kinds::NK_INDEX() {
         return body_aggregate::lower_index_expr(ctx, node)
     }

@@ -8,6 +8,10 @@ fn corehir_expr_array_lit(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
     expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_ARRAY_LIT(), String_new(), 0, 0.0, value_types::VT_GC_REF(), String_new(), span_start, children)
 }
 
+fn corehir_expr_array_repeat(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_ARRAY_REPEAT(), String_new(), 0, 0.0, value_types::VT_GC_REF(), String_new(), span_start, children)
+}
+
 fn corehir_expr_tuple(span_start: i32, children: Vec<i32>) -> CoreHirExpr {
     expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_TUPLE(), String_new(), 0, 0.0, value_types::VT_GC_REF(), String_new(), span_start, children)
 }

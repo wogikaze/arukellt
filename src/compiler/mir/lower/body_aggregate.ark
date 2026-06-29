@@ -36,6 +36,21 @@ fn lower_array_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     aggregate::mir_emit_local_get_ref(ctx, dest)
 }
 
+fn lower_array_repeat_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let val_node = ast_node::node_child_at(node, 0)
+    let count_node = ast_node::node_child_at(node, 1)
+    let count = ast_node::node_int_val(count_node)
+    let dest = aggregate::mir_emit_array_new(ctx, count)
+    let val_idx = lower_expr(ctx, val_node)
+    let mut i = 0
+    while i < count {
+        aggregate::mir_emit_local_get_ref(ctx, val_idx)
+        aggregate::mir_emit_array_set(ctx, dest, val_idx, i)
+        i = i + 1
+    }
+    aggregate::mir_emit_local_get_ref(ctx, dest)
+}
+
 fn lower_index_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     body_aggregate_place::lower_index_expr(ctx, node)
 }

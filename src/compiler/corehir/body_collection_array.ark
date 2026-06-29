@@ -24,3 +24,19 @@ fn corehir_build_array_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     }
     corehir_push_expr(table, expr_builder_collections::corehir_expr_array_lit(expr_node_access::expr_span_start(node), children))
 }
+
+fn corehir_build_array_repeat_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    let children = Vec_new_i32()
+    let val_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
+    push(children, val_index)
+    let val_expr = corehir_body_expr_at(table, val_index)
+    let val_unsupported = expr_predicates::expr_is_unsupported(val_expr)
+    let count_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))
+    push(children, count_index)
+    let count_expr = corehir_body_expr_at(table, count_index)
+    let count_unsupported = expr_predicates::expr_is_unsupported(count_expr)
+    if val_unsupported || count_unsupported {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    corehir_push_expr(table, expr_builder_collections::corehir_expr_array_repeat(expr_node_access::expr_span_start(node), children))
+}

@@ -17,6 +17,7 @@ fn nk_try() -> i32 { kinds::NK_TRY() }
 fn nk_field_access() -> i32 { kinds::NK_FIELD_ACCESS() }
 fn nk_index() -> i32 { kinds::NK_INDEX() }
 fn nk_array_lit() -> i32 { kinds::NK_ARRAY_LIT() }
+fn nk_array_repeat() -> i32 { kinds::NK_ARRAY_REPEAT() }
 fn nk_tuple() -> i32 { kinds::NK_TUPLE() }
 fn nk_struct_lit() -> i32 { kinds::NK_STRUCT_LIT() }
 fn nk_comprehension() -> i32 { kinds::NK_COMPREHENSION() }

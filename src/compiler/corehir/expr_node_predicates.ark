@@ -19,6 +19,7 @@ fn expr_is_try(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr
 fn expr_is_field_access(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_field_access(frontend_ast_node::corehir_node_kind(node)) }
 fn expr_is_index(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_index(frontend_ast_node::corehir_node_kind(node)) }
 fn expr_is_array_lit(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_array_lit(frontend_ast_node::corehir_node_kind(node)) }
+fn expr_is_array_repeat(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_array_repeat(frontend_ast_node::corehir_node_kind(node)) }
 fn expr_is_tuple(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_tuple(frontend_ast_node::corehir_node_kind(node)) }
 fn expr_is_struct_lit(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_struct_lit(frontend_ast_node::corehir_node_kind(node)) }
 fn expr_is_comprehension(node: AstNode) -> bool { frontend_expr_kind::corehir_kind_is_expr_comprehension(frontend_ast_node::corehir_node_kind(node)) }

@@ -27,6 +27,7 @@ fn NK_FIELD_ACCESS() -> i32 { 9 }
 fn NK_INDEX() -> i32 { 10 }
 fn NK_STRUCT_LIT() -> i32 { 11 }
 fn NK_ARRAY_LIT() -> i32 { 12 }
+fn NK_ARRAY_REPEAT() -> i32 { 24 }
 fn NK_TUPLE() -> i32 { 17 }
 fn NK_COMPREHENSION() -> i32 { 38 }
 
