@@ -49,6 +49,8 @@ pub(crate) struct LowerCtx {
     pub(super) vec_struct_locals: HashMap<u32, String>,
     /// (struct_name, field_name) -> inner element struct type for Vec<Struct> fields.
     pub(super) vec_struct_fields: HashMap<(String, String), String>,
+    /// Struct name -> TypeId (for mapping Vec<Struct> element types to Type::Struct)
+    pub(super) struct_name_to_id: HashMap<String, u32>,
     /// Local to assign break values to (for loop-as-expression).
     pub(super) loop_result_local: Option<LocalId>,
     /// Function name -> return type expression (for resolving generic enum payloads in match).
@@ -87,6 +89,7 @@ impl LowerCtx {
         type_params: Vec<String>,
         generic_fn_names: HashSet<String>,
         vec_struct_fields: HashMap<(String, String), String>,
+        struct_name_to_id: HashMap<String, u32>,
     ) -> Self {
         Self {
             locals: Vec::new(),
@@ -114,6 +117,7 @@ impl LowerCtx {
             vec_i32_locals: HashSet::new(),
             vec_struct_locals: HashMap::new(),
             vec_struct_fields,
+            struct_name_to_id,
             loop_result_local: None,
             fn_return_types,
             user_fn_names,
@@ -132,6 +136,38 @@ impl LowerCtx {
         self.next_local += 1;
         self.locals.push((name.to_string(), id));
         id
+    }
+
+    /// Convert an AST type expression to a MIR Type, resolving struct names to Type::Struct.
+    pub(in crate::lower) fn lower_type_expr(&self, ty: &ast::TypeExpr) -> ark_typecheck::types::Type {
+        match ty {
+            ast::TypeExpr::Named { name, .. } => match name.as_str() {
+                "i32" | "u32" | "i16" | "u16" | "i8" | "u8" => ark_typecheck::types::Type::I32,
+                "i64" | "u64" => ark_typecheck::types::Type::I64,
+                "f64" => ark_typecheck::types::Type::F64,
+                "f32" => ark_typecheck::types::Type::F32,
+                "bool" => ark_typecheck::types::Type::Bool,
+                "char" => ark_typecheck::types::Type::Char,
+                "String" => ark_typecheck::types::Type::String,
+                _ => {
+                    // Check if it's a struct type
+                    if let Some(&tid) = self.struct_name_to_id.get(name.as_str()) {
+                        ark_typecheck::types::Type::Struct(ark_typecheck::types::TypeId(tid))
+                    } else {
+                        ark_typecheck::types::Type::I32
+                    }
+                }
+            },
+            ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
+                let elem = args
+                    .first()
+                    .map(|a| self.lower_type_expr(a))
+                    .unwrap_or(ark_typecheck::types::Type::I32);
+                ark_typecheck::types::Type::Vec(Box::new(elem))
+            }
+            ast::TypeExpr::Unit(_) => ark_typecheck::types::Type::Unit,
+            _ => ark_typecheck::types::Type::I32,
+        }
     }
 
     /// Check if an expression is a call to a generic function.

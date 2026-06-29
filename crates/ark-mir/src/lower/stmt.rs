@@ -784,7 +784,13 @@ impl LowerCtx {
                 out.push(MirStmt::Continue);
             }
             ast::Expr::Return { value, .. } => {
-                let op = value.as_ref().map(|v| self.lower_expr(v));
+                let op = value.as_ref().map(|v| {
+                    let lowered = self.lower_expr(v);
+                    if std::env::var("ARK_TRACE_RETURN").is_ok() {
+                        eprintln!("TRACE Return: value_expr={:?} lowered={:?}", v, lowered);
+                    }
+                    lowered
+                });
                 out.push(MirStmt::Return(op));
             }
             ast::Expr::Match {

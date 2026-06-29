@@ -574,6 +574,8 @@ pub struct TypeTable {
     pub enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
     /// Function signatures: fn name → simplified signature.
     pub fn_sigs: HashMap<String, MirFnSig>,
+    /// Map from TypeId to struct name (for Vec<Struct> element type resolution).
+    pub struct_id_to_name: HashMap<u32, String>,
 }
 
 /// A WIT-derived import declaration for Component Model support.

@@ -102,6 +102,11 @@ pub fn lower_to_mir(
     let mut bare_variant_tags: HashMap<String, (String, i32, usize)> = HashMap::new();
     // Collect struct definitions: "StructName" -> field names (ordered)
     let mut struct_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
+    // Build struct name -> TypeId mapping from checker
+    let struct_name_to_id: HashMap<String, u32> = checker
+        .struct_defs_iter()
+        .map(|(name, info)| (name.clone(), info.type_id.0))
+        .collect();
     // (struct_name, field_name) -> inner element struct type for Vec<Struct> fields
     let mut vec_struct_fields: HashMap<(String, String), String> = HashMap::new();
     // Collect enum definitions: "EnumName" -> [(variant_name, [payload_type_names])]
@@ -310,7 +315,27 @@ pub fn lower_to_mir(
                 f.type_params.clone(),
                 generic_fn_names.clone(),
                 vec_struct_fields.clone(),
+                struct_name_to_id.clone(),
             );
+
+            // Build parameter types using ctx.lower_type_expr for proper struct/Vec<Struct> resolution
+            let param_types: Vec<ark_typecheck::types::Type> = f
+                .params
+                .iter()
+                .map(|p| {
+                    if f.type_params.iter().any(|tp| {
+                        if let ast::TypeExpr::Named { name, .. } = &p.ty {
+                            name == tp
+                        } else {
+                            false
+                        }
+                    }) {
+                        ark_typecheck::types::Type::Any
+                    } else {
+                        ctx.lower_type_expr(&p.ty)
+                    }
+                })
+                .collect();
 
             for param in &f.params {
                 let pid = ctx.declare_local(&param.name);
@@ -399,65 +424,20 @@ pub fn lower_to_mir(
                     .map(|(i, p)| MirLocal {
                         id: LocalId(i as u32),
                         name: Some(p.name.clone()),
-                        ty: match &p.ty {
-                            ty if is_string_type(ty) => ark_typecheck::types::Type::String,
-                            ast::TypeExpr::Named { name, .. } if name == "f64" => {
-                                ark_typecheck::types::Type::F64
-                            }
-                            ast::TypeExpr::Named { name, .. } if name == "f32" => {
-                                ark_typecheck::types::Type::F32
-                            }
-                            ast::TypeExpr::Named { name, .. } if name == "i64" || name == "u64" => {
-                                ark_typecheck::types::Type::I64
-                            }
-                            ast::TypeExpr::Named { name, .. } if name == "bool" => {
-                                ark_typecheck::types::Type::Bool
-                            }
-                            ast::TypeExpr::Named { name, .. } if name == "char" => {
-                                ark_typecheck::types::Type::Char
-                            }
-                            ast::TypeExpr::Named { name, .. } if f.type_params.contains(name) => {
-                                ark_typecheck::types::Type::Any
-                            }
-                            ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
-                                let elem = args
-                                    .first()
-                                    .map(lower_type_expr_to_type)
-                                    .unwrap_or(ark_typecheck::types::Type::I32);
-                                ark_typecheck::types::Type::Vec(Box::new(elem))
-                            }
-                            _ => ark_typecheck::types::Type::I32,
-                        },
+                        ty: param_types.get(i).cloned().unwrap_or(ark_typecheck::types::Type::I32),
                     })
                     .collect(),
                 match &f.return_type {
-                    Some(ty) if is_string_type(ty) => ark_typecheck::types::Type::String,
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => {
-                        ark_typecheck::types::Type::F64
+                    Some(ty) => {
+                        // Check for type param
+                        if let ast::TypeExpr::Named { name, .. } = ty
+                            && f.type_params.contains(name)
+                        {
+                            ark_typecheck::types::Type::Any
+                        } else {
+                            ctx.lower_type_expr(ty)
+                        }
                     }
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => {
-                        ark_typecheck::types::Type::F32
-                    }
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "i64" || name == "u64" => {
-                        ark_typecheck::types::Type::I64
-                    }
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
-                        ark_typecheck::types::Type::Bool
-                    }
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "char" => {
-                        ark_typecheck::types::Type::Char
-                    }
-                    Some(ast::TypeExpr::Named { name, .. }) if f.type_params.contains(name) => {
-                        ark_typecheck::types::Type::Any
-                    }
-                    Some(ast::TypeExpr::Generic { name, args, .. }) if name == "Vec" => {
-                        let elem = args
-                            .first()
-                            .map(lower_type_expr_to_type)
-                            .unwrap_or(ark_typecheck::types::Type::I32);
-                        ark_typecheck::types::Type::Vec(Box::new(elem))
-                    }
-                    Some(_) => ark_typecheck::types::Type::I32,
                     None => ark_typecheck::types::Type::Unit,
                 },
                 ctx.locals
@@ -550,6 +530,7 @@ pub fn lower_to_mir(
                     method.type_params.clone(),
                     generic_fn_names.clone(),
                     vec_struct_fields.clone(),
+                struct_name_to_id.clone(),
                 );
 
                 for param in &method.params {
@@ -604,59 +585,11 @@ pub fn lower_to_mir(
                         .map(|(i, p)| MirLocal {
                             id: LocalId(i as u32),
                             name: Some(p.name.clone()),
-                            ty: match &p.ty {
-                                ty if is_string_type(ty) => ark_typecheck::types::Type::String,
-                                ast::TypeExpr::Named { name, .. } if name == "f64" => {
-                                    ark_typecheck::types::Type::F64
-                                }
-                                ast::TypeExpr::Named { name, .. } if name == "f32" => {
-                                    ark_typecheck::types::Type::F32
-                                }
-                                ast::TypeExpr::Named { name, .. } if name == "i64" => {
-                                    ark_typecheck::types::Type::I64
-                                }
-                                ast::TypeExpr::Named { name, .. } if name == "bool" => {
-                                    ark_typecheck::types::Type::Bool
-                                }
-                                ast::TypeExpr::Named { name, .. } if name == "char" => {
-                                    ark_typecheck::types::Type::Char
-                                }
-                                ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
-                                    let elem = args
-                                        .first()
-                                        .map(lower_type_expr_to_type)
-                                        .unwrap_or(ark_typecheck::types::Type::I32);
-                                    ark_typecheck::types::Type::Vec(Box::new(elem))
-                                }
-                                _ => ark_typecheck::types::Type::I32,
-                            },
+                            ty: ctx.lower_type_expr(&p.ty),
                         })
                         .collect(),
                     match &method.return_type {
-                        Some(ty) if is_string_type(ty) => ark_typecheck::types::Type::String,
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => {
-                            ark_typecheck::types::Type::F64
-                        }
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => {
-                            ark_typecheck::types::Type::F32
-                        }
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => {
-                            ark_typecheck::types::Type::I64
-                        }
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
-                            ark_typecheck::types::Type::Bool
-                        }
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "char" => {
-                            ark_typecheck::types::Type::Char
-                        }
-                        Some(ast::TypeExpr::Generic { name, args, .. }) if name == "Vec" => {
-                            let elem = args
-                                .first()
-                                .map(lower_type_expr_to_type)
-                                .unwrap_or(ark_typecheck::types::Type::I32);
-                            ark_typecheck::types::Type::Vec(Box::new(elem))
-                        }
-                        Some(_) => ark_typecheck::types::Type::I32,
+                        Some(ty) => ctx.lower_type_expr(ty),
                         None => ark_typecheck::types::Type::Unit,
                     },
                     ctx.locals
@@ -788,6 +721,7 @@ pub fn lower_to_mir(
         struct_defs: struct_defs.clone(),
         enum_defs: enum_defs.clone(),
         fn_sigs: fn_sigs_table,
+        struct_id_to_name,
     };
 
     mir.struct_defs = struct_defs;

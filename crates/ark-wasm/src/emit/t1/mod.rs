@@ -236,6 +236,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
     let mut struct_vec_string_fields = HashSet::new();
     let mut struct_vec_i64_fields = HashSet::new();
     let mut struct_vec_f64_fields = HashSet::new();
+    let mut struct_vec_struct_fields: std::collections::HashMap<(String, String), String> =
+        std::collections::HashMap::new();
     for (sname, fields) in &mir.type_table.struct_defs {
         for (fname, ftype) in fields {
             if ftype == "String" {
@@ -246,6 +248,11 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
                 struct_vec_i64_fields.insert((sname.clone(), fname.clone()));
             } else if ftype == "Vec<f64>" {
                 struct_vec_f64_fields.insert((sname.clone(), fname.clone()));
+            } else if let Some(inner) = ftype.strip_prefix("Vec<").and_then(|s| s.strip_suffix('>')) {
+                // Vec<StructType> — track the element struct name
+                if mir.type_table.struct_defs.contains_key(inner) {
+                    struct_vec_struct_fields.insert((sname.clone(), fname.clone()), inner.to_string());
+                }
             }
         }
         struct_layouts.insert(sname.clone(), fields.clone());
@@ -264,6 +271,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         vec_string_locals: HashSet::new(),
         vec_i64_locals: HashSet::new(),
         vec_f64_locals: HashSet::new(),
+        vec_struct_locals: std::collections::HashMap::new(),
         f64_locals: HashSet::new(),
         f32_locals: HashSet::new(),
         i64_locals: HashSet::new(),
@@ -289,6 +297,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         struct_vec_string_fields,
         struct_vec_i64_fields,
         struct_vec_f64_fields,
+        struct_vec_struct_fields,
+        struct_id_to_name: mir.type_table.struct_id_to_name.clone(),
         enum_payload_types: mir.type_table.enum_defs.clone(),
         type_registry: std::collections::HashMap::new(),
         next_type_idx: 0,
@@ -323,6 +333,8 @@ struct EmitCtx {
     vec_i64_locals: HashSet<u32>,
     /// Locals known to hold Vec<f64> values (for push/get element size).
     vec_f64_locals: HashSet<u32>,
+    /// Locals known to hold Vec<Struct> values: local id -> struct name.
+    vec_struct_locals: std::collections::HashMap<u32, String>,
     /// Locals known to hold f64 values.
     f64_locals: HashSet<u32>,
     /// Locals known to hold f32 values.
@@ -347,6 +359,10 @@ struct EmitCtx {
     struct_vec_i64_fields: HashSet<(String, String)>,
     /// Set of (struct_name, field_name) pairs where field is a Vec<f64>
     struct_vec_f64_fields: HashSet<(String, String)>,
+    /// Map of (struct_name, field_name) -> element struct name for Vec<Struct> fields
+    struct_vec_struct_fields: std::collections::HashMap<(String, String), String>,
+    /// Map from TypeId to struct name (for Vec<Struct> local type resolution)
+    struct_id_to_name: std::collections::HashMap<u32, String>,
     /// Enum variant payload types: enum_name -> [(variant_name, [type_name])]
     enum_payload_types: std::collections::HashMap<String, Vec<(String, Vec<String>)>>,
     /// Dynamic type registry: signature -> type index
@@ -380,7 +396,7 @@ impl EmitCtx {
         match type_str {
             "f64" => (8, true, false),
             "i64" => (8, false, true),
-            _ => (4, false, false), // i32, bool, char, String ptr, struct ptr, enum ptr
+            _ => (4, false, false), // i32, bool, char, String ptr, Vec ptr, struct ptr, enum ptr
         }
     }
 
@@ -728,6 +744,7 @@ impl EmitCtx {
         self.vec_string_locals.clear();
         self.vec_i64_locals.clear();
         self.vec_f64_locals.clear();
+        self.vec_struct_locals.clear();
         self.f64_locals.clear();
         self.f32_locals.clear();
         self.i64_locals.clear();
@@ -762,6 +779,12 @@ impl EmitCtx {
                     }
                     ark_typecheck::types::Type::F64 => {
                         self.vec_f64_locals.insert(local.id.0);
+                    }
+                    ark_typecheck::types::Type::Struct(tid) => {
+                        // Map TypeId to struct name via the type table
+                        if let Some(sname) = self.struct_id_to_name.get(&tid.0) {
+                            self.vec_struct_locals.insert(local.id.0, sname.clone());
+                        }
                     }
                     _ => {}
                 },
@@ -811,9 +834,18 @@ impl EmitCtx {
                 || func.name == "merge_wit_paths_for_source" || func.name == "collect_wit_paths_from_manifest"
                 || func.name == "find_package_root" || func.name == "parent_dir"
                 || func.name == "exists" || func.name == "is_readable_file"
-                || func.name == "path_parent_dir")
+                || func.name == "path_parent_dir"
+                || func.name == "parse_module_impl" || func.name == "collect_import_paths"
+                || func.name == "load_stdlib_module_decls" || func.name == "register_stdlib_source"
+                || func.name == "node_is_use" || func.name == "ast_node_kind"
+                || func.name == "session_parse_decls" || func.name == "parse_module"
+                || func.name == "ParseResult_decls" || func.name == "parse_program_impl"
+                || func.name == "session_parse_tokens" || func.name == "session_parse_decls_from_result"
+                || func.name == "frontend_result_parse" || func.name == "ParseResult_new"
+                || func.name == "CompilerSessionFrontendResult_new"
+                || func.name == "read_stdlib_module_source")
         {
-            eprintln!("=== MIR for {} (params={}, locals={}) ===", func.name, func.params.len(), func.locals.len());
+            eprintln!("=== MIR for {} (params={}, locals={}, return={:?}) ===", func.name, func.params.len(), func.locals.len(), func.return_ty);
             for (bi, block) in func.blocks.iter().enumerate() {
                 eprintln!("  block {}:", bi);
                 for stmt in &block.stmts {
@@ -824,6 +856,20 @@ impl EmitCtx {
         }
         if std::env::var("ARK_DUMP_FNS").is_ok() && func.name.contains("read_to_string") {
             eprintln!("FN: {} params={} return={:?}", func.name, func.params.len(), func.return_ty);
+        }
+        // Debug: dump struct layouts for specific structs
+        if std::env::var("ARK_DUMP_STRUCTS").is_ok() && func.name == self.fn_names.first().map(|s| s.as_str()).unwrap_or("") {
+            for (name, fields) in &self.struct_layouts {
+                if name.contains("ParseResult") || name.contains("FrontendResult") || name.contains("AstNode") || name.contains("ModuleDecls") {
+                    let total: u32 = fields.iter().map(|(_, t)| Self::field_type_info(t).0).sum();
+                    eprintln!("STRUCT {} (size={}): {:?}", name, total, fields);
+                }
+            }
+            for (name, variants) in &self.enum_payload_types {
+                if name.contains("Result") {
+                    eprintln!("ENUM {}: {:?}", name, variants);
+                }
+            }
         }
         // Debug: dump all function names with their indices on first function
         if std::env::var("ARK_DUMP_FNMAP").is_ok() && func.name == self.fn_names.first().map(|s| s.as_str()).unwrap_or("") {
@@ -1049,8 +1095,10 @@ impl EmitCtx {
                 {
                     return self.is_vec_string_operand(vec_op);
                 }
+                let short_name = name.rsplit("::").next().unwrap_or(name);
                 self.fn_return_types
                     .get(name)
+                    .or_else(|| self.fn_return_types.get(short_name))
                     .is_some_and(|t| {
                         matches!(t, ark_typecheck::types::Type::Vec(inner) if matches!(inner.as_ref(), ark_typecheck::types::Type::String))
                     })
@@ -1119,9 +1167,11 @@ impl EmitCtx {
                     }
                 }
                 // Check if function returns String
+                let short_name = name.rsplit("::").next().unwrap_or(name);
                 if self
                     .fn_return_types
                     .get(name)
+                    .or_else(|| self.fn_return_types.get(short_name))
                     .is_some_and(|t| matches!(t, ark_typecheck::types::Type::String))
                 {
                     return true;
@@ -1130,7 +1180,7 @@ impl EmitCtx {
                 // Option<String>), return false early to prevent the arg-heuristic below
                 // from misclassifying it.  E.g. tokenize(String)->Vec<Token> must NOT be
                 // treated as a String-returning function just because its argument is String.
-                if self.fn_return_types.get(name).is_some_and(|t| {
+                if self.fn_return_types.get(name).or_else(|| self.fn_return_types.get(short_name)).is_some_and(|t| {
                     !matches!(
                         t,
                         ark_typecheck::types::Type::String | ark_typecheck::types::Type::Option(_)
@@ -1141,7 +1191,7 @@ impl EmitCtx {
                 // Check if function returns Option<String>: the result local is used
                 // as the object in EnumPayload extraction, so tracking it here lets the
                 // EnumPayload fallback (string_locals check) recognise the extracted String.
-                if self.fn_return_types.get(name).is_some_and(|t| {
+                if self.fn_return_types.get(name).or_else(|| self.fn_return_types.get(short_name)).is_some_and(|t| {
                     matches!(
                         t,
                         ark_typecheck::types::Type::Option(inner)

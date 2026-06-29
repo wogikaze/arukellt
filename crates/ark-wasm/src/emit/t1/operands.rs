@@ -385,7 +385,7 @@ impl EmitCtx {
                             align: 2,
                             memory_index: 0,
                         };
-                        // Element size: 8 for i64/f64, 4 otherwise
+                        // Element size: 8 for i64/f64, 4 otherwise (structs stored as pointers)
                         let elem_size: i32 = if name == "Vec_new_i64" || name == "Vec_new_f64" {
                             8
                         } else {
@@ -442,6 +442,7 @@ impl EmitCtx {
                         };
 
                         // Detect element size from the vector operand
+                        let is_struct_elem = false; // Vec<Struct> stores pointers, not inline structs
                         let elem_size: i32 = args
                             .first()
                             .map(|v| self.vec_elem_size(v) as i32)
@@ -594,34 +595,101 @@ impl EmitCtx {
                         f.instruction(&Instruction::End); // end if
 
                         // Now do the actual push: data[len] = value
-                        if let Some(v) = args.first() {
-                            self.emit_operand(f, v);
-                        }
-                        f.instruction(&Instruction::I32Const(8));
-                        f.instruction(&Instruction::I32Add);
-                        f.instruction(&Instruction::I32Load(ma)); // data_ptr
-                        if let Some(v) = args.first() {
-                            self.emit_operand(f, v);
-                        }
-                        f.instruction(&Instruction::I32Load(ma)); // len
-                        f.instruction(&Instruction::I32Const(elem_size));
-                        f.instruction(&Instruction::I32Mul);
-                        f.instruction(&Instruction::I32Add); // data_ptr + len*elem_size
-                        if let Some(x) = args.get(1) {
-                            if is_i64_elem {
-                                self.emit_i64_operand(f, x);
-                            } else if is_f64_elem {
-                                self.emit_f64_operand(f, x);
-                            } else {
-                                self.emit_operand(f, x);
+                        if is_struct_elem {
+                            // For Vec<Struct>, copy the struct byte-by-byte from src to dst
+                            // dst = data_ptr + len * elem_size
+                            // src = the struct pointer (args[1])
+                            // Save src to SCRATCH+20 BEFORE the loop (emit_operand may have side effects)
+                            if let Some(x) = args.get(1) {
+                                self.emit_operand(f, x); // src ptr
                             }
-                        }
-                        if is_i64_elem {
-                            f.instruction(&Instruction::I64Store(ma));
-                        } else if is_f64_elem {
-                            f.instruction(&Instruction::F64Store(ma));
-                        } else {
+                            f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::I32Store(ma)); // save src
+
+                            // Save dst to SCRATCH+16
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
+                            f.instruction(&Instruction::I32Const(8));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Load(ma)); // data_ptr
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
+                            f.instruction(&Instruction::I32Load(ma)); // len
+                            f.instruction(&Instruction::I32Const(elem_size));
+                            f.instruction(&Instruction::I32Mul);
+                            f.instruction(&Instruction::I32Add); // dst = data_ptr + len*elem_size
+                            f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                            f.instruction(&Instruction::I32Store(ma)); // save dst
+
+                            // Copy loop: for i in 0..elem_size { dst[i] = src[i] }
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::I32Const(0));
+                            f.instruction(&Instruction::I32Store(ma)); // i = 0
+
+                            f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                            f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                            // if i >= elem_size, break
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // i
+                            f.instruction(&Instruction::I32Const(elem_size));
+                            f.instruction(&Instruction::I32GeU);
+                            f.instruction(&Instruction::BrIf(1));
+                            // dst[i] = src[i]
+                            f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // dst
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // i
+                            f.instruction(&Instruction::I32Add); // dst + i
+                            f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // src (saved)
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // i
+                            f.instruction(&Instruction::I32Add); // src + i
+                            f.instruction(&Instruction::I32Load8U(ma0));
+                            f.instruction(&Instruction::I32Store8(ma0));
+                            // i += 1
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::Br(0));
+                            f.instruction(&Instruction::End); // end loop
+                            f.instruction(&Instruction::End); // end block
+                        } else {
+                            // For primitive elements, store directly
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
+                            f.instruction(&Instruction::I32Const(8));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Load(ma)); // data_ptr
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
+                            f.instruction(&Instruction::I32Load(ma)); // len
+                            f.instruction(&Instruction::I32Const(elem_size));
+                            f.instruction(&Instruction::I32Mul);
+                            f.instruction(&Instruction::I32Add); // data_ptr + len*elem_size
+                            if let Some(x) = args.get(1) {
+                                if is_i64_elem {
+                                    self.emit_i64_operand(f, x);
+                                } else if is_f64_elem {
+                                    self.emit_f64_operand(f, x);
+                                } else {
+                                    self.emit_operand(f, x);
+                                }
+                            }
+                            if is_i64_elem {
+                                f.instruction(&Instruction::I64Store(ma));
+                            } else if is_f64_elem {
+                                f.instruction(&Instruction::F64Store(ma));
+                            } else {
+                                f.instruction(&Instruction::I32Store(ma));
+                            }
                         }
                         // Increment len
                         if let Some(v) = args.first() {
@@ -669,7 +737,12 @@ impl EmitCtx {
                         };
                         let is_i64_elem = args.first().map(|v| self.is_vec_i64(v)).unwrap_or(false);
                         let is_f64_elem = args.first().map(|v| self.is_vec_f64(v)).unwrap_or(false);
-                        let elem_size: i32 = if is_i64_elem || is_f64_elem { 8 } else { 4 };
+                        let is_struct_elem = false; // Vec<Struct> stores pointers, not inline structs
+                        let elem_size: i32 = if is_i64_elem || is_f64_elem {
+                            8
+                        } else {
+                            4
+                        };
                         // Load data_ptr
                         if let Some(v) = args.first() {
                             self.emit_operand(f, v);
@@ -684,7 +757,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(elem_size));
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add);
-                        if is_i64_elem {
+                        if is_struct_elem {
+                            // For Vec<Struct>, return the pointer to the element (don't load)
+                        } else if is_i64_elem {
                             f.instruction(&Instruction::I64Load(ma));
                         } else if is_f64_elem {
                             f.instruction(&Instruction::F64Load(ma));
@@ -7683,6 +7758,24 @@ impl EmitCtx {
                 .contains(&(struct_name.clone(), field.clone()));
         }
         false
+    }
+
+    /// Check if a vector operand holds Vec<Struct> elements.
+    /// Returns the struct name if it does.
+    pub(super) fn vec_struct_elem(&self, vec_op: &Operand) -> Option<&str> {
+        if let Operand::Place(Place::Local(id)) = vec_op {
+            return self.vec_struct_locals.get(&id.0).map(|s| s.as_str());
+        }
+        if let Operand::FieldAccess {
+            struct_name, field, ..
+        } = vec_op
+        {
+            return self
+                .struct_vec_struct_fields
+                .get(&(struct_name.clone(), field.clone()))
+                .map(|s| s.as_str());
+        }
+        None
     }
 
     pub(super) fn is_bool_operand(&self, op: &Operand) -> bool {

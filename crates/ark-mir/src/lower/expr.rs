@@ -267,6 +267,9 @@ impl LowerCtx {
                 } else if let ast::Expr::QualifiedIdent { module, name, .. } = callee.as_ref() {
                     // Qualified enum variant constructor: Shape::Circle(5.0)
                     let key = format!("{}::{}", module, name);
+                    if std::env::var("ARK_TRACE_ENUM").is_ok() {
+                        eprintln!("TRACE lower_expr QualifiedIdent: key={} enum_tags_has={}", key, self.enum_tags.contains_key(&key));
+                    }
                     if let Some(&tag) = self.enum_tags.get(&key) {
                         let payload: Vec<Operand> =
                             args.iter().map(|a| self.lower_expr(a)).collect();
@@ -596,6 +599,7 @@ impl LowerCtx {
                     vec![], // closures don't have type params
                     self.generic_fn_names.clone(),
                     self.vec_struct_fields.clone(),
+                    self.struct_name_to_id.clone(),
                 );
                 for p in &mir_params {
                     let lid = sub_ctx.declare_local(p.name.as_deref().unwrap_or("_"));
@@ -755,31 +759,46 @@ impl LowerCtx {
                 }
             }
             ast::Expr::Return { value, .. } => {
-                // Return as expression: lower the value if present, return Unit
-                if let Some(v) = value {
-                    let _ = self.lower_expr(v);
+                // Return as expression: emit the return as a side effect inside
+                // an always-true if, so the value is not lost when this operand
+                // is used in expression position (e.g. match arm tail).
+                let val = value.as_ref().map(|v| self.lower_expr(v));
+                Operand::IfExpr {
+                    cond: Box::new(Operand::ConstBool(true)),
+                    then_body: vec![MirStmt::Return(val)],
+                    then_result: Some(Box::new(Operand::Unit)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(Operand::Unit)),
                 }
-                Operand::Unit
             }
             ast::Expr::Break { value, .. } => {
-                if let Some(v) = value {
-                    let _ = self.lower_expr(v);
+                let mut then_body = Vec::new();
+                if let Some(val) = value
+                    && let Some(result_id) = self.loop_result_local
+                {
+                    let op = self.lower_expr(val);
+                    then_body.push(MirStmt::Assign(
+                        Place::Local(result_id),
+                        Rvalue::Use(op),
+                    ));
                 }
-                Operand::Unit
-            }
-            ast::Expr::Continue { .. } => Operand::Unit,
-            ast::Expr::Try { expr, .. } => {
-                // Try expression: lower inner expr, wrap as TryExpr
-                let inner = self.lower_expr(expr);
-                Operand::TryExpr {
-                    expr: Box::new(inner),
-                    from_fn: None,
+                then_body.push(MirStmt::Break);
+                Operand::IfExpr {
+                    cond: Box::new(Operand::ConstBool(true)),
+                    then_body,
+                    then_result: Some(Box::new(Operand::Unit)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(Operand::Unit)),
                 }
             }
-            ast::Expr::Loop { body, .. } => {
-                // Loop as expression: return i32 (break value placeholder)
-                let _ = body;
-                Operand::ConstI32(0)
+            ast::Expr::Continue { .. } => {
+                Operand::IfExpr {
+                    cond: Box::new(Operand::ConstBool(true)),
+                    then_body: vec![MirStmt::Continue],
+                    then_result: Some(Box::new(Operand::Unit)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(Operand::Unit)),
+                }
             }
             other => {
                 eprintln!(
