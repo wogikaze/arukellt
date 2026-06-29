@@ -15,6 +15,12 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
         if starts_with(clone(mono_arg_type), String_from("vec:")) {
             mono_type_key = substring(mono_arg_type, 4, len(mono_arg_type))
         }
+        if starts_with(clone(mono_type_key), String_from("Option:")) {
+            mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
+        }
+        if starts_with(clone(mono_type_key), String_from("enum:")) {
+            mono_type_key = substring(clone(mono_type_key), 5, len(mono_type_key))
+        }
         if len(mono_type_key) > 0 {
             let mono_candidate = mono::mono_safe_name(concat(clone(resolved), concat(String_from("__"), mono_type_key)))
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
@@ -35,6 +41,12 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
         let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start)
         if len(mono_target) > 0 {
             resolved = mono_target
+        } else {
+            // Fallback: try name-based rewrite for generic functions.
+            let name_rewrite = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(resolved))
+            if len(name_rewrite) > 0 {
+                resolved = name_rewrite
+            }
         }
     }
     resolved

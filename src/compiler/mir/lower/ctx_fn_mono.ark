@@ -54,3 +54,15 @@ fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
     }
     String_from("")
 }
+
+fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
+    let count = ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
+    let mut i = 0
+    while i < count {
+        if eq(ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i), clone(source)) {
+            return ctx_mono_rewrites::ctx_mono_rewrite_target_at(ctx, i)
+        }
+        i = i + 1
+    }
+    String_from("")
+}

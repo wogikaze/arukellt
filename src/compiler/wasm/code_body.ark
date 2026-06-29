@@ -1,11 +1,13 @@
 use wasm::opcodes
 use mir::block_inst_access
 use mir::function_block_queries
+use mir::function_identity
 use mir::function_param_view
 use mir::function_locals_view
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::local_access
 // Arukellt Selfhost - Wasm function body emission.
 
 use wasm::ctx_scratch
@@ -28,10 +30,35 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
     code_locals::emit_local_decls(body, f, local_count, param_count, ctx)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
+    if is_generic_function(f) {
+        // Unspecialized generic functions have concrete-type bodies that
+        // cannot validate against the generic signature. Emit unreachable.
+        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(body, opcodes::OP_END())
+        return body
+    }
     emit_function_instructions(body, f, ctx, bindings)
 
     writer_core::emit_byte(body, opcodes::OP_END())
     body
+}
+
+fn is_generic_function(f: MirFunction) -> bool {
+    // Functions with generic type-variable params (type name starts with "?")
+    // have bodies that cannot validate against the generic signature on GC
+    // targets. This applies to both unspecialized and specialized mono
+    // functions whose param type names haven't been substituted yet.
+    let pc = function_param_view::MirFunction_param_count(f)
+    let mut j = 0
+    while j < pc {
+        let p = function_param_view::MirFunction_param_at(f, j)
+        let tn = local_access::MirLocal_type_name(p)
+        if starts_with(clone(tn), String_from("?")) {
+            return true
+        }
+        j = j + 1
+    }
+    false
 }
 
 fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {

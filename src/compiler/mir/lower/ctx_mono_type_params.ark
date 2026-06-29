@@ -77,23 +77,52 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
     while i < local_count {
         let loc = function_locals_view::MirFunction_local_at(func, i)
         let ty_name = local_access::MirLocal_type_name(loc)
-        if starts_with(clone(ty_name), String_from("?")) {
+        // Extract the actual type variable name. For composite types like
+        // "?Option:T", extract the inner "T". For plain type vars like "?T",
+        // use the name as-is.
+        let var_name = ctx_extract_type_var_name(clone(ty_name))
+        if len(clone(var_name)) > 0 {
             let mut found = false
             let rcount = len(result)
             let mut k = 0
             while k < rcount {
-                if eq(get_unchecked(result, k), clone(ty_name)) {
+                if eq(get_unchecked(result, k), clone(var_name)) {
                     found = true
                 }
                 k = k + 1
             }
             if !found {
-                push(result, ty_name)
+                push(result, var_name)
             }
         }
         i = i + 1
     }
     result
+}
+
+fn ctx_extract_type_var_name(ty_name: String) -> String {
+    if !starts_with(clone(ty_name), String_from("?")) {
+        return String_new()
+    }
+    // Composite types: "?Option:T" → "T", "?Result:T:U" → "T"
+    if starts_with(clone(ty_name), String_from("?Option:")) {
+        return substring(clone(ty_name), 8, len(ty_name))
+    }
+    if starts_with(clone(ty_name), String_from("?Result:")) {
+        let rest = substring(clone(ty_name), 8, len(ty_name))
+        // "T:U" → take first part "T" (find colon by scanning)
+        let rlen = len(rest)
+        let mut ci = 0
+        while ci < rlen {
+            if char_at(rest, ci) == 58 {
+                return substring(rest, 0, ci)
+            }
+            ci = ci + 1
+        }
+        return rest
+    }
+    // Plain type variable: "?T" → "T"
+    substring(clone(ty_name), 1, len(ty_name))
 }
 
 // Setup type parameter mapping by collecting type variable names from

@@ -1,6 +1,8 @@
 use wasm::call_resolve
 use wasm::opcodes
 use mir::function_identity
+use mir::function_param_view
+use mir::local_access
 // Arukellt Selfhost - Wasm export section builder.
 
 use wasm::writer_core
@@ -64,9 +66,11 @@ fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan
             main_idx = mi
         } else {
             if !is_internal_export_name(clone(fname)) {
-                let seen = export_name_seen_count(seen_names, clone(fname))
-                push(seen_names, clone(fname))
-                export_count = export_count + 1
+                if !is_generic_function(f) {
+                    let seen = export_name_seen_count(seen_names, clone(fname))
+                    push(seen_names, clone(fname))
+                    export_count = export_count + 1
+                }
             }
         }
         mi = mi + 1
@@ -105,12 +109,14 @@ fn emit_function_export_entries(export_sec: WasmWriter, mir: MirModule, fn_count
         if start_names::is_wasm_start_function_name(clone(ef_name)) {
         } else {
             if !is_internal_export_name(clone(ef_name)) {
-                let seen = export_name_seen_count(seen_short_names, clone(ef_name))
-                let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
-                push(seen_short_names, clone(ef_name))
-                writer_string::emit_string(export_sec, export_name)
-                writer_core::emit_byte(export_sec, 0)
-                writer_leb::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+                if !is_generic_function(ef) {
+                    let seen = export_name_seen_count(seen_short_names, clone(ef_name))
+                    let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
+                    push(seen_short_names, clone(ef_name))
+                    writer_string::emit_string(export_sec, export_name)
+                    writer_core::emit_byte(export_sec, 0)
+                    writer_leb::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+                }
             }
         }
         exi = exi + 1
@@ -120,6 +126,35 @@ fn emit_function_export_entries(export_sec: WasmWriter, mir: MirModule, fn_count
 fn is_internal_export_name(name: String) -> bool {
     let name_len = len(name)
     name_len > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95
+}
+
+fn is_generic_function(f: MirFunction) -> bool {
+    // Specialized mono functions (name contains "__") are not generic —
+    // they have concrete type specializations in their bodies.
+    let fn_name = function_identity::MirFunction_name(f)
+    let name_len = len(fn_name)
+    let mut has_sep = false
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+            has_sep = true
+        }
+        i = i + 1
+    }
+    if has_sep {
+        return false
+    }
+    let pc = function_param_view::MirFunction_param_count(f)
+    let mut j = 0
+    while j < pc {
+        let p = function_param_view::MirFunction_param_at(f, j)
+        let tn = local_access::MirLocal_type_name(p)
+        if starts_with(clone(tn), String_from("?")) {
+            return true
+        }
+        j = j + 1
+    }
+    false
 }
 
 fn wasm_function_export_index(function_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {

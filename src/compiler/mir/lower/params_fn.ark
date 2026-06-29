@@ -44,6 +44,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
             } else {
                 if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
                     is_type_var = true
+                    pvt = value_types::VT_GC_REF()
                     mir_type_name = concat(String_from("?"), clone(p_type_name))
                     sig_type_name = clone(mir_type_name)
                 }

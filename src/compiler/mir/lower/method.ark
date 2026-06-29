@@ -16,7 +16,8 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // parameter mapping. This enables `x.method()` inside generic
     // functions `<T: Trait>` to resolve to `ConcreteType::method`.
     if len(struct_name) > 0 && starts_with(clone(struct_name), String_from("?")) {
-        let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(struct_name))
+        let bare_name = substring(clone(struct_name), 1, len(struct_name))
+        let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, bare_name)
         if len(resolved) > 0 {
             struct_name = resolved
         }

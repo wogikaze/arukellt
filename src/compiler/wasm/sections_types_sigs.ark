@@ -119,7 +119,66 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("string")) || eq(clone(p_type_name), String_from("String"))) {
         return sections_types_gc::gc_string_type_sig()
     }
+    // Composite generic type with type variable (e.g. "?Option:T") — emit
+    // as enum open type ref on GC targets.
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("?Option:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("?Result:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    // Generic type variable (e.g. "?T") — emit as anyref on GC targets.
+    // For specialized mono functions (name contains "__"), try to extract
+    // the concrete type from the function name suffix.
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("?")) {
+        let mono_type = resolve_mono_param_type_from_fn_name(clone(uf.name), clone(p_type_name), pi)
+        if len(mono_type) > 0 {
+            return mono_type
+        }
+        return String_from("gcref")
+    }
     sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
+}
+
+fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, param_ordinal: i32) -> String {
+    // For specialized mono functions (name contains "__"), extract the
+    // concrete type from the function name suffix and map it to a wasm type sig.
+    let name_len = len(fn_name)
+    let mut sep_idx = 0 - 1
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+            sep_idx = i
+        }
+        i = i + 1
+    }
+    if sep_idx < 0 {
+        return String_new()
+    }
+    let suffix = substring(fn_name, sep_idx + 2, name_len)
+    // Map common mono type keys to wasm type sigs.
+    if eq(clone(suffix), String_from("i32")) {
+        return String_from("i32")
+    }
+    if eq(clone(suffix), String_from("i64")) {
+        return String_from("i64")
+    }
+    if eq(clone(suffix), String_from("f64")) {
+        return String_from("f64")
+    }
+    if eq(clone(suffix), String_from("f32")) {
+        return String_from("f32")
+    }
+    if eq(clone(suffix), String_from("bool")) {
+        return String_from("i32")
+    }
+    if eq(clone(suffix), String_from("String")) {
+        return sections_types_gc::gc_string_type_sig()
+    }
+    if eq(clone(suffix), String_from("char")) {
+        return String_from("i32")
+    }
+    String_new()
 }
 
 fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String, mir: MirModule) -> String {
@@ -165,6 +224,24 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
     if len(gc_ret_sig) > 0 {
         return gc_ret_sig
+    }
+    // Composite generic type with type variable (e.g. "?Option:T") — emit
+    // as enum open type ref on GC targets.
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("?Option:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("?Result:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    // Generic type variable (e.g. "?T") — emit as anyref on GC targets.
+    // For specialized mono functions (name contains "__"), try to extract
+    // the concrete type from the function name suffix.
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("?")) {
+        let mono_ret_type = resolve_mono_param_type_from_fn_name(clone(uf.name), clone(return_type_name), 0 - 1)
+        if len(mono_ret_type) > 0 {
+            return mono_ret_type
+        }
+        return String_from("gcref")
     }
     sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target)))
 }
