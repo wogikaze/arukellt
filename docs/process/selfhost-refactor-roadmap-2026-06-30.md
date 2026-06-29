@@ -316,7 +316,7 @@ Language feature implementation itself is large-scale. Depends on ADR-036 progre
 
 | Phase | Status | Audit items resolved |
 |-------|--------|---------------------|
-| 0 — verify cleanup | planned | — |
+| 0 — verify cleanup | done (13→8 failures) | repo structure, doc examples, WIT golden, LSP golden, --emit fix, Cargo workspace, import cycle |
 | 1 — string building | planned | S2, R7, R1, S1 |
 | 2 — control flow | planned | L1, L2 |
 | 3 — boilerplate | planned | R5, R6, R8, R2 |
