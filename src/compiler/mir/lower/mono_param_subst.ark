@@ -8,15 +8,21 @@ use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
+use mir::function_identity
 use mir::function_param_view
 use mir::local_access
 use mir::value_types
 
 fn mir_substitute_mono_param_types(ctx: LowerCtx) {
-    if !ctx_mono_type_params::ctx_has_mono_type_params(ctx) {
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let fn_name = function_identity::MirFunction_name(func)
+    // Extract the mono type suffix from the function name (e.g. "i32" from
+    // "unwrap_or_default__i32"). If no "__" separator, this is not a
+    // specialized mono function — skip substitution.
+    let mono_suffix = extract_mono_suffix(clone(fn_name))
+    if len(clone(mono_suffix)) == 0 {
         return
     }
-    let func = ctx_current_storage::ctx_current_func_value(ctx)
     let param_count = function_param_view::MirFunction_param_count(func)
     let mut p = 0
     while p < param_count {
@@ -24,28 +30,38 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
         let ty_name = local_access::MirLocal_type_name(param)
         // Handle composite type names containing type variables, e.g.
         // "?Option:T" — substitute the inner type variable T with the
-        // concrete monomorphized type.
+        // concrete monomorphized type from the function name suffix.
         if starts_with(clone(ty_name), String_from("?Option:")) {
-            let inner_var = substring(clone(ty_name), 8, len(ty_name))
-            let mono_inner = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(inner_var))
-            if len(clone(mono_inner)) > 0 && !starts_with(clone(mono_inner), String_from("?")) {
-                let mono_type_name = concat(String_from("Option:"), clone(mono_inner))
-                ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
-                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
-            }
+            let mono_type_name = concat(String_from("Option:"), clone(mono_suffix))
+            ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
+            ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
+            ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
         } else {
             if starts_with(clone(ty_name), String_from("?")) {
-                let bare_var = substring(clone(ty_name), 1, len(ty_name))
-                let mono_type_name = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, bare_var)
-                if len(clone(mono_type_name)) > 0 && !starts_with(clone(mono_type_name), String_from("?")) {
-                    let pvt = ann_types::mir_local_vt_from_type_name(clone(mono_type_name))
-                    ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
-                    ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-                    ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, mono_type_name)
-                }
+                // Plain type variable (e.g. "?T") — substitute with the
+                // concrete type from the function name suffix.
+                let pvt = ann_types::mir_local_vt_from_type_name(clone(mono_suffix))
+                ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
+                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_suffix))
+                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, mono_suffix)
             }
         }
         p = p + 1
     }
+}
+
+fn extract_mono_suffix(fn_name: String) -> String {
+    let name_len = len(fn_name)
+    let mut sep_idx = 0 - 1
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+            sep_idx = i
+        }
+        i = i + 1
+    }
+    if sep_idx < 0 {
+        return String_new()
+    }
+    substring(fn_name, sep_idx + 2, name_len)
 }
