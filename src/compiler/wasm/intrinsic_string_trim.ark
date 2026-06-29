@@ -1,25 +1,17 @@
 use wasm::ctx_scratch
 use wasm::ctx_record
-use wasm::ctx_gc_type
 use wasm::emit_target
-use wasm::writer_gc
-use wasm::string_gc_helpers
-use wasm::intrinsics::helpers_control_branch
-use wasm::intrinsics::helpers_control_loop
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsic_string_trim_gc
+use wasm::intrinsic_string_trim_helpers
 use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_memory_access
 use wasm::intrinsics::helpers_memory_stack
 use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_bitwise
-use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: trim_start, text::trim_start
 fn emit_trim_start(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        emit_trim_start_gc(w, inst, ctx)
+        intrinsic_string_trim_gc::emit_trim_start_gc(w, inst, ctx)
         return true
     }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -33,19 +25,19 @@ fn emit_trim_start(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core_locals::emit_local_set(w, s1)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_core_locals::emit_local_set(w, s2)
-    emit_trim_start_scan(w, s0, s1, s2, s3)
+    intrinsic_string_trim_helpers::emit_trim_start_scan(w, s0, s1, s2, s3)
     helpers_core_locals::emit_local_get(w, s1)
     helpers_core_locals::emit_local_get(w, s2)
     helpers_numeric_i32_arith::emit_i32_sub(w)
     helpers_core_locals::emit_local_set(w, s3)
-    emit_trim_copy_result(w, s0, s2, s3, s4)
+    intrinsic_string_trim_helpers::emit_trim_copy_result(w, s0, s2, s3, s4)
     return true
 }
 
 // Handler for: trim_end, text::trim_end
 fn emit_trim_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        emit_trim_end_gc(w, inst, ctx)
+        intrinsic_string_trim_gc::emit_trim_end_gc(w, inst, ctx)
         return true
     }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -59,240 +51,10 @@ fn emit_trim_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core_locals::emit_local_set(w, s1)
     helpers_core_locals::emit_local_get(w, s1)
     helpers_core_locals::emit_local_set(w, s2)
-    emit_trim_end_scan(w, s0, s2, s3)
+    intrinsic_string_trim_helpers::emit_trim_end_scan(w, s0, s2, s3)
     helpers_core_locals::emit_local_get(w, s2)
     helpers_core_locals::emit_local_set(w, s3)
-    emit_trim_copy_result(w, s0, 0, s3, s4)
+    intrinsic_string_trim_helpers::emit_trim_copy_result(w, s0, 0, s3, s4)
     return true
 }
 
-// GC-target trim_start: string is (ref null array_i8), result is new GC array.
-fn emit_trim_start_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
-    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
-
-    // Save string ref to g0
-    helpers_core_locals::emit_local_set(w, g0)
-
-    // s1 = len(string)
-    helpers_core_locals::emit_local_get(w, g0)
-    writer_gc::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_set(w, s1)
-
-    // s2 = 0 (start position)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s2)
-
-    // Scan: while s2 < s1 and string[s2] is whitespace: s2++
-    emit_trim_start_gc_scan(w, g0, s1, s2, s5, string_type)
-
-    // s3 = s1 - s2 (result length)
-    helpers_core_locals::emit_local_get(w, s1)
-    helpers_core_locals::emit_local_get(w, s2)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_core_locals::emit_local_set(w, s3)
-
-    // Allocate new array of size s3, copy from string starting at s2
-    emit_trim_gc_copy_result(w, g0, s2, s3, s4, string_type)
-}
-
-// GC-target trim_end: string is (ref null array_i8), result is new GC array.
-fn emit_trim_end_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
-    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
-
-    // Save string ref to g0
-    helpers_core_locals::emit_local_set(w, g0)
-
-    // s1 = len(string)
-    helpers_core_locals::emit_local_get(w, g0)
-    writer_gc::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_set(w, s1)
-
-    // s2 = s1 (end position, will be decremented)
-    helpers_core_locals::emit_local_get(w, s1)
-    helpers_core_locals::emit_local_set(w, s2)
-
-    // Scan: while s2 > 0 and string[s2-1] is whitespace: s2--
-    emit_trim_end_gc_scan(w, g0, s2, s5, string_type)
-
-    // s3 = s2 (result length)
-    helpers_core_locals::emit_local_get(w, s2)
-    helpers_core_locals::emit_local_set(w, s3)
-
-    // Allocate new array of size s3, copy from string starting at 0
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s4)
-    emit_trim_gc_copy_result(w, g0, s4, s3, s4, string_type)
-}
-
-fn emit_trim_start_gc_scan(w: WasmWriter, g0: i32, s_len: i32, s_pos: i32, s_ch: i32, string_type: i32) {
-    helpers_control_loop::emit_block_loop_header(w)
-    helpers_core_locals::emit_local_get(w, s_pos)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_compare::emit_i32_ge_s(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, g0)
-    helpers_core_locals::emit_local_get(w, s_pos)
-    writer_gc::emit_gc_array_get_u(w, string_type)
-    helpers_core_locals::emit_local_set(w, s_ch)
-    emit_ascii_whitespace_check(w, s_ch)
-    helpers_numeric_i32_compare::emit_i32_eqz(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_pos)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_pos)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
-}
-
-fn emit_trim_end_gc_scan(w: WasmWriter, g0: i32, s_len: i32, s_ch: i32, string_type: i32) {
-    helpers_control_loop::emit_block_loop_header(w)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_compare::emit_i32_le_s(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, g0)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    writer_gc::emit_gc_array_get_u(w, string_type)
-    helpers_core_locals::emit_local_set(w, s_ch)
-    emit_ascii_whitespace_check(w, s_ch)
-    helpers_numeric_i32_compare::emit_i32_eqz(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_core_locals::emit_local_set(w, s_len)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
-}
-
-// GC-target copy: allocate new array and copy bytes from source.
-fn emit_trim_gc_copy_result(w: WasmWriter, g_src: i32, start_local: i32, len_local: i32, result_local: i32, string_type: i32) {
-    // Allocate new array of size len
-    helpers_core_locals::emit_local_get(w, len_local)
-    string_gc_helpers::emit_gc_array_new(w, string_type)
-    helpers_core_locals::emit_local_set(w, result_local)
-
-    // Copy: array.copy string_type string_type
-    // Stack: [dst_ref, dst_offset, src_ref, src_offset, n]
-    helpers_core_locals::emit_local_get(w, result_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_get(w, g_src)
-    helpers_core_locals::emit_local_get(w, start_local)
-    helpers_core_locals::emit_local_get(w, len_local)
-    writer_gc::emit_gc_array_copy(w, string_type, string_type)
-
-    // Result on stack
-    helpers_core_locals::emit_local_get(w, result_local)
-}
-
-fn emit_trim_copy_result(w: WasmWriter, source_local: i32, start_offset_local: i32, len_local: i32, result_local: i32) {
-    helpers_core_heap::emit_heap_get(w)
-    helpers_core_locals::emit_local_get(w, len_local)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, result_local)
-    helpers_core_locals::emit_local_get(w, result_local)
-    helpers_core_locals::emit_local_get(w, source_local)
-    if start_offset_local != 0 {
-        helpers_core_locals::emit_local_get(w, start_offset_local)
-        helpers_numeric_i32_arith::emit_i32_add(w)
-    }
-    helpers_core_locals::emit_local_get(w, len_local)
-    helpers_memory_access::emit_memory_copy(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, len_local)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 3)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_numeric_i32_const::emit_i32_const(w, -4)
-    helpers_numeric_i32_bitwise::emit_i32_and(w)
-    helpers_core_heap::emit_heap_set(w)
-    helpers_core_locals::emit_local_get(w, result_local)
-}
-
-fn emit_trim_start_scan(w: WasmWriter, s_str: i32, s_len: i32, s_pos: i32, s_ch: i32) {
-    helpers_control_loop::emit_block_loop_header(w)
-    helpers_core_locals::emit_local_get(w, s_pos)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_compare::emit_i32_ge_s(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_str)
-    helpers_core_locals::emit_local_get(w, s_pos)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_load8_u_default(w)
-    helpers_core_locals::emit_local_set(w, s_ch)
-    emit_ascii_whitespace_check(w, s_ch)
-    helpers_numeric_i32_compare::emit_i32_eqz(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_pos)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_pos)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
-}
-
-fn emit_trim_end_scan(w: WasmWriter, s_str: i32, s_len: i32, s_ch: i32) {
-    helpers_control_loop::emit_block_loop_header(w)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_compare::emit_i32_le_s(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_str)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_load8_u_default(w)
-    helpers_core_locals::emit_local_set(w, s_ch)
-    emit_ascii_whitespace_check(w, s_ch)
-    helpers_numeric_i32_compare::emit_i32_eqz(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_core_locals::emit_local_set(w, s_len)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
-}
-
-fn emit_ascii_whitespace_check(w: WasmWriter, s_ch: i32) {
-    helpers_core_locals::emit_local_get(w, s_ch)
-    helpers_numeric_i32_const::emit_i32_const(w, 32)
-    helpers_numeric_i32_compare::emit_i32_eq(w)
-    helpers_core_locals::emit_local_get(w, s_ch)
-    helpers_numeric_i32_const::emit_i32_const(w, 9)
-    helpers_numeric_i32_compare::emit_i32_eq(w)
-    helpers_numeric_i32_bitwise::emit_i32_or(w)
-    helpers_core_locals::emit_local_get(w, s_ch)
-    helpers_numeric_i32_const::emit_i32_const(w, 10)
-    helpers_numeric_i32_compare::emit_i32_eq(w)
-    helpers_numeric_i32_bitwise::emit_i32_or(w)
-    helpers_core_locals::emit_local_get(w, s_ch)
-    helpers_numeric_i32_const::emit_i32_const(w, 13)
-    helpers_numeric_i32_compare::emit_i32_eq(w)
-    helpers_numeric_i32_bitwise::emit_i32_or(w)
-}
