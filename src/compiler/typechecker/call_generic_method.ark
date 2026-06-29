@@ -1,4 +1,5 @@
 use typechecker::kinds
+use std::text
 // Arukellt Typechecker - generic method call inference.
 
 use typechecker::ast_access
@@ -27,7 +28,7 @@ fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<
     let mut mono_fn_name = clone(method_name)
     let type_prefix = type_name_for_mono(resolved_recv_ty)
     if len(type_prefix) > 0 {
-        mono_fn_name = concat(type_prefix, concat(String_from("::"), method_name))
+        mono_fn_name = text::builder_append(type_prefix, concat(String_from("::"), method_name))
     }
     let mangled_name = mono::record_mono_instance(env, clone(mono_fn_name), resolved_type_args)
     mono::record_mono_call_site(env, ast_access::node_span_start(node), mono_fn_name, mangled_name)

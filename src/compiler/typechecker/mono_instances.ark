@@ -3,6 +3,7 @@
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::mono_key
+use std::text
 
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)
@@ -10,7 +11,7 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     let mut i = 0
     while i < count {
         let ty = get_unchecked(resolved_types, i)
-        mangled = concat(mangled, concat(String_from("__"), mono_key::mono_type_key(ty)))
+        mangled = text::builder_append(mangled, concat(String_from("__"), mono_key::mono_type_key(ty)))
         i = i + 1
     }
     let mi_count = contract_env_mono_record::type_env_mono_instance_count(env)

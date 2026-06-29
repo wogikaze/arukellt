@@ -3,6 +3,7 @@
 use fmt::parse_gate
 use resolver::ast_access
 use resolver::ast_decl_predicates
+use std::text
 
 struct FmtImportEntry {
     line_start: i32,
@@ -114,7 +115,7 @@ fn fmt_sorted_import_text(text: String, entries: Vec<FmtImportEntry>) -> String 
             let entry = get_unchecked(entries, i)
             if fmt_import_entry_sort_group(entry) == group {
                 let line = substring(clone(text), fmt_import_entry_line_start(entry), fmt_import_entry_line_end(entry))
-                out = concat(out, line)
+                out = text::builder_append(out, line)
             }
             i = i + 1
         }

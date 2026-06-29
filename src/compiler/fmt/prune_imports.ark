@@ -4,6 +4,7 @@ use fmt::parse_gate
 use resolver
 use resolver::ast_access
 use resolver::ast_decl_predicates
+use std::text
 
 struct PruneImportEntry {
     line_start: i32,
@@ -138,7 +139,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
             let entry = get_unchecked(entries, i)
             if entry.sort_group == group && import_is_used(clone(entry.path), clone(body)) {
                 let line = substring(clone(text), entry.line_start, entry.line_end)
-                out = concat(out, line)
+                out = text::builder_append(out, line)
             }
             i = i + 1
         }

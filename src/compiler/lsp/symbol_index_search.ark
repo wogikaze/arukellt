@@ -2,6 +2,7 @@
 
 use lsp::state_record
 use lsp::symbol_index_record
+use std::text
 
 fn ascii_lower_char(c: i32) -> i32 {
     if c >= 65 && c <= 90 {
@@ -15,7 +16,7 @@ fn ascii_lower_str(s: String) -> String {
     let mut out = String_new()
     let mut i = 0
     while i < n {
-        out = concat(out, char_to_string(ascii_lower_char(char_at(s, i))))
+        out = text::builder_append(out, char_to_string(ascii_lower_char(char_at(s, i))))
         i = i + 1
     }
     out

@@ -1,5 +1,7 @@
 // Arukellt Selfhost - formatter structural indentation.
 
+use std::text
+
 fn fmt_indent_trimmed(line: String) -> String {
     let n = len(clone(line))
     let mut start = 0
@@ -55,7 +57,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
         let mut prefix = String_new()
         let mut d = 0
         while d < line_indent {
-            prefix = concat(prefix, String_from("    "))
+            prefix = text::builder_append(prefix, String_from("    "))
             d = d + 1
         }
         push(out, concat(prefix, trimmed))

@@ -1,14 +1,16 @@
 // Arukellt Selfhost - MIR dump block edge formatting
 
+use std::text
+
 fn mir_format_block_ids(ids: Vec<i32>) -> String {
     let count = len(ids)
     let mut out = String_from("[")
     let mut i = 0
     while i < count {
         if i > 0 {
-            out = concat(out, String_from(","))
+            out = text::builder_append(out, String_from(","))
         }
-        out = concat(out, to_string(get_unchecked(ids, i)))
+        out = text::builder_append(out, to_string(get_unchecked(ids, i)))
         i = i + 1
     }
     concat(out, String_from("]"))

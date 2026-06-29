@@ -5,6 +5,7 @@ use lsp::responses_lifecycle
 use lsp::responses_navigation
 use lsp::responses_symbol
 use lsp::symbol_index_record
+use std::text
 
 pub fn build_initialize_response(id: i32) -> String {
 	responses_lifecycle::build_initialize_response(id)
@@ -20,8 +21,8 @@ pub fn build_null_response(id: i32) -> String {
 
 pub fn build_empty_array_response(id: i32) -> String {
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-	body = concat(body, to_string(id))
-	body = concat(body, String_from(",\"result\":[]}"))
+	body = text::builder_append(body, to_string(id))
+	body = text::builder_append(body, String_from(",\"result\":[]}"))
 	body
 }
 

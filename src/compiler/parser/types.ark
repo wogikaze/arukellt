@@ -2,6 +2,7 @@ use parser::core_ast_children
 use parser::core_ast_factory
 use parser::core_ast_text_fields
 use parser::core_ast_type_ann
+use std::text
 // Arukellt Parser - type syntax parsing facade
 
 use parser::core_api_cursor
@@ -38,7 +39,7 @@ fn parse_named_type(p: Parser, t: Token) -> AstNode {
     while type_token_predicates::is_path_sep(core_api_cursor::peek_kind(p)) {
         p.pos = p.pos + 1
         let seg = type_token_expect::expect_ident(p)
-        type_name = concat(type_name, concat(String_from("::"), token_state::Token_text(seg)))
+        type_name = text::builder_append(type_name, concat(String_from("::"), token_state::Token_text(seg)))
     }
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), core_api_expect::tok_span(t))
 }
