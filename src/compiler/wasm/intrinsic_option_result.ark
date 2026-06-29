@@ -1,12 +1,16 @@
 // Arukellt Selfhost - Option and Result intrinsic facade.
 
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_core_locals
 use wasm::intrinsics::helpers_memory_access
 use wasm::intrinsics::helpers_numeric_i32_arith
 use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::writer_gc
 
 // Handler for: unwrap
 fn emit_unwrap_l4771(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -20,6 +24,12 @@ fn emit_unwrap_or_l4779(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool 
 
 // Handler for: is_some, is_ok
 fn emit_is_ok(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_struct_get(w, enum_type, 0)
+        helpers_numeric_i32_compare::emit_i32_eqz(w)
+        return true
+    }
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_compare::emit_i32_eqz(w)
     return true
@@ -27,6 +37,11 @@ fn emit_is_ok(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: is_none, is_err
 fn emit_is_err(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_struct_get(w, enum_type, 0)
+        return true
+    }
     helpers_memory_access::emit_i32_load_default(w)
     return true
 }
@@ -43,6 +58,12 @@ fn emit_unwrap_or_l4835(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool 
 
 // Handler for: is_some
 fn emit_is_some(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_struct_get(w, enum_type, 0)
+        helpers_numeric_i32_compare::emit_i32_eqz(w)
+        return true
+    }
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_compare::emit_i32_eqz(w)
     return true
@@ -50,6 +71,13 @@ fn emit_is_some(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: is_none
 fn emit_is_none(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_struct_get(w, enum_type, 0)
+        helpers_numeric_i32_const::emit_i32_const(w, 0)
+        helpers_numeric_i32_compare::emit_i32_ne(w)
+        return true
+    }
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_numeric_i32_compare::emit_i32_ne(w)
@@ -57,6 +85,11 @@ fn emit_is_none(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_unwrap_payload(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_struct_get(w, enum_type, 1)
+        return true
+    }
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_numeric_i32_arith::emit_i32_add(w)
     helpers_memory_access::emit_i32_load_default(w)
@@ -66,21 +99,33 @@ fn emit_unwrap_payload(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_unwrap_or_result(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_def = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_opt = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    emit_unwrap_or_with_locals(w, s_opt, s_def)
+    emit_unwrap_or_with_locals(w, s_opt, s_def, ctx)
     return true
 }
 
 fn emit_unwrap_or_option(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_opt = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_def = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    emit_unwrap_or_with_locals(w, s_opt, s_def)
+    emit_unwrap_or_with_locals(w, s_opt, s_def, ctx)
     return true
 }
 
-fn emit_unwrap_or_with_locals(w: WasmWriter, s_opt: i32, s_def: i32) {
+fn emit_unwrap_or_with_locals(w: WasmWriter, s_opt: i32, s_def: i32, ctx: SelfEmitCtx) {
     helpers_core_locals::emit_local_set(w, s_def)
     helpers_core_locals::emit_local_set(w, s_opt)
     helpers_core_locals::emit_local_get(w, s_opt)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_struct_get(w, enum_type, 0)
+        helpers_numeric_i32_compare::emit_i32_eqz(w)
+        helpers_control_structured::emit_if_i32(w)
+        helpers_core_locals::emit_local_get(w, s_opt)
+        writer_gc::emit_gc_struct_get(w, enum_type, 1)
+        helpers_control_structured::emit_else(w)
+        helpers_core_locals::emit_local_get(w, s_def)
+        helpers_control_structured::emit_end(w)
+        return
+    }
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_compare::emit_i32_eqz(w)
     helpers_control_structured::emit_if_i32(w)
