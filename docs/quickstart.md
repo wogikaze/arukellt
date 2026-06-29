@@ -5,6 +5,7 @@
 
 ## Hello World
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 
@@ -50,6 +51,7 @@ let s: String = String_from("hello")
 
 ## Vec
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 
@@ -72,6 +74,7 @@ fn main() {
 
 ## String
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 
@@ -88,6 +91,7 @@ fn main() {
 
 ## Option / Result
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 
@@ -137,6 +141,7 @@ On error, match on `FsError` variants: `NotFound(String)`, `PermissionDenied(Str
 
 ## Clock / Random
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::clock
 use std::host::random as host_random

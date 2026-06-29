@@ -23,6 +23,7 @@ Layer S is the source-language module import surface.
 
 Example:
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 ```

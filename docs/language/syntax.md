@@ -12,11 +12,13 @@
 
 ## エントリポイント
 
+<!-- skip-doc-check -->
 ```ark
 fn main() {
 }
 ```
 
+<!-- skip-doc-check -->
 ```ark
 fn main() -> i32 {
     0

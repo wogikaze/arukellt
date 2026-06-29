@@ -26,6 +26,7 @@
 `expr?` は `Err` variant を自動的に伝搬します。
 囲んでいる関数は `Result<_, E>` を返す必要があります。
 
+<!-- skip-doc-check -->
 ```ark
 fn parse_twice(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?

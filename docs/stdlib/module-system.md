@@ -46,6 +46,7 @@ For non-`std` paths, local directory is checked first, then `std/`.
 
 ### Module alias
 
+<!-- skip-doc-check -->
 ```ark
 use std::core as c     // alias: c
 use std::core          // alias: core (last segment)

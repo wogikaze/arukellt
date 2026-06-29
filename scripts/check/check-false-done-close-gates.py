@@ -197,7 +197,7 @@ def _compile_p2_component_wrapped(fixture_rel: str, out: Path) -> tuple[int, str
         "--wasi-version",
         "p2",
         "--emit",
-        "wasm",
+        "core-wasm",
         "-o",
         core_arg,
     ]

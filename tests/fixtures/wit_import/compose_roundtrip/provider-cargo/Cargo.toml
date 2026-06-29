@@ -11,3 +11,5 @@ crate-type = ["cdylib"]
 
 [package.metadata.component]
 package = "test:host"
+
+[workspace]

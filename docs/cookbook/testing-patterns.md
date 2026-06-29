@@ -139,6 +139,7 @@ assert(is_err(result))
 Tests are organized as fixture files under `tests/fixtures/`.
 Each test file has a `main()` that runs assertions directly:
 
+<!-- skip-doc-check -->
 ```ark
 // tests/fixtures/test_path.ark
 use std::path

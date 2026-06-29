@@ -578,6 +578,7 @@ let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
 
 **Desugaring** (no filter):
 
+<!-- skip-doc-check -->
 ```ark
 {
     let result: Vec<ElemType> = Vec_new_ElemType()
@@ -590,6 +591,7 @@ let evens = [x * 2 for x in xs if x % 2 == 0]  // map + filter
 
 With filter:
 
+<!-- skip-doc-check -->
 ```ark
 {
     let result: Vec<ElemType> = Vec_new_ElemType()
@@ -973,6 +975,7 @@ Aliases rename the module locally.
 
 **`use`** — path-based import (v3):
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 ```

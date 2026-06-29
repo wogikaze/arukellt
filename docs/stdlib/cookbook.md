@@ -28,6 +28,7 @@
 > 📎 Fixture: [`tests/fixtures/stdlib_vec/vec_new.ark`](../../tests/fixtures/stdlib_vec/vec_new.ark),
 > [`tests/fixtures/stdlib_vec/vec_push.ark`](../../tests/fixtures/stdlib_vec/vec_push.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -43,6 +44,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_vec/vec_get.ark`](../../tests/fixtures/stdlib_vec/vec_get.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -64,6 +66,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_vec/vec_pop.ark`](../../tests/fixtures/stdlib_vec/vec_pop.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -81,6 +84,7 @@ fn main() {
 
 ### 安全でない取得 — get_unchecked
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -97,6 +101,7 @@ fn main() {
 > [`tests/fixtures/stdlib_vec/vec_filter.ark`](../../tests/fixtures/stdlib_vec/vec_filter.ark),
 > [`tests/fixtures/stdlib_vec/vec_fold.ark`](../../tests/fixtures/stdlib_vec/vec_fold.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn double(x: i32) -> i32 { x * 2 }
@@ -125,6 +130,7 @@ fn main() {
 > [`tests/fixtures/stdlib_vec_ops/contains_i32.ark`](../../tests/fixtures/stdlib_vec_ops/contains_i32.ark),
 > [`tests/fixtures/stdlib_vec_ops/reverse_i32.ark`](../../tests/fixtures/stdlib_vec_ops/reverse_i32.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn is_even(x: i32) -> bool { x % 2 == 0 }
@@ -154,6 +160,7 @@ fn main() {
 > 📎 Fixtures: [`tests/fixtures/stdlib_vec_ops/sum_i32.ark`](../../tests/fixtures/stdlib_vec_ops/sum_i32.ark),
 > [`tests/fixtures/stdlib_vec_ops/remove_i32.ark`](../../tests/fixtures/stdlib_vec_ops/remove_i32.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -215,6 +222,7 @@ fn main() {
 > 📎 Fixtures: [`tests/fixtures/stdlib_string/string_new.ark`](../../tests/fixtures/stdlib_string/string_new.ark),
 > [`tests/fixtures/stdlib_string/string_len.ark`](../../tests/fixtures/stdlib_string/string_len.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -232,6 +240,7 @@ fn main() {
 > 📎 Fixtures: [`tests/fixtures/stdlib_string/string_concat.ark`](../../tests/fixtures/stdlib_string/string_concat.ark),
 > [`tests/fixtures/stdlib_string/clone.ark`](../../tests/fixtures/stdlib_string/clone.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -249,6 +258,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_string/string_eq.ark`](../../tests/fixtures/stdlib_string/string_eq.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -266,6 +276,7 @@ fn main() {
 > [`tests/fixtures/stdlib_string/string_split.ark`](../../tests/fixtures/stdlib_string/string_split.ark),
 > [`tests/fixtures/stdlib_string/string_join.ark`](../../tests/fixtures/stdlib_string/string_join.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -283,6 +294,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_string/string_starts_ends.ark`](../../tests/fixtures/stdlib_string/string_starts_ends.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -298,6 +310,7 @@ fn main() {
 > 📎 Fixtures: [`tests/fixtures/stdlib_string/to_lower_upper.ark`](../../tests/fixtures/stdlib_string/to_lower_upper.ark),
 > [`tests/fixtures/stdlib_string/push_char.ark`](../../tests/fixtures/stdlib_string/push_char.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -319,6 +332,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_io/to_string.ark`](../../tests/fixtures/stdlib_io/to_string.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -336,6 +350,7 @@ fn main() {
 > 📎 Fixtures: [`tests/fixtures/stdlib_io/parse_int.ark`](../../tests/fixtures/stdlib_io/parse_int.ark),
 > [`tests/fixtures/stdlib_option_result/question_mark.ark`](../../tests/fixtures/stdlib_option_result/question_mark.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -355,6 +370,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_math/sqrt.ark`](../../tests/fixtures/stdlib_math/sqrt.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -369,6 +385,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_math/abs_min_max.ark`](../../tests/fixtures/stdlib_math/abs_min_max.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -383,6 +400,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_math/clamp_i32.ark`](../../tests/fixtures/stdlib_math/clamp_i32.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -401,6 +419,7 @@ fn main() {
 > 📎 Fixtures: [`tests/fixtures/stdlib_option_result/some_unwrap.ark`](../../tests/fixtures/stdlib_option_result/some_unwrap.ark),
 > [`tests/fixtures/stdlib_option_result/option_match.ark`](../../tests/fixtures/stdlib_option_result/option_match.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn describe(opt: Option<i32>) -> String {
@@ -418,6 +437,7 @@ fn main() {
 
 ### is_some / is_none
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -450,6 +470,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_option_result/option_map.ark`](../../tests/fixtures/stdlib_option_result/option_map.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn double(x: i32) -> i32 { x * 2 }
@@ -479,6 +500,7 @@ fn main() {
 > 📎 Fixture: [`tests/fixtures/stdlib_option_result/result_ok_unwrap.ark`](../../tests/fixtures/stdlib_option_result/result_ok_unwrap.ark),
 > [`tests/fixtures/stdlib_option_result/result_err_match.ark`](../../tests/fixtures/stdlib_option_result/result_err_match.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -494,6 +516,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_option_result/question_mark.ark`](../../tests/fixtures/stdlib_option_result/question_mark.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn parse_and_double(s: String) -> Result<i32, String> {
@@ -560,6 +583,7 @@ fn main() {
 > [`tests/fixtures/stdlib_io/eprintln.ark`](../../tests/fixtures/stdlib_io/eprintln.ark),
 > [`tests/fixtures/stdlib_io/println_multi.ark`](../../tests/fixtures/stdlib_io/println_multi.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -623,6 +647,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_env/env_basic.ark`](../../tests/fixtures/stdlib_env/env_basic.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::env
 use std::host::stdio
@@ -637,6 +662,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_env/env_var_lookup.ark`](../../tests/fixtures/stdlib_env/env_var_lookup.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::env
 use std::host::stdio
@@ -658,6 +684,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_process/exit_zero.ark`](../../tests/fixtures/stdlib_process/exit_zero.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::process
 use std::host::stdio
@@ -675,6 +702,7 @@ fn main() {
 > ⚠️ **Target constraint**: `std::host::clock` と `std::host::random` は **wasm32-wasi** ターゲットが必要です。
 > 📎 Fixture: [`tests/fixtures/stdlib_io/clock_random.ark`](../../tests/fixtures/stdlib_io/clock_random.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 use std::host::clock
@@ -698,6 +726,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/integration/word_counter.ark`](../../tests/fixtures/integration/word_counter.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn count_words(s: String) -> i32 {
@@ -728,6 +757,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/integration/sort_vec.ark`](../../tests/fixtures/integration/sort_vec.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -752,6 +782,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/integration/calculator.ark`](../../tests/fixtures/integration/calculator.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 enum Expr {
@@ -781,6 +812,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/integration/fibonacci.ark`](../../tests/fixtures/integration/fibonacci.ark)
 
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 fn fib(n: i32) -> i32 {

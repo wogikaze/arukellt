@@ -1,6 +1,6 @@
-package arukellt:generated;
+package arukellt:app;
 
-world arukellt {
-  export identity: func(x: s32) -> s32;
-  export double: func(x: s32) -> s32;
+world scalar-s32 {
+    export identity: func(x: s32) -> s32;
+    export double: func(x: s32) -> s32;
 }

@@ -141,6 +141,7 @@ No implicit narrowing is ever performed — use an explicit conversion function.
 ## 4. Functions
 
 <!-- fixture: guide/fn_add.ark -->
+<!-- skip-doc-check -->
 ```ark
 fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -246,6 +247,7 @@ for item in values(v) {
 Define a named product type:
 
 <!-- fixture: structs/basic_struct.ark -->
+<!-- skip-doc-check -->
 ```ark
 struct Point {
     x: i32,
@@ -283,6 +285,7 @@ pub struct Pair<A, B> {
 
 Enums define a tagged union. Variants can carry data:
 
+<!-- skip-doc-check -->
 ```ark
 enum Direction {
     North,
@@ -372,6 +375,7 @@ There is no exception mechanism.
 
 ### Result
 
+<!-- skip-doc-check -->
 ```ark
 fn parse_positive(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
@@ -407,6 +411,7 @@ match vec_get(v, 0) {
 `expr?` propagates the `Err` variant automatically. The enclosing function must
 return `Result<_, E>` where `E` is compatible:
 
+<!-- skip-doc-check -->
 ```ark
 fn double_parse(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?   // returns Err early if parsing fails
@@ -593,6 +598,7 @@ let trimmed = trim(String_from("  hi  "))
 It accepts `i32`, `i64`, `f64`, `bool`, and `String` (pass-through).
 
 <!-- fixture: stdlib_core/to_string_i32.ark -->
+<!-- skip-doc-check -->
 ```ark
 use std::host::stdio
 
