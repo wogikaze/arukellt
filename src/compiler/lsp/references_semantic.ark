@@ -9,6 +9,7 @@ use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_paths
 use std::host::fs
+use std::text
 
 fn read_uri_text(uri: String) -> String {
     let path = symbol_index_paths::uri_to_file_path(uri)
@@ -36,19 +37,19 @@ fn append_location(items: String, uri: String, text: String, start: i32, end: i3
 
 fn build_reference_response(id: i32, items: String) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":["))
-    body = concat(body, items)
-    body = concat(body, String_from("]}"))
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":["))
+    body = text::builder_append(body, items)
+    body = text::builder_append(body, String_from("]}"))
     body
 }
 
 fn build_highlight_response(id: i32, items: String) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":["))
-    body = concat(body, items)
-    body = concat(body, String_from("]}"))
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":["))
+    body = text::builder_append(body, items)
+    body = text::builder_append(body, String_from("]}"))
     body
 }
 
@@ -56,14 +57,14 @@ fn append_highlight(items: String, text: String, start: i32, end: i32) -> String
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut item = String_from("{\"range\":{\"start\":{\"line\":")
-    item = concat(item, to_string(positions::lsp_position_line(start_pos)))
-    item = concat(item, String_from(",\"character\":"))
-    item = concat(item, to_string(positions::lsp_position_character(start_pos)))
-    item = concat(item, String_from("},\"end\":{\"line\":"))
-    item = concat(item, to_string(positions::lsp_position_line(end_pos)))
-    item = concat(item, String_from(",\"character\":"))
-    item = concat(item, to_string(positions::lsp_position_character(end_pos)))
-    item = concat(item, String_from("}},\"kind\":1}"))
+    item = text::builder_append(item, to_string(positions::lsp_position_line(start_pos)))
+    item = text::builder_append(item, String_from(",\"character\":"))
+    item = text::builder_append(item, to_string(positions::lsp_position_character(start_pos)))
+    item = text::builder_append(item, String_from("},\"end\":{\"line\":"))
+    item = text::builder_append(item, to_string(positions::lsp_position_line(end_pos)))
+    item = text::builder_append(item, String_from(",\"character\":"))
+    item = text::builder_append(item, to_string(positions::lsp_position_character(end_pos)))
+    item = text::builder_append(item, String_from("}},\"kind\":1}"))
     if len(items) == 0 {
         return item
     }

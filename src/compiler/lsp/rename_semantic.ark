@@ -9,6 +9,7 @@ use lsp::json_fields
 use lsp::positions
 use lsp::rename_workspace
 use lsp::responses
+use std::text
 
 
 fn null_result(id: i32) -> String {
@@ -72,27 +73,27 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
-    body = concat(body, to_string(positions::lsp_position_line(start_pos)))
-    body = concat(body, String_from(",\"character\":"))
-    body = concat(body, to_string(positions::lsp_position_character(start_pos)))
-    body = concat(body, String_from("},\"end\":{\"line\":"))
-    body = concat(body, to_string(positions::lsp_position_line(end_pos)))
-    body = concat(body, String_from(",\"character\":"))
-    body = concat(body, to_string(positions::lsp_position_character(end_pos)))
-    body = concat(body, String_from("}},\"placeholder\":"))
-    body = concat(body, json_escape::quote_string(name))
-    body = concat(body, String_from("}}"))
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_line(start_pos)))
+    body = text::builder_append(body, String_from(",\"character\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_character(start_pos)))
+    body = text::builder_append(body, String_from("},\"end\":{\"line\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_line(end_pos)))
+    body = text::builder_append(body, String_from(",\"character\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_character(end_pos)))
+    body = text::builder_append(body, String_from("}},\"placeholder\":"))
+    body = text::builder_append(body, json_escape::quote_string(name))
+    body = text::builder_append(body, String_from("}}"))
     body
 }
 
 fn build_rename_response(id: i32, changes: String) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"changes\":{"))
-    body = concat(body, changes)
-    body = concat(body, String_from("}}}"))
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"changes\":{"))
+    body = text::builder_append(body, changes)
+    body = text::builder_append(body, String_from("}}}"))
     body
 }
 

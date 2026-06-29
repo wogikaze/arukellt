@@ -1,6 +1,7 @@
 // Arukellt LSP - signature help response builders.
 
 use lsp::responses_json
+use std::text
 
 fn append_param_labels(items: String, params: Vec<String>) -> String {
     let n = len(params)
@@ -8,11 +9,11 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
     let mut out = items
     while i < n {
         if len(out) > 0 {
-            out = concat(out, String_from(","))
+            out = text::builder_append(out, String_from(","))
         }
-        out = concat(out, String_from("{\"label\":"))
-        out = concat(out, responses_json::quote_string(get_unchecked(params, i)))
-        out = concat(out, String_from("}"))
+        out = text::builder_append(out, String_from("{\"label\":"))
+        out = text::builder_append(out, responses_json::quote_string(get_unchecked(params, i)))
+        out = text::builder_append(out, String_from("}"))
         i = i + 1
     }
     out
@@ -20,25 +21,25 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
 
 fn signature_info_json(label: String, doc: String, params: Vec<String>) -> String {
     let mut out = String_from("{\"label\":")
-    out = concat(out, responses_json::quote_string(label))
+    out = text::builder_append(out, responses_json::quote_string(label))
     if len(doc) > 0 {
-        out = concat(out, String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
-        out = concat(out, responses_json::quote_string(doc))
-        out = concat(out, String_from("}"))
+        out = text::builder_append(out, String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
+        out = text::builder_append(out, responses_json::quote_string(doc))
+        out = text::builder_append(out, String_from("}"))
     }
-    out = concat(out, String_from(",\"parameters\":["))
-    out = concat(out, append_param_labels(String_new(), params))
-    out = concat(out, String_from("]}"))
+    out = text::builder_append(out, String_from(",\"parameters\":["))
+    out = text::builder_append(out, append_param_labels(String_new(), params))
+    out = text::builder_append(out, String_from("]}"))
     out
 }
 
 pub fn build_signature_help_response(id: i32, label: String, doc: String, params: Vec<String>, active_param: i32) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":{\"signatures\":["))
-    body = concat(body, signature_info_json(label, doc, params))
-    body = concat(body, String_from("],\"activeSignature\":0,\"activeParameter\":"))
-    body = concat(body, to_string(active_param))
-    body = concat(body, String_from("}}"))
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"signatures\":["))
+    body = text::builder_append(body, signature_info_json(label, doc, params))
+    body = text::builder_append(body, String_from("],\"activeSignature\":0,\"activeParameter\":"))
+    body = text::builder_append(body, to_string(active_param))
+    body = text::builder_append(body, String_from("}}"))
     body
 }

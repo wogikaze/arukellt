@@ -12,26 +12,27 @@ use lsp::responses
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
+use std::text
 
 
 fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
     let mut out = String_from("{\"title\":")
-    out = concat(out, json_escape::quote_string(title))
-    out = concat(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
-    out = concat(out, json_escape::quote_string(uri))
-    out = concat(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
-    out = concat(out, to_string(positions::lsp_position_line(pos)))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(positions::lsp_position_character(pos)))
-    out = concat(out, String_from("},\"end\":{\"line\":"))
-    out = concat(out, to_string(positions::lsp_position_line(pos)))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(positions::lsp_position_character(pos)))
-    out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
-    out = concat(out, String_from("}]}}}"))
+    out = text::builder_append(out, json_escape::quote_string(title))
+    out = text::builder_append(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
+    out = text::builder_append(out, json_escape::quote_string(uri))
+    out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
+    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
+    out = text::builder_append(out, String_from("}},\"newText\":"))
+    out = text::builder_append(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
+    out = text::builder_append(out, String_from("}]}}}"))
     out
 }
 
@@ -49,9 +50,9 @@ fn build_import_actions_json(state: LspState, uri: String, text: String, name: S
                 if !import_graph::is_path_imported(clone(text), clone(import_path)) {
                     let title = concat(concat(String_from("Import '"), clone(import_path)), String_from("'"))
                     if len(actions) > 0 {
-                        actions = concat(actions, String_from(","))
+                        actions = text::builder_append(actions, String_from(","))
                     }
-                    actions = concat(actions, build_import_action(title, uri, import_path, clone(text)))
+                    actions = text::builder_append(actions, build_import_action(title, uri, import_path, clone(text)))
                 }
             }
         }
@@ -72,24 +73,24 @@ pub fn handle_code_action(state: LspState, body: String) {
     if organize_imports::request_wants_fix_all(clone(body)) {
         let fix_all = organize_imports::build_fix_all_action(clone(req_uri), clone(req_text))
         let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-        body_out = concat(body_out, to_string(req_id))
-        body_out = concat(body_out, String_from(",\"result\":["))
+        body_out = text::builder_append(body_out, to_string(req_id))
+        body_out = text::builder_append(body_out, String_from(",\"result\":["))
         if len(fix_all) > 0 {
-            body_out = concat(body_out, fix_all)
+            body_out = text::builder_append(body_out, fix_all)
         }
-        body_out = concat(body_out, String_from("]}"))
+        body_out = text::builder_append(body_out, String_from("]}"))
         framing::append_framed(state, body_out)
         return
     }
     if organize_imports::request_wants_organize_imports(clone(body)) {
         let organize = organize_imports::build_organize_imports_action(clone(req_uri), clone(req_text))
         let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-        body_out = concat(body_out, to_string(req_id))
-        body_out = concat(body_out, String_from(",\"result\":["))
+        body_out = text::builder_append(body_out, to_string(req_id))
+        body_out = text::builder_append(body_out, String_from(",\"result\":["))
         if len(organize) > 0 {
-            body_out = concat(body_out, organize)
+            body_out = text::builder_append(body_out, organize)
         }
-        body_out = concat(body_out, String_from("]}"))
+        body_out = text::builder_append(body_out, String_from("]}"))
         framing::append_framed(state, body_out)
         return
     }
@@ -107,9 +108,9 @@ pub fn handle_code_action(state: LspState, body: String) {
     }
     let actions = build_import_actions_json(state, clone(req_uri), clone(req_text), clone(name))
     let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body_out = concat(body_out, to_string(req_id))
-    body_out = concat(body_out, String_from(",\"result\":["))
-    body_out = concat(body_out, actions)
-    body_out = concat(body_out, String_from("]}"))
+    body_out = text::builder_append(body_out, to_string(req_id))
+    body_out = text::builder_append(body_out, String_from(",\"result\":["))
+    body_out = text::builder_append(body_out, actions)
+    body_out = text::builder_append(body_out, String_from("]}"))
     framing::append_framed(state, body_out)
 }

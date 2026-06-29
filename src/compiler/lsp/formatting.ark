@@ -5,6 +5,7 @@ use lsp::json_escape
 use lsp::json_fields
 use lsp::positions
 use lsp::source_text
+use std::text
 
 
 fn extract_section_line(body: String, section: String) -> i32 {
@@ -20,12 +21,12 @@ fn extract_section_line(body: String, section: String) -> i32 {
 fn build_full_document_edit(text: String, formatted: String) -> String {
     let end_pos = positions::offset_to_position(clone(text), len(text))
     let mut out = String_from("[{\"range\":{\"start\":{\"line\":0,\"character\":0},\"end\":{\"line\":")
-    out = concat(out, to_string(positions::lsp_position_line(end_pos)))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(positions::lsp_position_character(end_pos)))
-    out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, json_escape::quote_string(formatted))
-    out = concat(out, String_from("}]"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
+    out = text::builder_append(out, String_from("}},\"newText\":"))
+    out = text::builder_append(out, json_escape::quote_string(formatted))
+    out = text::builder_append(out, String_from("}]"))
     out
 }
 
@@ -48,10 +49,10 @@ pub fn build_formatting_response_for_request(state: LspState, body: String, id: 
     let text = source_text::text_for_uri(state, clone(uri))
     let edits = build_formatting_result(text)
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = concat(out, to_string(id))
-    out = concat(out, String_from(",\"result\":"))
-    out = concat(out, edits)
-    out = concat(out, String_from("}"))
+    out = text::builder_append(out, to_string(id))
+    out = text::builder_append(out, String_from(",\"result\":"))
+    out = text::builder_append(out, edits)
+    out = text::builder_append(out, String_from("}"))
     out
 }
 
@@ -61,20 +62,20 @@ pub fn build_range_formatting_response_for_request(state: LspState, body: String
     let start_line = extract_section_line(clone(body), String_from("\"start\":{"))
     let end_line = extract_section_line(clone(body), String_from("\"end\":{"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = concat(out, to_string(id))
-    out = concat(out, String_from(",\"result\":"))
+    out = text::builder_append(out, to_string(id))
+    out = text::builder_append(out, String_from(",\"result\":"))
     match fmt::format_range(clone(text), start_line, end_line) {
         Option::None => {
-            out = concat(out, String_from("[]"))
+            out = text::builder_append(out, String_from("[]"))
         },
         Option::Some(formatted) => {
             if eq(clone(formatted), clone(text)) {
-                out = concat(out, String_from("[]"))
+                out = text::builder_append(out, String_from("[]"))
             } else {
-                out = concat(out, build_full_document_edit(text, formatted))
+                out = text::builder_append(out, build_full_document_edit(text, formatted))
             }
         },
     }
-    out = concat(out, String_from("}"))
+    out = text::builder_append(out, String_from("}"))
     out
 }

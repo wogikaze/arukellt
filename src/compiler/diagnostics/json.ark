@@ -5,31 +5,32 @@
 use diagnostics::record
 use diagnostics::severity
 use std::json
+use std::text
 
 fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
     let mut out = String_from("{\"file\":\"")
-    out = concat(out, json::json_escape(record::diagnostic_span_file(span)))
-    out = concat(out, String_from("\",\"line\":"))
-    out = concat(out, i32_to_string(record::diagnostic_span_line(span)))
-    out = concat(out, String_from(",\"col\":"))
-    out = concat(out, i32_to_string(record::diagnostic_span_column(span)))
-    out = concat(out, String_from(",\"start\":"))
-    out = concat(out, i32_to_string(record::diagnostic_span_start(span)))
-    out = concat(out, String_from(",\"end\":"))
-    out = concat(out, i32_to_string(record::diagnostic_span_end(span)))
-    out = concat(out, String_from("}"))
+    out = text::builder_append(out, json::json_escape(record::diagnostic_span_file(span)))
+    out = text::builder_append(out, String_from("\",\"line\":"))
+    out = text::builder_append(out, i32_to_string(record::diagnostic_span_line(span)))
+    out = text::builder_append(out, String_from(",\"col\":"))
+    out = text::builder_append(out, i32_to_string(record::diagnostic_span_column(span)))
+    out = text::builder_append(out, String_from(",\"start\":"))
+    out = text::builder_append(out, i32_to_string(record::diagnostic_span_start(span)))
+    out = text::builder_append(out, String_from(",\"end\":"))
+    out = text::builder_append(out, i32_to_string(record::diagnostic_span_end(span)))
+    out = text::builder_append(out, String_from("}"))
     out
 }
 
 fn diagnostic_to_json(diag: Diagnostic) -> String {
 let mut out = String_from("{\"code\":\"")
-out = concat(out, json::json_escape(record::diagnostic_code(diag)))
-out = concat(out, String_from("\",\"severity\":\""))
-out = concat(out, json::json_escape(severity::severity_name(record::diagnostic_severity(diag))))
-out = concat(out, String_from("\",\"span\":"))
-out = concat(out, diagnostic_span_to_json(record::diagnostic_span(diag)))
-out = concat(out, String_from(",\"message\":\""))
-out = concat(out, json::json_escape(record::diagnostic_message(diag)))
-out = concat(out, String_from("\"}"))
+out = text::builder_append(out, json::json_escape(record::diagnostic_code(diag)))
+out = text::builder_append(out, String_from("\",\"severity\":\""))
+out = text::builder_append(out, json::json_escape(severity::severity_name(record::diagnostic_severity(diag))))
+out = text::builder_append(out, String_from("\",\"span\":"))
+out = text::builder_append(out, diagnostic_span_to_json(record::diagnostic_span(diag)))
+out = text::builder_append(out, String_from(",\"message\":\""))
+out = text::builder_append(out, json::json_escape(record::diagnostic_message(diag)))
+out = text::builder_append(out, String_from("\"}"))
 out
 }

@@ -3,6 +3,7 @@
 use lsp::json_escape
 use lsp::organize_imports_detect
 use lsp::positions
+use std::text
 
 
 fn import_block_start(span: i32) -> i32 {
@@ -21,22 +22,22 @@ fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: Strin
     let start_pos = positions::offset_to_position(clone(text), first_start)
     let end_pos = positions::offset_to_position(text, last_end)
     let mut out = String_from("{\"title\":")
-    out = concat(out, json_escape::quote_string(title))
-    out = concat(out, String_from(",\"kind\":"))
-    out = concat(out, json_escape::quote_string(kind))
-    out = concat(out, String_from(",\"edit\":{\"changes\":{"))
-    out = concat(out, json_escape::quote_string(uri))
-    out = concat(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
-    out = concat(out, to_string(positions::lsp_position_line(start_pos)))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(positions::lsp_position_character(start_pos)))
-    out = concat(out, String_from("},\"end\":{\"line\":"))
-    out = concat(out, to_string(positions::lsp_position_line(end_pos)))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(positions::lsp_position_character(end_pos)))
-    out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, json_escape::quote_string(fixed_block))
-    out = concat(out, String_from("}]}}}"))
+    out = text::builder_append(out, json_escape::quote_string(title))
+    out = text::builder_append(out, String_from(",\"kind\":"))
+    out = text::builder_append(out, json_escape::quote_string(kind))
+    out = text::builder_append(out, String_from(",\"edit\":{\"changes\":{"))
+    out = text::builder_append(out, json_escape::quote_string(uri))
+    out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(start_pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(start_pos)))
+    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
+    out = text::builder_append(out, String_from("}},\"newText\":"))
+    out = text::builder_append(out, json_escape::quote_string(fixed_block))
+    out = text::builder_append(out, String_from("}]}}}"))
     out
 }
 
