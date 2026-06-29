@@ -41,10 +41,9 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> M
 }
 
 fn lower_program_to_mir(input: MirLowerInput) -> MirModule {
-    // Regular compilation: prune unreachable functions so the output wasm
-    // only includes reachable code. Selfhost compilation uses
-    // lower_program_to_mir_no_prune to keep the full emitter graph.
-    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), true)
+    // Selfhost and large programs must keep the full emitter graph; T3 export
+    // pruning is applied explicitly from driver component lowering when needed.
+    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), false)
 }
 
 fn lower_program_to_mir_no_prune(input: MirLowerInput) -> MirModule {
