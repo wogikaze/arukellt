@@ -2,6 +2,11 @@
 // Extracted from emit_intrinsic_string_replace.ark
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::writer_gc
+use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -15,6 +20,10 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: replace, text::replace
 fn emit_replace(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_replace_gc(w, inst, ctx)
+        return true
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -31,6 +40,205 @@ fn emit_replace(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_replace_loop(w, s0, s1, s2, s3, s4, s5, s6, s7, s8, s10, s11)
     emit_replace_finish(w, s0, s3, s7, s8, s9)
     return true
+}
+
+// GC-target replace: all strings are (ref null array_i8), result is new GC array.
+// Two-pass approach: count matches, then allocate exact size and copy.
+fn emit_replace_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let g_src = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let g_pat = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let g_rep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 2)
+    let s_src_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_pat_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_rep_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_pos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let s_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s_matched = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    let s_result_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
+    let g_result = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 3)
+    let s_dst = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 11)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+
+    // Stack: [source_ref, pattern_ref, replacement_ref]
+    helpers_core_locals::emit_local_set(w, g_rep)
+    helpers_core_locals::emit_local_set(w, g_pat)
+    helpers_core_locals::emit_local_set(w, g_src)
+
+    // Get lengths
+    helpers_core_locals::emit_local_get(w, g_src)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_src_len)
+    helpers_core_locals::emit_local_get(w, g_pat)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_pat_len)
+    helpers_core_locals::emit_local_get(w, g_rep)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_rep_len)
+
+    // Pass 1: count matches
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_count)
+    emit_replace_gc_count_loop(w, g_src, g_pat, s_src_len, s_pat_len, s_pos, s_count, s_matched, s_j, string_type)
+
+    // Compute result_len = s_src_len + s_count * (s_rep_len - s_pat_len)
+    helpers_core_locals::emit_local_get(w, s_src_len)
+    helpers_core_locals::emit_local_get(w, s_count)
+    helpers_core_locals::emit_local_get(w, s_rep_len)
+    helpers_core_locals::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_numeric_i32_arith::emit_i32_mul(w)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_result_len)
+
+    // Allocate result array
+    helpers_core_locals::emit_local_get(w, s_result_len)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core_locals::emit_local_set(w, g_result)
+
+    // Pass 2: copy bytes
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_dst)
+    emit_replace_gc_copy_loop(w, g_src, g_pat, g_rep, g_result, s_src_len, s_pat_len, s_rep_len, s_pos, s_dst, s_matched, s_j, string_type)
+
+    // Result on stack
+    helpers_core_locals::emit_local_get(w, g_result)
+}
+
+fn emit_replace_gc_count_loop(w: WasmWriter, g_src: i32, g_pat: i32, s_src_len: i32, s_pat_len: i32, s_pos: i32, s_count: i32, s_matched: i32, s_j: i32, string_type: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    // if s_pos + s_pat_len > s_src_len: break
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_get(w, s_src_len)
+    helpers_numeric_i32_compare::emit_i32_gt_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+
+    // Check match at s_pos
+    emit_replace_gc_match_at(w, g_src, g_pat, s_pat_len, s_pos, s_matched, s_j, string_type)
+    helpers_core_locals::emit_local_get(w, s_matched)
+    helpers_control_structured::emit_if_empty(w)
+    // Match: s_count++, s_pos += s_pat_len
+    helpers_core_locals::emit_local_get(w, s_count)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_count)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_control_structured::emit_else(w)
+    // No match: s_pos++
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_control_structured::emit_end(w)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_replace_gc_copy_loop(w: WasmWriter, g_src: i32, g_pat: i32, g_rep: i32, g_result: i32, s_src_len: i32, s_pat_len: i32, s_rep_len: i32, s_pos: i32, s_dst: i32, s_matched: i32, s_j: i32, string_type: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    // if s_pos + s_pat_len > s_src_len: break (copy remaining suffix)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_get(w, s_src_len)
+    helpers_numeric_i32_compare::emit_i32_gt_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+
+    // Check match at s_pos
+    emit_replace_gc_match_at(w, g_src, g_pat, s_pat_len, s_pos, s_matched, s_j, string_type)
+    helpers_core_locals::emit_local_get(w, s_matched)
+    helpers_control_structured::emit_if_empty(w)
+    // Match: copy replacement to dest at s_dst
+    helpers_core_locals::emit_local_get(w, g_result)
+    helpers_core_locals::emit_local_get(w, s_dst)
+    helpers_core_locals::emit_local_get(w, g_rep)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_get(w, s_rep_len)
+    writer_gc::emit_gc_array_copy(w, string_type, string_type)
+    // s_dst += s_rep_len, s_pos += s_pat_len
+    helpers_core_locals::emit_local_get(w, s_dst)
+    helpers_core_locals::emit_local_get(w, s_rep_len)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_dst)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_control_structured::emit_else(w)
+    // No match: copy one byte from source to dest
+    helpers_core_locals::emit_local_get(w, g_result)
+    helpers_core_locals::emit_local_get(w, s_dst)
+    helpers_core_locals::emit_local_get(w, g_src)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+    // s_dst++, s_pos++
+    helpers_core_locals::emit_local_get(w, s_dst)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_dst)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_control_structured::emit_end(w)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    // Copy remaining suffix: source[s_pos..s_src_len] to dest[s_dst..]
+    helpers_core_locals::emit_local_get(w, g_result)
+    helpers_core_locals::emit_local_get(w, s_dst)
+    helpers_core_locals::emit_local_get(w, g_src)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_src_len)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    writer_gc::emit_gc_array_copy(w, string_type, string_type)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_replace_gc_match_at(w: WasmWriter, g_src: i32, g_pat: i32, s_pat_len: i32, s_pos: i32, s_matched: i32, s_j: i32, string_type: i32) {
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_core_locals::emit_local_set(w, s_matched)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_j)
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_j)
+    helpers_core_locals::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    // source[s_pos + s_j]
+    helpers_core_locals::emit_local_get(w, g_src)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_j)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_gc::emit_gc_array_get_u(w, string_type)
+    // pattern[s_j]
+    helpers_core_locals::emit_local_get(w, g_pat)
+    helpers_core_locals::emit_local_get(w, s_j)
+    writer_gc::emit_gc_array_get_u(w, string_type)
+    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_control_structured::emit_if_empty(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s_matched)
+    helpers_control_branch::emit_br(w, 2)
+    helpers_control_structured::emit_end(w)
+    helpers_core_locals::emit_local_get(w, s_j)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_j)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
 }
 
 fn emit_replace_init(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32, s4: i32, s5: i32, s6: i32, s7: i32, s8: i32, s9: i32) {

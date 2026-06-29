@@ -8,14 +8,40 @@ use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_record
+use wasm::ctx_scratch
 use wasm::emit_target
+use mir::inst_accessors_operands
+use mir::function_locals_view
+use mir::local_access
 
-fn emit_is_empty_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref]
     // After: [i32]  (1 if empty, 0 if not)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    // Determine vec type per-operation from the vec local (arg0).
+    let is_vec_string = check_local_is_vec_string(inst_accessors_operands::MirInst_arg0(inst), ctx)
+    let vec_type = if is_vec_string {
+        ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    } else {
+        ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
 
     writer_gc::emit_gc_struct_get(w, vec_type, 1)  // len
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     return true
+}
+
+fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    if local_idx < 0 {
+        return false
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:String")) {
+            return true
+        }
+    }
+    false
 }

@@ -18,7 +18,7 @@ fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr
         return 0 - 1
     }
     let si_struct_type = ctx_api_local_types::ctx_get_local_type(ctx, range_local_si)
-    if starts_with(clone(si_struct_type), "Vec") {
+    if starts_with(clone(si_struct_type), "Vec") || starts_with(clone(si_struct_type), "vec:") {
         return core_for_values::lower_core_for_values(ctx, exprs, expr)
     }
     let si_next_callee = concat(clone(si_struct_type), String_from("::next"))

@@ -78,10 +78,8 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
-    if len(gc_param_sig) > 0 {
-        return gc_param_sig
-    }
+    // Check vec:/hashmap: before the override: the __String override would
+    // incorrectly type Vec<String> and HashMap params as plain String.
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
         if eq(clone(p_type_name), String_from("vec:String")) {
             return sections_types_gc::gc_vec_string_type_sig()
@@ -98,7 +96,14 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
         }
         return sections_types_gc::gc_hashmap_str_i32_type_sig()
     }
+    let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
+    if len(gc_param_sig) > 0 {
+        return gc_param_sig
+    }
     if emit_target::is_gc_target(clone(target)) && (starts_with(clone(p_type_name), String_from("Option_")) || starts_with(clone(p_type_name), String_from("option:")) || starts_with(clone(p_type_name), String_from("Option:")) || starts_with(clone(p_type_name), String_from("Option<"))) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if emit_target::is_gc_target(clone(target)) && (starts_with(clone(p_type_name), String_from("Result_")) || starts_with(clone(p_type_name), String_from("result:")) || starts_with(clone(p_type_name), String_from("Result:")) || starts_with(clone(p_type_name), String_from("Result<")) || eq(clone(p_type_name), String_from("Result"))) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {

@@ -13,6 +13,8 @@ use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use mir::inst_accessors_operands
+use mir::function_locals_view
+use mir::local_access
 
 fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
@@ -20,9 +22,17 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let arr_tmp_str = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
     let vec_local = inst_accessors_operands::MirInst_arg0(inst)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
-    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
-    let is_vec_string = ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx)
+    let is_vec_string = check_local_is_vec_string(vec_local, ctx)
+    let vec_type = if is_vec_string {
+        ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    } else {
+        ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    let array_type = if is_vec_string {
+        ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
+    } else {
+        ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    }
     let arr_tmp = if is_vec_string { arr_tmp_str } else { arr_tmp_i32 }
 
     // Step 1: Drop vec_ref from stack
@@ -217,4 +227,20 @@ fn emit_gc_alloc_option_none(w: WasmWriter, s_optptr: i32) {
     writer_leb::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_optptr)
+}
+
+fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    if local_idx < 0 {
+        return false
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:String")) {
+            return true
+        }
+    }
+    false
 }

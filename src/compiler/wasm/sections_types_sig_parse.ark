@@ -23,15 +23,26 @@ fn parse_sub_super_offset(sig: String) -> i32 {
 fn parse_sub_struct_sig(sig: String) -> String {
     let marker = String_from("_GS_")
     let start = find_type_sig_str(sig, marker)
-    if start < 0 {
-        return String_from("GS_f0_i32")
+    if start >= 0 {
+        let body_start = start + 1
+        let at = find_type_sig_char(sig, 64)
+        if at >= body_start {
+            return substring(clone(sig), body_start, at)
+        }
+        return substring(clone(sig), body_start, len(sig))
     }
-    let body_start = start + 1
-    let at = find_type_sig_char(sig, 64)
-    if at >= body_start {
-        return substring(clone(sig), body_start, at)
+    // Enum variant sigs use _S_ instead of _GS_ (e.g. SubF+14_S_f0_i32_f1_i32)
+    let s_marker = String_from("_S_")
+    let s_start = find_type_sig_str(sig, s_marker)
+    if s_start >= 0 {
+        let body_start = s_start + 3
+        let at = find_type_sig_char(sig, 64)
+        if at >= body_start {
+            return concat(String_from("GS_"), substring(clone(sig), body_start, at))
+        }
+        return concat(String_from("GS_"), substring(clone(sig), body_start, len(sig)))
     }
-    substring(clone(sig), body_start, len(sig))
+    String_from("GS_f0_i32")
 }
 
 fn find_type_sig_char(s: String, c: i32) -> i32 {
