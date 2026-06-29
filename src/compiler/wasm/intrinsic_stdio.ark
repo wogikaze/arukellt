@@ -16,7 +16,7 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
 
 fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op)
+        intrinsic_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
     } else {
         emit_println_t1(w, inst, ctx, prev_op)
     }
@@ -25,7 +25,7 @@ fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_
 
 fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_print(w, inst, ctx)
+        intrinsic_stdio_gc::emit_gc_print(w, inst, ctx, prev_op)
     } else {
         emit_print_t1(w, inst, ctx, prev_op)
     }
@@ -70,7 +70,7 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
 
 fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_eprintln(w, inst, ctx)
+        intrinsic_stdio_gc::emit_gc_eprintln(w, inst, ctx, prev_op)
     } else {
         emit_eprintln_t1(w, inst, ctx, prev_op)
     }

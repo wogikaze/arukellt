@@ -57,9 +57,7 @@ fn try_emit_array_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: 
     }
     if op == opcodes::MIR_ARRAY_GET() {
         inst_array::emit_array_get(w, inst, ctx)
-        if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-            inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
-        }
+        inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if op == opcodes::MIR_ARRAY_SET() {

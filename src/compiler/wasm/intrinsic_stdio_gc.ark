@@ -1,6 +1,7 @@
 // Arukellt Selfhost - GC-target stdio intrinsic handlers
 
 use mir::inst_accessors_operands
+use mir::opcodes as mir_opcodes
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::opcodes
@@ -21,14 +22,14 @@ fn emit_gc_heap_set(w: WasmWriter) {
     writer_leb::emit_leb128_u(w, 0)
 }
 
-fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32) {
-    let buf_local = emit_gc_string_to_heap(w, inst, ctx)
+fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) {
+    let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
     helpers_io_p2::emit_p2_write_newline(w, 0)
 }
 
-fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    let buf_local = emit_gc_string_to_heap(w, inst, ctx)
+fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
 }
 
@@ -80,6 +81,18 @@ fn emit_gc_string_to_heap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> i32
     if arg_local >= 0 {
         return emit_gc_string_to_heap_from_local(w, arg_local, ctx)
     }
+    emit_gc_string_to_heap_from_stack(w, inst, ctx)
+}
+
+fn emit_gc_string_to_heap_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> i32 {
+    let arg_local = inst_accessors_operands::MirInst_arg0(inst)
+    if arg_local >= 0 && prev_op != mir_opcodes::MIR_LOCAL_GET() {
+        return emit_gc_string_to_heap_from_local(w, arg_local, ctx)
+    }
+    emit_gc_string_to_heap_from_stack(w, inst, ctx)
+}
+
+fn emit_gc_string_to_heap_from_stack(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
     let s_buf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -140,8 +153,8 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
     s_buf
 }
 
-fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    let buf_local = emit_gc_string_to_heap(w, inst, ctx)
+fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
+    let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, 1)
     helpers_io_p2::emit_p2_write_newline(w, 1)
 }

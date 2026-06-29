@@ -40,8 +40,6 @@ fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
         writer_gc::emit_gc_array_get(w, gc_type_idx)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_leb::emit_leb128_s(w, 4)
