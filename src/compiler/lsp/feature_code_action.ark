@@ -13,17 +13,14 @@ use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
 
-fn quote_string(s: String) -> String {
-    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
-}
 
 fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
     let mut out = String_from("{\"title\":")
-    out = concat(out, quote_string(title))
+    out = concat(out, json_escape::quote_string(title))
     out = concat(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
-    out = concat(out, quote_string(uri))
+    out = concat(out, json_escape::quote_string(uri))
     out = concat(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
     out = concat(out, to_string(positions::lsp_position_line(pos)))
     out = concat(out, String_from(",\"character\":"))
@@ -33,7 +30,7 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
     out = concat(out, String_from(",\"character\":"))
     out = concat(out, to_string(positions::lsp_position_character(pos)))
     out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, quote_string(import_graph::build_use_statement(import_path)))
+    out = concat(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
     out = concat(out, String_from("}]}}}"))
     out
 }

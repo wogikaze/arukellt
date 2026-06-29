@@ -6,9 +6,6 @@ use lsp::json_fields
 use lsp::positions
 use lsp::source_text
 
-fn quote_string(s: String) -> String {
-    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
-}
 
 fn extract_section_line(body: String, section: String) -> i32 {
     let marker = concat(section, String_from("\"line\""))
@@ -27,7 +24,7 @@ fn build_full_document_edit(text: String, formatted: String) -> String {
     out = concat(out, String_from(",\"character\":"))
     out = concat(out, to_string(positions::lsp_position_character(end_pos)))
     out = concat(out, String_from("}},\"newText\":"))
-    out = concat(out, quote_string(formatted))
+    out = concat(out, json_escape::quote_string(formatted))
     out = concat(out, String_from("}]"))
     out
 }

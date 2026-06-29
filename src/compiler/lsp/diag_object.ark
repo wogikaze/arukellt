@@ -2,7 +2,7 @@ use analysis::diagnostic_record
 // Arukellt Selfhost - LSP diagnostic JSON object builder.
 
 use analysis
-use lsp::diag_json
+use lsp::json_escape
 use lsp::diag_position
 
 fn phase_code(phase: i32) -> String {
@@ -40,9 +40,9 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
 	let sev = if diagnostic_record::analysis_diagnostic_phase(diag) == analysis::PHASE_LINT() { 2 } else { 1 }
 	out = concat(out, to_string(sev))
 	out = concat(out, String_from(",\"source\":\"arukellt\",\"code\":"))
-	out = concat(out, diag_json::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
+	out = concat(out, json_escape::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
 	out = concat(out, String_from(",\"message\":"))
-	out = concat(out, diag_json::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
+	out = concat(out, json_escape::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
 	out = concat(out, String_from("}"))
 	out
 }

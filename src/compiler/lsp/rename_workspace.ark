@@ -4,9 +4,6 @@ use analysis::symbol_references
 use lsp::json_escape
 use lsp::positions
 
-fn quote_string(s: String) -> String {
-    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
-}
 
 fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
@@ -20,7 +17,7 @@ fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text:
     item = concat(item, String_from(",\"character\":"))
     item = concat(item, to_string(positions::lsp_position_character(end_pos)))
     item = concat(item, String_from("}},\"newText\":"))
-    item = concat(item, quote_string(new_text))
+    item = concat(item, json_escape::quote_string(new_text))
     item = concat(item, String_from("}"))
     if len(edits) == 0 {
         return item
@@ -32,7 +29,7 @@ fn append_uri_edits(changes: String, uri: String, edits: String) -> String {
     if len(edits) == 0 {
         return changes
     }
-    let mut entry = quote_string(uri)
+    let mut entry = json_escape::quote_string(uri)
     entry = concat(entry, String_from(":["))
     entry = concat(entry, edits)
     entry = concat(entry, String_from("]"))

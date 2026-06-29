@@ -10,9 +10,6 @@ use lsp::positions
 use lsp::rename_workspace
 use lsp::responses
 
-fn quote_string(s: String) -> String {
-    concat(String_from("\""), concat(json_escape::json_escape(s), String_from("\"")))
-}
 
 fn null_result(id: i32) -> String {
     responses::build_null_response(id)
@@ -85,7 +82,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     body = concat(body, String_from(",\"character\":"))
     body = concat(body, to_string(positions::lsp_position_character(end_pos)))
     body = concat(body, String_from("}},\"placeholder\":"))
-    body = concat(body, quote_string(name))
+    body = concat(body, json_escape::quote_string(name))
     body = concat(body, String_from("}}"))
     body
 }

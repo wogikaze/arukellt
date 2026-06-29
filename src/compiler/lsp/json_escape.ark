@@ -8,6 +8,10 @@ fn json_escape(s: String) -> String {
     json::json_escape(s)
 }
 
+fn quote_string(s: String) -> String {
+    concat(String_from("\""), concat(json::json_escape(s), String_from("\"")))
+}
+
 fn hex_nibble(n: i32) -> String {
     json::json_hex_nibble(n)
 }

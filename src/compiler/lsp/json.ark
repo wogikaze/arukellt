@@ -8,6 +8,10 @@ fn json_escape(s: String) -> String {
     json_escape::json_escape(s)
 }
 
+fn quote_string(s: String) -> String {
+    json_escape::quote_string(s)
+}
+
 fn json_skip_ws(s: String, pos: i32) -> i32 {
     json_parse_core::json_skip_ws(s, pos)
 }
