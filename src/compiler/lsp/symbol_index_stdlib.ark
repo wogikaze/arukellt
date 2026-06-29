@@ -6,6 +6,7 @@ use lsp::symbol_index_paths
 use lsp::symbol_index_record
 use std::host::env
 use std::host::fs
+use std::text
 
 struct ManifestParseState {
     section: i32,
@@ -27,13 +28,13 @@ fn stdlib_module_to_source_uri(module_path: String) -> String {
 
 fn render_manifest_signature(name: String, params: String, returns: String) -> String {
     let mut sig = concat(String_from("fn "), clone(name))
-    sig = concat(sig, String_from("("))
+    sig = text::builder_append(sig, String_from("("))
     if len(params) > 0 {
-        sig = concat(sig, concat(String_from("s: "), params))
+        sig = text::builder_append(sig, concat(String_from("s: "), params))
     }
-    sig = concat(sig, String_from(")"))
+    sig = text::builder_append(sig, String_from(")"))
     if len(returns) > 0 {
-        sig = concat(sig, concat(String_from(" -> "), returns))
+        sig = text::builder_append(sig, concat(String_from(" -> "), returns))
     }
     sig
 }

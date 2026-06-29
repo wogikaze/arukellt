@@ -1,6 +1,7 @@
 // Arukellt Selfhost - arukellt init project templates (#464).
 
 use std::host::stdio
+use std::text
 
 pub fn init_list_templates() {
     stdio::println(String_from("minimal    - Minimal Hello World project (default)"))
@@ -47,12 +48,12 @@ pub fn init_template_main_ark(template: String) -> String {
 
 pub fn init_template_ark_toml(project_name: String, template: String) -> String {
     let mut out = String_from("[package]\nname = \"")
-    out = concat(out, clone(project_name))
-    out = concat(out, String_from("\"\nversion = \"0.1.0\"\n\n[bin]\nname = \""))
-    out = concat(out, clone(project_name))
-    out = concat(out, String_from("\"\npath = \"main.ark\"\n"))
+    out = text::builder_append(out, clone(project_name))
+    out = text::builder_append(out, String_from("\"\nversion = \"0.1.0\"\n\n[bin]\nname = \""))
+    out = text::builder_append(out, clone(project_name))
+    out = text::builder_append(out, String_from("\"\npath = \"main.ark\"\n"))
     if eq(clone(template), String_from("wasi-host")) {
-        out = concat(out, String_from("target = \"wasm32-wasi-p2\"\n"))
+        out = text::builder_append(out, String_from("target = \"wasm32-wasi-p2\"\n"))
     }
     out
 }

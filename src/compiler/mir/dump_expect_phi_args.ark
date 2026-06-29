@@ -2,6 +2,7 @@
 
 use std::host::process
 use std::host::stdio
+use std::text
 use mir::dump_format_phi
 use mir::phi_access
 
@@ -9,10 +10,10 @@ fn mir_expect_phi_args(f: MirFunction, block_id: i32, phi: MirPhi, expected_coun
     let arg_count = phi_access::MirPhi_arg_count(phi)
     if arg_count != expected_count {
         let mut msg = concat(String_from("phi arg count check failed for bb"), to_string(block_id))
-        msg = concat(msg, String_from(": expected="))
-        msg = concat(msg, to_string(expected_count))
-        msg = concat(msg, String_from(" actual="))
-        msg = concat(msg, to_string(arg_count))
+        msg = text::builder_append(msg, String_from(": expected="))
+        msg = text::builder_append(msg, to_string(expected_count))
+        msg = text::builder_append(msg, String_from(" actual="))
+        msg = text::builder_append(msg, to_string(arg_count))
         stdio::eprintln(msg)
         process::exit(1)
     }

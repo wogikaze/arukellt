@@ -1,6 +1,7 @@
 // Arukellt Selfhost - manifest doc text/json rendering (#456).
 
 use std::host::stdio
+use std::text
 use lsp::json_escape
 use main::manifest_doc_lookup
 use main::manifest_doc_record
@@ -28,17 +29,17 @@ fn doc_target_warning(e: manifest_doc_record::DocFnEntry, filter_target: String)
 
 fn doc_format_signature(e: manifest_doc_record::DocFnEntry) -> String {
     let mut sig = concat(String_from("fn "), manifest_doc_record::DocFnEntry_name(e))
-    sig = concat(sig, String_from("("))
+    sig = text::builder_append(sig, String_from("("))
     let params = manifest_doc_record::DocFnEntry_params(e)
     if len(params) > 0 {
-        sig = concat(sig, params)
+        sig = text::builder_append(sig, params)
     }
-    sig = concat(sig, String_from(") -> "))
+    sig = text::builder_append(sig, String_from(") -> "))
     let ret = manifest_doc_record::DocFnEntry_returns(e)
     if len(ret) > 0 {
-        sig = concat(sig, ret)
+        sig = text::builder_append(sig, ret)
     } else {
-        sig = concat(sig, String_from("()"))
+        sig = text::builder_append(sig, String_from("()"))
     }
     sig
 }
@@ -80,18 +81,18 @@ pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: Str
 
 fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -> String {
     let mut r = out
-    if comma { r = concat(r, String_from(",")) }
-    r = concat(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json_escape::json_escape(value), String_from("\""))))
+    if comma { r = text::builder_append(r, String_from(",")) }
+    r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json_escape::json_escape(value), String_from("\""))))
     r
 }
 
 fn doc_json_bool_field(out: String, key: String, value: bool, comma: bool) -> String {
     let mut r = out
-    if comma { r = concat(r, String_from(",")) }
+    if comma { r = text::builder_append(r, String_from(",")) }
     if value {
-        r = concat(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("true")))
+        r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("true")))
     } else {
-        r = concat(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("false")))
+        r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("false")))
     }
     r
 }
@@ -114,7 +115,7 @@ pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target:
     if len(warn) > 0 {
         out = doc_json_string_field(out, String_from("target_warning"), warn, true)
     }
-    out = concat(out, String_from("}"))
+    out = text::builder_append(out, String_from("}"))
     stdio::println(out)
 }
 
@@ -147,7 +148,7 @@ pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: St
             let warn = doc_target_warning(e, clone(filter_target))
             let mut line = concat(String_from("    "), doc_format_signature(e))
             if len(warn) > 0 {
-                line = concat(line, concat(String_from("  ["), concat(warn, String_from("]"))))
+                line = text::builder_append(line, concat(String_from("  ["), concat(warn, String_from("]"))))
             }
             stdio::println(line)
         }

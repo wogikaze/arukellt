@@ -8,6 +8,7 @@ use lsp::responses
 use lsp::state_record
 use lsp::state_docs
 use lsp::source_text
+use std::text
 
 pub fn handle_selection_range(state: LspState, body: String) {
     let req_id = json_fields::extract_int_field(clone(body), String_from("id"))
@@ -23,15 +24,15 @@ pub fn handle_selection_range(state: LspState, body: String) {
     let line = json_fields::extract_int_field(clone(body), String_from("line"))
     let character = json_fields::extract_int_field(clone(body), String_from("character"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = concat(out, to_string(req_id))
-    out = concat(out, String_from(",\"result\":{\"ranges\":[{\"range\":{\"start\":{\"line\":"))
-    out = concat(out, to_string(line))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(character))
-    out = concat(out, String_from("},\"end\":{\"line\":"))
-    out = concat(out, to_string(line))
-    out = concat(out, String_from(",\"character\":"))
-    out = concat(out, to_string(character + 1))
-    out = concat(out, String_from("}}}]}}"))
+    out = text::builder_append(out, to_string(req_id))
+    out = text::builder_append(out, String_from(",\"result\":{\"ranges\":[{\"range\":{\"start\":{\"line\":"))
+    out = text::builder_append(out, to_string(line))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(character))
+    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+    out = text::builder_append(out, to_string(line))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(character + 1))
+    out = text::builder_append(out, String_from("}}}]}}"))
     framing::append_framed(state, out)
 }

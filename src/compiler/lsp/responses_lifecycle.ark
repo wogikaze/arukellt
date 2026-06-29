@@ -1,22 +1,24 @@
 // Arukellt Selfhost - LSP lifecycle response builders.
 
+use std::text
+
 fn build_initialize_response(id: i32) -> String {
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-	body = concat(body, to_string(id))
-	body = concat(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"typeDefinitionProvider\":true,\"referencesProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"completionProvider\":{\"resolveProvider\":false,\"triggerCharacters\":[\".\",\":\"]},\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]},\"codeActionProvider\":true,\"workspaceSymbolProvider\":true,\"documentFormattingProvider\":true,\"documentRangeFormattingProvider\":true,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
+	body = text::builder_append(body, to_string(id))
+	body = text::builder_append(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"typeDefinitionProvider\":true,\"referencesProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"completionProvider\":{\"resolveProvider\":false,\"triggerCharacters\":[\".\",\":\"]},\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]},\"codeActionProvider\":true,\"workspaceSymbolProvider\":true,\"documentFormattingProvider\":true,\"documentRangeFormattingProvider\":true,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
 	body
 }
 
 fn build_shutdown_response(id: i32) -> String {
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-	body = concat(body, to_string(id))
-	body = concat(body, String_from(",\"result\":null}"))
+	body = text::builder_append(body, to_string(id))
+	body = text::builder_append(body, String_from(",\"result\":null}"))
 	body
 }
 
 fn build_null_response(id: i32) -> String {
 	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-	body = concat(body, to_string(id))
-	body = concat(body, String_from(",\"result\":null}"))
+	body = text::builder_append(body, to_string(id))
+	body = text::builder_append(body, String_from(",\"result\":null}"))
 	body
 }

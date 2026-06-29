@@ -4,6 +4,7 @@ use analysis::diagnostic_record
 use analysis
 use lsp::json_escape
 use lsp::diag_position
+use std::text
 
 fn phase_code(phase: i32) -> String {
 	if phase == analysis::PHASE_LEX() {
@@ -28,21 +29,21 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
 	let s = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_start(diag))
 	let e = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_end(diag))
 	let mut out = String_from("{\"range\":{\"start\":{\"line\":")
-	out = concat(out, to_string(diag_position::lsp_diag_position_line(s)))
-	out = concat(out, String_from(",\"character\":"))
-	out = concat(out, to_string(diag_position::lsp_diag_position_character(s)))
-	out = concat(out, String_from("},\"end\":{\"line\":"))
-	out = concat(out, to_string(diag_position::lsp_diag_position_line(e)))
-	out = concat(out, String_from(",\"character\":"))
-	out = concat(out, to_string(diag_position::lsp_diag_position_character(e)))
-	out = concat(out, String_from("}},\"severity\":"))
+	out = text::builder_append(out, to_string(diag_position::lsp_diag_position_line(s)))
+	out = text::builder_append(out, String_from(",\"character\":"))
+	out = text::builder_append(out, to_string(diag_position::lsp_diag_position_character(s)))
+	out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+	out = text::builder_append(out, to_string(diag_position::lsp_diag_position_line(e)))
+	out = text::builder_append(out, String_from(",\"character\":"))
+	out = text::builder_append(out, to_string(diag_position::lsp_diag_position_character(e)))
+	out = text::builder_append(out, String_from("}},\"severity\":"))
 	// Lint diagnostics are warnings (severity 2), others are errors (severity 1)
 	let sev = if diagnostic_record::analysis_diagnostic_phase(diag) == analysis::PHASE_LINT() { 2 } else { 1 }
-	out = concat(out, to_string(sev))
-	out = concat(out, String_from(",\"source\":\"arukellt\",\"code\":"))
-	out = concat(out, json_escape::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
-	out = concat(out, String_from(",\"message\":"))
-	out = concat(out, json_escape::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
-	out = concat(out, String_from("}"))
+	out = text::builder_append(out, to_string(sev))
+	out = text::builder_append(out, String_from(",\"source\":\"arukellt\",\"code\":"))
+	out = text::builder_append(out, json_escape::quote_string(phase_code(diagnostic_record::analysis_diagnostic_phase(diag))))
+	out = text::builder_append(out, String_from(",\"message\":"))
+	out = text::builder_append(out, json_escape::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
+	out = text::builder_append(out, String_from("}"))
 	out
 }

@@ -7,6 +7,7 @@ use lsp::responses
 use lsp::source_text
 use lsp::state_docs
 use lsp::state_record
+use std::text
 
 fn line_has_open_brace(text: String, line: i32) -> bool {
     let mut i = 0
@@ -59,13 +60,13 @@ fn find_brace_end_line(text: String, start_line: i32) -> i32 {
 fn append_folding_entry(out: String, start_line: i32, end_line: i32) -> String {
     let mut body = out
     if len(body) > 1 {
-        body = concat(body, String_from(","))
+        body = text::builder_append(body, String_from(","))
     }
-    body = concat(body, String_from("{\"startLine\":"))
-    body = concat(body, to_string(start_line))
-    body = concat(body, String_from(",\"endLine\":"))
-    body = concat(body, to_string(end_line))
-    body = concat(body, String_from(",\"kind\":\"region\"}"))
+    body = text::builder_append(body, String_from("{\"startLine\":"))
+    body = text::builder_append(body, to_string(start_line))
+    body = text::builder_append(body, String_from(",\"endLine\":"))
+    body = text::builder_append(body, to_string(end_line))
+    body = text::builder_append(body, String_from(",\"kind\":\"region\"}"))
     body
 }
 
@@ -89,11 +90,11 @@ pub fn handle_folding_range(state: LspState, body: String) {
         }
         line = line + 1
     }
-    items = concat(items, String_from("]"))
+    items = text::builder_append(items, String_from("]"))
     let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = concat(out, to_string(id))
-    out = concat(out, String_from(",\"result\":"))
-    out = concat(out, items)
-    out = concat(out, String_from("}"))
+    out = text::builder_append(out, to_string(id))
+    out = text::builder_append(out, String_from(",\"result\":"))
+    out = text::builder_append(out, items)
+    out = text::builder_append(out, String_from("}"))
     framing::append_framed(state, out)
 }
