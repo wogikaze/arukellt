@@ -1,0 +1,101 @@
+// Arukellt Selfhost - string repeat GC handler.
+// Extracted from intrinsic_string_repeat.ark
+
+use wasm::ctx_scratch
+use wasm::ctx_gc_type
+use wasm::writer_gc
+use wasm::string_gc_helpers
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+
+// GC-target repeat: string is (ref null array_i8), result is new GC array.
+fn emit_repeat_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let g0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s6 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+
+    // Stack: [string_ref, count_i32]
+    // Save count to s1, string ref to g0
+    helpers_core_locals::emit_local_set(w, s1)
+    helpers_core_locals::emit_local_set(w, g0)
+
+    // s2 = len(string)
+    helpers_core_locals::emit_local_get(w, g0)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s2)
+
+    // s3 = len * count (total result length)
+    helpers_core_locals::emit_local_get(w, s2)
+    helpers_core_locals::emit_local_get(w, s1)
+    helpers_numeric_i32_arith::emit_i32_mul(w)
+    helpers_core_locals::emit_local_set(w, s3)
+
+    // s4 = new array of size s3
+    helpers_core_locals::emit_local_get(w, s3)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core_locals::emit_local_set(w, s4)
+
+    // s5 = 0 (repeat iteration counter)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s5)
+
+    // Loop: for s5 = 0 to s1-1: copy string bytes to dest at offset s5*s2
+    emit_repeat_gc_copy_loop(w, g0, s1, s2, s4, s5, s6, string_type)
+
+    // Result on stack
+    helpers_core_locals::emit_local_get(w, s4)
+}
+
+fn emit_repeat_gc_copy_loop(w: WasmWriter, g0: i32, s1: i32, s2: i32, s4: i32, s5: i32, s6: i32, string_type: i32) {
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core_locals::emit_local_get(w, s5)
+    helpers_core_locals::emit_local_get(w, s1)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // Inner loop: copy s2 bytes from string to dest at offset s5*s2
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core_locals::emit_local_set(w, s6)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core_locals::emit_local_get(w, s6)
+    helpers_core_locals::emit_local_get(w, s2)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // dest[s5*s2 + s6] = string[s6]
+    helpers_core_locals::emit_local_get(w, s4)
+    helpers_core_locals::emit_local_get(w, s5)
+    helpers_core_locals::emit_local_get(w, s2)
+    helpers_numeric_i32_arith::emit_i32_mul(w)
+    helpers_core_locals::emit_local_get(w, s6)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_get(w, g0)
+    helpers_core_locals::emit_local_get(w, s6)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+
+    helpers_core_locals::emit_local_get(w, s6)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s6)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // s5++
+    helpers_core_locals::emit_local_get(w, s5)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s5)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+}
