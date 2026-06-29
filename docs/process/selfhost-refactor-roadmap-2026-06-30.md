@@ -317,7 +317,7 @@ Language feature implementation itself is large-scale. Depends on ADR-036 progre
 | Phase | Status | Audit items resolved |
 |-------|--------|---------------------|
 | 0 — verify cleanup | done (13→8 failures) | repo structure, doc examples, WIT golden, LSP golden, --emit fix, Cargo workspace, import cycle |
-| 1 — string building | planned | S2, R7, R1, S1 |
+| 1 — string building | in-progress (R1 done, S2 partial) | R1 (12 escape wrappers consolidated), S2 (15/75 files, 132/~250 calls — bootstrap compiler limit ~162 calls) |
 | 2 — control flow | planned | L1, L2 |
 | 3 — boilerplate | planned | R5, R6, R8, R2 |
 | 4 — data structures | planned | S3, R3, R4 |
