@@ -107,3 +107,10 @@ fn emit_gc_else(w: WasmWriter) {
 fn emit_gc_end(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_END())
 }
+
+fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
+    writer_core::emit_byte(w, opcodes::OP_GC_PREFIX())
+    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_GET())
+    writer_leb::emit_leb128_u(w, type_idx)
+    writer_leb::emit_leb128_u(w, field_idx)
+}

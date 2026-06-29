@@ -31,5 +31,5 @@ fn mono_type_key(ty: TypeInfo) -> String {
         i = i + 1
     }
     result = text::builder_append(result, String_from(">"))
-    result
+    text::builder_build(result)
 }

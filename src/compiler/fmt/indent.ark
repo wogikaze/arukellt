@@ -54,13 +54,13 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
                 line_indent = 0
             }
         }
-        let mut prefix = String_new()
+        let mut prefix = text::builder_new()
         let mut d = 0
         while d < line_indent {
             prefix = text::builder_append(prefix, String_from("    "))
             d = d + 1
         }
-        push(out, concat(prefix, trimmed))
+        push(out, concat(text::builder_build(prefix), trimmed))
         if closes_else {
             indent = line_indent + 1
         } else {

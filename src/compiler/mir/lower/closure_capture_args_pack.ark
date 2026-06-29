@@ -2,7 +2,7 @@
 use std::text
 
 fn closure_pack_caps(caps: Vec<String>) -> String {
-    let mut s = String_new()
+    let mut s = text::builder_new()
     let c = len(caps)
     let mut i = 0
     while i < c {
@@ -12,5 +12,5 @@ fn closure_pack_caps(caps: Vec<String>) -> String {
         s = text::builder_append(s, clone(get_unchecked(caps, i)))
         i = i + 1
     }
-    s
+    text::builder_build(s)
 }

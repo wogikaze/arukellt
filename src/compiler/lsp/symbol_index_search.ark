@@ -13,13 +13,13 @@ fn ascii_lower_char(c: i32) -> i32 {
 
 fn ascii_lower_str(s: String) -> String {
     let n = len(s)
-    let mut out = String_new()
+    let mut out = text::builder_new()
     let mut i = 0
     while i < n {
         out = text::builder_append(out, char_to_string(ascii_lower_char(char_at(s, i))))
         i = i + 1
     }
-    out
+    text::builder_build(out)
 }
 
 fn name_matches_query(name: String, query: String) -> bool {

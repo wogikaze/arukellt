@@ -20,10 +20,11 @@ pub fn build_null_response(id: i32) -> String {
 }
 
 pub fn build_empty_array_response(id: i32) -> String {
-	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+	let mut body = text::builder_new()
+	body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
 	body = text::builder_append(body, to_string(id))
 	body = text::builder_append(body, String_from(",\"result\":[]}"))
-	body
+	text::builder_build(body)
 }
 
 pub fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspPosition) -> String {

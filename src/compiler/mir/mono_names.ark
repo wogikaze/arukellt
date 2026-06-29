@@ -2,7 +2,8 @@
 use std::text
 
 fn mono_safe_name(name: String) -> String {
-    let mut out = String_from("")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from(""))
     let n = len(name)
     let mut i = 0
     while i < n {
@@ -14,5 +15,5 @@ fn mono_safe_name(name: String) -> String {
         }
         i = i + 1
     }
-    out
+    text::builder_build(out)
 }

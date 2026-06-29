@@ -46,10 +46,10 @@ fn format_diagnostic_text(source: String, source_file: String, diag: Diagnostic)
     let end = record::diagnostic_span_end(span)
     if start > 0 || end > 0 {
         out = text::builder_append(out, concat(String_from("\n  --> "), source_map_offsets::location_text(clone(source), clone(source_file), start)))
-        return out
+        return text::builder_build(out)
     }
     if len(source_file) > 0 {
         out = text::builder_append(out, concat(String_from("\n  --> "), clone(source_file)))
     }
-    out
+    text::builder_build(out)
 }

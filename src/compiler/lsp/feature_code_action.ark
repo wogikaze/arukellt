@@ -18,7 +18,8 @@ use std::text
 fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
-    let mut out = String_from("{\"title\":")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("{\"title\":"))
     out = text::builder_append(out, json_escape::quote_string(title))
     out = text::builder_append(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
     out = text::builder_append(out, json_escape::quote_string(uri))
@@ -33,14 +34,14 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
     out = text::builder_append(out, String_from("}},\"newText\":"))
     out = text::builder_append(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
     out = text::builder_append(out, String_from("}]}}}"))
-    out
+    text::builder_build(out)
 }
 
 fn build_import_actions_json(state: LspState, uri: String, text: String, name: String) -> String {
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
     let sn = len(stdlib)
     let mut j = 0
-    let mut actions = String_new()
+    let mut actions = text::builder_new()
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), clone(name)) {
@@ -58,7 +59,7 @@ fn build_import_actions_json(state: LspState, uri: String, text: String, name: S
         }
         j = j + 1
     }
-    actions
+    text::builder_build(actions)
 }
 
 pub fn handle_code_action(state: LspState, body: String) {
@@ -72,7 +73,8 @@ pub fn handle_code_action(state: LspState, body: String) {
     let req_uri = feature_request::text_position_request_uri(req)
     if organize_imports::request_wants_fix_all(clone(body)) {
         let fix_all = organize_imports::build_fix_all_action(clone(req_uri), clone(req_text))
-        let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+        let mut body_out = text::builder_new()
+        body_out = text::builder_append(body_out, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
         body_out = text::builder_append(body_out, to_string(req_id))
         body_out = text::builder_append(body_out, String_from(",\"result\":["))
         if len(fix_all) > 0 {
@@ -84,7 +86,8 @@ pub fn handle_code_action(state: LspState, body: String) {
     }
     if organize_imports::request_wants_organize_imports(clone(body)) {
         let organize = organize_imports::build_organize_imports_action(clone(req_uri), clone(req_text))
-        let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+        let mut body_out = text::builder_new()
+        body_out = text::builder_append(body_out, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
         body_out = text::builder_append(body_out, to_string(req_id))
         body_out = text::builder_append(body_out, String_from(",\"result\":["))
         if len(organize) > 0 {
@@ -107,7 +110,8 @@ pub fn handle_code_action(state: LspState, body: String) {
         return
     }
     let actions = build_import_actions_json(state, clone(req_uri), clone(req_text), clone(name))
-    let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    let mut body_out = text::builder_new()
+    body_out = text::builder_append(body_out, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
     body_out = text::builder_append(body_out, to_string(req_id))
     body_out = text::builder_append(body_out, String_from(",\"result\":["))
     body_out = text::builder_append(body_out, actions)

@@ -21,14 +21,15 @@ fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> St
 	out = text::builder_append(out, world_spec::world_spec_emit_use_block(clone(world)))
 	out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
 	out = text::builder_append(out, emit_wit_func_exports_with_world(decls, clone(world)))
-	return concat(out, String_from("}\n"))
+	return concat(text::builder_build(out), String_from("}\n"))
 }
 
 fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
-	let mut out = String_from("package arukellt:generated;\n\nworld arukellt {\n")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from("package arukellt:generated;\n\nworld arukellt {\n"))
 	out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
 	out = text::builder_append(out, emit_wit_func_exports(decls))
-	concat(out, String_from("}\n"))
+	concat(text::builder_build(out), String_from("}\n"))
 }
 
 
@@ -36,7 +37,8 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 	if !world_spec::world_spec_is_cli_command(clone(world)) {
 		return emit_wit_func_exports(decls)
 	}
-	let mut out = String_from("")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from(""))
 	let mut i = 0
 	while i < len(decls) {
 		let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
@@ -55,11 +57,12 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 		}
 		i = i + 1
 	}
-	out
+	text::builder_build(out)
 }
 
 fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
-	let mut out = String_from("")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from(""))
 	let mut i = 0
 		while i < len(decls) {
 			let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
@@ -113,7 +116,7 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 		}
 		i = i + 1
 	}
-	out
+	text::builder_build(out)
 }
 
 fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {

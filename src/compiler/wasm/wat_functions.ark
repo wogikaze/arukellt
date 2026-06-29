@@ -26,7 +26,7 @@ fn emit_wat_signature(out: String, f: MirFunction) -> String {
     if return_type != 0 {
         result = text::builder_append(result, concat(String_from(" (result "), concat(wat_types::val_type_name(return_type), String_from(")"))))
     }
-    result
+    text::builder_build(result)
 }
 
 fn emit_wat_params(out: String, f: MirFunction) -> String {
@@ -38,14 +38,14 @@ fn emit_wat_params(out: String, f: MirFunction) -> String {
         result = text::builder_append(result, concat(String_from(" (param "), concat(wat_types::val_type_name(local_access::MirLocal_val_type(param)), String_from(")"))))
         pi = pi + 1
     }
-    result
+    text::builder_build(result)
 }
 
 fn emit_wat_start_export(out: String, f: MirFunction) -> String {
     let fname = function_identity::MirFunction_name(f)
     if eq(clone(fname), "main") || eq(clone(fname), "_start") {
-        return concat(out, concat(String_from("  (export \"_start\" (func $"), concat(clone(fname), String_from("))
+        return concat(text::builder_build(out), concat(String_from("  (export \"_start\" (func $"), concat(clone(fname), String_from("))
 "))))
     }
-    out
+    text::builder_build(out)
 }

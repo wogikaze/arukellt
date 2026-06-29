@@ -72,7 +72,8 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     }
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    let mut body = text::builder_new()
+    body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
     body = text::builder_append(body, to_string(id))
     body = text::builder_append(body, String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
     body = text::builder_append(body, to_string(positions::lsp_position_line(start_pos)))
@@ -85,16 +86,17 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     body = text::builder_append(body, String_from("}},\"placeholder\":"))
     body = text::builder_append(body, json_escape::quote_string(name))
     body = text::builder_append(body, String_from("}}"))
-    body
+    text::builder_build(body)
 }
 
 fn build_rename_response(id: i32, changes: String) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    let mut body = text::builder_new()
+    body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
     body = text::builder_append(body, to_string(id))
     body = text::builder_append(body, String_from(",\"result\":{\"changes\":{"))
     body = text::builder_append(body, changes)
     body = text::builder_append(body, String_from("}}}"))
-    body
+    text::builder_build(body)
 }
 
 pub fn build_prepare_rename_response_for_request(state: LspState, body: String, id: i32) -> String {

@@ -7,7 +7,8 @@ use component::wit_types
 use std::text
 
 fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
-	let mut out = String_from("")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from(""))
 	let mut i = 0
 	while i < len(decls) {
 		let d = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
@@ -25,11 +26,12 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
 		}
 		i = i + 1
 	}
-	out
+	text::builder_build(out)
 }
 
 fn emit_wit_record_type_def(d: ComponentWitDecl) -> String {
-	let mut out = String_from("  record ")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from("  record "))
 	out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
 	out = text::builder_append(out, String_from(" {\n"))
 	let mut fi = 0
@@ -46,11 +48,12 @@ fn emit_wit_record_type_def(d: ComponentWitDecl) -> String {
 		out = text::builder_append(out, String_from(",\n"))
 		fi = fi + 1
 	}
-	concat(out, String_from("  }\n\n"))
+	concat(text::builder_build(out), String_from("  }\n\n"))
 }
 
 fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
-	let mut out = String_from("  resource ")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from("  resource "))
 	out = text::builder_append(out, wit_names::wit_type_name(wit_decl::wit_decl_name(d)))
 	out = text::builder_append(out, String_from(" {\n"))
 	let mut fi = 0
@@ -67,7 +70,7 @@ fn emit_wit_resource_type_def(d: ComponentWitDecl) -> String {
 		out = text::builder_append(out, String_from(",\n"))
 		fi = fi + 1
 	}
-	concat(out, String_from("  }\n\n"))
+	concat(text::builder_build(out), String_from("  }\n\n"))
 }
 
 fn wit_export_flags_type_name() -> String {
@@ -100,7 +103,8 @@ fn component_decl_is_perms_flags_shape(d: AstNode) -> bool {
 
 fn emit_wit_flags_type_def(d: AstNode) -> String {
 	let decl = wit_decl::wit_decl_from_node(d)
-	let mut out = String_from("  flags ")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from("  flags "))
 	out = text::builder_append(out, wit_export_flags_type_name())
 	out = text::builder_append(out, String_from(" {\n"))
 	let mut fi = 0
@@ -110,11 +114,12 @@ fn emit_wit_flags_type_def(d: AstNode) -> String {
 		out = text::builder_append(out, String_from(",\n"))
 		fi = fi + 1
 	}
-	concat(out, String_from("  }\n\n"))
+	concat(text::builder_build(out), String_from("  }\n\n"))
 }
 
 fn emit_wit_enum_type_def(d: ComponentWitDecl) -> String {
-	let mut out = String_from("")
+	let mut out = text::builder_new()
+	out = text::builder_append(out, String_from(""))
 	if wit_decl::wit_decl_enum_has_payloads(d) {
 		out = text::builder_append(out, String_from("  variant "))
 	} else {
@@ -135,5 +140,5 @@ fn emit_wit_enum_type_def(d: ComponentWitDecl) -> String {
 		out = text::builder_append(out, String_from(",\n"))
 		vi = vi + 1
 	}
-	concat(out, String_from("  }\n\n"))
+	concat(text::builder_build(out), String_from("  }\n\n"))
 }

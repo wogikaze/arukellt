@@ -20,7 +20,8 @@ fn mir_expect_phi_format(f: MirFunction, block_id: i32, phi_index: i32, expected
     let phi = block_phi_access::MirBlock_phi_at(block, phi_index)
     let actual = dump_format_phi::mir_format_phi(f, phi)
     if !eq(clone(actual), clone(expected)) {
-        let mut msg = String_from("phi format check failed: expected ")
+        let mut msg = text::builder_new()
+        msg = text::builder_append(msg, String_from("phi format check failed: expected "))
         msg = text::builder_append(msg, expected)
         msg = text::builder_append(msg, String_from(" actual "))
         msg = text::builder_append(msg, actual)

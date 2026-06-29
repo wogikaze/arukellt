@@ -100,7 +100,8 @@ fn lint_rule_index_by_name(name: String) -> i32 {
 
 // Format a single lint rule as a list line: "  W0006  unused-import      warn  style  unused import".
 fn format_lint_rule_line(rule: LintRule) -> String {
-    let mut out = String_from("  ")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("  "))
     out = text::builder_append(out, lint_rule_code(rule))
     out = text::builder_append(out, String_from("  "))
     out = text::builder_append(out, lint_rule_name(rule))
@@ -110,7 +111,7 @@ fn format_lint_rule_line(rule: LintRule) -> String {
     out = text::builder_append(out, lint_rule_category(rule))
     out = text::builder_append(out, String_from("  "))
     out = text::builder_append(out, lint_rule_description(rule))
-    out
+    text::builder_build(out)
 }
 
 fn severity_label(sev: i32) -> String {
@@ -125,7 +126,8 @@ fn severity_label(sev: i32) -> String {
 
 // Format the full `arukellt lint --list` output.
 pub fn format_lint_rule_list() -> String {
-    let mut out = String_from("lint rules:\n")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("lint rules:\n"))
     let count = lint_rule_count()
     let mut i = 0
     while i < count {
@@ -133,7 +135,7 @@ pub fn format_lint_rule_list() -> String {
         out = text::builder_append(out, String_from("\n"))
         i = i + 1
     }
-    out
+    text::builder_build(out)
 }
 
 // Resolve the effective severity for a diagnostic code given allow/deny overrides.

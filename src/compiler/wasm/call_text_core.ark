@@ -7,6 +7,7 @@ use wasm::inst_store
 use wasm::intrinsic_string_contains_bytes
 use wasm::intrinsic_string_trim
 use wasm::intrinsic_string_basic
+use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
 use wasm::writer_core
@@ -123,7 +124,7 @@ fn try_emit_text_compare_call(w: WasmWriter, callee: String, inst: MirInst, ctx:
         let _result_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
-    if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") || eq(clone(callee), "text::builder_append") || eq(clone(callee), "std::text::builder_append") {
+    if eq(clone(callee), "concat") || eq(clone(callee), "text::concat") {
         let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
@@ -135,6 +136,11 @@ fn try_emit_text_compare_call(w: WasmWriter, callee: String, inst: MirInst, ctx:
 fn try_emit_text_construct_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "String_from") || eq(clone(callee), "clone") {
         let _result_on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+
+    if eq(clone(callee), "string_from_bytes") || eq(clone(callee), "bytes::string_from_bytes") || eq(clone(callee), "__intrinsic_string_from_bytes") {
+        let _result_on_stack = intrinsic_string_from_bytes::emit_string_from_bytes(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
 

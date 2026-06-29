@@ -62,7 +62,8 @@ fn GcShapeRegistry_array_elem_type(reg: GcShapeRegistry, idx: i32) -> i32 {
 }
 
 fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
-    let mut sig = String_from("GS")
+    let mut sig = text::builder_new()
+    sig = text::builder_append(sig, String_from("GS"))
     let types_code = get_unchecked(reg.struct_field_types, idx)
     let fc = len(types_code)
     let mut fi = 0
@@ -73,7 +74,7 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
         sig = text::builder_append(sig, code_to_gc_sig(char_at(clone(types_code), fi)))
         fi = fi + 1
     }
-    sig
+    text::builder_build(sig)
 }
 
 fn GcShapeRegistry_array_sig(reg: GcShapeRegistry, idx: i32) -> String {

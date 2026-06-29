@@ -36,7 +36,7 @@ fn render_manifest_signature(name: String, params: String, returns: String) -> S
     if len(returns) > 0 {
         sig = text::builder_append(sig, concat(String_from(" -> "), returns))
     }
-    sig
+    text::builder_build(sig)
 }
 
 fn push_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, name: String, module_path: String, detail: String, doc: String) {

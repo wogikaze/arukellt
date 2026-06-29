@@ -7,7 +7,8 @@ use std::text
 // Arukellt Selfhost - CLI JSON output formatting.
 
 pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {
-    let mut out = String_from("{\"file\":\"")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("{\"file\":\""))
     out = text::builder_append(out, concat(clone(file), String_from("\",\"phase\":")))
     out = text::builder_append(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
     let count = len(diagnostics_vec)
@@ -21,13 +22,14 @@ pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnost
         i = i + 1
     }
     out = text::builder_append(out, String_from("]}"))
-    out
+    text::builder_build(out)
 }
 
 pub fn format_success_json(file: String, phase: i32, size: i32) -> String {
-    let mut out = String_from("{\"file\":\"")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("{\"file\":\""))
     out = text::builder_append(out, concat(clone(file), String_from("\",\"phase\":")))
     out = text::builder_append(out, concat(to_string(phase), String_from(",\"success\":true,\"output_size\":")))
     out = text::builder_append(out, concat(to_string(size), String_from("}")))
-    out
+    text::builder_build(out)
 }

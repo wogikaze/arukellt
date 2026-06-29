@@ -30,7 +30,7 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
     let max_line = len(lines) - 1
     let start = fmt_snap_line_start(start_line)
     let end = fmt_snap_line_end(end_line, max_line)
-    let mut out = String_new()
+    let mut out = text::builder_new()
     let mut i = start
     while i <= end && i < len(lines) {
         if i > start {
@@ -42,7 +42,7 @@ fn fmt_extract_line_range(text: String, start_line: i32, end_line: i32) -> Strin
     if end < max_line {
         out = text::builder_append(out, String_from("\n"))
     }
-    out
+    text::builder_build(out)
 }
 
 fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacement: String) -> String {
@@ -50,7 +50,7 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
     let max_line = len(lines) - 1
     let start = fmt_snap_line_start(start_line)
     let end = fmt_snap_line_end(end_line, max_line)
-    let mut out = String_new()
+    let mut out = text::builder_new()
     let mut i = 0
     while i < start && i < len(lines) {
         if i > 0 {
@@ -74,7 +74,7 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
     if len(lines) > 0 {
         out = text::builder_append(out, String_from("\n"))
     }
-    out
+    text::builder_build(out)
 }
 
 fn fmt_range_format(input: String, start_line: i32, end_line: i32) -> Option<String> {

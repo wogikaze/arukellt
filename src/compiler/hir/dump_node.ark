@@ -8,7 +8,7 @@ use hir::node_value_record
 use hir::types_format
 
 fn dump_hir_node(node: HirNode, depth: i32) {
-    let mut indent = String_new()
+    let mut indent = text::builder_new()
     let mut d = 0
     while d < depth {
         indent = text::builder_append(indent, String_from("  "))
@@ -16,7 +16,7 @@ fn dump_hir_node(node: HirNode, depth: i32) {
     }
     let tag_str = dump_names::hir_tag_name(node_value_record::hir_node_tag(node))
     let ty_str = types_format::type_name(node_value_record::hir_node_type(node))
-    let mut line = concat(indent, concat(tag_str, concat(String_from(" : "), ty_str)))
+    let mut line = concat(text::builder_build(indent), concat(tag_str, concat(String_from(" : "), ty_str)))
     if node_value_record::hir_node_text_len(node) > 0 {
         line = text::builder_append(line, concat(String_from(" '"), concat(node_value_record::hir_node_text(node), String_from("'"))))
     }

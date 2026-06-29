@@ -17,13 +17,14 @@ fn render_index_hover_markdown(detail: String, doc: String, minimal: bool) -> St
     if minimal {
         return detail
     }
-    let mut out = String_from("```ark\n")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("```ark\n"))
     out = text::builder_append(out, detail)
     out = text::builder_append(out, String_from("\n```"))
     if len(doc) > 0 {
         out = text::builder_append(out, concat(String_from("\n\n"), doc))
     }
-    out
+    text::builder_build(out)
 }
 
 fn lookup_short_name(text: String, offset: i32) -> String {

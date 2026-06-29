@@ -5,7 +5,7 @@ use lexer::string_escape_chars
 use std::text
 
 fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
-    let mut result = String_new()
+    let mut result = text::builder_new()
     let mut span_start = lex.pos
     while lex.pos < lex.src_len {
         let c = peek(lex)

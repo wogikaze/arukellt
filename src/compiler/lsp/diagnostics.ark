@@ -6,7 +6,8 @@ use lsp::diag_object
 use std::text
 
 pub fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapshot) -> String {
-	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":")
+	let mut body = text::builder_new()
+	body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":"))
 	body = text::builder_append(body, json_escape::quote_string(uri))
 	body = text::builder_append(body, String_from(",\"diagnostics\":["))
 	let n = snapshot_state_record::snapshot_diagnostic_count(snap)
@@ -20,5 +21,5 @@ pub fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapsh
 		i = i + 1
 	}
 	body = text::builder_append(body, String_from("]}}"))
-	body
+	text::builder_build(body)
 }
