@@ -810,7 +810,8 @@ impl EmitCtx {
                 || func.name == "toml_stringify" || func.name == "request"
                 || func.name == "merge_wit_paths_for_source" || func.name == "collect_wit_paths_from_manifest"
                 || func.name == "find_package_root" || func.name == "parent_dir"
-                || func.name == "exists" || func.name == "is_readable_file")
+                || func.name == "exists" || func.name == "is_readable_file"
+                || func.name == "path_parent_dir")
         {
             eprintln!("=== MIR for {} (params={}, locals={}) ===", func.name, func.params.len(), func.locals.len());
             for (bi, block) in func.blocks.iter().enumerate() {
@@ -823,43 +824,6 @@ impl EmitCtx {
         }
         if std::env::var("ARK_DUMP_FNS").is_ok() && func.name.contains("read_to_string") {
             eprintln!("FN: {} params={} return={:?}", func.name, func.params.len(), func.return_ty);
-        }
-        // Debug: check enum_payload_types for TomlValue
-        if std::env::var("ARK_DUMP_ENUMS").is_ok() && func.name == "toml_stringify" {
-            eprintln!("enum_payload_types keys: {:?}", self.enum_payload_types.keys().collect::<Vec<_>>());
-            if let Some(variants) = self.enum_payload_types.get("TomlValue") {
-                eprintln!("TomlValue variants: {:?}", variants);
-            }
-            // Scan and report all EnumPayloads recursively
-            fn scan_enums(stmts: &[MirStmt], ctx: &EmitCtx, depth: usize) {
-                for stmt in stmts {
-                    if let MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) = stmt {
-                        if let Operand::EnumPayload { enum_name, variant_name, index, .. } = op {
-                            let info = ctx.enum_payload_info(enum_name, variant_name, *index as usize);
-                            eprintln!("{}EnumPayload {:?}::{:?}[{}] -> local {} info={:?}", "  ".repeat(depth), enum_name, variant_name, index, id.0, info);
-                            eprintln!("{}  i64_locals contains {}: {}", "  ".repeat(depth), id.0, ctx.i64_locals.contains(&id.0));
-                        }
-                    }
-                    if let MirStmt::IfStmt { then_body, else_body, .. } = stmt {
-                        scan_enums(then_body, ctx, depth + 1);
-                        scan_enums(else_body, ctx, depth + 1);
-                    }
-                }
-            }
-            for (bi, block) in func.blocks.iter().enumerate() {
-                scan_enums(&block.stmts, self, 0);
-            }
-        }
-        // Debug: dump local types for find_package_root
-        if std::env::var("ARK_DUMP_ENUMS").is_ok() && func.name == "find_package_root" {
-            eprintln!("find_package_root locals:");
-            for local in func.params.iter().chain(func.locals.iter()) {
-                eprintln!("  local {} ty={:?}", local.id.0, local.ty);
-            }
-            eprintln!("bool_locals: {:?}", self.bool_locals);
-            if let Some(rt) = self.fn_return_types.get("exists") {
-                eprintln!("exists return type: {:?}", rt);
-            }
         }
         // Debug: dump all function names with their indices on first function
         if std::env::var("ARK_DUMP_FNMAP").is_ok() && func.name == self.fn_names.first().map(|s| s.as_str()).unwrap_or("") {
@@ -1070,8 +1034,14 @@ impl EmitCtx {
                 .contains(&(struct_name.clone(), field.clone())),
             Operand::Call(name, args) => {
                 let name = normalize_intrinsic_name(name.as_str());
-                if matches!(name, "Vec_new_String" | "clone") {
+                if matches!(name, "Vec_new_String") {
                     return true;
+                }
+                // clone returns the same type as its argument — check the argument
+                if name == "clone"
+                    && let Some(arg) = args.first()
+                {
+                    return self.is_vec_string_operand(arg);
                 }
                 // push returns the same vec type as its first argument
                 if name == "push"
@@ -1113,9 +1083,17 @@ impl EmitCtx {
                         | "read_line"
                         | "to_lower"
                         | "to_upper"
-                        | "clone"
                         | "String_new"
                 ) {
+                    return true;
+                }
+                // clone returns String only if its argument is not Vec<String>
+                if name == "clone" {
+                    if let Some(arg) = args.first() {
+                        if self.is_vec_string_operand(arg) {
+                            return false;
+                        }
+                    }
                     return true;
                 }
                 // Display trait impl: TypeName__to_string returns String

@@ -7070,11 +7070,16 @@ impl EmitCtx {
                 self.enum_init_depth -= 1;
             }
             Operand::EnumTag(inner) => {
-                // If the inner value is a bool local, just return the value (0 or 1)
-                // instead of loading from it as an enum pointer.
+                // If the inner value is a bool local, convert from T1 representation
+                // (true=1, false=0) to enum tag representation (true=0, false=1).
+                // This is needed when a bool is matched against enum patterns like
+                // Result::Ok(true) where Ok has tag 0.
                 if let Operand::Place(Place::Local(id)) = inner.as_ref() {
                     if self.bool_locals.contains(&id.0) {
                         self.emit_operand(f, inner);
+                        // Invert: 1 -> 0 (true -> Ok tag), 0 -> 1 (false -> Err tag)
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Xor);
                         return;
                     }
                 }
