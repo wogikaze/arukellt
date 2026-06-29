@@ -1,6 +1,6 @@
 // Arukellt Resolver - let binding rules.
 
-use resolver::bindings
+use resolver::bindings_pattern
 use resolver::scope_define
 use resolver::ast_access
 use resolver::kinds
@@ -16,7 +16,7 @@ fn resolve_let(ctx: ResolveCtx, node: AstNode) {
                 let init = ast_access::node_child_at(node, 1)
                 resolve_node(ctx, init)
             }
-            bindings::collect_pattern_bindings(ctx, pat)
+            bindings_pattern::collect_pattern_bindings(ctx, pat)
         }
         return
     }

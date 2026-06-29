@@ -17,7 +17,13 @@ fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant
     ctx_struct_storage::ctx_struct_push_field(ctx, String_from("_tag"), String_from(""))
     let mut pfi = 0
     while pfi < payload_count {
-        ctx_struct_storage::ctx_struct_push_field(ctx, concat(String_from("_"), to_string(pfi)), layout_variant::layout_variant_payload_type_name_at(variant, pfi))
+        let field_name = layout_variant::layout_variant_payload_field_name_at(variant, pfi)
+        let effective_name = if len(field_name) > 0 {
+            field_name
+        } else {
+            concat(String_from("_"), to_string(pfi))
+        }
+        ctx_struct_storage::ctx_struct_push_field(ctx, effective_name, layout_variant::layout_variant_payload_type_name_at(variant, pfi))
         pfi = pfi + 1
     }
 }

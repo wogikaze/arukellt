@@ -40,6 +40,24 @@ fn core_emit_payload_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: 
                 }
             }
         }
+        // Infer concrete payload type from scrutinee type for Option::Some.
+        // When scrutinee has type "option:Token" or "Option_Token", bind local should get "Token".
+        if bi == 0 && core_match_variant_is_some_or_ok(clone(variant_name)) {
+            if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 || eq(ctx_api_local_types::ctx_get_local_type(ctx, bind_local), String_from("enum:open")) {
+                let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
+                let mut elem_ty = String_new()
+                if starts_with(clone(scrut_type), String_from("option:")) {
+                    elem_ty = substring(scrut_type, 7, len(scrut_type))
+                } else {
+                    if starts_with(clone(scrut_type), String_from("Option_")) {
+                        elem_ty = substring(scrut_type, 7, len(scrut_type))
+                    }
+                }
+                if len(elem_ty) > 0 {
+                    ctx_api_local_types::ctx_set_local_type(ctx, bind_local, elem_ty)
+                }
+            }
+        }
         emit_payload_field_bind(ctx, variant_name, bi, scrut_idx, bind_vt, bind_local)
         bi = bi + 1
     }

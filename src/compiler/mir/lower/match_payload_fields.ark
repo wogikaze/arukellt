@@ -27,6 +27,23 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
         }
         set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
         set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, scrut_ok_is_i32)
+        // Infer concrete payload type from scrutinee type for Option::Some.
+        if bi == 0 && match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
+            if len(ctx_get_local_type(ctx, bind_local)) == 0 || eq(ctx_get_local_type(ctx, bind_local), String_from("enum:open")) {
+                let scrut_type = ctx_get_local_type(ctx, scrut_idx)
+                let mut elem_ty = String_new()
+                if starts_with(clone(scrut_type), String_from("option:")) {
+                    elem_ty = substring(scrut_type, 7, len(scrut_type))
+                } else {
+                    if starts_with(clone(scrut_type), String_from("Option_")) {
+                        elem_ty = substring(scrut_type, 7, len(scrut_type))
+                    }
+                }
+                if len(elem_ty) > 0 {
+                    ctx_set_local_type(ctx, bind_local, elem_ty)
+                }
+            }
+        }
         emit_payload_field_bind(ctx, clone(variant_name), scrut_idx, bind_local, bind_vt, bi)
         bi = bi + 1
     }

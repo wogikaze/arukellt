@@ -1,16 +1,27 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_variants
 use mir::lower_kinds
 use mir::lower::ctx_types
 // Arukellt MIR lowering body - struct literals.
 
+use mir::inst_const_i32
 use mir::inst_local_set
 use mir::lower::struct_lit
+use mir::value_types
 
 fn lower_struct_lit_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     let struct_name = ast_node::node_text(node)
     let dest = struct_lit::mir_emit_struct_new(ctx, clone(struct_name))
+    // If this is an enum variant, set the _tag field to the variant's tag value.
+    let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(struct_name))
+    if tag >= 0 {
+        let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
+        struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, String_from("_tag"), tag_local)
+    }
     let mut base_idx = 0 - 1
     let mut has_base = false
     let mut f = 0

@@ -22,6 +22,7 @@ fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
 
 fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
     let payload_types = Vec_new_String()
+    let payload_field_names = Vec_new_String()
     let payload_count = decl_layout_shape::decl_layout_member_type_ann_count(variant)
     let mut i = 0
     while i < payload_count {
@@ -29,7 +30,18 @@ fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
         push(payload_types, decl_layout_shape::decl_layout_payload_field_type_name(payload))
         i = i + 1
     }
-    layout_variant::CoreHirLayoutVariant_new(decl_layout_shape::decl_layout_member_name(variant), payload_types)
+    // Record variants: payload info is in children (field nodes with type anns).
+    let child_count = decl_layout_shape::decl_layout_variant_child_count(variant)
+    let mut ci = 0
+    while ci < child_count {
+        let field_node = decl_layout_shape::decl_layout_variant_child_at(variant, ci)
+        let field_name = decl_layout_shape::decl_layout_member_name(field_node)
+        let field_type = decl_layout_shape::decl_layout_field_type_name(field_node)
+        push(payload_field_names, field_name)
+        push(payload_types, field_type)
+        ci = ci + 1
+    }
+    layout_variant::CoreHirLayoutVariant_new(decl_layout_shape::decl_layout_member_name(variant), payload_types, payload_field_names)
 }
 
 fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {

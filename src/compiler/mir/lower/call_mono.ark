@@ -38,14 +38,18 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
         }
     }
     if !mono_resolved_by_type {
-        let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start)
-        if len(mono_target) > 0 {
-            resolved = mono_target
-        } else {
-            // Fallback: try name-based rewrite for generic functions.
-            let name_rewrite = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(resolved))
-            if len(name_rewrite) > 0 {
-                resolved = name_rewrite
+        // Don't let mono span lookup override already-resolved mangled names
+        // (e.g. "Token::to_string" from the to_string trait dispatch rewrite).
+        if !contains(clone(resolved), String_from("::")) {
+            let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start)
+            if len(mono_target) > 0 {
+                resolved = mono_target
+            } else {
+                // Fallback: try name-based rewrite for generic functions.
+                let name_rewrite = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(resolved))
+                if len(name_rewrite) > 0 {
+                    resolved = name_rewrite
+                }
             }
         }
     }

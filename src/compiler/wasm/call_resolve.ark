@@ -55,6 +55,7 @@ fn mir_function_sole_call_target(f: MirFunction) -> String {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut call_count = 0
     let mut sole_callee = String_new()
+    let mut has_computation = false
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
@@ -62,15 +63,20 @@ fn mir_function_sole_call_target(f: MirFunction) -> String {
         let mut ii = 0
         while ii < ii_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if op == opcodes::MIR_CALL() {
                 call_count = call_count + 1
                 sole_callee = inst_accessors_literals::MirInst_str_val(inst)
+            } else {
+                if op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() || op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() || op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() || op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() || op == opcodes::MIR_MUL() || op == opcodes::MIR_DIV() || op == opcodes::MIR_MOD() || op == opcodes::MIR_NEG() || op == opcodes::MIR_BIT_AND() || op == opcodes::MIR_BIT_OR() || op == opcodes::MIR_BIT_XOR() || op == opcodes::MIR_SHL() || op == opcodes::MIR_SHR() || op == opcodes::MIR_AND() || op == opcodes::MIR_OR() {
+                    has_computation = true
+                }
             }
             ii = ii + 1
         }
         bi = bi + 1
     }
-    if call_count == 1 {
+    if call_count == 1 && !has_computation {
         return sole_callee
     }
     String_new()

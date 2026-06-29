@@ -25,6 +25,14 @@ fn decl_layout_variant_at(decl: AstNode, index: i32) -> AstNode {
     decl_member_collections::decl_variant_at(decl, index)
 }
 
+fn decl_layout_variant_child_count(variant: AstNode) -> i32 {
+    decl_member_collections::decl_field_count(variant)
+}
+
+fn decl_layout_variant_child_at(variant: AstNode, index: i32) -> AstNode {
+    decl_member_collections::decl_field_at(variant, index)
+}
+
 fn decl_layout_member_name(member: AstNode) -> String {
     decl_node_identity::member_name(member)
 }

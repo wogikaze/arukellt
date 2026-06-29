@@ -17,6 +17,9 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     if eq(clone(callee_name), "vec_get_unchecked") {
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
     }
+    if eq(clone(callee_name), "vec_get") {
+        mark_vec_get_result_type(ctx, dest, first_arg_idx)
+    }
 }
 
 fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
@@ -25,6 +28,16 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
         if starts_with(clone(vec_type), "vec:") {
             let elem_ty = substring(vec_type, 4, len(vec_type))
             ctx_api_local_types::ctx_set_local_type(ctx, dest, elem_ty)
+        }
+    }
+}
+
+fn mark_vec_get_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+    if first_arg_idx >= 0 {
+        let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if starts_with(clone(vec_type), "vec:") {
+            let elem_ty = substring(vec_type, 4, len(vec_type))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, concat(String_from("option:"), elem_ty))
         }
     }
 }
