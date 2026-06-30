@@ -75,11 +75,9 @@ fn ComponentRecordPointScan_allows_add(scan: ComponentRecordPointScan) -> bool {
 
 fn component_record_point_scan(decls: Vec<AstNode>) -> ComponentRecordPointScan {
     let scan = ComponentRecordPointScan_empty()
-    let mut i = 0
-    while i < len(decls) {
+    for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         component_record_point_scan_apply_decl(scan, d)
-        i = i + 1
     }
     scan
 }

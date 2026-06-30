@@ -71,18 +71,14 @@ fn wit_push_enum_defs_for_import(enum_defs: Vec<EnumInfo>, wit_paths: Vec<String
     if !wit_register::wit_doc_has_surface(doc) {
         return
     }
-    let mut ei = 0
-    while ei < len(doc.enums) {
+    for ei in 0..len(doc.enums) {
         push(enum_defs, wit_enum_info_from_parsed(clone(alias), get_unchecked(doc.enums, ei)))
-        ei = ei + 1
     }
 }
 
 fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit_parse_text::WitParsedInterface) {
-    let mut fi = 0
-    while fi < len(doc.funcs) {
+    for fi in 0..len(doc.funcs) {
         push(sigs, wit_fn_sig_from_parsed(clone(alias), doc, get_unchecked(doc.funcs, fi)))
-        fi = fi + 1
     }
 }
 
@@ -90,10 +86,8 @@ fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitPars
     let qualified = concat(clone(alias), concat(String_from("::"), clone(func.ark_name)))
     let params = Vec_new_TypeInfo()
     let param_types = wit_surface::wit_func_param_ark_types(func, clone(alias), doc)
-    let mut pi = 0
-    while pi < len(param_types) {
+    for pi in 0..len(param_types) {
         push(params, type_names::resolve_type_name(get_unchecked(param_types, pi)))
-        pi = pi + 1
     }
     let ret_name = wit_surface::wit_func_ret_ark_type(func, clone(alias), doc)
     let ret_ty = if len(ret_name) == 0 || eq(clone(ret_name), String_from("()")) {

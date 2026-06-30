@@ -138,12 +138,10 @@ fn comp_p2_void_export_stub_core_module(export_name: String, type_idx: i32) -> V
 fn comp_p2_emit_exports(out: writer_core::ComponentWriter, export_names: Vec<String>, func_idxs: Vec<i32>) {
 	let export_sec = writer_core::ComponentWriter_new()
 	writer_core::comp_emit_leb128_u(export_sec, len(export_names))
-	let mut i = 0
-	while i < len(export_names) {
+	for i in 0..len(export_names) {
 		writer_core::comp_emit_string(export_sec, get_unchecked(export_names, i))
 		writer_core::comp_emit_byte(export_sec, 0x00)
 		writer_core::comp_emit_leb128_u(export_sec, get_unchecked(func_idxs, i))
-		i = i + 1
 	}
 	sections::comp_emit_wasm_section(out, 7, export_sec)
 }
@@ -151,14 +149,12 @@ fn comp_p2_emit_exports(out: writer_core::ComponentWriter, export_names: Vec<Str
 fn comp_p2_emit_return_zero_bodies(out: writer_core::ComponentWriter, body_count: i32) {
 	let code_sec = writer_core::ComponentWriter_new()
 	writer_core::comp_emit_leb128_u(code_sec, body_count)
-	let mut i = 0
-	while i < body_count {
+	for i in 0..body_count {
 		writer_core::comp_emit_leb128_u(code_sec, 4)
 		writer_core::comp_emit_leb128_u(code_sec, 0)
 		writer_core::comp_emit_byte(code_sec, 0x41)
 		writer_core::comp_emit_leb128_u(code_sec, 0)
 		writer_core::comp_emit_byte(code_sec, 0x0b)
-		i = i + 1
 	}
 	sections::comp_emit_wasm_section(out, 10, code_sec)
 }

@@ -15,11 +15,9 @@ fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
 }
 
 fn append_synthetic_params(result: AstNode, param_names: Vec<String>, fn_span: Span) {
-    let mut pi = 0
-    while pi < len(param_names) {
+    for pi in 0..len(param_names) {
         let syn_name = get_unchecked(param_names, pi)
         let param = AstNode_leaf(kinds::NK_IDENT(), clone(syn_name), fn_span)
         core_ast_children::AstNode_push_child(result, param)
-        pi = pi + 1
     }
 }

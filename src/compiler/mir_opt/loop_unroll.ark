@@ -140,12 +140,10 @@ fn loop_unroll_optimize_block_insts(insts: Vec<MirInst>) -> LoopUnrollResult {
     let regions = loop_regions::mir_opt_pick_innermost(loop_regions::mir_opt_collect_loop_regions(insts))
     let mut current = insts
     let mut total = 0
-    let mut ri = 0
-    while ri < len(regions) {
+    for ri in 0..len(regions) {
         let result = loop_unroll_try_region(current, get_unchecked(regions, ri))
         current = result.instructions
         total = total + result.unrolled
-        ri = ri + 1
     }
     LoopUnrollResult_new(current, total)
 }

@@ -6,13 +6,11 @@ use resolver::wit_type_map
 
 fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInterface> {
     let docs = Vec_new_WitParsedInterface()
-    let mut i = 0
-    while i < len(paths) {
+    for i in 0..len(paths) {
         let doc = wit_parse_import::parse_wit_import_file(get_unchecked(paths, i))
         if len(doc.package) > 0 && len(doc.interface) > 0 {
             push(docs, doc)
         }
-        i = i + 1
     }
     docs
 }
@@ -22,13 +20,11 @@ fn wit_lookup_import(paths: Vec<String>, package_id: String) -> wit_parse_text::
 }
 
 fn wit_find_interface(docs: Vec<wit_parse_text::WitParsedInterface>, package_id: String) -> wit_parse_text::WitParsedInterface {
-    let mut i = 0
-    while i < len(docs) {
+    for i in 0..len(docs) {
         let doc = get_unchecked(docs, i)
         if wit_parse_import::wit_import_id_matches(clone(package_id), doc) {
             return doc
         }
-        i = i + 1
     }
     wit_parse_text::WitParsedInterface_empty()
 }
@@ -59,10 +55,8 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
 
 fn wit_func_param_ark_types(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let out = Vec_new_String()
-    let mut pi = 0
-    while pi < len(func.param_wit_types) {
+    for pi in 0..len(func.param_wit_types) {
         push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), clone(alias), doc))
-        pi = pi + 1
     }
     out
 }

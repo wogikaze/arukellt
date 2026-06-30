@@ -44,11 +44,9 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
         push(out, get_unchecked(insts, i))
         i = i + 1
     }
-    let mut hi = 0
-    while hi < len(hoist_marks) {
+    for hi in 0..len(hoist_marks) {
         let idx = get_unchecked(hoist_marks, hi)
         push(out, get_unchecked(insts, idx))
-        hi = hi + 1
     }
     i = start
     while i < len(insts) {
@@ -65,12 +63,10 @@ fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
     let ordered = loop_regions::mir_opt_regions_by_depth_desc(regions)
     let mut current = insts
     let mut total = 0
-    let mut ri = 0
-    while ri < len(ordered) {
+    for ri in 0..len(ordered) {
         let result = licm_hoist_region(current, get_unchecked(ordered, ri))
         current = result.instructions
         total = total + result.hoisted
-        ri = ri + 1
     }
     LicmBlockResult_new(current, total)
 }

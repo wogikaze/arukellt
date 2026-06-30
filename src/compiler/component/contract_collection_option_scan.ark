@@ -86,14 +86,12 @@ fn ComponentCollectionOptionScan_allows_option_i32_to_option_i32(scan: Component
 
 fn component_collection_option_scan(decls: Vec<AstNode>) -> ComponentCollectionOptionScan {
 	let scan = ComponentCollectionOptionScan_empty()
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let d = get_unchecked(decls, i)
 		if contract_helpers::is_export_func_decl(d) {
 			ComponentCollectionOptionScan_increment_export_count(scan)
 			component_collection_option_scan_apply_fn(d, scan)
 		}
-		i = i + 1
 	}
 	scan
 }

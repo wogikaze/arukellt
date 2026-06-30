@@ -3,10 +3,8 @@ use parser::core_ast_children
 
 
 fn append_where_bindings(block_node: AstNode, where_bindings: Vec<AstNode>) {
-    let mut wi = 0
-    while wi < len(where_bindings) {
+    for wi in 0..len(where_bindings) {
         let wb = get_unchecked(where_bindings, wi)
         core_ast_children::AstNode_push_child(block_node, wb)
-        wi = wi + 1
     }
 }

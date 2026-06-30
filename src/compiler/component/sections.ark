@@ -60,11 +60,9 @@ fn comp_emit_import_section(out: writer_core::ComponentWriter, imports: Vec<Comp
 	}
 	let w = writer_core::ComponentWriter_new()
 	writer_core::comp_emit_leb128_u(w, len(imports))
-	let mut i = 0
-	while i < len(imports) {
+	for i in 0..len(imports) {
 		let imp = get_unchecked(imports, i)
 		comp_emit_import_entry(w, CompImport_name(imp), CompImport_sort(imp), CompImport_type_idx(imp))
-		i = i + 1
 	}
 	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_IMPORT(), w)
 }
@@ -76,16 +74,12 @@ fn comp_emit_export(out: writer_core::ComponentWriter, name: String, sort: i32, 
 fn comp_emit_core_func_type(w: writer_core::ComponentWriter, params: Vec<i32>, results: Vec<i32>) {
 	writer_core::comp_emit_byte(w, 0x60)
 	writer_core::comp_emit_leb128_u(w, len(params))
-	let mut i = 0
-	while i < len(params) {
+	for i in 0..len(params) {
 		writer_core::comp_emit_byte(w, get_unchecked(params, i))
-		i = i + 1
 	}
 	writer_core::comp_emit_leb128_u(w, len(results))
-	i = 0
-	while i < len(results) {
+	for i in 0..len(results) {
 		writer_core::comp_emit_byte(w, get_unchecked(results, i))
-		i = i + 1
 	}
 }
 

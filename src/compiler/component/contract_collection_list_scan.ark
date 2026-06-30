@@ -83,14 +83,12 @@ fn ComponentCollectionListScan_allows_list_roundtrip(scan: ComponentCollectionLi
 
 fn component_collection_list_scan(decls: Vec<AstNode>) -> ComponentCollectionListScan {
 	let scan = ComponentCollectionListScan_empty()
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let d = get_unchecked(decls, i)
 		if contract_helpers::is_export_func_decl(d) {
 			ComponentCollectionListScan_increment_export_count(scan)
 			component_collection_list_scan_apply_fn(d, scan)
 		}
-		i = i + 1
 	}
 	scan
 }

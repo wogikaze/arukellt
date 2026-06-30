@@ -149,14 +149,12 @@ fn component_numeric_scan_finalize(scan: ComponentNumericScan) -> ComponentNumer
 
 fn component_numeric_scan(decls: Vec<AstNode>) -> ComponentNumericScan {
     let scan = ComponentNumericScan_empty()
-    let mut i = 0
-    while i < len(decls) {
+    for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_helpers::is_export_func_decl(d) {
             ComponentNumericScan_increment_export_count(scan)
             component_numeric_scan_apply_fn(d, scan)
         }
-        i = i + 1
     }
     component_numeric_scan_finalize(scan)
 }

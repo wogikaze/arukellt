@@ -90,10 +90,8 @@ fn gc_enum_field_sig_for_vt(vt: i32) -> String {
 
 fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
     let mut sig = String_new()
-    let mut i = 0
-    while i < len(payload_vts) {
+    for i in 0..len(payload_vts) {
         sig = text::builder_append(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
-        i = i + 1
     }
     sig
 }

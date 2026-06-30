@@ -28,29 +28,23 @@ fn emit_active_data_offset_expr(data_sec: WasmWriter) {
 
 fn total_string_data_size(strings: Vec<String>) -> i32 {
     let mut total_data = 0
-    let mut ds = 0
-    while ds < len(strings) {
+    for ds in 0..len(strings) {
         let s = get_unchecked(strings, ds)
         total_data = total_data + 4 + len(s)
-        ds = ds + 1
     }
     total_data
 }
 
 fn emit_string_data_payload(data_sec: WasmWriter, strings: Vec<String>) {
-    let mut ds2 = 0
-    while ds2 < len(strings) {
+    for ds2 in 0..len(strings) {
         let s = get_unchecked(strings, ds2)
         let slen = len(s)
         writer_core::emit_byte(data_sec, slen % 256)
         writer_core::emit_byte(data_sec, slen / 256 % 256)
         writer_core::emit_byte(data_sec, slen / 65536 % 256)
         writer_core::emit_byte(data_sec, slen / 16777216 % 256)
-        let mut ci2 = 0
-        while ci2 < slen {
+        for ci2 in 0..slen {
             writer_core::emit_byte(data_sec, char_at(s, ci2))
-            ci2 = ci2 + 1
         }
-        ds2 = ds2 + 1
     }
 }

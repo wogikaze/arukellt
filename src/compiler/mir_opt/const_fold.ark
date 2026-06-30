@@ -24,8 +24,7 @@ fn mir_opt_local_const_value(insts: Vec<MirInst>, end_idx: i32, local_idx: i32) 
 
 fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInst> {
     let out = Vec_new_MirInst()
-    let mut i = 0
-    while i < len(insts) {
+    for i in 0..len(insts) {
         let inst = get_unchecked(insts, i)
         let op = inst_accessors_shape::MirInst_op(inst)
         if op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() || op == opcodes::MIR_MUL() {
@@ -43,12 +42,10 @@ fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInst> {
                     av * bv
                 }
                 push(out, inst_const_i32::MirInst_const_i32(folded_val, dest))
-                i = i + 1
                 continue
             }
         }
         push(out, inst)
-        i = i + 1
     }
     out
 }

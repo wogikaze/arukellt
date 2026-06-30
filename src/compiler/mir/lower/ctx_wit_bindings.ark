@@ -3,12 +3,10 @@
 use mir::lower::ctx_types
 
 fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
-    let mut i = 0
-    while i < len(ctx.wit_call_names) {
+    for i in 0..len(ctx.wit_call_names) {
         if eq(get_unchecked(ctx.wit_call_names, i), clone(qualified_name)) {
             return i
         }
-        i = i + 1
     }
     0 - 1
 }

@@ -37,8 +37,7 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 		return emit_wit_func_exports(decls)
 	}
 	let mut out = String_from("")
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
 		if wit_decl::wit_decl_is_func(decl) {
 			let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
@@ -53,45 +52,41 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
 				}
 			}
 		}
-		i = i + 1
 	}
 	out
 }
 
 fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 	let mut out = String_from("")
-	let mut i = 0
-		while i < len(decls) {
-			let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
-			if wit_decl::wit_decl_is_func(decl) {
-				let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
-				let fname = wit_decl::wit_func_name(f)
-				if wit_decl::wit_func_is_export(f) {
-					out = text::builder_append(out, String_from("  export "))
-					out = text::builder_append(out, wit_names::wit_export_name(fname))
-					out = text::builder_append(out, String_from(": func("))
-					let mut pi = 0
-					while pi < wit_decl::wit_func_param_count(f) {
-						if pi > 0 {
-							out = text::builder_append(out, String_from(", "))
-						}
-						let pname = wit_decl::wit_func_param_name_at(f, pi)
-						if len(clone(pname)) > 0 {
-							out = text::builder_append(out, pname)
-						} else {
-							out = text::builder_append(out, concat(String_from("arg"), to_string(pi)))
-						}
-						out = text::builder_append(out, String_from(": "))
-						if eq(clone(fname), String_from("flip_read")) {
-							out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
-						} else if eq(clone(fname), String_from("pass_handle")) {
-							out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type())
-						} else if wit_decl::wit_func_param_has_type_at(f, pi) {
-							out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
-						} else {
-							out = text::builder_append(out, String_from("s32"))
-						}
-					pi = pi + 1
+	for i in 0..len(decls) {
+		let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
+		if wit_decl::wit_decl_is_func(decl) {
+			let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
+			let fname = wit_decl::wit_func_name(f)
+			if wit_decl::wit_func_is_export(f) {
+				out = text::builder_append(out, String_from("  export "))
+				out = text::builder_append(out, wit_names::wit_export_name(fname))
+				out = text::builder_append(out, String_from(": func("))
+				for pi in 0..wit_decl::wit_func_param_count(f) {
+					if pi > 0 {
+						out = text::builder_append(out, String_from(", "))
+					}
+					let pname = wit_decl::wit_func_param_name_at(f, pi)
+					if len(clone(pname)) > 0 {
+						out = text::builder_append(out, pname)
+					} else {
+						out = text::builder_append(out, concat(String_from("arg"), to_string(pi)))
+					}
+					out = text::builder_append(out, String_from(": "))
+					if eq(clone(fname), String_from("flip_read")) {
+						out = text::builder_append(out, wit_type_defs::wit_export_flags_type_name())
+					} else if eq(clone(fname), String_from("pass_handle")) {
+						out = text::builder_append(out, wit_type_defs::wit_export_own_handle_type())
+					} else if wit_decl::wit_func_param_has_type_at(f, pi) {
+						out = text::builder_append(out, wit_types::wit_type_from_ast(wit_decl::wit_func_param_type_view_at(f, pi)))
+					} else {
+						out = text::builder_append(out, String_from("s32"))
+					}
 				}
 				out = text::builder_append(out, String_from(")"))
 				let mut ret = String_new()
@@ -111,15 +106,13 @@ fn emit_wit_func_exports(decls: Vec<AstNode>) -> String {
 				out = text::builder_append(out, String_from(";\n"))
 			}
 		}
-		i = i + 1
 	}
 	out
 }
 
 fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 	let export_roots = Vec_new_String()
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let decl = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
 		if wit_decl::wit_decl_is_func(decl) {
 			let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
@@ -127,24 +120,20 @@ fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 				push(export_roots, wit_decl::wit_func_name(f))
 			}
 		}
-		i = i + 1
 	}
 	export_roots
 }
 
 fn string_to_bytes(text: String) -> Vec<i32> {
 	let mut bytes = Vec_new_i32()
-	let mut i = 0
-	while i < len(text) {
+	for i in 0..len(text) {
 		push(bytes, char_at(text, i))
-		i = i + 1
 	}
 	bytes
 }
 
 fn validate_wit_import_surface(paths: Vec<String>) -> String {
-	let mut i = 0
-	while i < len(paths) {
+	for i in 0..len(paths) {
 		let path = get_unchecked(paths, i)
 		let read_result = fs::read_to_string(clone(path))
 		match read_result {
@@ -153,7 +142,6 @@ fn validate_wit_import_surface(paths: Vec<String>) -> String {
 			},
 			Result::Ok(_) => {},
 		}
-		i = i + 1
 	}
 	String_new()
 }

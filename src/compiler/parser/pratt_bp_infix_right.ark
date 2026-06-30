@@ -1,37 +1,22 @@
-use lexer::tokens
 // Arukellt Parser - Pratt infix right binding powers.
 
 
 pub fn infix_bp_right(kind: i32) -> i32 {
-    if kind == tokens::TK_PIPEPIPE() {
-        return 4
+    // TK_PIPEPIPE=53 TK_AMPAMP=52 TK_PIPE=56 TK_CARET=57 TK_AMP=55
+    // TK_EQEQ=46 TK_BANGEQ=47 TK_LT=48 TK_LTEQ=49 TK_GT=50 TK_GTEQ=51
+    // TK_SHL=59 TK_SHR=60 TK_PLUS=40 TK_MINUS=41
+    // TK_STAR=42 TK_SLASH=43 TK_PERCENT=44
+    match kind {
+        53 => 4,
+        52 => 6,
+        56 => 8,
+        57 => 10,
+        55 => 12,
+        46 | 47 => 14,
+        48 | 49 | 50 | 51 => 16,
+        59 | 60 => 18,
+        40 | 41 => 20,
+        42 | 43 | 44 => 22,
+        _ => 0,
     }
-    if kind == tokens::TK_AMPAMP() {
-        return 6
-    }
-    if kind == tokens::TK_PIPE() {
-        return 8
-    }
-    if kind == tokens::TK_CARET() {
-        return 10
-    }
-    if kind == tokens::TK_AMP() {
-        return 12
-    }
-    if kind == tokens::TK_EQEQ() || kind == tokens::TK_BANGEQ() {
-        return 14
-    }
-    if kind == tokens::TK_LT() || kind == tokens::TK_LTEQ() || kind == tokens::TK_GT() || kind == tokens::TK_GTEQ() {
-        return 16
-    }
-    if kind == tokens::TK_SHL() || kind == tokens::TK_SHR() {
-        return 18
-    }
-    if kind == tokens::TK_PLUS() || kind == tokens::TK_MINUS() {
-        return 20
-    }
-    if kind == tokens::TK_STAR() || kind == tokens::TK_SLASH() || kind == tokens::TK_PERCENT() {
-        return 22
-    }
-    0
 }

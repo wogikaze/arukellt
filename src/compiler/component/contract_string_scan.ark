@@ -202,13 +202,11 @@ fn component_string_scan_finalize(scan: ComponentStringScan) -> ComponentStringS
 
 fn component_string_scan(decls: Vec<AstNode>) -> ComponentStringScan {
 	let scan = ComponentStringScan_empty()
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let d = get_unchecked(decls, i)
 		if contract_helpers::is_export_func_decl(d) {
 			component_string_scan_apply_export(scan, d)
 		}
-		i = i + 1
 	}
 	component_string_scan_finalize(scan)
 }
