@@ -1,5 +1,6 @@
 // Arukellt LSP - incremental symbol index updates.
 
+use collections::vec_extend
 use compiler::session_parse
 use lsp::state_record
 use lsp::symbol_index_extract
@@ -40,12 +41,7 @@ pub fn symbol_index_remove_uri(state: LspState, uri: String) {
             push(uris, get_unchecked(indexed_uris, k))
             k = k + 1
         }
-        let tn = len(tail)
-        let mut m = 0
-        while m < tn {
-            push(uris, get_unchecked(tail, m))
-            m = m + 1
-        }
+        vec_extend::Vec_extend_String(uris, tail)
         state.symbol_indexed_uris = uris
     }
 }

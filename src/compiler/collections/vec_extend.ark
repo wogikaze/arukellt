@@ -1,0 +1,99 @@
+// Arukellt Selfhost - Vec_extend helpers.
+//
+// Replaces manual `while i < len(src) { push(dst, get_unchecked(src, i)); i = i + 1 }`
+// boilerplate with a single call. Monomorphized per element type because
+// Arukellt does not yet support generics (#697).
+
+use diagnostics::record
+use mir::inst_record
+use parser::ast_node_record
+use typechecker::contract_enum_info
+use typechecker::contract_fn_sig
+use typechecker::contract_mono
+
+// ── Primitive element types (no clone needed) ──────────────────────────
+
+pub fn Vec_extend_i32(dst: Vec<i32>, src: Vec<i32>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+pub fn Vec_extend_String(dst: Vec<String>, src: Vec<String>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+// ── String variant with clone (for ownership transfer) ─────────────────
+
+pub fn Vec_extend_String_clone(dst: Vec<String>, src: Vec<String>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, clone(get_unchecked(src, i)))
+        i = i + 1
+    }
+}
+
+// ── Struct element types (no clone needed) ─────────────────────────────
+
+pub fn Vec_extend_Diagnostic(dst: Vec<Diagnostic>, src: Vec<Diagnostic>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+pub fn Vec_extend_MirInst(dst: Vec<MirInst>, src: Vec<MirInst>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+pub fn Vec_extend_FnSig(dst: Vec<FnSig>, src: Vec<FnSig>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+pub fn Vec_extend_EnumInfo(dst: Vec<EnumInfo>, src: Vec<EnumInfo>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+pub fn Vec_extend_AstNode(dst: Vec<AstNode>, src: Vec<AstNode>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+pub fn Vec_extend_MonoCallSite(dst: Vec<MonoCallSite>, src: Vec<MonoCallSite>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(dst, get_unchecked(src, i))
+        i = i + 1
+    }
+}

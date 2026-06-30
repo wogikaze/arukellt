@@ -8,6 +8,7 @@
 //   allow = ["W0007", "unused-binding"]
 //   deny = ["W0004"]
 
+use collections::vec_extend
 use std::host::fs
 use std::toml
 
@@ -123,17 +124,7 @@ pub fn load_lint_config(project_dir: String) -> LintConfig {
 // Merge config allow/deny lists into the CLI-provided vectors.
 pub fn merge_lint_config(cli_allow: Vec<String>, cli_deny: Vec<String>, config: LintConfig) {
     let config_allow = lint_config_allow(config)
-    let ca_count = len(config_allow)
-    let mut i = 0
-    while i < ca_count {
-        push(cli_allow, get_unchecked(config_allow, i))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_String(cli_allow, config_allow)
     let config_deny = lint_config_deny(config)
-    let cd_count = len(config_deny)
-    let mut i = 0
-    while i < cd_count {
-        push(cli_deny, get_unchecked(config_deny, i))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_String(cli_deny, config_deny)
 }

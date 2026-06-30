@@ -1,5 +1,6 @@
 // Arukellt Selfhost - MIR loop unrolling for constant-trip counted loops (O2+).
 
+use collections::vec_extend
 use mir::block_inst_access
 use mir::block_inst_mutation
 use mir::function_block_mutation
@@ -102,11 +103,7 @@ fn loop_unroll_expand_body(insts: Vec<MirInst>, body_start: i32, body_end: i32, 
     let mut t = 0
     while t < trips {
         let expanded = loop_unroll_replace_counter_gets(body, counter, t)
-        let mut ei = 0
-        while ei < len(expanded) {
-            push(out, get_unchecked(expanded, ei))
-            ei = ei + 1
-        }
+        vec_extend::Vec_extend_MirInst(out, expanded)
         t = t + 1
     }
     out
@@ -129,8 +126,7 @@ fn loop_unroll_try_region(insts: Vec<MirInst>, region: loop_regions::LoopRegion)
     let out = Vec_new_MirInst()
     let mut i = 0
     while i < start { push(out, get_unchecked(insts, i)); i = i + 1 }
-    let mut ei = 0
-    while ei < len(expanded) { push(out, get_unchecked(expanded, ei)); ei = ei + 1 }
+    vec_extend::Vec_extend_MirInst(out, expanded)
     i = end + 1
     while i < len(insts) { push(out, get_unchecked(insts, i)); i = i + 1 }
     LoopUnrollResult_new(const_fold::mir_opt_const_fold_insts(out), 1)

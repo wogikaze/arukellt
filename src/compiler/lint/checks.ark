@@ -4,6 +4,7 @@
 // target alias, W0003 unused symbol live in lint/checks_extra.ark.
 // W0001 shared-mut-alias and W0007 unused-binding are handled in the typechecker pass.
 
+use collections::vec_extend
 use diagnostics::codes
 use diagnostics::mod as diag_mod
 use diagnostics::record
@@ -130,47 +131,17 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
 pub fn run_post_resolve_lint(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
     let warnings = Vec_new_Diagnostic()
     let unused_import_warns = check_unused_imports(decls)
-    let ui_count = len(unused_import_warns)
-    let mut ui = 0
-    while ui < ui_count {
-        push(warnings, get_unchecked(unused_import_warns, ui))
-        ui = ui + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(warnings, unused_import_warns)
     let dep_api_warns = checks_extra::check_deprecated_api(decls)
-    let da_count = len(dep_api_warns)
-    let mut da = 0
-    while da < da_count {
-        push(warnings, get_unchecked(dep_api_warns, da))
-        da = da + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(warnings, dep_api_warns)
     let dep_target_warns = checks_extra::check_deprecated_target_alias(target)
-    let dt_count = len(dep_target_warns)
-    let mut dt = 0
-    while dt < dt_count {
-        push(warnings, get_unchecked(dep_target_warns, dt))
-        dt = dt + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(warnings, dep_target_warns)
     let unused_sym_warns = checks_extra::check_unused_symbols(decls)
-    let us_count = len(unused_sym_warns)
-    let mut us = 0
-    while us < us_count {
-        push(warnings, get_unchecked(unused_sym_warns, us))
-        us = us + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(warnings, unused_sym_warns)
     let cap_stub_warns = checks_extra::check_capability_stubs(decls, target)
-    let cs_count = len(cap_stub_warns)
-    let mut cs = 0
-    while cs < cs_count {
-        push(warnings, get_unchecked(cap_stub_warns, cs))
-        cs = cs + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(warnings, cap_stub_warns)
     let doc_drift_warns = checks_extra::check_doc_drift(decls)
-    let dd_count = len(doc_drift_warns)
-    let mut dd = 0
-    while dd < dd_count {
-        push(warnings, get_unchecked(doc_drift_warns, dd))
-        dd = dd + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(warnings, doc_drift_warns)
     warnings
 }
 

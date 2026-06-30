@@ -1,3 +1,4 @@
+use collections::vec_extend
 use typechecker::kinds
 // Arukellt Typechecker - function declaration to signature.
 
@@ -88,12 +89,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Ve
 // Merge impl-level type params with method-level type params, avoiding duplicates.
 fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Vec<String> {
     let merged = Vec_new_String()
-    let impl_count = len(impl_params)
-    let mut i = 0
-    while i < impl_count {
-        push(merged, clone(get_unchecked(impl_params, i)))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_String_clone(merged, impl_params)
     let method_count = len(method_params)
     let mut k = 0
     while k < method_count {
