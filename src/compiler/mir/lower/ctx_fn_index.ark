@@ -18,10 +18,13 @@ fn ctx_fn_index_return_type_name_at(ctx: LowerCtx, index: i32) -> String {
 
 fn ctx_fn_index_find(ctx: LowerCtx, name: String) -> i32 {
     let count = ctx_fn_index_count(ctx)
+    let name_len = len(clone(name))
     let mut i = 0
     while i < count {
-        if eq(ctx_fn_index_name_at(ctx, i), clone(name)) {
-            return i
+        if get_unchecked(ctx.fn_name_lengths, i) == name_len {
+            if eq(ctx_fn_index_name_at(ctx, i), clone(name)) {
+                return i
+            }
         }
         i = i + 1
     }
@@ -32,9 +35,18 @@ fn ctx_fn_index_replace(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
     ctx.fn_return_type_names = fn_return_type_names
+    let count = len(fn_names)
+    let mut lengths = Vec_new_i32()
+    let mut i = 0
+    while i < count {
+        push(lengths, len(clone(get_unchecked(fn_names, i))))
+        i = i + 1
+    }
+    ctx.fn_name_lengths = lengths
 }
 
 fn ctx_fn_index_push(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
+    push(ctx.fn_name_lengths, len(clone(name)))
     push(ctx.fn_names, name)
     push(ctx.fn_return_vts, return_vt)
     push(ctx.fn_return_type_names, return_type_name)

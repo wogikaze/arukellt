@@ -20,6 +20,7 @@ fn LowerCtx_new_for_target(m: MirModule, target: String) -> ctx_types::LowerCtx 
         local_names: Vec_new_String(),
         local_indices: Vec_new_i32(),
         fn_names: Vec_new_String(),
+        fn_name_lengths: Vec_new_i32(),
         fn_indices: Vec_new_i32(),
         fn_return_vts: Vec_new_i32(),
         fn_return_type_names: Vec_new_String(),

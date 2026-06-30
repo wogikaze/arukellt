@@ -78,11 +78,14 @@ fn hashmap_builtin_alias(name: String) -> String {
 
 fn resolve_fn_index_by_name(ctx: SelfEmitCtx, name: String) -> i32 {
     let count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let name_len = len(clone(name))
     let mut i = 0
     while i < count {
-        let f = ctx_record::SelfEmitCtx_function_at(ctx, i)
-        if eq(function_identity::MirFunction_name(f), clone(name)) {
-            return i
+        if ctx_record::SelfEmitCtx_function_name_length_at(ctx, i) == name_len {
+            let f = ctx_record::SelfEmitCtx_function_at(ctx, i)
+            if eq(function_identity::MirFunction_name(f), clone(name)) {
+                return i
+            }
         }
         i = i + 1
     }

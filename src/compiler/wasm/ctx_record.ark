@@ -1,7 +1,10 @@
 // Arukellt Selfhost - Wasm emitter context data record.
 
+use mir::function_identity
+
 pub struct SelfEmitCtx {
     functions: Vec<MirFunction>,
+    function_name_lengths: Vec<i32>,
     string_offsets: Vec<i32>,
     string_lengths: Vec<i32>,
     string_values: Vec<String>,
@@ -25,7 +28,14 @@ pub struct SelfEmitCtx {
 }
 
 fn SelfEmitCtx_new(functions: Vec<MirFunction>, string_offsets: Vec<i32>, string_lengths: Vec<i32>, string_values: Vec<String>, true_str_idx: i32, false_str_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> SelfEmitCtx {
-    SelfEmitCtx { functions: functions, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target, wasi_version: wasi_version, needs_arukellt_host: needs_arukellt_host, gc_hint_offsets: Vec_new_i32(), needs_wasi_http_outgoing: needs_wasi_http_outgoing, gc_type_base: 0, gc_enum_variant_base: 0 - 1, gc_enum_variant_type_map: Vec_new_i32(), gc_struct_base: 0 - 1, gc_struct_type_map: Vec_new_i32(), gc_struct_names: Vec_new_String(), current_func_idx: 0, fn_type_map: Vec_new_i32() }
+    let fn_count = len(functions)
+    let mut name_lengths = Vec_new_i32()
+    let mut fi = 0
+    while fi < fn_count {
+        push(name_lengths, len(function_identity::MirFunction_name(get_unchecked(functions, fi))))
+        fi = fi + 1
+    }
+    SelfEmitCtx { functions: functions, function_name_lengths: name_lengths, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target, wasi_version: wasi_version, needs_arukellt_host: needs_arukellt_host, gc_hint_offsets: Vec_new_i32(), needs_wasi_http_outgoing: needs_wasi_http_outgoing, gc_type_base: 0, gc_enum_variant_base: 0 - 1, gc_enum_variant_type_map: Vec_new_i32(), gc_struct_base: 0 - 1, gc_struct_type_map: Vec_new_i32(), gc_struct_names: Vec_new_String(), current_func_idx: 0, fn_type_map: Vec_new_i32() }
 }
 
 fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {
@@ -50,6 +60,10 @@ fn SelfEmitCtx_function_count(ctx: SelfEmitCtx) -> i32 {
 
 fn SelfEmitCtx_function_at(ctx: SelfEmitCtx, idx: i32) -> MirFunction {
     get_unchecked(ctx.functions, idx)
+}
+
+fn SelfEmitCtx_function_name_length_at(ctx: SelfEmitCtx, idx: i32) -> i32 {
+    get_unchecked(ctx.function_name_lengths, idx)
 }
 
 fn SelfEmitCtx_functions(ctx: SelfEmitCtx) -> Vec<MirFunction> {
