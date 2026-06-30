@@ -6,7 +6,7 @@
 //! **Availability:** All targets (T1 + T3). Requires WASI stdout/stderr capability.
 
 /// Reads all available bytes from stdin into a string.
-pub fn read_to_string() -> String {
+pub fn read_stdin() -> String {
     __intrinsic_stdin_read_to_string()
 }
 

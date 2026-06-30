@@ -29,7 +29,7 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
 
 pub fn cmd_dap(opts: CliOptions) {
 	if !args_record::cli_has_input_file(opts) {
-		stdio::print(dap::run_dap_session(stdio::read_to_string()))
+		stdio::print(dap::run_dap_session(stdio::read_stdin()))
 		return
 	}
 	let input_file = args_record::cli_input_file(opts)
@@ -49,7 +49,7 @@ pub fn cmd_dap(opts: CliOptions) {
 
 pub fn cmd_lsp(opts: CliOptions) {
 	if !args_record::cli_has_input_file(opts) {
-		stdio::print(lsp::run_session(stdio::read_to_string()))
+		stdio::print(lsp::run_session(stdio::read_stdin()))
 		return
 	}
 	let input_file = args_record::cli_input_file(opts)

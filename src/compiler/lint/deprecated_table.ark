@@ -39,7 +39,7 @@ pub fn deprecated_call_message(name: String) -> String {
         return String_from("import `use std::host::stdio` and call `stdio::eprintln(...)`")
     }
     if eq(clone(name), String_from("read_to_string")) {
-        return String_from("import `use std::host::stdio` and call `stdio::read_to_string()`")
+        return String_from("import `use std::host::stdio` and call `stdio::read_stdin()`")
     }
     String_new()
 }

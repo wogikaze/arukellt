@@ -3,6 +3,8 @@
 use resolver::exprs
 use resolver::ast_expr_predicates
 use resolver::ast_access
+use resolver::control_closure
+use resolver::kinds
 
 fn resolve_expr_node(ctx: ResolveCtx, node: AstNode) -> bool {
     if ast_expr_predicates::node_is_ident(node) {
@@ -26,6 +28,10 @@ fn resolve_expr_node(ctx: ResolveCtx, node: AstNode) -> bool {
     }
     if ast_expr_predicates::node_is_method_call(node) {
         exprs::resolve_method_call(ctx, node)
+        return true
+    }
+    if ast_access::node_kind_is(node, kinds::NK_CLOSURE()) {
+        control_closure::resolve_closure(ctx, node)
         return true
     }
     false
