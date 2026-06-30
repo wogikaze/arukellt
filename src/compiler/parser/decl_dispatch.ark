@@ -1,5 +1,4 @@
 use parser::core_ast_flag_fields
-use lexer::tokens
 // Arukellt Parser - top-level declaration dispatch.
 
 use parser::core_api_cursor
@@ -15,45 +14,45 @@ fn parse_decl(p: Parser) -> AstNode {
     let is_pub = decl_headers::parse_pub_prefix(p)
     let is_async = decl_headers::parse_async_prefix(p)
     let k2 = core_api_cursor::peek_kind(p)
-    if k2 == tokens::TK_FN() {
-        if fn_lookahead::peek_is_fn_clause(p) {
-            return decl_multiclause::parse_multiclause_fn_decl(p, is_pub, is_async)
-        }
-        let d = decl_fns::parse_fn_decl(p)
-        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
-        core_ast_flag_fields::AstNode_set_is_async(d, is_async)
-        return d
+    // TK_FN=10 TK_STRUCT=11 TK_ENUM=12 TK_RESOURCE=32 TK_TRAIT=28
+    // TK_IMPL=29 TK_USE=30 TK_IMPORT=26
+    match k2 {
+        10 => {
+            if fn_lookahead::peek_is_fn_clause(p) {
+                return decl_multiclause::parse_multiclause_fn_decl(p, is_pub, is_async)
+            }
+            let d = decl_fns::parse_fn_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            core_ast_flag_fields::AstNode_set_is_async(d, is_async)
+            d
+        },
+        11 => {
+            let d = decl_types::parse_struct_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
+        32 => {
+            let d = decl_types::parse_resource_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
+        12 => {
+            let d = decl_types::parse_enum_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
+        28 => {
+            let d = decl_fns::parse_trait_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
+        29 => {
+            let d = decl_fns::parse_impl_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
+        30 => imports::parse_use_decl(p),
+        26 => imports::parse_import_decl(p),
+        _ => stmt::parse_stmt(p),
     }
-    if k2 == tokens::TK_STRUCT() {
-        let d = decl_types::parse_struct_decl(p)
-        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
-        return d
-    }
-    if k2 == tokens::TK_RESOURCE() {
-        let d = decl_types::parse_resource_decl(p)
-        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
-        return d
-    }
-    if k2 == tokens::TK_ENUM() {
-        let d = decl_types::parse_enum_decl(p)
-        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
-        return d
-    }
-    if k2 == tokens::TK_TRAIT() {
-        let d = decl_fns::parse_trait_decl(p)
-        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
-        return d
-    }
-    if k2 == tokens::TK_IMPL() {
-        let d = decl_fns::parse_impl_decl(p)
-        core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
-        return d
-    }
-    if k2 == tokens::TK_USE() {
-        return imports::parse_use_decl(p)
-    }
-    if k2 == tokens::TK_IMPORT() {
-        return imports::parse_import_decl(p)
-    }
-    stmt::parse_stmt(p)
 }
