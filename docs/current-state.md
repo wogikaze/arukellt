@@ -198,6 +198,7 @@ The `arukellt` binary exposes the following subcommands:
 | `arukellt init [dir]` | Initialize a new Arukellt project (`--template minimal\|cli\|with-tests\|wasi-host`, `--list-templates`) |
 | `arukellt script` | Run scripts defined in `ark.toml` |
 | `arukellt doc <symbol>` | Look up stdlib documentation for a symbol or module |
+| `arukellt doc --html -o <file>` | Generate rich static stdlib HTML documentation |
 | `arukellt lsp` | Start the Language Server Protocol server |
 | `arukellt debug-adapter` | Start the Debug Adapter Protocol server |
 | `arukellt compose` | Compose Wasm component binaries (validates + `wac plug` delegation — #443 Phase 3) |
@@ -211,9 +212,13 @@ Looks up stdlib manifest metadata and displays:
 - Target availability (T1 / T3 flags from `availability` block)
 - Doc description, examples, errors, and `see_also` when present
 
-Flags: `--json` (machine-readable output), `--target <TARGET>` (show availability warning for specific target), `--all` (show intrinsic entries).
+Flags: `--json` (machine-readable output), `--target <TARGET>` (show availability warning for specific target), `--html -o <output.html>` (generate a static stdlib reference page).
 
 Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths (e.g. `std::host::http`) list all functions in the module.
+
+`arukellt doc --html -o docs/docs/std/index.html` generates the GitHub Pages
+stdlib reference served at `/arukellt/docs/std/`. The Pages workflow builds
+this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 ## Recent Milestones
 

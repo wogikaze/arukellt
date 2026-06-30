@@ -9,6 +9,7 @@ use main::manifest_doc_lookup
 use main::manifest_doc_parse
 use main::manifest_doc_record
 use main::manifest_doc_render
+use main::manifest_doc_site
 
 fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
     let mut path = String_from("std/manifest.toml")
@@ -63,5 +64,24 @@ pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
         manifest_doc_render::doc_emit_function_json(e, clone(filter_target))
     } else {
         manifest_doc_render::doc_print_function(e, clone(filter_target))
+    }
+}
+
+pub fn cmd_manifest_doc_html(output_path: String) {
+    if len(output_path) == 0 {
+        stdio::eprintln(String_from("error: doc --html requires -o <output.html>"))
+        process::exit(2)
+        return
+    }
+    let table = doc_load_manifest()
+    let html = manifest_doc_site::doc_render_stdlib_html(table)
+    match fs::write_string(clone(output_path), html) {
+        Result::Ok(_) => {
+            stdio::println(concat(String_from("generated std docs: "), output_path))
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: could not write std docs: "), e))
+            process::exit(1)
+        },
     }
 }

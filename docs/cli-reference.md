@@ -2,6 +2,40 @@
 
 ## Subcommands
 
+### `doc`
+
+Look up standard library metadata from `std/manifest.toml` or generate the
+static standard library reference used by GitHub Pages.
+
+**Usage:**
+
+```
+ark doc <symbol> [--json] [--target <target>]
+ark doc --html -o <output.html>
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--json` | Emit machine-readable JSON for a symbol lookup |
+| `--target <target>` | Show availability warnings for the selected target |
+| `--html` | Generate a rich static HTML stdlib reference |
+| `-o`, `--output <path>` | HTML output path for `--html` |
+
+**Examples:**
+
+```bash
+# Look up one function
+ark doc println
+
+# Show JSON for tooling
+ark doc --json std::host::http::get
+
+# Generate the Pages stdlib reference
+ark doc --html -o docs/docs/std/index.html
+```
+
 ### `component`
 
 Build, inspect, and validate WebAssembly components.

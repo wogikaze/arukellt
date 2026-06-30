@@ -71,6 +71,32 @@ if ! wasm="$(resolve_selfhost_wasm)"; then
   exit 127
 fi
 
+if [[ "${1:-}" == "doc" ]]; then
+  doc_html=0
+  doc_output=""
+  i=1
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--html" ]]; then
+      doc_html=1
+      i=$((i + 1))
+      continue
+    fi
+    if [[ "$arg" == "-o" || "$arg" == "--output" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# ]]; then
+        doc_output="${!next}"
+      fi
+      i=$((i + 2))
+      continue
+    fi
+    i=$((i + 1))
+  done
+  if [[ "$doc_html" -eq 1 ]]; then
+    exec "$REPO_ROOT/scripts/gen/generate-stdlib-docs.sh" "$doc_output"
+  fi
+fi
+
 if [[ "${1:-}" == "run" ]]; then
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT

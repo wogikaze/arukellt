@@ -1,0 +1,116 @@
+// Arukellt Selfhost - static HTML stdlib documentation generator.
+
+use std::text
+use main::manifest_doc_record
+
+fn doc_site_escape(raw: String) -> String {
+    let mut out = replace(raw, String_from("&"), String_from("&amp;"))
+    out = replace(out, String_from("<"), String_from("&lt;"))
+    out = replace(out, String_from(">"), String_from("&gt;"))
+    out = replace(out, String_from("\""), String_from("&quot;"))
+    replace(out, String_from("'"), String_from("&#39;"))
+}
+
+fn doc_site_signature(e: manifest_doc_record::DocFnEntry) -> String {
+    concat(
+        String_from("fn "),
+        concat(
+            manifest_doc_record::DocFnEntry_name(e),
+            concat(
+                String_from("("),
+                concat(
+                    manifest_doc_record::DocFnEntry_params(e),
+                    concat(String_from(") -> "), manifest_doc_record::DocFnEntry_returns(e)),
+                ),
+            ),
+        ),
+    )
+}
+
+fn doc_site_target_badge(e: manifest_doc_record::DocFnEntry) -> String {
+    if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 && manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
+        return String_from("T1 + T3")
+    }
+    if manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
+        return String_from("T3")
+    }
+    if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 {
+        return String_from("T1")
+    }
+    String_from("target-gated")
+}
+
+fn doc_site_card(e: manifest_doc_record::DocFnEntry) -> String {
+    let name = doc_site_escape(manifest_doc_record::DocFnEntry_name(e))
+    let module = doc_site_escape(manifest_doc_record::DocFnEntry_module(e))
+    let stability = doc_site_escape(manifest_doc_record::DocFnEntry_stability(e))
+    let sig = doc_site_escape(doc_site_signature(e))
+    let doc = doc_site_escape(manifest_doc_record::DocFnEntry_doc(e))
+    let target = doc_site_escape(doc_site_target_badge(e))
+    let search = doc_site_escape(concat(name, concat(String_from(" "), concat(module, concat(String_from(" "), sig)))))
+    let mut out = String_from("<article class=\"api-card\" data-module=\"")
+    out = text::builder_append(out, module)
+    out = text::builder_append(out, String_from("\" data-stability=\""))
+    out = text::builder_append(out, stability)
+    out = text::builder_append(out, String_from("\" data-search=\""))
+    out = text::builder_append(out, search)
+    out = text::builder_append(out, String_from("\"><div class=\"api-card-head\"><a class=\"api-name\" id=\""))
+    out = text::builder_append(out, name)
+    out = text::builder_append(out, String_from("\" href=\"#"))
+    out = text::builder_append(out, name)
+    out = text::builder_append(out, String_from("\">"))
+    out = text::builder_append(out, name)
+    out = text::builder_append(out, String_from("</a><span class=\"badge stability\">"))
+    out = text::builder_append(out, stability)
+    out = text::builder_append(out, String_from("</span><span class=\"badge target\">"))
+    out = text::builder_append(out, target)
+    out = text::builder_append(out, String_from("</span></div><div class=\"module\">"))
+    out = text::builder_append(out, module)
+    out = text::builder_append(out, String_from("</div><pre><code>"))
+    out = text::builder_append(out, sig)
+    out = text::builder_append(out, String_from("</code></pre><p>"))
+    if len(doc) > 0 {
+        out = text::builder_append(out, doc)
+    } else {
+        out = text::builder_append(out, String_from("No manifest documentation yet."))
+    }
+    text::builder_append(out, String_from("</p></article>\n"))
+}
+
+fn doc_site_module_link(name: String) -> String {
+    let safe = doc_site_escape(name)
+    concat(String_from("<a href=\"#\" data-module-filter=\""), concat(safe, concat(String_from("\">"), concat(safe, String_from("</a>\n"))))
+}
+
+fn doc_site_header() -> String {
+    let mut out = String_from("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Arukellt std docs</title><style>")
+    out = text::builder_append(out, String_from(":root{color-scheme:light;--bg:#f7f8fb;--panel:#fff;--ink:#17202a;--muted:#5c6675;--line:#d8dee8;--accent:#0b6bcb;--ok:#1f7a4d;--warn:#9a6700}*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}header{background:#111827;color:white;padding:28px 32px}header h1{margin:0 0 8px;font-size:32px;letter-spacing:0}header p{margin:0;color:#d1d5db;max-width:880px}.layout{display:grid;grid-template-columns:280px 1fr;gap:24px;padding:24px}.sidebar{position:sticky;top:16px;align-self:start;background:var(--panel);border:1px solid var(--line);padding:16px}.sidebar a{display:block;color:var(--accent);text-decoration:none;padding:4px 0}.toolbar{display:grid;grid-template-columns:1fr 180px;gap:12px;margin-bottom:16px}.toolbar input,.toolbar select{width:100%;padding:10px;border:1px solid var(--line);background:white}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.stat{background:white;border:1px solid var(--line);padding:10px 12px}.api-grid{display:grid;gap:12px}.api-card{background:var(--panel);border:1px solid var(--line);padding:16px}.api-card-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.api-name{font-size:19px;font-weight:700;color:var(--accent);text-decoration:none}.module{color:var(--muted);font-family:ui-monospace,monospace;margin:6px 0}.badge{border:1px solid var(--line);padding:2px 7px;font-size:12px}.stability{color:var(--ok)}.target{color:var(--warn)}pre{overflow:auto;background:#f3f5f8;border:1px solid var(--line);padding:10px}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}@media(max-width:860px){.layout{grid-template-columns:1fr}.sidebar{position:static}.toolbar{grid-template-columns:1fr}}</style></head><body>"))
+    text::builder_append(out, String_from("<header><h1>Arukellt Standard Library</h1><p>Manifest-backed API reference generated by <code>arukellt doc --html</code>. Search by function, module, signature, or stability.</p></header><main class=\"layout\"><aside class=\"sidebar\"><strong>Modules</strong><a href=\"#\" data-module-filter=\"\">All modules</a>"))
+}
+
+fn doc_site_footer() -> String {
+    String_from("</div></section></main><script>const q=document.getElementById('q');const st=document.getElementById('stability');let mod='';function apply(){const needle=(q.value||'').toLowerCase();document.querySelectorAll('.api-card').forEach(c=>{const okText=!needle||(c.dataset.search||'').toLowerCase().includes(needle);const okSt=!st.value||c.dataset.stability===st.value;const okMod=!mod||c.dataset.module===mod;c.style.display=okText&&okSt&&okMod?'block':'none';});}document.querySelectorAll('[data-module-filter]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();mod=a.dataset.moduleFilter||'';apply();}));q.addEventListener('input',apply);st.addEventListener('change',apply);</script></body></html>\n")
+}
+
+pub fn doc_render_stdlib_html(table: manifest_doc_record::DocManifestTable) -> String {
+    let function_count = manifest_doc_record::DocManifestTable_function_count(table)
+    let module_count = manifest_doc_record::DocManifestTable_module_count(table)
+    let mut out = doc_site_header()
+    let mut mi = 0
+    while mi < module_count {
+        let m = manifest_doc_record::DocManifestTable_module_at(table, mi)
+        out = text::builder_append(out, doc_site_module_link(manifest_doc_record::DocModuleEntry_name(m)))
+        mi = mi + 1
+    }
+    out = text::builder_append(out, String_from("</aside><section><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search std APIs\"><select id=\"stability\"><option value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimental</option><option>deprecated</option></select></div><div class=\"stats\"><div class=\"stat\"><strong>"))
+    out = text::builder_append(out, i32_to_string(function_count))
+    out = text::builder_append(out, String_from("</strong> functions</div><div class=\"stat\"><strong>"))
+    out = text::builder_append(out, i32_to_string(module_count))
+    out = text::builder_append(out, String_from("</strong> modules</div></div><div id=\"api\" class=\"api-grid\">"))
+    let mut i = 0
+    while i < function_count {
+        out = text::builder_append(out, doc_site_card(manifest_doc_record::DocManifestTable_function_at(table, i)))
+        i = i + 1
+    }
+    text::builder_append(out, doc_site_footer())
+}
