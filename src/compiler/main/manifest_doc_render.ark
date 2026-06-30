@@ -2,7 +2,7 @@
 
 use std::host::stdio
 use std::text
-use std::json::parser
+use lsp::json_escape
 use main::manifest_doc_lookup
 use main::manifest_doc_record
 
@@ -41,7 +41,7 @@ fn doc_format_signature(e: manifest_doc_record::DocFnEntry) -> String {
     } else {
         sig = text::builder_append(sig, String_from("()"))
     }
-    text::builder_build(sig)
+    sig
 }
 
 pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: String) {
@@ -79,25 +79,44 @@ pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: Str
     }
 }
 
+fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -> String {
+    let mut r = out
+    if comma { r = text::builder_append(r, String_from(",")) }
+    r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json_escape::json_escape(value), String_from("\""))))
+    r
+}
+
+fn doc_json_bool_field(out: String, key: String, value: bool, comma: bool) -> String {
+    let mut r = out
+    if comma { r = text::builder_append(r, String_from(",")) }
+    if value {
+        r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("true")))
+    } else {
+        r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("false")))
+    }
+    r
+}
+
 pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target: String) {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("kind"), parser::json_str(String_from("function"))))
-    push(fields, parser::json_field(String_from("name"), parser::json_str(manifest_doc_record::DocFnEntry_name(e))))
-    push(fields, parser::json_field(String_from("module"), parser::json_str(manifest_doc_record::DocFnEntry_module(e))))
-    push(fields, parser::json_field(String_from("params"), parser::json_str(manifest_doc_record::DocFnEntry_params(e))))
-    push(fields, parser::json_field(String_from("returns"), parser::json_str(manifest_doc_record::DocFnEntry_returns(e))))
-    push(fields, parser::json_field(String_from("stability"), parser::json_str(manifest_doc_record::DocFnEntry_stability(e))))
-    push(fields, parser::json_field(String_from("avail_t1"), parser::json_bool(manifest_doc_record::DocFnEntry_avail_t1(e) == 1)))
-    push(fields, parser::json_field(String_from("avail_t3"), parser::json_bool(manifest_doc_record::DocFnEntry_avail_t3(e) == 1)))
+    let mut out = String_from("{")
+    out = doc_json_string_field(out, String_from("kind"), String_from("function"), false)
+    out = doc_json_string_field(out, String_from("name"), manifest_doc_record::DocFnEntry_name(e), true)
+    out = doc_json_string_field(out, String_from("module"), manifest_doc_record::DocFnEntry_module(e), true)
+    out = doc_json_string_field(out, String_from("params"), manifest_doc_record::DocFnEntry_params(e), true)
+    out = doc_json_string_field(out, String_from("returns"), manifest_doc_record::DocFnEntry_returns(e), true)
+    out = doc_json_string_field(out, String_from("stability"), manifest_doc_record::DocFnEntry_stability(e), true)
+    out = doc_json_bool_field(out, String_from("avail_t1"), manifest_doc_record::DocFnEntry_avail_t1(e) == 1, true)
+    out = doc_json_bool_field(out, String_from("avail_t3"), manifest_doc_record::DocFnEntry_avail_t3(e) == 1, true)
     let doc = manifest_doc_record::DocFnEntry_doc(e)
     if len(doc) > 0 {
-        push(fields, parser::json_field(String_from("doc"), parser::json_str(doc)))
+        out = doc_json_string_field(out, String_from("doc"), doc, true)
     }
     let warn = doc_target_warning(e, clone(filter_target))
     if len(warn) > 0 {
-        push(fields, parser::json_field(String_from("target_warning"), parser::json_str(warn)))
+        out = doc_json_string_field(out, String_from("target_warning"), warn, true)
     }
-    stdio::println(parser::json_obj_string(fields))
+    out = text::builder_append(out, String_from("}"))
+    stdio::println(out)
 }
 
 pub fn doc_print_module(table: manifest_doc_record::DocManifestTable, module: String, filter_target: String) {

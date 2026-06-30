@@ -1,9 +1,8 @@
 // Arukellt LSP - organize imports and fix-all code actions (#341, #440).
 
-use lsp::json_escape
 use lsp::organize_imports_detect
 use lsp::positions
-use std::text
+use std::json::parser
 
 
 fn import_block_start(span: i32) -> i32 {
@@ -21,24 +20,29 @@ fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: Strin
     let last_end = import_block_end(span)
     let start_pos = positions::offset_to_position(clone(text), first_start)
     let end_pos = positions::offset_to_position(text, last_end)
-    let mut out = String_from("{\"title\":")
-    out = text::builder_append(out, json_escape::quote_string(title))
-    out = text::builder_append(out, String_from(",\"kind\":"))
-    out = text::builder_append(out, json_escape::quote_string(kind))
-    out = text::builder_append(out, String_from(",\"edit\":{\"changes\":{"))
-    out = text::builder_append(out, json_escape::quote_string(uri))
-    out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(start_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(start_pos)))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
-    out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(fixed_block))
-    out = text::builder_append(out, String_from("}]}}}"))
-    out
+    let start_obj = parser::json_obj_new()
+    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(start_pos))))
+    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(start_pos))))
+    let end_obj = parser::json_obj_new()
+    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(end_pos))))
+    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(end_pos))))
+    let range_obj = parser::json_obj_new()
+    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
+    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
+    let edit_item = parser::json_obj_new()
+    push(edit_item, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
+    push(edit_item, parser::json_field(String_from("newText"), parser::json_str(fixed_block)))
+    let edits_arr = parser::json_arr_new()
+    push(edits_arr, JsonValue::Object(edit_item))
+    let changes_obj = parser::json_obj_new()
+    push(changes_obj, parser::json_field(uri, JsonValue::Array(edits_arr)))
+    let edit_obj = parser::json_obj_new()
+    push(edit_obj, parser::json_field(String_from("changes"), JsonValue::Object(changes_obj)))
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("title"), parser::json_str(title)))
+    push(fields, parser::json_field(String_from("kind"), parser::json_str(kind)))
+    push(fields, parser::json_field(String_from("edit"), JsonValue::Object(edit_obj)))
+    parser::json_obj_string(fields)
 }
 
 fn build_semantic_fix_action(uri: String, text: String, title: String, kind: String) -> String {

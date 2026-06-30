@@ -7,7 +7,7 @@ use lsp::responses
 use lsp::source_text
 use lsp::state_docs
 use lsp::state_record
-use std::text
+use std::json::parser
 
 fn line_has_open_brace(text: String, line: i32) -> bool {
     let mut i = 0
@@ -57,17 +57,12 @@ fn find_brace_end_line(text: String, start_line: i32) -> i32 {
     start_line
 }
 
-fn append_folding_entry(out: String, start_line: i32, end_line: i32) -> String {
-    let mut body = out
-    if len(body) > 1 {
-        body = text::builder_append(body, String_from(","))
-    }
-    body = text::builder_append(body, String_from("{\"startLine\":"))
-    body = text::builder_append(body, to_string(start_line))
-    body = text::builder_append(body, String_from(",\"endLine\":"))
-    body = text::builder_append(body, to_string(end_line))
-    body = text::builder_append(body, String_from(",\"kind\":\"region\"}"))
-    body
+fn build_folding_entry(start_line: i32, end_line: i32) -> String {
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("startLine"), parser::json_i32(start_line)))
+    push(fields, parser::json_field(String_from("endLine"), parser::json_i32(end_line)))
+    push(fields, parser::json_field(String_from("kind"), parser::json_str(String_from("region"))))
+    parser::json_obj_string(fields)
 }
 
 pub fn handle_folding_range(state: LspState, body: String) {
@@ -82,19 +77,17 @@ pub fn handle_folding_range(state: LspState, body: String) {
         return
     }
     let mut line = 0
-    let mut items = String_from("[")
+    let items = parser::json_arr_new()
     while line < 200 {
         if line_has_open_brace(clone(text), line) {
             let end_line = find_brace_end_line(clone(text), line)
-            items = append_folding_entry(items, line, end_line)
+            push(items, parser::json_raw(build_folding_entry(line, end_line)))
         }
         line = line + 1
     }
-    items = text::builder_append(items, String_from("]"))
-    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = text::builder_append(out, to_string(id))
-    out = text::builder_append(out, String_from(",\"result\":"))
-    out = text::builder_append(out, items)
-    out = text::builder_append(out, String_from("}"))
-    framing::append_framed(state, out)
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
+    push(fields, parser::json_field(String_from("result"), JsonValue::Array(items)))
+    framing::append_framed(state, parser::json_obj_string(fields))
 }

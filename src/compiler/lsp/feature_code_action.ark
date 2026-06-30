@@ -5,42 +5,48 @@ use analysis::symbols
 use lsp::feature_request
 use lsp::framing
 use lsp::import_graph
-use lsp::json_escape
 use lsp::organize_imports
 use lsp::positions
 use lsp::responses
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
-use std::text
+use std::json::parser
 
 
 fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
-    let mut out = String_from("{\"title\":")
-    out = text::builder_append(out, json_escape::quote_string(title))
-    out = text::builder_append(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
-    out = text::builder_append(out, json_escape::quote_string(uri))
-    out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
-    out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
-    out = text::builder_append(out, String_from("}]}}}"))
-    out
+    let start_obj = parser::json_obj_new()
+    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(pos))))
+    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(pos))))
+    let end_obj = parser::json_obj_new()
+    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(pos))))
+    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(pos))))
+    let range_obj = parser::json_obj_new()
+    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
+    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
+    let edit_item = parser::json_obj_new()
+    push(edit_item, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
+    push(edit_item, parser::json_field(String_from("newText"), parser::json_str(import_graph::build_use_statement(import_path))))
+    let edits_arr = parser::json_arr_new()
+    push(edits_arr, JsonValue::Object(edit_item))
+    let changes_obj = parser::json_obj_new()
+    push(changes_obj, parser::json_field(uri, JsonValue::Array(edits_arr)))
+    let edit_obj = parser::json_obj_new()
+    push(edit_obj, parser::json_field(String_from("changes"), JsonValue::Object(changes_obj)))
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("title"), parser::json_str(title)))
+    push(fields, parser::json_field(String_from("kind"), parser::json_str(String_from("quickfix"))))
+    push(fields, parser::json_field(String_from("edit"), JsonValue::Object(edit_obj)))
+    parser::json_obj_string(fields)
 }
 
 fn build_import_actions_json(state: LspState, uri: String, text: String, name: String) -> String {
     let stdlib = state_record::lsp_state_symbol_stdlib_symbols(state)
     let sn = len(stdlib)
     let mut j = 0
-    let mut actions = String_new()
+    let items = parser::json_arr_new()
     while j < sn {
         let sym = get_unchecked(stdlib, j)
         if eq(symbol_index_record::stdlib_indexed_symbol_name(sym), clone(name)) {
@@ -49,16 +55,13 @@ fn build_import_actions_json(state: LspState, uri: String, text: String, name: S
                 let import_path = import_graph::stdlib_import_path(clone(module_path), clone(name))
                 if !import_graph::is_path_imported(clone(text), clone(import_path)) {
                     let title = concat(concat(String_from("Import '"), clone(import_path)), String_from("'"))
-                    if len(actions) > 0 {
-                        actions = text::builder_append(actions, String_from(","))
-                    }
-                    actions = text::builder_append(actions, build_import_action(title, uri, import_path, clone(text)))
+                    push(items, parser::json_raw(build_import_action(title, uri, import_path, clone(text))))
                 }
             }
         }
         j = j + 1
     }
-    actions
+    parser::json_arr_string(items)
 }
 
 pub fn handle_code_action(state: LspState, body: String) {
@@ -72,26 +75,28 @@ pub fn handle_code_action(state: LspState, body: String) {
     let req_uri = feature_request::text_position_request_uri(req)
     if organize_imports::request_wants_fix_all(clone(body)) {
         let fix_all = organize_imports::build_fix_all_action(clone(req_uri), clone(req_text))
-        let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-        body_out = text::builder_append(body_out, to_string(req_id))
-        body_out = text::builder_append(body_out, String_from(",\"result\":["))
+        let result_items = parser::json_arr_new()
         if len(fix_all) > 0 {
-            body_out = text::builder_append(body_out, fix_all)
+            push(result_items, parser::json_raw(fix_all))
         }
-        body_out = text::builder_append(body_out, String_from("]}"))
-        framing::append_framed(state, body_out)
+        let fields = parser::json_obj_new()
+        push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+        push(fields, parser::json_field(String_from("id"), parser::json_i32(req_id)))
+        push(fields, parser::json_field(String_from("result"), JsonValue::Array(result_items)))
+        framing::append_framed(state, parser::json_obj_string(fields))
         return
     }
     if organize_imports::request_wants_organize_imports(clone(body)) {
         let organize = organize_imports::build_organize_imports_action(clone(req_uri), clone(req_text))
-        let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-        body_out = text::builder_append(body_out, to_string(req_id))
-        body_out = text::builder_append(body_out, String_from(",\"result\":["))
+        let result_items = parser::json_arr_new()
         if len(organize) > 0 {
-            body_out = text::builder_append(body_out, organize)
+            push(result_items, parser::json_raw(organize))
         }
-        body_out = text::builder_append(body_out, String_from("]}"))
-        framing::append_framed(state, body_out)
+        let fields = parser::json_obj_new()
+        push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+        push(fields, parser::json_field(String_from("id"), parser::json_i32(req_id)))
+        push(fields, parser::json_field(String_from("result"), JsonValue::Array(result_items)))
+        framing::append_framed(state, parser::json_obj_string(fields))
         return
     }
     let offset = feature_request::text_position_request_offset(req)
@@ -107,10 +112,9 @@ pub fn handle_code_action(state: LspState, body: String) {
         return
     }
     let actions = build_import_actions_json(state, clone(req_uri), clone(req_text), clone(name))
-    let mut body_out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body_out = text::builder_append(body_out, to_string(req_id))
-    body_out = text::builder_append(body_out, String_from(",\"result\":["))
-    body_out = text::builder_append(body_out, actions)
-    body_out = text::builder_append(body_out, String_from("]}"))
-    framing::append_framed(state, body_out)
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+    push(fields, parser::json_field(String_from("id"), parser::json_i32(req_id)))
+    push(fields, parser::json_field(String_from("result"), parser::json_raw(actions)))
+    framing::append_framed(state, parser::json_obj_string(fields))
 }

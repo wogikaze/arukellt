@@ -1,11 +1,10 @@
 // Arukellt LSP - document formatting responses (#216).
 
 use fmt
-use lsp::json_escape
 use lsp::json_fields
 use lsp::positions
 use lsp::source_text
-use std::text
+use std::json::parser
 
 
 fn extract_section_line(body: String, section: String) -> i32 {
@@ -20,14 +19,21 @@ fn extract_section_line(body: String, section: String) -> i32 {
 
 fn build_full_document_edit(text: String, formatted: String) -> String {
     let end_pos = positions::offset_to_position(clone(text), len(text))
-    let mut out = String_from("[{\"range\":{\"start\":{\"line\":0,\"character\":0},\"end\":{\"line\":")
-    out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
-    out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(formatted))
-    out = text::builder_append(out, String_from("}]"))
-    out
+    let start_obj = parser::json_obj_new()
+    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(0)))
+    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(0)))
+    let end_obj = parser::json_obj_new()
+    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(end_pos))))
+    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(end_pos))))
+    let range_obj = parser::json_obj_new()
+    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
+    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
+    let edit_obj = parser::json_obj_new()
+    push(edit_obj, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
+    push(edit_obj, parser::json_field(String_from("newText"), parser::json_str(formatted)))
+    let items = parser::json_arr_new()
+    push(items, JsonValue::Object(edit_obj))
+    parser::json_arr_string(items)
 }
 
 fn build_formatting_result(text: String) -> String {
@@ -48,12 +54,11 @@ pub fn build_formatting_response_for_request(state: LspState, body: String, id: 
     let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
     let text = source_text::text_for_uri(state, clone(uri))
     let edits = build_formatting_result(text)
-    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = text::builder_append(out, to_string(id))
-    out = text::builder_append(out, String_from(",\"result\":"))
-    out = text::builder_append(out, edits)
-    out = text::builder_append(out, String_from("}"))
-    out
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
+    push(fields, parser::json_field(String_from("result"), parser::json_raw(edits)))
+    parser::json_obj_string(fields)
 }
 
 pub fn build_range_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
@@ -61,21 +66,21 @@ pub fn build_range_formatting_response_for_request(state: LspState, body: String
     let text = source_text::text_for_uri(state, clone(uri))
     let start_line = extract_section_line(clone(body), String_from("\"start\":{"))
     let end_line = extract_section_line(clone(body), String_from("\"end\":{"))
-    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = text::builder_append(out, to_string(id))
-    out = text::builder_append(out, String_from(",\"result\":"))
-    match fmt::format_range(clone(text), start_line, end_line) {
+    let result_str = match fmt::format_range(clone(text), start_line, end_line) {
         Option::None => {
-            out = text::builder_append(out, String_from("[]"))
+            String_from("[]")
         },
         Option::Some(formatted) => {
             if eq(clone(formatted), clone(text)) {
-                out = text::builder_append(out, String_from("[]"))
+                String_from("[]")
             } else {
-                out = text::builder_append(out, build_full_document_edit(text, formatted))
+                build_full_document_edit(text, formatted)
             }
         },
     }
-    out = text::builder_append(out, String_from("}"))
-    out
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
+    push(fields, parser::json_field(String_from("result"), parser::json_raw(result_str)))
+    parser::json_obj_string(fields)
 }

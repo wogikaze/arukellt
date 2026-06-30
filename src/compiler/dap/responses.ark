@@ -1,48 +1,38 @@
 // Arukellt Selfhost - DAP response and event body builders.
 
-use std::json::parser
+use std::text
 
 fn dap_init_resp(seq: i32, request_seq: i32) -> String {
-    let body_fields = parser::json_obj_new()
-    push(body_fields, parser::json_field(String_from("supportsConfigurationDoneRequest"), parser::json_bool(true)))
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("seq"), parser::json_i32(seq)))
-    push(fields, parser::json_field(String_from("type"), parser::json_str(String_from("response"))))
-    push(fields, parser::json_field(String_from("request_seq"), parser::json_i32(request_seq)))
-    push(fields, parser::json_field(String_from("success"), parser::json_bool(true)))
-    push(fields, parser::json_field(String_from("command"), parser::json_str(String_from("initialize"))))
-    push(fields, parser::json_field(String_from("body"), JsonValue::Object(body_fields)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"seq\":")
+    body = text::builder_append(body, to_string(seq))
+    body = text::builder_append(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = text::builder_append(body, to_string(request_seq))
+    body = text::builder_append(body, String_from(",\"success\":true,\"command\":\"initialize\""))
+    body = text::builder_append(body, String_from(",\"body\":{\"supportsConfigurationDoneRequest\":true}}"))
+    body
 }
 
 fn dap_launch_resp(seq: i32, request_seq: i32) -> String {
-    let body_fields = parser::json_obj_new()
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("seq"), parser::json_i32(seq)))
-    push(fields, parser::json_field(String_from("type"), parser::json_str(String_from("response"))))
-    push(fields, parser::json_field(String_from("request_seq"), parser::json_i32(request_seq)))
-    push(fields, parser::json_field(String_from("success"), parser::json_bool(true)))
-    push(fields, parser::json_field(String_from("command"), parser::json_str(String_from("launch"))))
-    push(fields, parser::json_field(String_from("body"), JsonValue::Object(body_fields)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"seq\":")
+    body = text::builder_append(body, to_string(seq))
+    body = text::builder_append(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = text::builder_append(body, to_string(request_seq))
+    body = text::builder_append(body, String_from(",\"success\":true,\"command\":\"launch\",\"body\":{}}"))
+    body
 }
 
 fn dap_disconnect_resp(seq: i32, request_seq: i32) -> String {
-    let body_fields = parser::json_obj_new()
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("seq"), parser::json_i32(seq)))
-    push(fields, parser::json_field(String_from("type"), parser::json_str(String_from("response"))))
-    push(fields, parser::json_field(String_from("request_seq"), parser::json_i32(request_seq)))
-    push(fields, parser::json_field(String_from("success"), parser::json_bool(true)))
-    push(fields, parser::json_field(String_from("command"), parser::json_str(String_from("disconnect"))))
-    push(fields, parser::json_field(String_from("body"), JsonValue::Object(body_fields)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"seq\":")
+    body = text::builder_append(body, to_string(seq))
+    body = text::builder_append(body, String_from(",\"type\":\"response\",\"request_seq\":"))
+    body = text::builder_append(body, to_string(request_seq))
+    body = text::builder_append(body, String_from(",\"success\":true,\"command\":\"disconnect\",\"body\":{}}"))
+    body
 }
 
 fn dap_init_evt(seq: i32) -> String {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("seq"), parser::json_i32(seq)))
-    push(fields, parser::json_field(String_from("type"), parser::json_str(String_from("event"))))
-    push(fields, parser::json_field(String_from("event"), parser::json_str(String_from("initialized"))))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"seq\":")
+    body = text::builder_append(body, to_string(seq))
+    body = text::builder_append(body, String_from(",\"type\":\"event\",\"event\":\"initialized\"}"))
+    body
 }

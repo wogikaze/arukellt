@@ -1,54 +1,42 @@
 // Arukellt LSP - semantic rename workspace edits (#339).
 
 use analysis::symbol_references
-use lsp::json_escape
 use lsp::positions
-use std::text
+use std::json::parser
 
 
-fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
+fn build_text_edit(text: String, start: i32, end: i32, new_text: String) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
-    let mut item = String_from("{\"range\":{\"start\":{\"line\":")
-    item = text::builder_append(item, to_string(positions::lsp_position_line(start_pos)))
-    item = text::builder_append(item, String_from(",\"character\":"))
-    item = text::builder_append(item, to_string(positions::lsp_position_character(start_pos)))
-    item = text::builder_append(item, String_from("},\"end\":{\"line\":"))
-    item = text::builder_append(item, to_string(positions::lsp_position_line(end_pos)))
-    item = text::builder_append(item, String_from(",\"character\":"))
-    item = text::builder_append(item, to_string(positions::lsp_position_character(end_pos)))
-    item = text::builder_append(item, String_from("}},\"newText\":"))
-    item = text::builder_append(item, json_escape::quote_string(new_text))
-    item = text::builder_append(item, String_from("}"))
-    if len(edits) == 0 {
-        return item
-    }
-    concat(concat(edits, String_from(",")), item)
-}
-
-fn append_uri_edits(changes: String, uri: String, edits: String) -> String {
-    if len(edits) == 0 {
-        return changes
-    }
-    let mut entry = json_escape::quote_string(uri)
-    entry = text::builder_append(entry, String_from(":["))
-    entry = text::builder_append(entry, edits)
-    entry = text::builder_append(entry, String_from("]"))
-    if len(changes) == 0 {
-        return entry
-    }
-    concat(concat(changes, String_from(",")), entry)
+    let start_obj = parser::json_obj_new()
+    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(start_pos))))
+    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(start_pos))))
+    let end_obj = parser::json_obj_new()
+    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(end_pos))))
+    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(end_pos))))
+    let range_obj = parser::json_obj_new()
+    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
+    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
+    push(fields, parser::json_field(String_from("newText"), parser::json_str(new_text)))
+    parser::json_obj_string(fields)
 }
 
 pub fn collect_workspace_changes(state: LspState, req_uri: String, req_text: String, offset: i32, new_name: String) -> String {
     let refs = symbol_references::collect_semantic_references(clone(req_text), offset)
     let rn = len(refs)
-    let mut edits = String_new()
+    if rn == 0 {
+        return String_new()
+    }
+    let edits = parser::json_arr_new()
     let mut ri = 0
     while ri < rn {
         let loc = get_unchecked(refs, ri)
-        edits = append_text_edit(edits, clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc), clone(new_name))
+        push(edits, parser::json_raw(build_text_edit(clone(req_text), symbol_references::reference_location_start(loc), symbol_references::reference_location_end(loc), clone(new_name))))
         ri = ri + 1
     }
-    append_uri_edits(String_new(), req_uri, edits)
+    let changes_fields = parser::json_obj_new()
+    push(changes_fields, parser::json_field(req_uri, JsonValue::Array(edits)))
+    parser::json_obj_string(changes_fields)
 }
