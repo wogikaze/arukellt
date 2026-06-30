@@ -59,19 +59,10 @@ pub fn init_template_ark_toml(project_name: String, template: String) -> String 
 }
 
 pub fn init_template_print_next_steps(project_name: String, template: String) {
-    let mut msg = text::builder_new()
-    msg = text::builder_append(msg, String_from("Initialized Arukellt project in "))
-    msg = text::builder_append(msg, clone(project_name))
-    msg = text::builder_append(msg, String_from(" (template: "))
-    msg = text::builder_append(msg, clone(template))
-    msg = text::builder_append(msg, String_from(")"))
-    stdio::eprintln(text::builder_build(msg))
+    stdio::eprintln(concat(String_from("Initialized Arukellt project in "), concat(clone(project_name), concat(String_from(" (template: "), concat(clone(template), String_from(")"))))))
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Next steps:"))
-    let mut cd_msg = text::builder_new()
-    cd_msg = text::builder_append(cd_msg, String_from("  cd "))
-    cd_msg = text::builder_append(cd_msg, clone(project_name))
-    stdio::eprintln(text::builder_build(cd_msg))
+    stdio::eprintln(concat(String_from("  cd "), clone(project_name)))
     stdio::eprintln(String_from("  arukellt check main.ark        # type-check"))
     stdio::eprintln(String_from("  arukellt run main.ark          # run the program"))
     if eq(clone(template), String_from("with-tests")) {

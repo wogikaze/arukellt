@@ -37,11 +37,13 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
     let line_count = len(lines)
     let mut out = Vec_new_String()
     let mut indent = 0
-    for i in 0..line_count {
+    let mut i = 0
+    while i < line_count {
         let raw = get_unchecked(lines, i)
         let trimmed = fmt_indent_trimmed(raw)
         if len(trimmed) == 0 {
             push(out, String_new())
+            i = i + 1
             continue
         }
         let closes_else = fmt_indent_closes_else_opens(clone(trimmed))
@@ -69,6 +71,7 @@ fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
                 indent = 0
             }
         }
+        i = i + 1
     }
     out
 }

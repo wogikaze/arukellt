@@ -20,30 +20,3 @@ fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     }
     contract_fn_sig::FnSig_empty(simple_type(commands::TY_UNKNOWN()))
 }
-
-/// Lookup a function sig by qualified name, falling back to the unqualified
-/// suffix if no exact match is found.  This allows cross-module generic
-/// calls (e.g. `my_iter::my_fold`) to find the sig registered as `my_fold`.
-fn lookup_fn_sig_qualified(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    let exact = lookup_fn_sig(fn_sigs, clone(name))
-    if contract_fn_sig::FnSig_has_name(exact) {
-        return exact
-    }
-    // No exact match — try the unqualified suffix if name contains "::"
-    if contains(clone(name), String_from("::")) {
-        let n = len(name)
-        let mut last_sep = 0 - 1
-        let mut i = 0
-        while i < n - 1 {
-            if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
-                last_sep = i
-            }
-            i = i + 1
-        }
-        if last_sep >= 0 {
-            let suffix = substring(name, last_sep + 2, n)
-            return lookup_fn_sig(fn_sigs, suffix)
-        }
-    }
-    exact
-}

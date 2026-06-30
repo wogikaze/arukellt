@@ -13,8 +13,6 @@ use mir::lower::core_expr_shape_atoms
 use mir::lower::variants
 use mir::value_types
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
 }
@@ -36,14 +34,14 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(core_expr_shape_accessors::mir_core_expr_text(expr), dest))
             return dest
         }
-        return NOT_FOUND
+        return 0 - 1
     }
     if core_expr_shape_atoms::mir_core_expr_is_path(expr) {
         let tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
         if tag >= 0 {
             return variants::lower_variant_value(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), tag)
         }
-        return NOT_FOUND
+        return 0 - 1
     }
     0 - 2
 }

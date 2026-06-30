@@ -8,8 +8,6 @@ use mir::module_functions
 use mir::opcodes
 use mir::value_types
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn async_lower_optimize_module(m: MirModule) -> MirModule {
     let fn_count = module_functions::MirModule_function_count(m)
     let mut updated = Vec_new_MirFunction()
@@ -62,12 +60,12 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
             if op == opcodes::MIR_AWAIT() {
                 let dest = inst_accessors_operands::MirInst_dest(inst)
                 let src = inst_accessors_operands::MirInst_arg0(inst)
-                let copy_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), NOT_FOUND, dest, src, 0, 0.0, String_new(), value_types::VT_VOID())
+                let copy_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), 0 - 1, dest, src, 0, 0.0, String_new(), value_types::VT_VOID())
                 push(filtered, copy_inst)
             } else if op == opcodes::MIR_FUTURE_NEW() {
                 let dest = inst_accessors_operands::MirInst_dest(inst)
                 let src = inst_accessors_operands::MirInst_arg0(inst)
-                let copy_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), NOT_FOUND, dest, src, 0, 0.0, String_new(), value_types::VT_VOID())
+                let copy_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), 0 - 1, dest, src, 0, 0.0, String_new(), value_types::VT_VOID())
                 push(filtered, copy_inst)
             } else {
                 push(filtered, inst)

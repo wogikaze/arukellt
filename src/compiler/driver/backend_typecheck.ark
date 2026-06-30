@@ -43,13 +43,16 @@ fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {
 fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>, deny_codes: Vec<String>) -> Vec<Diagnostic> {
     let filtered = Vec_new_Diagnostic()
     let count = len(warnings)
-    for i in 0..count {
+    let mut i = 0
+    while i < count {
         let diag = get_unchecked(warnings, i)
         let code = diag_record::diagnostic_code(diag)
         if lint_registry::should_suppress(clone(code), allow_codes) {
+            i = i + 1
             continue
         }
         push(filtered, diag)
+        i = i + 1
     }
     filtered
 }

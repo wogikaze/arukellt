@@ -7,17 +7,15 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_aggregate
 use mir::lower::core_expr_shape_atoms
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lower_core_assign(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 1 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let assign_name = core_expr_shape_accessors::mir_core_expr_text(expr)
     if len(assign_name) > 0 {
         let val_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         assign::mir_emit_ident_assign(ctx, clone(assign_name), val_idx)
-        return NOT_FOUND
+        return 0 - 1
     }
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) >= 2 {
         let target_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)

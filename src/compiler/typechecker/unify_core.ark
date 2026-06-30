@@ -28,7 +28,7 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         if a_tag == commands::TY_STRUCT() || a_tag == commands::TY_ENUM() || a_tag == commands::TY_RESOURCE() {
             let a_name = contract_type_access::TypeInfo_name(a)
             let b_name = contract_type_access::TypeInfo_name(b)
-            if !names_match(a_name, b_name) {
+            if !eq(clone(a_name), clone(b_name)) {
                 unify_env::type_error(env, concat(String_from("type mismatch: "), concat(a_name, concat(String_from(" vs "), b_name))))
             }
         }
@@ -59,19 +59,4 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     }
     unify_env::type_error(env, concat(String_from("type mismatch: "), concat(names::type_tag_name(a_tag), concat(String_from(" vs "), names::type_tag_name(b_tag)))))
     a
-}
-
-
-pub fn names_match(a: String, b: String) -> bool {
-    if eq(clone(a), clone(b)) {
-        return true
-    }
-    let sep = String_from("::")
-    if ends_with(a, concat(clone(sep), clone(b))) {
-        return true
-    }
-    if ends_with(b, concat(clone(sep), clone(a))) {
-        return true
-    }
-    false
 }

@@ -1,6 +1,8 @@
 // Arukellt Resolver - imported module declaration registration
 
 use resolver::scope_lookup
+use resolver::scope_stack_scopes
+use resolver::scope_stack_symbols
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::scope_define
@@ -21,6 +23,7 @@ fn register_imported_modules(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
         register_imported_module_exports(ctx, m)
         mi = mi + 1
     }
+    register_pub_use_reexports(ctx, modules)
     register_prelude_bare_names(ctx, modules)
 }
 
@@ -92,5 +95,67 @@ fn register_imported_module_exports(ctx: ResolveCtx, m: ModuleDecls) {
             }
         }
         di = di + 1
+    }
+}
+
+fn register_pub_use_reexports(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
+    let mod_count = len(modules)
+    let mut pass = 0
+    while pass < mod_count {
+        let mut mi = 0
+        while mi < mod_count {
+            let m = get_unchecked(modules, mi)
+            let module_name = modules::module_name(m)
+            register_pub_use_reexports_for_module(ctx, m, clone(module_name))
+            mi = mi + 1
+        }
+        pass = pass + 1
+    }
+}
+
+fn register_pub_use_reexports_for_module(ctx: ResolveCtx, m: ModuleDecls, module_name: String) {
+    let mdecl_count = modules::module_decl_count(m)
+    let mut di = 0
+    while di < mdecl_count {
+        let d = modules::module_decl_at(m, di)
+        if ast_decl_predicates::node_is_use(d) && ast_access::node_is_pub(d) {
+            let use_path = ast_access::node_text(d)
+            reexport_module_symbols(ctx, clone(module_name), clone(use_path))
+            let child_count = ast_access::node_child_count(d)
+            let mut ci = 0
+            while ci < child_count {
+                let child = ast_access::node_child_at(d, ci)
+                if ast_decl_predicates::node_is_use(child) {
+                    let child_path = ast_access::node_text(child)
+                    reexport_module_symbols(ctx, clone(module_name), clone(child_path))
+                }
+                ci = ci + 1
+            }
+        }
+        di = di + 1
+    }
+}
+
+fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) {
+    let prefix = concat(clone(source_module), String_from("::"))
+    let prefix_len = len(clone(prefix))
+    let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
+    let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
+    let mut i = 0
+    while i < sym_count {
+        let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
+        let sym_name = scope_stack_symbols::Symbol_name(sym)
+        if starts_with(clone(sym_name), clone(prefix)) {
+            if scope_stack_symbols::Symbol_is_pub(sym) {
+                let suffix = substring(clone(sym_name), prefix_len, len(clone(sym_name)))
+                let qualified = concat(clone(target_module), concat(String_from("::"), clone(suffix)))
+                let existing = scope_lookup::lookup(ctx, clone(qualified))
+                if existing < 0 {
+                    let kind = scope_stack_symbols::Symbol_kind(sym)
+                    scope_define::define_with_vis(ctx, qualified, kind, true)
+                }
+            }
+        }
+        i = i + 1
     }
 }

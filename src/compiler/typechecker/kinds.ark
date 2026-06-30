@@ -48,7 +48,6 @@ fn NK_EXPR_STMT() -> i32 { 37 }
 
 // Type annotation node kinds.
 fn NK_TYPE_GENERIC() -> i32 { 91 }
-fn NK_TYPE_FN() -> i32 { 92 }
 
 // Comparison operator kinds.
 fn OP_EQ() -> i32 { 6 }

@@ -51,7 +51,11 @@ fn parse_decl(p: Parser) -> AstNode {
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },
-        30 => imports::parse_use_decl(p),
+        30 => {
+            let d = imports::parse_use_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
         26 => imports::parse_import_decl(p),
         _ => stmt::parse_stmt(p),
     }

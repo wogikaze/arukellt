@@ -28,8 +28,5 @@ fn resolve_primitive_type_name(name: String) -> TypeInfo {
     if eq(clone(name), "char") {
         return contract_type_constructors::TypeInfo_simple(commands::TY_CHAR())
     }
-    if eq(clone(name), "fn") {
-        return contract_type_constructors::TypeInfo_simple(commands::TY_FN())
-    }
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
 }

@@ -15,7 +15,6 @@ struct CliOptions {
     dump_phases: String,
     emit_mode: String,
     json_output: bool,
-    doc_html: bool,
     show_help: bool,
     show_version: bool,
     has_error: bool,
@@ -47,7 +46,6 @@ fn CliOptions_default() -> CliOptions {
         dump_phases: String_new(),
         emit_mode: String_from("wasm"),
         json_output: false,
-        doc_html: false,
         show_help: false,
         show_version: false,
         has_error: false,
@@ -83,7 +81,6 @@ fn cli_opt_level(opts: CliOptions) -> i32 { opts.opt_level }
 fn cli_dump_phases(opts: CliOptions) -> String { clone(opts.dump_phases) }
 fn cli_emit_mode(opts: CliOptions) -> String { clone(opts.emit_mode) }
 fn cli_json_output(opts: CliOptions) -> bool { opts.json_output }
-fn cli_doc_html(opts: CliOptions) -> bool { opts.doc_html }
 fn cli_show_timing(opts: CliOptions) -> bool { opts.show_timing }
 fn cli_input_file(opts: CliOptions) -> String { clone(opts.input_file) }
 fn cli_input_file_len(opts: CliOptions) -> i32 { len(opts.input_file) }
@@ -136,10 +133,6 @@ fn cli_set_emit_mode(opts: CliOptions, emit_mode: String) {
 
 fn cli_set_json_output(opts: CliOptions, json_output: bool) {
     opts.json_output = json_output
-}
-
-fn cli_set_doc_html(opts: CliOptions, doc_html: bool) {
-    opts.doc_html = doc_html
 }
 
 fn cli_set_show_help(opts: CliOptions, show_help: bool) {

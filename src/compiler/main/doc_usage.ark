@@ -4,21 +4,17 @@ use std::host::stdio
 
 pub fn print_doc_usage() {
     stdio::eprintln(String_from("usage: arukellt doc [OPTIONS] <SYMBOL>"))
-    stdio::eprintln(String_from("       arukellt doc --html -o <output.html>"))
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Look up standard library documentation from std/manifest.toml."))
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Options:"))
     stdio::eprintln(String_from("      --json              Output as JSON"))
-    stdio::eprintln(String_from("      --html              Generate static HTML stdlib reference"))
     stdio::eprintln(String_from("      --target <TARGET>   Filter availability (wasm32-wasi-p1, wasm32-wasi-p2)"))
-    stdio::eprintln(String_from("  -o, --output <PATH>     HTML output path"))
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Examples:"))
     stdio::eprintln(String_from("  arukellt doc println"))
     stdio::eprintln(String_from("  arukellt doc std::host::http::get"))
     stdio::eprintln(String_from("  arukellt doc std::host::http"))
     stdio::eprintln(String_from("  arukellt doc --json println"))
-    stdio::eprintln(String_from("  arukellt doc --html -o docs/docs/std/index.html"))
     stdio::eprintln(String_from("  arukellt doc --target wasm32-wasi-p1 std::host::sockets::connect"))
 }

@@ -84,14 +84,17 @@ fn gc_hint_annotate_loop(insts: Vec<MirInst>, region: LoopRegion) -> GcHintAnnot
     let end = loop_regions::LoopRegion_loop_end(region)
     let out = Vec_new_MirInst()
     let mut annotated = 0
-    for i in 0..len(insts) {
+    let mut i = 0
+    while i < len(insts) {
         if i > start && i < end && gc_hint_should_annotate(insts, i, end) {
             push(out, inst_gc_hint::MirInst_gc_hint_short_lived())
             push(out, get_unchecked(insts, i))
             annotated = annotated + 1
+            i = i + 1
             continue
         }
         push(out, get_unchecked(insts, i))
+        i = i + 1
     }
     GcHintAnnotateResult_new(out, annotated)
 }

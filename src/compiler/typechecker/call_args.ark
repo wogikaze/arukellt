@@ -1,33 +1,12 @@
 // Arukellt Typechecker - call argument inference helpers.
 
 use typechecker::ast_access
-use typechecker::contract_fn_sig
-use typechecker::contract_type_access
-use typechecker::kinds
-use typechecker::unify
 
 fn infer_call_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, start: i32, count: i32) {
     let mut a = 0
     while a < count {
         let arg_node = ast_access::node_child_at(node, start + a)
         let _arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
-        a = a + 1
-    }
-}
-
-fn infer_and_check_call_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig) {
-    let arg_count = ast_access::node_child_count(node) - 1
-    let param_count = contract_fn_sig::FnSig_param_count(sig)
-    let mut a = 0
-    while a < arg_count && a < param_count {
-        let arg_node = ast_access::node_child_at(node, a + 1)
-        let arg_ty = infer_expr(env, scope, fn_sigs, enum_defs, arg_node)
-        let param_ty = contract_fn_sig::FnSig_param_at(sig, a)
-        let arg_tag = contract_type_access::TypeInfo_tag(arg_ty)
-        let param_tag = contract_type_access::TypeInfo_tag(param_ty)
-        if arg_tag != commands::TY_UNKNOWN() && param_tag != commands::TY_UNKNOWN() && arg_tag != commands::TY_TYPE_VAR() && param_tag != commands::TY_TYPE_VAR() {
-            unify::unify(env, param_ty, arg_ty)
-        }
         a = a + 1
     }
 }

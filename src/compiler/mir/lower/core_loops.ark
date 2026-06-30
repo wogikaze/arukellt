@@ -4,11 +4,9 @@ use mir::lower::loop_conditions
 
 use mir::lower::core_expr_shape_accessors
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lower_core_while(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let loop_scope = loop_scope::mir_begin_loop_scope(ctx)
     let cond_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
@@ -21,7 +19,7 @@ fn lower_core_while(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -
 
 fn lower_core_loop(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 1 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let loop_scope = loop_scope::mir_begin_value_loop_scope(ctx)
     let _body_result = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))

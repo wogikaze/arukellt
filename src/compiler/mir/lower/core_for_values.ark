@@ -8,11 +8,9 @@ use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
 use mir::value_types
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lower_core_for_values(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let _vec_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let vec_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())

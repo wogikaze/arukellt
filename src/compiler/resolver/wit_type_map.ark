@@ -12,38 +12,32 @@ fn wit_primitive_to_ark(wit_type: String) -> String {
     if starts_with(clone(t), String_from("future<")) || starts_with(clone(t), String_from("stream<")) {
         return String_from("i32")
     }
-    let wit_names = Vec_new_String()
-    push(wit_names, String_from("s32"))
-    push(wit_names, String_from("u32"))
-    push(wit_names, String_from("s64"))
-    push(wit_names, String_from("u64"))
-    push(wit_names, String_from("f32"))
-    push(wit_names, String_from("f64"))
-    push(wit_names, String_from("bool"))
-    push(wit_names, String_from("char"))
-    push(wit_names, String_from("string"))
-    push(wit_names, String_from("s8"))
-    push(wit_names, String_from("u8"))
-    push(wit_names, String_from("s16"))
-    push(wit_names, String_from("u16"))
-    let ark_names = Vec_new_String()
-    push(ark_names, String_from("i32"))
-    push(ark_names, String_from("i32"))
-    push(ark_names, String_from("i64"))
-    push(ark_names, String_from("i64"))
-    push(ark_names, String_from("f32"))
-    push(ark_names, String_from("f64"))
-    push(ark_names, String_from("bool"))
-    push(ark_names, String_from("char"))
-    push(ark_names, String_from("String"))
-    push(ark_names, String_from("i32"))
-    push(ark_names, String_from("i32"))
-    push(ark_names, String_from("i32"))
-    push(ark_names, String_from("i32"))
-    for i in 0..len(wit_names) {
-        if eq(get_unchecked(wit_names, i), clone(t)) {
-            return clone(get_unchecked(ark_names, i))
-        }
+    if eq(clone(t), String_from("s32")) || eq(clone(t), String_from("u32")) {
+        return String_from("i32")
+    }
+    if eq(clone(t), String_from("s64")) || eq(clone(t), String_from("u64")) {
+        return String_from("i64")
+    }
+    if eq(clone(t), String_from("f32")) {
+        return String_from("f32")
+    }
+    if eq(clone(t), String_from("f64")) {
+        return String_from("f64")
+    }
+    if eq(clone(t), String_from("bool")) {
+        return String_from("bool")
+    }
+    if eq(clone(t), String_from("char")) {
+        return String_from("char")
+    }
+    if eq(clone(t), String_from("string")) {
+        return String_from("String")
+    }
+    if eq(clone(t), String_from("s8")) || eq(clone(t), String_from("u8")) {
+        return String_from("i32")
+    }
+    if eq(clone(t), String_from("s16")) || eq(clone(t), String_from("u16")) {
+        return String_from("i32")
     }
     clone(t)
 }
@@ -102,9 +96,9 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
 }
 
 fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
-    let rec_map = wit_record_wit_name_map(doc)
+    let rec_wit = wit_record_wit_names(doc)
     let rec_ark = wit_record_ark_names(doc)
-    let enum_map = wit_enum_wit_name_map(doc)
+    let enum_wit = wit_enum_wit_names(doc)
     let enum_ark = wit_enum_ark_names(doc)
     let t = wit_trim_type(wit_type)
     if len(t) == 0 {
@@ -126,21 +120,15 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
         let inner = wit_generic_inner(t)
         return concat(String_from("Stream<"), concat(wit_type_to_ark(inner, clone(alias), doc), String_from(">")))
     }
-    let rec_opt = HashMap_String_i32_get(rec_map, clone(t))
-    match rec_opt {
-        Option::Some(rec_idx) => {
-            let rec_name = get_unchecked(rec_ark, rec_idx)
-            return concat(clone(alias), concat(String_from("::"), clone(rec_name)))
-        },
-        Option::None => {},
+    let rec_idx = wit_record_index(rec_wit, clone(t))
+    if rec_idx >= 0 {
+        let rec_name = get_unchecked(rec_ark, rec_idx)
+        return concat(clone(alias), concat(String_from("::"), clone(rec_name)))
     }
-    let enum_opt = HashMap_String_i32_get(enum_map, clone(t))
-    match enum_opt {
-        Option::Some(enum_idx) => {
-            let enum_name = get_unchecked(enum_ark, enum_idx)
-            return concat(clone(alias), concat(String_from("::"), clone(enum_name)))
-        },
-        Option::None => {},
+    let enum_idx = wit_enum_index(enum_wit, clone(t))
+    if enum_idx >= 0 {
+        let enum_name = get_unchecked(enum_ark, enum_idx)
+        return concat(clone(alias), concat(String_from("::"), clone(enum_name)))
     }
     wit_primitive_to_ark(t)
 }
@@ -154,20 +142,22 @@ fn wit_generic_inner(t: String) -> String {
     wit_trim_type(substring(t, open + 1, close))
 }
 
-fn wit_record_wit_name_map(doc: wit_parse_text::WitParsedInterface) -> HashMap<String, i32> {
-    let m = HashMap_new_String_i32()
-    for ri in 0..len(doc.records) {
-        HashMap_String_i32_insert(m, clone(get_unchecked(doc.records, ri).wit_name), ri)
+fn wit_record_index(names: Vec<String>, wit_name: String) -> i32 {
+    for i in 0..len(names) {
+        if eq(get_unchecked(names, i), clone(wit_name)) {
+            return i
+        }
     }
-    m
+    0 - 1
 }
 
-fn wit_enum_wit_name_map(doc: wit_parse_text::WitParsedInterface) -> HashMap<String, i32> {
-    let m = HashMap_new_String_i32()
-    for ei in 0..len(doc.enums) {
-        HashMap_String_i32_insert(m, clone(get_unchecked(doc.enums, ei).wit_name), ei)
+fn wit_enum_index(names: Vec<String>, wit_name: String) -> i32 {
+    for i in 0..len(names) {
+        if eq(get_unchecked(names, i), clone(wit_name)) {
+            return i
+        }
     }
-    m
+    0 - 1
 }
 
 fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
@@ -178,12 +168,12 @@ fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface
     if starts_with(clone(t), String_from("future<")) || starts_with(clone(t), String_from("stream<")) {
         return String_from("i32")
     }
-    let rec_map = wit_record_wit_name_map(doc)
-    if HashMap_String_i32_contains_key(rec_map, clone(t)) {
+    let rec_idx = wit_record_index(wit_record_wit_names(doc), clone(t))
+    if rec_idx >= 0 {
         return String_from("i32")
     }
-    let enum_map = wit_enum_wit_name_map(doc)
-    if HashMap_String_i32_contains_key(enum_map, clone(t)) {
+    let enum_idx = wit_enum_index(wit_enum_wit_names(doc), clone(t))
+    if enum_idx >= 0 {
         return String_from("i32")
     }
     let ark = wit_primitive_to_ark(wit_type)

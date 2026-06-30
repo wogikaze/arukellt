@@ -3,14 +3,12 @@
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lookup(ctx: ResolveCtx, name: String) -> i32 {
     let sym = find_symbol(ctx, name)
     if scope_stack_symbols::Symbol_decl_index(sym) >= 0 {
         return scope_stack_symbols::Symbol_decl_index(sym)
     }
-    return NOT_FOUND
+    return 0 - 1
 }
 
 fn lookup_kind(ctx: ResolveCtx, name: String) -> i32 {
@@ -18,7 +16,7 @@ fn lookup_kind(ctx: ResolveCtx, name: String) -> i32 {
     if scope_stack_symbols::Symbol_decl_index(sym) >= 0 {
         return scope_stack_symbols::Symbol_kind(sym)
     }
-    return NOT_FOUND
+    return 0 - 1
 }
 
 fn lookup_is_pub(ctx: ResolveCtx, name: String) -> bool {

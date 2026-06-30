@@ -8,8 +8,6 @@ use mir::inst_accessors_literals
 use mir::opcodes
 use resolver
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn mir_function_inst_count(f: MirFunction) -> i32 {
     let mut total = 0
     let block_count = function_block_queries::MirFunction_block_count(f)
@@ -24,12 +22,12 @@ fn mir_function_inst_count(f: MirFunction) -> i32 {
 
 fn mir_module_stem_from_qualified(name: String) -> String {
     let nlen = len(name)
-    let mut last_colon = NOT_FOUND
+    let mut last_colon = 0 - 1
     let mut ci = nlen - 1
     while ci >= 0 {
         if char_at(name, ci) == 58 {
             last_colon = ci
-            ci = NOT_FOUND
+            ci = 0 - 1
         }
         ci = ci - 1
     }
@@ -98,8 +96,8 @@ fn mir_function_forwards_to(f: MirFunction, target: String) -> bool {
 
 fn mir_pick_largest_non_forwarder_index(functions: Vec<MirFunction>, short_name: String, skip_target: String) -> i32 {
     let count = len(functions)
-    let mut best_idx = NOT_FOUND
-    let mut best_size = NOT_FOUND
+    let mut best_idx = 0 - 1
+    let mut best_size = 0 - 1
     let mut i = 0
     while i < count {
         let f = get_unchecked(functions, i)
@@ -129,7 +127,7 @@ fn mir_resolve_duplicate_call_target(functions: Vec<MirFunction>, callee_name: S
                 return i
             }
         }
-        return NOT_FOUND
+        return 0 - 1
     }
     let module_stem = mir_module_stem_from_qualified(clone(callee_name))
     if len(module_stem) > 0 {
@@ -152,7 +150,7 @@ fn mir_resolve_duplicate_call_target(functions: Vec<MirFunction>, callee_name: S
             }
         }
     }
-    NOT_FOUND
+    0 - 1
 }
 
 fn mir_resolve_self_delegate_collision(functions: Vec<MirFunction>, candidate_idx: i32, name: String) -> i32 {

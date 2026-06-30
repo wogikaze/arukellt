@@ -5,8 +5,6 @@ use mir::function_identity
 use mir::module_functions
 use wasm::start_names
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn wasm_module_needs_start_wrapper(mir: MirModule, fn_count: i32) -> i32 {
     let mut needs_wrapper = 0
     let mut main_check_idx = 0
@@ -23,7 +21,7 @@ fn wasm_module_needs_start_wrapper(mir: MirModule, fn_count: i32) -> i32 {
 }
 
 fn wasm_module_start_function_index(mir: MirModule, fn_count: i32) -> i32 {
-    let mut main_idx = NOT_FOUND
+    let mut main_idx = 0 - 1
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(mir, mi)

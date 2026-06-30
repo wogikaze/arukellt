@@ -41,7 +41,6 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
     let funcs = Vec_new_ComposeWitFuncSig()
     let key_len = len(keyword)
     let mut pos = 0
-    // kept as while loop: pos advances non-uniformly (entry_start + 1 on continue vs sig_end + 1 at end)
     while pos < len(text) {
         let tail = substring(text, pos, len(text))
         let rel = index_of(tail, keyword)

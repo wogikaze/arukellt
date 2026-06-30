@@ -8,11 +8,9 @@ use mir::lower::core_dispatch_ops
 use mir::lower::core_expr_shape_ops
 use mir::lower::core_values
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lower_core_expr(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr_index: i32) -> i32 {
     if expr_index < 0 || expr_index >= len(exprs) {
-        return NOT_FOUND
+        return 0 - 1
     }
     let expr = get_unchecked(exprs, expr_index)
     let atomic = core_values::lower_core_atomic(ctx, expr)

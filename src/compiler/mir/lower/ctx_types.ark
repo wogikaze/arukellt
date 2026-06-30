@@ -55,9 +55,4 @@ pub struct LowerCtx {
     mono_type_param_names: Vec<String>,
     mono_type_param_types: Vec<String>,
     mono_instances: Vec<MonoInstance>,
-    struct_name_index: HashMap<String, i32>,
-    gc_enum_variant_index: HashMap<String, i32>,
-    gc_enum_alias_index: HashMap<String, i32>,
-    gc_struct_name_index: HashMap<String, i32>,
-    wit_call_name_index: HashMap<String, i32>,
 }

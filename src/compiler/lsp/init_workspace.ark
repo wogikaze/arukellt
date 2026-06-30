@@ -6,7 +6,6 @@ use lsp::symbol_index_paths
 use lsp::symbol_index_project
 use lsp::symbol_index_stdlib
 use lsp::symbol_index_update
-use std::collections::hash_string
 use std::host::fs
 
 fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
@@ -66,29 +65,20 @@ fn roots_push_unique(roots: Vec<String>, path: String) -> Vec<String> {
 
 fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
     let mut ordered = Vec_new_String()
-    let mut ordered_set = hash_string::hashmap_str_i32_new()
-    let mut visited_set = hash_string::hashmap_str_i32_new()
-    let mut pending = Vec_new_String()
-    let mut pending_set = hash_string::hashmap_str_i32_new()
-    if len(seed_root) > 0 {
-        push(pending, clone(seed_root))
-        hash_string::hashmap_str_set(pending_set, clone(seed_root), 1)
-    }
+    let mut visited = Vec_new_String()
+    let mut pending = roots_push_unique(Vec_new_String(), clone(seed_root))
     while len(pending) > 0 {
         let next = get_unchecked(pending, 0)
         pending = tail_strings(pending)
-        if hash_string::hashmap_str_contains(visited_set, clone(next)) {
+        if roots_contains(visited, clone(next)) {
             continue
         }
-        hash_string::hashmap_str_set(visited_set, clone(next), 1)
+        visited = roots_push_unique(visited, clone(next))
         let manifest_path = symbol_index_paths::join_path(clone(next), String_from("ark.toml"))
         let read_result = fs::read_to_string(clone(manifest_path))
         match read_result {
             Result::Ok(content) => {
-                if !hash_string::hashmap_str_contains(ordered_set, clone(next)) {
-                    push(ordered, clone(next))
-                    hash_string::hashmap_str_set(ordered_set, clone(next), 1)
-                }
+                ordered = roots_push_unique(ordered, clone(next))
                 let deps = collect_path_dependency_rel_paths(clone(content))
                 let dn = len(deps)
                 let mut di = 0
@@ -97,10 +87,7 @@ fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
                     let dep_start = symbol_index_paths::resolve_relative_path(clone(next), dep_rel)
                     let dep_root = lsp_package_definition::find_package_root(dep_start)
                     if len(dep_root) > 0 {
-                        if !hash_string::hashmap_str_contains(pending_set, clone(dep_root)) {
-                            push(pending, clone(dep_root))
-                            hash_string::hashmap_str_set(pending_set, clone(dep_root), 1)
-                        }
+                        pending = roots_push_unique(pending, dep_root)
                     }
                     di = di + 1
                 }

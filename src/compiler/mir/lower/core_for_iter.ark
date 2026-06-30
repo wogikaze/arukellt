@@ -8,16 +8,14 @@ use mir::lower::ctx_types
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_for_values
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let iter_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let range_local_si = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(iter_expr))
     if range_local_si < 0 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let si_struct_type = ctx_api_local_types::ctx_get_local_type(ctx, range_local_si)
     if starts_with(clone(si_struct_type), "Vec") || starts_with(clone(si_struct_type), "vec:") {
@@ -26,7 +24,7 @@ fn lower_core_for_iter(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr
     let si_next_callee = concat(clone(si_struct_type), String_from("::next"))
     let si_next_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(si_next_callee))
     if si_next_vt == 0 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let _si_iter_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let si_scope = loop_struct_iter::mir_begin_struct_iterator_loop(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), si_struct_type, si_next_callee)

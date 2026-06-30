@@ -19,31 +19,35 @@ fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String
             let existing = clone(get_unchecked(ctx.gc_enum_variant_names, i))
             let existing_canon = ctx_gc_enum_normalize_variant_name(clone(existing))
             if eq(existing_canon, clone(canon)) || eq(existing, clone(variant_name)) {
-                push(ctx.gc_enum_variant_alias_names, clone(variant_name))
+                push(ctx.gc_enum_variant_alias_names, variant_name)
                 push(ctx.gc_enum_variant_alias_slots, i)
-                HashMap_String_i32_insert(ctx.gc_enum_alias_index, variant_name, i)
                 return
             }
         }
         i = i + 1
     }
-    HashMap_String_i32_insert(ctx.gc_enum_variant_index, clone(variant_name), count)
     push(ctx.gc_enum_variant_names, variant_name)
     push(ctx.gc_enum_variant_sigs, sig)
 }
 
 fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
-    let opt_idx = HashMap_String_i32_get(ctx.gc_enum_variant_index, clone(variant_name))
-    match opt_idx {
-        Option::Some(idx) => { idx },
-        Option::None => {
-            let opt_alias = HashMap_String_i32_get(ctx.gc_enum_alias_index, clone(variant_name))
-            match opt_alias {
-                Option::Some(alias_slot) => { alias_slot },
-                Option::None => { 0 - 1 },
-            }
-        },
+    let count = len(ctx.gc_enum_variant_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_enum_variant_names, i), clone(variant_name)) {
+            return i
+        }
+        i = i + 1
     }
+    let alias_count = len(ctx.gc_enum_variant_alias_names)
+    let mut ai = 0
+    while ai < alias_count {
+        if eq(get_unchecked(ctx.gc_enum_variant_alias_names, ai), clone(variant_name)) {
+            return get_unchecked(ctx.gc_enum_variant_alias_slots, ai)
+        }
+        ai = ai + 1
+    }
+    0 - 1
 }
 
 fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
@@ -163,10 +167,11 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
 }
 
 fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
-    let opt_li = HashMap_String_i32_get(ctx.struct_name_index, clone(variant_name))
-    match opt_li {
-        Option::Some(li) => {
-            let mut sig = String_new()
+    let mut sig = String_new()
+    let layout_count = len(ctx.struct_names)
+    let mut li = 0
+    while li < layout_count {
+        if eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
             let mut fi = 1
             while fi < field_count {
@@ -181,8 +186,9 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(ft)))
                 fi = fi + 1
             }
-            sig
-        },
-        Option::None => { String_new() },
+            return sig
+        }
+        li = li + 1
     }
+    sig
 }

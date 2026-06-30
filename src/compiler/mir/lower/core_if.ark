@@ -3,12 +3,10 @@
 use mir::lower::core_expr_shape_accessors
 use mir::lower::if
 
-const NOT_FOUND: i32 = 0 - 1
-
 fn lower_core_if(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 2 {
-        return NOT_FOUND
+        return 0 - 1
     }
     let cond_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let result = if::mir_begin_if_expr(ctx)
