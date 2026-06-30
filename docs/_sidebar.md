@@ -15,8 +15,11 @@
   - [実行例](#/examples/README)
   - [プレイグラウンド](#/playground/README)
     - [▶ Try Playground](#/playground/index.html)
+  - [ベンチマーク](#/benchmarks/README)
 
 - **Supporting Docs**
+  - [クックブック](#/cookbook/README)
+  - [テスト](#/testing/README)
   - [移行](#/migration/README)
   - [サンプル](#/sample/README)
 

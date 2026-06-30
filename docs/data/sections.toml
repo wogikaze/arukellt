@@ -48,6 +48,27 @@ category = "current"
 snapshot = "playground"
 
 [[sections]]
+dir = "benchmarks"
+title = "ベンチマーク"
+description = "ベンチマークガバナンス、機能マトリックス、手法。"
+category = "current"
+snapshot = "benchmarks"
+
+[[sections]]
+dir = "cookbook"
+title = "クックブック"
+description = "ユーザー向け使用パターン集。"
+category = "supporting"
+snapshot = "cookbook"
+
+[[sections]]
+dir = "testing"
+title = "テスト"
+description = "テストカテゴリ分類と戦略。"
+category = "supporting"
+snapshot = "testing"
+
+[[sections]]
 dir = "migration"
 title = "移行"
 description = "バージョンやランタイム間の移行ガイド。"

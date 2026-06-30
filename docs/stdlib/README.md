@@ -112,10 +112,6 @@ All 20 module pages carry curated overviews.
 
 | File | Summary |
 |------|---------|
-| [514-implementation-quality-audit.md](514-implementation-quality-audit.md) | Status: complete |
-| [518-docs-example-style-audit.md](518-docs-example-style-audit.md) | Status: complete |
-| [604-contract-honesty-gap-ledger.md](604-contract-honesty-gap-ledger.md) | This ledger captures the Phase 0 baseline for issue #604 before broad API-surface changes. |
-| [613-result-surface-inventory.md](613-result-surface-inventory.md) | Issue: issues/done/613-errhandle-stdlib-result-surface.md |
 | [collections-hashmap-rust-diff.md](collections-hashmap-rust-diff.md) | This page records the intentional differences between Arukellt's current |
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. |
 | [modernization/511-numeric-tag-inventory.md](modernization/511-numeric-tag-inventory.md) | This artifact inventories the current public numeric-tag sum-type surfaces in |
@@ -131,7 +127,6 @@ All 20 module pages carry curated overviews.
 
 | File | Summary |
 |------|---------|
-| [516-raw-facade-boundary-policy.md](516-raw-facade-boundary-policy.md) | Issue: #516 |
 | [expansion-policy.md](expansion-policy.md) | Defines which module families accept new APIs, under what conditions, |
 | [monomorphic-deprecation.md](monomorphic-deprecation.md) | Monomorphic (type-suffixed) APIs are being phased out in favor of generic equivalents. |
 | [prelude-dedup.md](prelude-dedup.md) | Defines which stdlib names are prelude-only, which are module-only, |

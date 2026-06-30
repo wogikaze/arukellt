@@ -30,11 +30,14 @@
 | 標準ライブラリ | [stdlib](stdlib/README.md) | manifest-backed な公開 API と利用ガイド。 |
 | 実行例 | [examples](examples/README.md) | 実行可能なサンプルと expected 出力。 |
 | プレイグラウンド | [playground](playground/README.md) | ブラウザ向け playground の実装部品、設計、運用ドキュメント。 |
+| ベンチマーク | [benchmarks](benchmarks/README.md) | ベンチマークガバナンス、機能マトリックス、手法。 |
 
 ## Supporting Docs
 
 | Section | Entry | Notes |
 |---------|-------|-------|
+| クックブック | [cookbook](cookbook/README.md) | ユーザー向け使用パターン集。 |
+| テスト | [testing](testing/README.md) | テストカテゴリ分類と戦略。 |
 | 移行 | [migration](migration/README.md) | バージョンやランタイム間の移行ガイド。 |
 | サンプル | [sample](sample/README.md) | 実装寄りの参考コード断片。 |
 
