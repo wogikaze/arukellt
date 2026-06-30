@@ -30,6 +30,48 @@ else
   FAIL=1
 fi
 
+# ── 1b. selfhost wasm rebuild (when compiler/stdlib source is staged) ────────
+# The T3 WASM validation gate (run in verify --quick below) tests the prebuilt
+# .build/selfhost/arukellt-s2.wasm.  If the staged commit changes compiler or
+# stdlib source but the wasm is not rebuilt, the gate tests a STALE wasm and
+# can pass even though the new source breaks the compiler.  This step rebuilds
+# the wasm from the working-tree source before running verify so the gate
+# exercises the actual code being committed.
+banner "selfhost wasm freshness check"
+NEEDS_REBUILD=0
+while IFS= read -r -d '' path; do
+  case "$path" in
+    src/compiler/*|std/*)
+      NEEDS_REBUILD=1
+      break
+      ;;
+  esac
+done < <(staged_files)
+
+if [ "$NEEDS_REBUILD" -ne 0 ]; then
+  step "staged compiler/stdlib source detected — rebuilding selfhost wasm"
+  S2_WASM=".build/selfhost/arukellt-s2.wasm"
+  set +e
+  BUILD_OUTPUT=$(python3 scripts/manager.py selfhost fixpoint --build 2>&1)
+  BUILD_RC=$?
+  set -e
+  # Exit codes: 0=fixpoint reached, 1=fixpoint not yet reached (s2 built OK),
+  #             2=prereqs missing or build failed.
+  if [ "$BUILD_RC" -eq 2 ]; then
+    echo "FAIL: selfhost wasm rebuild failed (exit $BUILD_RC)." >&2
+    echo "$BUILD_OUTPUT" | tail -20 >&2
+    echo "  Fix the build error above, then re-stage and retry." >&2
+    FAIL=1
+  elif [ ! -f "$S2_WASM" ]; then
+    echo "FAIL: selfhost wasm rebuild finished but $S2_WASM not found." >&2
+    FAIL=1
+  else
+    step "selfhost wasm rebuilt OK (fixpoint exit $BUILD_RC)"
+  fi
+else
+  step "no compiler/stdlib source staged — skipping wasm rebuild"
+fi
+
 # ── 2. quick verification ──────────────────────────────────────────────────
 banner "manager verify --quick"
 if python3 scripts/manager.py verify --quick; then
