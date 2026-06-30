@@ -1,0 +1,108 @@
+// Arukellt Selfhost - string trim non-GC scan/copy helpers.
+// Extracted from intrinsic_string_trim.ark
+
+use wasm::intrinsics::helpers_control_branch
+use wasm::intrinsics::helpers_control_loop
+use wasm::intrinsics::helpers_control_structured
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_bitwise
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+
+fn emit_trim_copy_result(w: WasmWriter, source_local: i32, start_offset_local: i32, len_local: i32, result_local: i32) {
+    helpers_core_heap::emit_heap_get(w)
+    helpers_core_locals::emit_local_get(w, len_local)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, result_local)
+    helpers_core_locals::emit_local_get(w, result_local)
+    helpers_core_locals::emit_local_get(w, source_local)
+    if start_offset_local != 0 {
+        helpers_core_locals::emit_local_get(w, start_offset_local)
+        helpers_numeric_i32_arith::emit_i32_add(w)
+    }
+    helpers_core_locals::emit_local_get(w, len_local)
+    helpers_memory_access::emit_memory_copy(w)
+    helpers_core_heap::emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_get(w, len_local)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 3)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, -4)
+    helpers_numeric_i32_bitwise::emit_i32_and(w)
+    helpers_core_heap::emit_heap_set(w)
+    helpers_core_locals::emit_local_get(w, result_local)
+}
+
+fn emit_trim_start_scan(w: WasmWriter, s_str: i32, s_len: i32, s_pos: i32, s_ch: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_str)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_load8_u_default(w)
+    helpers_core_locals::emit_local_set(w, s_ch)
+    emit_ascii_whitespace_check(w, s_ch)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_pos)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core_locals::emit_local_set(w, s_pos)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_trim_end_scan(w: WasmWriter, s_str: i32, s_len: i32, s_ch: i32) {
+    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_compare::emit_i32_le_s(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_str)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory_access::emit_i32_load8_u_default(w)
+    helpers_core_locals::emit_local_set(w, s_ch)
+    emit_ascii_whitespace_check(w, s_ch)
+    helpers_numeric_i32_compare::emit_i32_eqz(w)
+    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_core_locals::emit_local_set(w, s_len)
+    helpers_control_branch::emit_br(w, 0)
+    helpers_control_structured::emit_end(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_ascii_whitespace_check(w: WasmWriter, s_ch: i32) {
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, 32)
+    helpers_numeric_i32_compare::emit_i32_eq(w)
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, 9)
+    helpers_numeric_i32_compare::emit_i32_eq(w)
+    helpers_numeric_i32_bitwise::emit_i32_or(w)
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, 10)
+    helpers_numeric_i32_compare::emit_i32_eq(w)
+    helpers_numeric_i32_bitwise::emit_i32_or(w)
+    helpers_core_locals::emit_local_get(w, s_ch)
+    helpers_numeric_i32_const::emit_i32_const(w, 13)
+    helpers_numeric_i32_compare::emit_i32_eq(w)
+    helpers_numeric_i32_bitwise::emit_i32_or(w)
+}
