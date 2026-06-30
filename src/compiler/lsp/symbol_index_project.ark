@@ -8,28 +8,9 @@ use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
 use lsp::symbol_index_update
+use std::collections::hash_string
 use std::host::fs
 use compiler::session_parse
-
-fn pending_contains(pending: Vec<String>, path: String) -> bool {
-    let n = len(pending)
-    let mut i = 0
-    while i < n {
-        if eq(get_unchecked(pending, i), clone(path)) {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-fn pending_push_unique(pending: Vec<String>, path: String) -> Vec<String> {
-    if len(path) == 0 || pending_contains(pending, clone(path)) {
-        return pending
-    }
-    push(pending, path)
-    pending
-}
 
 fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: String, project_root: String) -> String {
     let base = if contains(clone(import_path), String_from("::")) {
@@ -156,7 +137,12 @@ fn index_file_at_path(state: LspState, file_path: String) {
 }
 
 fn index_import_graph_from(state: LspState, start_path: String, project_root: String) {
-    let pending = pending_push_unique(Vec_new_String(), clone(start_path))
+    let mut pending = Vec_new_String()
+    let mut pending_set = hash_string::hashmap_str_i32_new()
+    if len(start_path) > 0 {
+        push(pending, clone(start_path))
+        hash_string::hashmap_str_set(pending_set, clone(start_path), 1)
+    }
     let root_dir = module_package_root::find_package_root(clone(project_root))
     let mut pos = 0
     while pos < len(pending) {
@@ -171,7 +157,11 @@ fn index_import_graph_from(state: LspState, start_path: String, project_root: St
                 let in_n = len(imports)
                 let mut ii = 0
                 while ii < in_n {
-                    pending = pending_push_unique(pending, get_unchecked(imports, ii))
+                    let import_path = get_unchecked(imports, ii)
+                    if len(import_path) > 0 && !hash_string::hashmap_str_contains(pending_set, clone(import_path)) {
+                        push(pending, clone(import_path))
+                        hash_string::hashmap_str_set(pending_set, clone(import_path), 1)
+                    }
                     ii = ii + 1
                 }
             },
