@@ -172,14 +172,12 @@ fn component_tuple_scan_apply_fn(d: AstNode, scan: ComponentTupleScan) -> Compon
 
 fn component_tuple_scan(decls: Vec<AstNode>) -> ComponentTupleScan {
 	let scan = ComponentTupleScan_empty()
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let d = get_unchecked(decls, i)
 		if contract_helpers::is_export_func_decl(d) {
 			ComponentTupleScan_increment_export_count(scan)
 			component_tuple_scan_apply_fn(d, scan)
 		}
-		i = i + 1
 	}
 	scan
 }

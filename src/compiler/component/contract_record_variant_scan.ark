@@ -66,8 +66,7 @@ fn ComponentRecordVariantScan_allows_roundtrip(scan: ComponentRecordVariantScan)
 
 fn component_record_variant_scan(decls: Vec<AstNode>) -> ComponentRecordVariantScan {
     let scan = ComponentRecordVariantScan_empty()
-    let mut i = 0
-    while i < len(decls) {
+    for i in 0..len(decls) {
         let d = get_unchecked(decls, i)
         if contract_record_decl::component_decl_is_shape_variant(d) {
             ComponentRecordVariantScan_set_has_shape(scan, true)
@@ -82,7 +81,6 @@ fn component_record_variant_scan(decls: Vec<AstNode>) -> ComponentRecordVariantS
                 ComponentRecordVariantScan_set_has_shape_to_shape(scan, true)
             }
         }
-        i = i + 1
     }
     scan
 }

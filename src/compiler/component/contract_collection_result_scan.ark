@@ -77,14 +77,12 @@ fn ComponentCollectionResultScan_allows_result_i32_i32_to_result_i32_i32(scan: C
 
 fn component_collection_result_scan(decls: Vec<AstNode>) -> ComponentCollectionResultScan {
 	let scan = ComponentCollectionResultScan_empty()
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let d = get_unchecked(decls, i)
 		if contract_helpers::is_export_func_decl(d) {
 			ComponentCollectionResultScan_increment_export_count(scan)
 			component_collection_result_scan_apply_fn(d, scan)
 		}
-		i = i + 1
 	}
 	scan
 }

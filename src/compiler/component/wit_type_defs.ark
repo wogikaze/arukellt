@@ -8,8 +8,7 @@ use std::text
 
 fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
 	let mut out = String_from("")
-	let mut i = 0
-	while i < len(decls) {
+	for i in 0..len(decls) {
 		let d = wit_decl::wit_decl_from_node(get_unchecked(decls, i))
 		if wit_decl::wit_decl_is_record(d) {
 			out = text::builder_append(out, emit_wit_record_type_def(d))
@@ -23,7 +22,6 @@ fn emit_wit_type_defs(decls: Vec<AstNode>) -> String {
 		if component_decl_is_perms_flags_shape(get_unchecked(decls, i)) {
 			out = text::builder_append(out, emit_wit_flags_type_def(get_unchecked(decls, i)))
 		}
-		i = i + 1
 	}
 	out
 }
