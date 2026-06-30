@@ -126,7 +126,7 @@ function item_summary(name, meta, doc, badge, href,   safe_name, safe_meta, safe
   if (safe_doc == "") {
     safe_doc = "No manifest documentation yet."
   }
-  return "<article class=\"summary-item\"><a href=\"#" href "\">" safe_name "</a><span>" safe_badge "</span><code>" safe_meta "</code><p>" safe_doc "</p></article>"
+  return "<div class=\"item-row\"><dt><a id=\"" href "\" href=\"#" href "\">" safe_name "</a><span class=\"stab\">" safe_badge "</span></dt><dd><code>" safe_meta "</code><p>" safe_doc "</p></dd></div>"
 }
 
 function flush_fn(   safe_name, safe_module, safe_stability, sig, safe_sig, safe_doc, target, search) {
@@ -154,7 +154,7 @@ function flush_fn(   safe_name, safe_module, safe_stability, sig, safe_sig, safe
     target = "target-gated"
   }
   search = esc(name " " module " " sig " " stability)
-  function_cards[fn_count] = "<article class=\"api-card\" data-module=\"" safe_module "\" data-stability=\"" safe_stability "\" data-search=\"" search "\"><div class=\"api-card-head\"><a class=\"api-name\" id=\"fn-" safe_name "\" href=\"#fn-" safe_name "\">" safe_name "</a><span class=\"badge stability\">" safe_stability "</span><span class=\"badge target\">" esc(target) "</span></div><div class=\"module\">" safe_module "</div><pre><code>" safe_sig "</code></pre><p>" safe_doc "</p></article>"
+  function_cards[fn_count] = "<div class=\"item-row api-card\" data-module=\"" safe_module "\" data-stability=\"" safe_stability "\" data-search=\"" search "\"><dt><a id=\"fn-" safe_module "::" safe_name "\" href=\"#fn-" safe_module "::" safe_name "\">" safe_name "</a><span class=\"stab\">" safe_stability "</span><span class=\"target\">" esc(target) "</span></dt><dd><div class=\"module\">" safe_module "</div><pre><code>" safe_sig "</code></pre><p>" safe_doc "</p></dd></div>"
 }
 
 function flush_type(   meta, href, card) {
@@ -193,7 +193,7 @@ function flush_current() {
   flush_mod()
 }
 
-function print_module_tree(   n, sorted, i, j, tmp, m, depth, label, leaf, cls) {
+function print_module_tree(   n, sorted, i, j, tmp, m, depth, label, leaf, cls, parent, expanded, hidden) {
   n = module_node_count
   for (i = 1; i <= n; i += 1) {
     sorted[i] = module_list[i]
@@ -213,8 +213,15 @@ function print_module_tree(   n, sorted, i, j, tmp, m, depth, label, leaf, cls) 
     depth = module_depth(m)
     label = last_segment(m)
     leaf = module_leaves[m] ? " leaf" : ""
-    cls = "module-node depth-" depth leaf
-    print "<a class=\"" cls "\" href=\"#modules\" data-module-filter=\"" esc(m) "\" title=\"" esc(m) "\"><span>" esc(label) "</span></a>"
+    parent = m
+    sub(/::[^:]+$/, "", parent)
+    if (parent == m) {
+      parent = ""
+    }
+    expanded = ""
+    hidden = depth > 0 ? " hidden" : ""
+    cls = "module-node depth-" depth leaf expanded hidden
+    print "<button type=\"button\" class=\"" cls "\" data-module=\"" esc(m) "\" data-parent=\"" esc(parent) "\" data-module-filter=\"" esc(m) "\" title=\"" esc(m) "\"><span class=\"twisty\"></span><span class=\"label\">" esc(label) "</span></button>"
   }
   print "</div>"
 }
@@ -241,6 +248,12 @@ BEGIN {
   flush_current()
   section = "type"
   reset_type()
+  next
+}
+
+/^\[\[values\]\]/ {
+  flush_current()
+  section = "value"
   next
 }
 
@@ -273,45 +286,41 @@ END {
   module_count = length(module_leaves)
 
   print "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Arukellt std docs</title><style>"
-  print ":root{color-scheme:light;--bg:#f7f8fb;--panel:#fff;--ink:#17202a;--muted:#5c6675;--line:#d8dee8;--accent:#0b6bcb;--ok:#1f7a4d;--warn:#9a6700}*{box-sizing:border-box}body{margin:0;font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}header{background:#111827;color:white;padding:28px 32px}header h1{margin:0 0 8px;font-size:32px;letter-spacing:0}header p{margin:0;color:#d1d5db;max-width:880px}.layout{display:grid;grid-template-columns:300px 1fr;gap:24px;padding:24px}.sidebar{position:sticky;top:16px;align-self:start;background:var(--panel);border:1px solid var(--line);padding:16px;max-height:calc(100vh - 32px);overflow:auto}.sidebar h2{font-size:15px;margin:0 0 8px}.sidebar a{color:var(--accent);text-decoration:none}.module-tree{display:grid;gap:2px}.module-node{display:block;padding:3px 0;color:var(--muted)}.module-node.leaf{color:var(--accent)}.module-node span{display:inline-block}.depth-1 span{margin-left:14px}.depth-2 span{margin-left:28px}.depth-3 span{margin-left:42px}.depth-4 span{margin-left:56px}.depth-5 span{margin-left:70px}.toolbar{display:grid;grid-template-columns:1fr 180px;gap:12px;margin-bottom:16px}.toolbar input,.toolbar select{width:100%;padding:10px;border:1px solid var(--line);background:white}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.stat{background:white;border:1px solid var(--line);padding:10px 12px}.item-section{margin:0 0 28px}.item-section h2{font-size:24px;margin:0 0 10px}.summary-grid,.api-grid{display:grid;gap:12px}.summary-item,.api-card{background:var(--panel);border:1px solid var(--line);padding:16px}.summary-item a,.api-name{font-size:19px;font-weight:700;color:var(--accent);text-decoration:none}.summary-item span{border:1px solid var(--line);padding:2px 7px;font-size:12px;margin-left:8px;color:var(--ok)}.summary-item code{display:block;color:var(--muted);margin-top:6px}.summary-item p,.api-card p{margin-bottom:0}.api-card-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.module{color:var(--muted);font-family:ui-monospace,monospace;margin:6px 0}.badge{border:1px solid var(--line);padding:2px 7px;font-size:12px}.stability{color:var(--ok)}.target{color:var(--warn)}.empty{background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:14px}pre{overflow:auto;background:#f3f5f8;border:1px solid var(--line);padding:10px}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}@media(max-width:860px){.layout{grid-template-columns:1fr}.sidebar{position:static;max-height:none}.toolbar{grid-template-columns:1fr}}</style></head><body>"
-  print "<header><h1>Arukellt Standard Library</h1><p>Manifest-backed API reference generated by <code>arukellt doc --html</code>. Search by function, module, signature, or stability.</p></header><main class=\"layout\"><aside class=\"sidebar\"><h2>Modules</h2><a class=\"module-node leaf\" href=\"#modules\" data-module-filter=\"\"><span>All modules</span></a>"
+  print ":root{color-scheme:light;--bg:#fff;--sidebar:#f6f7f9;--ink:#1f2933;--muted:#68707c;--line:#d8dee8;--accent:#3873b3;--code:#f5f5f5;--ok:#2e7d32;--warn:#8a5a00}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.topbar{border-bottom:1px solid var(--line);background:#fafafa;padding:8px 18px;display:flex;gap:18px;align-items:center}.topbar strong{font-size:15px}.topbar a{color:var(--muted)}.layout{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:calc(100vh - 37px)}.sidebar{background:var(--sidebar);border-right:1px solid var(--line);padding:14px 12px;overflow:auto;position:sticky;top:0;height:calc(100vh - 37px)}.sidebar h2{font-size:13px;margin:0 0 8px;color:#333}.module-tree{display:block}.module-node{appearance:none;border:0;background:transparent;width:100%;display:flex;align-items:center;gap:4px;padding:2px 4px;text-align:left;color:var(--muted);font:13px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;cursor:pointer}.module-node:hover{background:#e9edf3;color:var(--accent)}.module-node.leaf{color:var(--accent)}.module-node.hidden{display:none}.twisty{width:11px;color:#777}.module-node:not(.leaf) .twisty::before{content:\"▸\"}.module-node.expanded:not(.leaf) .twisty::before{content:\"▾\"}.module-node.leaf .twisty::before{content:\"\"}.depth-1{padding-left:18px}.depth-2{padding-left:36px}.depth-3{padding-left:54px}.depth-4{padding-left:72px}.depth-5{padding-left:90px}.content{padding:24px 36px;max-width:980px}.crumb{color:var(--muted);margin:0 0 12px}.title{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}.title h1{font-size:32px;font-weight:600;margin:0;letter-spacing:0}.copy-path{color:var(--muted);font-size:13px}.summary{border-left:4px solid var(--line);padding-left:14px;color:#39414d;max-width:820px}.stats{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.stat{border:1px solid var(--line);background:#fafafa;border-radius:3px;padding:4px 8px;color:var(--muted)}.stat strong{color:var(--ink)}.item-section{margin:28px 0}.item-section h2{font-size:22px;font-weight:600;margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}.item-list{display:grid;gap:0}.item-row{display:grid;grid-template-columns:230px minmax(0,1fr);border-bottom:1px solid #edf0f3;padding:8px 0}.item-row dt{margin:0;font-weight:600}.item-row dd{margin:0;color:#303946}.item-row p{margin:4px 0 0;color:#4f5965}.stab,.target{display:inline-block;margin-left:7px;color:var(--muted);font-size:12px;font-weight:400}.stab{color:var(--ok)}.target{color:var(--warn)}.module{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:3px}.toolbar{display:grid;grid-template-columns:1fr 170px;gap:10px;margin-bottom:10px}.toolbar input,.toolbar select{width:100%;padding:7px 8px;border:1px solid var(--line);background:#fff;border-radius:3px}.empty{color:var(--muted);margin:0;padding:7px 0}pre{margin:4px 0 0;overflow:auto;background:var(--code);border:1px solid #e2e5e9;border-radius:3px;padding:7px 8px}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}@media(max-width:860px){.topbar{display:block}.layout{display:block}.sidebar{position:static;height:auto;max-height:320px;border-right:0;border-bottom:1px solid var(--line)}.content{padding:20px}.item-row{grid-template-columns:1fr;gap:2px}.toolbar{grid-template-columns:1fr}}</style></head><body>"
+  print "<nav class=\"topbar\"><strong>Arukellt std</strong><a href=\"#functions\">Search</a><a href=\"#structs\">Structs</a><a href=\"#enums\">Enums</a><a href=\"#type-aliases\">Type Aliases</a></nav><main class=\"layout\"><aside class=\"sidebar\"><h2>Modules</h2><button type=\"button\" class=\"module-node leaf\" data-module-filter=\"\"><span class=\"twisty\"></span><span class=\"label\">All modules</span></button>"
   print_module_tree()
-  print "</aside><section>"
+  print "</aside><section class=\"content\"><p class=\"crumb\">std</p><div class=\"title\"><h1>Crate std</h1><span class=\"copy-path\">Copy item path</span></div><p class=\"summary\">Manifest-backed API reference generated by <code>arukellt doc --html</code>. Search by function, module, signature, or stability.</p>"
   print "<div class=\"stats\"><div class=\"stat\"><strong>" module_count "</strong> modules</div><div class=\"stat\"><strong>0</strong> macros</div><div class=\"stat\"><strong>" struct_count "</strong> structs</div><div class=\"stat\"><strong>" enum_count "</strong> enums</div><div class=\"stat\"><strong>" fn_count "</strong> functions</div><div class=\"stat\"><strong>0</strong> type aliases</div></div>"
-
-  print "<section id=\"modules\" class=\"item-section\"><h2>Modules</h2>"
-  print_module_tree()
-  print "</section>"
 
   print "<section id=\"macros\" class=\"item-section\"><h2>Macros</h2>"
   print_empty("macros")
   print "</section>"
 
-  print "<section id=\"structs\" class=\"item-section\"><h2>Structs</h2><div class=\"summary-grid\">"
+  print "<section id=\"structs\" class=\"item-section\"><h2>Structs</h2><dl class=\"item-list\">"
   if (struct_count == 0) {
     print_empty("structs")
   } else {
     for (i = 1; i <= struct_count; i += 1) print struct_cards[i]
   }
-  print "</div></section>"
+  print "</dl></section>"
 
-  print "<section id=\"enums\" class=\"item-section\"><h2>Enums</h2><div class=\"summary-grid\">"
+  print "<section id=\"enums\" class=\"item-section\"><h2>Enums</h2><dl class=\"item-list\">"
   if (enum_count == 0) {
     print_empty("enums")
   } else {
     for (i = 1; i <= enum_count; i += 1) print enum_cards[i]
   }
-  print "</div></section>"
+  print "</dl></section>"
 
-  print "<section id=\"functions\" class=\"item-section\"><h2>Functions</h2><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search functions\"><select id=\"stability\"><option value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimental</option><option>deprecated</option></select></div><div id=\"api\" class=\"api-grid\">"
+  print "<section id=\"functions\" class=\"item-section\"><h2>Functions</h2><div class=\"toolbar\"><input id=\"q\" placeholder=\"Search functions\"><select id=\"stability\"><option value=\"\">All stability tiers</option><option>stable</option><option>provisional</option><option>experimental</option><option>deprecated</option></select></div><dl id=\"api\" class=\"item-list\">"
   for (i = 1; i <= fn_count; i += 1) print function_cards[i]
-  print "</div></section>"
+  print "</dl></section>"
 
   print "<section id=\"type-aliases\" class=\"item-section\"><h2>Type Aliases</h2>"
   print_empty("type aliases")
   print "</section>"
 
-  print "</section></main><script>const q=document.getElementById(\"q\");const st=document.getElementById(\"stability\");let mod=\"\";function moduleMatch(value){return !mod||value===mod||value.startsWith(mod+\"::\");}function apply(){const needle=(q.value||\"\").toLowerCase();document.querySelectorAll(\".api-card\").forEach(c=>{const okText=!needle||(c.dataset.search||\"\").toLowerCase().includes(needle);const okSt=!st.value||c.dataset.stability===st.value;const okMod=moduleMatch(c.dataset.module||\"\");c.style.display=okText&&okSt&&okMod?\"block\":\"none\";});}document.querySelectorAll(\"[data-module-filter]\").forEach(a=>a.addEventListener(\"click\",e=>{e.preventDefault();mod=a.dataset.moduleFilter||\"\";apply();document.getElementById(\"functions\").scrollIntoView();}));q.addEventListener(\"input\",apply);st.addEventListener(\"change\",apply);</script></body></html>"
+  print "</section></main><script>const q=document.getElementById(\"q\");const st=document.getElementById(\"stability\");let mod=\"\";function moduleMatch(value){return !mod||value===mod||value.startsWith(mod+\"::\");}function apply(){const needle=(q.value||\"\").toLowerCase();document.querySelectorAll(\".api-card\").forEach(c=>{const okText=!needle||(c.dataset.search||\"\").toLowerCase().includes(needle);const okSt=!st.value||c.dataset.stability===st.value;const okMod=moduleMatch(c.dataset.module||\"\");c.style.display=okText&&okSt&&okMod?\"grid\":\"none\";});}function childrenOf(path){return Array.from(document.querySelectorAll(\".module-node[data-parent=\\\"\"+path+\"\\\"]\"));}function hideDesc(path){childrenOf(path).forEach(c=>{c.classList.add(\"hidden\");c.classList.remove(\"expanded\");hideDesc(c.dataset.module||\"\");});}document.querySelectorAll(\".module-node\").forEach(a=>a.addEventListener(\"click\",e=>{e.preventDefault();const path=a.dataset.module||\"\";if(!a.classList.contains(\"leaf\")){const open=!a.classList.contains(\"expanded\");a.classList.toggle(\"expanded\",open);childrenOf(path).forEach(c=>c.classList.toggle(\"hidden\",!open));if(!open)hideDesc(path);}mod=a.dataset.moduleFilter||\"\";apply();}));q.addEventListener(\"input\",apply);st.addEventListener(\"change\",apply);</script></body></html>"
 }
 ' "$ROOT/std/manifest.toml" > "$OUT"
 
