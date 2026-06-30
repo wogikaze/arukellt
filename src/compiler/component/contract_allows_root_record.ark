@@ -22,23 +22,3 @@ fn ComponentContractAllows_new(record_allows: ComponentRecordAllows, string_allo
         tuple_allows: tuple_allows,
     }
 }
-
-fn ComponentContractAllows_record(allows: ComponentContractAllows) -> ComponentRecordAllows {
-    allows.record_allows
-}
-
-fn ComponentContractAllows_string(allows: ComponentContractAllows) -> ComponentStringAllows {
-    allows.string_allows
-}
-
-fn ComponentContractAllows_collection(allows: ComponentContractAllows) -> ComponentCollectionAllows {
-    allows.collection_allows
-}
-
-fn ComponentContractAllows_numeric(allows: ComponentContractAllows) -> ComponentNumericAllows {
-    allows.numeric_allows
-}
-
-fn ComponentContractAllows_tuple(allows: ComponentContractAllows) -> ComponentTupleAllows {
-    allows.tuple_allows
-}
