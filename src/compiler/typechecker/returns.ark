@@ -24,7 +24,7 @@ fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, v
         return
     }
     if (ret_tag == commands::TY_STRUCT() || ret_tag == commands::TY_ENUM() || ret_tag == commands::TY_RESOURCE())
-        && !eq(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
+        && !unify::names_match(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
         unify::type_error(env, concat(String_from("return type mismatch: '"),
             concat(clone(fn_name),
             concat(String_from("' declared to return "),

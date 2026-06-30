@@ -51,6 +51,14 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
                     resolved = name_rewrite
                 }
             }
+        } else {
+            // Qualified name (e.g. "my_iter::my_fold") — try name-based
+            // rewrite for cross-module generic calls.  The name rewrite
+            // maps the qualified fn_name to the safe mangled name.
+            let name_rewrite = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(resolved))
+            if len(name_rewrite) > 0 {
+                resolved = name_rewrite
+            }
         }
     }
     resolved

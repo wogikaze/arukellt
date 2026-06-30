@@ -8,6 +8,10 @@ fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     sig_lookup::lookup_fn_sig(fn_sigs, name)
 }
 
+fn lookup_fn_sig_qualified(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    sig_lookup::lookup_fn_sig_qualified(fn_sigs, name)
+}
+
 fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     sig_decl::fn_sig_from_fn_decl(node)
 }

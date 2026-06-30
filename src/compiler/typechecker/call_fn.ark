@@ -21,7 +21,7 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
     let callee_name = ast_access::node_text(callee)
-    let sig = sigs::lookup_fn_sig(fn_sigs, clone(callee_name))
+    let sig = sigs::lookup_fn_sig_qualified(fn_sigs, clone(callee_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return call_unknown::infer_unknown_ident_call(env, scope, callee)

@@ -28,3 +28,7 @@ fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
 fn resolve_type_deep(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
     unify_resolve::resolve_type_deep(env, ty)
 }
+
+fn names_match(a: String, b: String) -> bool {
+    unify_core::names_match(a, b)
+}

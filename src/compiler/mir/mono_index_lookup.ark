@@ -2,11 +2,22 @@
 
 use mir::mono_index_types
 
+fn mono_name_matches(entry_name: String, search_name: String) -> bool {
+    if eq(clone(entry_name), clone(search_name)) {
+        return true
+    }
+    let suffix = concat(String_from("::"), clone(search_name))
+    if ends_with(clone(entry_name), clone(suffix)) {
+        return true
+    }
+    false
+}
+
 fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
     let count = mono_index_types::mono_index_name_count(idx)
     let mut i = 0
     while i < count {
-        if eq(mono_index_types::mono_index_name_at(idx, i), clone(fn_name)) {
+        if mono_name_matches(mono_index_types::mono_index_name_at(idx, i), clone(fn_name)) {
             return mono_index_types::mono_index_count_at(idx, i)
         }
         i = i + 1
@@ -19,7 +30,7 @@ fn mono_index_mangled_at(idx: MonoIndex, fn_name: String, ordinal: i32) -> Strin
     let mut name_start = 0
     let mut i = 0
     while i < count {
-        if eq(mono_index_types::mono_index_name_at(idx, i), clone(fn_name)) {
+        if mono_name_matches(mono_index_types::mono_index_name_at(idx, i), clone(fn_name)) {
             let idx_count = mono_index_types::mono_index_count_at(idx, i)
             if ordinal < idx_count {
                 return mono_index_types::mono_index_mangled_at_offset(idx, name_start + ordinal)
