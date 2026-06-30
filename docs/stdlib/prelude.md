@@ -114,6 +114,5 @@ during the transition, while new code should prefer method syntax
 
 * [ADR-036: Trait-based Stdlib Redesign](../adr/ADR-036-trait-stdlib-redesign.md) — design decisions
 * [prelude-migration.md](prelude-migration.md) — detailed migration reference
-* [prelude-migration-inventory.md](prelude-migration-inventory.md) — implementation-level migration shelf list (from [#513](../../issues/done/513-stdlib-prelude-safety-and-wrapper-surface.md))
 * [migration/v2-to-v3.md](../migration/v2-to-v3.md) — v2→v3 module system transition
 * [std/prelude.ark](../../std/prelude.ark) — implementation source

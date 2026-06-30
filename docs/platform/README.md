@@ -16,5 +16,4 @@
 |------|-------|---------|
 | [abi-reference.md](abi-reference.md) | WIT 型マッピング対応表 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [abi.md](abi.md) | 公開 ABI 方針 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
-| [wasi-resource-model.md](wasi-resource-model.md) | Archived WASI resource model | この文書は、過去に検討していた capability-first な WASI API 設計メモです。 |
 | [wasm-features.md](wasm-features.md) | Wasm 機能レイヤー | Current-first: 実装の現在地は ../current-state.md を参照。 |
