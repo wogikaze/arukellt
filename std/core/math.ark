@@ -67,3 +67,175 @@ pub fn gcd(a: i32, b: i32) -> i32 {
     }
     x
 }
+
+// ── number theory ───────────────────────────────────────────────────────────
+
+/// Least common multiple of `a` and `b`. Returns 0 if either is 0.
+pub fn lcm(a: i32, b: i32) -> i32 {
+    if a == 0 || b == 0 {
+        return 0
+    }
+    let g = gcd(a, b)
+    let mut x = a
+    if x < 0 {
+        x = 0 - x
+    }
+    let mut y = b
+    if y < 0 {
+        y = 0 - y
+    }
+    x / g * y
+}
+
+/// Returns true if `n` is a power of two (1, 2, 4, 8, ...).
+pub fn is_power_of_two(n: i32) -> bool {
+    n > 0 && (n & (n - 1)) == 0
+}
+
+/// Returns the smallest power of two >= n. Returns 1 for n <= 1.
+pub fn next_power_of_two(n: i32) -> i32 {
+    if n <= 1 {
+        return 1
+    }
+    let mut x = n - 1
+    x = x | (x >> 1)
+    x = x | (x >> 2)
+    x = x | (x >> 4)
+    x = x | (x >> 8)
+    x = x | (x >> 16)
+    let result = x + 1
+    if result <= 0 {
+        0x40000000
+    } else {
+        result
+    }
+}
+
+// ── bit operations ──────────────────────────────────────────────────────────
+
+/// Count leading zero bits. Returns 32 for n == 0.
+pub fn leading_zeros(n: i32) -> i32 {
+    if n == 0 {
+        return 32
+    }
+    if n < 0 {
+        return 0
+    }
+    let mut count = 0
+    let mut x = n
+    if (x & 0xFFFF0000) == 0 {
+        count = count + 16
+        x = x << 16
+    }
+    if (x & 0xFF000000) == 0 {
+        count = count + 8
+        x = x << 8
+    }
+    if (x & 0xF0000000) == 0 {
+        count = count + 4
+        x = x << 4
+    }
+    if (x & 0xC0000000) == 0 {
+        count = count + 2
+        x = x << 2
+    }
+    if (x & 0x80000000) == 0 {
+        count = count + 1
+    }
+    count
+}
+
+/// Count trailing zero bits. Returns 32 for n == 0.
+pub fn trailing_zeros(n: i32) -> i32 {
+    if n == 0 {
+        return 32
+    }
+    let mut count = 0
+    let mut x = n
+    while (x & 1) == 0 {
+        count = count + 1
+        x = x >> 1
+    }
+    count
+}
+
+/// Count the number of set bits (population count) in `n`.
+pub fn popcount(n: i32) -> i32 {
+    let mut count = 0
+    let mut x = n
+    while x != 0 {
+        x = x & (x - 1)
+        count = count + 1
+    }
+    count
+}
+
+// ── checked arithmetic ──────────────────────────────────────────────────────
+
+pub fn checked_add(a: i32, b: i32) -> Option<i32> {
+    let result = a + b
+    if (a >= 0 && b >= 0 && result < 0) || (a < 0 && b < 0 && result >= 0) {
+        Option::None
+    } else {
+        Option::Some(result)
+    }
+}
+
+pub fn checked_sub(a: i32, b: i32) -> Option<i32> {
+    let result = a - b
+    if (a >= 0 && b < 0 && result < 0) || (a < 0 && b >= 0 && result >= 0) {
+        Option::None
+    } else {
+        Option::Some(result)
+    }
+}
+
+pub fn checked_mul(a: i32, b: i32) -> Option<i32> {
+    let result = a * b
+    if b != 0 && result / b != a {
+        Option::None
+    } else {
+        Option::Some(result)
+    }
+}
+
+// ── saturating arithmetic ───────────────────────────────────────────────────
+
+pub fn saturating_add(a: i32, b: i32) -> i32 {
+    let result = a + b
+    if a >= 0 && b >= 0 && result < 0 {
+        0x7FFFFFFF
+    } else {
+        if a < 0 && b < 0 && result >= 0 {
+            0 - 0x80000000
+        } else {
+            result
+        }
+    }
+}
+
+pub fn saturating_sub(a: i32, b: i32) -> i32 {
+    let result = a - b
+    if a >= 0 && b < 0 && result < 0 {
+        0x7FFFFFFF
+    } else {
+        if a < 0 && b >= 0 && result >= 0 {
+            0 - 0x80000000
+        } else {
+            result
+        }
+    }
+}
+
+pub fn saturating_mul(a: i32, b: i32) -> i32 {
+    let result = a * b
+    if b != 0 && result / b != a {
+        if (a >= 0 && b >= 0) || (a < 0 && b < 0) {
+            0x7FFFFFFF
+        } else {
+            0 - 0x80000000
+        }
+    } else {
+        result
+    }
+}

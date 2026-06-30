@@ -202,3 +202,61 @@ pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
     }
     count
 }
+
+// ── binary search variants ──────────────────────────────────────────────────
+
+/// Binary search on a sorted `Vec<i32>` using a key function.
+/// Returns the index of the first element whose key equals `target_key`,
+/// or -1 if not found.
+pub fn binary_search_by_key(v: Vec<i32>, target_key: i32, key: fn(i32) -> i32) -> i32 {
+    let mut lo: i32 = 0
+    let mut hi: i32 = len(v) - 1
+    let mut result: i32 = 0 - 1
+    while lo <= hi {
+        let mid: i32 = lo + (hi - lo) / 2
+        let mid_key = key(get_unchecked(v, mid))
+        if mid_key == target_key {
+            result = mid
+            lo = hi + 1
+        } else {
+            if mid_key < target_key {
+                lo = mid + 1
+            } else {
+                hi = mid - 1
+            }
+        }
+    }
+    result
+}
+
+/// Returns the index of the first element >= `target` in a sorted `Vec<i32>`.
+/// Returns `len(v)` if all elements are < `target`.
+pub fn lower_bound(v: Vec<i32>, target: i32) -> i32 {
+    let mut lo: i32 = 0
+    let mut hi: i32 = len(v)
+    while lo < hi {
+        let mid: i32 = lo + (hi - lo) / 2
+        if get_unchecked(v, mid) < target {
+            lo = mid + 1
+        } else {
+            hi = mid
+        }
+    }
+    lo
+}
+
+/// Returns the index of the first element > `target` in a sorted `Vec<i32>`.
+/// Returns `len(v)` if all elements are <= `target`.
+pub fn upper_bound(v: Vec<i32>, target: i32) -> i32 {
+    let mut lo: i32 = 0
+    let mut hi: i32 = len(v)
+    while lo < hi {
+        let mid: i32 = lo + (hi - lo) / 2
+        if get_unchecked(v, mid) <= target {
+            lo = mid + 1
+        } else {
+            hi = mid
+        }
+    }
+    lo
+}
