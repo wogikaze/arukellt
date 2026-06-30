@@ -90,6 +90,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Ve
 fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Vec<String> {
     let merged = Vec_new_String()
     vec_extend::Vec_extend_String_clone(merged, impl_params)
+    let impl_count = len(impl_params)
     let method_count = len(method_params)
     let mut k = 0
     while k < method_count {

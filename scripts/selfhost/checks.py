@@ -312,6 +312,7 @@ MONOLITHIC_OVERLAY_FALLBACK_REV = "7911a527"
 MONOLITHIC_OVERLAY_FALLBACK_BY_NS: dict[str, tuple[str, ...]] = {}
 WORKTREE_OVERLAY_NAMESPACES = frozenset({
     "analysis",
+    "collections",
     "compiler",
     "corehir",
     "dap",
@@ -2305,6 +2306,13 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         src = root / "std" / std_file
         if src.is_file():
             shutil.copyfile(src, std_dst / std_file)
+    # Copy std/text module as a flat std/text.ark so text::builder_append
+    # and other text functions are available to the pinned bootstrap.
+    # mod.ark has no `use` statements and only uses intrinsics/builtins,
+    # so it is safe for the pinned bootstrap to compile.
+    text_mod = root / "std" / "text" / "mod.ark"
+    if text_mod.is_file():
+        shutil.copyfile(text_mod, std_dst / "text.ark")
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     return overlay_root
 
