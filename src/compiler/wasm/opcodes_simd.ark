@@ -1,0 +1,134 @@
+// Arukellt Wasm - SIMD opcode constants (prefix, memory, basic ops, lane, comparison, bitwise, arithmetic).
+
+// SIMD prefix byte (0xFD) and sub-opcodes (LEB128-encoded after prefix)
+pub fn SIMD_PREFIX() -> i32 { 0xfd }
+
+// Memory lane SIMD instructions
+pub fn SIMD_V128_LOAD() -> i32 { 0x00 }
+pub fn SIMD_V128_LOAD8X8_S() -> i32 { 0x01 }
+pub fn SIMD_V128_LOAD8X8_U() -> i32 { 0x02 }
+pub fn SIMD_V128_LOAD16X4_S() -> i32 { 0x03 }
+pub fn SIMD_V128_LOAD16X4_U() -> i32 { 0x04 }
+pub fn SIMD_V128_LOAD32X2_S() -> i32 { 0x05 }
+pub fn SIMD_V128_LOAD32X2_U() -> i32 { 0x06 }
+pub fn SIMD_V128_LOAD8_SPLAT() -> i32 { 0x07 }
+pub fn SIMD_V128_LOAD16_SPLAT() -> i32 { 0x08 }
+pub fn SIMD_V128_LOAD32_SPLAT() -> i32 { 0x09 }
+pub fn SIMD_V128_LOAD64_SPLAT() -> i32 { 0x0a }
+pub fn SIMD_V128_STORE() -> i32 { 0x0b }
+pub fn SIMD_V128_LOAD8_LANE() -> i32 { 0x0c }
+pub fn SIMD_V128_LOAD16_LANE() -> i32 { 0x0d }
+pub fn SIMD_V128_LOAD32_LANE() -> i32 { 0x0e }
+pub fn SIMD_V128_LOAD64_LANE() -> i32 { 0x0f }
+pub fn SIMD_V128_STORE8_LANE() -> i32 { 0x10 }
+pub fn SIMD_V128_STORE16_LANE() -> i32 { 0x11 }
+pub fn SIMD_V128_STORE32_LANE() -> i32 { 0x12 }
+pub fn SIMD_V128_STORE64_LANE() -> i32 { 0x13 }
+pub fn SIMD_V128_LOAD32_ZERO() -> i32 { 0x14 }
+pub fn SIMD_V128_LOAD64_ZERO() -> i32 { 0x15 }
+
+// Basic v128 operations
+pub fn SIMD_V128_CONST() -> i32 { 0x0c }
+pub fn SIMD_I8X16_SHUFFLE() -> i32 { 0x0d }
+pub fn SIMD_I8X16_SWIZZLE() -> i32 { 0x0e }
+pub fn SIMD_I8X16_SPLAT() -> i32 { 0x0f }
+pub fn SIMD_I16X8_SPLAT() -> i32 { 0x10 }
+pub fn SIMD_I32X4_SPLAT() -> i32 { 0x11 }
+pub fn SIMD_I64X2_SPLAT() -> i32 { 0x12 }
+pub fn SIMD_F32X4_SPLAT() -> i32 { 0x13 }
+pub fn SIMD_F64X2_SPLAT() -> i32 { 0x14 }
+
+// Extract lane
+pub fn SIMD_I8X16_EXTRACT_LANE_S() -> i32 { 0x15 }
+pub fn SIMD_I8X16_EXTRACT_LANE_U() -> i32 { 0x16 }
+pub fn SIMD_I16X8_EXTRACT_LANE_S() -> i32 { 0x17 }
+pub fn SIMD_I16X8_EXTRACT_LANE_U() -> i32 { 0x18 }
+pub fn SIMD_I32X4_EXTRACT_LANE() -> i32 { 0x19 }
+pub fn SIMD_I64X2_EXTRACT_LANE() -> i32 { 0x1a }
+pub fn SIMD_F32X4_EXTRACT_LANE() -> i32 { 0x1b }
+pub fn SIMD_F64X2_EXTRACT_LANE() -> i32 { 0x1c }
+
+// Replace lane
+pub fn SIMD_I8X16_REPLACE_LANE() -> i32 { 0x1d }
+pub fn SIMD_I16X8_REPLACE_LANE() -> i32 { 0x1e }
+pub fn SIMD_I32X4_REPLACE_LANE() -> i32 { 0x1f }
+pub fn SIMD_I64X2_REPLACE_LANE() -> i32 { 0x20 }
+pub fn SIMD_F32X4_REPLACE_LANE() -> i32 { 0x21 }
+pub fn SIMD_F64X2_REPLACE_LANE() -> i32 { 0x22 }
+
+// v128 comparison
+pub fn SIMD_V128_EQ() -> i32 { 0x29 }
+pub fn SIMD_V128_NE() -> i32 { 0x2a }
+pub fn SIMD_V128_LT() -> i32 { 0x2b }
+pub fn SIMD_V128_LE() -> i32 { 0x2c }
+pub fn SIMD_V128_GT() -> i32 { 0x2d }
+pub fn SIMD_V128_GE() -> i32 { 0x2e }
+
+// Bitwise operations
+pub fn SIMD_V128_NOT() -> i32 { 0x4d }
+pub fn SIMD_V128_AND() -> i32 { 0x4e }
+pub fn SIMD_V128_ANDNOT() -> i32 { 0x4f }
+pub fn SIMD_V128_OR() -> i32 { 0x50 }
+pub fn SIMD_V128_XOR() -> i32 { 0x51 }
+pub fn SIMD_V128_BITSELECT() -> i32 { 0x52 }
+pub fn SIMD_V128_ANY_TRUE() -> i32 { 0x53 }
+
+// Load/store lane (for v128)
+pub fn SIMD_V128_LOAD8_LANE_OP() -> i32 { 0x54 }
+pub fn SIMD_V128_LOAD16_LANE_OP() -> i32 { 0x55 }
+pub fn SIMD_V128_LOAD32_LANE_OP() -> i32 { 0x56 }
+pub fn SIMD_V128_LOAD64_LANE_OP() -> i32 { 0x57 }
+
+// Arithmetic - i8x16
+pub fn SIMD_I8X16_ADD() -> i32 { 0x7e }
+pub fn SIMD_I8X16_ADD_SAT_S() -> i32 { 0x7f }
+pub fn SIMD_I8X16_ADD_SAT_U() -> i32 { 0x80 }
+pub fn SIMD_I8X16_SUB() -> i32 { 0x81 }
+pub fn SIMD_I8X16_SUB_SAT_S() -> i32 { 0x82 }
+pub fn SIMD_I8X16_SUB_SAT_U() -> i32 { 0x83 }
+pub fn SIMD_I8X16_MUL() -> i32 { 0x89 }
+pub fn SIMD_I8X16_NEG() -> i32 { 0x6f }
+pub fn SIMD_I8X16_ABS() -> i32 { 0x60 }
+
+// Arithmetic - i16x8
+pub fn SIMD_I16X8_ADD() -> i32 { 0xae }
+pub fn SIMD_I16X8_ADD_SAT_S() -> i32 { 0xaf }
+pub fn SIMD_I16X8_ADD_SAT_U() -> i32 { 0xb0 }
+pub fn SIMD_I16X8_SUB() -> i32 { 0xb1 }
+pub fn SIMD_I16X8_SUB_SAT_S() -> i32 { 0xb2 }
+pub fn SIMD_I16X8_SUB_SAT_U() -> i32 { 0xb3 }
+pub fn SIMD_I16X8_MUL() -> i32 { 0xb9 }
+pub fn SIMD_I16X8_NEG() -> i32 { 0x9f }
+pub fn SIMD_I16X8_ABS() -> i32 { 0x90 }
+
+// Arithmetic - i32x4
+pub fn SIMD_I32X4_ADD() -> i32 { 0xce }
+pub fn SIMD_I32X4_SUB() -> i32 { 0xd1 }
+pub fn SIMD_I32X4_MUL() -> i32 { 0xd9 }
+pub fn SIMD_I32X4_NEG() -> i32 { 0xbf }
+pub fn SIMD_I32X4_ABS() -> i32 { 0xb0 }
+
+// Arithmetic - i64x2
+pub fn SIMD_I64X2_ADD() -> i32 { 0xee }
+pub fn SIMD_I64X2_SUB() -> i32 { 0xf1 }
+pub fn SIMD_I64X2_MUL() -> i32 { 0xf9 }
+pub fn SIMD_I64X2_NEG() -> i32 { 0xdf }
+pub fn SIMD_I64X2_ABS() -> i32 { 0xd0 }
+
+// Arithmetic - f32x4
+pub fn SIMD_F32X4_ADD() -> i32 { 0xe4 }
+pub fn SIMD_F32X4_SUB() -> i32 { 0xe5 }
+pub fn SIMD_F32X4_MUL() -> i32 { 0xe6 }
+pub fn SIMD_F32X4_DIV() -> i32 { 0xe7 }
+pub fn SIMD_F32X4_NEG() -> i32 { 0xe0 }
+pub fn SIMD_F32X4_ABS() -> i32 { 0xe0 }
+pub fn SIMD_F32X4_SQRT() -> i32 { 0xe3 }
+
+// Arithmetic - f64x2
+pub fn SIMD_F64X2_ADD() -> i32 { 0xf4 }
+pub fn SIMD_F64X2_SUB() -> i32 { 0xf5 }
+pub fn SIMD_F64X2_MUL() -> i32 { 0xf6 }
+pub fn SIMD_F64X2_DIV() -> i32 { 0xf7 }
+pub fn SIMD_F64X2_NEG() -> i32 { 0xf0 }
+pub fn SIMD_F64X2_SQRT() -> i32 { 0xf3 }
+pub fn SIMD_F64X2_ABS() -> i32 { 0xec }

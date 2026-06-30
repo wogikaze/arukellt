@@ -1,0 +1,166 @@
+// Arukellt Wasm - base opcode constants (control, memory, arithmetic, conversion).
+
+// Structured control opcodes.
+pub fn OP_UNREACHABLE() -> i32 { 0 }
+pub fn OP_NOP() -> i32 { 1 }
+pub fn OP_BLOCK() -> i32 { 2 }
+pub fn OP_LOOP() -> i32 { 3 }
+pub fn OP_IF() -> i32 { 4 }
+pub fn OP_ELSE() -> i32 { 5 }
+pub fn OP_END() -> i32 { 11 }
+
+// Branch opcodes.
+pub fn OP_BR() -> i32 { 12 }
+pub fn OP_BR_IF() -> i32 { 13 }
+pub fn OP_RETURN() -> i32 { 15 }
+
+// Call and stack opcodes.
+pub fn OP_CALL() -> i32 { 16 }
+pub fn OP_CALL_INDIRECT() -> i32 { 17 }
+pub fn OP_REF_FUNC() -> i32 { 210 }
+pub fn OP_DROP() -> i32 { 26 }
+pub fn OP_SELECT() -> i32 { 27 }
+
+// Local and global opcodes.
+pub fn OP_LOCAL_GET() -> i32 { 32 }
+pub fn OP_LOCAL_SET() -> i32 { 33 }
+pub fn OP_LOCAL_TEE() -> i32 { 34 }
+pub fn OP_GLOBAL_GET() -> i32 { 35 }
+pub fn OP_GLOBAL_SET() -> i32 { 36 }
+
+// Memory opcodes.
+pub fn OP_I32_LOAD() -> i32 { 40 }
+pub fn OP_I64_LOAD() -> i32 { 41 }
+pub fn OP_F64_LOAD() -> i32 { 43 }
+pub fn OP_I32_LOAD8_U() -> i32 { 45 }
+pub fn OP_I32_STORE() -> i32 { 54 }
+pub fn OP_I64_STORE() -> i32 { 55 }
+pub fn OP_F64_STORE() -> i32 { 57 }
+pub fn OP_I32_STORE8() -> i32 { 58 }
+pub fn OP_MEMORY_SIZE() -> i32 { 63 }
+pub fn OP_MEMORY_GROW() -> i32 { 64 }
+
+// Const opcodes.
+pub fn OP_I32_CONST() -> i32 { 65 }
+pub fn OP_I64_CONST() -> i32 { 66 }
+pub fn OP_F64_CONST() -> i32 { 68 }
+
+// i32 compare opcodes.
+pub fn OP_I32_EQZ() -> i32 { 69 }
+pub fn OP_I32_EQ() -> i32 { 70 }
+pub fn OP_I32_NE() -> i32 { 71 }
+pub fn OP_I32_LT_S() -> i32 { 72 }
+pub fn OP_I32_LT_U() -> i32 { 73 }
+pub fn OP_I32_GT_S() -> i32 { 74 }
+pub fn OP_I32_GT_U() -> i32 { 75 }
+pub fn OP_I32_LE_S() -> i32 { 76 }
+pub fn OP_I32_LE_U() -> i32 { 77 }
+pub fn OP_I32_GE_S() -> i32 { 78 }
+pub fn OP_I32_GE_U() -> i32 { 79 }
+
+// i64 compare opcodes.
+pub fn OP_I64_EQZ() -> i32 { 80 }
+pub fn OP_I64_EQ() -> i32 { 81 }
+pub fn OP_I64_NE() -> i32 { 82 }
+pub fn OP_I64_LT_S() -> i32 { 83 }
+pub fn OP_I64_GT_S() -> i32 { 85 }
+pub fn OP_I64_LE_S() -> i32 { 87 }
+pub fn OP_I64_GE_S() -> i32 { 89 }
+
+// f64 comparison opcodes.
+pub fn OP_F64_EQ() -> i32 { 97 }
+pub fn OP_F64_NE() -> i32 { 98 }
+pub fn OP_F64_LT() -> i32 { 99 }
+pub fn OP_F64_GT() -> i32 { 100 }
+pub fn OP_F64_LE() -> i32 { 101 }
+pub fn OP_F64_GE() -> i32 { 102 }
+
+// i32 arithmetic and bitwise opcodes.
+pub fn OP_I32_ADD() -> i32 { 106 }
+pub fn OP_I32_SUB() -> i32 { 107 }
+pub fn OP_I32_MUL() -> i32 { 108 }
+pub fn OP_I32_DIV_S() -> i32 { 109 }
+pub fn OP_I32_DIV_U() -> i32 { 110 }
+pub fn OP_I32_REM_S() -> i32 { 111 }
+pub fn OP_I32_REM_U() -> i32 { 112 }
+pub fn OP_I32_AND() -> i32 { 113 }
+pub fn OP_I32_OR() -> i32 { 114 }
+pub fn OP_I32_XOR() -> i32 { 115 }
+pub fn OP_I32_SHL() -> i32 { 116 }
+pub fn OP_I32_SHR_S() -> i32 { 117 }
+pub fn OP_I32_SHR_U() -> i32 { 118 }
+
+// i64 arithmetic and bitwise opcodes.
+pub fn OP_I64_ADD() -> i32 { 124 }
+pub fn OP_I64_SUB() -> i32 { 125 }
+pub fn OP_I64_MUL() -> i32 { 126 }
+pub fn OP_I64_DIV_S() -> i32 { 127 }
+pub fn OP_I64_DIV_U() -> i32 { 128 }
+pub fn OP_I64_REM_S() -> i32 { 129 }
+pub fn OP_I64_REM_U() -> i32 { 130 }
+pub fn OP_I64_AND() -> i32 { 131 }
+pub fn OP_I64_OR() -> i32 { 132 }
+pub fn OP_I64_XOR() -> i32 { 133 }
+pub fn OP_I64_SHL() -> i32 { 134 }
+pub fn OP_I64_SHR_S() -> i32 { 135 }
+pub fn OP_I64_SHR_U() -> i32 { 136 }
+
+// f64 arithmetic and unary numeric opcodes.
+pub fn OP_F64_ABS() -> i32 { 153 }
+pub fn OP_F64_NEG() -> i32 { 154 }
+pub fn OP_F64_CEIL() -> i32 { 155 }
+pub fn OP_F64_FLOOR() -> i32 { 156 }
+pub fn OP_F64_NEAREST() -> i32 { 158 }
+pub fn OP_F64_TRUNC() -> i32 { 157 }
+pub fn OP_F64_ADD() -> i32 { 160 }
+pub fn OP_F64_SUB() -> i32 { 161 }
+pub fn OP_F64_MUL() -> i32 { 162 }
+pub fn OP_F64_DIV() -> i32 { 163 }
+
+// Conversion opcodes.
+pub fn OP_I32_WRAP_I64() -> i32 { 167 }
+pub fn OP_I32_TRUNC_F64_S() -> i32 { 170 }
+pub fn OP_I32_EXTEND8_S() -> i32 { 192 }
+pub fn OP_I32_EXTEND16_S() -> i32 { 193 }
+pub fn OP_I64_EXTEND8_S() -> i32 { 194 }
+pub fn OP_I64_EXTEND16_S() -> i32 { 195 }
+pub fn OP_I64_EXTEND32_S() -> i32 { 196 }
+pub fn OP_I64_EXTEND_I32_S() -> i32 { 172 }
+pub fn OP_I64_EXTEND_I32_U() -> i32 { 173 }
+pub fn OP_F64_CONVERT_I32_S() -> i32 { 183 }
+pub fn OP_F64_CONVERT_I32_U() -> i32 { 184 }
+
+// f32 opcodes
+pub fn OP_F32_LOAD() -> i32 { 0x2a }
+pub fn OP_F32_STORE() -> i32 { 0x38 }
+pub fn OP_F32_CONST() -> i32 { 0x43 }
+pub fn OP_F32_EQ() -> i32 { 0x5b }
+pub fn OP_F32_NE() -> i32 { 0x5c }
+pub fn OP_F32_LT() -> i32 { 0x5d }
+pub fn OP_F32_GT() -> i32 { 0x5e }
+pub fn OP_F32_LE() -> i32 { 0x5f }
+pub fn OP_F32_GE() -> i32 { 0x60 }
+pub fn OP_F32_ADD() -> i32 { 0x92 }
+pub fn OP_F32_SUB() -> i32 { 0x93 }
+pub fn OP_F32_MUL() -> i32 { 0x94 }
+pub fn OP_F32_DIV() -> i32 { 0x95 }
+pub fn OP_F32_MIN() -> i32 { 0x96 }
+pub fn OP_F32_MAX() -> i32 { 0x97 }
+pub fn OP_F32_NEG() -> i32 { 0x8c }
+pub fn OP_F32_ABS() -> i32 { 0x8b }
+pub fn OP_F32_CEIL() -> i32 { 0x8d }
+pub fn OP_F32_FLOOR() -> i32 { 0x8e }
+pub fn OP_F32_TRUNC() -> i32 { 0x8f }
+pub fn OP_F32_NEAREST() -> i32 { 0x90 }
+pub fn OP_F32_SQRT() -> i32 { 0x91 }
+pub fn OP_F32_CONVERT_I32_S() -> i32 { 0xb2 }
+pub fn OP_F32_CONVERT_I32_U() -> i32 { 0xb3 }
+pub fn OP_F32_CONVERT_I64_S() -> i32 { 0xb6 }
+pub fn OP_F32_CONVERT_I64_U() -> i32 { 0xb7 }
+pub fn OP_F32_REINTERPRET_I32() -> i32 { 0xbe }
+pub fn OP_I32_TRUNC_F32_S() -> i32 { 0xa8 }
+pub fn OP_I32_TRUNC_F32_U() -> i32 { 0xa9 }
+pub fn OP_I64_TRUNC_F32_S() -> i32 { 0xae }
+pub fn OP_I64_TRUNC_F32_U() -> i32 { 0xaf }
+pub fn OP_F32_DEMOTE_F64() -> i32 { 0xc6 }
+pub fn OP_F64_PROMOTE_F32() -> i32 { 0xbb }
