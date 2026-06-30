@@ -1977,7 +1977,7 @@ def _flatten_compiler_imports(text: str) -> str:
     generated overlay is only a bootstrap adapter; checked-in source stays nested.
     """
     use_re = re.compile(
-        r"^(\s*)use\s+([A-Za-z][A-Za-z0-9_]*(?:::[A-Za-z][A-Za-z0-9_]*)+)"
+        r"^(\s*)(?:pub\s+)?use\s+([A-Za-z][A-Za-z0-9_]*(?:::[A-Za-z][A-Za-z0-9_]*)+)"
         r"(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?\s*$",
     )
     alias_map: dict[str, str] = {}
