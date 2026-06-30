@@ -12,10 +12,12 @@ use mir::lower::core_match_payload
 use mir::lower::core_match_result
 use mir::value_types
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn lower_core_match(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 2 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let scrut_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(scrut_idx))

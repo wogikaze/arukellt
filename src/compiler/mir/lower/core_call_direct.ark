@@ -6,10 +6,12 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_call_hof
 use mir::lower::core_call_payload
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn lower_core_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 1 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let payload_result = core_call_payload::lower_core_payload_variant_call(ctx, exprs, expr)
     if payload_result != 0 - 2 {

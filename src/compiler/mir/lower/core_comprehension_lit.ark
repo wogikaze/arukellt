@@ -6,10 +6,12 @@ use mir::inst_structured_control
 use mir::lower::comprehension
 use mir::lower::core_expr_shape_accessors
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn lower_core_comprehension(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
     if child_count < 2 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let elem_index = core_expr_shape_accessors::mir_core_expr_child(expr, 0)
     let iter_index = core_expr_shape_accessors::mir_core_expr_child(expr, 1)
