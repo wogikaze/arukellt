@@ -15,7 +15,7 @@ use mir::lower::ctx_types
 fn MIR_LOWER_TRACE() -> i32 {
     match env::var(String_from("MIR_LOWER_TRACE")) {
         Option::Some(s) => {
-            if eq(text::builder_build(s), String_from("1")) {
+            if eq(s, String_from("1")) {
                 return 1
             }
             0

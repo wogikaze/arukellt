@@ -23,8 +23,7 @@ pub fn handle_selection_range(state: LspState, body: String) {
     }
     let line = json_fields::extract_int_field(clone(body), String_from("line"))
     let character = json_fields::extract_int_field(clone(body), String_from("character"))
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
+    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     out = text::builder_append(out, to_string(req_id))
     out = text::builder_append(out, String_from(",\"result\":{\"ranges\":[{\"range\":{\"start\":{\"line\":"))
     out = text::builder_append(out, to_string(line))

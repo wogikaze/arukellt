@@ -96,9 +96,9 @@ surfaces, not a guaranteed-stable text-processing facade.
 | `format_i64` | `(i64) -> String` | `stable` | Formats an i64 as a decimal string. |
 | `format_f64` | `(f64) -> String` | `stable` | Formats an f64 using the intrinsic formatter. |
 | `format_bool` | `(bool) -> String` | `stable` | Formats a boolean as true or false. |
-| `builder_new` | `() -> String` | `stable` | Creates a new empty StringBuilder (Vec<i32> byte buffer). |
-| `builder_append` | `(String, String) -> String` | `stable` | Appends a string to the builder by copying its bytes into the buffer. |
-| `builder_append_char` | `(String, char) -> String` | `stable` | Appends a single byte value to the builder. |
+| `builder_new` | `() -> String` | `stable` | Creates a new empty StringBuilder (represented internally as a String). |
+| `builder_append` | `(String, String) -> String` | `stable` | Appends a string to the builder and returns the updated builder. |
+| `builder_append_char` | `(String, char) -> String` | `stable` | Appends a single character to the builder and returns the updated builder. |
 | `builder_append_line` | `(String, String) -> String` | `stable` | Appends a string followed by a newline to the builder. |
-| `builder_build` | `(String) -> String` | `stable` | Produces the final string from the builder's byte buffer (O(n) single allocation). |
+| `builder_build` | `(String) -> String` | `stable` | Produces the final string from the builder. |
 | `builder_len` | `(String) -> i32` | `stable` | Returns the current byte length of the builder's content. |

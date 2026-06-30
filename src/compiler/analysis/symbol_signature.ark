@@ -53,8 +53,7 @@ fn infer_let_type(decl: AstNode) -> String {
 
 pub fn render_signature(decl: AstNode) -> String {
     if node_is_fn_decl(decl) {
-        let mut sig = text::builder_new()
-        sig = text::builder_append(sig, String_from("fn "))
+        let mut sig = String_from("fn ")
         sig = text::builder_append(sig, node_text(decl))
         sig = text::builder_append(sig, String_from("("))
         let cn = node_child_count(decl)
@@ -71,7 +70,7 @@ pub fn render_signature(decl: AstNode) -> String {
         sig = text::builder_append(sig, String_from(")"))
         let ret = fn_return_type_text(decl)
         if len(ret) > 0 { sig = text::builder_append(sig, concat(String_from(" -> "), ret)) }
-        return text::builder_build(sig)
+        return sig
     }
     if node_is_struct_decl(decl) { return concat(String_from("struct "), node_text(decl)) }
     if node_is_enum_decl(decl) { return concat(String_from("enum "), node_text(decl)) }

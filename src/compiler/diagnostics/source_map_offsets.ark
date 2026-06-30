@@ -74,5 +74,5 @@ fn location_text(source: String, file: String, offset: i32) -> String {
     out = text::builder_append(out, to_string(offset_to_line(clone(source), offset)))
     out = text::builder_append(out, String_from(":"))
     out = text::builder_append(out, to_string(offset_to_column(source, offset)))
-    text::builder_build(out)
+    out
 }

@@ -8,8 +8,7 @@ use std::text
 fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
     let start = positions::offset_to_position(clone(text), decl_start)
     let end = positions::offset_to_position(clone(text), decl_end)
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("{\"uri\":"))
+    let mut out = String_from("{\"uri\":")
     out = text::builder_append(out, json_escape::quote_string(uri))
     out = text::builder_append(out, String_from(",\"range\":{\"start\":{\"line\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_line(start)))
@@ -20,12 +19,11 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
     out = text::builder_append(out, String_from(",\"character\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_character(end)))
     out = text::builder_append(out, String_from("}}}"))
-    text::builder_build(out)
+    out
 }
 
 fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String) -> String {
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("{\"name\":"))
+    let mut out = String_from("{\"name\":")
     out = text::builder_append(out, json_escape::quote_string(symbol_index_record::indexed_symbol_name(sym)))
     out = text::builder_append(out, String_from(",\"kind\":"))
     out = text::builder_append(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
@@ -41,7 +39,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
         out = text::builder_append(out, json_escape::quote_string(module_path))
     }
     out = text::builder_append(out, String_from("}"))
-    text::builder_build(out)
+    out
 }
 
 fn append_symbol_information(items: String, item: String) -> String {
@@ -65,11 +63,10 @@ pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record
         items = append_symbol_information(items, symbol_information_json(sym, text))
         i = i + 1
     }
-    let mut body = text::builder_new()
-    body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     body = text::builder_append(body, to_string(id))
     body = text::builder_append(body, String_from(",\"result\":["))
     body = text::builder_append(body, items)
     body = text::builder_append(body, String_from("]}"))
-    text::builder_build(body)
+    body
 }

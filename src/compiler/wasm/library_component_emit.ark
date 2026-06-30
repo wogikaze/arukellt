@@ -38,7 +38,7 @@ fn lib_comp_new_component_writer() -> writer_core::WasmWriter {
     writer_core::emit_byte(out, 0x00)
     writer_core::emit_byte(out, 0x01)
     writer_core::emit_byte(out, 0x00)
-    text::builder_build(out)
+    out
 }
 
 fn lib_comp_emit_section(out: writer_core::WasmWriter, section_id: i32, contents: writer_core::WasmWriter) {
@@ -98,8 +98,7 @@ fn lib_comp_should_export(name: String) -> bool {
 }
 
 fn lib_comp_export_name_kebab(name: String) -> String {
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from(""))
+    let mut out = String_from("")
     let n = len(name)
     let mut i = 0
     while i < n {
@@ -111,7 +110,7 @@ fn lib_comp_export_name_kebab(name: String) -> String {
         }
         i = i + 1
     }
-    text::builder_build(out)
+    out
 }
 
 fn lib_comp_val_type_to_wit(vt: i32) -> i32 {

@@ -16,12 +16,11 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
         out = text::builder_append(out, String_from("}"))
         i = i + 1
     }
-    text::builder_build(out)
+    out
 }
 
 fn signature_info_json(label: String, doc: String, params: Vec<String>) -> String {
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("{\"label\":"))
+    let mut out = String_from("{\"label\":")
     out = text::builder_append(out, responses_json::quote_string(label))
     if len(doc) > 0 {
         out = text::builder_append(out, String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
@@ -31,17 +30,16 @@ fn signature_info_json(label: String, doc: String, params: Vec<String>) -> Strin
     out = text::builder_append(out, String_from(",\"parameters\":["))
     out = text::builder_append(out, append_param_labels(String_new(), params))
     out = text::builder_append(out, String_from("]}"))
-    text::builder_build(out)
+    out
 }
 
 pub fn build_signature_help_response(id: i32, label: String, doc: String, params: Vec<String>, active_param: i32) -> String {
-    let mut body = text::builder_new()
-    body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     body = text::builder_append(body, to_string(id))
     body = text::builder_append(body, String_from(",\"result\":{\"signatures\":["))
     body = text::builder_append(body, signature_info_json(label, doc, params))
     body = text::builder_append(body, String_from("],\"activeSignature\":0,\"activeParameter\":"))
     body = text::builder_append(body, to_string(active_param))
     body = text::builder_append(body, String_from("}}"))
-    text::builder_build(body)
+    body
 }

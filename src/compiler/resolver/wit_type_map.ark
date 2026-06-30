@@ -199,7 +199,7 @@ fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface
 }
 
 fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
-    let mut sig = text::builder_new()
+    let mut sig = String_new()
     let mut pi = 0
     while pi < len(param_wit_types) {
         if pi > 0 {
@@ -213,10 +213,10 @@ fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wi
         if len(sig) == 0 {
             return String_from("0")
         }
-        return concat(text::builder_build(sig), String_from("_0"))
+        return concat(sig, String_from("_0"))
     }
     if len(sig) > 0 {
         sig = text::builder_append(sig, String_from("_"))
     }
-    concat(text::builder_build(sig), concat(String_from("1"), wit_type_to_valtype(ret, doc)))
+    concat(sig, concat(String_from("1"), wit_type_to_valtype(ret, doc)))
 }

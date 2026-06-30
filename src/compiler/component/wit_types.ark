@@ -28,8 +28,7 @@ fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
 		return wit_names::wit_type_name(name)
 	}
 	if type_node::type_node_is_tuple_kind(ty) {
-		let mut out = text::builder_new()
-		out = text::builder_append(out, String_from("tuple<"))
+		let mut out = String_from("tuple<")
 		let mut i = 0
 		while i < type_node::type_node_child_count(ty) {
 			if i > 0 {
@@ -38,7 +37,7 @@ fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
 			out = text::builder_append(out, wit_type_from_ast(type_node::type_node_child_at(ty, i)))
 			i = i + 1
 		}
-		return concat(text::builder_build(out), String_from(">"))
+		return concat(out, String_from(">"))
 	}
 	String_from("s32")
 }

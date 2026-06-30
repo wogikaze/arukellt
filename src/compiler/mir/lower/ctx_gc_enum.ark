@@ -27,7 +27,7 @@ fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String
         i = i + 1
     }
     push(ctx.gc_enum_variant_names, variant_name)
-    push(ctx.gc_enum_variant_sigs, text::builder_build(sig))
+    push(ctx.gc_enum_variant_sigs, sig)
 }
 
 fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
@@ -89,13 +89,13 @@ fn gc_enum_field_sig_for_vt(vt: i32) -> String {
 }
 
 fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
-    let mut sig = text::builder_new()
+    let mut sig = String_new()
     let mut i = 0
     while i < len(payload_vts) {
         sig = text::builder_append(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
         i = i + 1
     }
-    text::builder_build(sig)
+    sig
 }
 
 fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
@@ -169,7 +169,7 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
 }
 
 fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
-    let mut sig = text::builder_new()
+    let mut sig = String_new()
     let layout_count = len(ctx.struct_names)
     let mut li = 0
     while li < layout_count {
@@ -188,9 +188,9 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(ft)))
                 fi = fi + 1
             }
-            return text::builder_build(sig)
+            return sig
         }
         li = li + 1
     }
-    text::builder_build(sig)
+    sig
 }

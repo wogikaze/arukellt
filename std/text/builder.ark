@@ -1,51 +1,35 @@
-/// StringBuilder — efficient string building through a growable byte buffer.
-///
-/// The builder accumulates string fragments in a `Vec<i32>` byte buffer
-/// (amortized O(1) append via `push`) and produces a final `String` via
-/// `builder_build` (single O(n) allocation + copy using
-/// `__intrinsic_string_from_bytes`).
-
-/// Creates a new empty StringBuilder (represented as a Vec<i32> byte buffer).
-pub fn builder_new() -> Vec<i32> {
-    Vec_new_i32()
+/// StringBuilder — efficient string building through append operations.
+/// 
+/// The builder accumulates string fragments and produces a final String
+/// via `builder_build`. Currently implemented as simple concatenation;
+/// a future version may use an internal buffer for better performance.
+/// Creates a new empty StringBuilder (represented as a String internally).
+pub fn builder_new() -> String {
+    ""
 }
 
-/// Appends a string to the builder by copying its bytes into the buffer.
-pub fn builder_append(sb: Vec<i32>, s: String) -> Vec<i32> {
-    let n = len(s)
-    let mut i = 0
-    while i < n {
-        push(sb, char_at(clone(s), i))
-        i = i + 1
-    }
-    sb
+/// Appends a string to the builder and returns the updated builder.
+pub fn builder_append(sb: String, s: String) -> String {
+    __intrinsic_concat(sb, s)
 }
 
-/// Appends a single byte value to the builder.
-pub fn builder_append_char(sb: Vec<i32>, c: i32) -> Vec<i32> {
-    push(sb, c)
-    sb
+/// Appends a single character to the builder and returns the updated builder.
+pub fn builder_append_char(sb: String, c: char) -> String {
+    __intrinsic_concat(sb, char_to_string(c))
 }
 
 /// Appends a string followed by a newline to the builder.
-pub fn builder_append_line(sb: Vec<i32>, s: String) -> Vec<i32> {
-    let n = len(s)
-    let mut i = 0
-    while i < n {
-        push(sb, char_at(clone(s), i))
-        i = i + 1
-    }
-    push(sb, 10)
+pub fn builder_append_line(sb: String, s: String) -> String {
+    let with_s = __intrinsic_concat(sb, s)
+    __intrinsic_concat(with_s, "\n")
+}
+
+/// Produces the final string from the builder.
+pub fn builder_build(sb: String) -> String {
     sb
 }
 
-/// Produces the final string from the builder's byte buffer.
-/// Uses `__intrinsic_string_from_bytes` for a single O(n) allocation.
-pub fn builder_build(sb: Vec<i32>) -> String {
-    __intrinsic_string_from_bytes(sb)
-}
-
 /// Returns the current byte length of the builder's content.
-pub fn builder_len(sb: Vec<i32>) -> i32 {
+pub fn builder_len(sb: String) -> i32 {
     len(sb)
 }

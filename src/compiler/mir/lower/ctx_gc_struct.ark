@@ -20,7 +20,7 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
         i = i + 1
     }
     push(ctx.gc_struct_names, struct_name)
-    push(ctx.gc_struct_sigs, text::builder_build(sig))
+    push(ctx.gc_struct_sigs, sig)
 }
 
 fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
@@ -80,8 +80,7 @@ fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32)
 }
 
 fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> String {
-    let mut sig = text::builder_new()
-    sig = text::builder_append(sig, String_from("GS"))
+    let mut sig = String_from("GS")
     let mut fi = 0
     while fi < field_count {
         let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))
@@ -89,7 +88,7 @@ fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> 
         sig = text::builder_append(sig, field_sig)
         fi = fi + 1
     }
-    text::builder_build(sig)
+    sig
 }
 
 fn ctx_struct_offset_for_field(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {

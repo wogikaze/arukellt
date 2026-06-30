@@ -21,8 +21,7 @@ fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: Strin
     let last_end = import_block_end(span)
     let start_pos = positions::offset_to_position(clone(text), first_start)
     let end_pos = positions::offset_to_position(text, last_end)
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("{\"title\":"))
+    let mut out = String_from("{\"title\":")
     out = text::builder_append(out, json_escape::quote_string(title))
     out = text::builder_append(out, String_from(",\"kind\":"))
     out = text::builder_append(out, json_escape::quote_string(kind))
@@ -39,7 +38,7 @@ fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: Strin
     out = text::builder_append(out, String_from("}},\"newText\":"))
     out = text::builder_append(out, json_escape::quote_string(fixed_block))
     out = text::builder_append(out, String_from("}]}}}"))
-    text::builder_build(out)
+    out
 }
 
 fn build_semantic_fix_action(uri: String, text: String, title: String, kind: String) -> String {

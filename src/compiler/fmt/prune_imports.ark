@@ -108,7 +108,7 @@ fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneI
         }
         i = i + 1
     }
-    text::builder_build(out)
+    out
 }
 
 fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
@@ -131,7 +131,7 @@ fn body_after_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
 fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
     let body = body_after_imports(clone(text), entries)
     let en = len(entries)
-    let mut out = text::builder_new()
+    let mut out = String_new()
     let mut group = 0
     while group <= 2 {
         let mut i = 0
@@ -145,7 +145,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
         }
         group = group + 1
     }
-    text::builder_build(out)
+    out
 }
 
 fn import_block_bounds(entries: Vec<PruneImportEntry>) -> i32 {

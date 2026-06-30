@@ -34,8 +34,7 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
         let mut ai = 0
         while ai < ac {
             let a = phi_access::MirPhi_arg_at(phi, ai)
-            let mut line = text::builder_new()
-            line = text::builder_append(line, String_from("phi_elim_copy bb"))
+            let mut line = String_from("phi_elim_copy bb")
             line = text::builder_append(line, to_string(phi_access::MirPhiArg_pred_block(a)))
             line = text::builder_append(line, String_from("->bb"))
             line = text::builder_append(line, to_string(join_block_id))
@@ -46,8 +45,7 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
             stdio::println(line)
             ai = ai + 1
         }
-        let mut tail = text::builder_new()
-        tail = text::builder_append(tail, String_from("phi_elim_join bb"))
+        let mut tail = String_from("phi_elim_join bb")
         tail = text::builder_append(tail, to_string(join_block_id))
         tail = text::builder_append(tail, String_from(": "))
         tail = text::builder_append(tail, clone(merge_name))

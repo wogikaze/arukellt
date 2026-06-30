@@ -9,8 +9,7 @@ use mir::function_block_queries
 use std::text
 
 fn emit_wat_locals(f: MirFunction) -> String {
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from(""))
+    let mut out = String_from("")
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut li = 0
     while li < local_count {
@@ -19,12 +18,11 @@ fn emit_wat_locals(f: MirFunction) -> String {
 "))))
         li = li + 1
     }
-    text::builder_build(out)
+    out
 }
 
 fn emit_wat_instructions(f: MirFunction) -> String {
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from(""))
+    let mut out = String_from("")
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
@@ -39,5 +37,5 @@ fn emit_wat_instructions(f: MirFunction) -> String {
         }
         bi = bi + 1
     }
-    text::builder_build(out)
+    out
 }

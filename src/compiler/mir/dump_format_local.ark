@@ -13,11 +13,10 @@ fn mir_format_local_ref(f: MirFunction, local_id: i32) -> String {
     }
     let local = function_locals_view::MirFunction_local_at(f, local_id)
     if local_access::MirLocal_ssa_version(local) >= 0 {
-        let mut out = text::builder_new()
-        out = text::builder_append(out, String_from("%"))
+        let mut out = String_from("%")
         out = text::builder_append(out, local_access::MirLocal_ssa_name(local))
         out = text::builder_append(out, String_from("."))
-        return concat(text::builder_build(out), to_string(local_access::MirLocal_ssa_version(local)))
+        return concat(out, to_string(local_access::MirLocal_ssa_version(local)))
     }
     concat(String_from("%"), to_string(local_id))
 }

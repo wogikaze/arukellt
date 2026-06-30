@@ -28,8 +28,7 @@ fn phase_code(phase: i32) -> String {
 fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
 	let s = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_start(diag))
 	let e = diag_position::offset_to_diag_position(clone(text), diagnostic_record::analysis_diagnostic_end(diag))
-	let mut out = text::builder_new()
-	out = text::builder_append(out, String_from("{\"range\":{\"start\":{\"line\":"))
+	let mut out = String_from("{\"range\":{\"start\":{\"line\":")
 	out = text::builder_append(out, to_string(diag_position::lsp_diag_position_line(s)))
 	out = text::builder_append(out, String_from(",\"character\":"))
 	out = text::builder_append(out, to_string(diag_position::lsp_diag_position_character(s)))
@@ -46,5 +45,5 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
 	out = text::builder_append(out, String_from(",\"message\":"))
 	out = text::builder_append(out, json_escape::quote_string(diagnostic_record::analysis_diagnostic_message(diag)))
 	out = text::builder_append(out, String_from("}"))
-	text::builder_build(out)
+	out
 }

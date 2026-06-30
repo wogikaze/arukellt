@@ -9,9 +9,8 @@ use wasm::emit_target
 use wasm::sections_type_plan
 use wasm::sections_types_gc
 use wasm::sections_types_gc_override
-use std::text
 fn build_function_type_sig(uf: MirFunction, target: String, mir: MirModule) -> String {
-    let mut sig = text::builder_new()
+    let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
     let mut pi = 0
     while pi < pc {

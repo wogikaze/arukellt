@@ -33,11 +33,10 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
 pub fn build_completion_response(state: LspState, id: i32, text: String, offset: i32) -> String {
     let prefix = prefix_at_offset(clone(text), offset)
     let items = completion_providers::collect_completion_items(state, clone(text), offset, prefix)
-    let mut body = text::builder_new()
-    body = text::builder_append(body, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     body = text::builder_append(body, to_string(id))
     body = text::builder_append(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
     body = text::builder_append(body, items)
     body = text::builder_append(body, String_from("]}}"))
-    text::builder_build(body)
+    body
 }

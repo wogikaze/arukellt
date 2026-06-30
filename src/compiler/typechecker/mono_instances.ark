@@ -19,12 +19,12 @@ fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeI
     while j < mi_count {
         let mi = contract_env_mono_record::type_env_mono_instance_at(env, j)
         if eq(contract_mono::MonoInstance_mangled_name(mi), clone(mangled)) {
-            return text::builder_build(mangled)
+            return mangled
         }
         j = j + 1
     }
     contract_env_mono_record::type_env_push_mono_instance(env, contract_mono::MonoInstance_new(fn_name, clone(mangled), resolved_types))
-    text::builder_build(mangled)
+    mangled
 }
 
 fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {

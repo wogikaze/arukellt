@@ -9,8 +9,7 @@ use std::text
 fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
-    let mut item = text::builder_new()
-    item = text::builder_append(item, String_from("{\"range\":{\"start\":{\"line\":"))
+    let mut item = String_from("{\"range\":{\"start\":{\"line\":")
     item = text::builder_append(item, to_string(positions::lsp_position_line(start_pos)))
     item = text::builder_append(item, String_from(",\"character\":"))
     item = text::builder_append(item, to_string(positions::lsp_position_character(start_pos)))
@@ -22,7 +21,7 @@ fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text:
     item = text::builder_append(item, json_escape::quote_string(new_text))
     item = text::builder_append(item, String_from("}"))
     if len(edits) == 0 {
-        return text::builder_build(item)
+        return item
     }
     concat(concat(edits, String_from(",")), item)
 }
@@ -36,7 +35,7 @@ fn append_uri_edits(changes: String, uri: String, edits: String) -> String {
     entry = text::builder_append(entry, edits)
     entry = text::builder_append(entry, String_from("]"))
     if len(changes) == 0 {
-        return text::builder_build(entry)
+        return entry
     }
     concat(concat(changes, String_from(",")), entry)
 }

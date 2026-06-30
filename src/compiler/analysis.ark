@@ -36,8 +36,7 @@ session_analyze_pipeline::run_session_analyze_with_modules(uri, text, modules)
 }
 
 pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
-let mut out = text::builder_new()
-out = text::builder_append(out, String_from("analysis "))
+let mut out = String_from("analysis ")
 out = text::builder_append(out, snapshot_state_record::snapshot_uri(snap))
 out = text::builder_append(out, String_from("\n"))
 out = text::builder_append(out, String_from("decls="))
@@ -59,5 +58,5 @@ out = text::builder_append(out, diagnostic_record::analysis_diagnostic_message(d
 out = text::builder_append(out, String_from("\n"))
 i = i + 1
 }
-text::builder_build(out)
+out
 }

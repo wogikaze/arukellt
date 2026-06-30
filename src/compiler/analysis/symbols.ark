@@ -179,11 +179,10 @@ pub fn symbol_at(text: String, offset: i32) -> symbol_types::SymbolInfo {
 pub fn render_hover_markdown(info: symbol_types::SymbolInfo, minimal: bool) -> String {
     if !symbol_types::symbol_info_found(info) { return String_new() }
     if minimal { return symbol_types::symbol_info_signature(info) }
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("```ark\n"))
+    let mut out = String_from("```ark\n")
     out = text::builder_append(out, symbol_types::symbol_info_signature(info))
     out = text::builder_append(out, String_from("\n```"))
     let doc = symbol_types::symbol_info_doc(info)
     if len(doc) > 0 { out = text::builder_append(out, concat(String_from("\n\n"), doc)) }
-    text::builder_build(out)
+    out
 }

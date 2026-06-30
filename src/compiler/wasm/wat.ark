@@ -6,10 +6,10 @@ use std::text
 
 fn emit_wat_functions(mir: MirModule, out: String, fn_count: i32, fi: i32) -> String {
     if fi >= fn_count {
-        return text::builder_build(out)
+        return out
     }
     let f = module_functions::MirModule_function_at(mir, fi)
-    let next = concat(text::builder_build(out), wat_functions::emit_wat_function(f))
+    let next = concat(out, wat_functions::emit_wat_function(f))
     return emit_wat_functions(mir, next, fn_count, fi + 1)
 }
 
@@ -24,5 +24,5 @@ fn emit_wat_module(mir: MirModule, target: String, opt_level: i32) -> String {
     out = emit_wat_functions(mir, out, fn_count, 0)
     out = text::builder_append(out, String_from(")
 "))
-    text::builder_build(out)
+    out
 }

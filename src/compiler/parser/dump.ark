@@ -15,7 +15,7 @@ fn node_kind_name(kind: i32) -> String {
 }
 
 fn print_ast(node: AstNode, depth: i32) {
-    let mut indent = text::builder_new()
+    let mut indent = String_new()
     let mut d = 0
     while d < depth {
         indent = text::builder_append(indent, String_from("  "))
@@ -23,7 +23,7 @@ fn print_ast(node: AstNode, depth: i32) {
     }
     let node_kind = ast_kind_fields::AstNode_kind(node)
     let kind_str = node_kind_name(node_kind)
-    let mut line = concat(text::builder_build(indent), kind_str)
+    let mut line = concat(indent, kind_str)
     let node_text = core_ast_text_fields::AstNode_text(node)
     if len(node_text) > 0 {
         line = text::builder_append(line, concat(String_from("("), concat(node_text, String_from(")"))))

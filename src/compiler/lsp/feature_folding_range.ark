@@ -67,7 +67,7 @@ fn append_folding_entry(out: String, start_line: i32, end_line: i32) -> String {
     body = text::builder_append(body, String_from(",\"endLine\":"))
     body = text::builder_append(body, to_string(end_line))
     body = text::builder_append(body, String_from(",\"kind\":\"region\"}"))
-    text::builder_build(body)
+    body
 }
 
 pub fn handle_folding_range(state: LspState, body: String) {
@@ -82,8 +82,7 @@ pub fn handle_folding_range(state: LspState, body: String) {
         return
     }
     let mut line = 0
-    let mut items = text::builder_new()
-    items = text::builder_append(items, String_from("["))
+    let mut items = String_from("[")
     while line < 200 {
         if line_has_open_brace(clone(text), line) {
             let end_line = find_brace_end_line(clone(text), line)
@@ -92,8 +91,7 @@ pub fn handle_folding_range(state: LspState, body: String) {
         line = line + 1
     }
     items = text::builder_append(items, String_from("]"))
-    let mut out = text::builder_new()
-    out = text::builder_append(out, String_from("{\"jsonrpc\":\"2.0\",\"id\":"))
+    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     out = text::builder_append(out, to_string(id))
     out = text::builder_append(out, String_from(",\"result\":"))
     out = text::builder_append(out, items)
