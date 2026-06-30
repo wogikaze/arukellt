@@ -49,56 +49,46 @@ fn parse_named_command(name: String) -> i32 {
 }
 
 fn parse_implemented_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), String_from("parse")) {
-        return kinds::CMD_PARSE()
-    }
-    if cli_str_eq(clone(name), String_from("compile")) {
-        return kinds::CMD_COMPILE()
-    }
-    if cli_str_eq(clone(name), String_from("check")) {
-        return kinds::CMD_CHECK()
-    }
-    if cli_str_eq(clone(name), String_from("run")) {
-        return kinds::CMD_RUN()
-    }
-    if cli_str_eq(clone(name), String_from("build")) {
-        return kinds::CMD_BUILD()
-    }
-    if cli_str_eq(clone(name), String_from("test")) {
-        return kinds::CMD_TEST()
-    }
-    if cli_str_eq(clone(name), String_from("help")) {
-        return kinds::CMD_HELP()
-    }
-    if cli_str_eq(clone(name), String_from("version")) {
-        return kinds::CMD_VERSION()
-    }
-    if cli_str_eq(clone(name), String_from("init")) {
-        return kinds::CMD_INIT()
-    }
-    if cli_str_eq(clone(name), String_from("fmt")) {
-        return kinds::CMD_FMT()
-    }
-    if cli_str_eq(clone(name), String_from("targets")) {
-        return kinds::CMD_TARGETS()
-    }
-    if cli_str_eq(clone(name), String_from("script")) {
-        return kinds::CMD_SCRIPT()
-    }
-    if cli_str_eq(clone(name), String_from("component")) {
-        return kinds::CMD_COMPONENT()
-    }
-    if cli_str_eq(clone(name), String_from("lint")) {
-        return kinds::CMD_LINT()
-    }
-    if cli_str_eq(clone(name), String_from("analyze")) {
-        return kinds::CMD_ANALYZE()
-    }
-    if cli_str_eq(clone(name), String_from("doc")) {
-        return kinds::CMD_DOC()
-    }
-    if cli_str_eq(clone(name), String_from("compose")) {
-        return kinds::CMD_COMPOSE()
+    let names = Vec_new_String()
+    push(names, String_from("parse"))
+    push(names, String_from("compile"))
+    push(names, String_from("check"))
+    push(names, String_from("run"))
+    push(names, String_from("build"))
+    push(names, String_from("test"))
+    push(names, String_from("help"))
+    push(names, String_from("version"))
+    push(names, String_from("init"))
+    push(names, String_from("fmt"))
+    push(names, String_from("targets"))
+    push(names, String_from("script"))
+    push(names, String_from("component"))
+    push(names, String_from("lint"))
+    push(names, String_from("analyze"))
+    push(names, String_from("doc"))
+    push(names, String_from("compose"))
+    let codes = Vec_new_i32()
+    push(codes, kinds::CMD_PARSE())
+    push(codes, kinds::CMD_COMPILE())
+    push(codes, kinds::CMD_CHECK())
+    push(codes, kinds::CMD_RUN())
+    push(codes, kinds::CMD_BUILD())
+    push(codes, kinds::CMD_TEST())
+    push(codes, kinds::CMD_HELP())
+    push(codes, kinds::CMD_VERSION())
+    push(codes, kinds::CMD_INIT())
+    push(codes, kinds::CMD_FMT())
+    push(codes, kinds::CMD_TARGETS())
+    push(codes, kinds::CMD_SCRIPT())
+    push(codes, kinds::CMD_COMPONENT())
+    push(codes, kinds::CMD_LINT())
+    push(codes, kinds::CMD_ANALYZE())
+    push(codes, kinds::CMD_DOC())
+    push(codes, kinds::CMD_COMPOSE())
+    for i in 0..len(names) {
+        if cli_str_eq(clone(name), get_unchecked(names, i)) {
+            return get_unchecked(codes, i)
+        }
     }
     kinds::CMD_UNKNOWN()
 }

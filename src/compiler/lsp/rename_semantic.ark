@@ -17,22 +17,28 @@ fn null_result(id: i32) -> String {
 }
 
 fn is_keyword_name(name: String) -> bool {
-    if eq(clone(name), String_from("fn")) { return true }
-    if eq(clone(name), String_from("let")) { return true }
-    if eq(clone(name), String_from("mut")) { return true }
-    if eq(clone(name), String_from("if")) { return true }
-    if eq(clone(name), String_from("else")) { return true }
-    if eq(clone(name), String_from("match")) { return true }
-    if eq(clone(name), String_from("use")) { return true }
-    if eq(clone(name), String_from("pub")) { return true }
-    if eq(clone(name), String_from("return")) { return true }
-    if eq(clone(name), String_from("while")) { return true }
-    if eq(clone(name), String_from("loop")) { return true }
-    if eq(clone(name), String_from("for")) { return true }
-    if eq(clone(name), String_from("struct")) { return true }
-    if eq(clone(name), String_from("enum")) { return true }
-    if eq(clone(name), String_from("trait")) { return true }
-    if eq(clone(name), String_from("impl")) { return true }
+    let keywords = Vec_new_String()
+    push(keywords, String_from("fn"))
+    push(keywords, String_from("let"))
+    push(keywords, String_from("mut"))
+    push(keywords, String_from("if"))
+    push(keywords, String_from("else"))
+    push(keywords, String_from("match"))
+    push(keywords, String_from("use"))
+    push(keywords, String_from("pub"))
+    push(keywords, String_from("return"))
+    push(keywords, String_from("while"))
+    push(keywords, String_from("loop"))
+    push(keywords, String_from("for"))
+    push(keywords, String_from("struct"))
+    push(keywords, String_from("enum"))
+    push(keywords, String_from("trait"))
+    push(keywords, String_from("impl"))
+    for i in 0..len(keywords) {
+        if eq(get_unchecked(keywords, i), clone(name)) {
+            return true
+        }
+    }
     false
 }
 
