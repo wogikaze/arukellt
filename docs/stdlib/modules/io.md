@@ -62,20 +62,10 @@ standard-library surface and must be imported from `std::host::stdio`.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `read_to_string` | `() -> String` | `stable` | ✅ impl | Reads all available bytes from stdin into a string. |
 | `print` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout without appending a newline. |
 | `println` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout and appends a newline. |
 | `eprintln` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stderr. |
-
-#### `read_to_string`
-
-Read all available bytes from standard input into a string.
-
-_Example — Read stdin as a string:_
-
-```ark
-let input = read_to_string()
-```
+| `read_to_string` | `() -> String` | `stable` | ✅ impl | - |
 
 #### `print`
 
@@ -108,6 +98,16 @@ _Example — Write a diagnostic message to stderr:_
 
 ```ark
 eprintln("Error: something went wrong")
+```
+
+#### `read_to_string`
+
+Read all available bytes from standard input into a string.
+
+_Example — Read stdin as a string:_
+
+```ark
+let input = read_to_string()
 ```
 
 ## `std::host::fs`

@@ -13,10 +13,10 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [INTERFACE-COREHIR.md](INTERFACE-COREHIR.md) | CoreHIR interface note | Archive | This note is implementation-facing only. It freezes the frontend handoff expected by downstream MIR and docs work. |
-| [gc-c-abi-bridge.md](gc-c-abi-bridge.md) | Archived GC ↔ C ABI bridge design | Archive | この文書は、Wasm GC 前提だった時期の GC ↔ C 境界設計メモです。 |
-| [gc-mono-tradeoff.md](gc-mono-tradeoff.md) | GC + Monomorphization トレードオフ | Archive | ADR-002（GC採用）と ADR-003（制限付きmono）の緊張関係を明確化する。 |
+| [archive/gc-mono-tradeoff.md](archive/gc-mono-tradeoff.md) | GC + Monomorphization トレードオフ | Archive | ADR-002（GC採用）と ADR-003（制限付きmono）の緊張関係を明確化する。 |
+| [archive/reference-control.md](archive/reference-control.md) | 参照過多への制御戦略 | Archive | GC 環境で「すべてがヒープに逃げる」リスクを制御する。 |
+| [archive/trait-less-abstraction.md](archive/trait-less-abstraction.md) | trait なし環境での抽象化戦略 | Archive | Archive / current-first note: |
+| [archive/value-semantics.md](archive/value-semantics.md) | 値セマンティクス仕様 | Archive | GC 採用下での copy/move 動作を厳密に定義する。 |
+| [gc-implementation-plan.md](gc-implementation-plan.md) | Wasm GC 実装計画 | Archive | 対応 ADR: ADR-035 |
 | [lang-uplift-gap-ledger.md](lang-uplift-gap-ledger.md) | Language Surface Uplift: Gap Ledger | Archive | Purpose: Record the current syntax state (Phase 0 baseline) and map the gap between |
-| [reference-control.md](reference-control.md) | 参照過多への制御戦略 | Archive | GC 環境で「すべてがヒープに逃げる」リスクを制御する。 |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | Syntax v1 Preview | Archive | Features implemented in v1 milestones M4–M8. |
-| [trait-less-abstraction.md](trait-less-abstraction.md) | trait なし環境での抽象化戦略 | Archive | Archive / current-first note: |
-| [value-semantics.md](value-semantics.md) | 値セマンティクス仕様 | Archive | GC 採用下での copy/move 動作を厳密に定義する。 |

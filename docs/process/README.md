@@ -30,22 +30,13 @@
 | [llm-readiness-plan.md](llm-readiness-plan.md) | Archived LLM readiness plan | この文書は過去の計画メモです。現在の active plan ではありません。 |
 | [parser-ark-evaluation.md](parser-ark-evaluation.md) | parser.ark 翻訳評価レポート | parser.rs (Gloss markup parser, 1028 行 Rust) → parser.ark (arukellt v0) の翻訳結果を分析し、言語の書きやすさと v1 改善候補を特定する。 |
 | [policy.md](policy.md) | Operational Policy | Current-first: this page describes the current operational contract, not aspirational design docs. |
-| [roadmap-cross-cutting.md](roadmap-cross-cutting.md) | v1–v5 横断事項 | このドキュメントは各版をまたぐ依存関係・リスク・意思決定基準・品質保証を定義する。 |
-| [roadmap-v1.md](roadmap-v1.md) | v1: Wasm GC ネイティブ対応 | 状態: 完了 (2026-03-27) — issues #019–#027 すべて issues/done/ に移動済み |
-| [roadmap-v2.md](roadmap-v2.md) | v2: Component Model 完全対応 | 状態: 完了 (2026-03-28) — ただし jco 対応は upstream 待ち (#037 blocked) |
-| [roadmap-v3.md](roadmap-v3.md) | v3: 標準ライブラリ整備 | Status: completed / historical roadmap |
-| [roadmap-v4.md](roadmap-v4.md) | v4: 最適化 (4 軸定量目標) | 状態: 未着手 — v3 完了後に着手可能 |
-| [roadmap-v5.md](roadmap-v5.md) | v5: セルフホスト | 状態: v3完了時点で達成 — v4はスキップ (ADR-027) |
-| [roadmap.md](roadmap.md) | Arukellt v1–v5 ロードマップ概要 | Current state source of truth: 実装の現在地と open work はまず docs/current-state.md と issues/open/index.md を参照してください。 |
 | [selfhost-code-smell-audit-2026-06-30.md](selfhost-code-smell-audit-2026-06-30.md) | Selfhost Code-Smell Audit — 2026-06-30 | Audit scope: src/compiler/ (selfhost compiler, ~90,000 lines across wasm/, mir/, parser/, resolver/, typechecker/, hir/, corehir/, component/, driver/, lsp/, loader/, fmt/, lint/, analysis/, dap/, main/, compiler/, diagnostics/). |
 | [selfhost-feature-underuse-audit-2026-06-30.md](selfhost-feature-underuse-audit-2026-06-30.md) | Selfhost Feature-Underuse Audit — 2026-06-30 | Audit scope: src/compiler/ (selfhost compiler, ~90,000 lines). This is the second-layer audit, going one level deeper than selfhost-code-smell-audit-2026-06-30.md. Where the first audit classified what the bad code looks like, this audit classifies why it is hard to maintain: language and std-library features that already exist but are not used, so selfhost hand-rolls less-maintainable equivalents. |
-| [selfhost-refactor-roadmap-2026-06-30.md](selfhost-refactor-roadmap-2026-06-30.md) | Selfhost Refactoring Roadmap — 2026-06-30 | This roadmap operationalizes the two-layer audit (selfhost-code-smell-audit-2026-06-30.md + selfhost-feature-underuse-audit-2026-06-30.md) into 9 execution phases (Phase 0–8). |
 | [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |
 | [std-task.md](std-task.md) | stdlib migration task board | Rust 実装中心の stdlib を、Arukellt 実装中心の std/.ark へ移していくための実行順タスクボード。 |
 | [v0-completion-report.md](v0-completion-report.md) | Archived v0 completion report | この文書は過去の設計・進捗レポートです。現在の実装確認には使わないでください。 |
 | [v0-scope.md](v0-scope.md) | v0 スコープ定義 | arukellt v0 は「LLM フレンドリな言語」の最小限の実装。 |
-| [v0-status.md](v0-status.md) | Archived v0 status | この文書は過去の詳細 status メモです。現在の実装確認には使わないでください。 |
 | [v1-non-goals.md](v1-non-goals.md) | v1 Non-Goals | Archive / current-first note: |
 | [v1-status.md](v1-status.md) | V1 Completion Report | Historical report: this page records the v1 exit state as it stood on 2026-03-27. |
 | [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: achieved (fixture tests/fixtures/hello/hello.ark under 1 KB on T1 and T3) |
