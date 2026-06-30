@@ -33,12 +33,36 @@ struct CliOptions {
     lint_deny: Vec<String>,
 }
 
-fn CliOptions_new(command: i32, component_action: i32, input_file: String, output_file: String, target: String, wasi_version: String, wit_paths: Vec<String>, opt_level: i32, dump_phases: String, emit_mode: String, json_output: bool, show_help: bool, show_version: bool, has_error: bool, error_msg: String, show_timing: bool, init_template: String, list_templates: bool, fmt_check: bool, fmt_fix: bool, world: String, compose_plug: String, compose_socket: String, compose_validate_only: bool, lint_list: bool, lint_allow: Vec<String>, lint_deny: Vec<String>) -> CliOptions {
-    CliOptions { command: command, component_action: component_action, input_file: input_file, output_file: output_file, target: target, wasi_version: wasi_version, wit_paths: wit_paths, opt_level: opt_level, dump_phases: dump_phases, emit_mode: emit_mode, json_output: json_output, show_help: show_help, show_version: show_version, has_error: has_error, error_msg: error_msg, show_timing: show_timing, init_template: init_template, list_templates: list_templates, fmt_check: fmt_check, fmt_fix: fmt_fix, world: world, compose_plug: compose_plug, compose_socket: compose_socket, compose_validate_only: compose_validate_only, lint_list: lint_list, lint_allow: lint_allow, lint_deny: lint_deny }
-}
-
 fn CliOptions_default() -> CliOptions {
-    CliOptions_new(kinds::CMD_UNKNOWN(), kinds::COMP_ACTION_BUILD(), String_new(), String_new(), String_from("wasm32-wasi-p2"), String_new(), Vec_new_String(), 0, String_new(), String_from("wasm"), false, false, false, false, String_new(), false, String_from("minimal"), false, false, false, String_new(), String_new(), String_new(), false, false, Vec_new_String(), Vec_new_String())
+    CliOptions {
+        command: kinds::CMD_UNKNOWN(),
+        component_action: kinds::COMP_ACTION_BUILD(),
+        input_file: String_new(),
+        output_file: String_new(),
+        target: String_from("wasm32-wasi-p2"),
+        wasi_version: String_new(),
+        wit_paths: Vec_new_String(),
+        opt_level: 0,
+        dump_phases: String_new(),
+        emit_mode: String_from("wasm"),
+        json_output: false,
+        show_help: false,
+        show_version: false,
+        has_error: false,
+        error_msg: String_new(),
+        show_timing: false,
+        init_template: String_from("minimal"),
+        list_templates: false,
+        fmt_check: false,
+        fmt_fix: false,
+        world: String_new(),
+        compose_plug: String_new(),
+        compose_socket: String_new(),
+        compose_validate_only: false,
+        lint_list: false,
+        lint_allow: Vec_new_String(),
+        lint_deny: Vec_new_String(),
+    }
 }
 
 fn cli_command(opts: CliOptions) -> i32 { opts.command }
