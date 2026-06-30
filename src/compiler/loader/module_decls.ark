@@ -1,5 +1,6 @@
 // Arukellt Selfhost - driver module declaration aggregation
 
+use collections::vec_extend
 use loader::module_state_modules
 use loader::module_state
 pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<AstNode>) -> Vec<AstNode> {
@@ -16,12 +17,7 @@ pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<
         }
         combined_mi = combined_mi + 1
     }
-    let main_dc = len(main_decls)
-    let mut main_dk = 0
-    while main_dk < main_dc {
-        push(all_decls, get_unchecked(main_decls, main_dk))
-        main_dk = main_dk + 1
-    }
+    vec_extend::Vec_extend_AstNode(all_decls, main_decls)
     all_decls
 }
 
@@ -44,11 +40,6 @@ pub fn combine_loaded_and_main_decls_skip_prelude(modules: Vec<ModuleDecls>, mai
         }
         combined_mi = combined_mi + 1
     }
-    let main_dc = len(main_decls)
-    let mut main_dk = 0
-    while main_dk < main_dc {
-        push(all_decls, get_unchecked(main_decls, main_dk))
-        main_dk = main_dk + 1
-    }
+    vec_extend::Vec_extend_AstNode(all_decls, main_decls)
     all_decls
 }

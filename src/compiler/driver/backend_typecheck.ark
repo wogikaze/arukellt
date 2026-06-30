@@ -1,5 +1,6 @@
 // Arukellt Selfhost - backend typecheck stage.
 
+use collections::vec_extend
 use compiler::phases
 use compiler::session_typecheck_query
 use diagnostics::record as diag_record
@@ -58,12 +59,7 @@ fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>, den
 
 // Merge two Vec<Diagnostic> into one.
 fn merge_warnings(into: Vec<Diagnostic>, from: Vec<Diagnostic>) {
-    let count = len(from)
-    let mut i = 0
-    while i < count {
-        push(into, get_unchecked(from, i))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(into, from)
 }
 
 fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> DriverTypecheckResult {

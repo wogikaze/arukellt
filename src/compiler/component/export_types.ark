@@ -1,5 +1,6 @@
 // Arukellt Selfhost - generic component export type plan
 
+use collections::vec_extend
 use component::constants_sections_linkage
 use component::export_function_view
 use component::export_plan
@@ -23,11 +24,7 @@ fn type_interner_add(interner: TypeInterner, type_bytes: Vec<i32>) -> i32 {
 	let idx = len(interner.type_starts)
 	let start = len(interner.type_data)
 	let n = len(type_bytes)
-	let mut i = 0
-	while i < n {
-		push(interner.type_data, get_unchecked(type_bytes, i))
-		i = i + 1
-	}
+	vec_extend::Vec_extend_i32(interner.type_data, type_bytes)
 	push(interner.type_starts, start)
 	push(interner.type_ends, start + n)
 	idx

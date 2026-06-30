@@ -1,5 +1,6 @@
 // WIT function signature collection for typecheck (#653, #664).
 
+use collections::vec_extend
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::contract_fn_sig
@@ -118,21 +119,11 @@ fn wit_fn_sig_i32_param(alias: String, func_name: String) -> FnSig {
 }
 
 fn merge_fn_sigs(base: Vec<FnSig>, wit: Vec<FnSig>) -> Vec<FnSig> {
-    let wit_count = len(wit)
-    let mut i = 0
-    while i < wit_count {
-        push(base, get_unchecked(wit, i))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_FnSig(base, wit)
     base
 }
 
 fn merge_enum_defs(base: Vec<EnumInfo>, wit: Vec<EnumInfo>) -> Vec<EnumInfo> {
-    let wit_count = len(wit)
-    let mut i = 0
-    while i < wit_count {
-        push(base, get_unchecked(wit, i))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_EnumInfo(base, wit)
     base
 }

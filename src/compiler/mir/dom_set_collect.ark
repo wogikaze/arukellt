@@ -1,15 +1,11 @@
 // Arukellt Selfhost - MIR block-id set collection helpers.
 
+use collections::vec_extend
 use mir::function_block_queries
 
 fn mir_copy_block_ids(ids: Vec<i32>) -> Vec<i32> {
     let out = Vec_new_i32()
-    let count = len(ids)
-    let mut i = 0
-    while i < count {
-        push(out, get_unchecked(ids, i))
-        i = i + 1
-    }
+    vec_extend::Vec_extend_i32(out, ids)
     out
 }
 

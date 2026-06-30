@@ -1,60 +1,57 @@
 // Arukellt Selfhost - component collection allow queries.
 
-use component::contract_allows_collection_record
-use component::contract_allows_root_record
-
 fn ComponentContractAllows_allow_list_first(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_list_first(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_list_first
 }
 
 fn ComponentContractAllows_allow_list_result(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_list_result(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_list_result
 }
 
 fn ComponentContractAllows_allow_list_roundtrip(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_list_roundtrip(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_list_roundtrip
 }
 
 fn ComponentContractAllows_allow_option_maybe(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_option_maybe(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_option_maybe
 }
 
 fn ComponentContractAllows_allow_option_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_option_param(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_option_param
 }
 
 fn ComponentContractAllows_allow_option_roundtrip(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_option_roundtrip(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_option_roundtrip
 }
 
 fn ComponentContractAllows_allow_option_bool(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_option_bool(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_option_bool
 }
 
 fn ComponentContractAllows_allow_option_i64(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_option_i64(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_option_i64
 }
 
 fn ComponentContractAllows_allow_option_i64_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_option_i64_param(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_option_i64_param
 }
 
 fn ComponentContractAllows_allow_result_safe_div(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_result_safe_div(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_result_safe_div
 }
 
 fn ComponentContractAllows_allow_result_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_result_param(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_result_param
 }
 
 fn ComponentContractAllows_allow_result_string_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_result_string_param(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_result_string_param
 }
 
 fn ComponentContractAllows_allow_result_roundtrip(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_result_roundtrip(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_result_roundtrip
 }
 
 fn ComponentContractAllows_allow_result_bool(allows: ComponentContractAllows) -> bool {
-    contract_allows_collection_record::ComponentCollectionAllows_allow_result_bool(contract_allows_root_record::ComponentContractAllows_collection(allows))
+    allows.collection_allows.allow_result_bool
 }

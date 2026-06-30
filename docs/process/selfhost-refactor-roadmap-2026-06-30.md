@@ -319,7 +319,7 @@ Language feature implementation itself is large-scale. Depends on ADR-036 progre
 | 0 — verify cleanup | done (13→8 failures) | repo structure, doc examples, WIT golden, LSP golden, --emit fix, Cargo workspace, import cycle |
 | 1 — string building | in-progress (R1 done, S2 done, S1 pending) | R1 (12 escape wrappers consolidated), S2 (75/75 files, 579 calls — all `VAR = concat(VAR, X)` patterns converted; bootstrap limit refuted) |
 | 2 — control flow | in-progress (L1 done, L2 87/107 converted) | L1 (4 if-else dispatch chains → match: decl_dispatch, punct_compound, pratt_bp_infix_right, pratt_binops_arith), L2 (87 while-index loops → for-in across 50 files; 20 complex loops remaining) |
-| 3 — boilerplate | planned | R5, R6, R8, R2 |
+| 3 — boilerplate | done | R5 (raw opcode→helper in vec intrinsics), R6 (50 trivial getters→direct field access), R8 (giant constructors→struct literals), R2 (Vec_extend helpers, 25 manual extend loops replaced) |
 | 4 — data structures | planned | S3, R3, R4 |
 | 5 — type safety | planned | L5, R9, B |
 | 6 — polymorphism | planned | L6, R10, D |

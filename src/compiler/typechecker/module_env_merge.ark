@@ -1,5 +1,6 @@
 // Arukellt Typechecker - merge per-function inference state into module env.
 
+use collections::vec_extend
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_env_record
@@ -37,34 +38,14 @@ fn merge_type_env(dst: TypeEnv, src: TypeEnv) {
         dst.error_count = dst.error_count + 1
         e = e + 1
     }
-    let diag_count = len(src.diagnostics)
-    let mut d = 0
-    while d < diag_count {
-        push(dst.diagnostics, get_unchecked(src.diagnostics, d))
-        d = d + 1
-    }
-    let warn_count = len(src.warnings)
-    let mut w = 0
-    while w < warn_count {
-        push(dst.warnings, get_unchecked(src.warnings, w))
-        w = w + 1
-    }
-    let bind_count = len(src.tracked_binding_names)
-    let mut b = 0
-    while b < bind_count {
-        push(dst.tracked_binding_names, clone(get_unchecked(src.tracked_binding_names, b)))
-        push(dst.tracked_binding_spans_start, get_unchecked(src.tracked_binding_spans_start, b))
-        push(dst.tracked_binding_spans_end, get_unchecked(src.tracked_binding_spans_end, b))
-        push(dst.tracked_binding_used, get_unchecked(src.tracked_binding_used, b))
-        b = b + 1
-    }
+    vec_extend::Vec_extend_Diagnostic(dst.diagnostics, src.diagnostics)
+    vec_extend::Vec_extend_Diagnostic(dst.warnings, src.warnings)
+    vec_extend::Vec_extend_String_clone(dst.tracked_binding_names, src.tracked_binding_names)
+    vec_extend::Vec_extend_i32(dst.tracked_binding_spans_start, src.tracked_binding_spans_start)
+    vec_extend::Vec_extend_i32(dst.tracked_binding_spans_end, src.tracked_binding_spans_end)
+    vec_extend::Vec_extend_i32(dst.tracked_binding_used, src.tracked_binding_used)
     merge_mono_instances(dst, src)
-    let site_count = len(src.mono_call_sites)
-    let mut s = 0
-    while s < site_count {
-        push(dst.mono_call_sites, get_unchecked(src.mono_call_sites, s))
-        s = s + 1
-    }
+    vec_extend::Vec_extend_MonoCallSite(dst.mono_call_sites, src.mono_call_sites)
 }
 
 fn type_env_for_fn_check(parent: TypeEnv) -> TypeEnv {

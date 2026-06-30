@@ -282,6 +282,7 @@ pub fn bootstrap_collect_wit_export_roots(decls: Vec<AstNode>) -> Vec<String> {
 
 LOCAL_COMPILER_NAMESPACES = {
     "analysis",
+    "collections",
     "compiler",
     "component",
     "corehir",

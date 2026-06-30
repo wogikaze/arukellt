@@ -20,26 +20,6 @@ fn ComponentNumericAllows_new(allow_f32_square: bool, allow_f32_binary: bool, al
     }
 }
 
-fn ComponentNumericAllows_allow_f32_square(allows: ComponentNumericAllows) -> bool {
-    allows.allow_f32_square
-}
-
-fn ComponentNumericAllows_allow_f32_binary(allows: ComponentNumericAllows) -> bool {
-    allows.allow_f32_binary
-}
-
-fn ComponentNumericAllows_allow_f32_to_i32(allows: ComponentNumericAllows) -> bool {
-    allows.allow_f32_to_i32
-}
-
-fn ComponentNumericAllows_allow_i32_to_f32(allows: ComponentNumericAllows) -> bool {
-    allows.allow_i32_to_f32
-}
-
-fn ComponentNumericAllows_allow_f32_general_multi(allows: ComponentNumericAllows) -> bool {
-    allows.allow_f32_general_multi
-}
-
 fn component_numeric_allows(numeric_scan: ComponentNumericScan) -> ComponentNumericAllows {
     ComponentNumericAllows_new(
         contract_numeric_scan::ComponentNumericScan_allows_f32_unary(numeric_scan),

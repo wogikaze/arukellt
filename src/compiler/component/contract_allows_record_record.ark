@@ -25,39 +25,3 @@ fn ComponentRecordAllows_new(allow_record_point: bool, allow_record_distance: bo
         allow_shape_roundtrip: allow_shape_roundtrip,
     }
 }
-
-fn ComponentRecordAllows_allow_record_point(allows: ComponentRecordAllows) -> bool {
-    allows.allow_record_point
-}
-
-fn ComponentRecordAllows_allow_record_distance(allows: ComponentRecordAllows) -> bool {
-    allows.allow_record_distance
-}
-
-fn ComponentRecordAllows_allow_record_roundtrip(allows: ComponentRecordAllows) -> bool {
-    allows.allow_record_roundtrip
-}
-
-fn ComponentRecordAllows_allow_record_add(allows: ComponentRecordAllows) -> bool {
-    allows.allow_record_add
-}
-
-fn ComponentRecordAllows_allow_color_enum(allows: ComponentRecordAllows) -> bool {
-    allows.allow_color_enum
-}
-
-fn ComponentRecordAllows_allow_color_code(allows: ComponentRecordAllows) -> bool {
-    allows.allow_color_code
-}
-
-fn ComponentRecordAllows_allow_color_roundtrip(allows: ComponentRecordAllows) -> bool {
-    allows.allow_color_roundtrip
-}
-
-fn ComponentRecordAllows_allow_shape_area(allows: ComponentRecordAllows) -> bool {
-    allows.allow_shape_area
-}
-
-fn ComponentRecordAllows_allow_shape_roundtrip(allows: ComponentRecordAllows) -> bool {
-    allows.allow_shape_roundtrip
-}

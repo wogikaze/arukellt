@@ -1,57 +1,45 @@
 // Arukellt Selfhost - component numeric and tuple allow queries.
 
-use component::contract_allows_numeric
-use component::contract_allows_root_record
-use component::contract_allows_tuple_record
-
-fn component_numeric_allows(allows: ComponentContractAllows) -> ComponentNumericAllows {
-    contract_allows_root_record::ComponentContractAllows_numeric(allows)
-}
-
-fn component_tuple_allows(allows: ComponentContractAllows) -> ComponentTupleAllows {
-    contract_allows_root_record::ComponentContractAllows_tuple(allows)
-}
-
 fn ComponentContractAllows_allow_f32_square(allows: ComponentContractAllows) -> bool {
-    contract_allows_numeric::ComponentNumericAllows_allow_f32_square(component_numeric_allows(allows))
+    allows.numeric_allows.allow_f32_square
 }
 
 fn ComponentContractAllows_allow_f32_binary(allows: ComponentContractAllows) -> bool {
-    contract_allows_numeric::ComponentNumericAllows_allow_f32_binary(component_numeric_allows(allows))
+    allows.numeric_allows.allow_f32_binary
 }
 
 fn ComponentContractAllows_allow_f32_to_i32(allows: ComponentContractAllows) -> bool {
-    contract_allows_numeric::ComponentNumericAllows_allow_f32_to_i32(component_numeric_allows(allows))
+    allows.numeric_allows.allow_f32_to_i32
 }
 
 fn ComponentContractAllows_allow_i32_to_f32(allows: ComponentContractAllows) -> bool {
-    contract_allows_numeric::ComponentNumericAllows_allow_i32_to_f32(component_numeric_allows(allows))
+    allows.numeric_allows.allow_i32_to_f32
 }
 
 fn ComponentContractAllows_allow_f32_general_multi(allows: ComponentContractAllows) -> bool {
-    contract_allows_numeric::ComponentNumericAllows_allow_f32_general_multi(component_numeric_allows(allows))
+    allows.numeric_allows.allow_f32_general_multi
 }
 
 fn ComponentContractAllows_allow_tuple_swap(allows: ComponentContractAllows) -> bool {
-    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_swap(component_tuple_allows(allows))
+    allows.tuple_allows.allow_tuple_swap
 }
 
 fn ComponentContractAllows_allow_tuple_i64_swap(allows: ComponentContractAllows) -> bool {
-    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_i64_swap(component_tuple_allows(allows))
+    allows.tuple_allows.allow_tuple_i64_swap
 }
 
 fn ComponentContractAllows_allow_tuple_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_param(component_tuple_allows(allows))
+    allows.tuple_allows.allow_tuple_param
 }
 
 fn ComponentContractAllows_allow_tuple_mixed_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_mixed_param(component_tuple_allows(allows))
+    allows.tuple_allows.allow_tuple_mixed_param
 }
 
 fn ComponentContractAllows_allow_tuple_bool_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_bool_param(component_tuple_allows(allows))
+    allows.tuple_allows.allow_tuple_bool_param
 }
 
 fn ComponentContractAllows_allow_tuple_roundtrip(allows: ComponentContractAllows) -> bool {
-    contract_allows_tuple_record::ComponentTupleAllows_allow_tuple_roundtrip(component_tuple_allows(allows))
+    allows.tuple_allows.allow_tuple_roundtrip
 }

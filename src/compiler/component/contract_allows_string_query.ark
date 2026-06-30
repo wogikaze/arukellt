@@ -1,52 +1,45 @@
 // Arukellt Selfhost - component string allow queries.
 
-use component::contract_allows_root_record
-use component::contract_allows_string_record
-
-fn component_string_allows(allows: ComponentContractAllows) -> ComponentStringAllows {
-    contract_allows_root_record::ComponentContractAllows_string(allows)
-}
-
 fn ComponentContractAllows_allow_string_greet(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_greet(component_string_allows(allows))
+    allows.string_allows.allow_string_greet
 }
 
 fn ComponentContractAllows_allow_string_general_multi(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_general_multi(component_string_allows(allows))
+    allows.string_allows.allow_string_general_multi
 }
 
 fn ComponentContractAllows_allow_string_result(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_result(component_string_allows(allows))
+    allows.string_allows.allow_string_result
 }
 
 fn ComponentContractAllows_allow_string_param(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_param(component_string_allows(allows))
+    allows.string_allows.allow_string_param
 }
 
 fn ComponentContractAllows_allow_string_narrow(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_narrow(component_string_allows(allows))
+    allows.string_allows.allow_string_narrow
 }
 
 fn ComponentContractAllows_allow_string_bool(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_bool(component_string_allows(allows))
+    allows.string_allows.allow_string_bool
 }
 
 fn ComponentContractAllows_allow_string_char(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_char(component_string_allows(allows))
+    allows.string_allows.allow_string_char
 }
 
 fn ComponentContractAllows_allow_string_f32(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_f32(component_string_allows(allows))
+    allows.string_allows.allow_string_f32
 }
 
 fn ComponentContractAllows_allow_string_f64(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_f64(component_string_allows(allows))
+    allows.string_allows.allow_string_f64
 }
 
 fn ComponentContractAllows_allow_string_i64(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_i64(component_string_allows(allows))
+    allows.string_allows.allow_string_i64
 }
 
 fn ComponentContractAllows_allow_string_u64(allows: ComponentContractAllows) -> bool {
-    contract_allows_string_record::ComponentStringAllows_allow_string_u64(component_string_allows(allows))
+    allows.string_allows.allow_string_u64
 }

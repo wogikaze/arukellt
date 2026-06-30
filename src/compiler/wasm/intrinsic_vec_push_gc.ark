@@ -10,6 +10,7 @@ use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::intrinsics::helpers_core_locals
 use mir::opcodes as mir_opcodes
 
 fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
@@ -43,12 +44,10 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 
     emit_gc_push_setup(w, s_val, s_vec, vec_type, arr_tmp)
 
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_vec)
+    helpers_core_locals::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_len)
+    helpers_core_locals::emit_local_set(w, s_len)
 
     emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, array_type, vec_type, s_vec)
 
@@ -57,98 +56,73 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 }
 
 fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_tmp: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_val)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_vec)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_vec)
+    helpers_core_locals::emit_local_set(w, s_val)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    helpers_core_locals::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    helpers_core_locals::emit_local_set(w, arr_tmp)
 }
 
 fn emit_gc_push_store_finish(w: WasmWriter, arr_tmp: i32, s_len: i32, s_val: i32, i32_array_type: i32, vec_local: i32, vec_type: i32, is_void_push: bool, next_op: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_val)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core_locals::emit_local_get(w, s_val)
     writer_gc::emit_gc_array_set(w, i32_array_type)
 
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, vec_local)
+    helpers_core_locals::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_len)
+    helpers_core_locals::emit_local_get(w, s_len)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_gc::emit_gc_struct_set(w, vec_type, 1)
 
     if !is_void_push {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, vec_local)
+        helpers_core_locals::emit_local_get(w, vec_local)
         return
     }
     if next_op == mir_opcodes::MIR_DROP() {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, vec_local)
+        helpers_core_locals::emit_local_get(w, vec_local)
         return
     }
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, vec_local)
+    helpers_core_locals::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
 fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s_cap: i32, i32_array_type: i32, vec_type: i32, vec_local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
     writer_gc::emit_gc_array_len(w)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_cap)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_cap)
+    helpers_core_locals::emit_local_set(w, s_cap)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core_locals::emit_local_get(w, s_cap)
     writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
 
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, arr_old)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core_locals::emit_local_set(w, arr_old)
 
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_cap)
+    helpers_core_locals::emit_local_get(w, s_cap)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 2)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_gc::emit_gc_array_new(w, i32_array_type)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    helpers_core_locals::emit_local_set(w, arr_tmp)
 
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_old)
+    helpers_core_locals::emit_local_get(w, arr_old)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_len)
+    helpers_core_locals::emit_local_get(w, s_len)
     writer_gc::emit_gc_array_copy(w, i32_array_type, i32_array_type)
 
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, vec_local)
+    helpers_core_locals::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
     writer_gc::emit_gc_struct_set(w, vec_type, 0)
 
