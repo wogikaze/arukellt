@@ -1,0 +1,271 @@
+//! `Trie` — a prefix tree for string keys with i32 values.
+//!
+//! A trie (prefix tree) stores key-value pairs where keys are strings, enabling
+//! fast prefix-based lookups: "does any key start with `P`?", "find all values
+//! with prefix `P`". Common uses include autocomplete, routing tables, and
+//! symbol interning.
+//!
+//! Implemented as a Vec-backed node pool. Each node has:
+//! - 256 child slots (one per byte value), each an index into the node pool
+//!   or `-1` (no child)
+//! - a `has_value` flag (0 or 1)
+//! - an associated `i32` value
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+//!
+//! ## Layout
+//!
+//! The backing `Vec<i32>` stores:
+//! ```text
+//! [root_index, node_count, free_head,
+//!  node_0: child_0..child_255, has_value, value,
+//!  node_1: child_0..child_255, has_value, value, ...]
+//! ```
+//! Each node occupies `256 + 2` slots.
+
+use std::collections::vec
+
+const HEADER_LEN: i32 = 3
+const CHILDREN_PER_NODE: i32 = 256
+const NODE_SLOTS: i32 = 258   // 256 children + has_value + value
+const HAS_VALUE_OFFSET: i32 = 256
+const VALUE_OFFSET: i32 = 257
+
+const NIL: i32 = 0 - 1
+
+fn header_root(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 0)
+}
+
+fn header_count(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 1)
+}
+
+fn header_free(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 2)
+}
+
+fn set_header_root(buf: Vec<i32>, val: i32) {
+    set(buf, 0, val)
+}
+
+fn set_header_count(buf: Vec<i32>, val: i32) {
+    set(buf, 1, val)
+}
+
+fn set_header_free(buf: Vec<i32>, val: i32) {
+    set(buf, 2, val)
+}
+
+fn node_base(node: i32) -> i32 {
+    HEADER_LEN + node * NODE_SLOTS
+}
+
+fn child_index(node: i32, byte: i32) -> i32 {
+    node_base(node) + byte
+}
+
+fn get_child(buf: Vec<i32>, node: i32, byte: i32) -> i32 {
+    get_unchecked(buf, child_index(node, byte))
+}
+
+fn set_child(buf: Vec<i32>, node: i32, byte: i32, val: i32) {
+    set(buf, child_index(node, byte), val)
+}
+
+fn node_has_value(buf: Vec<i32>, node: i32) -> bool {
+    get_unchecked(buf, node_base(node) + HAS_VALUE_OFFSET) != 0
+}
+
+fn node_value(buf: Vec<i32>, node: i32) -> i32 {
+    get_unchecked(buf, node_base(node) + VALUE_OFFSET)
+}
+
+fn set_node_value(buf: Vec<i32>, node: i32, has_val: i32, val: i32) {
+    set(buf, node_base(node) + HAS_VALUE_OFFSET, has_val)
+    set(buf, node_base(node) + VALUE_OFFSET, val)
+}
+
+fn alloc_node(buf: Vec<i32>) -> i32 {
+    let free_head = header_free(buf)
+    if free_head != NIL {
+        // Reuse a freed node — clear its children
+        let mut b = 0
+        while b < CHILDREN_PER_NODE {
+            set(buf, node_base(free_head) + b, NIL)
+            b = b + 1
+        }
+        set_node_value(buf, free_head, 0, 0)
+        // Pop from free list (stored in child slot 0)
+        let next_free = get_child(buf, free_head, 0)
+        set_header_free(buf, next_free)
+        return free_head
+    }
+    // Grow: append a new node
+    let mut b = 0
+    while b < CHILDREN_PER_NODE {
+        push(buf, NIL)
+        b = b + 1
+    }
+    push(buf, 0)  // has_value
+    push(buf, 0)  // value
+    let new_node = header_count(buf)
+    set_header_count(buf, new_node + 1)
+    new_node
+}
+
+// ── public API ──────────────────────────────────────────────────────────────
+
+/// Create a new empty `Trie`.
+pub fn trie_new() -> Vec<i32> {
+    let buf = Vec_new_i32()
+    push(buf, NIL)  // root (allocated on first insert)
+    push(buf, 0)    // node_count
+    push(buf, NIL)  // free_head
+    buf
+}
+
+/// Insert a key-value pair into the trie. If the key already exists, the value
+/// is updated.
+pub fn trie_insert(buf: Vec<i32>, key: String, value: i32) {
+    let root = header_root(buf)
+    let mut current = root
+    if current == NIL {
+        current = alloc_node(buf)
+        set_header_root(buf, current)
+    }
+    let key_len = len(key)
+    let mut i = 0
+    while i < key_len {
+        let byte = char_at(key, i)
+        let child = get_child(buf, current, byte)
+        if child == NIL {
+            let new_node = alloc_node(buf)
+            set_child(buf, current, byte, new_node)
+            current = new_node
+        } else {
+            current = child
+        }
+        i = i + 1
+    }
+    set_node_value(buf, current, 1, value)
+}
+
+/// Look up the value for a key. Returns `Option::Some(value)` if found,
+/// `Option::None` otherwise.
+pub fn trie_get(buf: Vec<i32>, key: String) -> Option<i32> {
+    let root = header_root(buf)
+    if root == NIL {
+        return Option::None
+    }
+    let mut current = root
+    let key_len = len(key)
+    let mut i = 0
+    while i < key_len {
+        let byte = char_at(key, i)
+        let child = get_child(buf, current, byte)
+        if child == NIL {
+            return Option::None
+        }
+        current = child
+        i = i + 1
+    }
+    if node_has_value(buf, current) {
+        return Option::Some(node_value(buf, current))
+    }
+    Option::None
+}
+
+/// Returns true if the key exists in the trie.
+pub fn trie_contains(buf: Vec<i32>, key: String) -> bool {
+    let result = trie_get(buf, key)
+    match result {
+        Option::Some(_) => true,
+        Option::None => false,
+    }
+}
+
+/// Returns true if any key in the trie starts with the given prefix.
+pub fn trie_has_prefix(buf: Vec<i32>, prefix: String) -> bool {
+    let root = header_root(buf)
+    if root == NIL {
+        return false
+    }
+    let mut current = root
+    let prefix_len = len(prefix)
+    let mut i = 0
+    while i < prefix_len {
+        let byte = char_at(prefix, i)
+        let child = get_child(buf, current, byte)
+        if child == NIL {
+            return false
+        }
+        current = child
+        i = i + 1
+    }
+    true
+}
+
+/// Remove a key from the trie. Returns true if the key was present.
+/// Note: this only clears the value flag; node cleanup is deferred.
+pub fn trie_remove(buf: Vec<i32>, key: String) -> bool {
+    let root = header_root(buf)
+    if root == NIL {
+        return false
+    }
+    let mut current = root
+    let key_len = len(key)
+    let mut i = 0
+    while i < key_len {
+        let byte = char_at(key, i)
+        let child = get_child(buf, current, byte)
+        if child == NIL {
+            return false
+        }
+        current = child
+        i = i + 1
+    }
+    if node_has_value(buf, current) {
+        set_node_value(buf, current, 0, 0)
+        return true
+    }
+    false
+}
+
+/// Count the number of keys with the given prefix. O(n) where n is the
+/// size of the subtree under the prefix node.
+pub fn trie_count_with_prefix(buf: Vec<i32>, prefix: String) -> i32 {
+    let root = header_root(buf)
+    if root == NIL {
+        return 0
+    }
+    let mut current = root
+    let prefix_len = len(prefix)
+    let mut i = 0
+    while i < prefix_len {
+        let byte = char_at(prefix, i)
+        let child = get_child(buf, current, byte)
+        if child == NIL {
+            return 0
+        }
+        current = child
+        i = i + 1
+    }
+    count_values_in_subtree(buf, current)
+}
+
+fn count_values_in_subtree(buf: Vec<i32>, node: i32) -> i32 {
+    let mut count = 0
+    if node_has_value(buf, node) {
+        count = 1
+    }
+    let mut b = 0
+    while b < CHILDREN_PER_NODE {
+        let child = get_child(buf, node, b)
+        if child != NIL {
+            count = count + count_values_in_subtree(buf, child)
+        }
+        b = b + 1
+    }
+    count
+}

@@ -1,0 +1,115 @@
+//! `Either<L, R>` — a sum type with two alternatives.
+//!
+//! `Either` is a general-purpose container that can hold a value of one of two
+//! types. By convention, `Left` is used for the "error" or "first" case and
+//! `Right` for the "success" or "second" case, but unlike `Result` there is no
+//! built-in error semantics — both sides are plain values.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+
+/// A value of one of two types.
+///
+/// - `Left(L)` — holds a value of type `L`
+/// - `Right(R)` — holds a value of type `R`
+pub enum Either {
+    Left(i32),
+    Right(i32),
+}
+
+// ── constructors ────────────────────────────────────────────────────────────
+
+/// Construct a `Left` value.
+pub fn left(value: i32) -> Either {
+    Either::Left(value)
+}
+
+/// Construct a `Right` value.
+pub fn right(value: i32) -> Either {
+    Either::Right(value)
+}
+
+// ── queries ─────────────────────────────────────────────────────────────────
+
+/// Returns true if the `Either` is a `Left` value.
+pub fn is_left(e: Either) -> bool {
+    match e {
+        Either::Left(_) => true,
+        Either::Right(_) => false,
+    }
+}
+
+/// Returns true if the `Either` is a `Right` value.
+pub fn is_right(e: Either) -> bool {
+    match e {
+        Either::Left(_) => false,
+        Either::Right(_) => true,
+    }
+}
+
+// ── extraction ──────────────────────────────────────────────────────────────
+
+/// Extract the `Left` value, or return `fallback` if this is a `Right`.
+pub fn from_left(e: Either, fallback: i32) -> i32 {
+    match e {
+        Either::Left(v) => v,
+        Either::Right(_) => fallback,
+    }
+}
+
+/// Extract the `Right` value, or return `fallback` if this is a `Left`.
+pub fn from_right(e: Either, fallback: i32) -> i32 {
+    match e {
+        Either::Left(_) => fallback,
+        Either::Right(v) => v,
+    }
+}
+
+/// Convert `Either<i32, i32>` to `Option<i32>` — `Left` becomes `Some`, `Right` becomes `None`.
+pub fn left_to_option(e: Either) -> Option<i32> {
+    match e {
+        Either::Left(v) => Option::Some(v),
+        Either::Right(_) => Option::None,
+    }
+}
+
+/// Convert `Either<i32, i32>` to `Option<i32>` — `Right` becomes `Some`, `Left` becomes `None`.
+pub fn right_to_option(e: Either) -> Option<i32> {
+    match e {
+        Either::Left(_) => Option::None,
+        Either::Right(v) => Option::Some(v),
+    }
+}
+
+// ── transforms ──────────────────────────────────────────────────────────────
+
+/// Swap `Left` and `Right`.
+pub fn swap(e: Either) -> Either {
+    match e {
+        Either::Left(v) => Either::Right(v),
+        Either::Right(v) => Either::Left(v),
+    }
+}
+
+/// Apply `f` to a `Left` value, pass `Right` through unchanged.
+pub fn map_left(e: Either, f: fn(i32) -> i32) -> Either {
+    match e {
+        Either::Left(v) => Either::Left(f(v)),
+        Either::Right(_) => e,
+    }
+}
+
+/// Apply `f` to a `Right` value, pass `Left` through unchanged.
+pub fn map_right(e: Either, f: fn(i32) -> i32) -> Either {
+    match e {
+        Either::Left(_) => e,
+        Either::Right(v) => Either::Right(f(v)),
+    }
+}
+
+/// Fold both branches into a single value.
+pub fn either_fold(e: Either, on_left: fn(i32) -> i32, on_right: fn(i32) -> i32) -> i32 {
+    match e {
+        Either::Left(v) => on_left(v),
+        Either::Right(v) => on_right(v),
+    }
+}

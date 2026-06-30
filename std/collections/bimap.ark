@@ -1,0 +1,139 @@
+//! `Bimap<K, V>` — a bidirectional map with O(1) lookup in both directions.
+//!
+//! A bimap maintains a one-to-one correspondence between keys and values.
+//! Each key maps to exactly one value, and each value maps to exactly one key.
+//! Inserting a (key, value) pair automatically removes any existing pair with
+//! the same key or the same value.
+//!
+//! Implemented as two parallel hash maps (forward: key→value, reverse: value→key).
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+
+use std::collections::hash
+
+// ── i32 ↔ i32 Bimap ─────────────────────────────────────────────────────────
+
+/// Create a new empty `Bimap<i32, i32>`.
+pub fn bimap_i32_i32_new() -> Vec<i32> {
+    // Layout: [forward_map, reverse_map]
+    // Each is a hash::hashmap (Vec<i32>)
+    let buf = Vec_new_i32()
+    push(buf, 0)  // placeholder for forward map
+    push(buf, 0)  // placeholder for reverse map
+    // Initialize the two hash maps
+    let fwd = hash::hashmap_new()
+    let rev = hash::hashmap_new()
+    set(buf, 0, fwd)
+    set(buf, 1, rev)
+    buf
+}
+
+fn bimap_fwd(buf: Vec<i32>) -> Vec<i32> {
+    get_unchecked(buf, 0)
+}
+
+fn bimap_rev(buf: Vec<i32>) -> Vec<i32> {
+    get_unchecked(buf, 1)
+}
+
+fn set_bimap_fwd(buf: Vec<i32>, m: Vec<i32>) {
+    set(buf, 0, m)
+}
+
+fn set_bimap_rev(buf: Vec<i32>, m: Vec<i32>) {
+    set(buf, 1, m)
+}
+
+/// Insert a (key, value) pair. If the key or value already exists, the old
+/// association is removed. This maintains the one-to-one invariant.
+pub fn bimap_i32_i32_insert(buf: Vec<i32>, key: i32, value: i32) {
+    let fwd = bimap_fwd(buf)
+    let rev = bimap_rev(buf)
+    // Remove old forward mapping (key → old_value) if present
+    let old_val = hash::hashmap_get(fwd, key)
+    match old_val {
+        Option::Some(v) => {
+            hash::hashmap_remove(rev, v)
+        }
+        Option::None => {}
+    }
+    // Remove old reverse mapping (value → old_key) if present
+    let old_key = hash::hashmap_get(rev, value)
+    match old_key {
+        Option::Some(k) => {
+            hash::hashmap_remove(fwd, k)
+        }
+        Option::None => {}
+    }
+    // Insert both directions
+    hash::hashmap_insert(fwd, key, value)
+    hash::hashmap_insert(rev, value, key)
+}
+
+/// Look up the value for a key. Returns `Option::Some(value)` or `Option::None`.
+pub fn bimap_i32_i32_get_by_key(buf: Vec<i32>, key: i32) -> Option<i32> {
+    hash::hashmap_get(bimap_fwd(buf), key)
+}
+
+/// Look up the key for a value. Returns `Option::Some(key)` or `Option::None`.
+pub fn bimap_i32_i32_get_by_value(buf: Vec<i32>, value: i32) -> Option<i32> {
+    hash::hashmap_get(bimap_rev(buf), value)
+}
+
+/// Returns true if the key exists in the bimap.
+pub fn bimap_i32_i32_contains_key(buf: Vec<i32>, key: i32) -> bool {
+    match hash::hashmap_get(bimap_fwd(buf), key) {
+        Option::Some(_) => true,
+        Option::None => false,
+    }
+}
+
+/// Returns true if the value exists in the bimap.
+pub fn bimap_i32_i32_contains_value(buf: Vec<i32>, value: i32) -> bool {
+    match hash::hashmap_get(bimap_rev(buf), value) {
+        Option::Some(_) => true,
+        Option::None => false,
+    }
+}
+
+/// Remove a key and its associated value from the bimap.
+/// Returns true if the key was present.
+pub fn bimap_i32_i32_remove_by_key(buf: Vec<i32>, key: i32) -> bool {
+    let fwd = bimap_fwd(buf)
+    let rev = bimap_rev(buf)
+    let val = hash::hashmap_get(fwd, key)
+    match val {
+        Option::Some(v) => {
+            hash::hashmap_remove(fwd, key)
+            hash::hashmap_remove(rev, v)
+            true
+        }
+        Option::None => false
+    }
+}
+
+/// Remove a value and its associated key from the bimap.
+/// Returns true if the value was present.
+pub fn bimap_i32_i32_remove_by_value(buf: Vec<i32>, value: i32) -> bool {
+    let fwd = bimap_fwd(buf)
+    let rev = bimap_rev(buf)
+    let key = hash::hashmap_get(rev, value)
+    match key {
+        Option::Some(k) => {
+            hash::hashmap_remove(rev, value)
+            hash::hashmap_remove(fwd, k)
+            true
+        }
+        Option::None => false
+    }
+}
+
+/// Return the number of pairs in the bimap.
+pub fn bimap_i32_i32_len(buf: Vec<i32>) -> i32 {
+    hash::hashmap_len(bimap_fwd(buf))
+}
+
+/// Return true if the bimap is empty.
+pub fn bimap_i32_i32_is_empty(buf: Vec<i32>) -> bool {
+    hash::hashmap_len(bimap_fwd(buf)) == 0
+}

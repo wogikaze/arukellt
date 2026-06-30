@@ -1,0 +1,253 @@
+//! `LinkedList<T>` — a doubly-linked list with O(1) push/pop at both ends.
+//!
+//! Implemented as a Vec-backed node pool with index-based linking. Each node
+//! stores a value plus `prev`/`next` indices. A free list recycles removed
+//! node slots. This avoids GC pointer issues while providing true O(1)
+//! operations at both ends.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+//!
+//! ## Layout
+//!
+//! The backing `Vec<i32>` stores:
+//! ```text
+//! [head, tail, free_head, count, capacity,
+//!  node_0_prev, node_0_next, node_0_value,
+//!  node_1_prev, node_1_next, node_1_value, ...]
+//! ```
+//! where `head`, `tail`, `free_head` are node indices or `-1` (nil).
+
+use std::collections::vec
+
+// ── internal layout constants ───────────────────────────────────────────────
+
+const HEADER_LEN: i32 = 5
+const NODE_FIELDS: i32 = 3   // prev, next, value
+const PREV_OFFSET: i32 = 0
+const NEXT_OFFSET: i32 = 1
+const VALUE_OFFSET: i32 = 2
+
+const NIL: i32 = 0 - 1
+
+fn slot_prev(buf: Vec<i32>, node: i32) -> i32 {
+    get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + PREV_OFFSET)
+}
+
+fn slot_next(buf: Vec<i32>, node: i32) -> i32 {
+    get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + NEXT_OFFSET)
+}
+
+fn slot_value(buf: Vec<i32>, node: i32) -> i32 {
+    get_unchecked(buf, HEADER_LEN + node * NODE_FIELDS + VALUE_OFFSET)
+}
+
+fn set_slot_prev(buf: Vec<i32>, node: i32, val: i32) {
+    set(buf, HEADER_LEN + node * NODE_FIELDS + PREV_OFFSET, val)
+}
+
+fn set_slot_next(buf: Vec<i32>, node: i32, val: i32) {
+    set(buf, HEADER_LEN + node * NODE_FIELDS + NEXT_OFFSET, val)
+}
+
+fn set_slot_value(buf: Vec<i32>, node: i32, val: i32) {
+    set(buf, HEADER_LEN + node * NODE_FIELDS + VALUE_OFFSET, val)
+}
+
+fn header_head(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 0)
+}
+
+fn header_tail(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 1)
+}
+
+fn header_free(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 2)
+}
+
+fn header_count(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 3)
+}
+
+fn header_capacity(buf: Vec<i32>) -> i32 {
+    get_unchecked(buf, 4)
+}
+
+fn set_header(buf: Vec<i32>, slot: i32, val: i32) {
+    set(buf, slot, val)
+}
+
+fn set_header_head(buf: Vec<i32>, val: i32) {
+    set(buf, 0, val)
+}
+
+fn set_header_tail(buf: Vec<i32>, val: i32) {
+    set(buf, 1, val)
+}
+
+fn set_header_free(buf: Vec<i32>, val: i32) {
+    set(buf, 2, val)
+}
+
+fn set_header_count(buf: Vec<i32>, val: i32) {
+    set(buf, 3, val)
+}
+
+fn set_header_capacity(buf: Vec<i32>, val: i32) {
+    set(buf, 4, val)
+}
+
+// ── node allocation ─────────────────────────────────────────────────────────
+
+fn alloc_node(buf: Vec<i32>) -> i32 {
+    let free_head = header_free(buf)
+    if free_head != NIL {
+        let next_free = slot_next(buf, free_head)
+        set_header_free(buf, next_free)
+        set_slot_prev(buf, free_head, NIL)
+        set_slot_next(buf, free_head, NIL)
+        return free_head
+    }
+    // Grow: append a new node slot
+    let cap = header_capacity(buf)
+    push(buf, NIL)  // prev
+    push(buf, NIL)  // next
+    push(buf, 0)    // value
+    set_header_capacity(buf, cap + 1)
+    return cap
+}
+
+fn free_node(buf: Vec<i32>, node: i32) {
+    set_slot_prev(buf, node, NIL)
+    set_slot_next(buf, node, header_free(buf))
+    set_header_free(buf, node)
+}
+
+// ── public API ──────────────────────────────────────────────────────────────
+
+/// Create a new empty `LinkedList<T>`.
+pub fn linked_list_new() -> Vec<i32> {
+    let buf = Vec_new_i32()
+    push(buf, NIL)  // head
+    push(buf, NIL)  // tail
+    push(buf, NIL)  // free_head
+    push(buf, 0)    // count
+    push(buf, 0)    // capacity
+    buf
+}
+
+/// Push a value to the front of the list. O(1).
+pub fn linked_list_push_front(buf: Vec<i32>, value: i32) {
+    let node = alloc_node(buf)
+    set_slot_value(buf, node, value)
+    let old_head = header_head(buf)
+    set_slot_next(buf, node, old_head)
+    if old_head != NIL {
+        set_slot_prev(buf, old_head, node)
+    } else {
+        set_header_tail(buf, node)
+    }
+    set_header_head(buf, node)
+    set_header_count(buf, header_count(buf) + 1)
+}
+
+/// Push a value to the back of the list. O(1).
+pub fn linked_list_push_back(buf: Vec<i32>, value: i32) {
+    let node = alloc_node(buf)
+    set_slot_value(buf, node, value)
+    let old_tail = header_tail(buf)
+    set_slot_prev(buf, node, old_tail)
+    if old_tail != NIL {
+        set_slot_next(buf, old_tail, node)
+    } else {
+        set_header_head(buf, node)
+    }
+    set_header_tail(buf, node)
+    set_header_count(buf, header_count(buf) + 1)
+}
+
+/// Pop and return the front value, or `fallback` if empty. O(1).
+pub fn linked_list_pop_front(buf: Vec<i32>, fallback: i32) -> i32 {
+    let head = header_head(buf)
+    if head == NIL {
+        return fallback
+    }
+    let value = slot_value(buf, head)
+    let next = slot_next(buf, head)
+    set_header_head(buf, next)
+    if next != NIL {
+        set_slot_prev(buf, next, NIL)
+    } else {
+        set_header_tail(buf, NIL)
+    }
+    free_node(buf, head)
+    set_header_count(buf, header_count(buf) - 1)
+    value
+}
+
+/// Pop and return the back value, or `fallback` if empty. O(1).
+pub fn linked_list_pop_back(buf: Vec<i32>, fallback: i32) -> i32 {
+    let tail = header_tail(buf)
+    if tail == NIL {
+        return fallback
+    }
+    let value = slot_value(buf, tail)
+    let prev = slot_prev(buf, tail)
+    set_header_tail(buf, prev)
+    if prev != NIL {
+        set_slot_next(buf, prev, NIL)
+    } else {
+        set_header_head(buf, NIL)
+    }
+    free_node(buf, tail)
+    set_header_count(buf, header_count(buf) - 1)
+    value
+}
+
+/// Peek the front value without removing it, or `fallback` if empty. O(1).
+pub fn linked_list_front(buf: Vec<i32>, fallback: i32) -> i32 {
+    let head = header_head(buf)
+    if head == NIL {
+        return fallback
+    }
+    slot_value(buf, head)
+}
+
+/// Peek the back value without removing it, or `fallback` if empty. O(1).
+pub fn linked_list_back(buf: Vec<i32>, fallback: i32) -> i32 {
+    let tail = header_tail(buf)
+    if tail == NIL {
+        return fallback
+    }
+    slot_value(buf, tail)
+}
+
+/// Return the number of elements in the list. O(1).
+pub fn linked_list_len(buf: Vec<i32>) -> i32 {
+    header_count(buf)
+}
+
+/// Return true if the list is empty. O(1).
+pub fn linked_list_is_empty(buf: Vec<i32>) -> bool {
+    header_count(buf) == 0
+}
+
+/// Remove all elements from the list. O(1) (resets headers).
+pub fn linked_list_clear(buf: Vec<i32>) {
+    set_header_head(buf, NIL)
+    set_header_tail(buf, NIL)
+    set_header_free(buf, NIL)
+    set_header_count(buf, 0)
+    // Note: capacity stays; node slots are reused on next push.
+}
+
+/// Convert the list to a `Vec<T>` in front-to-back order. O(n).
+pub fn linked_list_to_vec(buf: Vec<i32>) -> Vec<i32> {
+    let result = Vec_new_i32()
+    let mut node = header_head(buf)
+    while node != NIL {
+        push(result, slot_value(buf, node))
+        node = slot_next(buf, node)
+    }
+    result
+}
