@@ -11,9 +11,11 @@ use mir::lower::core_binary_overload
 use mir::lower::core_binary_short_circuit
 use mir::lower::core_expr_shape_accessors
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn lower_core_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let mir_op = binary_opcode::binop_to_mir(core_expr_shape_accessors::mir_core_expr_int_val(expr))
     if mir_op == opcodes::MIR_AND() || mir_op == opcodes::MIR_OR() {

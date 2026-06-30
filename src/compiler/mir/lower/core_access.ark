@@ -3,9 +3,11 @@
 use mir::lower::aggregate
 use mir::lower::core_expr_shape_accessors
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn lower_core_field_access(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 1 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let base_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     aggregate::mir_emit_field_access(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), base_idx)
@@ -13,7 +15,7 @@ fn lower_core_field_access(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
 
 fn lower_core_index(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 2 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let base_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     let index_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
