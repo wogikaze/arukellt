@@ -117,7 +117,6 @@ pub enum JsonValue {
     Bool(bool),
     Number(f64),
     Str(String),
-    Raw(String),
     Array(Vec<JsonValue>),
     Object(Vec<JsonField>),
 }
@@ -389,7 +388,6 @@ pub fn stringify(v: JsonValue) -> String {
         JsonValue::Bool(false) => "false",
         JsonValue::Number(n) => f64_to_string(n),
         JsonValue::Str(s) => json_encode_string(s),
-        JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array(items),
         JsonValue::Object(fields) => stringify_object(fields),
     }
@@ -445,7 +443,6 @@ fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
         JsonValue::Bool(false) => "false",
         JsonValue::Number(n) => f64_to_string(n),
         JsonValue::Str(s) => json_encode_string(s),
-        JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array_pretty(items, indent, depth),
         JsonValue::Object(fields) => stringify_object_pretty(fields, indent, depth),
     }
@@ -707,57 +704,6 @@ pub fn json_get_index(v: JsonValue, index: i32) -> Option<JsonValue> {
         JsonValue::Array(items) => get(items, index),
         _ => None,
     }
-}
-
-// ─── Construction helpers ────────────────────────────────────────────────────
-/// Create a JsonField from a key and value.
-pub fn json_field(key: String, value: JsonValue) -> JsonField {
-    JsonField { key: key, value: value }
-}
-
-/// Create a JSON string value.
-pub fn json_str(s: String) -> JsonValue {
-    JsonValue::Str(s)
-}
-
-/// Create a JSON integer value (emitted as-is, no `.0` suffix).
-pub fn json_i32(n: i32) -> JsonValue {
-    JsonValue::Raw(i32_to_string(n))
-}
-
-/// Create a JSON boolean value.
-pub fn json_bool(b: bool) -> JsonValue {
-    JsonValue::Bool(b)
-}
-
-/// Create a JSON null value.
-pub fn json_null_val() -> JsonValue {
-    JsonValue::Null
-}
-
-/// Create a JSON raw literal value (emitted as-is).
-pub fn json_raw(s: String) -> JsonValue {
-    JsonValue::Raw(s)
-}
-
-/// Create an empty JsonField vector.
-pub fn json_obj_new() -> Vec<JsonField> {
-    Vec_new_JsonField()
-}
-
-/// Create an empty JsonValue array vector.
-pub fn json_arr_new() -> Vec<JsonValue> {
-    Vec_new_JsonValue()
-}
-
-/// Build a JSON object string from a Vec<JsonField>.
-pub fn json_obj_string(fields: Vec<JsonField>) -> String {
-    stringify(JsonValue::Object(fields))
-}
-
-/// Build a JSON array string from a Vec<JsonValue>.
-pub fn json_arr_string(items: Vec<JsonValue>) -> String {
-    stringify(JsonValue::Array(items))
 }
 
 // ─── String encoding ─────────────────────────────────────────────────────────

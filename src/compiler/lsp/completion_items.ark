@@ -1,16 +1,20 @@
 // Arukellt Selfhost - LSP completion item JSON builders.
 
 use lsp::import_graph
+use lsp::json_escape
 use lsp::positions
-use std::json::parser
+use std::text
 
 
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("label"), parser::json_str(label)))
-    push(fields, parser::json_field(String_from("kind"), parser::json_i32(kind)))
-    push(fields, parser::json_field(String_from("detail"), parser::json_str(detail)))
-    parser::json_obj_string(fields)
+    let mut out = String_from("{\"label\":")
+    out = text::builder_append(out, json_escape::quote_string(label))
+    out = text::builder_append(out, String_from(",\"kind\":"))
+    out = text::builder_append(out, to_string(kind))
+    out = text::builder_append(out, String_from(",\"detail\":"))
+    out = text::builder_append(out, json_escape::quote_string(detail))
+    out = text::builder_append(out, String_from("}"))
+    out
 }
 
 pub fn completion_item_json(label: String, kind: i32, detail: String, text: String, import_path: String, needs_import: bool) -> String {
@@ -19,26 +23,24 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
     }
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
-    let start_obj = parser::json_obj_new()
-    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(pos))))
-    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(pos))))
-    let end_obj = parser::json_obj_new()
-    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(pos))))
-    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(pos))))
-    let range_obj = parser::json_obj_new()
-    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
-    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
-    let edit_obj = parser::json_obj_new()
-    push(edit_obj, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
-    push(edit_obj, parser::json_field(String_from("newText"), parser::json_str(import_graph::build_use_statement(import_path))))
-    let edits_arr = parser::json_arr_new()
-    push(edits_arr, JsonValue::Object(edit_obj))
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("label"), parser::json_str(label)))
-    push(fields, parser::json_field(String_from("kind"), parser::json_i32(kind)))
-    push(fields, parser::json_field(String_from("detail"), parser::json_str(detail)))
-    push(fields, parser::json_field(String_from("additionalTextEdits"), JsonValue::Array(edits_arr)))
-    parser::json_obj_string(fields)
+    let mut out = String_from("{\"label\":")
+    out = text::builder_append(out, json_escape::quote_string(label))
+    out = text::builder_append(out, String_from(",\"kind\":"))
+    out = text::builder_append(out, to_string(kind))
+    out = text::builder_append(out, String_from(",\"detail\":"))
+    out = text::builder_append(out, json_escape::quote_string(detail))
+    out = text::builder_append(out, String_from(",\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
+    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
+    out = text::builder_append(out, String_from("}},\"newText\":"))
+    out = text::builder_append(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
+    out = text::builder_append(out, String_from("}]}"))
+    out
 }
 
 pub fn append_item(items: String, item: String) -> String {

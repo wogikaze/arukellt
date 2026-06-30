@@ -1,46 +1,56 @@
 // Arukellt LSP - workspace/symbol response builders.
 
+use lsp::json_escape
 use lsp::positions
 use lsp::symbol_index_record
-use std::json::parser
+use std::text
 
 fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
     let start = positions::offset_to_position(clone(text), decl_start)
     let end = positions::offset_to_position(clone(text), decl_end)
-    let start_obj = parser::json_obj_new()
-    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(start))))
-    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(start))))
-    let end_obj = parser::json_obj_new()
-    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(end))))
-    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(end))))
-    let range_obj = parser::json_obj_new()
-    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
-    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("uri"), parser::json_str(uri)))
-    push(fields, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
-    parser::json_obj_string(fields)
+    let mut out = String_from("{\"uri\":")
+    out = text::builder_append(out, json_escape::quote_string(uri))
+    out = text::builder_append(out, String_from(",\"range\":{\"start\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(start)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(start)))
+    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_line(end)))
+    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, to_string(positions::lsp_position_character(end)))
+    out = text::builder_append(out, String_from("}}}"))
+    out
 }
 
 fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String) -> String {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("name"), parser::json_str(symbol_index_record::indexed_symbol_name(sym))))
-    push(fields, parser::json_field(String_from("kind"), parser::json_i32(symbol_index_record::indexed_symbol_kind(sym))))
-    let loc = if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
-        symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
+    let mut out = String_from("{\"name\":")
+    out = text::builder_append(out, json_escape::quote_string(symbol_index_record::indexed_symbol_name(sym)))
+    out = text::builder_append(out, String_from(",\"kind\":"))
+    out = text::builder_append(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
+    out = text::builder_append(out, String_from(",\"location\":"))
+    if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
+        out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym)))
     } else {
-        symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0)
+        out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
     }
-    push(fields, parser::json_field(String_from("location"), parser::json_raw(loc)))
     let module_path = symbol_index_record::indexed_symbol_module_path(sym)
     if len(module_path) > 0 {
-        push(fields, parser::json_field(String_from("containerName"), parser::json_str(module_path)))
+        out = text::builder_append(out, String_from(",\"containerName\":"))
+        out = text::builder_append(out, json_escape::quote_string(module_path))
     }
-    parser::json_obj_string(fields)
+    out = text::builder_append(out, String_from("}"))
+    out
+}
+
+fn append_symbol_information(items: String, item: String) -> String {
+    if len(items) == 0 {
+        return item
+    }
+    concat(concat(items, String_from(",")), item)
 }
 
 pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record::IndexedSymbol>, source_texts: Vec<String>) -> String {
-    let items = parser::json_arr_new()
+    let mut items = String_new()
     let n = len(symbols)
     let mut i = 0
     while i < n {
@@ -50,12 +60,13 @@ pub fn build_workspace_symbol_response(id: i32, symbols: Vec<symbol_index_record
         } else {
             String_new()
         }
-        push(items, parser::json_raw(symbol_information_json(sym, text)))
+        items = append_symbol_information(items, symbol_information_json(sym, text))
         i = i + 1
     }
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
-    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
-    push(fields, parser::json_field(String_from("result"), JsonValue::Array(items)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":["))
+    body = text::builder_append(body, items)
+    body = text::builder_append(body, String_from("]}"))
+    body
 }
