@@ -1,36 +1,26 @@
 // Arukellt Selfhost - diagnostic JSON serialization.
 //
-// String escaping delegates to std::json (issue #704).
+// Uses std::json JsonValue DOM for structured JSON construction.
 
 use diagnostics::record
 use diagnostics::severity
-use std::json
-use std::text
+use std::json::parser
 
 fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
-    let mut out = String_from("{\"file\":\"")
-    out = text::builder_append(out, json::json_escape(record::diagnostic_span_file(span)))
-    out = text::builder_append(out, String_from("\",\"line\":"))
-    out = text::builder_append(out, i32_to_string(record::diagnostic_span_line(span)))
-    out = text::builder_append(out, String_from(",\"col\":"))
-    out = text::builder_append(out, i32_to_string(record::diagnostic_span_column(span)))
-    out = text::builder_append(out, String_from(",\"start\":"))
-    out = text::builder_append(out, i32_to_string(record::diagnostic_span_start(span)))
-    out = text::builder_append(out, String_from(",\"end\":"))
-    out = text::builder_append(out, i32_to_string(record::diagnostic_span_end(span)))
-    out = text::builder_append(out, String_from("}"))
-    out
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("file"), parser::json_str(record::diagnostic_span_file(span))))
+    push(fields, parser::json_field(String_from("line"), parser::json_i32(record::diagnostic_span_line(span))))
+    push(fields, parser::json_field(String_from("col"), parser::json_i32(record::diagnostic_span_column(span))))
+    push(fields, parser::json_field(String_from("start"), parser::json_i32(record::diagnostic_span_start(span))))
+    push(fields, parser::json_field(String_from("end"), parser::json_i32(record::diagnostic_span_end(span))))
+    parser::json_obj_string(fields)
 }
 
 fn diagnostic_to_json(diag: Diagnostic) -> String {
-let mut out = String_from("{\"code\":\"")
-out = text::builder_append(out, json::json_escape(record::diagnostic_code(diag)))
-out = text::builder_append(out, String_from("\",\"severity\":\""))
-out = text::builder_append(out, json::json_escape(severity::severity_name(record::diagnostic_severity(diag))))
-out = text::builder_append(out, String_from("\",\"span\":"))
-out = text::builder_append(out, diagnostic_span_to_json(record::diagnostic_span(diag)))
-out = text::builder_append(out, String_from(",\"message\":\""))
-out = text::builder_append(out, json::json_escape(record::diagnostic_message(diag)))
-out = text::builder_append(out, String_from("\"}"))
-out
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("code"), parser::json_str(record::diagnostic_code(diag))))
+    push(fields, parser::json_field(String_from("severity"), parser::json_str(severity::severity_name(record::diagnostic_severity(diag)))))
+    push(fields, parser::json_field(String_from("span"), parser::json_raw(diagnostic_span_to_json(record::diagnostic_span(diag)))))
+    push(fields, parser::json_field(String_from("message"), parser::json_str(record::diagnostic_message(diag))))
+    parser::json_obj_string(fields)
 }
