@@ -31,30 +31,22 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
         return
     }
     wit_ensure_module_alias(ctx, clone(alias))
-    let mut ri = 0
-    while ri < len(doc.records) {
+    for ri in 0..len(doc.records) {
         let rec = get_unchecked(doc.records, ri)
         register_exports::register_module_export(ctx, clone(alias), clone(rec.ark_name), commands::SYM_STRUCT(), true)
-        ri = ri + 1
     }
-    let mut ei = 0
-    while ei < len(doc.enums) {
+    for ei in 0..len(doc.enums) {
         let en = get_unchecked(doc.enums, ei)
         register_exports::register_module_export(ctx, clone(alias), clone(en.ark_name), commands::SYM_ENUM(), true)
-        let mut vi = 0
-        while vi < len(en.variant_ark_names) {
+        for vi in 0..len(en.variant_ark_names) {
             let variant = get_unchecked(en.variant_ark_names, vi)
             let qual_variant = concat(clone(en.ark_name), concat(String_from("::"), clone(variant)))
             register_exports::register_module_export(ctx, clone(alias), qual_variant, commands::SYM_VARIANT(), true)
-            vi = vi + 1
         }
-        ei = ei + 1
     }
-    let mut fi = 0
-    while fi < len(doc.funcs) {
+    for fi in 0..len(doc.funcs) {
         let func = get_unchecked(doc.funcs, fi)
         register_exports::register_module_export(ctx, clone(alias), clone(func.ark_name), commands::SYM_FN(), true)
-        fi = fi + 1
     }
 }
 

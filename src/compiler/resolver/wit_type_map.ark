@@ -65,40 +65,32 @@ fn wit_trim_type(t: String) -> String {
 
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let names = Vec_new_String()
-    let mut ri = 0
-    while ri < len(doc.records) {
+    for ri in 0..len(doc.records) {
         push(names, clone(get_unchecked(doc.records, ri).wit_name))
-        ri = ri + 1
     }
     names
 }
 
 fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let names = Vec_new_String()
-    let mut ri = 0
-    while ri < len(doc.records) {
+    for ri in 0..len(doc.records) {
         push(names, clone(get_unchecked(doc.records, ri).ark_name))
-        ri = ri + 1
     }
     names
 }
 
 fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let names = Vec_new_String()
-    let mut ei = 0
-    while ei < len(doc.enums) {
+    for ei in 0..len(doc.enums) {
         push(names, clone(get_unchecked(doc.enums, ei).wit_name))
-        ei = ei + 1
     }
     names
 }
 
 fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let names = Vec_new_String()
-    let mut ei = 0
-    while ei < len(doc.enums) {
+    for ei in 0..len(doc.enums) {
         push(names, clone(get_unchecked(doc.enums, ei).ark_name))
-        ei = ei + 1
     }
     names
 }
@@ -196,13 +188,11 @@ fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface
 
 fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
     let mut sig = String_new()
-    let mut pi = 0
-    while pi < len(param_wit_types) {
+    for pi in 0..len(param_wit_types) {
         if pi > 0 {
             sig = text::builder_append(sig, String_from("_"))
         }
         sig = text::builder_append(sig, wit_type_to_valtype(get_unchecked(param_wit_types, pi), doc))
-        pi = pi + 1
     }
     let ret = wit_trim_type(ret_wit_type)
     if len(ret) == 0 {
