@@ -8,6 +8,7 @@ use typechecker::call_generic
 use typechecker::call_unknown
 use typechecker::contract_fn_sig
 use typechecker::sigs
+use typechecker::unify
 
 fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
@@ -26,7 +27,21 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
+        check_call_arity(env, sig, callee_name, child_count - 1)
+        call_args::infer_and_check_call_args(env, scope, fn_sigs, enum_defs, node, sig)
         return contract_fn_sig::FnSig_return_type(sig)
     }
     call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, callee_name)
+}
+
+fn check_call_arity(env: TypeEnv, sig: FnSig, fn_name: String, arg_count: i32) {
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    if arg_count != param_count {
+        unify::type_error(env, concat(String_from("function `"),
+            concat(fn_name,
+            concat(String_from("` expects "),
+            concat(to_string(param_count),
+            concat(String_from(" argument(s) but got "),
+            to_string(arg_count))))))
+    }
 }
