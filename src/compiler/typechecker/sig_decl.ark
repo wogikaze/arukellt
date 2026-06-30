@@ -47,6 +47,18 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     contract_fn_sig::FnSig_new(ast_access::node_text(node), param_types, return_type, type_params, type_param_bounds)
 }
 
+fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
+    let param_types = Vec_new_TypeInfo()
+    let mut return_type = simple_type(commands::TY_UNKNOWN())
+    if ast_access::node_type_ann_count(node) > 0 {
+        let type_node = ast_access::node_type_ann_at(node, 0)
+        return_type = types::resolve_type_ann_node_generic(type_node, Vec_new_String())
+    }
+    let type_params = Vec_new_String()
+    let type_param_bounds = Vec_new_TypeParamBounds()
+    contract_fn_sig::FnSig_new(ast_access::node_text(node), param_types, return_type, type_params, type_param_bounds)
+}
+
 // Like fn_sig_from_fn_decl but merges impl-level type parameters with the
 // method's own type parameters. This is needed for `impl Vec<T> { fn push(self, x: T) }`
 // where T comes from the impl block, not the method declaration.

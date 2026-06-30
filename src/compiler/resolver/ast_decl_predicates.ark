@@ -8,6 +8,10 @@ fn node_is_fn_decl(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_FN_DECL())
 }
 
+fn node_is_const_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_CONST_DECL())
+}
+
 fn node_is_struct_decl(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_STRUCT_DECL())
 }

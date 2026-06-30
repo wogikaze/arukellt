@@ -16,6 +16,9 @@ fn register_decl_headers(ctx: ResolveCtx, decls: Vec<AstNode>) {
         if ast_decl_predicates::node_is_fn_decl(d) {
             scope_define::define_with_vis_span(ctx, ast_access::node_text(d), commands::SYM_FN(), ast_access::node_is_pub(d), ast_access::node_decl_name_span_start(d), ast_access::node_decl_name_span_end(d))
         } else {
+            if ast_decl_predicates::node_is_const_decl(d) {
+                scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_FN(), ast_access::node_is_pub(d))
+            } else {
             if ast_decl_predicates::node_is_struct_decl(d) {
                 scope_define::define_with_vis(ctx, ast_access::node_text(d), commands::SYM_STRUCT(), ast_access::node_is_pub(d))
             } else {

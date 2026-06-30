@@ -9,6 +9,7 @@ fn IMPORT_KIND_LOCAL() -> i32 { 0 }
 fn IMPORT_KIND_WIT() -> i32 { 1 }
 fn NK_USE() -> i32 { 54 }
 fn NK_RESOURCE_DECL() -> i32 { 57 }
+fn NK_CONST_DECL() -> i32 { 58 }
 fn NK_TRAIT_DECL() -> i32 { 55 }
 fn NK_IMPL_DECL() -> i32 { 56 }
 
@@ -58,6 +59,7 @@ fn SYM_STRUCT() -> i32 { 4 }
 fn SYM_ENUM() -> i32 { 5 }
 fn SYM_VARIANT() -> i32 { 6 }
 fn SYM_RESOURCE() -> i32 { 10 }
+fn SYM_CONST() -> i32 { 11 }
 
 // Import and builtin symbol kinds.
 fn SYM_IMPORT() -> i32 { 7 }

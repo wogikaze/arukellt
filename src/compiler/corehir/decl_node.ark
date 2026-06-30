@@ -8,6 +8,9 @@ fn decl_kind_to_corehir(kind: i32) -> i32 {
     if frontend_decl_kind::corehir_kind_is_decl_fn(kind) {
         return commands::COREHIR_DECL_FN()
     }
+    if frontend_decl_kind::corehir_kind_is_decl_const(kind) {
+        return commands::COREHIR_DECL_FN()
+    }
     if frontend_decl_kind::corehir_kind_is_decl_struct(kind) {
         return commands::COREHIR_DECL_STRUCT()
     }

@@ -2,6 +2,7 @@ use parser::core_ast_flag_fields
 // Arukellt Parser - top-level declaration dispatch.
 
 use parser::core_api_cursor
+use parser::decl_const
 use parser::decl_headers
 use parser::decl_fns
 use parser::decl_multiclause
@@ -15,7 +16,7 @@ fn parse_decl(p: Parser) -> AstNode {
     let is_async = decl_headers::parse_async_prefix(p)
     let k2 = core_api_cursor::peek_kind(p)
     // TK_FN=10 TK_STRUCT=11 TK_ENUM=12 TK_RESOURCE=32 TK_TRAIT=28
-    // TK_IMPL=29 TK_USE=30 TK_IMPORT=26
+    // TK_IMPL=29 TK_USE=30 TK_IMPORT=26 TK_CONST=35
     match k2 {
         10 => {
             if fn_lookahead::peek_is_fn_clause(p) {
@@ -53,6 +54,11 @@ fn parse_decl(p: Parser) -> AstNode {
         },
         30 => {
             let d = imports::parse_use_decl(p)
+            core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
+            d
+        },
+        35 => {
+            let d = decl_const::parse_const_decl(p)
             core_ast_flag_fields::AstNode_set_is_pub(d, is_pub)
             d
         },

@@ -15,6 +15,9 @@ fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
         if ast_decl_predicates::node_is_fn_decl(node) {
             push(fn_sigs, sigs::fn_sig_from_fn_decl(node))
         }
+        if ast_decl_predicates::node_is_const_decl(node) {
+            push(fn_sigs, sigs::fn_sig_from_const_decl(node))
+        }
         if ast_decl_predicates::node_is_impl_decl(node) {
             collect_impl_method_sigs(fn_sigs, node)
         }

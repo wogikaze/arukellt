@@ -1,0 +1,33 @@
+use lexer::tokens
+use parser::core_ast_children
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+use parser::core_ast_factory
+use parser::core_ast_span_fields
+// Arukellt Parser - const declaration syntax.
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::types
+use parser::token_state
+
+pub fn parse_const_decl(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_CONST())
+    let node = core_ast_factory::AstNode_new(kinds::NK_CONST_DECL(), core_api_expect::tok_span(t))
+    core_api_cursor::skip_newlines(p)
+    let name = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name))
+    core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name))
+    if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        let ty = types::parse_type(p)
+        core_ast_type_ann::AstNode_push_type_ann(node, ty)
+    }
+    core_api_expect::expect_token(p, tokens::TK_EQ())
+    core_api_cursor::skip_newlines(p)
+    let init = parse_expr(p)
+    core_ast_children::AstNode_push_child(node, init)
+    node
+}

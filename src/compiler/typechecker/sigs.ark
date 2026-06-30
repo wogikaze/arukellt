@@ -12,6 +12,10 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     sig_decl::fn_sig_from_fn_decl(node)
 }
 
+fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
+    sig_decl::fn_sig_from_const_decl(node)
+}
+
 fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Vec<String>) -> FnSig {
     sig_decl::fn_sig_from_fn_decl_with_impl_type_params(node, impl_type_params)
 }

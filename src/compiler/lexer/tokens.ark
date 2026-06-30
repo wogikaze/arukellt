@@ -40,6 +40,7 @@ pub fn TK_STRUCT() -> i32 { 11 }
 pub fn TK_ENUM() -> i32 { 12 }
 pub fn TK_TRAIT() -> i32 { 28 }
 pub fn TK_IMPL() -> i32 { 29 }
+pub fn TK_CONST() -> i32 { 35 }
 
 // kind_keyword_loop
 pub fn TK_WHILE() -> i32 { 18 }
