@@ -65,11 +65,9 @@ fn fmt_replace_line_range(text: String, start_line: i32, end_line: i32, replacem
         }
         out = text::builder_append(out, clone(replacement))
     }
-    let mut j = end + 1
-    while j < len(lines) {
+    for j in (end + 1)..len(lines) {
         out = text::builder_append(out, String_from("\n"))
         out = text::builder_append(out, clone(get_unchecked(lines, j)))
-        j = j + 1
     }
     if len(lines) > 0 {
         out = text::builder_append(out, String_from("\n"))

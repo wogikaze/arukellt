@@ -65,10 +65,8 @@ fn wit_parse_func_decl(line: String) -> WitParsedFunc {
     let params_inner = if open >= 0 && close > open { wit_parse_text_scan::wit_trim(substring(line, open + 1, close)) } else { String_new() }
     let param_items = wit_parse_text_scan::wit_split_csv_items(params_inner)
     let param_types = Vec_new_String()
-    let mut pi = 0
-    while pi < len(param_items) {
+    for pi in 0..len(param_items) {
         push(param_types, wit_parse_text_scan::wit_split_param(get_unchecked(param_items, pi)))
-        pi = pi + 1
     }
     let arrow = index_of(line, String_from("->"))
     let ret_type = if arrow < 0 {
@@ -88,14 +86,12 @@ fn wit_parse_record_fields(body: String) -> WitParsedRecord {
     let names = Vec_new_String()
     let types = Vec_new_String()
     let items = wit_parse_text_scan::wit_split_csv_items(body)
-    let mut fi = 0
-    while fi < len(items) {
+    for fi in 0..len(items) {
         let field_line = get_unchecked(items, fi)
         if len(field_line) > 0 {
             push(names, wit_parse_text_scan::wit_before_colon(field_line))
             push(types, wit_parse_text_scan::wit_split_param(field_line))
         }
-        fi = fi + 1
     }
     WitParsedRecord_new(String_new(), String_new(), names, types)
 }
@@ -104,14 +100,12 @@ fn wit_parse_enum_variants(body: String) -> WitParsedEnum {
     let wit_names = Vec_new_String()
     let ark_names = Vec_new_String()
     let items = wit_parse_text_scan::wit_split_csv_items(body)
-    let mut vi = 0
-    while vi < len(items) {
+    for vi in 0..len(items) {
         let variant = wit_parse_text_scan::wit_trim(get_unchecked(items, vi))
         if len(variant) > 0 {
             push(wit_names, clone(variant))
             push(ark_names, wit_names_import::wit_enum_variant_name(clone(variant)))
         }
-        vi = vi + 1
     }
     WitParsedEnum_new(String_new(), String_new(), wit_names, ark_names)
 }
