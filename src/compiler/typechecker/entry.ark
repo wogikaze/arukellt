@@ -27,6 +27,12 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
             body::check_fn_body(fn_env, fn_sigs, enum_defs, node)
             module_env_merge::merge_type_env(env, fn_env)
         }
+        if ast_decl_predicates::node_is_const_decl(node) {
+            module::append_typed_fn(result, node)
+            let fn_env = module_env_merge::type_env_for_fn_check(env)
+            body::check_fn_body(fn_env, fn_sigs, enum_defs, node)
+            module_env_merge::merge_type_env(env, fn_env)
+        }
         if ast_decl_predicates::node_is_impl_decl(node) {
             check_impl_methods(env, fn_sigs, enum_defs, node)
         }
