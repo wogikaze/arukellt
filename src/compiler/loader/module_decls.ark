@@ -24,12 +24,10 @@ pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<
 pub fn combine_loaded_and_main_decls_skip_prelude(modules: Vec<ModuleDecls>, main_decls: Vec<AstNode>) -> Vec<AstNode> {
     let all_decls = Vec_new_AstNode()
     let combined_mc = len(modules)
-    let mut combined_mi = 0
-    while combined_mi < combined_mc {
+    for combined_mi in 0..combined_mc {
         let combined_md = get_unchecked(modules, combined_mi)
         let mod_name = clone(combined_md.name)
         if eq(mod_name, String_from("prelude")) {
-            combined_mi = combined_mi + 1
             continue
         }
         let combined_dc = module_state_modules::ModuleDecls_decl_count(combined_md)
@@ -38,7 +36,6 @@ pub fn combine_loaded_and_main_decls_skip_prelude(modules: Vec<ModuleDecls>, mai
             push(all_decls, module_state_modules::ModuleDecls_decl_at(combined_md, combined_dk))
             combined_dk = combined_dk + 1
         }
-        combined_mi = combined_mi + 1
     }
     vec_extend::Vec_extend_AstNode(all_decls, main_decls)
     all_decls
