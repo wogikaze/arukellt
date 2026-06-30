@@ -4,11 +4,12 @@ use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
 use lsp::feature_request
+use lsp::json_escape
 use lsp::json_fields
 use lsp::positions
 use lsp::rename_workspace
 use lsp::responses
-use std::json::parser
+use std::text
 
 
 fn null_result(id: i32) -> String {
@@ -71,33 +72,29 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     }
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
-    let start_obj = parser::json_obj_new()
-    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(start_pos))))
-    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(start_pos))))
-    let end_obj = parser::json_obj_new()
-    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(positions::lsp_position_line(end_pos))))
-    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(positions::lsp_position_character(end_pos))))
-    let range_obj = parser::json_obj_new()
-    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
-    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
-    let result_obj = parser::json_obj_new()
-    push(result_obj, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
-    push(result_obj, parser::json_field(String_from("placeholder"), parser::json_str(name)))
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
-    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
-    push(fields, parser::json_field(String_from("result"), JsonValue::Object(result_obj)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_line(start_pos)))
+    body = text::builder_append(body, String_from(",\"character\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_character(start_pos)))
+    body = text::builder_append(body, String_from("},\"end\":{\"line\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_line(end_pos)))
+    body = text::builder_append(body, String_from(",\"character\":"))
+    body = text::builder_append(body, to_string(positions::lsp_position_character(end_pos)))
+    body = text::builder_append(body, String_from("}},\"placeholder\":"))
+    body = text::builder_append(body, json_escape::quote_string(name))
+    body = text::builder_append(body, String_from("}}"))
+    body
 }
 
 fn build_rename_response(id: i32, changes: String) -> String {
-    let result_obj = parser::json_obj_new()
-    push(result_obj, parser::json_field(String_from("changes"), parser::json_raw(changes)))
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
-    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
-    push(fields, parser::json_field(String_from("result"), JsonValue::Object(result_obj)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"changes\":{"))
+    body = text::builder_append(body, changes)
+    body = text::builder_append(body, String_from("}}}"))
+    body
 }
 
 pub fn build_prepare_rename_response_for_request(state: LspState, body: String, id: i32) -> String {

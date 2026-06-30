@@ -41,7 +41,7 @@ fn doc_format_signature(e: manifest_doc_record::DocFnEntry) -> String {
     } else {
         sig = text::builder_append(sig, String_from("()"))
     }
-    sig
+    text::builder_build(sig)
 }
 
 pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: String) {
@@ -83,7 +83,7 @@ fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -
     let mut r = out
     if comma { r = text::builder_append(r, String_from(",")) }
     r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json_escape::json_escape(value), String_from("\""))))
-    r
+    text::builder_build(r)
 }
 
 fn doc_json_bool_field(out: String, key: String, value: bool, comma: bool) -> String {
@@ -94,11 +94,12 @@ fn doc_json_bool_field(out: String, key: String, value: bool, comma: bool) -> St
     } else {
         r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":")), String_from("false")))
     }
-    r
+    text::builder_build(r)
 }
 
 pub fn doc_emit_function_json(e: manifest_doc_record::DocFnEntry, filter_target: String) {
-    let mut out = String_from("{")
+    let mut out = text::builder_new()
+    out = text::builder_append(out, String_from("{"))
     out = doc_json_string_field(out, String_from("kind"), String_from("function"), false)
     out = doc_json_string_field(out, String_from("name"), manifest_doc_record::DocFnEntry_name(e), true)
     out = doc_json_string_field(out, String_from("module"), manifest_doc_record::DocFnEntry_module(e), true)

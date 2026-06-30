@@ -3,36 +3,40 @@
 use std::text
 
 fn dap_init_resp(seq: i32, request_seq: i32) -> String {
-    let mut body = String_from("{\"seq\":")
+    let mut body = text::builder_new()
+    body = text::builder_append(body, String_from("{\"seq\":"))
     body = text::builder_append(body, to_string(seq))
     body = text::builder_append(body, String_from(",\"type\":\"response\",\"request_seq\":"))
     body = text::builder_append(body, to_string(request_seq))
     body = text::builder_append(body, String_from(",\"success\":true,\"command\":\"initialize\""))
     body = text::builder_append(body, String_from(",\"body\":{\"supportsConfigurationDoneRequest\":true}}"))
-    body
+    text::builder_build(body)
 }
 
 fn dap_launch_resp(seq: i32, request_seq: i32) -> String {
-    let mut body = String_from("{\"seq\":")
+    let mut body = text::builder_new()
+    body = text::builder_append(body, String_from("{\"seq\":"))
     body = text::builder_append(body, to_string(seq))
     body = text::builder_append(body, String_from(",\"type\":\"response\",\"request_seq\":"))
     body = text::builder_append(body, to_string(request_seq))
     body = text::builder_append(body, String_from(",\"success\":true,\"command\":\"launch\",\"body\":{}}"))
-    body
+    text::builder_build(body)
 }
 
 fn dap_disconnect_resp(seq: i32, request_seq: i32) -> String {
-    let mut body = String_from("{\"seq\":")
+    let mut body = text::builder_new()
+    body = text::builder_append(body, String_from("{\"seq\":"))
     body = text::builder_append(body, to_string(seq))
     body = text::builder_append(body, String_from(",\"type\":\"response\",\"request_seq\":"))
     body = text::builder_append(body, to_string(request_seq))
     body = text::builder_append(body, String_from(",\"success\":true,\"command\":\"disconnect\",\"body\":{}}"))
-    body
+    text::builder_build(body)
 }
 
 fn dap_init_evt(seq: i32) -> String {
-    let mut body = String_from("{\"seq\":")
+    let mut body = text::builder_new()
+    body = text::builder_append(body, String_from("{\"seq\":"))
     body = text::builder_append(body, to_string(seq))
     body = text::builder_append(body, String_from(",\"type\":\"event\",\"event\":\"initialized\"}"))
-    body
+    text::builder_build(body)
 }
