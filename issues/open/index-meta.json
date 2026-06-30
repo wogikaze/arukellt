@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-30T21:13:55Z",
+  "generated_at": "2026-06-30T21:20:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -512,6 +512,31 @@
       }
     },
     {
+      "id": "689",
+      "path": "689-operator-overload-traits.md",
+      "title": "689 — Operator overload trait surface (Add / Index / Deref / ...)",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "707"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "design-required",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "690",
       "path": "690-question-mark-operator.md",
       "title": "690 — `?` operator and `From<E>` error conversion",
@@ -535,6 +560,36 @@
       "orchestration": {
         "class": "design-required",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "691",
+      "path": "691-iterator-trait-lazy-adapters.md",
+      "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "688",
+        "707"
+      ],
+      "blocks_issue_ids": [
+        "697",
+        "703",
+        "709",
+        "710"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch"
       }
     },
     {
@@ -741,10 +796,10 @@
       }
     },
     {
-      "id": "707",
-      "path": "707-trait-self-return-type-support.md",
-      "title": "707 — `Self` return type support for trait method dispatch",
-      "track": "language-design",
+      "id": "708",
+      "path": "708-tryfrom-tryinto-traits.md",
+      "title": "708 — `TryFrom` / `TryInto` traits for fallible conversions",
+      "track": "stdlib-api",
       "status": "open",
       "blocks_v1": "none",
       "blocks_v2": "none",
@@ -752,21 +807,17 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [
-        "688"
+        "692",
+        "707"
       ],
-      "blocks_issue_ids": [
-        "689",
-        "691",
-        "708",
-        "710"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 14,
-        "unchecked": 4
+        "checked": 0,
+        "unchecked": 13
       },
       "orchestration": {
-        "class": "design-required",
-        "upstream_notes": "None"
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#692 From/Into traits, #707 Self return type support"
       }
     },
     {
@@ -899,136 +950,6 @@
       }
     },
     {
-      "id": "689",
-      "path": "689-operator-overload-traits.md",
-      "title": "689 — Operator overload trait surface (Add / Index / Deref / ...)",
-      "track": "language-design",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "688",
-        "707"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-required",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "691",
-      "path": "691-iterator-trait-lazy-adapters.md",
-      "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "688",
-        "707"
-      ],
-      "blocks_issue_ids": [
-        "697",
-        "703",
-        "709",
-        "710"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch"
-      }
-    },
-    {
-      "id": "708",
-      "path": "708-tryfrom-tryinto-traits.md",
-      "title": "708 — `TryFrom` / `TryInto` traits for fallible conversions",
-      "track": "stdlib-api",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "692",
-        "707"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#692 From/Into traits, #707 Self return type support"
-      }
-    },
-    {
-      "id": "683",
-      "path": "683-user-facing-executable-example-audit.md",
-      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
-      "track": "docs-audit",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "679",
-        "682"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "697",
       "path": "697-vec-operation-extension.md",
       "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
@@ -1083,6 +1004,56 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+      }
+    },
+    {
+      "id": "683",
+      "path": "683-user-facing-executable-example-audit.md",
+      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
+      "track": "docs-audit",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "679",
+        "682"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "649",
+        "698"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {
