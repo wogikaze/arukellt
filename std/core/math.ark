@@ -170,72 +170,192 @@ pub fn popcount(n: i32) -> i32 {
     count
 }
 
-// ── checked arithmetic ──────────────────────────────────────────────────────
+// ── checked arithmetic traits ───────────────────────────────────────────────
 
-pub fn checked_add(a: i32, b: i32) -> Option<i32> {
-    let result = a + b
-    if (a >= 0 && b >= 0 && result < 0) || (a < 0 && b < 0 && result >= 0) {
-        Option::None
-    } else {
-        Option::Some(result)
-    }
+/// Trait for types that support checked addition (detecting overflow).
+trait CheckedAdd {
+    fn checked_add(self: Self, rhs: Self) -> Option<Self>
 }
 
-pub fn checked_sub(a: i32, b: i32) -> Option<i32> {
-    let result = a - b
-    if (a >= 0 && b < 0 && result < 0) || (a < 0 && b >= 0 && result >= 0) {
-        Option::None
-    } else {
-        Option::Some(result)
-    }
+/// Trait for types that support checked subtraction (detecting overflow).
+trait CheckedSub {
+    fn checked_sub(self: Self, rhs: Self) -> Option<Self>
 }
 
-pub fn checked_mul(a: i32, b: i32) -> Option<i32> {
-    let result = a * b
-    if b != 0 && result / b != a {
-        Option::None
-    } else {
-        Option::Some(result)
-    }
+/// Trait for types that support checked multiplication (detecting overflow).
+trait CheckedMul {
+    fn checked_mul(self: Self, rhs: Self) -> Option<Self>
 }
 
-// ── saturating arithmetic ───────────────────────────────────────────────────
-
-pub fn saturating_add(a: i32, b: i32) -> i32 {
-    let result = a + b
-    if a >= 0 && b >= 0 && result < 0 {
-        0x7FFFFFFF
-    } else {
-        if a < 0 && b < 0 && result >= 0 {
-            0 - 0x80000000
+impl CheckedAdd for i32 {
+    fn checked_add(self: i32, rhs: i32) -> Option<i32> {
+        let result = self + rhs
+        if (self >= 0 && rhs >= 0 && result < 0) || (self < 0 && rhs < 0 && result >= 0) {
+            Option::None
         } else {
-            result
+            Option::Some(result)
         }
     }
 }
 
-pub fn saturating_sub(a: i32, b: i32) -> i32 {
-    let result = a - b
-    if a >= 0 && b < 0 && result < 0 {
-        0x7FFFFFFF
-    } else {
-        if a < 0 && b >= 0 && result >= 0 {
-            0 - 0x80000000
+impl CheckedSub for i32 {
+    fn checked_sub(self: i32, rhs: i32) -> Option<i32> {
+        let result = self - rhs
+        if (self >= 0 && rhs < 0 && result < 0) || (self < 0 && rhs >= 0 && result >= 0) {
+            Option::None
         } else {
-            result
+            Option::Some(result)
         }
     }
 }
 
-pub fn saturating_mul(a: i32, b: i32) -> i32 {
-    let result = a * b
-    if b != 0 && result / b != a {
-        if (a >= 0 && b >= 0) || (a < 0 && b < 0) {
+impl CheckedMul for i32 {
+    fn checked_mul(self: i32, rhs: i32) -> Option<i32> {
+        let result = self * rhs
+        if rhs != 0 && result / rhs != self {
+            Option::None
+        } else {
+            Option::Some(result)
+        }
+    }
+}
+
+impl CheckedAdd for i64 {
+    fn checked_add(self: i64, rhs: i64) -> Option<i64> {
+        let result = self + rhs
+        if (self >= 0 && rhs >= 0 && result < 0) || (self < 0 && rhs < 0 && result >= 0) {
+            Option::None
+        } else {
+            Option::Some(result)
+        }
+    }
+}
+
+impl CheckedSub for i64 {
+    fn checked_sub(self: i64, rhs: i64) -> Option<i64> {
+        let result = self - rhs
+        if (self >= 0 && rhs < 0 && result < 0) || (self < 0 && rhs >= 0 && result >= 0) {
+            Option::None
+        } else {
+            Option::Some(result)
+        }
+    }
+}
+
+impl CheckedMul for i64 {
+    fn checked_mul(self: i64, rhs: i64) -> Option<i64> {
+        let result = self * rhs
+        if rhs != 0 && result / rhs != self {
+            Option::None
+        } else {
+            Option::Some(result)
+        }
+    }
+}
+
+// ── saturating arithmetic traits ────────────────────────────────────────────
+
+/// Trait for types that support saturating addition (clamping on overflow).
+trait SaturatingAdd {
+    fn saturating_add(self: Self, rhs: Self) -> Self
+}
+
+/// Trait for types that support saturating subtraction (clamping on overflow).
+trait SaturatingSub {
+    fn saturating_sub(self: Self, rhs: Self) -> Self
+}
+
+/// Trait for types that support saturating multiplication (clamping on overflow).
+trait SaturatingMul {
+    fn saturating_mul(self: Self, rhs: Self) -> Self
+}
+
+impl SaturatingAdd for i32 {
+    fn saturating_add(self: i32, rhs: i32) -> i32 {
+        let result = self + rhs
+        if self >= 0 && rhs >= 0 && result < 0 {
             0x7FFFFFFF
         } else {
-            0 - 0x80000000
+            if self < 0 && rhs < 0 && result >= 0 {
+                0 - 0x80000000
+            } else {
+                result
+            }
         }
-    } else {
-        result
+    }
+}
+
+impl SaturatingSub for i32 {
+    fn saturating_sub(self: i32, rhs: i32) -> i32 {
+        let result = self - rhs
+        if self >= 0 && rhs < 0 && result < 0 {
+            0x7FFFFFFF
+        } else {
+            if self < 0 && rhs >= 0 && result >= 0 {
+                0 - 0x80000000
+            } else {
+                result
+            }
+        }
+    }
+}
+
+impl SaturatingMul for i32 {
+    fn saturating_mul(self: i32, rhs: i32) -> i32 {
+        let result = self * rhs
+        if rhs != 0 && result / rhs != self {
+            if (self >= 0 && rhs >= 0) || (self < 0 && rhs < 0) {
+                0x7FFFFFFF
+            } else {
+                0 - 0x80000000
+            }
+        } else {
+            result
+        }
+    }
+}
+
+impl SaturatingAdd for i64 {
+    fn saturating_add(self: i64, rhs: i64) -> i64 {
+        let result = self + rhs
+        if self >= 0 && rhs >= 0 && result < 0 {
+            0x7FFFFFFFFFFFFFFF
+        } else {
+            if self < 0 && rhs < 0 && result >= 0 {
+                0 - 0x8000000000000000
+            } else {
+                result
+            }
+        }
+    }
+}
+
+impl SaturatingSub for i64 {
+    fn saturating_sub(self: i64, rhs: i64) -> i64 {
+        let result = self - rhs
+        if self >= 0 && rhs < 0 && result < 0 {
+            0x7FFFFFFFFFFFFFFF
+        } else {
+            if self < 0 && rhs >= 0 && result >= 0 {
+                0 - 0x8000000000000000
+            } else {
+                result
+            }
+        }
+    }
+}
+
+impl SaturatingMul for i64 {
+    fn saturating_mul(self: i64, rhs: i64) -> i64 {
+        let result = self * rhs
+        if rhs != 0 && result / rhs != self {
+            if (self >= 0 && rhs >= 0) || (self < 0 && rhs < 0) {
+                0x7FFFFFFFFFFFFFFF
+            } else {
+                0 - 0x8000000000000000
+            }
+        } else {
+            result
+        }
     }
 }

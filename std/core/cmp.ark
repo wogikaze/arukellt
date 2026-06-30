@@ -113,3 +113,133 @@ pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Ord trait — total ordering for sortable types.
+//
+// Types implementing `Ord` can be used with generic sorting, binary search,
+// and ordered collection APIs. The `cmp` method returns an `Ordering` value:
+//   - `Ordering::Less`    when self < other
+//   - `Ordering::Equal`   when self == other
+//   - `Ordering::Greater` when self > other
+//
+// ## Protocol catalog: `Ord`
+//
+// | Type    | Status | Notes                            |
+// |---------|--------|----------------------------------|
+// | i32     | impl   | Built-in `<`, `>` operators      |
+// | i64     | impl   | Built-in `<`, `>` operators      |
+// | f64     | impl   | Built-in `<`, `>` operators      |
+// | String  | impl   | Lexicographic char comparison    |
+// | char    | impl   | Built-in `<`, `>` operators      |
+// | bool    | impl   | false < true                     |
+// ---------------------------------------------------------------------------
+
+/// Trait for types that support total ordering.
+trait Ord {
+    fn cmp(self: Ord, other: Ord) -> Ordering
+}
+
+/// `Ord` impl for `i32`.
+impl Ord for i32 {
+    fn cmp(self: i32, other: i32) -> Ordering {
+        if self < other {
+            Ordering::Less
+        } else {
+            if self > other {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+/// `Ord` impl for `i64`.
+impl Ord for i64 {
+    fn cmp(self: i64, other: i64) -> Ordering {
+        if self < other {
+            Ordering::Less
+        } else {
+            if self > other {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+/// `Ord` impl for `f64`.
+impl Ord for f64 {
+    fn cmp(self: f64, other: f64) -> Ordering {
+        if self < other {
+            Ordering::Less
+        } else {
+            if self > other {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+/// `Ord` impl for `String` — lexicographic comparison by char code.
+impl Ord for String {
+    fn cmp(self: String, other: String) -> Ordering {
+        let la = len(self)
+        let lb = len(other)
+        let mut i = 0
+        while i < la && i < lb {
+            let ca = char_at(self, i)
+            let cb = char_at(other, i)
+            if ca < cb {
+                return Ordering::Less
+            }
+            if ca > cb {
+                return Ordering::Greater
+            }
+            i = i + 1
+        }
+        if la < lb {
+            Ordering::Less
+        } else {
+            if la > lb {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+/// `Ord` impl for `char`.
+impl Ord for char {
+    fn cmp(self: char, other: char) -> Ordering {
+        if self < other {
+            Ordering::Less
+        } else {
+            if self > other {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+/// `Ord` impl for `bool` — `false < true`.
+impl Ord for bool {
+    fn cmp(self: bool, other: bool) -> Ordering {
+        if self == other {
+            Ordering::Equal
+        } else {
+            if self {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            }
+        }
+    }
+}

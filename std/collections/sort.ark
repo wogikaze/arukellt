@@ -1,160 +1,67 @@
-//! Generic sorting and partitioning algorithms for `Vec<i32>`.
+//! Generic sorting and partitioning algorithms for `Vec<T>`.
 //!
 //! Provides:
-//! - `sort` / `sort_by` / `sort_by_key` — stable sort (merge sort)
-//! - `sort_unstable` / `sort_unstable_by` / `sort_unstable_by_key` — unstable sort (quicksort)
+//! - `sort` / `sort_by` / `sort_by_key` — sort (quicksort + insertion sort)
+//! - `sort_unstable` / `sort_unstable_by` / `sort_unstable_by_key` — same algorithm
 //! - `partition` — predicate-based partition
 //! - `is_sorted` / `is_sorted_by` — sorted check
 //! - `select_nth` — quickselect (k-th smallest element)
 //!
-//! All operations are in-place on `Vec<i32>`.
+//! All operations are generic over `T: Ord` and work in-place on `Vec<T>`.
+//! No temporary buffer allocation is needed — all algorithms are in-place.
 //!
 //! **Availability:** All targets (T1 + T3). No host capability required.
 
+use std::core
+
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-fn swap_elem(v: Vec<i32>, i: i32, j: i32) {
+fn swap_elem<T>(v: Vec<T>, i: i32, j: i32) {
     let tmp = get_unchecked(v, i)
     set(v, i, get_unchecked(v, j))
     set(v, j, tmp)
 }
 
-fn default_cmp(a: i32, b: i32) -> i32 {
-    if a < b {
-        0 - 1
-    } else {
-        if a > b {
-            1
-        } else {
-            0
-        }
+fn is_less<T: Ord>(a: T, b: T) -> bool {
+    match a.cmp(b) {
+        Ordering::Less => true,
+        Ordering::Equal => false,
+        Ordering::Greater => false,
     }
 }
 
-// ── stable sort (merge sort) ────────────────────────────────────────────────
-
-/// Stable sort of `Vec<i32>` in ascending order (merge sort).
-pub fn sort(v: Vec<i32>) {
-    sort_by(v, default_cmp)
+fn is_less_eq<T: Ord>(a: T, b: T) -> bool {
+    match a.cmp(b) {
+        Ordering::Less => true,
+        Ordering::Equal => true,
+        Ordering::Greater => false,
+    }
 }
 
-/// Stable sort with a comparator `fn(a, b) -> i32` (negative => a < b).
-pub fn sort_by(v: Vec<i32>, cmp: fn(i32, i32) -> i32) {
+// ── sort (quicksort + insertion sort fallback) ──────────────────────────────
+
+/// Sort `Vec<T: Ord>` in ascending order. In-place, O(n log n) average.
+/// Uses quicksort with median-of-three pivot and insertion sort for small
+/// partitions.
+pub fn sort<T: Ord>(v: Vec<T>) {
     let n = len(v)
     if n < 2 {
         return
     }
-    merge_sort(v, 0, n - 1, cmp)
+    quicksort(v, 0, n - 1)
 }
 
-/// Stable sort by a key function `fn(i32) -> i32`.
-pub fn sort_by_key(v: Vec<i32>, key: fn(i32) -> i32) {
+/// Sort with a comparator `fn(T, T) -> Ordering`.
+pub fn sort_by<T>(v: Vec<T>, cmp: fn(T, T) -> Ordering) {
     let n = len(v)
     if n < 2 {
         return
     }
-    merge_sort_by_key(v, 0, n - 1, key)
+    quicksort_by(v, 0, n - 1, cmp)
 }
 
-fn merge_sort_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32) {
-    if lo >= hi {
-        return
-    }
-    let mid = lo + (hi - lo) / 2
-    merge_sort_by_key(v, lo, mid, key)
-    merge_sort_by_key(v, mid + 1, hi, key)
-    merge_ranges_by_key(v, lo, mid, hi, key)
-}
-
-fn merge_ranges_by_key(v: Vec<i32>, lo: i32, mid: i32, hi: i32, key: fn(i32) -> i32) {
-    let left_len = mid - lo + 1
-    let temp = Vec_new_i32()
-    let mut i = 0
-    while i < left_len {
-        push(temp, get_unchecked(v, lo + i))
-        i = i + 1
-    }
-    let mut ti = 0
-    let mut ri = mid + 1
-    let mut oi = lo
-    while ti < left_len && ri <= hi {
-        let ka = key(get_unchecked(temp, ti))
-        let kb = key(get_unchecked(v, ri))
-        if ka <= kb {
-            set(v, oi, get_unchecked(temp, ti))
-            ti = ti + 1
-        } else {
-            set(v, oi, get_unchecked(v, ri))
-            ri = ri + 1
-        }
-        oi = oi + 1
-    }
-    while ti < left_len {
-        set(v, oi, get_unchecked(temp, ti))
-        ti = ti + 1
-        oi = oi + 1
-    }
-}
-
-fn merge_sort(v: Vec<i32>, lo: i32, hi: i32, cmp: fn(i32, i32) -> i32) {
-    if lo >= hi {
-        return
-    }
-    let mid = lo + (hi - lo) / 2
-    merge_sort(v, lo, mid, cmp)
-    merge_sort(v, mid + 1, hi, cmp)
-    merge_ranges(v, lo, mid, hi, cmp)
-}
-
-fn merge_ranges(v: Vec<i32>, lo: i32, mid: i32, hi: i32, cmp: fn(i32, i32) -> i32) {
-    // Copy left half into a temp buffer
-    let left_len = mid - lo + 1
-    let temp = Vec_new_i32()
-    let mut i = 0
-    while i < left_len {
-        push(temp, get_unchecked(v, lo + i))
-        i = i + 1
-    }
-    let mut ti = 0          // temp index
-    let mut ri = mid + 1    // right index
-    let mut oi = lo         // output index
-    while ti < left_len && ri <= hi {
-        if cmp(get_unchecked(temp, ti), get_unchecked(v, ri)) <= 0 {
-            set(v, oi, get_unchecked(temp, ti))
-            ti = ti + 1
-        } else {
-            set(v, oi, get_unchecked(v, ri))
-            ri = ri + 1
-        }
-        oi = oi + 1
-    }
-    while ti < left_len {
-        set(v, oi, get_unchecked(temp, ti))
-        ti = ti + 1
-        oi = oi + 1
-    }
-    // Remaining right elements are already in place
-}
-
-// ── unstable sort (quicksort) ───────────────────────────────────────────────
-
-/// Unstable sort of `Vec<i32>` in ascending order (quicksort).
-/// Faster than stable sort but may reorder equal elements.
-pub fn sort_unstable(v: Vec<i32>) {
-    sort_unstable_by(v, default_cmp)
-}
-
-/// Unstable sort with a comparator.
-pub fn sort_unstable_by(v: Vec<i32>, cmp: fn(i32, i32) -> i32) {
-    let n = len(v)
-    if n < 2 {
-        return
-    }
-    quicksort(v, 0, n - 1, cmp)
-}
-
-/// Unstable sort by a key function.
-pub fn sort_unstable_by_key(v: Vec<i32>, key: fn(i32) -> i32) {
+/// Sort by a key function `fn(T) -> K` where `K: Ord`.
+pub fn sort_by_key<T, K: Ord>(v: Vec<T>, key: fn(T) -> K) {
     let n = len(v)
     if n < 2 {
         return
@@ -162,7 +69,133 @@ pub fn sort_unstable_by_key(v: Vec<i32>, key: fn(i32) -> i32) {
     quicksort_by_key(v, 0, n - 1, key)
 }
 
-fn quicksort_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32) {
+/// Unstable sort of `Vec<T: Ord>` in ascending order.
+/// Same algorithm as `sort` — provided for API compatibility with Rust.
+pub fn sort_unstable<T: Ord>(v: Vec<T>) {
+    sort(v)
+}
+
+/// Unstable sort with a comparator.
+pub fn sort_unstable_by<T>(v: Vec<T>, cmp: fn(T, T) -> Ordering) {
+    sort_by(v, cmp)
+}
+
+/// Unstable sort by a key function.
+pub fn sort_unstable_by_key<T, K: Ord>(v: Vec<T>, key: fn(T) -> K) {
+    sort_by_key(v, key)
+}
+
+fn quicksort<T: Ord>(v: Vec<T>, lo: i32, hi: i32) {
+    if lo >= hi {
+        return
+    }
+    if hi - lo < 16 {
+        insertion_sort_range(v, lo, hi)
+        return
+    }
+    let pivot = partition_quicksort(v, lo, hi)
+    quicksort(v, lo, pivot - 1)
+    quicksort(v, pivot + 1, hi)
+}
+
+fn partition_quicksort<T: Ord>(v: Vec<T>, lo: i32, hi: i32) -> i32 {
+    // Median-of-three pivot selection
+    let mid = lo + (hi - lo) / 2
+    if is_less(get_unchecked(v, mid), get_unchecked(v, lo)) {
+        swap_elem(v, lo, mid)
+    }
+    if is_less(get_unchecked(v, hi), get_unchecked(v, lo)) {
+        swap_elem(v, lo, hi)
+    }
+    if is_less(get_unchecked(v, hi), get_unchecked(v, mid)) {
+        swap_elem(v, mid, hi)
+    }
+    // Use mid as pivot, move to hi
+    swap_elem(v, mid, hi)
+    let pivot_val = get_unchecked(v, hi)
+    let mut i = lo - 1
+    let mut j = lo
+    while j < hi {
+        if is_less_eq(get_unchecked(v, j), pivot_val) {
+            i = i + 1
+            swap_elem(v, i, j)
+        }
+        j = j + 1
+    }
+    i = i + 1
+    swap_elem(v, i, hi)
+    i
+}
+
+fn insertion_sort_range<T: Ord>(v: Vec<T>, lo: i32, hi: i32) {
+    let mut i = lo + 1
+    while i <= hi {
+        let key_val = get_unchecked(v, i)
+        let mut j = i - 1
+        while j >= lo && is_less(key_val, get_unchecked(v, j)) {
+            set(v, j + 1, get_unchecked(v, j))
+            j = j - 1
+        }
+        set(v, j + 1, key_val)
+        i = i + 1
+    }
+}
+
+fn quicksort_by<T>(v: Vec<T>, lo: i32, hi: i32, cmp: fn(T, T) -> Ordering) {
+    if lo >= hi {
+        return
+    }
+    if hi - lo < 16 {
+        insertion_sort_range_by(v, lo, hi, cmp)
+        return
+    }
+    let pivot = partition_quicksort_by(v, lo, hi, cmp)
+    quicksort_by(v, lo, pivot - 1, cmp)
+    quicksort_by(v, pivot + 1, hi, cmp)
+}
+
+fn partition_quicksort_by<T>(v: Vec<T>, lo: i32, hi: i32, cmp: fn(T, T) -> Ordering) -> i32 {
+    let mid = lo + (hi - lo) / 2
+    if cmp(get_unchecked(v, mid), get_unchecked(v, lo)) == Ordering::Less {
+        swap_elem(v, lo, mid)
+    }
+    if cmp(get_unchecked(v, hi), get_unchecked(v, lo)) == Ordering::Less {
+        swap_elem(v, lo, hi)
+    }
+    if cmp(get_unchecked(v, hi), get_unchecked(v, mid)) == Ordering::Less {
+        swap_elem(v, mid, hi)
+    }
+    swap_elem(v, mid, hi)
+    let pivot_val = get_unchecked(v, hi)
+    let mut i = lo - 1
+    let mut j = lo
+    while j < hi {
+        if cmp(get_unchecked(v, j), pivot_val) != Ordering::Greater {
+            i = i + 1
+            swap_elem(v, i, j)
+        }
+        j = j + 1
+    }
+    i = i + 1
+    swap_elem(v, i, hi)
+    i
+}
+
+fn insertion_sort_range_by<T>(v: Vec<T>, lo: i32, hi: i32, cmp: fn(T, T) -> Ordering) {
+    let mut i = lo + 1
+    while i <= hi {
+        let key_val = get_unchecked(v, i)
+        let mut j = i - 1
+        while j >= lo && cmp(key_val, get_unchecked(v, j)) == Ordering::Less {
+            set(v, j + 1, get_unchecked(v, j))
+            j = j - 1
+        }
+        set(v, j + 1, key_val)
+        i = i + 1
+    }
+}
+
+fn quicksort_by_key<T, K: Ord>(v: Vec<T>, lo: i32, hi: i32, key: fn(T) -> K) {
     if lo >= hi {
         return
     }
@@ -175,15 +208,15 @@ fn quicksort_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32) {
     quicksort_by_key(v, pivot + 1, hi, key)
 }
 
-fn partition_quicksort_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32) -> i32 {
+fn partition_quicksort_by_key<T, K: Ord>(v: Vec<T>, lo: i32, hi: i32, key: fn(T) -> K) -> i32 {
     let mid = lo + (hi - lo) / 2
-    if key(get_unchecked(v, mid)) < key(get_unchecked(v, lo)) {
+    if is_less(key(get_unchecked(v, mid)), key(get_unchecked(v, lo))) {
         swap_elem(v, lo, mid)
     }
-    if key(get_unchecked(v, hi)) < key(get_unchecked(v, lo)) {
+    if is_less(key(get_unchecked(v, hi)), key(get_unchecked(v, lo))) {
         swap_elem(v, lo, hi)
     }
-    if key(get_unchecked(v, hi)) < key(get_unchecked(v, mid)) {
+    if is_less(key(get_unchecked(v, hi)), key(get_unchecked(v, mid))) {
         swap_elem(v, mid, hi)
     }
     swap_elem(v, mid, hi)
@@ -191,7 +224,7 @@ fn partition_quicksort_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32
     let mut i = lo - 1
     let mut j = lo
     while j < hi {
-        if key(get_unchecked(v, j)) <= pivot_key {
+        if is_less_eq(key(get_unchecked(v, j)), pivot_key) {
             i = i + 1
             swap_elem(v, i, j)
         }
@@ -202,70 +235,13 @@ fn partition_quicksort_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32
     i
 }
 
-fn insertion_sort_range_by_key(v: Vec<i32>, lo: i32, hi: i32, key: fn(i32) -> i32) {
+fn insertion_sort_range_by_key<T, K: Ord>(v: Vec<T>, lo: i32, hi: i32, key: fn(T) -> K) {
     let mut i = lo + 1
     while i <= hi {
         let key_val = get_unchecked(v, i)
         let key_k = key(key_val)
         let mut j = i - 1
-        while j >= lo && key(get_unchecked(v, j)) > key_k {
-            set(v, j + 1, get_unchecked(v, j))
-            j = j - 1
-        }
-        set(v, j + 1, key_val)
-        i = i + 1
-    }
-}
-
-fn quicksort(v: Vec<i32>, lo: i32, hi: i32, cmp: fn(i32, i32) -> i32) {
-    if lo >= hi {
-        return
-    }
-    // Use insertion sort for small partitions
-    if hi - lo < 16 {
-        insertion_sort_range(v, lo, hi, cmp)
-        return
-    }
-    let pivot = partition_quicksort(v, lo, hi, cmp)
-    quicksort(v, lo, pivot - 1, cmp)
-    quicksort(v, pivot + 1, hi, cmp)
-}
-
-fn partition_quicksort(v: Vec<i32>, lo: i32, hi: i32, cmp: fn(i32, i32) -> i32) -> i32 {
-    // Median-of-three pivot selection
-    let mid = lo + (hi - lo) / 2
-    if cmp(get_unchecked(v, mid), get_unchecked(v, lo)) < 0 {
-        swap_elem(v, lo, mid)
-    }
-    if cmp(get_unchecked(v, hi), get_unchecked(v, lo)) < 0 {
-        swap_elem(v, lo, hi)
-    }
-    if cmp(get_unchecked(v, hi), get_unchecked(v, mid)) < 0 {
-        swap_elem(v, mid, hi)
-    }
-    // Use mid as pivot, move to hi-1
-    swap_elem(v, mid, hi)
-    let pivot_val = get_unchecked(v, hi)
-    let mut i = lo - 1
-    let mut j = lo
-    while j < hi {
-        if cmp(get_unchecked(v, j), pivot_val) <= 0 {
-            i = i + 1
-            swap_elem(v, i, j)
-        }
-        j = j + 1
-    }
-    i = i + 1
-    swap_elem(v, i, hi)
-    i
-}
-
-fn insertion_sort_range(v: Vec<i32>, lo: i32, hi: i32, cmp: fn(i32, i32) -> i32) {
-    let mut i = lo + 1
-    while i <= hi {
-        let key_val = get_unchecked(v, i)
-        let mut j = i - 1
-        while j >= lo && cmp(get_unchecked(v, j), key_val) > 0 {
+        while j >= lo && is_less(key_k, key(get_unchecked(v, j))) {
             set(v, j + 1, get_unchecked(v, j))
             j = j - 1
         }
@@ -279,7 +255,7 @@ fn insertion_sort_range(v: Vec<i32>, lo: i32, hi: i32, cmp: fn(i32, i32) -> i32)
 /// Reorder elements so that all elements for which `pred` returns true come
 /// before those for which it returns false. Returns the index of the first
 /// element for which `pred` returns false (or `len` if all return true).
-pub fn partition(v: Vec<i32>, pred: fn(i32) -> bool) -> i32 {
+pub fn partition<T>(v: Vec<T>, pred: fn(T) -> bool) -> i32 {
     let n = len(v)
     let mut i = 0
     let mut j = 0
@@ -296,16 +272,24 @@ pub fn partition(v: Vec<i32>, pred: fn(i32) -> bool) -> i32 {
 // ── is_sorted ───────────────────────────────────────────────────────────────
 
 /// Returns true if the vector is sorted in non-decreasing order.
-pub fn is_sorted(v: Vec<i32>) -> bool {
-    is_sorted_by(v, default_cmp)
-}
-
-/// Returns true if the vector is sorted according to `cmp`.
-pub fn is_sorted_by(v: Vec<i32>, cmp: fn(i32, i32) -> i32) -> bool {
+pub fn is_sorted<T: Ord>(v: Vec<T>) -> bool {
     let n = len(v)
     let mut i = 1
     while i < n {
-        if cmp(get_unchecked(v, i - 1), get_unchecked(v, i)) > 0 {
+        if is_less(get_unchecked(v, i), get_unchecked(v, i - 1)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+/// Returns true if the vector is sorted according to `cmp`.
+pub fn is_sorted_by<T>(v: Vec<T>, cmp: fn(T, T) -> Ordering) -> bool {
+    let n = len(v)
+    let mut i = 1
+    while i < n {
+        if cmp(get_unchecked(v, i - 1), get_unchecked(v, i)) == Ordering::Greater {
             return false
         }
         i = i + 1
@@ -318,7 +302,7 @@ pub fn is_sorted_by(v: Vec<i32>, cmp: fn(i32, i32) -> i32) -> bool {
 /// Rearranges elements so that the element at index `k` is the k-th smallest
 /// (0-indexed). All elements before index k are <= it, all after are >= it.
 /// Uses the quickselect algorithm (average O(n)).
-pub fn select_nth(v: Vec<i32>, k: i32) {
+pub fn select_nth<T: Ord>(v: Vec<T>, k: i32) {
     let n = len(v)
     if k < 0 || k >= n {
         return
@@ -326,11 +310,11 @@ pub fn select_nth(v: Vec<i32>, k: i32) {
     quickselect(v, 0, n - 1, k)
 }
 
-fn quickselect(v: Vec<i32>, lo: i32, hi: i32, k: i32) {
+fn quickselect<T: Ord>(v: Vec<T>, lo: i32, hi: i32, k: i32) {
     if lo >= hi {
         return
     }
-    let pivot = partition_quicksort(v, lo, hi, default_cmp)
+    let pivot = partition_quicksort(v, lo, hi)
     if pivot == k {
         return
     }
