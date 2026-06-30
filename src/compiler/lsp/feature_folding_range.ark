@@ -10,37 +10,32 @@ use lsp::state_record
 use std::text
 
 fn line_has_open_brace(text: String, line: i32) -> bool {
-    let mut i = 0
     let mut cur = 0
-    while i < len(text) {
+    for i in 0..len(text) {
         if char_at(text, i) == 10 {
             if cur == line {
                 return false
             }
             cur = cur + 1
-            i = i + 1
             continue
         }
         if cur == line && char_at(text, i) == 123 {
             return true
         }
-        i = i + 1
     }
     false
 }
 
 fn find_brace_end_line(text: String, start_line: i32) -> i32 {
     let mut depth = 0
-    let mut i = 0
     let mut cur = 0
-    while i < len(text) {
+    for i in 0..len(text) {
         let ch = char_at(text, i)
         if ch == 10 {
             if cur > start_line && depth <= 0 {
                 return cur - 1
             }
             cur = cur + 1
-            i = i + 1
             continue
         }
         if cur >= start_line {
@@ -52,7 +47,6 @@ fn find_brace_end_line(text: String, start_line: i32) -> i32 {
                 }
             }
         }
-        i = i + 1
     }
     start_line
 }

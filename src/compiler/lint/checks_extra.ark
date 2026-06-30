@@ -129,25 +129,21 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
         return warnings
     }
     let count = len(decls)
-    let mut i = 0
-    while i < count {
+    for i in 0..count {
         let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
             // Skip main and private helpers starting with _
             if eq(clone(name), String_from("main")) {
-                i = i + 1
                 continue
             }
             if starts_with(clone(name), String_from("_")) {
-                i = i + 1
                 continue
             }
             let msg = concat(String_from("non-exportable function `"), concat(clone(name), String_from("` will be skipped from component exports")))
             let span = record::DiagnosticSpan_from_raw(ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_CAPABILITY_STUB(), diag_mod::SEV_WARNING(), span, msg))
         }
-        i = i + 1
     }
     warnings
 }
