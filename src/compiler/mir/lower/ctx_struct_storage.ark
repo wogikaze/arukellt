@@ -21,6 +21,8 @@ fn ctx_struct_field_type_at_offset(ctx: LowerCtx, offset: i32) -> String {
 }
 
 fn ctx_struct_push_layout(ctx: LowerCtx, struct_name: String, field_count: i32) {
+    let idx = len(ctx.struct_names)
+    HashMap_String_i32_insert(ctx.struct_name_index, clone(struct_name), idx)
     push(ctx.struct_names, struct_name)
     push(ctx.struct_field_counts, field_count)
 }

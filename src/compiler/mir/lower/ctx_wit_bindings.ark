@@ -3,12 +3,11 @@
 use mir::lower::ctx_types
 
 fn ctx_wit_call_index(ctx: LowerCtx, qualified_name: String) -> i32 {
-    for i in 0..len(ctx.wit_call_names) {
-        if eq(get_unchecked(ctx.wit_call_names, i), clone(qualified_name)) {
-            return i
-        }
+    let opt_idx = HashMap_String_i32_get(ctx.wit_call_name_index, clone(qualified_name))
+    match opt_idx {
+        Option::Some(idx) => { idx },
+        Option::None => { 0 - 1 },
     }
-    0 - 1
 }
 
 fn ctx_wit_call_iface(ctx: LowerCtx, index: i32) -> String {

@@ -8,7 +8,9 @@ fn mir_init_wit_bindings(ctx: LowerCtx, wit_paths: Vec<String>, decls: Vec<AstNo
     let mut i = 0
     while i < count {
         let binding = get_unchecked(bindings, i)
-        push(ctx.wit_call_names, wit_import_bind::wit_import_binding_qualified_name(binding))
+        let qname = wit_import_bind::wit_import_binding_qualified_name(binding)
+        HashMap_String_i32_insert(ctx.wit_call_name_index, clone(qname), i)
+        push(ctx.wit_call_names, qname)
         push(ctx.wit_call_iface_ids, wit_import_bind::wit_import_binding_interface_id(binding))
         push(ctx.wit_call_func_names, wit_import_bind::wit_import_binding_wit_func_name(binding))
         i = i + 1
