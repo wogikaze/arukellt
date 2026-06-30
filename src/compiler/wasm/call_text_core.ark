@@ -7,6 +7,7 @@ use wasm::inst_store
 use wasm::intrinsic_string_contains_bytes
 use wasm::intrinsic_string_trim
 use wasm::intrinsic_string_basic
+use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
 use wasm::writer_core
@@ -140,6 +141,10 @@ fn try_emit_text_construct_call(w: WasmWriter, callee: String, inst: MirInst, ct
 
     if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") || eq(clone(callee), "__intrinsic_bool_to_string") {
         let _result_on_stack = intrinsic_string_basic::emit_bool_to_string(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "string_from_bytes") || eq(clone(callee), "__intrinsic_string_from_bytes") {
+        let _result_on_stack = intrinsic_string_from_bytes::emit_string_from_bytes(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
     false

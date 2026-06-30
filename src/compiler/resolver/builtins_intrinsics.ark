@@ -51,6 +51,7 @@ fn push_intrinsic_string_text(names: Vec<String>) {
     push(names, String_from("__intrinsic_string_clone"))
     push(names, String_from("__intrinsic_string_eq"))
     push(names, String_from("__intrinsic_string_from"))
+    push(names, String_from("__intrinsic_string_from_bytes"))
     push(names, String_from("__intrinsic_string_new"))
     push(names, String_from("__intrinsic_string_slice"))
     push(names, String_from("__intrinsic_substring"))

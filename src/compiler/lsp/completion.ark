@@ -2,7 +2,7 @@
 
 use lsp::completion_providers
 use lsp::positions
-use std::text
+use std::json::parser
 
 fn is_ident_char(ch: i32) -> bool {
     if ch >= 97 && ch <= 122 {
@@ -33,10 +33,14 @@ fn prefix_at_offset(text: String, offset: i32) -> String {
 pub fn build_completion_response(state: LspState, id: i32, text: String, offset: i32) -> String {
     let prefix = prefix_at_offset(clone(text), offset)
     let items = completion_providers::collect_completion_items(state, clone(text), offset, prefix)
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    body = text::builder_append(body, to_string(id))
-    body = text::builder_append(body, String_from(",\"result\":{\"isIncomplete\":false,\"items\":["))
-    body = text::builder_append(body, items)
-    body = text::builder_append(body, String_from("]}}"))
-    body
+    let items_arr = parser::json_arr_new()
+    push(items_arr, parser::json_raw(items))
+    let result_obj = parser::json_obj_new()
+    push(result_obj, parser::json_field(String_from("isIncomplete"), parser::json_bool(false)))
+    push(result_obj, parser::json_field(String_from("items"), JsonValue::Array(items_arr)))
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
+    push(fields, parser::json_field(String_from("result"), JsonValue::Object(result_obj)))
+    parser::json_obj_string(fields)
 }
