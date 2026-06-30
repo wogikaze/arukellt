@@ -48,6 +48,11 @@ graph LR
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
+  I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
+  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
+  I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I474 --> I646
   I667 --> I673
@@ -66,6 +71,23 @@ graph LR
   I701 --> I703
   I691 --> I703
   I695 --> I703
+  I691 --> I709
+  I695 --> I709
+  I697 --> I709
+  I703 --> I709
+  I691 --> I710
+  I697 --> I710
+  I701 --> I710
+  I707 --> I710
+  I709 --> I710
+  I681 --> I711
+  I709 --> I711
+  I710 --> I711
+  I709 --> I712
+  I711 --> I712
+  I709 --> I713
+  I711 --> I713
+  I712 --> I713
   I30 --> I31
 ```
 
@@ -86,33 +108,38 @@ graph LR
 - **677** depends on: 475, 485; blocks: none
 - **678** depends on: none; blocks: none
 - **680** depends on: 679; blocks: 682
-- **681** depends on: 679; blocks: none
+- **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: 698
 - **687** depends on: 495; blocks: none
 - **690** depends on: 688; blocks: 694
 - **693** depends on: 688, 692; blocks: none
-- **695** depends on: 688; blocks: 697, 703
+- **695** depends on: 688; blocks: 697, 703, 709
 - **696** depends on: 688, 692; blocks: none
-- **701** depends on: 700; blocks: 703
+- **701** depends on: 700; blocks: 703, 710
 - **702** depends on: 688, 700, 692; blocks: none
 - **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
-- **707** depends on: 688; blocks: 689, 691, 708
+- **707** depends on: 688; blocks: 689, 691, 708, 710
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **694** depends on: 690, 692; blocks: none
 - **689** depends on: 688, 707; blocks: none
-- **691** depends on: 688, 707; blocks: 697, 703
+- **691** depends on: 688, 707; blocks: 697, 703, 709, 710
 - **708** depends on: 692, 707; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
-- **697** depends on: 691, 695; blocks: none
-- **703** depends on: 700, 701, 691, 695; blocks: none
+- **697** depends on: 691, 695; blocks: 709, 710
+- **703** depends on: 700, 701, 691, 695; blocks: 709
+- **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
+- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **711** depends on: 681, 709, 710; blocks: 712, 713
+- **712** depends on: 709, 711; blocks: 713
+- **713** depends on: 709, 711, 712; blocks: none
 
 ### Blocked
 

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-06-27T09:48:20Z",
+  "generated_at": "2026-06-30T21:13:55Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -405,7 +405,9 @@
       "depends_on": [
         "679"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "711"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 6
@@ -576,7 +578,8 @@
       ],
       "blocks_issue_ids": [
         "697",
-        "703"
+        "703",
+        "709"
       ],
       "acceptance": {
         "checked": 0,
@@ -627,7 +630,8 @@
         "700"
       ],
       "blocks_issue_ids": [
-        "703"
+        "703",
+        "710"
       ],
       "acceptance": {
         "checked": 0,
@@ -753,11 +757,12 @@
       "blocks_issue_ids": [
         "689",
         "691",
-        "708"
+        "708",
+        "710"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 16
+        "checked": 14,
+        "unchecked": 4
       },
       "orchestration": {
         "class": "design-required",
@@ -860,8 +865,8 @@
         "699"
       ],
       "acceptance": {
-        "checked": 38,
-        "unchecked": 11
+        "checked": 39,
+        "unchecked": 10
       },
       "orchestration": {
         "class": "design-ready",
@@ -935,7 +940,9 @@
       ],
       "blocks_issue_ids": [
         "697",
-        "703"
+        "703",
+        "709",
+        "710"
       ],
       "acceptance": {
         "checked": 0,
@@ -1036,7 +1043,10 @@
         "691",
         "695"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "709",
+        "710"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 15
@@ -1063,7 +1073,9 @@
         "691",
         "695"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "709"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 19
@@ -1071,6 +1083,150 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+      }
+    },
+    {
+      "id": "709",
+      "path": "709-stdlib-trait-first-api-policy.md",
+      "title": "709 — Stdlib trait-first API policy and i32 helper containment",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "691",
+        "695",
+        "697",
+        "703"
+      ],
+      "blocks_issue_ids": [
+        "710",
+        "711",
+        "712",
+        "713"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
+      }
+    },
+    {
+      "id": "710",
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "691",
+        "697",
+        "701",
+        "707",
+        "709"
+      ],
+      "blocks_issue_ids": [
+        "711"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      }
+    },
+    {
+      "id": "711",
+      "path": "711-stdlib-docs-rich-reference-quality.md",
+      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
+      "track": "stdlib-docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "681",
+        "709",
+        "710"
+      ],
+      "blocks_issue_ids": [
+        "712",
+        "713"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+      }
+    },
+    {
+      "id": "712",
+      "path": "712-llm-code-quality-signal-gates.md",
+      "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
+      "track": "tooling-contract",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "709",
+        "711"
+      ],
+      "blocks_issue_ids": [
+        "713"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "713",
+      "path": "713-stdlib-best-practices-doc-pack.md",
+      "title": "713 — Stdlib and Arukellt code best-practices doc pack",
+      "track": "language-docs",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "709",
+        "711",
+        "712"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#709 trait-first policy, #711 stdlib docs, #712 LLM quality signals"
       }
     }
   ],
