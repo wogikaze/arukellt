@@ -23,7 +23,10 @@ pub fn parse_const_decl(p: Parser) -> AstNode {
         p.pos = p.pos + 1
         core_api_cursor::skip_newlines(p)
         let ty = types::parse_type(p)
-        core_ast_type_ann::AstNode_push_type_ann(node, ty)
+        let ret_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_NAMED(), core_ast_span_fields::AstNode_span(ty))
+        core_ast_text_fields::AstNode_set_text(ret_node, String_from("__return"))
+        core_ast_children::AstNode_push_child(ret_node, ty)
+        core_ast_type_ann::AstNode_push_type_ann(node, ret_node)
     }
     core_api_expect::expect_token(p, tokens::TK_EQ())
     core_api_cursor::skip_newlines(p)

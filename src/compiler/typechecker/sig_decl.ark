@@ -50,9 +50,17 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
 fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
     let param_types = Vec_new_TypeInfo()
     let mut return_type = simple_type(commands::TY_UNKNOWN())
-    if ast_access::node_type_ann_count(node) > 0 {
-        let type_node = ast_access::node_type_ann_at(node, 0)
-        return_type = types::resolve_type_ann_node_generic(type_node, Vec_new_String())
+    let ann_count = ast_access::node_type_ann_count(node)
+    let mut j = 0
+    while j < ann_count {
+        let ann = ast_access::node_type_ann_at(node, j)
+        if eq(ast_access::node_text(ann), String_from("__return")) {
+            if ast_access::node_child_count(ann) > 0 {
+                let ret_node = ast_access::node_child_at(ann, 0)
+                return_type = types::resolve_type_ann_node_generic(ret_node, Vec_new_String())
+            }
+        }
+        j = j + 1
     }
     let type_params = Vec_new_String()
     let type_param_bounds = Vec_new_TypeParamBounds()

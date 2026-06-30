@@ -13,11 +13,11 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 1 966 980 bytes (≈ 1.88 MiB) |
-| sha256 | `eee048bff09e86d8b313b04159cc406cd74ae1c4e5605d38ec987231c926d508` |
-| Built from commit | `3517a76c6` — feat(compiler): add const declaration syntax support; refreshed from prior pinned reference (`bd4cd1353`) via stage-2 bootstrap + stage-3 fixpoint verification |
+| Size | 1 968 692 bytes (≈ 1.88 MiB) |
+| sha256 | `8e33faa7c47c0f1ae3570070c935bd00d4f8c28e99ee38d61f3311270406dad4` |
+| Built from commit | `cc0c5f579` — fix(resolver): fix register_headers nesting + typecheck const decls + pin const-aware wasm; refreshed from prior pinned reference (`eee048b…`) via stage-2 bootstrap + stage-3 fixpoint verification |
 | Build target | `wasm32-wasi-p1` |
-| Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-2→3 fixpoint (`sha256(s2) == sha256(s3)`); includes const declaration syntax support, pub use re-export semantics, opcodes.ark split into 4 categorized modules, enum-with-payload GC support, Phase 2 control flow modernization (match + for-in), Phase 3 boilerplate reduction (Vec_extend helpers, struct literals), and std/text bootstrap overlay |
+| Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-2→3 fixpoint (`sha256(s2) == sha256(s3)`); includes const declaration syntax support with __return type annotation, pub use re-export semantics, opcodes.ark split into 4 categorized modules, enum-with-payload GC support, Phase 2 control flow modernization (match + for-in), Phase 3 boilerplate reduction (Vec_extend helpers, struct literals), and std/text bootstrap overlay |
 
 ## Reproducibility recipe
 
@@ -26,7 +26,7 @@ when compiled from the recorded source commit plus the refresh worktree:
 
 ```bash
 # 1. Check out the recorded source commit
-git checkout 3517a76c6
+git checkout cc0c5f579
 
 # 2. Rebuild Stage-1 selfhost wasm using the previous pinned reference
 mkdir -p .build/selfhost
