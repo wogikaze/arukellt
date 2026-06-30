@@ -1,0 +1,79 @@
+// Phase 6 spike: verify trait/impl static dispatch works on the selfhost
+// target.
+//
+// Defines a `MemoryAccess` trait with two abstract operations, implements it
+// for two struct types (`GcTarget`, `LinearTarget`), then dispatches calls
+// through a generic function bounded by the trait. Monomorphization-based
+// static dispatch must resolve each call to the correct impl method.
+use std::host::stdio
+
+/// Abstract memory access protocol. Two operations: load and store.
+trait MemoryAccess {
+    fn load_byte(self: MemoryAccess, addr: i32) -> i32
+    fn store_byte(self: MemoryAccess, addr: i32, val: i32) -> i32
+}
+
+/// GC-managed target: load returns addr + offset, store returns written val.
+struct GcTarget {
+    offset: i32,
+}
+
+impl MemoryAccess for GcTarget {
+    fn load_byte(self: GcTarget, addr: i32) -> i32 {
+        addr + self.offset
+    }
+    fn store_byte(self: GcTarget, addr: i32, val: i32) -> i32 {
+        // GC target records the address it wrote to via offset.
+        addr + self.offset + val
+    }
+}
+
+/// Linear-memory target: load returns addr, store returns val.
+struct LinearTarget {
+    base: i32,
+}
+
+impl MemoryAccess for LinearTarget {
+    fn load_byte(self: LinearTarget, addr: i32) -> i32 {
+        addr + self.base
+    }
+    fn store_byte(self: LinearTarget, addr: i32, val: i32) -> i32 {
+        addr + self.base + val
+    }
+}
+
+/// Generic dispatcher: calls trait methods on the bounded parameter.
+/// After monomorphization, `mem.load_byte(a)` and `mem.store_byte(a, v)`
+/// must resolve to the concrete impl for each instantiation.
+fn probe_load<T: MemoryAccess>(mem: T, addr: i32) -> i32 {
+    mem.load_byte(addr)
+}
+
+fn probe_store<T: MemoryAccess>(mem: T, addr: i32, val: i32) -> i32 {
+    mem.store_byte(addr, val)
+}
+
+fn main() {
+    let gc = GcTarget { offset: 100 }
+    let lin = LinearTarget { base: 1000 }
+
+    // Dispatch through the generic trait-bounded functions.
+    let gc_load = probe_load(gc, 5)
+    stdio::println(gc_load)
+
+    let lin_load = probe_load(lin, 5)
+    stdio::println(lin_load)
+
+    let gc_store = probe_store(gc, 7, 3)
+    stdio::println(gc_store)
+
+    let lin_store = probe_store(lin, 7, 3)
+    stdio::println(lin_store)
+
+    // Direct trait method calls on concrete instances.
+    let direct_gc = gc.load_byte(9)
+    stdio::println(direct_gc)
+
+    let direct_lin = lin.load_byte(9)
+    stdio::println(direct_lin)
+}
