@@ -6,8 +6,7 @@ use wasm::writer_leb
 use wasm::writer_string
 
 fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
-    let mut i = 0
-    while i < len(bindings) {
+    for i in 0..len(bindings) {
         let binding = get_unchecked(bindings, i)
         let iface = wit_import_bind::wit_import_binding_interface_id(binding)
         let func = wit_import_bind::wit_import_binding_wit_func_name(binding)
@@ -16,6 +15,5 @@ fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind
         writer_string::emit_string(import_sec, func)
         writer_core::emit_byte(import_sec, 0)
         writer_leb::emit_leb128_u(import_sec, type_idx)
-        i = i + 1
     }
 }

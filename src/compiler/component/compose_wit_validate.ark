@@ -92,19 +92,16 @@ fn compose_wit_load_world(path: String) -> ComposeWitWorld {
 }
 
 fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32 {
-    let mut i = 0
-    while i < len(exports) {
+    for i in 0..len(exports) {
         if eq(clone(get_unchecked(exports, i).name), clone(name)) {
             return i
         }
-        i = i + 1
     }
     -1
 }
 
 fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider_exports: Vec<ComposeWitFuncSig>) -> String {
-    let mut i = 0
-    while i < len(socket_imports) {
+    for i in 0..len(socket_imports) {
         let imp = get_unchecked(socket_imports, i)
         let export_idx = compose_wit_find_export(clone(provider_exports), clone(imp.name))
         if export_idx < 0 {
@@ -135,7 +132,6 @@ fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider
                 )
             )
         }
-        i = i + 1
     }
     String_new()
 }

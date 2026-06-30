@@ -26,16 +26,12 @@ fn p2_stub_emit_wasm_section(out: WasmWriter, section_id: i32, contents: WasmWri
 fn p2_stub_emit_core_func_type(type_sec: WasmWriter, params: Vec<i32>, results: Vec<i32>) {
     writer_core::emit_byte(type_sec, 0x60)
     writer_leb::emit_leb128_u(type_sec, len(params))
-    let mut i = 0
-    while i < len(params) {
+    for i in 0..len(params) {
         writer_core::emit_byte(type_sec, get_unchecked(params, i))
-        i = i + 1
     }
     writer_leb::emit_leb128_u(type_sec, len(results))
-    i = 0
-    while i < len(results) {
+    for i in 0..len(results) {
         writer_core::emit_byte(type_sec, get_unchecked(results, i))
-        i = i + 1
     }
 }
 
@@ -144,12 +140,10 @@ fn p2_stub_emit_core_exports(out: WasmWriter, export_a: String, export_b: String
 fn p2_stub_emit_core_exports_list(out: WasmWriter, export_names: Vec<String>, func_idxs: Vec<i32>) {
     let export_sec = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(export_sec, len(export_names))
-    let mut i = 0
-    while i < len(export_names) {
+    for i in 0..len(export_names) {
         writer_string::emit_string(export_sec, get_unchecked(export_names, i))
         writer_core::emit_byte(export_sec, 0x00)
         writer_leb::emit_leb128_u(export_sec, get_unchecked(func_idxs, i))
-        i = i + 1
     }
     p2_stub_emit_wasm_section(out, 7, export_sec)
 }
@@ -157,14 +151,12 @@ fn p2_stub_emit_core_exports_list(out: WasmWriter, export_names: Vec<String>, fu
 fn p2_stub_emit_return_zero_bodies(out: WasmWriter, body_count: i32) {
     let code_sec = writer_core::WasmWriter_new()
     writer_leb::emit_leb128_u(code_sec, body_count)
-    let mut i = 0
-    while i < body_count {
+    for i in 0..body_count {
         writer_leb::emit_leb128_u(code_sec, 4)
         writer_leb::emit_leb128_u(code_sec, 0)
         writer_core::emit_byte(code_sec, 0x41)
         writer_leb::emit_leb128_u(code_sec, 0)
         writer_core::emit_byte(code_sec, 0x0b)
-        i = i + 1
     }
     p2_stub_emit_wasm_section(out, 10, code_sec)
 }

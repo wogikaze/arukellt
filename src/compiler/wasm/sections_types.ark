@@ -133,8 +133,7 @@ fn find_canon_type_index(canon_types: Vec<String>, sig: String) -> i32 {
 }
 
 fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
-    let mut i = 0
-    while i < len(canon_types) {
+    for i in 0..len(canon_types) {
         let sig = get_unchecked(canon_types, i)
         if char_at(clone(sig), 0) == 65 {
             return i
@@ -142,7 +141,6 @@ fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
         if starts_with(clone(sig), String_from("GS_f")) {
             return i
         }
-        i = i + 1
     }
     0 - 1
 }
