@@ -13,11 +13,11 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 922 990 bytes (≈ 901 KiB) |
-| sha256 | `e1e2b5a974d396ae71e43999497f083d0939440ae2c5f9d3c63c3d7d9081e604` |
-| Built from commit | `1ad70bcf1` — P2 component stub encoding and core-instance wiring (#074 partial); refreshed from prior pinned reference via stage-2 bootstrap + fixpoint verification |
+| Size | 1 963 109 bytes (≈ 1.87 MiB) |
+| sha256 | `a7929b0e5d9adc2f4ee73d6521d2de53dbb941ae93849a6e09c4befdf1a6fb68` |
+| Built from commit | `bd4cd1353` — fix(selfhost): restore missing impl_count and add std/text to bootstrap overlay; refreshed from prior pinned reference (`1ad70bcf1`) via stage-2 bootstrap + stage-3/4 fixpoint verification |
 | Build target | `wasm32-wasi-p1` |
-| Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-3 fixpoint (`sha256(s2) == sha256(s3)`); first pinned artifact compiled from the modular `src/compiler/**` tree (flat bootstrap overlay + heap-grow runtime patch), including the LSP/DAP/analysis IDE surface |
+| Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-3→4 fixpoint (`sha256(s3) == sha256(s4)`); includes enum-with-payload GC support, Phase 2 control flow modernization (match + for-in), Phase 3 boilerplate reduction (Vec_extend helpers, struct literals), and std/text bootstrap overlay |
 
 ## Reproducibility recipe
 
