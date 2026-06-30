@@ -3,6 +3,8 @@
 use wasm::constants
 use mir::module_strings
 
+const NOT_FOUND: i32 = 0 - 1
+
 struct EmitStringTablePlan {
     string_offsets: Vec<i32>,
     string_lengths: Vec<i32>,
@@ -91,8 +93,8 @@ fn emit_string_layout_ensure_bool_literals(mir: MirModule, str_count: i32, strin
 }
 
 fn scan_string_layout_bool_literals(mir: MirModule, str_count: i32, data_offset: i32) -> EmitStringBoolLiteralPlan {
-    let mut true_idx = 0 - 1
-    let mut false_idx = 0 - 1
+    let mut true_idx = NOT_FOUND
+    let mut false_idx = NOT_FOUND
     let mut bi = 0
     while bi < str_count {
         let bs = module_strings::MirModule_string_constant_at(mir, bi)

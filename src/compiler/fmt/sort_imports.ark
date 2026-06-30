@@ -5,6 +5,8 @@ use resolver::ast_access
 use resolver::ast_decl_predicates
 use std::text
 
+const NOT_FOUND: i32 = 0 - 1
+
 struct FmtImportEntry {
     line_start: i32,
     line_end: i32,
@@ -77,7 +79,7 @@ fn fmt_import_entry_sort_group(entry: FmtImportEntry) -> i32 {
 fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> i32 {
     let en = len(entries)
     if en == 0 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let mut first_start = fmt_import_entry_line_start(get_unchecked(entries, 0))
     let mut last_end = fmt_import_entry_line_end(get_unchecked(entries, 0))
@@ -162,7 +164,7 @@ fn fmt_sorted_import_block(input: String) -> Option<String> {
 fn fmt_import_block_span_value(input: String) -> i32 {
     let gate = parse_gate::fmt_parse_gate(clone(input))
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
     fmt_import_block_bounds(entries)

@@ -3,6 +3,8 @@
 use wasm::ctx_scratch
 use wasm::opcodes
 
+const NOT_FOUND: i32 = 0 - 1
+
 // Handler for: seq::binary_search
 fn emit_seq_binary_search(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -55,7 +57,7 @@ fn emit_binary_search_prepare_source(w: WasmWriter, src_local: i32, high_local: 
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, src_data_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0 - 1)
+    writer_leb::emit_leb128_s(w, NOT_FOUND)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, result_local)
 }

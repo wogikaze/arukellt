@@ -13,6 +13,8 @@ use mir::value_types
 use wasm::writer_core
 use wasm::writer_leb
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
     let body_local_count = local_count - param_count
     // The header is the NUMBER OF LOCAL GROUPS (each group = count + type),
@@ -117,8 +119,8 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
 
 // Extract struct name from "struct:TypeName:byte_size" format.
 fn extract_struct_name_from_type_name(type_name: String) -> String {
-    let mut first_colon = 0 - 1
-    let mut last_colon = 0 - 1
+    let mut first_colon = NOT_FOUND
+    let mut last_colon = NOT_FOUND
     let n = len(type_name)
     let mut i = 0
     while i < n {

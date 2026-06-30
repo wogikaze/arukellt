@@ -1,5 +1,7 @@
 // Arukellt Selfhost - Wasm type signature parsing helpers.
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn parse_sub_super_offset(sig: String) -> i32 {
     let plus = find_type_sig_char(sig, 43)
     if plus < 0 {
@@ -54,14 +56,14 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
         }
         i = i + 1
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn find_type_sig_str(s: String, needle: String) -> i32 {
     let n = len(s)
     let nn = len(needle)
     if nn <= 0 || nn > n {
-        return 0 - 1
+        return NOT_FOUND
     }
     let mut i = 0
     while i + nn <= n {
@@ -78,7 +80,7 @@ fn find_type_sig_str(s: String, needle: String) -> i32 {
         }
         i = i + 1
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn parse_type_sig_int(s: String) -> i32 {

@@ -1,5 +1,7 @@
 // Arukellt Selfhost - Wasm type section plan record.
 
+const NOT_FOUND: i32 = 0 - 1
+
 pub struct TypeSectionPlan {
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
@@ -99,7 +101,7 @@ fn wrapper_type_index(type_map: Vec<i32>, num_host_types: i32, wit_import_count:
     if needs_wrapper == 1 {
         return get_unchecked(type_map, num_host_types + wit_import_count + gc_type_count + fn_count)
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn type_sig_param_segments(csig: String) -> Vec<String> {

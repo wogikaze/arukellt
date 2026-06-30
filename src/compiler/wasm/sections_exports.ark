@@ -13,6 +13,8 @@ use wasm::function_indices
 use wasm::start_names
 use mir::module_functions
 
+const NOT_FOUND: i32 = 0 - 1
+
 struct ExportSectionPlan {
     export_count: i32,
     main_idx: i32,
@@ -54,7 +56,7 @@ fn export_name_seen_count(names: Vec<String>, name: String) -> i32 {
 
 fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan {
     let mut export_count = 1
-    let mut main_idx = 0 - 1
+    let mut main_idx = NOT_FOUND
     let mut seen_names = Vec_new_String()
     let mut mi = 0
     while mi < fn_count {

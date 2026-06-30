@@ -6,6 +6,8 @@ use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::inst_ctx
 
+const NOT_FOUND: i32 = 0 - 1
+
 // Infer GC type for string-returning callees. Returns -1 if not a string callee.
 fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "String_from") || eq(clone(callee), "concat") || eq(clone(callee), "clone") || eq(clone(callee), "to_string") || eq(clone(callee), "char_to_string") || eq(clone(callee), "bool_to_string") || eq(clone(callee), "f64_to_string") || eq(clone(callee), "__intrinsic_i32_to_string") || eq(clone(callee), "__intrinsic_i64_to_string") || eq(clone(callee), "__intrinsic_f64_to_string") || eq(clone(callee), "__intrinsic_bool_to_string") || eq(clone(callee), "__intrinsic_char_to_string") {
@@ -17,7 +19,7 @@ fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "__hm_si_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
-    0 - 1
+    NOT_FOUND
 }
 
 // Infer GC type for hashmap-returning callees. Returns -1 if not a hashmap callee.
@@ -31,14 +33,14 @@ fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
         return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
     }
-    0 - 1
+    NOT_FOUND
 }
 
 // Fallback: infer GC type from the called function's return type signature.
 fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
     let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
     if fn_idx < 0 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
@@ -60,5 +62,5 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
         }
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
     }
-    0 - 1
+    NOT_FOUND
 }

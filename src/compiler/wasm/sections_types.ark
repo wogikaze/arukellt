@@ -13,6 +13,8 @@ use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_sections
 
+const NOT_FOUND: i32 = 0 - 1
+
 struct TypeCanonPlan { canon_types: Vec<String>, type_map: Vec<i32> }
 
 fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
@@ -32,12 +34,12 @@ fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
     let gc_type_base = first_gc_type_index(canon_types)
-    let mut gc_enum_variant_base = 0 - 1
+    let mut gc_enum_variant_base = NOT_FOUND
     if enum_variant_count > 0 && gc_type_base >= 0 {
         gc_enum_variant_base = gc_type_base + gc_fixed_count
     }
     let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, enum_variant_count)
-    let mut gc_struct_base = 0 - 1
+    let mut gc_struct_base = NOT_FOUND
     if gc_struct_count > 0 && gc_type_base >= 0 {
         gc_struct_base = gc_type_base + gc_fixed_count + enum_variant_count
     }
@@ -121,7 +123,7 @@ fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {
 }
 
 fn find_canon_type_index(canon_types: Vec<String>, sig: String) -> i32 {
-    let mut found = 0 - 1
+    let mut found = NOT_FOUND
     let mut cti = 0
     while cti < len(canon_types) {
         if eq(clone(get_unchecked(canon_types, cti)), clone(sig)) {
@@ -142,5 +144,5 @@ fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
             return i
         }
     }
-    0 - 1
+    NOT_FOUND
 }
