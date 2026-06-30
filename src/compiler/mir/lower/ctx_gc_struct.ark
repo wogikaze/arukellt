@@ -19,20 +19,17 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
         }
         i = i + 1
     }
+    HashMap_String_i32_insert(ctx.gc_struct_name_index, clone(struct_name), count)
     push(ctx.gc_struct_names, struct_name)
     push(ctx.gc_struct_sigs, sig)
 }
 
 fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
-    let count = len(ctx.gc_struct_names)
-    let mut i = 0
-    while i < count {
-        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
-            return i
-        }
-        i = i + 1
+    let opt_idx = HashMap_String_i32_get(ctx.gc_struct_name_index, clone(struct_name))
+    match opt_idx {
+        Option::Some(idx) => { idx },
+        Option::None => { 0 - 1 },
     }
-    0 - 1
 }
 
 fn ctx_flush_gc_structs(ctx: LowerCtx) {
@@ -92,20 +89,17 @@ fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> 
 }
 
 fn ctx_struct_offset_for_field(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
-    let layout_count = len(ctx.struct_names)
-    let mut off = 0
-    let mut li = 0
-    while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), clone(struct_name)) {
-            let mut fi = 0
-            while fi < target_field_idx {
-                off = off + 1
-                fi = fi + 1
+    let opt_idx = HashMap_String_i32_get(ctx.struct_name_index, clone(struct_name))
+    match opt_idx {
+        Option::Some(li) => {
+            let mut off = 0
+            let mut si = 0
+            while si < li {
+                off = off + get_unchecked(ctx.struct_field_counts, si)
+                si = si + 1
             }
-            return off
-        }
-        off = off + get_unchecked(ctx.struct_field_counts, li)
-        li = li + 1
+            off + target_field_idx
+        },
+        Option::None => { 0 },
     }
-    0
 }
