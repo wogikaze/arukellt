@@ -4,6 +4,8 @@ use wasm::ctx_record
 use wasm::sections_types_gc
 use mir::function_identity
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn SelfEmitCtx_i32_array_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1
 }
@@ -136,7 +138,7 @@ fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32
         }
         i = i + 1
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn SelfEmitCtx_has_struct_type(ctx: SelfEmitCtx, struct_name: String) -> bool {

@@ -6,6 +6,8 @@ use mir::inst_const_i32
 use mir::inst_record
 use mir::opcodes
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn mir_opt_local_const_value(insts: Vec<MirInst>, end_idx: i32, local_idx: i32) -> i32 {
     let mut i = end_idx - 1
     while i >= 0 {
@@ -15,11 +17,11 @@ fn mir_opt_local_const_value(insts: Vec<MirInst>, end_idx: i32, local_idx: i32) 
             return inst_record::mir_inst_int_val(inst)
         }
         if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
-            return 0 - 1
+            return NOT_FOUND
         }
         i = i - 1
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn mir_opt_const_fold_insts(insts: Vec<MirInst>) -> Vec<MirInst> {

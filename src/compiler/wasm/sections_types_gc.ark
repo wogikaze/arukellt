@@ -14,6 +14,8 @@ use wasm::writer_core
 use wasm::writer_leb
 use wasm::sections_type_plan
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
@@ -106,7 +108,7 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
         if char_at(clone(s), i) == c { return i }
         i = i + 1
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn append_gc_type_sigs(type_sigs: Vec<String>) {

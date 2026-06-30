@@ -6,6 +6,8 @@ use wasm::ctx_record
 use wasm::ctx_vec_locals
 use wasm::hash_aliases
 
+const NOT_FOUND: i32 = 0 - 1
+
 fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
     let count = ctx_vec_locals::SelfEmitCtx_vec_local_count(ctx)
     let mut i = 0
@@ -69,7 +71,7 @@ fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
             }
         }
     }
-    0 - 1
+    NOT_FOUND
 }
 
 fn hashmap_builtin_alias(name: String) -> String {
@@ -86,5 +88,5 @@ fn resolve_fn_index_by_name(ctx: SelfEmitCtx, name: String) -> i32 {
         }
         i = i + 1
     }
-    0 - 1
+    NOT_FOUND
 }

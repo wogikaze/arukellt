@@ -6,6 +6,8 @@ use resolver::ast_access
 use resolver::ast_decl_predicates
 use std::text
 
+const NOT_FOUND: i32 = 0 - 1
+
 struct PruneImportEntry {
     line_start: i32,
     line_end: i32,
@@ -151,7 +153,7 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
 fn import_block_bounds(entries: Vec<PruneImportEntry>) -> i32 {
     let en = len(entries)
     if en == 0 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let mut first_start = get_unchecked(entries, 0).line_start
     let mut last_end = get_unchecked(entries, 0).line_end
@@ -205,7 +207,7 @@ fn pruned_import_block(input: String) -> Option<String> {
 fn import_block_span_value(input: String) -> i32 {
     let gate = parse_gate::fmt_parse_gate(clone(input))
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
-        return 0 - 1
+        return NOT_FOUND
     }
     let entries = collect_prune_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
     import_block_bounds(entries)
