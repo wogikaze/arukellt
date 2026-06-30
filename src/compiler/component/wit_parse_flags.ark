@@ -39,8 +39,7 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
         return names
     }
     let mut part = String_new()
-    let mut i = 0
-    while i < len(body) {
+    for i in 0..len(body) {
         let ch = char_at(body, i)
         if ch == 44 {
             let trimmed = wit_trim_ws(part)
@@ -51,7 +50,6 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
         } else {
             part = text::builder_append(part, substring(body, i, i + 1))
         }
-        i = i + 1
     }
     let trimmed = wit_trim_ws(part)
     if len(trimmed) > 0 {
@@ -62,13 +60,11 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
 
 fn wit_flags_type_text(member_names: Vec<String>) -> String {
     let mut out = String_from("flags {")
-    let mut i = 0
-    while i < len(member_names) {
+    for i in 0..len(member_names) {
         if i > 0 {
             out = text::builder_append(out, String_from(", "))
         }
         out = text::builder_append(out, get_unchecked(member_names, i))
-        i = i + 1
     }
     concat(out, String_from("}"))
 }

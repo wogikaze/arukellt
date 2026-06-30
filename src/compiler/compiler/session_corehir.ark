@@ -9,10 +9,8 @@ use mir
 
 fn session_lower_mir_fallback(all_decls: Vec<AstNode>) -> MirLowerFallbackSource {
     let legacy_decls = Vec_new_MirLowerLegacyDecl()
-    let mut i = 0
-    while i < len(all_decls) {
+    for i in 0..len(all_decls) {
         push(legacy_decls, mir::mir_legacy_decl_from_node(get_unchecked(all_decls, i)))
-        i = i + 1
     }
     mir::mir_fallback_source_from_decls(legacy_decls)
 }

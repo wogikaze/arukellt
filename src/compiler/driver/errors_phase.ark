@@ -74,12 +74,10 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
 
 pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<Diagnostic>) -> CompileResult {
     let mut result = result_record::CompileResult_new(false, phases::PHASE_TYPECHECK(), len(warnings), Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
-    let mut i = 0
-    while i < len(warnings) {
+    for i in 0..len(warnings) {
         let diag = get_unchecked(warnings, i)
         result_record::compile_result_push_diagnostic(result, diag)
         result_record::compile_result_push_error_message(result, enrich_diagnostic(clone(source), clone(source_file), diag))
-        i = i + 1
     }
     result_record::compile_result_set_error_count(result, len(warnings))
     result

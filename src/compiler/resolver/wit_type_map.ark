@@ -151,23 +151,19 @@ fn wit_generic_inner(t: String) -> String {
 }
 
 fn wit_record_index(names: Vec<String>, wit_name: String) -> i32 {
-    let mut i = 0
-    while i < len(names) {
+    for i in 0..len(names) {
         if eq(get_unchecked(names, i), clone(wit_name)) {
             return i
         }
-        i = i + 1
     }
     0 - 1
 }
 
 fn wit_enum_index(names: Vec<String>, wit_name: String) -> i32 {
-    let mut i = 0
-    while i < len(names) {
+    for i in 0..len(names) {
         if eq(get_unchecked(names, i), clone(wit_name)) {
             return i
         }
-        i = i + 1
     }
     0 - 1
 }

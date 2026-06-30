@@ -44,12 +44,10 @@ fn emit_export_section(out: WasmWriter, mir: MirModule, fn_count: i32, needs_wra
 
 fn export_name_seen_count(names: Vec<String>, name: String) -> i32 {
     let mut total = 0
-    let mut i = 0
-    while i < len(names) {
+    for i in 0..len(names) {
         if eq(clone(get_unchecked(names, i)), clone(name)) {
             total = total + 1
         }
-        i = i + 1
     }
     total
 }
