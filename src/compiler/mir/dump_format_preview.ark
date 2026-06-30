@@ -19,13 +19,11 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
     }
     let block = function_block_queries::MirFunction_block_at(f, join_block_id)
     let pc = block_phi_access::MirBlock_phi_count(block)
-    let mut pi = 0
-    while pi < pc {
+    for pi in 0..pc {
         let phi = block_phi_access::MirBlock_phi_at(block, pi)
         stdio::println(dump_format_phi::mir_format_phi(f, phi))
         let phi_dest = phi_access::MirPhi_dest(phi)
         if phi_dest < 0 || phi_dest >= function_locals_view::MirFunction_local_count(f) {
-            pi = pi + 1
             continue
         }
         let dest_rec = function_locals_view::MirFunction_local_at(f, phi_dest)
@@ -51,6 +49,5 @@ fn mir_stdio_print_phi_elimination_preview(f: MirFunction, join_block_id: i32) {
         tail = text::builder_append(tail, clone(merge_name))
         tail = text::builder_append(tail, String_from(" (phi removed)"))
         stdio::println(tail)
-        pi = pi + 1
     }
 }
