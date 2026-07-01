@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("n = 5")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "n") {
+            Option::Some(v) => match toml::toml_as_string(v) {
+                Option::Some(_) => assert(false),
+                None => {},
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_as_string on an Integer returns None

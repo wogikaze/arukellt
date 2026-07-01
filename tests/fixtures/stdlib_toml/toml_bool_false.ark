@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("flag = false")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "flag") {
+            Option::Some(v) => match toml::toml_as_bool(v) {
+                Option::Some(b) => test::assert_false(b),
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// boolean false parses to Boolean

@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("a = 1\na = 2")
+    match t {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => {},
+    }
+    stdio::println("OK")
+}
+// duplicate top-level key is rejected

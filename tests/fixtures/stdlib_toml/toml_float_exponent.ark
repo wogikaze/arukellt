@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("val = 5e3")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "val") {
+            Option::Some(v) => match toml::toml_as_float(v) {
+                Option::Some(f) => test::assert_eq_f64(f, 5000.0),
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// float with exponent parses to Float

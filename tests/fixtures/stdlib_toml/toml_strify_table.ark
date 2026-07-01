@@ -1,0 +1,17 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("name = \"x\"\nport = 80")
+    match t {
+        Result::Ok(table) => {
+            let s = toml::toml_stringify(table)
+            test::assert_true(contains(s, "name = \"x\""))
+            test::assert_true(contains(s, "port = 80"))
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_stringify on Table produces key = value lines

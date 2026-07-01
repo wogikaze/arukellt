@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("[empty]")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "empty") {
+            Option::Some(e) => {
+                let keys = toml::toml_table_keys(e)
+                test::assert_eq_i32(len(keys), 0)
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// empty [table] header creates a table with no fields

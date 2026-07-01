@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("val = ")
+    match t {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => {},
+    }
+    stdio::println("OK")
+}
+// key with empty value is rejected

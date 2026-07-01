@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("cfg = {}")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "cfg") {
+            Option::Some(cfg) => {
+                let keys = toml::toml_table_keys(cfg)
+                test::assert_eq_i32(len(keys), 0)
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// empty inline table {} parses to empty table

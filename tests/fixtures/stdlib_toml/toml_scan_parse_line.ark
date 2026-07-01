@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    test::assert_eq_string(toml::toml_parse_line("name = \"x\""), "name = \"x\"")
+    test::assert_eq_string(toml::toml_parse_line("# comment"), "")
+    test::assert_eq_string(toml::toml_parse_line(""), "")
+    stdio::println("OK")
+}
+// toml_parse_line passes through key=value, blanks comments and empty lines

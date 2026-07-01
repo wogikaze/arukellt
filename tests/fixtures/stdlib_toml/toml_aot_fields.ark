@@ -1,0 +1,37 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("[[items]]\nname = \"first\"\nid = 1\n[[items]]\nname = \"second\"\nid = 2")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "items") {
+            Option::Some(v) => match toml::toml_as_array(v) {
+                Option::Some(arr) => {
+                    test::assert_eq_i32(len(arr), 2)
+                    let first = get_unchecked(arr, 0)
+                    match toml::toml_get(first, "id") {
+                        Option::Some(id) => match toml::toml_as_int(id) {
+                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            None => assert(false),
+                        },
+                        None => assert(false),
+                    }
+                    let second = get_unchecked(arr, 1)
+                    match toml::toml_get(second, "name") {
+                        Option::Some(nm) => match toml::toml_as_string(nm) {
+                            Option::Some(s) => test::assert_eq_string(s, "second"),
+                            None => assert(false),
+                        },
+                        None => assert(false),
+                    }
+                },
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// array-of-tables entries preserve their individual fields

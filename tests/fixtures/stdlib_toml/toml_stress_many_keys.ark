@@ -1,0 +1,23 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let doc = "k0 = 0\nk1 = 1\nk2 = 2\nk3 = 3\nk4 = 4\nk5 = 5\nk6 = 6\nk7 = 7\nk8 = 8\nk9 = 9"
+    match toml::toml_parse(doc) {
+        Result::Ok(table) => {
+            let keys = toml::toml_table_keys(table)
+            test::assert_eq_i32(len(keys), 10)
+            match toml::toml_get(table, "k9") {
+                Option::Some(v) => match toml::toml_as_int(v) {
+                    Option::Some(n) => test::assert_eq_i32(n, 9),
+                    None => assert(false),
+                },
+                None => assert(false),
+            }
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// document with many top-level keys parses preserving all

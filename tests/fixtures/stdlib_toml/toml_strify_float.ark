@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("f = 1.5")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "f") {
+            Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "1.5"),
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_stringify on Float produces decimal text

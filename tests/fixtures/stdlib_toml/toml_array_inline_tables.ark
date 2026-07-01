@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("pts = [{ x = 1 }, { x = 2 }]")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "pts") {
+            Option::Some(v) => match toml::toml_as_array(v) {
+                Option::Some(arr) => test::assert_eq_i32(len(arr), 2),
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// array of inline tables parses

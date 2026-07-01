@@ -1,0 +1,23 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let doc = "title = \"mix\"\nnums = [1, 2]\n[owner]\nname = \"bob\"\n[[items]]\nid = 1\n[[items]]\nid = 2"
+    match toml::toml_parse(doc) {
+        Result::Ok(table) => {
+            let keys = toml::toml_table_keys(table)
+            test::assert_eq_i32(len(keys), 3)
+            match toml::toml_get(table, "items") {
+                Option::Some(v) => match toml::toml_as_array(v) {
+                    Option::Some(arr) => test::assert_eq_i32(len(arr), 2),
+                    None => assert(false),
+                },
+                None => assert(false),
+            }
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// mixed document with scalars, arrays, tables, and array-of-tables parses

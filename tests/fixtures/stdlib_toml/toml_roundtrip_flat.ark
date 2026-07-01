@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let doc = "name = \"arukellt\"\ncount = 42"
+    match toml::toml_parse(doc) {
+        Result::Ok(table) => test::assert_eq_string(toml::toml_stringify(table), doc),
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// parse then stringify reproduces flat document exactly

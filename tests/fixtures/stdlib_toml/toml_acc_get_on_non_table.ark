@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("s = \"text\"")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "s") {
+            Option::Some(v) => match toml::toml_get(v, "anything") {
+                Option::Some(_) => assert(false),
+                None => {},
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_get on a non-table value returns None

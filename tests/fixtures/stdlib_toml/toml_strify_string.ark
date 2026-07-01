@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("name = \"hi\"")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "name") {
+            Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "\"hi\""),
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_stringify on String re-adds surrounding double quotes

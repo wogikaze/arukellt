@@ -1,0 +1,34 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("[parent]\nname = \"p\"\n[parent.child]\nname = \"c\"")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "parent") {
+            Option::Some(p) => {
+                match toml::toml_get(p, "name") {
+                    Option::Some(v) => match toml::toml_as_string(v) {
+                        Option::Some(s) => test::assert_eq_string(s, "p"),
+                        None => assert(false),
+                    },
+                    None => assert(false),
+                }
+                match toml::toml_get(p, "child") {
+                    Option::Some(c) => match toml::toml_get(c, "name") {
+                        Option::Some(v) => match toml::toml_as_string(v) {
+                            Option::Some(s) => test::assert_eq_string(s, "c"),
+                            None => assert(false),
+                        },
+                        None => assert(false),
+                    },
+                    None => assert(false),
+                }
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// [parent] then [parent.child] preserves parent fields

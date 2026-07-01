@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("val = \"\"\"open")
+    match t {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => {},
+    }
+    stdio::println("OK")
+}
+// unclosed multiline basic string is rejected

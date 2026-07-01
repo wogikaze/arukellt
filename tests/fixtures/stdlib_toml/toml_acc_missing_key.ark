@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("a = 1")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "missing") {
+            Option::Some(_) => assert(false),
+            None => {},
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_get on missing key returns None

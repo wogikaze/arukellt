@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("vals = [1, 2,]")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "vals") {
+            Option::Some(v) => match toml::toml_as_array(v) {
+                Option::Some(arr) => test::assert_eq_i32(len(arr), 2),
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// trailing comma in single-line array is accepted

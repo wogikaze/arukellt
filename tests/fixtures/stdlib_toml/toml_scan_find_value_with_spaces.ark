@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let content = "name    =    \"spaced\""
+    let val = toml::find_toml_value(content, "name")
+    test::assert_eq_string(val, "spaced")
+    stdio::println("OK")
+}
+// find_toml_value tolerates whitespace around =

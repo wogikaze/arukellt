@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let content = "name = \"x\""
+    let val = toml::find_toml_value(content, "missing")
+    test::assert_eq_string(val, "")
+    stdio::println("OK")
+}
+// find_toml_value returns empty string for missing key

@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("b = true")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "b") {
+            Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "true"),
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_stringify on Boolean true produces "true"
