@@ -115,6 +115,12 @@ fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, pay
 }
 
 fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
+    if eq(clone(variant_name), String_from("Some")) || eq(clone(variant_name), String_from("Option::Some")) {
+        let some_found = ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
+        if some_found >= 0 {
+            return some_found
+        }
+    }
     // First try name-only lookup — the registration path may have already
     // created the variant with correct field sigs derived from type names.
     // This is essential for nested enum payloads (e.g. Outer::Wrap(Inner))

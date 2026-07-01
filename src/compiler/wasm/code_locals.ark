@@ -76,27 +76,39 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
 // GC-target local val type for hashmap/string/option/inferred types.
 fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if starts_with(clone(type_name), String_from("hashmap:")) {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        if starts_with(clone(type_name), String_from("hashmap:i32str")) {
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
-        } else if starts_with(clone(type_name), String_from("hashmap:strstr")) {
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
-        } else if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+            // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            if starts_with(clone(type_name), String_from("hashmap:i32str")) {
+                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
+            } else if starts_with(clone(type_name), String_from("hashmap:strstr")) {
+                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
+            } else if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
+                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+            } else {
+                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
+            }
+            return true
         }
-        return true
     }
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
-        return true
+        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+            // Local is reused for i32 — skip ref type, try inference fallback.
+        } else {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+            return true
+        }
     }
     if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
-        return true
+        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+            // Local is reused for i32 — skip ref type, try inference fallback.
+        } else {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+            return true
+        }
     }
     if starts_with(clone(type_name), String_from("struct:")) {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))

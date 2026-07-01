@@ -42,6 +42,9 @@ fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, base_local)
+    if type_slot >= 0 {
+        writer_gc::emit_gc_ref_cast(w, gc_type_idx)
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, value_local)
     writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)

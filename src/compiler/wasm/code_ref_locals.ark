@@ -61,6 +61,10 @@ fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> 
     infer_local_storage_gc_type(f, local_idx, ctx)
 }
 
+fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
+    code_ref_locals_infer::local_has_any_ref_assignment(f, local_idx)
+}
+
 fn mir_function_returns_option(f: MirFunction) -> bool {
     if code_ref_locals_types::mir_fn_returns_option_by_name(clone(f.name)) {
         return true

@@ -14,7 +14,7 @@ fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if ends_with(clone(callee), String_from("::to_string")) || ends_with(clone(callee), String_from("::to_string__1")) {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
-    if eq(clone(callee), "__hm_si_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
+    if eq(clone(callee), "__hm_si_get_key") || eq(clone(callee), "__hm_is_get_val") || eq(clone(callee), "__hm_ss_get_key") || eq(clone(callee), "__hm_ss_get_val") || eq(clone(callee), "hash_string::hashmap_str_str_get_key") || eq(clone(callee), "hash_string::hashmap_str_str_get_val") || eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
     0 - 1

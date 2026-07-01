@@ -64,6 +64,114 @@ fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
     false
 }
 
+// Check if a type_name string indicates a GC reference type.
+fn type_name_is_ref(type_name: String) -> bool {
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    false
+}
+
+// Check if a local has a type_name that indicates a GC reference type.
+fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
+    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let type_name = local_access::MirLocal_type_name(loc)
+        if len(type_name) > 0 {
+            return type_name_is_ref(type_name)
+        }
+    }
+    false
+}
+
+// Check if a local has ANY assignment that produces a reference value.
+// This guards against sticky type_names on reused locals that only receive
+// i32 values in the current MIR. Returns true if there is evidence the local
+// holds a ref value (direct ref-producing op, LOCAL_SET/LOCAL_GET from a ref
+// source, or a function parameter with a ref type_name).
+fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
+    local_has_any_ref_assignment_depth(f, local_idx, 0)
+}
+
+fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32) -> bool {
+    if depth > 3 {
+        return false
+    }
+    // If the local is a function parameter with a ref type_name, it holds a ref.
+    let param_count = function_param_view::MirFunction_param_count(f)
+    if local_idx >= 0 && local_idx < param_count {
+        let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
+        if len(param_type_name) > 0 {
+            if type_name_is_ref(param_type_name) {
+                return true
+            }
+        }
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+            // Check dest == local_idx for ref-producing ops
+            if dest == local_idx {
+                if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_ARRAY_NEW() || op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_CALL() {
+                    return true
+                }
+                if op == opcodes::MIR_LOCAL_GET() {
+                    let src = inst_accessors_operands::MirInst_arg0(inst)
+                    if src >= 0 {
+                        if local_has_ref_type_name(f, src) {
+                            return true
+                        }
+                        if local_has_any_ref_assignment_depth(f, src, depth + 1) {
+                            return true
+                        }
+                    }
+                }
+            }
+            // Check LOCAL_SET where arg0 == local_idx (arg1 is the source local)
+            if op == opcodes::MIR_LOCAL_SET() && arg0 == local_idx {
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if source >= 0 {
+                    if local_has_ref_type_name(f, source) {
+                        return true
+                    }
+                    if local_has_any_ref_assignment_depth(f, source, depth + 1) {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
 fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
     if depth > 8 {
         return 0 - 1
@@ -78,7 +186,16 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
         if len(type_name) > 0 {
             let gc_type = infer_gc_type_from_type_name(clone(type_name), ctx)
             if gc_type >= 0 {
-                return gc_type
+                // Only use type_name if the local is actually assigned a ref
+                // value. Locals can be reused for i32 in other code paths, and
+                // the type_name may be sticky from a prior usage. At depth 0
+                // (the initial inference call), verify there is evidence of a
+                // ref assignment before trusting the type_name.
+                if depth == 0 && !local_has_any_ref_assignment(f, local_idx) {
+                    // Skip type_name — try assignment tracing instead
+                } else {
+                    return gc_type
+                }
             }
         }
     }
@@ -147,6 +264,37 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
     0 - 1
 }
 
+// Check if a local is the destination of multiple MIR_GC_STRUCT_NEW instructions
+// with different variant type slots. If so, the local holds different enum variant
+// types in different code paths and must be typed as the enum open type (the common
+// supertype) rather than any single variant type.
+fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
+    let mut first_variant_slot = 0 - 1
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                    let slot = inst_accessors_operands::MirInst_arg0(inst)
+                    if first_variant_slot < 0 {
+                        first_variant_slot = slot
+                    } else if slot != first_variant_slot {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
 fn infer_ref_local_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
     if op == opcodes::MIR_LOCAL_GET() {
         let src = inst_accessors_operands::MirInst_arg0(inst)
@@ -158,6 +306,10 @@ fn infer_ref_local_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: 
         return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     }
     if op == opcodes::MIR_GC_STRUCT_NEW() {
+        let dest_local = inst_accessors_shape::MirInst_dest(inst)
+        if dest_local >= 0 && local_has_multiple_enum_variant_types(f, dest_local) {
+            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
         return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
     }
     if op == opcodes::MIR_STRUCT_NEW() {

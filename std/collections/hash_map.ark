@@ -150,7 +150,7 @@ pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
     if hash_map_vec_string_index_of(s, clone(value)) >= 0 {
         false
     } else {
-        let _updated: Vec<String> = push(s, value)
+        push(s, value)
         true
     }
 }

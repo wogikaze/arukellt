@@ -220,5 +220,13 @@ fn to_string_arg_vt(inst: MirInst, ctx: SelfEmitCtx) -> i32 {
     if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
         return call_text_mir_view::VT_F64()
     }
+    // Fallback: check the local's val_type for i64/f64.
+    let vt = call_text_mir_view::local_val_type(loc)
+    if vt == call_text_mir_view::VT_I64() {
+        return call_text_mir_view::VT_I64()
+    }
+    if vt == call_text_mir_view::VT_F64() {
+        return call_text_mir_view::VT_F64()
+    }
     call_text_mir_view::VT_I32()
 }
