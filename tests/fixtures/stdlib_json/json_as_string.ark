@@ -1,0 +1,20 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"hello\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_string(s, "hello"),
+            None => panic("expected Some(hello)"),
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    // Type mismatch: json_as_string on non-string returns None
+    match json::parse("42") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(_) => panic("expected None for non-string"),
+            None => {},
+        },
+        Result::Err(e) => panic(concat("parse 42 failed: ", json::parse_error_message(e))),
+    }
+}

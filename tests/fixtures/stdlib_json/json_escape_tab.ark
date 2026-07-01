@@ -1,0 +1,12 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"a\\tb\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_string(s, "a\tb"),
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse tab failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,27 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("3.14") {
+        Result::Ok(v) => match json::json_as_f64(v) {
+            Option::Some(n) => test::assert_eq_f64(n, 3.14),
+            None => panic("expected Some(3.14)"),
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("42") {
+        Result::Ok(v) => match json::json_as_f64(v) {
+            Option::Some(n) => test::assert_eq_f64(n, 42.0),
+            None => panic("expected Some(42.0)"),
+        },
+        Result::Err(e) => panic(concat("parse 42 failed: ", json::parse_error_message(e))),
+    }
+    // Type mismatch: json_as_f64 on non-number returns None
+    match json::parse("\"str\"") {
+        Result::Ok(v) => match json::json_as_f64(v) {
+            Option::Some(_) => panic("expected None for non-number"),
+            None => {},
+        },
+        Result::Err(e) => panic(concat("parse string failed: ", json::parse_error_message(e))),
+    }
+}

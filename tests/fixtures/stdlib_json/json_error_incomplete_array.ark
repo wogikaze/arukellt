@@ -1,0 +1,17 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[") {
+        Result::Ok(_) => panic("expected error for incomplete array"),
+        Result::Err(_) => {},
+    }
+    match json::parse("[1") {
+        Result::Ok(_) => panic("expected error for unclosed array"),
+        Result::Err(_) => {},
+    }
+    match json::parse("[1,") {
+        Result::Ok(_) => panic("expected error for trailing comma in array"),
+        Result::Err(_) => {},
+    }
+}

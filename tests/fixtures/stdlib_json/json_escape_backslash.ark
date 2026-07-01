@@ -1,0 +1,12 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"a\\\\b\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_string(s, "a\\b"),
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse backslash failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,37 @@
+use std::json
+use std::test
+
+fn main() {
+    let raw = "{\"x\":1,\"y\":true,\"z\":null}"
+    match json::parse(raw) {
+        Result::Ok(v) => {
+            let s = json::stringify(v)
+            test::assert_eq_string(s, raw)
+            // Re-parse and verify
+            match json::parse(s) {
+                Result::Ok(v2) => {
+                    match json::json_get(v2, "x") {
+                        Option::Some(fv) => match json::json_as_i32(fv) {
+                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            None => panic("expected number"),
+                        },
+                        None => panic("expected key x"),
+                    }
+                    match json::json_get(v2, "y") {
+                        Option::Some(fv) => match json::json_as_bool(fv) {
+                            Option::Some(b) => test::assert_eq_bool(b, true),
+                            None => panic("expected bool"),
+                        },
+                        None => panic("expected key y"),
+                    }
+                    match json::json_get(v2, "z") {
+                        Option::Some(fv) => test::assert_true(json::is_null(fv)),
+                        None => panic("expected key z"),
+                    }
+                },
+                Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,20 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("42") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_number(v))
+            test::assert_false(json::is_null(v))
+            test::assert_false(json::is_bool(v))
+            test::assert_false(json::is_string(v))
+            test::assert_false(json::is_array(v))
+            test::assert_false(json::is_object(v))
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("3.14") {
+        Result::Ok(v) => test::assert_true(json::is_number(v)),
+        Result::Err(e) => panic(concat("parse float failed: ", json::parse_error_message(e))),
+    }
+}

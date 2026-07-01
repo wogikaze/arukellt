@@ -1,0 +1,12 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"a\\bb\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_i32(len(s), 3),
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse backspace failed: ", json::parse_error_message(e))),
+    }
+}

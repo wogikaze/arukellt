@@ -1,0 +1,29 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("3.14") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_number(v))
+            match json::json_as_f64(v) {
+                Option::Some(n) => test::assert_eq_f64(n, 3.14),
+                None => panic("expected Some(3.14)"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse 3.14 failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("0.5") {
+        Result::Ok(v) => match json::json_as_f64(v) {
+            Option::Some(n) => test::assert_eq_f64(n, 0.5),
+            None => panic("expected Some(0.5)"),
+        },
+        Result::Err(e) => panic(concat("parse 0.5 failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("-2.5") {
+        Result::Ok(v) => match json::json_as_f64(v) {
+            Option::Some(n) => test::assert_eq_f64(n, -2.5),
+            None => panic("expected Some(-2.5)"),
+        },
+        Result::Err(e) => panic(concat("parse -2.5 failed: ", json::parse_error_message(e))),
+    }
+}

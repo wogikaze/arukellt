@@ -1,0 +1,10 @@
+use std::json
+use std::test
+
+fn main() {
+    let t = json::json_bool(true)
+    test::assert_true(json::is_bool(t))
+    test::assert_eq_string(json::stringify(t), "true")
+    let f = json::json_bool(false)
+    test::assert_eq_string(json::stringify(f), "false")
+}

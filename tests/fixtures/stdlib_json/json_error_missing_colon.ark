@@ -1,0 +1,13 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"a\"1}") {
+        Result::Ok(_) => panic("expected error for missing colon"),
+        Result::Err(_) => {},
+    }
+    match json::parse("{\"a\" 1}") {
+        Result::Ok(_) => panic("expected error for missing colon with space"),
+        Result::Err(_) => {},
+    }
+}

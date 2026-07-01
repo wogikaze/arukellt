@@ -1,0 +1,24 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[\"a\",\"bb\",\"ccc\"]") {
+        Result::Ok(v) => {
+            match json::json_get_index(v, 0) {
+                Option::Some(e) => match json::json_as_string(e) {
+                    Option::Some(s) => test::assert_eq_string(s, "a"),
+                    None => panic("expected string"),
+                },
+                None => panic("expected element 0"),
+            }
+            match json::json_get_index(v, 2) {
+                Option::Some(e) => match json::json_as_string(e) {
+                    Option::Some(s) => test::assert_eq_string(s, "ccc"),
+                    None => panic("expected string"),
+                },
+                None => panic("expected element 2"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse string array failed: ", json::parse_error_message(e))),
+    }
+}

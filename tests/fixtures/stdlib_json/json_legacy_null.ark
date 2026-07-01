@@ -1,0 +1,6 @@
+use std::json
+use std::test
+
+fn main() {
+    test::assert_eq_string(json::json_null(), "null")
+}

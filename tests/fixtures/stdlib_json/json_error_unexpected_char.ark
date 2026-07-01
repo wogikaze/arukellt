@@ -1,0 +1,19 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("xyz") {
+        Result::Ok(_) => panic("expected error for xyz"),
+        Result::Err(e) => match e {
+            json::JsonParseError::UnexpectedCharacter(_) => {},
+            _ => panic("expected UnexpectedCharacter error"),
+        },
+    }
+    match json::parse("@") {
+        Result::Ok(_) => panic("expected error for @"),
+        Result::Err(e) => match e {
+            json::JsonParseError::UnexpectedCharacter(_) => {},
+            _ => panic("expected UnexpectedCharacter error"),
+        },
+    }
+}

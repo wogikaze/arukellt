@@ -1,0 +1,44 @@
+// Property fixture: exactly one type predicate is true for any JsonValue.
+//
+// Invariant: for any parsed JSON value, exactly one of is_null, is_bool,
+// is_number, is_string, is_array, is_object returns true.
+use std::json
+use std::test
+
+fn check_exactly_one(v: json::JsonValue) {
+    let mut count: i32 = 0
+    if json::is_null(v) { count = count + 1 }
+    if json::is_bool(v) { count = count + 1 }
+    if json::is_number(v) { count = count + 1 }
+    if json::is_string(v) { count = count + 1 }
+    if json::is_array(v) { count = count + 1 }
+    if json::is_object(v) { count = count + 1 }
+    test::assert_eq_i32(count, 1)
+}
+
+fn main() {
+    match json::parse("null") {
+        Result::Ok(v) => check_exactly_one(v),
+        Result::Err(e) => panic(concat("parse null failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("true") {
+        Result::Ok(v) => check_exactly_one(v),
+        Result::Err(e) => panic(concat("parse true failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("42") {
+        Result::Ok(v) => check_exactly_one(v),
+        Result::Err(e) => panic(concat("parse 42 failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("\"str\"") {
+        Result::Ok(v) => check_exactly_one(v),
+        Result::Err(e) => panic(concat("parse str failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("[1]") {
+        Result::Ok(v) => check_exactly_one(v),
+        Result::Err(e) => panic(concat("parse array failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("{\"a\":1}") {
+        Result::Ok(v) => check_exactly_one(v),
+        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+    }
+}

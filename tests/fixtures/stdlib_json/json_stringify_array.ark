@@ -1,0 +1,17 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[1,2,3]") {
+        Result::Ok(v) => test::assert_eq_string(json::stringify(v), "[1,2,3]"),
+        Result::Err(e) => panic(concat("parse array failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("[]") {
+        Result::Ok(v) => test::assert_eq_string(json::stringify(v), "[]"),
+        Result::Err(e) => panic(concat("parse empty array failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("[true,null,\"x\"]") {
+        Result::Ok(v) => test::assert_eq_string(json::stringify(v), "[true,null,\"x\"]"),
+        Result::Err(e) => panic(concat("parse mixed array failed: ", json::parse_error_message(e))),
+    }
+}

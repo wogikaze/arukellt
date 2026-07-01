@@ -1,0 +1,23 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("42") {
+        Result::Ok(v) => {
+            match json::json_get(v, "key") {
+                Option::Some(_) => panic("expected None: json_get on non-object"),
+                None => {},
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("[1,2]") {
+        Result::Ok(v) => {
+            match json::json_get(v, "key") {
+                Option::Some(_) => panic("expected None: json_get on array"),
+                None => {},
+            }
+        },
+        Result::Err(e) => panic(concat("parse array failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,13 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("null") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_null(v))
+            test::assert_false(json::is_bool(v))
+            test::assert_false(json::is_string(v))
+        },
+        Result::Err(e) => panic(concat("parse null failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,22 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[1,2,3]") {
+        Result::Ok(v) => {
+            match json::json_get_index(v, 5) {
+                Option::Some(_) => panic("expected None for out-of-bounds"),
+                None => {},
+            }
+            match json::json_get_index(v, -1) {
+                Option::Some(_) => panic("expected None for negative index"),
+                None => {},
+            }
+            match json::json_get_index(v, 0) {
+                Option::Some(_) => {},
+                None => panic("expected Some for valid index 0"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,25 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[]") {
+        Result::Ok(v) => {
+            test::assert_eq_string(json::stringify(v), "[]")
+            match json::parse(json::stringify(v)) {
+                Result::Ok(v2) => test::assert_true(json::is_array(v2)),
+                Result::Err(e) => panic(concat("re-parse [] failed: ", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => panic(concat("parse [] failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("{}") {
+        Result::Ok(v) => {
+            test::assert_eq_string(json::stringify(v), "{}")
+            match json::parse(json::stringify(v)) {
+                Result::Ok(v2) => test::assert_true(json::is_object(v2)),
+                Result::Err(e) => panic(concat("re-parse {} failed: ", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => panic(concat("parse {} failed: ", json::parse_error_message(e))),
+    }
+}

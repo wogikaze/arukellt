@@ -1,0 +1,22 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[1,2,3]") {
+        Result::Ok(v) => match json::json_as_array(v) {
+            Option::Some(arr) => {
+                test::assert_eq_i32(len(arr), 3)
+            },
+            None => panic("expected Some(array)"),
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    // Type mismatch: json_as_array on non-array returns None
+    match json::parse("{\"a\":1}") {
+        Result::Ok(v) => match json::json_as_array(v) {
+            Option::Some(_) => panic("expected None for non-array"),
+            None => {},
+        },
+        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,21 @@
+use std::json
+use std::test
+
+fn main() {
+    let fields = json::json_obj_new()
+    push(fields, json::json_field("name", json::json_str("alice")))
+    push(fields, json::json_field("age", json::json_i32(30)))
+    let s = json::json_obj_string(fields)
+    test::assert_eq_string(s, "{\"name\":\"alice\",\"age\":30}")
+    // Verify the constructed object parses back correctly
+    match json::parse(s) {
+        Result::Ok(v) => match json::json_get(v, "name") {
+            Option::Some(nv) => match json::json_as_string(nv) {
+                Option::Some(name) => test::assert_eq_string(name, "alice"),
+                None => panic("expected string"),
+            },
+            None => panic("expected key name"),
+        },
+        Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+    }
+}

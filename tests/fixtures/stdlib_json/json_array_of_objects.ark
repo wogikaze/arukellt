@@ -1,0 +1,30 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[{\"id\":1},{\"id\":2}]") {
+        Result::Ok(v) => {
+            match json::json_get_index(v, 0) {
+                Option::Some(obj) => match json::json_get(obj, "id") {
+                    Option::Some(fv) => match json::json_as_i32(fv) {
+                        Option::Some(n) => test::assert_eq_i32(n, 1),
+                        None => panic("expected number"),
+                    },
+                    None => panic("expected key id"),
+                },
+                None => panic("expected element 0"),
+            }
+            match json::json_get_index(v, 1) {
+                Option::Some(obj) => match json::json_get(obj, "id") {
+                    Option::Some(fv) => match json::json_as_i32(fv) {
+                        Option::Some(n) => test::assert_eq_i32(n, 2),
+                        None => panic("expected number"),
+                    },
+                    None => panic("expected key id"),
+                },
+                None => panic("expected element 1"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}
