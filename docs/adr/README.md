@@ -12,7 +12,6 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
-| [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029 — Selfhost-native verification contract | Archive | Status: Accepted |
 | [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Archive | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | Archive | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | Archive | ステータス: DECIDED — 制限付きMonomorphization（型ごとのコード生成）を採用 |
@@ -43,6 +42,7 @@
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: Arukellt source imports vs WIT package syntax — decision record | Archive | ステータス: DECIDED — source imports stay Layer S (use + ::); WIT identifiers stay Layer C boundary data |
 | [ADR-027-v3-selfhost-completion-skip-v4.md](ADR-027-v3-selfhost-completion-skip-v4.md) | ADR-027: v3完了時点でのセルフホスト完了とv4スキップ | Archive | ステータス: ACCEPTED (2026-04-19) — v4（最適化）をスキップしv3完了時点でセルフホスト完了 |
 | [ADR-028-corehir-lowering-resolution.md](ADR-028-corehir-lowering-resolution.md) | ADR-028: CoreHIR lowering circular blocker — re-route via #529 selfhost retirement | Archive | ステータス: DECIDED (2026-04-22) — Rust 側 lower_hir_to_mir は実装せず、Rust legacy |
+| [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029 — Selfhost-native verification contract | Archive | Status: Accepted |
 | [ADR-030-incremental-parse.md](ADR-030-incremental-parse.md) | test | Archive | See the document for details. |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: Import Syntax and WIT Package Identifier Unification | Archive | Status: DECIDED — Two-layer separation confirmed; use reserved for Layer S, import reserved for Layer C |
 | [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 Compiler Wasm and Browser Runner Model | Archive | Status: DECIDED — ship the selfhost compiler Wasm to the browser and run compiled T2 Wasm in a sandboxed host |

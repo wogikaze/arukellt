@@ -1,0 +1,26 @@
+// Issue #689: Operator overload — Sub trait on a user-defined struct.
+//
+// Verifies that `a - b` resolves to `Sub::sub` (mangled `Vec2::sub`)
+// when both operands are user-defined Vec2 structs, not scalars.
+use std::host::stdio
+use std::core::ops
+
+struct Vec2 {
+    x: i32,
+    y: i32,
+}
+
+impl Sub for Vec2 {
+    fn sub(self: Vec2, rhs: Vec2) -> Vec2 {
+        Vec2 { x: self.x - rhs.x, y: self.y - rhs.y }
+    }
+}
+
+fn main() {
+    let a = Vec2 { x: 10, y: 20 }
+    let b = Vec2 { x: 3, y: 5 }
+    let c = a - b
+    assert(c.x == 7)
+    assert(c.y == 15)
+    stdio::println(String_from("OK"))
+}

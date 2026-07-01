@@ -1,0 +1,26 @@
+// Issue #689: Operator overload — Add trait on a user-defined struct.
+//
+// Verifies that `a + b` resolves to `Add::add` (mangled `Complex::add`)
+// when both operands are user-defined Complex structs, not scalars.
+use std::host::stdio
+use std::core::ops
+
+struct Complex {
+    re: i32,
+    im: i32,
+}
+
+impl Add for Complex {
+    fn add(self: Complex, rhs: Complex) -> Complex {
+        Complex { re: self.re + rhs.re, im: self.im + rhs.im }
+    }
+}
+
+fn main() {
+    let a = Complex { re: 1, im: 2 }
+    let b = Complex { re: 3, im: 4 }
+    let c = a + b
+    assert(c.re == 4)
+    assert(c.im == 6)
+    stdio::println(String_from("OK"))
+}

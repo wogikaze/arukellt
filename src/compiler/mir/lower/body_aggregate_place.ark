@@ -4,7 +4,11 @@ use mir::lower_kinds
 
 use mir::lower::aggregate
 use mir::lower::assign
+use mir::lower::binary_emit
+use mir::lower::binary_type_names
 use mir::lower::body_aggregate_assign_field
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_exists
 
 fn lower_assign_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
@@ -38,6 +42,14 @@ fn lower_index_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let base = ast_node::node_child_at(node, 0)
         let idx_expr = ast_node::node_child_at(node, 1)
         let base_idx = lower_expr(ctx, base)
+        let base_type = ctx_get_local_type(ctx, base_idx)
+        if !binary_type_names::mir_is_primitive_operator_type(clone(base_type)) {
+            let ov_callee = concat(clone(base_type), String_from("::index"))
+            if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
+                let _index_idx = lower_expr(ctx, idx_expr)
+                return binary_emit::mir_emit_overloaded_binary_call(ctx, ov_callee)
+            }
+        }
         let index_idx = lower_expr(ctx, idx_expr)
         return aggregate::mir_emit_array_index(ctx, base_idx, index_idx)
     }

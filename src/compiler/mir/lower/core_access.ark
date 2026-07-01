@@ -1,7 +1,11 @@
 // Arukellt Selfhost - CoreHIR aggregate access lowering.
 
 use mir::lower::aggregate
+use mir::lower::binary_emit
+use mir::lower::binary_type_names
 use mir::lower::core_expr_shape_accessors
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_exists
 
 fn lower_core_field_access(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_accessors::mir_core_expr_child_count(expr) < 1 {
@@ -16,6 +20,14 @@ fn lower_core_index(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -
         return 0 - 1
     }
     let base_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
+    let base_type = ctx_get_local_type(ctx, base_idx)
+    if !binary_type_names::mir_is_primitive_operator_type(clone(base_type)) {
+        let ov_callee = concat(clone(base_type), String_from("::index"))
+        if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
+            let _index_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
+            return binary_emit::mir_emit_overloaded_binary_call(ctx, ov_callee)
+        }
+    }
     let index_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 1))
     aggregate::mir_emit_array_index(ctx, base_idx, index_idx)
 }

@@ -1,0 +1,26 @@
+// Issue #689: Operator overload — Neg trait on a user-defined struct.
+//
+// Verifies that `-a` resolves to `Neg::neg` (mangled `Wrapper::neg`)
+// when the operand is a user-defined struct, not a scalar.
+use std::host::stdio
+use std::core::ops
+
+struct Wrapper {
+    val: i32,
+}
+
+impl Neg for Wrapper {
+    fn neg(self: Wrapper) -> Wrapper {
+        Wrapper { val: 0 - self.val }
+    }
+}
+
+fn main() {
+    let a = Wrapper { val: 42 }
+    let b = -a
+    assert(b.val == 0 - 42)
+    let c = Wrapper { val: 100 }
+    let d = -c
+    assert(d.val == 0 - 100)
+    stdio::println(String_from("OK"))
+}
