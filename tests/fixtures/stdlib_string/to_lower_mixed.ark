@@ -1,0 +1,6 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(to_lower(String_from("HeLLo123")), "hello123")
+    test::assert_eq_string(to_lower(String_from("A.B.C")), "a.b.c")
+}

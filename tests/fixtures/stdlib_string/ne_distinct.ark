@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    test::assert_ne_string(String_from("abc"), String_from("abd"))
+    test::assert_ne_string(String_from(""), String_from("x"))
+    test::assert_ne_string(String_from("ABC"), String_from("abc"))
+}

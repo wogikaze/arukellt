@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("abcdefghijklmnop")
+    let c = clone(s)
+    test::assert_true(eq(s, c))
+    test::assert_eq_string(c, "abcdefghijklmnop")
+}

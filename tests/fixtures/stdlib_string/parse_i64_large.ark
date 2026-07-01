@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    let r: Result<i64, String> = parse_i64(String_from("9007199254740992"))
+    match r {
+        Result::Ok(v) => test::assert_eq_i64(v, 9007199254740992),
+        Result::Err(e) => panic("expected Ok"),
+    }
+}

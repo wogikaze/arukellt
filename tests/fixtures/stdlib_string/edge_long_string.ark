@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = repeat(String_from("abcdefghij"), 10)
+    test::assert_eq_i32(len(s), 100)
+    test::assert_true(starts_with(s, String_from("abcdefghij")))
+    test::assert_true(ends_with(s, String_from("abcdefghij")))
+}

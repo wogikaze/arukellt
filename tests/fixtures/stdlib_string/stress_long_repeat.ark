@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = repeat(String_from("x"), 100)
+    test::assert_eq_i32(len(s), 100)
+    let r = repeat(String_from("abc"), 50)
+    test::assert_eq_i32(len(r), 150)
+}

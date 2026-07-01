@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("a-b-c-d")
+    let parts = split(s, String_from("-"))
+    let rejoined = join(parts, String_from("-"))
+    test::assert_true(eq(rejoined, s))
+}

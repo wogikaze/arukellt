@@ -1,0 +1,6 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(replace(String_from("a-b-c"), String_from("-"), String_from("+")), "a+b+c")
+    test::assert_eq_string(replace(String_from("hello"), String_from("l"), String_from("L")), "heLLo")
+}

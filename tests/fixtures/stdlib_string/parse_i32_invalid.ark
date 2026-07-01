@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    let r: Result<i32, String> = parse_i32(String_from("abc"))
+    match r {
+        Result::Ok(v) => panic("expected Err"),
+        Result::Err(e) => test::assert_true(true),
+    }
+}

@@ -1,0 +1,6 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(to_lowercase(String_from("ABC")), "abc")
+    test::assert_eq_string(to_lowercase(String_from("MixEd")), "mixed")
+}

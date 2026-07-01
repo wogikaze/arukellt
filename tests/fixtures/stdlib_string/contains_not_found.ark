@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("hello")
+    test::assert_false(contains(s, String_from("xyz")))
+    test::assert_false(contains(s, String_from("hello!")))
+}

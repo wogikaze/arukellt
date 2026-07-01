@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("   ")
+    test::assert_eq_i32(len(s), 3)
+    test::assert_false(is_empty(s))
+    test::assert_eq_string(trim(s), "")
+}

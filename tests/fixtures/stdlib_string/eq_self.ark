@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("self")
+    test::assert_true(eq(s, s))
+    let e = String_from("")
+    test::assert_true(eq(e, e))
+}

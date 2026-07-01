@@ -1,0 +1,12 @@
+use std::test
+
+fn main() {
+    let parts: Vec<String> = Vec_new_String()
+    let mut i = 0
+    while i < 10 {
+        push(parts, String_from("item"))
+        i = i + 1
+    }
+    let r = join(parts, String_from("-"))
+    test::assert_eq_i32(len(r), 49)
+}

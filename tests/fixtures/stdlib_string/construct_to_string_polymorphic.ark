@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(to_string(42), "42")
+    test::assert_eq_string(to_string(true), "true")
+    test::assert_eq_string(to_string('X'), "X")
+    test::assert_eq_string(to_string(3.5), "3.5")
+}

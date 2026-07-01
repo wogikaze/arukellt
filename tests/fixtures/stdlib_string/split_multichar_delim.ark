@@ -1,0 +1,10 @@
+use std::test
+
+fn main() {
+    let s = String_from("a::b::c")
+    let parts = split(s, String_from("::"))
+    test::assert_eq_i32(len(parts), 3)
+    test::assert_eq_string(get_unchecked(parts, 0), "a")
+    test::assert_eq_string(get_unchecked(parts, 1), "b")
+    test::assert_eq_string(get_unchecked(parts, 2), "c")
+}

@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("hello")
+    test::assert_eq_i32(index_of(s, String_from("ll")), 2)
+    test::assert_eq_i32(index_of(s, String_from("hello")), 0)
+    test::assert_eq_i32(index_of(s, String_from("o")), 4)
+}

@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    let s = String_from("")
+    test::assert_eq_i32(len(s), 0)
+    test::assert_true(is_empty(s))
+    test::assert_true(eq(s, clone(s)))
+    test::assert_eq_string(concat(s, s), "")
+}

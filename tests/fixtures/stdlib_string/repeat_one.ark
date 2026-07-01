@@ -1,0 +1,5 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(repeat(String_from("hello"), 1), "hello")
+}

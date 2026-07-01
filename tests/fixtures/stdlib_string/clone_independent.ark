@@ -1,0 +1,10 @@
+use std::test
+
+fn main() {
+    let s = String_from("data")
+    let c = clone(s)
+    test::assert_true(eq(s, c))
+    push_char(s, '!')
+    test::assert_false(eq(s, c))
+    test::assert_eq_string(c, "data")
+}

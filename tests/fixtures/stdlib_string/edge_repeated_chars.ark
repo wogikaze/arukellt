@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("aaaaaaaaaa")
+    test::assert_eq_i32(len(s), 10)
+    test::assert_eq_string(replace(s, String_from("a"), String_from("b")), "bbbbbbbbbb")
+}

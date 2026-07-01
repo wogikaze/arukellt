@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("  hi  ")
+    let t = trim(s)
+    test::assert_true(eq(trim(t), t))
+}

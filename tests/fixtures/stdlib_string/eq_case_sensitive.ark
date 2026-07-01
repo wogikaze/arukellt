@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    test::assert_false(eq(String_from("Hello"), String_from("hello")))
+    test::assert_false(eq(String_from("ABC"), String_from("abc")))
+    test::assert_true(eq(String_from("Hello"), String_from("Hello")))
+}

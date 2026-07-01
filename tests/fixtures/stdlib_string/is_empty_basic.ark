@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    test::assert_true(is_empty(String_new()))
+    test::assert_true(is_empty(String_from("")))
+    test::assert_false(is_empty(String_from("x")))
+    test::assert_false(is_empty(String_from("hello")))
+}

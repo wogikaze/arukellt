@@ -1,0 +1,10 @@
+use std::test
+
+fn main() {
+    let a = String_from("hello")
+    test::assert_eq_string(a, "hello")
+    let b = String_from("")
+    test::assert_eq_i32(len(b), 0)
+    let c = String_from("Arithmetic")
+    test::assert_eq_i32(len(c), 10)
+}
