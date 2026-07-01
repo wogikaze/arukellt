@@ -1,0 +1,11 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 42)
+    let c: Vec<i32> = bytes::cursor_new(data)
+    test::assert_eq_i32(bytes::read_u8(c), 42)
+    test::assert_eq_i32(bytes::cursor_pos(c), 1)
+    test::assert_eq_i32(bytes::cursor_remaining(c), 0)
+}

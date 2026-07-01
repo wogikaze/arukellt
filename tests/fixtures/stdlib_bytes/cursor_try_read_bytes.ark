@@ -1,0 +1,28 @@
+use std::bytes
+use std::test
+
+fn assert_some_len(v: Option<Vec<i32>>, expected: i32) {
+    match v {
+        Option::Some(chunk) => test::assert_eq_i32(bytes::bytes_len(chunk), expected),
+        None => panic("expected Some"),
+    }
+}
+
+fn assert_none_vec(v: Option<Vec<i32>>) {
+    match v {
+        Option::Some(_) => panic("expected None"),
+        None => {
+        },
+    }
+}
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 7)
+    bytes::bytes_push(data, 8)
+    bytes::bytes_push(data, 9)
+    bytes::bytes_push(data, 10)
+    let c: Vec<i32> = bytes::cursor_new(data)
+    assert_some_len(bytes::try_read_bytes(c, 2), 2)
+    assert_none_vec(bytes::try_read_bytes(c, 5))
+}

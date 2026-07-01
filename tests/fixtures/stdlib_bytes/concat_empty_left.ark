@@ -1,0 +1,12 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let a: Vec<i32> = bytes::bytes_new()
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 1)
+    bytes::bytes_push(b, 2)
+    let r: Vec<i32> = bytes::bytes_concat(a, b)
+    test::assert_eq_i32(bytes::bytes_len(r), 2)
+    test::assert_true(bytes::bytes_eq(r, b))
+}

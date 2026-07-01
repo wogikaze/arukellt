@@ -1,0 +1,7 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let be: Vec<i32> = bytes::u32_to_be_bytes(16909060)
+    test::assert_eq_i32(bytes::u32_from_be_bytes(be), 16909060)
+}

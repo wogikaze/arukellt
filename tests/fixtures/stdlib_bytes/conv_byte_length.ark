@@ -1,0 +1,7 @@
+use std::bytes
+use std::test
+
+fn main() {
+    test::assert_eq_i32(bytes::byte_length("abc"), 3)
+    test::assert_eq_i32(bytes::byte_length(""), 0)
+}

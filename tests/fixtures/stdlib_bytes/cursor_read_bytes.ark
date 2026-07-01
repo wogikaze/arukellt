@@ -1,0 +1,17 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 7)
+    bytes::bytes_push(data, 8)
+    bytes::bytes_push(data, 9)
+    bytes::bytes_push(data, 10)
+    let c: Vec<i32> = bytes::cursor_new(data)
+    let chunk: Vec<i32> = bytes::read_bytes(c, 3)
+    test::assert_eq_i32(bytes::bytes_len(chunk), 3)
+    test::assert_eq_i32(bytes::bytes_get(chunk, 0), 7)
+    test::assert_eq_i32(bytes::bytes_get(chunk, 1), 8)
+    test::assert_eq_i32(bytes::bytes_get(chunk, 2), 9)
+    test::assert_eq_i32(bytes::cursor_remaining(c), 1)
+}

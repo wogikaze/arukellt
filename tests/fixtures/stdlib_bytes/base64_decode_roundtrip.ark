@@ -1,0 +1,12 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 77)
+    bytes::bytes_push(b, 97)
+    bytes::bytes_push(b, 110)
+    let enc: String = bytes::base64_encode(b)
+    let dec: Vec<i32> = bytes::base64_decode(enc)
+    test::assert_true(bytes::bytes_eq(b, dec))
+}

@@ -1,0 +1,15 @@
+use std::bytes
+use std::test
+
+fn assert_some(v: Option<i32>, expected: i32) {
+    match v {
+        Option::Some(n) => test::assert_eq_i32(n, expected),
+        None => panic("expected Some"),
+    }
+}
+
+fn main() {
+    assert_some(bytes::try_hex_val_char("a"), 10)
+    assert_some(bytes::try_hex_val_char("0"), 0)
+    assert_some(bytes::try_hex_val_char("F"), 15)
+}

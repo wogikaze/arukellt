@@ -1,0 +1,7 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let buf: Vec<i32> = bytes::buf_new()
+    test::assert_eq_i32(bytes::buf_len(buf), 0)
+}

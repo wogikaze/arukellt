@@ -1,0 +1,11 @@
+use std::bytes
+use std::test
+
+fn main() {
+    test::assert_eq_i32(bytes::hex_val_char("0"), 0)
+    test::assert_eq_i32(bytes::hex_val_char("9"), 9)
+    test::assert_eq_i32(bytes::hex_val_char("a"), 10)
+    test::assert_eq_i32(bytes::hex_val_char("f"), 15)
+    test::assert_eq_i32(bytes::hex_val_char("A"), 10)
+    test::assert_eq_i32(bytes::hex_val_char("F"), 15)
+}

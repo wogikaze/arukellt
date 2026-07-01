@@ -1,0 +1,13 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let a: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(a, 42)
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 42)
+    let c: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(c, 43)
+    test::assert_true(bytes::bytes_eq(a, b))
+    test::assert_false(bytes::bytes_eq(a, c))
+}

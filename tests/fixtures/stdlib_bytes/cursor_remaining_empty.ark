@@ -1,0 +1,7 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let c: Vec<i32> = bytes::cursor_new(bytes::bytes_new())
+    test::assert_eq_i32(bytes::cursor_remaining(c), 0)
+}
