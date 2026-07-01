@@ -1,0 +1,5 @@
+use std::test
+
+fn main() {
+    test::assert_eq_i32(1, 2)
+}

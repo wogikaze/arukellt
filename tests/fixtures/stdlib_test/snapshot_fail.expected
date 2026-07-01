@@ -1,0 +1,7 @@
+snapshot mismatch:
+--- expected ---
+line1
+line2
+--- actual ---
+line1
+lineX

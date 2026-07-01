@@ -286,10 +286,12 @@ module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/shuffle.ark
 module-run:stdlib_test/assert_eq.ark
+run:stdlib_test/assert_eq_fail.ark
 module-run:stdlib_test/assert_ne.ark
 module-run:stdlib_test/bench_basic.ark
 module-run:stdlib_test/expect_option.ark
 module-run:stdlib_test/expect_result.ark
+run:stdlib_test/snapshot_fail.ark
 module-run:stdlib_time/duration.ark
 module-run:stdlib_time/monotonic.ark
 run:arrays/array_literal.ark
@@ -739,6 +741,7 @@ run:t3/arithmetic.ark
 run:t3/hello.ark
 run:t3/string_intern.ark
 run:test_assert/assert_pass.ark
+run:test_assert/assert_fail.ark
 run:trait/basic_impl.ark
 run:trait/builtin_method.ark
 run:trait/builtin_vec_method.ark

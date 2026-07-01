@@ -17,3 +17,14 @@ fn SelfEmitCtx_true_string_offset(ctx: SelfEmitCtx) -> i32 {
 fn SelfEmitCtx_false_string_offset(ctx: SelfEmitCtx) -> i32 {
     SelfEmitCtx_string_offset_at(ctx, ctx.false_str_idx)
 }
+
+fn SelfEmitCtx_string_offset_for_value(ctx: SelfEmitCtx, value: String) -> i32 {
+    let mut i = 0
+    while i < len(ctx.string_values) {
+        if eq(clone(get_unchecked(ctx.string_values, i)), clone(value)) {
+            return SelfEmitCtx_string_offset_at(ctx, i)
+        }
+        i = i + 1
+    }
+    0
+}

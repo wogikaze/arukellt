@@ -6,14 +6,14 @@ use wasm::call_host_io
 use wasm::call_host_network
 use wasm::call_host_time
 use wasm::intrinsic_streams
-fn try_emit_host_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_host_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
         if call_host_time::try_emit_clock_random_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
         if call_host_network::try_emit_network_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
-        if call_host_io::try_emit_stdio_call(w, callee, inst, ctx, prev_op, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
+        if call_host_io::try_emit_stdio_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
         if call_host_io::try_emit_fs_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {

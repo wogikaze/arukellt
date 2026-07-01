@@ -7,6 +7,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::core_expr_shape_accessors
 use mir::lower::call_emit_dest
 use mir::lower::call_types
+use mir::value_types
 
 fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
@@ -20,9 +21,13 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
         a = a + 1
     }
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"))
-    call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
-    let dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    let mut dest = 0 - 1
+    let mut dest_vt = value_types::VT_VOID()
+    if arg_count != 0 {
+        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"))
+        call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
     ctx_api_emit::ctx_emit(ctx, inst_call_indirect::MirInst_call_indirect(callee_local, 0 - 1, arg_count, dest, dest_vt))
     dest

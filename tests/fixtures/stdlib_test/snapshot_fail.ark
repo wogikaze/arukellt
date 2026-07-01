@@ -1,0 +1,5 @@
+use std::test
+
+fn main() {
+    test::assert_eq_snapshot("line1\nlineX", "line1\nline2")
+}

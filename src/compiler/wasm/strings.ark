@@ -16,6 +16,7 @@ struct EmitStringBoolLiteralPlan {
     data_offset: i32,
     true_idx: i32,
     false_idx: i32,
+    assert_idx: i32,
 }
 
 fn EmitStringTablePlan_offsets(plan: EmitStringTablePlan) -> Vec<i32> {
@@ -69,8 +70,8 @@ fn emit_string_layout_existing_constants(mir: MirModule, str_count: i32, string_
     data_offset
 }
 
-fn EmitStringBoolLiteralPlan_new(data_offset: i32, true_idx: i32, false_idx: i32) -> EmitStringBoolLiteralPlan {
-    EmitStringBoolLiteralPlan { data_offset: data_offset, true_idx: true_idx, false_idx: false_idx }
+fn EmitStringBoolLiteralPlan_new(data_offset: i32, true_idx: i32, false_idx: i32, assert_idx: i32) -> EmitStringBoolLiteralPlan {
+    EmitStringBoolLiteralPlan { data_offset: data_offset, true_idx: true_idx, false_idx: false_idx, assert_idx: assert_idx }
 }
 
 fn EmitStringBoolLiteralPlan_data_offset(plan: EmitStringBoolLiteralPlan) -> i32 {
@@ -85,6 +86,10 @@ fn EmitStringBoolLiteralPlan_false_idx(plan: EmitStringBoolLiteralPlan) -> i32 {
     plan.false_idx
 }
 
+fn EmitStringBoolLiteralPlan_assert_idx(plan: EmitStringBoolLiteralPlan) -> i32 {
+    plan.assert_idx
+}
+
 fn emit_string_layout_ensure_bool_literals(mir: MirModule, str_count: i32, string_offsets: Vec<i32>, string_lengths: Vec<i32>, initial_data_offset: i32) -> EmitStringBoolLiteralPlan {
     let scan_plan = scan_string_layout_bool_literals(mir, str_count, initial_data_offset)
     append_missing_string_layout_bool_literals(mir, string_offsets, string_lengths, scan_plan)
@@ -93,6 +98,7 @@ fn emit_string_layout_ensure_bool_literals(mir: MirModule, str_count: i32, strin
 fn scan_string_layout_bool_literals(mir: MirModule, str_count: i32, data_offset: i32) -> EmitStringBoolLiteralPlan {
     let mut true_idx = 0 - 1
     let mut false_idx = 0 - 1
+    let mut assert_idx = 0 - 1
     let mut bi = 0
     while bi < str_count {
         let bs = module_strings::MirModule_string_constant_at(mir, bi)
@@ -102,15 +108,19 @@ fn scan_string_layout_bool_literals(mir: MirModule, str_count: i32, data_offset:
         if eq(clone(bs), "false") {
             false_idx = bi
         }
+        if eq(clone(bs), "assertion failed") {
+            assert_idx = bi
+        }
         bi = bi + 1
     }
-    EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx)
+    EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx, assert_idx)
 }
 
 fn append_missing_string_layout_bool_literals(mir: MirModule, string_offsets: Vec<i32>, string_lengths: Vec<i32>, plan: EmitStringBoolLiteralPlan) -> EmitStringBoolLiteralPlan {
     let mut data_offset = EmitStringBoolLiteralPlan_data_offset(plan)
     let mut true_idx = EmitStringBoolLiteralPlan_true_idx(plan)
     let mut false_idx = EmitStringBoolLiteralPlan_false_idx(plan)
+    let mut assert_idx = EmitStringBoolLiteralPlan_assert_idx(plan)
     if true_idx < 0 {
         true_idx = module_strings::MirModule_string_constant_count(mir)
         module_strings::MirModule_push_string_constant(mir, String_from("true"))
@@ -125,5 +135,12 @@ fn append_missing_string_layout_bool_literals(mir: MirModule, string_offsets: Ve
         push(string_lengths, 5)
         data_offset = data_offset + 4 + 5
     }
-    EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx)
+    if assert_idx < 0 {
+        assert_idx = module_strings::MirModule_string_constant_count(mir)
+        module_strings::MirModule_push_string_constant(mir, String_from("assertion failed"))
+        push(string_offsets, data_offset + 4)
+        push(string_lengths, 16)
+        data_offset = data_offset + 4 + 16
+    }
+    EmitStringBoolLiteralPlan_new(data_offset, true_idx, false_idx, assert_idx)
 }

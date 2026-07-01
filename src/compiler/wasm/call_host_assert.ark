@@ -61,32 +61,12 @@ fn try_emit_option_unwrap_call(w: WasmWriter, callee: String, inst: MirInst, ctx
     false
 }
 
-// Arukellt Selfhost - assertion host call dispatch.
-
 fn try_emit_assert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_basic_assert_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-        return true
-    }
-    if try_emit_equal_assert_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-        return true
-    }
-    false
-}
-
-// Arukellt Selfhost - basic assertion host call dispatch.
-
-fn try_emit_basic_assert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "assert") {
         let _result_on_stack = intrinsic_assert::emit_assert(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    false
-}
-
-// Arukellt Selfhost - equality assertion host call dispatch.
-
-fn try_emit_equal_assert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "assert_eq") {
         let _result_on_stack = intrinsic_assert::emit_assert_eq(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)

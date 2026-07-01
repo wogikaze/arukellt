@@ -1,8 +1,10 @@
 // Arukellt Selfhost - process intrinsic handlers
 
 use wasm::constants
+use wasm::ctx_string_view
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: process::exit, host::process::exit, __intrinsic_process_exit
@@ -18,4 +20,29 @@ fn emit_process_abort(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core_calls::emit_call(w, constants::WASI_IMPORT_PROC_EXIT())
     helpers_core_stack::emit_unreachable(w)
     return false
+}
+
+// Handler for panic: write the message separately, then exit non-zero.
+fn emit_panic_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_PROC_EXIT())
+    helpers_core_stack::emit_unreachable(w)
+    return false
+}
+
+fn emit_static_panic_message_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, message: String, byte_len: i32) -> bool {
+    let offset = ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, message)
+    helpers_io::emit_iov_from_ptr_len(w, offset, byte_len)
+    helpers_io::emit_fd_write_call(w, 2)
+    helpers_io::emit_write_newline(w, 2)
+    emit_panic_exit(w, inst, ctx)
+    return true
+}
+
+fn emit_panic_message_exit_local(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, string_local: i32) -> bool {
+    helpers_io::emit_iov_from_string_local(w, string_local)
+    helpers_io::emit_fd_write_call(w, 2)
+    helpers_io::emit_write_newline(w, 2)
+    emit_panic_exit(w, inst, ctx)
+    return true
 }

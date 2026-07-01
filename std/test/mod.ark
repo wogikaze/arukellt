@@ -117,7 +117,7 @@ pub fn assert_contains(haystack: String, needle: String) {
     }
 }
 
-/// Assert that two strings are equal, showing a line-by-line comparison on failure.
+/// Assert that two strings are equal, showing expected and actual blocks on failure.
 pub fn assert_eq_snapshot(actual: String, expected: String) {
     if !eq(actual, expected) {
         let msg = concat("snapshot mismatch:\n--- expected ---\n", concat(expected, concat("\n--- actual ---\n", actual)))

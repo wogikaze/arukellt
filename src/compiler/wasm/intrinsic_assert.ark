@@ -5,34 +5,35 @@ use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i64_compare
 // Arukellt Selfhost - assert intrinsic handlers.
 
+use mir::inst_accessors_operands
 use wasm::ctx_scratch
+use wasm::intrinsic_process
 use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_core_stack
 
 fn emit_assert(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32_compare::emit_i32_eqz(w)
-    emit_unreachable_if_true(w)
+    emit_assertion_failed_if_true(w, inst, ctx)
     return true
 }
 
 fn emit_assert_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32_compare::emit_i32_ne(w)
-    emit_unreachable_if_true(w)
+    emit_assertion_failed_if_true(w, inst, ctx)
     return true
 }
 
 fn emit_assert_eq_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i64_compare::emit_i64_ne(w)
-    emit_unreachable_if_true(w)
+    emit_assertion_failed_if_true(w, inst, ctx)
     return true
 }
 
 fn emit_assert_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32_compare::emit_i32_eq(w)
-    emit_unreachable_if_true(w)
+    emit_assertion_failed_if_true(w, inst, ctx)
     return true
 }
 
@@ -43,20 +44,38 @@ fn emit_assert_eq_str(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     helpers_core_locals::emit_local_set(w, s1)
     helpers_core_locals::emit_local_set(w, s0)
-    emit_assert_string_length_check(w, s0, s1, s2)
+    emit_assert_string_length_check(w, inst, ctx, s0, s1, s2)
     helpers_numeric_i32_const::emit_i32_const(w, 0)
     helpers_core_locals::emit_local_set(w, s3)
-    emit_assert_string_byte_loop(w, s0, s1, s2, s3)
+    emit_assert_string_byte_loop(w, inst, ctx, s0, s1, s2, s3)
     return true
 }
 
-fn emit_unreachable_if_true(w: WasmWriter) {
+fn emit_assertion_failed_if_true(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_control_structured::emit_if_empty(w)
-    helpers_core_stack::emit_unreachable(w)
+    emit_static_assertion_failed(w, inst, ctx)
     helpers_control_structured::emit_end(w)
 }
 
-fn emit_assert_string_length_check(w: WasmWriter, s0: i32, s1: i32, s2: i32) {
+fn emit_static_assertion_failed(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    intrinsic_process::emit_static_panic_message_exit(w, inst, ctx, String_from("assertion failed"), 16)
+}
+
+fn emit_panic_message_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) -> bool {
+    let s_msg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let mut arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 < 0 && prev_op == mir::opcodes::MIR_LOCAL_GET() {
+        arg0 = prev_arg0
+    }
+    if arg0 >= 0 {
+        helpers_core_locals::emit_local_get(w, arg0)
+    }
+    helpers_core_locals::emit_local_set(w, s_msg)
+    intrinsic_process::emit_panic_message_exit_local(w, inst, ctx, s_msg)
+    return true
+}
+
+fn emit_assert_string_length_check(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s0: i32, s1: i32, s2: i32) {
     helpers_core_locals::emit_local_get(w, s0)
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_numeric_i32_arith::emit_i32_sub(w)
@@ -69,11 +88,11 @@ fn emit_assert_string_length_check(w: WasmWriter, s0: i32, s1: i32, s2: i32) {
     helpers_memory_access::emit_i32_load_default(w)
     helpers_numeric_i32_compare::emit_i32_ne(w)
     helpers_control_structured::emit_if_empty(w)
-    helpers_core_stack::emit_unreachable(w)
+    emit_static_assertion_failed(w, inst, ctx)
     helpers_control_structured::emit_end(w)
 }
 
-fn emit_assert_string_byte_loop(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32) {
+fn emit_assert_string_byte_loop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s0: i32, s1: i32, s2: i32, s3: i32) {
     helpers_control_loop::emit_block_loop_header(w)
     helpers_core_locals::emit_local_get(w, s3)
     helpers_core_locals::emit_local_get(w, s2)
@@ -89,7 +108,7 @@ fn emit_assert_string_byte_loop(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i3
     helpers_memory_access::emit_i32_load8_u_default(w)
     helpers_numeric_i32_compare::emit_i32_ne(w)
     helpers_control_structured::emit_if_empty(w)
-    helpers_core_stack::emit_unreachable(w)
+    emit_static_assertion_failed(w, inst, ctx)
     helpers_control_structured::emit_end(w)
     helpers_core_locals::emit_local_get(w, s3)
     helpers_numeric_i32_const::emit_i32_const(w, 1)

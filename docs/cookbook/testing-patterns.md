@@ -13,7 +13,7 @@ Using `std::test` assert functions for effective tests.
 assert(1 + 1 == 2)
 assert(len("hello") == 5)
 
-// assert_eq — check equality (panics with both values on failure)
+// assert_eq — check i32 equality
 assert_eq(max(3, 5), 5)
 assert_eq(min(3, 5), 3)
 assert_eq(abs(0 - 7), 7)

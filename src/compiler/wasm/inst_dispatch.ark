@@ -24,7 +24,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i3
     if inst_dispatch_arith::try_emit_arith_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return
     }
-    if inst_dispatch_call::try_emit_call_inst(w, inst, ctx, prev_op, prev_callee, next_op, next_arg0, next_arg1, next2_op, bindings) {
+    if inst_dispatch_call::try_emit_call_inst(w, inst, ctx, prev_op, prev_arg0, prev_callee, next_op, next_arg0, next_arg1, next2_op, bindings) {
         return
     }
     if inst_dispatch_convert::try_emit_convert_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {

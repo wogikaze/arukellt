@@ -66,7 +66,7 @@ The current module provides typed assertions and expectation helpers for
 | `expect_some_i32` | `(Option<i32>) -> i32` | `stable` | - |
 | `expect_none_i32` | `(Option<i32>) -> ()` | `stable` | - |
 | `assert_contains` | `(String, String) -> ()` | `stable` | Assert that a string contains a given substring. |
-| `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | Assert that two strings are equal, showing a line-by-line comparison on failure. |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | Assert that two strings are equal, showing expected and actual blocks on failure. |
 | `assert_msg` | `(bool, String) -> ()` | `stable` | Assert that a boolean condition holds, with a custom failure message. |
 | `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | Run f exactly iterations times and write a timing summary to stderr. |
 
