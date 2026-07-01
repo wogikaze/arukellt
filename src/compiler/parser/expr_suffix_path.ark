@@ -41,12 +41,29 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
                     core_ast_children::AstNode_push_child(node, get_unchecked(type_args, k))
                     k = k + 1
                 }
+                // Rewrite Vec::new<T>() path text to Vec_new_<T> so the
+                // resolver/typechecker/lowering see the intrinsic name directly.
+                let path_text = core_ast_text_fields::AstNode_text(node)
+                if eq(clone(path_text), String_from("Vec::new")) {
+                    let elem_name = core_ast_text_fields::AstNode_text(get_unchecked(type_args, 0))
+                    core_ast_text_fields::AstNode_set_text(node, concat(String_from("Vec_new_"), elem_name))
+                }
             } else {
                 state_record::parser_set_position(p, saved_pos)
             }
         } else {
             state_record::parser_set_position(p, saved_pos)
         }
+    }
+    // Rewrite known builtin associated functions (no turbofish) to intrinsic names.
+    // String::from(x) → String_from, i32::from(s) → parse_i32.
+    // This lets the resolver/typechecker/lowering see the prelude function directly.
+    let final_text = core_ast_text_fields::AstNode_text(node)
+    if eq(clone(final_text), String_from("String::from")) {
+        core_ast_text_fields::AstNode_set_text(node, String_from("String_from"))
+    }
+    if eq(clone(final_text), String_from("i32::from")) {
+        core_ast_text_fields::AstNode_set_text(node, String_from("parse_i32"))
     }
     node
 }

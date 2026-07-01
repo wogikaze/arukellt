@@ -1,0 +1,14 @@
+// Issue #701: Associated function syntax — i32::from().
+// Verifies i32::from("42") compiles and parses to Ok(42).
+use std::host::stdio
+
+fn main() {
+    let r = i32::from("42")
+    match r {
+        Result::Ok(v) => {
+            assert(v == 42)
+            stdio::println(i32_to_string(v))
+        },
+        Result::Err(e) => stdio::println(e),
+    }
+}

@@ -54,7 +54,7 @@ and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 654 passed, 4 failed, 29 skipped (manifest-driven)
-- Fixture manifest: 1195 entries
+- Fixture manifest: 1199 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **162/168 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
@@ -232,6 +232,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - **T3 runtime correctness sweep (2026-04)** — wasmtime 29.x DRC GC bug mitigated (null collector workaround); peephole local.tee suppressed for GC-ref locals; nested concat scratch-local clobbering fixed; `eq`/`ne`/`split` builtins implemented. Fixture harness now **575/575 pass** with 31 new t3-run entries. With the wasmtime 46 upgrade (2026-06), the default GC collector switched from DRC to the copying collector, making the null-collector workaround unnecessary for new code paths.
 - **Current open queue shifted** — active work now focuses on WASI / `std::host::*` rollout rather than the completed v3 stdlib track
 - **`std::host::process::exit` and `abort` available (issue 445)** — `__intrinsic_process_exit(i32)` and `__intrinsic_process_abort()` are wired into the T1 and T3 WASI emitters via `wasi_snapshot_preview1/proc_exit`. Both are noreturn; the emitter emits `unreachable` after every call site. `abort()` uses `proc_exit(134)` (SIGABRT convention). `std::host::process` is no longer a stub.
+- **Associated function syntax for builtin types (issue 701)** — `Vec::new<i32>()`, `String::from("hello")`, and `i32::from("42")` now compile and execute correctly. The parser desugars these to the corresponding intrinsic names (`Vec_new_i32`, `String_from`, `parse_i32`) at AST construction time, so the resolver, typechecker, and MIR lowering require no changes. Existing monomorphic constructors (`Vec_new_i32()`, `String_from()`) continue to work unchanged.
 
 ## V1 Exit Status: **COMPLETE**
 

@@ -305,6 +305,7 @@ run:control/match_enum.ark
 run:control/match_int.ark
 run:control/match_wildcard.ark
 run:control/nested_loops.ark
+run:control/trait_dispatch_spike.ark
 run:control/while_basic.ark
 run:control/while_counter.ark
 run:diagnostics/method_syntax.ark
@@ -1229,3 +1230,5 @@ run:test_enum_payload_gc.ark
 run:test_gc_struct_min.ark
 diag:diagnostics/capability_stub.ark
 run:associated_fn/vec_new.ark
+run:associated_fn/string_from.ark
+run:associated_fn/i32_from.ark
