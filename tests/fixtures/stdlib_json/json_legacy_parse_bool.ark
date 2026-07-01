@@ -1,0 +1,8 @@
+use std::json
+use std::test
+
+fn main() {
+    test::assert_eq_bool(json::json_parse_bool("true"), true)
+    test::assert_eq_bool(json::json_parse_bool("false"), false)
+    test::assert_eq_bool(json::json_parse_bool("anything"), false)
+}

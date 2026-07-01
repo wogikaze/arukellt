@@ -1,0 +1,37 @@
+use std::json
+use std::test
+
+fn main() {
+    let raw = "{\"a\":{\"b\":{\"c\":[1,2,{\"d\":true}]}}}"
+    match json::parse(raw) {
+        Result::Ok(v) => {
+            let s = json::stringify(v)
+            test::assert_eq_string(s, raw)
+            match json::parse(s) {
+                Result::Ok(v2) => {
+                    match json::json_get(v2, "a") {
+                        Option::Some(a) => match json::json_get(a, "b") {
+                            Option::Some(b) => match json::json_get(b, "c") {
+                                Option::Some(c) => match json::json_get_index(c, 2) {
+                                    Option::Some(obj) => match json::json_get(obj, "d") {
+                                        Option::Some(dv) => match json::json_as_bool(dv) {
+                                            Option::Some(b2) => test::assert_eq_bool(b2, true),
+                                            None => panic("expected bool"),
+                                        },
+                                        None => panic("expected key d"),
+                                    },
+                                    None => panic("expected element 2"),
+                                },
+                                None => panic("expected key c"),
+                            },
+                            None => panic("expected key b"),
+                        },
+                        None => panic("expected key a"),
+                    }
+                },
+                Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}

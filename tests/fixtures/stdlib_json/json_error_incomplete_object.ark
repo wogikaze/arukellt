@@ -1,0 +1,21 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{") {
+        Result::Ok(_) => panic("expected error for incomplete object"),
+        Result::Err(_) => {},
+    }
+    match json::parse("{\"a\"") {
+        Result::Ok(_) => panic("expected error for unclosed key"),
+        Result::Err(_) => {},
+    }
+    match json::parse("{\"a\":") {
+        Result::Ok(_) => panic("expected error for missing value"),
+        Result::Err(_) => {},
+    }
+    match json::parse("{\"a\":1") {
+        Result::Ok(_) => panic("expected error for unclosed object"),
+        Result::Err(_) => {},
+    }
+}

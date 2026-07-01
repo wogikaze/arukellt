@@ -1,0 +1,26 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"a\":{\"b\":{\"c\":{\"d\":42}}}") {
+        Result::Ok(v) => {
+            match json::json_get(v, "a") {
+                Option::Some(a) => match json::json_get(a, "b") {
+                    Option::Some(b) => match json::json_get(b, "c") {
+                        Option::Some(c) => match json::json_get(c, "d") {
+                            Option::Some(d) => match json::json_as_i32(d) {
+                                Option::Some(n) => test::assert_eq_i32(n, 42),
+                                None => panic("expected number"),
+                            },
+                            None => panic("expected key d"),
+                        },
+                        None => panic("expected key c"),
+                    },
+                    None => panic("expected key b"),
+                },
+                None => panic("expected key a"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse deeply nested failed: ", json::parse_error_message(e))),
+    }
+}

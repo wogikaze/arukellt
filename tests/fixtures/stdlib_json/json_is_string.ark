@@ -1,0 +1,20 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"hello\"") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_string(v))
+            test::assert_false(json::is_null(v))
+            test::assert_false(json::is_bool(v))
+            test::assert_false(json::is_number(v))
+            test::assert_false(json::is_array(v))
+            test::assert_false(json::is_object(v))
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("\"\"") {
+        Result::Ok(v) => test::assert_true(json::is_string(v)),
+        Result::Err(e) => panic(concat("parse empty string failed: ", json::parse_error_message(e))),
+    }
+}

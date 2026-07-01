@@ -1,0 +1,12 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"x\\ry\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_string(s, "x\ry"),
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse CR failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,9 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"a\":1,\"b\":2}") {
+        Result::Ok(v) => test::assert_eq_string(json::stringify_pretty(v, 2), "{\n  \"a\": 1,\n  \"b\": 2\n}"),
+        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+    }
+}

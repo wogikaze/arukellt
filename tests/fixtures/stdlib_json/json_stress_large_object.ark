@@ -1,0 +1,31 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"a\":1,\"b\":2,\"c\":3,\"d\":4,\"e\":5,\"f\":6,\"g\":7,\"h\":8}") {
+        Result::Ok(v) => {
+            match json::json_get(v, "a") {
+                Option::Some(fv) => match json::json_as_i32(fv) {
+                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                    None => panic("expected number"),
+                },
+                None => panic("expected key a"),
+            }
+            match json::json_get(v, "h") {
+                Option::Some(fv) => match json::json_as_i32(fv) {
+                    Option::Some(n) => test::assert_eq_i32(n, 8),
+                    None => panic("expected number"),
+                },
+                None => panic("expected key h"),
+            }
+            match json::json_get(v, "d") {
+                Option::Some(fv) => match json::json_as_i32(fv) {
+                    Option::Some(n) => test::assert_eq_i32(n, 4),
+                    None => panic("expected number"),
+                },
+                None => panic("expected key d"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse large object failed: ", json::parse_error_message(e))),
+    }
+}

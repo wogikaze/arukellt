@@ -1,0 +1,19 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("1000000") {
+        Result::Ok(v) => match json::json_as_i32(v) {
+            Option::Some(n) => test::assert_eq_i32(n, 1000000),
+            None => panic("expected 1000000"),
+        },
+        Result::Err(e) => panic(concat("parse large number failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("-2147483648") {
+        Result::Ok(v) => match json::json_as_i32(v) {
+            Option::Some(n) => test::assert_eq_i32(n, -2147483648),
+            None => panic("expected min i32"),
+        },
+        Result::Err(e) => panic(concat("parse min i32 failed: ", json::parse_error_message(e))),
+    }
+}

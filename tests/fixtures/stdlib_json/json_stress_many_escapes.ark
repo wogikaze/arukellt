@@ -1,0 +1,18 @@
+use std::json
+use std::test
+
+fn main() {
+    let raw = "\"\\n\\t\\r\\\\\\\"\\b\\f\""
+    match json::parse(raw) {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_i32(len(s), 7),
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse many escapes failed: ", json::parse_error_message(e))),
+    }
+    // Round-trip the escaped string
+    match json::parse(raw) {
+        Result::Ok(v) => test::assert_eq_string(json::stringify(v), raw),
+        Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+    }
+}

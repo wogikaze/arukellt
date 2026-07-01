@@ -1,0 +1,17 @@
+use std::json
+use std::test
+
+fn main() {
+    let raw = "\"hello\\nworld\\ttab\""
+    match json::parse(raw) {
+        Result::Ok(v) => {
+            let s = json::stringify(v)
+            test::assert_eq_string(s, raw)
+            match json::json_as_string(v) {
+                Option::Some(decoded) => test::assert_eq_string(decoded, "hello\nworld\ttab"),
+                None => panic("expected string"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}

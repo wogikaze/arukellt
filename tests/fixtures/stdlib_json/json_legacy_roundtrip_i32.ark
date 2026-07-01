@@ -1,0 +1,10 @@
+use std::json
+use std::test
+
+fn main() {
+    // Round-trip: stringify then parse preserves the value
+    test::assert_eq_i32(json::json_parse_i32(json::json_stringify_i32(42)), 42)
+    test::assert_eq_i32(json::json_parse_i32(json::json_stringify_i32(0)), 0)
+    test::assert_eq_i32(json::json_parse_i32(json::json_stringify_i32(-7)), -7)
+    test::assert_eq_i32(json::json_parse_i32(json::json_stringify_i32(1000000)), 1000000)
+}

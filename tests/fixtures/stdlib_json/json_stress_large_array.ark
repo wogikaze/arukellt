@@ -1,0 +1,32 @@
+use std::json
+use std::test
+
+fn main() {
+    // Parse a large array and verify element access at start, middle, end
+    match json::parse("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]") {
+        Result::Ok(v) => {
+            match json::json_get_index(v, 0) {
+                Option::Some(e) => match json::json_as_i32(e) {
+                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                    None => panic("expected number at 0"),
+                },
+                None => panic("expected element at 0"),
+            }
+            match json::json_get_index(v, 10) {
+                Option::Some(e) => match json::json_as_i32(e) {
+                    Option::Some(n) => test::assert_eq_i32(n, 11),
+                    None => panic("expected number at 10"),
+                },
+                None => panic("expected element at 10"),
+            }
+            match json::json_get_index(v, 19) {
+                Option::Some(e) => match json::json_as_i32(e) {
+                    Option::Some(n) => test::assert_eq_i32(n, 20),
+                    None => panic("expected number at 19"),
+                },
+                None => panic("expected element at 19"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse large array failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,38 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"n\":null,\"b\":true,\"i\":42,\"f\":3.14,\"s\":\"str\",\"a\":[1],\"o\":{\"k\":1}}") {
+        Result::Ok(v) => {
+            match json::json_get(v, "n") {
+                Option::Some(fv) => test::assert_true(json::is_null(fv)),
+                None => panic("expected key n"),
+            }
+            match json::json_get(v, "b") {
+                Option::Some(fv) => test::assert_true(json::is_bool(fv)),
+                None => panic("expected key b"),
+            }
+            match json::json_get(v, "i") {
+                Option::Some(fv) => test::assert_true(json::is_number(fv)),
+                None => panic("expected key i"),
+            }
+            match json::json_get(v, "f") {
+                Option::Some(fv) => test::assert_true(json::is_number(fv)),
+                None => panic("expected key f"),
+            }
+            match json::json_get(v, "s") {
+                Option::Some(fv) => test::assert_true(json::is_string(fv)),
+                None => panic("expected key s"),
+            }
+            match json::json_get(v, "a") {
+                Option::Some(fv) => test::assert_true(json::is_array(fv)),
+                None => panic("expected key a"),
+            }
+            match json::json_get(v, "o") {
+                Option::Some(fv) => test::assert_true(json::is_object(fv)),
+                None => panic("expected key o"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse all-types object failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,18 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"key\":\"value\"}") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_object(v))
+            match json::json_get(v, "key") {
+                Option::Some(fv) => match json::json_as_string(fv) {
+                    Option::Some(s) => test::assert_eq_string(s, "value"),
+                    None => panic("expected string value"),
+                },
+                None => panic("expected key \"key\""),
+            }
+        },
+        Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
+    }
+}

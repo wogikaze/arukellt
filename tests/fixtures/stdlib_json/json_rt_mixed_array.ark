@@ -1,0 +1,32 @@
+use std::json
+use std::test
+
+fn main() {
+    let raw = "[1,\"two\",true,null,42]"
+    match json::parse(raw) {
+        Result::Ok(v) => {
+            let s = json::stringify(v)
+            test::assert_eq_string(s, raw)
+            match json::parse(s) {
+                Result::Ok(v2) => {
+                    match json::json_get_index(v2, 0) {
+                        Option::Some(e) => match json::json_as_i32(e) {
+                            Option::Some(n) => test::assert_eq_i32(n, 1),
+                            None => panic("expected number"),
+                        },
+                        None => panic("expected element 0"),
+                    }
+                    match json::json_get_index(v2, 4) {
+                        Option::Some(e) => match json::json_as_i32(e) {
+                            Option::Some(n) => test::assert_eq_i32(n, 42),
+                            None => panic("expected number"),
+                        },
+                        None => panic("expected element 4"),
+                    }
+                },
+                Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}

@@ -1,0 +1,35 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"data\":[{\"name\":\"alice\",\"scores\":[90,85,95]}]}") {
+        Result::Ok(v) => {
+            match json::json_get(v, "data") {
+                Option::Some(data) => match json::json_get_index(data, 0) {
+                    Option::Some(person) => {
+                        match json::json_get(person, "name") {
+                            Option::Some(nv) => match json::json_as_string(nv) {
+                                Option::Some(s) => test::assert_eq_string(s, "alice"),
+                                None => panic("expected string"),
+                            },
+                            None => panic("expected key name"),
+                        }
+                        match json::json_get(person, "scores") {
+                            Option::Some(scores) => match json::json_get_index(scores, 1) {
+                                Option::Some(sv) => match json::json_as_i32(sv) {
+                                    Option::Some(n) => test::assert_eq_i32(n, 85),
+                                    None => panic("expected number"),
+                                },
+                                None => panic("expected score at 1"),
+                            },
+                            None => panic("expected key scores"),
+                        }
+                    },
+                    None => panic("expected element 0"),
+                },
+                None => panic("expected key data"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse mixed nested failed: ", json::parse_error_message(e))),
+    }
+}

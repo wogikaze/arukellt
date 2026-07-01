@@ -1,0 +1,25 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[10,20,30,40]") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_array(v))
+            match json::json_get_index(v, 0) {
+                Option::Some(e) => match json::json_as_i32(e) {
+                    Option::Some(n) => test::assert_eq_i32(n, 10),
+                    None => panic("expected number at 0"),
+                },
+                None => panic("expected element at 0"),
+            }
+            match json::json_get_index(v, 3) {
+                Option::Some(e) => match json::json_as_i32(e) {
+                    Option::Some(n) => test::assert_eq_i32(n, 40),
+                    None => panic("expected number at 3"),
+                },
+                None => panic("expected element at 3"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse array failed: ", json::parse_error_message(e))),
+    }
+}

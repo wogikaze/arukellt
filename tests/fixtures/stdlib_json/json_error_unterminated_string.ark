@@ -1,0 +1,13 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"hello") {
+        Result::Ok(_) => panic("expected error for unterminated string"),
+        Result::Err(_) => {},
+    }
+    match json::parse("\"") {
+        Result::Ok(_) => panic("expected error for lone quote"),
+        Result::Err(_) => {},
+    }
+}

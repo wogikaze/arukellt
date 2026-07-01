@@ -1,0 +1,11 @@
+use std::json
+use std::test
+
+fn main() {
+    let v = json::json_i32(42)
+    test::assert_eq_string(json::stringify(v), "42")
+    let neg = json::json_i32(-7)
+    test::assert_eq_string(json::stringify(neg), "-7")
+    let zero = json::json_i32(0)
+    test::assert_eq_string(json::stringify(zero), "0")
+}

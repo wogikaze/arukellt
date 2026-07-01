@@ -1,0 +1,19 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("   ") {
+        Result::Ok(_) => panic("expected error for whitespace-only"),
+        Result::Err(e) => match e {
+            json::JsonParseError::EmptyInput => {},
+            _ => panic("expected EmptyInput error"),
+        },
+    }
+    match json::parse("\n\n\t") {
+        Result::Ok(_) => panic("expected error for newlines-only"),
+        Result::Err(e) => match e {
+            json::JsonParseError::EmptyInput => {},
+            _ => panic("expected EmptyInput error"),
+        },
+    }
+}

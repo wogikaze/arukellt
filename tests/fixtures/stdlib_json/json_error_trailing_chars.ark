@@ -1,0 +1,19 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("42 extra") {
+        Result::Ok(_) => panic("expected error for trailing after number"),
+        Result::Err(e) => match e {
+            json::JsonParseError::TrailingCharacters => {},
+            _ => panic("expected TrailingCharacters"),
+        },
+    }
+    match json::parse("true false") {
+        Result::Ok(_) => panic("expected error for trailing after bool"),
+        Result::Err(e) => match e {
+            json::JsonParseError::TrailingCharacters => {},
+            _ => panic("expected TrailingCharacters"),
+        },
+    }
+}

@@ -1,0 +1,13 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"a\":[1,2],\"b\":{\"c\":3}}") {
+        Result::Ok(v) => test::assert_eq_string(json::stringify(v), "{\"a\":[1,2],\"b\":{\"c\":3}}"),
+        Result::Err(e) => panic(concat("parse nested failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("[[1],[2,3]]") {
+        Result::Ok(v) => test::assert_eq_string(json::stringify(v), "[[1],[2,3]]"),
+        Result::Err(e) => panic(concat("parse nested array failed: ", json::parse_error_message(e))),
+    }
+}

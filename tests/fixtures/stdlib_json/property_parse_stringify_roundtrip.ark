@@ -1,0 +1,37 @@
+// Property fixture: parse(stringify(v)) preserves the same JSON text.
+//
+// Invariant: for any valid JSON document, parsing the stringified output
+// of a parsed value produces the same stringified text.
+use std::json
+use std::test
+
+fn check_roundtrip(raw: String) {
+    match json::parse(raw) {
+        Result::Ok(v) => {
+            let s1 = json::stringify(v)
+            match json::parse(s1) {
+                Result::Ok(v2) => {
+                    let s2 = json::stringify(v2)
+                    test::assert_eq_string(s1, s2)
+                },
+                Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}
+
+fn main() {
+    check_roundtrip("null")
+    check_roundtrip("true")
+    check_roundtrip("false")
+    check_roundtrip("42")
+    check_roundtrip("-7")
+    check_roundtrip("\"hello\"")
+    check_roundtrip("[]")
+    check_roundtrip("[1,2,3]")
+    check_roundtrip("{}")
+    check_roundtrip("{\"a\":1}")
+    check_roundtrip("{\"a\":[1,2],\"b\":{\"c\":3}}")
+    check_roundtrip("[{\"x\":true},null,42]")
+}

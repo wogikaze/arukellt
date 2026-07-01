@@ -1,0 +1,29 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"hello\"") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_string(v))
+            match json::json_as_string(v) {
+                Option::Some(s) => test::assert_eq_string(s, "hello"),
+                None => panic("expected Some(\"hello\")"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse string failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("\"\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_string(s, ""),
+            None => panic("expected Some(\"\")"),
+        },
+        Result::Err(e) => panic(concat("parse empty string failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("\"hello world\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => test::assert_eq_string(s, "hello world"),
+            None => panic("expected Some(\"hello world\")"),
+        },
+        Result::Err(e) => panic(concat("parse spaced string failed: ", json::parse_error_message(e))),
+    }
+}

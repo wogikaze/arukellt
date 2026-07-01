@@ -1,0 +1,10 @@
+use std::json
+use std::test
+
+fn main() {
+    test::assert_eq_i32(json::json_parse_i32("0"), 0)
+    test::assert_eq_i32(json::json_parse_i32("42"), 42)
+    test::assert_eq_i32(json::json_parse_i32("-1"), -1)
+    test::assert_eq_i32(json::json_parse_i32("999999"), 999999)
+    test::assert_eq_i32(json::json_parse_i32("-999999"), -999999)
+}

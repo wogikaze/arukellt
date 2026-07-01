@@ -1,0 +1,26 @@
+use std::json
+use std::test
+
+fn main() {
+    // EmptyInput
+    match json::parse("") {
+        Result::Ok(_) => panic("expected EmptyInput"),
+        Result::Err(json::JsonParseError::EmptyInput) => {},
+        Result::Err(_) => panic("wrong error variant"),
+    }
+    // TrailingCharacters
+    match json::parse("1 2") {
+        Result::Ok(_) => panic("expected TrailingCharacters"),
+        Result::Err(json::JsonParseError::TrailingCharacters) => {},
+        Result::Err(_) => panic("wrong error variant"),
+    }
+    // UnexpectedCharacter
+    match json::parse("?") {
+        Result::Ok(_) => panic("expected UnexpectedCharacter"),
+        Result::Err(json::JsonParseError::UnexpectedCharacter(_)) => {},
+        Result::Err(_) => panic("wrong error variant"),
+    }
+    // parse_error_message produces non-empty string for each variant
+    test::assert_eq_string(json::parse_error_message(json::JsonParseError::EmptyInput), "empty input")
+    test::assert_eq_string(json::parse_error_message(json::JsonParseError::TrailingCharacters), "trailing characters")
+}

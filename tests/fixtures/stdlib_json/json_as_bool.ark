@@ -1,0 +1,27 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("true") {
+        Result::Ok(v) => match json::json_as_bool(v) {
+            Option::Some(b) => test::assert_eq_bool(b, true),
+            None => panic("expected Some(true)"),
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+    match json::parse("false") {
+        Result::Ok(v) => match json::json_as_bool(v) {
+            Option::Some(b) => test::assert_eq_bool(b, false),
+            None => panic("expected Some(false)"),
+        },
+        Result::Err(e) => panic(concat("parse false failed: ", json::parse_error_message(e))),
+    }
+    // Type mismatch: json_as_bool on non-bool returns None
+    match json::parse("42") {
+        Result::Ok(v) => match json::json_as_bool(v) {
+            Option::Some(_) => panic("expected None for non-bool"),
+            None => {},
+        },
+        Result::Err(e) => panic(concat("parse 42 failed: ", json::parse_error_message(e))),
+    }
+}

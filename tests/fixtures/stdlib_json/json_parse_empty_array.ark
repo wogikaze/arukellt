@@ -1,0 +1,16 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[]") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_array(v))
+            test::assert_false(json::is_object(v))
+            match json::json_get_index(v, 0) {
+                Option::Some(_) => panic("expected None for empty array"),
+                None => {},
+            }
+        },
+        Result::Err(e) => panic(concat("parse [] failed: ", json::parse_error_message(e))),
+    }
+}

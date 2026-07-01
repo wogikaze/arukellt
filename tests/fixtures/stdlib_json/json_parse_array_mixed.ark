@@ -1,0 +1,35 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[1,\"two\",true,null]") {
+        Result::Ok(v) => {
+            match json::json_get_index(v, 0) {
+                Option::Some(e) => match json::json_as_i32(e) {
+                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                    None => panic("expected number at 0"),
+                },
+                None => panic("expected element at 0"),
+            }
+            match json::json_get_index(v, 1) {
+                Option::Some(e) => match json::json_as_string(e) {
+                    Option::Some(s) => test::assert_eq_string(s, "two"),
+                    None => panic("expected string at 1"),
+                },
+                None => panic("expected element at 1"),
+            }
+            match json::json_get_index(v, 2) {
+                Option::Some(e) => match json::json_as_bool(e) {
+                    Option::Some(b) => test::assert_eq_bool(b, true),
+                    None => panic("expected bool at 2"),
+                },
+                None => panic("expected element at 2"),
+            }
+            match json::json_get_index(v, 3) {
+                Option::Some(e) => test::assert_true(json::is_null(e)),
+                None => panic("expected element at 3"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse mixed array failed: ", json::parse_error_message(e))),
+    }
+}

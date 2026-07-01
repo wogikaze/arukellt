@@ -1,0 +1,27 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("{\"items\":[1,2,3],\"empty\":[]}") {
+        Result::Ok(v) => {
+            match json::json_get(v, "items") {
+                Option::Some(arr) => {
+                    test::assert_true(json::is_array(arr))
+                    match json::json_get_index(arr, 1) {
+                        Option::Some(e) => match json::json_as_i32(e) {
+                            Option::Some(n) => test::assert_eq_i32(n, 2),
+                            None => panic("expected number"),
+                        },
+                        None => panic("expected element 1"),
+                    }
+                },
+                None => panic("expected key items"),
+            }
+            match json::json_get(v, "empty") {
+                Option::Some(arr) => test::assert_true(json::is_array(arr)),
+                None => panic("expected key empty"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
+    }
+}

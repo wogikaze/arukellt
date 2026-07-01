@@ -1,0 +1,15 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("true") {
+        Result::Ok(v) => {
+            test::assert_true(json::is_bool(v))
+            match json::json_as_bool(v) {
+                Option::Some(b) => test::assert_eq_bool(b, true),
+                None => panic("expected Some(true)"),
+            }
+        },
+        Result::Err(e) => panic(concat("parse true failed: ", json::parse_error_message(e))),
+    }
+}

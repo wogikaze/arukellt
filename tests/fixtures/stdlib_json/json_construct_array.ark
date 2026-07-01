@@ -1,0 +1,22 @@
+use std::json
+use std::test
+
+fn main() {
+    let items = json::json_arr_new()
+    push(items, json::json_i32(1))
+    push(items, json::json_i32(2))
+    push(items, json::json_i32(3))
+    let s = json::json_arr_string(items)
+    test::assert_eq_string(s, "[1,2,3]")
+    // Verify the constructed array parses back correctly
+    match json::parse(s) {
+        Result::Ok(v) => match json::json_get_index(v, 1) {
+            Option::Some(e) => match json::json_as_i32(e) {
+                Option::Some(n) => test::assert_eq_i32(n, 2),
+                None => panic("expected number"),
+            },
+            None => panic("expected element at 1"),
+        },
+        Result::Err(e) => panic(concat("re-parse failed: ", json::parse_error_message(e))),
+    }
+}
