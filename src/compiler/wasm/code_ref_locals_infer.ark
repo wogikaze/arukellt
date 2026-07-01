@@ -5,6 +5,8 @@ use mir::inst_record
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::function_param_view
+use mir::function_locals_view
+use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_record
@@ -66,6 +68,20 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     if depth > 8 {
         return 0 - 1
     }
+    // Check the local's own type_name first — if it maps to a known GC ref
+    // type, use that directly. This handles cases where a local is traced
+    // from another local's inference and has a type_name like "string",
+    // "vec:i32", "hashmap:...", "Option_...", "Result_...", etc.
+    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let type_name = local_access::MirLocal_type_name(loc)
+        if len(type_name) > 0 {
+            let gc_type = infer_gc_type_from_type_name(clone(type_name), ctx)
+            if gc_type >= 0 {
+                return gc_type
+            }
+        }
+    }
     // If the local is a function parameter, infer GC type from its type name.
     let param_count = function_param_view::MirFunction_param_count(f)
     if local_idx >= 0 && local_idx < param_count {
@@ -114,7 +130,10 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
                 }
             }
             if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
-                return infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
+                let inferred = infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
+                if inferred >= 0 {
+                    return inferred
+                }
             }
             if prev_dest >= 0 {
                 return infer_ref_local_gc_type_depth(f, prev_dest, ctx, depth + 1)
@@ -189,6 +208,11 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "vec_set") {
         return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
     }
+    // Parse functions return Result<T, E> → enum open type on GC targets.
+    // These are intrinsics that may not be resolvable via resolve_fn_index.
+    if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") || eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") || eq(clone(callee), "parse_f64") || eq(clone(callee), "convert::parse_f64") || eq(clone(callee), "parse_u64") || eq(clone(callee), "convert::parse_u64") {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
     code_ref_locals_infer_callee::infer_call_result_gc_type_from_fn(ctx, callee)
 }
 
@@ -222,8 +246,15 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
     if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
     if starts_with(clone(type_name), String_from("enum:")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    // Struct type names: look up the specific GC struct type by name.
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
     }
     0 - 1
 }

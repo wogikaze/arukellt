@@ -41,7 +41,39 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
         return fallback_name
     }
+    // If the fallback_name is a composite type with a type variable (e.g.
+    // "option:T"), substitute the type variable with the concrete type.
+    if starts_with(clone(fallback_name), String_from("option:")) {
+        let concrete_name = mono_type_info_to_concrete_name(mono_ty)
+        if len(concrete_name) > 0 {
+            return concat(String_from("option:"), concrete_name)
+        }
+    }
+    if starts_with(clone(fallback_name), String_from("vec:")) {
+        let concrete_name = mono_type_info_to_concrete_name(mono_ty)
+        if len(concrete_name) > 0 {
+            return concat(String_from("vec:"), concrete_name)
+        }
+    }
     return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
+}
+
+// Convert a TypeInfo to a concrete type name string for substitution
+// into composite type names (e.g. "option:<name>").
+fn mono_type_info_to_concrete_name(ty: TypeInfo) -> String {
+    let tag = type_contracts::TypeInfo_tag(ty)
+    if tag == lower_kinds::TY_I32() { return String_from("i32") }
+    if tag == lower_kinds::TY_I64() { return String_from("i64") }
+    if tag == lower_kinds::TY_F64() { return String_from("f64") }
+    if tag == lower_kinds::TY_F32() { return String_from("f32") }
+    if tag == lower_kinds::TY_BOOL() { return String_from("bool") }
+    if tag == lower_kinds::TY_STRING() { return String_from("String") }
+    if tag == lower_kinds::TY_CHAR() { return String_from("char") }
+    let name = type_contracts::TypeInfo_name(ty)
+    if len(name) > 0 {
+        return name
+    }
+    String_new()
 }
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> i32 {

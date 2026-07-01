@@ -1,8 +1,10 @@
 use mir::lower::ctx_struct_lookup
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
+use mir::lower::mono_return_vt
 // Arukellt Selfhost - MIR call result type fallback propagation.
 
 use mir::value_types
@@ -20,6 +22,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_mono_call_result_type(ctx, callee_name, dest)
     }
+    set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
 }
 
 fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -72,4 +75,44 @@ fn mir_strip_module_prefix(name: String) -> String {
         i = i - 1
     }
     clone(name)
+}
+
+// Set the local's val_type to VT_GC_REF or VT_REF when the type name
+// is a reference type (String, struct, enum, vec, hashmap, option).
+// This prevents the emitter from declaring the local as i32 and then
+// storing a GC reference value into it, which produces invalid wasm.
+fn set_ref_vt_for_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
+    if len(type_name) == 0 {
+        return
+    }
+    if !type_name_is_ref_type(ctx, clone(type_name)) {
+        return
+    }
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+    } else {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+    }
+}
+
+fn type_name_is_ref_type(ctx: LowerCtx, type_name: String) -> bool {
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(type_name)) {
+        return true
+    }
+    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(type_name)) {
+        return true
+    }
+    false
 }

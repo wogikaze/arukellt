@@ -48,3 +48,11 @@ fn mir_local_set_type_name(local: MirLocal, type_name: String) {
 fn mir_local_copy_with_ssa(source: MirLocal, ssa_name: String, ssa_version: i32) -> MirLocal {
     MirLocal { name: clone(source.name), val_type: source.val_type, type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version }
 }
+
+fn mir_local_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
+    MirLocal { name: clone(source.name), val_type: val_type, type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+}
+
+fn mir_local_copy_with_type_name(source: MirLocal, type_name: String) -> MirLocal {
+    MirLocal { name: clone(source.name), val_type: source.val_type, type_name: clone(type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+}

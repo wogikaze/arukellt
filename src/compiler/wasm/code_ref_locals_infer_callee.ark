@@ -43,13 +43,32 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
     let ret_name = function_return_view::MirFunction_return_type_name(called)
-    // On GC targets, Vec<i32> has VT_I32 in MIR but is a struct ref.
-    // Check the return type name for vec: prefix.
+    // On GC targets, many ref-typed values have VT_I32 in MIR but need to be
+    // emitted as GC reference locals. Check the return type name for known GC
+    // ref patterns regardless of ret_type.
     if starts_with(clone(ret_name), String_from("vec:")) {
         if eq(clone(ret_name), String_from("vec:String")) {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    if eq(clone(ret_name), String_from("string")) || eq(clone(ret_name), String_from("String")) {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if starts_with(clone(ret_name), String_from("hashmap:")) {
+        if starts_with(clone(ret_name), String_from("hashmap:i32str")) {
+            return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+        }
+        if starts_with(clone(ret_name), String_from("hashmap:strstr")) {
+            return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+        }
+        if starts_with(clone(ret_name), String_from("hashmap:i32i32")) {
+            return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    }
+    if is_option_type_name(clone(ret_name)) || starts_with(clone(ret_name), String_from("Result_")) || starts_with(clone(ret_name), String_from("result:")) || starts_with(clone(ret_name), String_from("enum:")) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
     if ret_type == value_types::VT_GC_REF() {
         if is_option_type_name(clone(ret_name)) {
@@ -58,7 +77,17 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
         if starts_with(clone(ret_name), String_from("enum:")) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
+        // Struct return type: look up the specific GC struct type by name.
+        if len(ret_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
+        }
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
+    }
+    // Non-VT_GC_REF return type but the return type name is a known struct.
+    // This happens when the MIR return VT is VT_I32 (structs are i32 in non-GC
+    // MIR) but the WASM emitter needs the specific GC struct type for the local.
+    if len(ret_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
     }
     0 - 1
 }

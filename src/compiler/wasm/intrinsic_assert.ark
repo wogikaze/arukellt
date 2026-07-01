@@ -6,12 +6,16 @@ use wasm::intrinsics::helpers_numeric_i64_compare
 // Arukellt Selfhost - assert intrinsic handlers.
 
 use mir::inst_accessors_operands
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
 use wasm::intrinsic_process
+use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_io_p2
 
 fn emit_assert(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32_compare::emit_i32_eqz(w)
@@ -62,6 +66,9 @@ fn emit_static_assertion_failed(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) 
 }
 
 fn emit_panic_message_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return emit_gc_panic_message_exit(w, inst, ctx, prev_op, prev_arg0)
+    }
     let s_msg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let mut arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if arg0 < 0 && prev_op == mir::opcodes::MIR_LOCAL_GET() {
@@ -72,6 +79,20 @@ fn emit_panic_message_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_
     }
     helpers_core_locals::emit_local_set(w, s_msg)
     intrinsic_process::emit_panic_message_exit_local(w, inst, ctx, s_msg)
+    return true
+}
+
+fn emit_gc_panic_message_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) -> bool {
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if arg0 >= 0 && prev_op != mir::opcodes::MIR_LOCAL_GET() {
+        let buf_local = intrinsic_stdio_gc::emit_gc_string_to_heap_from_local(w, arg0, ctx)
+        helpers_io_p2::emit_p2_write_string_local(w, buf_local, 2)
+    } else {
+        let buf_local = intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+        helpers_io_p2::emit_p2_write_string_local(w, buf_local, 2)
+    }
+    helpers_io_p2::emit_p2_write_newline(w, 2)
+    intrinsic_process::emit_panic_exit(w, inst, ctx)
     return true
 }
 

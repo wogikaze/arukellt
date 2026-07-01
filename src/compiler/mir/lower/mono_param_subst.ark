@@ -23,31 +23,83 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
     if len(clone(mono_suffix)) == 0 {
         return
     }
+    // Prefer the mono type parameter mapping (set up by
+    // ctx_setup_mono_type_params_by_ordinal) which correctly maps
+    // individual type variables to their concrete types even for
+    // multi-parameter generics (e.g. T→i32, E→String).
+    let has_mono_map = ctx_mono_type_params::ctx_has_mono_type_params(ctx)
     let param_count = function_param_view::MirFunction_param_count(func)
     let mut p = 0
     while p < param_count {
         let param = function_param_view::MirFunction_param_at(func, p)
         let ty_name = local_access::MirLocal_type_name(param)
         // Handle composite type names containing type variables, e.g.
-        // "?Option:T" — substitute the inner type variable T with the
-        // concrete monomorphized type from the function name suffix.
+        // "?Option:T" or "?Result:T" — substitute the inner type variable
+        // with the concrete monomorphized type.
         if starts_with(clone(ty_name), String_from("?Option:")) {
-            let mono_type_name = concat(String_from("Option:"), clone(mono_suffix))
-            ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
-            ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-            ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
+            let type_var = substring(clone(ty_name), 8, len(ty_name))
+            let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+            if len(concrete) > 0 {
+                let mono_type_name = concat(String_from("Option:"), concrete)
+                ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
+                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
+                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
+            }
         } else {
-            if starts_with(clone(ty_name), String_from("?")) {
-                // Plain type variable (e.g. "?T") — substitute with the
-                // concrete type from the function name suffix.
-                let pvt = ann_types::mir_local_vt_from_type_name(clone(mono_suffix))
-                ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
-                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_suffix))
-                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, mono_suffix)
+            if starts_with(clone(ty_name), String_from("?Result:")) {
+                // Result<T, E> — extract the first type variable T and substitute.
+                let rest = substring(clone(ty_name), 8, len(ty_name))
+                let type_var = extract_first_type_var(rest)
+                let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+                if len(concrete) > 0 {
+                    let mono_type_name = concat(String_from("enum:Result"), concat(String_from(":"), concrete))
+                    ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
+                    ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
+                    ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
+                }
+            } else {
+                if starts_with(clone(ty_name), String_from("?")) {
+                    // Plain type variable (e.g. "?T") — substitute with the
+                    // concrete type from the mono mapping or function name suffix.
+                    let type_var = substring(clone(ty_name), 1, len(ty_name))
+                    let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+                    if len(concrete) > 0 {
+                        let pvt = ann_types::mir_local_vt_from_type_name(clone(concrete))
+                        ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
+                        ctx_api_local_types::ctx_set_local_type(ctx, p, clone(concrete))
+                        ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, concrete)
+                    }
+                }
             }
         }
         p = p + 1
     }
+}
+
+// Resolve a type variable name to its concrete monomorphized type.
+// Uses the mono type parameter mapping when available, falling back to
+// the function name suffix for single-parameter generics.
+fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, has_mono_map: bool) -> String {
+    if has_mono_map {
+        let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(type_var))
+        if len(resolved) > 0 {
+            return resolved
+        }
+    }
+    clone(mono_suffix)
+}
+
+// Extract the first type variable from a composite type string like "T:U".
+fn extract_first_type_var(rest: String) -> String {
+    let rlen = len(rest)
+    let mut ci = 0
+    while ci < rlen {
+        if char_at(rest, ci) == 58 {
+            return substring(rest, 0, ci)
+        }
+        ci = ci + 1
+    }
+    rest
 }
 
 fn extract_mono_suffix(fn_name: String) -> String {

@@ -12,14 +12,14 @@ fn MirFunction_push_param(f: MirFunction, local: MirLocal) {
 
 fn MirFunction_set_param_type(f: MirFunction, idx: i32, vt: i32, type_name: String) {
     let p = function_param_view::MirFunction_param_at(f, idx)
-    local_mutation::MirLocal_set_val_type(p, vt)
-    local_mutation::MirLocal_set_type_name(p, clone(type_name))
+    let p2 = local_mutation::MirLocal_copy_with_val_type(p, vt)
+    let p3 = local_mutation::MirLocal_copy_with_type_name(p2, clone(type_name))
     let out = Vec_new_MirLocal()
     let n = len(f.params)
     let mut i = 0
     while i < n {
         if i == idx {
-            push(out, p)
+            push(out, p3)
         } else {
             push(out, get_unchecked(f.params, i))
         }

@@ -14,33 +14,26 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::intrinsics::helpers_core_locals
 use mir::inst_accessors_operands
+use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
 
 fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_optptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let arr_tmp_str = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
-    let vec_local = inst_accessors_operands::MirInst_arg0(inst)
-    let is_vec_string = check_local_is_vec_string(vec_local, ctx)
-    let vec_type = if is_vec_string {
-        ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    } else {
-        ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    }
-    let array_type = if is_vec_string {
-        ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
-    } else {
-        ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    }
+    let is_vec_string = ctx_has_vec_string_local(ctx)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
     let arr_tmp = if is_vec_string { arr_tmp_str } else { arr_tmp_i32 }
 
-    // Step 1: Drop vec_ref from stack
-    writer_core::emit_byte(w, opcodes::OP_DROP())
+    // Step 1: Store vec_ref from stack into scratch local
+    helpers_core_locals::emit_local_set(w, s_vec)
 
     // Step 2: Get len, save to s_newlen
-    helpers_core_locals::emit_local_get(w, vec_local)
+    helpers_core_locals::emit_local_get(w, s_vec)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)
     helpers_core_locals::emit_local_tee(w, s_newlen)
 
@@ -50,7 +43,7 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)  // void block
-    emit_vec_pop_some_branch(w, ctx, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr, is_vec_string)
+    emit_vec_pop_some_branch(w, ctx, s_vec, vec_type, array_type, arr_tmp, s_newlen, s_optptr, is_vec_string)
     writer_core::emit_byte(w, opcodes::OP_ELSE())
     emit_vec_pop_none_branch(w, ctx, s_optptr, is_vec_string)
     writer_core::emit_byte(w, opcodes::OP_END())
@@ -58,6 +51,29 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Load result from scratch
     emit_vec_pop_load_result(w, ctx, is_vec_string)
     return true
+}
+
+fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
+    if ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) {
+        return true
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let name = function_identity::MirFunction_name(f)
+    if ends_with(clone(name), String_from("__String")) {
+        return true
+    }
+    let nlocals = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < nlocals {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:String")) {
+            return true
+        }
+        li = li + 1
+    }
+    false
 }
 
 // Some branch: len > 0 — decrement, save, read last element
@@ -203,20 +219,4 @@ fn emit_gc_alloc_option_none(w: WasmWriter, s_optptr: i32) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
     writer_leb::emit_leb128_u(w, 0)
     helpers_core_locals::emit_local_get(w, s_optptr)
-}
-
-fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if local_idx < 0 {
-        return false
-    }
-    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    if local_idx < function_locals_view::MirFunction_local_count(f) {
-        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-        let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("vec:String")) {
-            return true
-        }
-    }
-    false
 }

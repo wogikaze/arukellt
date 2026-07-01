@@ -13,3 +13,11 @@ fn MirLocal_set_val_type(local: MirLocal, val_type: i32) {
 fn MirLocal_set_type_name(local: MirLocal, type_name: String) {
     local_record::mir_local_set_type_name(local, type_name)
 }
+
+fn MirLocal_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
+    local_record::mir_local_copy_with_val_type(source, val_type)
+}
+
+fn MirLocal_copy_with_type_name(source: MirLocal, type_name: String) -> MirLocal {
+    local_record::mir_local_copy_with_type_name(source, type_name)
+}

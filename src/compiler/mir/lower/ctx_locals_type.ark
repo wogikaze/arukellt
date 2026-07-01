@@ -14,8 +14,8 @@ fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
     if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(func) {
         let mut f = func
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-        local_mutation::MirLocal_set_type_name(loc, clone(type_name))
-        function_local_mutation::MirFunction_set_local(f, local_idx, loc)
+        let new_loc = local_mutation::MirLocal_copy_with_type_name(loc, clone(type_name))
+        function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
     }
 }
@@ -46,8 +46,8 @@ fn ctx_set_local_vt(ctx: LowerCtx, idx: i32, vt: i32) {
     if idx >= 0 && idx < function_locals_view::MirFunction_local_count(ctx_current_storage::ctx_current_func_value(ctx)) {
         let mut f = ctx_current_storage::ctx_current_func_value(ctx)
         let loc = function_locals_view::MirFunction_local_at(f, idx)
-        local_mutation::MirLocal_set_val_type(loc, vt)
-        function_local_mutation::MirFunction_set_local(f, idx, loc)
+        let new_loc = local_mutation::MirLocal_copy_with_val_type(loc, vt)
+        function_local_mutation::MirFunction_set_local(f, idx, new_loc)
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
     }
 }
