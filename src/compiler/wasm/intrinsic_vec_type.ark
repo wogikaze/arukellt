@@ -1,0 +1,119 @@
+// Arukellt Selfhost - shared vec type resolution for GC intrinsics.
+//
+// When a function has mixed Vec<i32> and Vec<String> (or Vec<v128>) locals,
+// the function-level vec_type_for_ctx heuristic returns the wrong type for
+// operations on the non-dominant vec kind.  This module provides a helper
+// that looks at the preceding MIR_LOCAL_GET in the block to find the source
+// local, then uses the local's type_name to pick the correct GC struct type.
+
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::local_access
+use mir::opcodes as mir_opcodes
+use wasm::ctx_gc_type
+use wasm::ctx_record
+
+// Resolve the GC vec struct type for a vec intrinsic call.
+// `callee` is the intrinsic name (e.g. "vec_len", "get_unchecked").
+// `inst`  is the MIR_CALL instruction being emitted.
+// Returns the vec type index, falling back to vec_type_for_ctx when the
+// source local cannot be determined.
+fn resolve_vec_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
+    let src_local = find_call_source_local(ctx, callee, inst)
+    let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, src_local)
+    if vt < 0 {
+        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    }
+    vt
+}
+
+// Resolve the GC array element type for a vec intrinsic call.
+// Returns the array type index, falling back to array_type_for_vec when the
+// source local cannot be determined.
+fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
+    let src_local = find_call_source_local(ctx, callee, inst)
+    let tname = local_type_name(ctx, src_local)
+    if eq(clone(tname), String_from("vec:String")) {
+        return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+        return ctx_gc_type::SelfEmitCtx_v128_array_type(ctx)
+    }
+    if starts_with(clone(tname), String_from("vec:")) {
+        return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    }
+    ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
+}
+
+// Get the type_name of a local by index, or empty string if invalid.
+fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
+    if local_idx < 0 {
+        return String_from("")
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return String_from("")
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    local_access::MirLocal_type_name(loc)
+}
+
+// Find the source local index for a vec intrinsic call by looking at the
+// preceding MIR_LOCAL_GET instructions in the same block.
+// Matches the call by its callee name and dest local.
+// For multi-argument calls (e.g. get_unchecked(vec, idx)), the first
+// argument's MIR_LOCAL_GET is further back — we scan backwards from the
+// call to find the MIR_LOCAL_GET whose local has a "vec:" type_name.
+fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
+                let cur_callee = inst_accessors_literals::MirInst_str_val(cur)
+                if eq(clone(cur_callee), clone(callee)) {
+                    if inst_accessors_operands::MirInst_dest(cur) == dest {
+                        // Scan backwards from the call to find a
+                        // MIR_LOCAL_GET whose local has a "vec:" type.
+                        let cur_arg_count = inst_accessors_operands::MirInst_int_val(cur)
+                        let mut back = 1
+                        while back <= cur_arg_count && ii - back >= 0 {
+                            let prev = block_inst_access::MirBlock_inst_at(block, ii - back)
+                            if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
+                                let src = inst_accessors_operands::MirInst_arg0(prev)
+                                let tname = local_type_name(ctx, src)
+                                if starts_with(clone(tname), String_from("vec:")) {
+                                    return src
+                                }
+                            }
+                            back = back + 1
+                        }
+                        // Fallback: return the immediately preceding
+                        // MIR_LOCAL_GET if any (single-arg case).
+                        if ii > 0 {
+                            let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                            if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
+                                return inst_accessors_operands::MirInst_arg0(prev)
+                            }
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}

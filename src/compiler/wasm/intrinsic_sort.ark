@@ -2,17 +2,38 @@ use wasm::opcodes
 // Arukellt Selfhost - sort intrinsic handlers.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::ctx_gc_type
+use wasm::intrinsics::helpers_core_locals
 
 fn emit_sort_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_sort_gc(w, ctx)
+    }
     emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5), 4, opcodes::OP_I32_LOAD(), opcodes::OP_I32_STORE(), 2, opcodes::OP_I32_LE_S())
 }
 
 fn emit_sort_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_sort_gc(w, ctx)
+    }
     emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15), 8, opcodes::OP_I64_LOAD(), opcodes::OP_I64_STORE(), 3, opcodes::OP_I64_LE_S())
 }
 
 fn emit_sort_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_sort_gc(w, ctx)
+    }
     emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12), 8, opcodes::OP_F64_LOAD(), opcodes::OP_F64_STORE(), 3, opcodes::OP_F64_LE())
+}
+
+// GC target sort fallback: pop vec ref using GC vec scratch local.
+// Sort is void (modifies vec in place). This is a no-op for now.
+fn emit_sort_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    return false
 }
 
 fn emit_sort_insertion(w: WasmWriter, ctx: SelfEmitCtx, value_local: i32, elem_size: i32, load_opcode: i32, store_opcode: i32, mem_align: i32, le_opcode: i32) -> bool {

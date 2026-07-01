@@ -5,8 +5,10 @@
 //   vec_len: struct.get vec_type 1 (len field)
 
 use mir::inst_accessors_operands
+use mir::inst_accessors_literals
 use wasm::inst_ctx
 use wasm::intrinsic_vec_new_layout
+use wasm::intrinsic_vec_type
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_leb
@@ -27,7 +29,9 @@ fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // GC Vec: struct.get vec_type 1 (len field)
-        let vec_gc_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+        // Determine the correct vec type from the source local when possible.
+        let callee = inst_accessors_literals::MirInst_str_val(inst)
+        let vec_gc_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
         writer_gc::emit_gc_struct_get(w, vec_gc_type, 1)
     } else {
         // Linear-memory Vec: i32.load at offset 0 (len field)

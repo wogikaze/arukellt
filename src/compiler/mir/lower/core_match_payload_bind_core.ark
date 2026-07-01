@@ -98,6 +98,17 @@ fn core_emit_payload_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: 
                             if bind_vt == value_types::VT_GC_REF() {
                                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
                             }
+                        } else {
+                            // Non-scalar types (String, Vec, etc.) are GC refs
+                            // on GC targets.  Override VT_I32 to VT_GC_REF so
+                            // that the local is declared as a ref and the enum
+                            // variant is created with a ref field.  This is
+                            // critical when core_payload_gc_field_is_ref could
+                            // not detect the ref type because the variant was
+                            // previously registered with an i32 payload.
+                            if ctx_gc_enum::ctx_is_gc_target(ctx) {
+                                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+                            }
                         }
                     }
                 }
@@ -123,6 +134,12 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }
+        } else if core_payload_type_name_is_gc_ref(ctx, bind_local) {
+            // The local type name indicates a GC ref type (String, Vec, etc.)
+            // but core_payload_gc_field_is_ref could not detect it because
+            // the variant was previously registered with an i32 payload.
+            effective_vt = value_types::VT_GC_REF()
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
     }
     let mut field_vt = value_types::VT_VOID()
@@ -315,4 +332,34 @@ fn core_extract_second_result_type_param(scrut_type: String) -> String {
         return String_new()
     }
     substring(rest, first_sep + 1, rlen)
+}
+
+// Check if the bind local's type name indicates a GC ref type on GC targets.
+fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
+    let type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
+    if len(type_name) == 0 {
+        return false
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    false
 }

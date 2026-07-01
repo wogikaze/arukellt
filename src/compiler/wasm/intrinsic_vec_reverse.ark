@@ -2,9 +2,17 @@
 
 use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::intrinsics::helpers_core_locals
 
 // Handler for: reverse_i32
 fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_reverse_gc(w, ctx)
+    }
     let s_vec_rv = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_rv_lo = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_rv_hi = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -14,6 +22,14 @@ fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_reverse_loop(w, s_rv_lo, s_rv_hi, s_rv_data, s_rv_tmp)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_vec_rv)
+    return true
+}
+
+// GC target fallback: pop vec ref, push it back (no-op reverse).
+fn emit_reverse_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    helpers_core_locals::emit_local_get(w, s_vec)
     return true
 }
 

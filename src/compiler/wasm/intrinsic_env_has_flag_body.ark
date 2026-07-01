@@ -4,6 +4,7 @@ use wasm::constants
 use wasm::ctx_scratch
 use wasm::opcodes
 use wasm::writer_core
+use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -13,8 +14,10 @@ use wasm::intrinsics::helpers_memory_access
 use wasm::intrinsics::helpers_numeric_i32_arith
 use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::emit_target
+use wasm::ctx_record
 
-fn emit_has_flag(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_flag = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_flen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -24,7 +27,7 @@ fn emit_has_flag(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_clen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
     let s_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
     let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
-    emit_has_flag_setup(w, ctx)
+    emit_has_flag_setup(w, inst, ctx)
     helpers_control_loop::emit_block_loop_header(w)
     emit_has_flag_loop_body(w, s_flag, s_flen, s_argc, s_i, s_argv, s_cstr, s_clen, s_j, s_found)
     helpers_control_loop::emit_block_loop_footer(w)
@@ -32,7 +35,7 @@ fn emit_has_flag(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_has_flag_setup(w: WasmWriter, ctx: SelfEmitCtx) {
+fn emit_has_flag_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_flag = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_flen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -41,7 +44,11 @@ fn emit_has_flag_setup(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_argv_buf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
     let s_bufsize = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
-    helpers_core_locals::emit_local_set(w, s_flag)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    } else {
+        helpers_core_locals::emit_local_set(w, s_flag)
+    }
     helpers_core_locals::emit_local_get(w, s_flag)
     helpers_numeric_i32_const::emit_i32_const(w, 4)
     helpers_numeric_i32_arith::emit_i32_sub(w)

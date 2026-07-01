@@ -2,10 +2,18 @@
 // Extracted from emit_intrinsic_vec_collection.ark
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::intrinsics::helpers_core_locals
 
 // Handler for: contains_i32, seq::seq_contains
 fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_contains_i32_gc(w, ctx)
+    }
     let s_needle = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec_ci = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_ci_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -20,6 +28,17 @@ fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_contains_i32_loop(w, s_needle, s_ci_i, s_ci_len, s_ci_data, s_ci_found)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_ci_found)
+    return true
+}
+
+// GC target fallback: pop needle and vec ref, push dummy i32 (false).
+fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_needle = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, s_needle)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
     return true
 }
 

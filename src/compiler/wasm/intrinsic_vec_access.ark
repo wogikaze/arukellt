@@ -13,13 +13,15 @@ use wasm::writer_core
 use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_locals
+use mir::inst_accessors_literals
 
 // Handler for: vec_get_unchecked, get_unchecked
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_get_unchecked_gc(w, ctx)
+        return emit_get_unchecked_gc(w, ctx, inst)
     }
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -34,7 +36,7 @@ fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 // Handler for: vec_get
 fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_vec_get_gc(w, ctx)
+        return emit_vec_get_gc(w, ctx, inst)
     }
     let s_idx2 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -50,12 +52,13 @@ fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // ── GC paths ────────────────────────────────────────────────
 
-fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     // Stack: [vec_ref, idx]  (idx on top)
     // After: [value]
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
 
     // Save idx, vec_ref stays on stack
     helpers_core_locals::emit_local_set(w, s_idx)
@@ -71,17 +74,20 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     // Stack: [vec_ref, idx]  (idx on top)
-    // After: [result value]  (Some/None result using heap allocation for now)
+    // After: [Option<T> as GC enum ref]
     //
-    // The Option<i32> result still uses linear-memory heap representation;
-    // only the element read uses GC array access.
+    // On GC targets, the Option result is a GC enum ref (Some/None variant),
+    // not a linear-memory heap pointer.
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let s_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s_res = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_opt = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+    let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
+    let is_vec_string = vec_type == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
 
     // Save idx and vec_ref
     helpers_core_locals::emit_local_set(w, s_idx)
@@ -95,30 +101,59 @@ fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, 4)   // IF (void)
     writer_core::emit_byte(w, 64)  // void block type (0x40)
 
-    // Some branch: idx < len → read element via GC array access
-    emit_vec_get_gc_some_i32(w, s_idx, s_vec, s_res, array_type, vec_type)
+    // Some branch: idx < len → read element via GC array access, wrap in enum
+    emit_vec_get_gc_some(w, ctx, s_idx, s_vec, s_opt, array_type, vec_type, is_vec_string, enum_type)
     writer_core::emit_byte(w, 5)   // ELSE
 
-    // None branch
-    emit_vec_get_none(w, s_res)
+    // None branch: create GC enum None variant
+    emit_vec_get_gc_none(w, ctx, s_opt, enum_type)
     writer_core::emit_byte(w, 11)  // END
+
+    // Load result from GC enum scratch local
+    helpers_core_locals::emit_local_get(w, s_opt)
     return true
 }
 
-fn emit_vec_get_gc_some_i32(w: WasmWriter, s_idx: i32, s_vec: i32, s_res: i32, i32_array_type: i32, vec_type: i32) {
-    // Allocate Some(i32) on linear-memory heap (same as LM path for now)
-    emit_vec_get_some_i32_begin_payload(w, s_res)
-
-    // Read element via GC array access instead of LM emit_vec_i32_element_addr
+fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32, s_opt: i32, array_type: i32, vec_type: i32, is_vec_string: bool, enum_type: i32) {
+    if is_vec_string {
+        // Vec<String>: element is a String ref. For now, drop it and use
+        // a null enum ref as placeholder (same approach as emit_vec_pop_gc).
+        helpers_core_locals::emit_local_get(w, s_vec)
+        writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
+        helpers_core_locals::emit_local_get(w, s_idx)
+        writer_gc::emit_gc_array_get(w, array_type)  // String ref on stack
+        writer_core::emit_byte(w, opcodes::OP_DROP())
+        writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+        writer_leb::emit_leb128_s(w, enum_type)
+        helpers_core_locals::emit_local_set(w, s_opt)
+        return
+    }
+    // Vec<i32>: element is an i32 value
+    // Read element via GC array access
     helpers_core_locals::emit_local_get(w, s_vec)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
     helpers_core_locals::emit_local_get(w, s_idx)
-    writer_gc::emit_gc_array_get(w, i32_array_type)  // element value
+    writer_gc::emit_gc_array_get(w, array_type)  // element value (i32)
 
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    emit_vec_get_some_i32_finish(w, s_res)
+    // Save value to i32 scratch (reuse s_idx since we're done with it)
+    helpers_core_locals::emit_local_set(w, s_idx)
+
+    // Allocate Option::Some as GC struct
+    let some_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::Some"))
+    let some_type_idx = if some_type >= 0 { some_type } else { enum_type }
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    helpers_core_locals::emit_local_get(w, s_idx)
+    writer_gc::emit_gc_struct_new(w, some_type_idx)
+    helpers_core_locals::emit_local_set(w, s_opt)
+}
+
+fn emit_vec_get_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, enum_type: i32) {
+    // Allocate Option::None as GC struct
+    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
+    let none_type_idx = if none_type >= 0 { none_type } else { enum_type }
+    writer_gc::emit_gc_struct_new_default(w, none_type_idx)
+    helpers_core_locals::emit_local_set(w, s_opt)
 }
 
 // ── Linear-memory helpers (unchanged) ──────────────────────

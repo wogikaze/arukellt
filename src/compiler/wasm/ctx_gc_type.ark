@@ -82,6 +82,32 @@ fn SelfEmitCtx_vec_type_for_ctx(ctx: SelfEmitCtx) -> i32 {
     SelfEmitCtx_vec_type(ctx)
 }
 
+// Determine the vec GC type index from a specific local index.
+// Returns -1 if the local index is invalid or the local type is unknown,
+// in which case the caller should fall back to vec_type_for_ctx.
+fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    if local_idx < 0 {
+        return 0 - 1
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let tname = local_access::MirLocal_type_name(loc)
+    if eq(clone(tname), String_from("vec:String")) {
+        return SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+        return SelfEmitCtx_vec_v128_type(ctx)
+    }
+    if starts_with(clone(tname), String_from("vec:")) {
+        return SelfEmitCtx_vec_type(ctx)
+    }
+    0 - 1
+}
+
 fn SelfEmitCtx_array_type_for_vec(ctx: SelfEmitCtx) -> i32 {
     if SelfEmitCtx_is_vec_string_context(ctx) || ctx_has_vec_string_local(ctx) {
         return SelfEmitCtx_string_array_type(ctx)

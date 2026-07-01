@@ -22,22 +22,22 @@ fn try_emit_env_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmit
 // Arukellt Selfhost - env argv host call dispatch.
 
 fn try_emit_env_arg_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "env::arg_count") {
+    if eq(clone(callee), "env::arg_count") || eq(clone(callee), "arg_count") {
         let _result_on_stack = intrinsic_env_args::emit_env_arg_count(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::args") {
+    if eq(clone(callee), "env::args") || eq(clone(callee), "args") {
         let _result_on_stack = intrinsic_env_args::emit_env_args(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::has_flag") {
+    if eq(clone(callee), "env::has_flag") || eq(clone(callee), "has_flag") {
         let _result_on_stack = intrinsic_env_args::emit_env_has_flag(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::arg_at") {
+    if eq(clone(callee), "env::arg_at") || eq(clone(callee), "arg_at") {
         let _result_on_stack = intrinsic_env_args::emit_env_arg_at(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -53,12 +53,12 @@ fn try_emit_env_var_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::get_var") || eq(clone(callee), "__intrinsic_env_get_var") {
+    if eq(clone(callee), "env::get_var") || eq(clone(callee), "__intrinsic_env_get_var") || eq(clone(callee), "env_get_var") {
         let _result_on_stack = intrinsic_env_args::emit_env_get_var(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::var_or_default") {
+    if eq(clone(callee), "env::var_or_default") || eq(clone(callee), "env_var_or_default") {
         let _result_on_stack = intrinsic_env_args::emit_env_var_or_default(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

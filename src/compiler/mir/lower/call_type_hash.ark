@@ -45,8 +45,14 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }
     }
-    if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") {
+    if eq(clone(callee_name), "hashmap_keys") || eq(clone(callee_name), "hash::hashmap_keys") || eq(clone(callee_name), "hashmap_values") || eq(clone(callee_name), "hash::hashmap_values") || eq(clone(callee_name), "hashset_to_vec") || eq(clone(callee_name), "hash::hashset_to_vec") || eq(clone(callee_name), "hashmap_entries") || eq(clone(callee_name), "hash::hashmap_entries") || eq(clone(callee_name), "hashmap_drain") || eq(clone(callee_name), "hash::hashmap_drain") || eq(clone(callee_name), "hashmap_remove_entry") || eq(clone(callee_name), "hash::hashmap_remove_entry") || eq(clone(callee_name), "hashmap_with_capacity") || eq(clone(callee_name), "hash::hashmap_with_capacity") || eq(clone(callee_name), "hashset_new") || eq(clone(callee_name), "hash::hashset_new") || eq(clone(callee_name), "hashset_union") || eq(clone(callee_name), "hash::hashset_union") || eq(clone(callee_name), "hashset_intersection") || eq(clone(callee_name), "hash::hashset_intersection") || eq(clone(callee_name), "hashset_difference") || eq(clone(callee_name), "hash::hashset_difference") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
+    }
+    if eq(clone(callee_name), "hashset_str_new") || eq(clone(callee_name), "hash_map::hashset_str_new") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }

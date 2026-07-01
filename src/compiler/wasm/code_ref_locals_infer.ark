@@ -141,6 +141,16 @@ fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32
                 if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_ARRAY_NEW() || op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_CALL() {
                     return true
                 }
+                // gc_struct_get extracts a field from a GC struct.  When the
+                // destination local has a ref type name (e.g. "string"), the
+                // extracted field is a GC reference.  Without this check, the
+                // local would be declared as i32, causing validation errors
+                // when the ref value is used in ref-expecting instructions.
+                if op == opcodes::MIR_GC_STRUCT_GET() {
+                    if local_has_ref_type_name(f, local_idx) {
+                        return true
+                    }
+                }
                 if op == opcodes::MIR_LOCAL_GET() {
                     let src = inst_accessors_operands::MirInst_arg0(inst)
                     if src >= 0 {
@@ -453,6 +463,10 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "vec_pop") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
+    // vec_get returns Option<T> → enum open type on GC targets
+    if eq(clone(callee), "vec_get") {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
     // vec_push returns Vec<T> but the result is often discarded (void push).
     // Return -1 so type inference doesn't override i32-typed reused locals.
     if eq(clone(callee), "vec_push") {
@@ -466,6 +480,22 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     // These are intrinsics that may not be resolvable via resolve_fn_index.
     if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") || eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") || eq(clone(callee), "parse_f64") || eq(clone(callee), "convert::parse_f64") || eq(clone(callee), "parse_u64") || eq(clone(callee), "convert::parse_u64") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    // split returns Vec<String> on GC targets.
+    if eq(clone(callee), "split") || eq(clone(callee), "text::split") || eq(clone(callee), "string::split") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    // join returns String on GC targets.
+    if eq(clone(callee), "join") || eq(clone(callee), "text::join") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    // String intrinsics that return String on GC targets.
+    if eq(clone(callee), "trim") || eq(clone(callee), "trim_start") || eq(clone(callee), "trim_end") || eq(clone(callee), "to_uppercase") || eq(clone(callee), "to_lowercase") || eq(clone(callee), "replace") || eq(clone(callee), "replace_all") || eq(clone(callee), "repeat") || eq(clone(callee), "slice") || eq(clone(callee), "substring") || eq(clone(callee), "reverse") || eq(clone(callee), "pad_left") || eq(clone(callee), "pad_right") || eq(clone(callee), "pad_start") || eq(clone(callee), "pad_end") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    // Vec intrinsics that return the same vec type on GC targets.
+    if eq(clone(callee), "vec_reverse") || eq(clone(callee), "vec_remove") {
+        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
     }
     code_ref_locals_infer_callee::infer_call_result_gc_type_from_fn(ctx, callee)
 }

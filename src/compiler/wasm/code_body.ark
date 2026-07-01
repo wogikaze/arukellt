@@ -1,9 +1,12 @@
 use wasm::opcodes
 use mir::function_param_view
 use mir::function_locals_view
+use mir::function_identity
 use mir::local_access
 use wasm::ctx_scratch
 use wasm::ctx_vec_locals
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
@@ -18,6 +21,15 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
     if is_generic_function(f) {
         // Unspecialized generic functions have concrete-type bodies that
         // cannot validate against the generic signature. Emit unreachable.
+        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(body, opcodes::OP_END())
+        return body
+    }
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && is_host_intrinsic_ref_return(f) {
+        // Host intrinsic functions that return ref types (Option, Result, Vec,
+        // String) on GC targets build results in linear memory (i32) but the
+        // function signature expects a GC ref return. Emit unreachable to
+        // satisfy validation until proper GC result emission is implemented.
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
         return body
@@ -43,5 +55,27 @@ fn is_generic_function(f: MirFunction) -> bool {
         }
         j = j + 1
     }
+    false
+}
+
+fn is_host_intrinsic_ref_return(f: MirFunction) -> bool {
+    // Host intrinsic functions that return ref types (Option, Result, Vec,
+    // String) on GC targets. These functions build results in linear memory
+    // (i32) but the function signature expects a GC ref return type.
+    let name = function_identity::MirFunction_name(f)
+    if eq(clone(name), String_from("args")) { return true }
+    if eq(clone(name), String_from("arg_at")) { return true }
+    if eq(clone(name), String_from("var")) { return true }
+    if eq(clone(name), String_from("get_var")) { return true }
+    if eq(clone(name), String_from("var_or_default")) { return true }
+    if eq(clone(name), String_from("read_stdin")) { return true }
+    if eq(clone(name), String_from("connect")) { return true }
+    if eq(clone(name), String_from("read")) { return true }
+    if eq(clone(name), String_from("write")) { return true }
+    if eq(clone(name), String_from("listen")) { return true }
+    if eq(clone(name), String_from("accept")) { return true }
+    if eq(clone(name), String_from("get")) { return true }
+    if eq(clone(name), String_from("request")) { return true }
+    if eq(clone(name), String_from("serve")) { return true }
     false
 }

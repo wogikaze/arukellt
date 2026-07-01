@@ -1,6 +1,12 @@
 // Arukellt Selfhost - string split intrinsic handler
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -15,6 +21,9 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: split, text::split, string::split
 fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_split_gc(w, ctx)
+    }
     let s_sp_sep = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_sp_src = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_sp_slen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -31,6 +40,25 @@ fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_split_scan_loop(w, s_sp_src, s_sp_sep, s_sp_slen, s_sp_seplen, s_sp_pos, s_sp_start, s_sp_vec, s_sp_match, s_sp_j, s_sp_sub)
     emit_split_push_segment(w, s_sp_vec, s_sp_sub, s_sp_src, s_sp_start, s_sp_slen)
     helpers_core_locals::emit_local_get(w, s_sp_vec)
+    return true
+}
+
+// GC target fallback: pop separator and src string, push empty vec.
+fn emit_split_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_sep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    // Stack: [src_ref, sep_ref] (sep on top)
+    helpers_core_locals::emit_local_set(w, s_sep)
+    helpers_core_locals::emit_local_set(w, s_src)
+    // Push empty vec: struct.new vec_type (null array, 0)
+    writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+    writer_leb::emit_leb128_s(w, ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx))
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
+    writer_leb::emit_leb128_u(w, vec_type)
     return true
 }
 

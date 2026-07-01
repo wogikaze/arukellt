@@ -6,6 +6,8 @@ use wasm::intrinsic_env_arg_at_body
 use wasm::intrinsic_env_arg_list_populate
 use wasm::intrinsic_env_has_flag_body
 use wasm::intrinsic_env_var
+use wasm::emit_target
+use wasm::ctx_record
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_locals
@@ -27,6 +29,10 @@ fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    }
     emit_env_args_prepare_vec(w, ctx)
     intrinsic_env_arg_list_populate::emit_env_args_populate(w, ctx)
     helpers_core_locals::emit_local_get(w, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1))
@@ -34,10 +40,15 @@ fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_env_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_env_has_flag_body::emit_has_flag(w, ctx)
+    intrinsic_env_has_flag_body::emit_has_flag(w, inst, ctx)
 }
 
 fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_core_stack::emit_drop(w)
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    }
     intrinsic_env_arg_at_body::emit_arg_at(w, ctx)
 }
 
@@ -50,6 +61,12 @@ fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        helpers_core_stack::emit_drop(w)
+        helpers_core_stack::emit_drop(w)
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    }
     emit_env_var_default_fallback(w, ctx_scratch::SelfEmitCtx_scratch_base(ctx))
     return true
 }

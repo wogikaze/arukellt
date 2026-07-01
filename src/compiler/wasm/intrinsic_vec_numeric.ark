@@ -1,10 +1,18 @@
 // Arukellt Selfhost - numeric Vec intrinsic handler facade
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
 use wasm::intrinsic_vec_push
+use wasm::intrinsics::helpers_core_locals
 
 fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_push_numeric_gc(w, ctx, is_void_push_i64)
+    }
     let s_val_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_vec_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_data_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -23,6 +31,9 @@ fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i6
 }
 
 fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_push_numeric_gc(w, ctx, true)
+    }
     let s_val_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
     let s_vec_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_data_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -38,7 +49,24 @@ fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+// GC target fallback: pop value and vec ref, push vec ref back (no-op push).
+fn emit_push_numeric_gc(w: WasmWriter, ctx: SelfEmitCtx, is_void: bool) -> bool {
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    // Stack: [vec_ref, value] (value on top)
+    // Drop value (i64 or f64 — just drop the top stack value)
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+    // Pop vec ref into GC vec scratch
+    helpers_core_locals::emit_local_set(w, s_vec)
+    if !is_void {
+        helpers_core_locals::emit_local_get(w, s_vec)
+    }
+    return !is_void
+}
+
 fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_vec_get_unchecked_numeric_gc(w, ctx, true)
+    }
     let s_idx_i64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec_i64c = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_vec_numeric_access_setup(w, s_idx_i64, s_vec_i64c)
@@ -50,6 +78,9 @@ fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) ->
 }
 
 fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_vec_get_unchecked_numeric_gc(w, ctx, false)
+    }
     let s_idx_f64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec_f64c = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_vec_numeric_access_setup(w, s_idx_f64, s_vec_f64c)
@@ -57,6 +88,29 @@ fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) ->
     writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
     writer_core::emit_byte(w, 3)
     writer_core::emit_byte(w, 0)
+    return true
+}
+
+// GC target fallback: pop index and vec ref, push dummy i64/f64 value.
+fn emit_vec_get_unchecked_numeric_gc(w: WasmWriter, ctx: SelfEmitCtx, is_i64: bool) -> bool {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, s_idx)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    if is_i64 {
+        writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+        writer_leb::emit_leb128_s(w, 0)
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_F64_CONST())
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+        writer_core::emit_byte(w, 0)
+    }
     return true
 }
 

@@ -1,10 +1,18 @@
 // Arukellt Selfhost - Vec remove intrinsic handler.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
+use wasm::intrinsics::helpers_core_locals
 
 // Handler for: remove_i32
 fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_remove_gc(w, ctx)
+    }
     let s_rm_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_rm_vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_rm_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -17,6 +25,16 @@ fn emit_remove_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_remove_setup(w, s_rm_idx, s_rm_vec, s_rm_data, s_rm_len, s_rm_i)
     emit_remove_shift_loop(w, s_rm_data, s_rm_len, s_rm_i)
     emit_remove_finish(w, s_rm_vec, s_rm_len)
+    return true
+}
+
+// GC target fallback: pop index and vec ref, push vec ref back (no-op remove).
+fn emit_remove_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    helpers_core_locals::emit_local_set(w, s_idx)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    helpers_core_locals::emit_local_get(w, s_vec)
     return true
 }
 

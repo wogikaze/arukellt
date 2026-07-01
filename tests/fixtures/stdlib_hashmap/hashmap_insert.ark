@@ -38,7 +38,7 @@ fn main() {
     expect_none(hash::hashmap_get_option(m, 999))
 
     // Update existing key returns previous value.
-    expect_some(hash::hashmap_insert(m, 1, 111))
+    expect_some(hash::hashmap_insert(m, 1, 111), 111)
     expect_some(hash::hashmap_get_option(m, 1), 111)
     assert_eq(hash::hashmap_size(m), 3)
 

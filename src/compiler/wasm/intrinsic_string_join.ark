@@ -1,6 +1,12 @@
 // Arukellt Selfhost - string join intrinsic handler.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_leb
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
@@ -15,6 +21,9 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: join, text::join
 fn emit_join(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_join_gc(w, ctx)
+    }
     let s_sep = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_jvec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_jlen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -30,6 +39,23 @@ fn emit_join(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_join_setup(w, s_sep, s_jvec, s_jlen, s_jdata, s_ji, s_jbase, s_jdst, s_sep_len)
     emit_join_loop(w, s_sep, s_jlen, s_jdata, s_ji, s_jdst, s_sep_len, s_str_p, s_str_l)
     emit_join_finish(w, s_jbase, s_jdst)
+    return true
+}
+
+// GC target fallback: pop separator and vec ref, push empty string.
+fn emit_join_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_sep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    // Stack: [vec_ref, sep_ref] (sep on top)
+    helpers_core_locals::emit_local_set(w, s_sep)
+    helpers_core_locals::emit_local_set(w, s_vec)
+    // Push empty string (array.new with 0 elements)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
+    writer_leb::emit_leb128_u(w, string_type)
     return true
 }
 

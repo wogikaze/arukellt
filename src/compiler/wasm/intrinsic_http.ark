@@ -4,15 +4,25 @@ use wasm::import_indices
 use wasm::constants
 use wasm::ctx_scratch
 use wasm::intrinsic_http_result
+use wasm::intrinsic_stdio_gc
+use wasm::emit_target
+use wasm::ctx_record
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory_access
 
 fn emit_http_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_url = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    emit_http_get_save_url(w, s_url)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    } else {
+        emit_http_get_save_url(w, s_url)
+    }
     intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_RESPPTR())
     emit_http_get_call(w, ctx)
     intrinsic_http_result::emit_http_finalize_string_result(w, constants::SCRATCH_HTTP_RESPPTR(), constants::SCRATCH_HTTP_RET(), constants::SCRATCH_HTTP_ABSLEN(), constants::SCRATCH_HTTP_ENUMPTR())
@@ -23,7 +33,13 @@ fn emit_http_request(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_method = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_url = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_body = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    emit_http_request_save_args(w, s_method, s_url, s_body)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_http_request_save_args_gc(w, inst, ctx, s_method, s_url, s_body)
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    } else {
+        emit_http_request_save_args(w, s_method, s_url, s_body)
+    }
     intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_REQ_RESPPTR())
     emit_http_request_call(w, ctx)
     intrinsic_http_result::emit_http_finalize_string_result(w, constants::SCRATCH_HTTP_REQ_RESPPTR(), constants::SCRATCH_HTTP_REQ_RET(), constants::SCRATCH_HTTP_REQ_ABSLEN(), constants::SCRATCH_HTTP_REQ_ENUMPTR())
@@ -33,7 +49,13 @@ fn emit_http_request(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_http_serve(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_body = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    emit_http_serve_save_args(w, s_port, s_body)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_http_serve_save_args_gc(w, inst, ctx, s_port, s_body)
+        helpers_core_stack::emit_unreachable(w)
+        return true
+    } else {
+        emit_http_serve_save_args(w, s_port, s_body)
+    }
     intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_SOCK_RESPPTR())
     emit_http_serve_call(w, ctx)
     intrinsic_http_result::emit_http_finalize_unit_result(w, constants::SCRATCH_SOCK_RESPPTR(), constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN(), constants::SCRATCH_SOCK_ENUMPTR())
@@ -60,7 +82,37 @@ fn emit_http_request_save_args(w: WasmWriter, method_local: i32, url_local: i32,
     helpers_io::emit_store_string_local_to_scratch(w, body_local, constants::SCRATCH_HTTP_REQ_BODYPTR(), constants::SCRATCH_HTTP_REQ_BODYLEN())
 }
 
+fn emit_http_request_save_args_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, method_local: i32, url_local: i32, body_local: i32) {
+    let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    // Stack order (top to bottom): body, url, method
+    intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core_locals::emit_local_get(w, s_tmp)
+    helpers_core_locals::emit_local_set(w, body_local)
+    intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core_locals::emit_local_get(w, s_tmp)
+    helpers_core_locals::emit_local_set(w, url_local)
+    intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core_locals::emit_local_get(w, s_tmp)
+    helpers_core_locals::emit_local_set(w, method_local)
+    helpers_io::emit_store_string_local_to_scratch(w, method_local, constants::SCRATCH_HTTP_URLPTR(), constants::SCRATCH_HTTP_URLLEN())
+    helpers_io::emit_store_string_local_to_scratch(w, url_local, constants::SCRATCH_HTTP_REQ_URLPTR(), constants::SCRATCH_HTTP_REQ_URLLEN())
+    helpers_io::emit_store_string_local_to_scratch(w, body_local, constants::SCRATCH_HTTP_REQ_BODYPTR(), constants::SCRATCH_HTTP_REQ_BODYLEN())
+}
+
 fn emit_http_serve_save_args(w: WasmWriter, port_local: i32, body_local: i32) {
+    helpers_core_locals::emit_local_set(w, body_local)
+    helpers_core_locals::emit_local_set(w, port_local)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
+    helpers_core_locals::emit_local_get(w, port_local)
+    helpers_memory_access::emit_i32_store_default(w)
+    helpers_io::emit_store_string_local_to_scratch(w, body_local, constants::SCRATCH_SOCK_HOSTPTR(), constants::SCRATCH_SOCK_HOSTLEN())
+}
+
+fn emit_http_serve_save_args_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, port_local: i32, body_local: i32) {
+    let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    // Stack order (top to bottom): body, port
+    intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core_locals::emit_local_get(w, s_tmp)
     helpers_core_locals::emit_local_set(w, body_local)
     helpers_core_locals::emit_local_set(w, port_local)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())

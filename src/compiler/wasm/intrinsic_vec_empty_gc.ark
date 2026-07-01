@@ -11,6 +11,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
+use wasm::intrinsic_vec_type
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -31,13 +32,9 @@ fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
         return true
     }
-    // Determine vec type per-operation from the vec local (arg0).
-    let is_vec_string = check_local_is_vec_string(inst_accessors_operands::MirInst_arg0(inst), ctx) || ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) || ctx_gc_type::ctx_has_vec_string_local(ctx)
-    let vec_type = if is_vec_string {
-        ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    } else {
-        ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    }
+    // Determine vec type per-operation from the vec local.
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
 
     writer_gc::emit_gc_struct_get(w, vec_type, 1)  // len
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
