@@ -36,7 +36,10 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
                 // Override when type is empty, "enum:open", or contains an
                 // unresolved type variable (e.g. "enum:T" where T is a generic
                 // type parameter name, not a concrete type).
-                if len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) {
+                // Also override the "string" fallback set by
+                // set_gc_payload_bind_type_if_needed for Err variants, so that
+                // non-String Err payloads (e.g. AppError) get the correct type.
+                if len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) || (is_err && eq(current_type, String_from("string"))) {
                     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
                     let mut elem_ty = String_new()
                     if is_some_or_ok {
@@ -67,7 +70,16 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
                         }
                     }
                     if len(elem_ty) > 0 {
-                        ctx_set_local_type(ctx, bind_local, elem_ty)
+                        // For non-scalar, non-String types (e.g. AppError),
+                        // prefix with "enum:" so the emitter's ref local type
+                        // inference maps it to the enum open type.
+                        let mut set_type = elem_ty
+                        if !match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
+                            if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
+                                set_type = concat(String_from("enum:"), elem_ty)
+                            }
+                        }
+                        ctx_set_local_type(ctx, bind_local, set_type)
                         // Fix vt: if the element type is scalar, override
                         // VT_GC_REF with VT_I32 to match the actual payload.
                         if match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
