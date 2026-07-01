@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::core::cmp
+
+fn main() {
+    // Ord trait method dispatch on i32
+    let o1 = (1).cmp(2)
+    match o1 {
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
+    }
+    stdio::println("OK")
+}

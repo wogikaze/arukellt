@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::seq
+
+fn main() {
+    let v = Vec_new_i32()
+    push(v, 3)
+    push(v, 1)
+    push(v, 2)
+    let s = seq::sort_by(v)
+    assert(get_unchecked(s, 0) == 1)
+    assert(get_unchecked(s, 1) == 2)
+    assert(get_unchecked(s, 2) == 3)
+    stdio::println("OK")
+}

@@ -1,0 +1,56 @@
+use std::host::stdio
+use std::core::cmp
+
+fn sort_test<T: Ord>(v: Vec<T>) -> Vec<T> {
+    let n: i32 = len(v)
+    let mut i: i32 = 1
+    while i < n {
+        let mut j: i32 = i
+        while j > 0 {
+            let cur = get_unchecked(v, j)
+            let prev = get_unchecked(v, j - 1)
+            match prev.cmp(cur) {
+                Ordering::Greater => {
+                    set(v, j, prev)
+                    set(v, j - 1, cur)
+                }
+                _ => {
+                    break
+                }
+            }
+            j = j - 1
+        }
+        i = i + 1
+    }
+    v
+}
+
+trait Ord {
+    fn cmp(self: Ord, other: Ord) -> Ordering
+}
+
+impl Ord for i32 {
+    fn cmp(self: i32, other: i32) -> Ordering {
+        if self < other {
+            Ordering::Less
+        } else {
+            if self > other {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        }
+    }
+}
+
+fn main() {
+    let v = Vec_new_i32()
+    push(v, 3)
+    push(v, 1)
+    push(v, 2)
+    let s = sort_test(v)
+    stdio::println(get_unchecked(s, 0))
+    stdio::println(get_unchecked(s, 1))
+    stdio::println(get_unchecked(s, 2))
+    stdio::println("OK")
+}

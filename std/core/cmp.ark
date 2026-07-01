@@ -243,3 +243,111 @@ impl Ord for bool {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// PartialOrd trait — partial ordering for types where not all pairs are
+// comparable (e.g. floating point with NaN).  `partial_cmp` returns
+// `Option<Ordering>`: `Some(Less|Equal|Greater)` when the values are
+// comparable, `None` otherwise.
+//
+// For total-ordered types the result is always `Some`; `PartialOrd` is
+// therefore a strict superset of `Ord` and every `Ord` type trivially
+// satisfies `PartialOrd` by wrapping `cmp` in `Some`.
+//
+// ## Protocol catalog: `PartialOrd`
+//
+// | Type    | Status | Notes                                       |
+// |---------|--------|---------------------------------------------|
+// | i32     | impl   | Total order — always `Some`                 |
+// | i64     | impl   | Total order — always `Some`                 |
+// | f64     | impl   | `None` when either operand is NaN           |
+// | String  | impl   | Total lexicographic order — always `Some`   |
+// | char    | impl   | Total order — always `Some`                 |
+// | bool    | impl   | Total order — always `Some`                 |
+// ---------------------------------------------------------------------------
+
+/// Trait for types that support partial ordering.
+///
+/// `partial_cmp` returns `Some(Ordering)` when the two values are comparable
+/// and `None` when they are not (e.g. comparing a NaN with any other `f64`).
+/// For total-ordered types the result is always `Some`.
+trait PartialOrd {
+    fn partial_cmp(self: PartialOrd, other: PartialOrd) -> Option<Ordering>
+}
+
+/// `PartialOrd` impl for `i32` — total order, always `Some`.
+impl PartialOrd for i32 {
+    fn partial_cmp(self: i32, other: i32) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// `PartialOrd` impl for `i64` — total order, always `Some`.
+impl PartialOrd for i64 {
+    fn partial_cmp(self: i64, other: i64) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// `PartialOrd` impl for `f64` — returns `None` when either value is NaN.
+impl PartialOrd for f64 {
+    fn partial_cmp(self: f64, other: f64) -> Option<Ordering> {
+        if self != self {
+            return None
+        }
+        if other != other {
+            return None
+        }
+        Some(self.cmp(other))
+    }
+}
+
+/// `PartialOrd` impl for `String` — total lexicographic order, always `Some`.
+impl PartialOrd for String {
+    fn partial_cmp(self: String, other: String) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// `PartialOrd` impl for `char` — total order, always `Some`.
+impl PartialOrd for char {
+    fn partial_cmp(self: char, other: char) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// `PartialOrd` impl for `bool` — total order, always `Some`.
+impl PartialOrd for bool {
+    fn partial_cmp(self: bool, other: bool) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Reverse wrapper — a generic newtype that inverts the `Ord` ordering of its
+// inner value.  Constructing `Reverse<T>` and sorting a `Vec<Reverse<T: Ord>>`
+// yields descending order without a custom comparator.
+//
+// `Reverse` implements `Ord` by delegating to the inner value's `cmp` and
+// flipping `Less`/`Greater`.
+// ---------------------------------------------------------------------------
+
+/// A wrapper that reverses the `Ord` ordering of its inner value.
+///
+/// `Reverse<T>` implements `Ord` such that `Reverse(a).cmp(Reverse(b))` returns
+/// the opposite of `a.cmp(b)`.  This is the standard way to obtain descending
+/// sort order from an ascending `sort_by`.
+pub struct Reverse<T> {
+    inner: T,
+}
+
+/// `Ord` impl for `Reverse<T: Ord>` — flips the inner ordering.
+impl Ord for Reverse<T> {
+    fn cmp(self: Reverse<T>, other: Reverse<T>) -> Ordering {
+        match self.inner.cmp(other.inner) {
+            Ordering::Less => Ordering::Greater,
+            Ordering::Equal => Ordering::Equal,
+            Ordering::Greater => Ordering::Less,
+        }
+    }
+}
