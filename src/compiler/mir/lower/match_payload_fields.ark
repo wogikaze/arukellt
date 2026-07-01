@@ -94,7 +94,13 @@ fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind
 }
 
 fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, bind_local: i32, bind_vt: i32, field_idx: i32) {
-    let mut effective_vt = bind_vt
+    // Use the current local vt, which may have been corrected by the
+    // type inference block above (e.g. VT_GC_REF → VT_I32 for scalar
+    // payloads from generic Option/Result types).
+    let mut effective_vt = ctx_api_local_types::ctx_local_vt(ctx, bind_local)
+    if effective_vt == value_types::VT_VOID() {
+        effective_vt = bind_vt
+    }
     if ctx_gc_enum::ctx_is_gc_target(ctx) && effective_vt != value_types::VT_GC_REF() {
         if match_payload_field_type::mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
             effective_vt = value_types::VT_GC_REF()

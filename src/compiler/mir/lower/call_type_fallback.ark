@@ -21,9 +21,9 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
             // from the MonoInstance (e.g. "option:T" → "option:i32").
             let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
             if len(mono_rtn) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, mono_rtn))
             } else {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, rtn)
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
             }
         }
     }
@@ -67,7 +67,7 @@ fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest:
         if eq(clone(cn_suffix), "_new") {
             let struct_cand = substring(cn_stripped, 0, cn_len - 4)
             if ctx_struct_lookup::ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, struct_cand)
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, struct_cand))
             }
         }
     }
@@ -114,6 +114,9 @@ fn type_name_is_ref_type(ctx: LowerCtx, type_name: String) -> bool {
         return true
     }
     if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
         return true
     }
     if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(type_name)) {

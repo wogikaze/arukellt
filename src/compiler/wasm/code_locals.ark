@@ -105,6 +105,14 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
             return true
         }
+        // Fallback for structs without ref fields: extract byte_size
+        // and map to the correct GC struct type index.
+        let byte_size = extract_struct_byte_size(clone(type_name))
+        if byte_size > 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
+            return true
+        }
     }
     // Check raw struct name (without "struct:" prefix) as gc_struct.
     if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
@@ -134,6 +142,34 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
         return String_new()
     }
     substring(type_name, first_colon + 1, last_colon)
+}
+
+// Extract byte_size from "struct:TypeName:byte_size" format.
+fn extract_struct_byte_size(type_name: String) -> i32 {
+    let n = len(type_name)
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == ':' {
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if last_colon < 0 {
+        return 0
+    }
+    let mut byte_size = 0
+    let mut j = last_colon + 1
+    while j < n {
+        let d = char_at(type_name, j)
+        if d >= 48 && d <= 57 {
+            byte_size = byte_size * 10 + (d - 48)
+        } else {
+            j = n
+        }
+        j = j + 1
+    }
+    byte_size
 }
 
 // Fallback: use type inference to determine the GC ref type.

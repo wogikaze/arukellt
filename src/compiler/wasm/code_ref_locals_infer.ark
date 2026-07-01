@@ -252,9 +252,45 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
     if starts_with(clone(type_name), String_from("enum:")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
+    // Struct type with "struct:TypeName:byte_size" format: extract byte size
+    // and map to the correct GC struct type index.
+    if starts_with(clone(type_name), String_from("struct:")) {
+        let byte_size = parse_struct_byte_size(clone(type_name))
+        if byte_size > 0 {
+            return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
+        }
+    }
     // Struct type names: look up the specific GC struct type by name.
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
     }
     0 - 1
+}
+
+// Extract byte_size from "struct:TypeName:byte_size" format.
+fn parse_struct_byte_size(type_name: String) -> i32 {
+    let n = len(type_name)
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == 58 {
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if last_colon < 0 {
+        return 0
+    }
+    let mut byte_size = 0
+    let mut j = last_colon + 1
+    while j < n {
+        let d = char_at(type_name, j)
+        if d >= 48 && d <= 57 {
+            byte_size = byte_size * 10 + (d - 48)
+        } else {
+            j = n
+        }
+        j = j + 1
+    }
+    byte_size
 }

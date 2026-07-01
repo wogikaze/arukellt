@@ -4,6 +4,7 @@ use mir::lower::call_type_fallback
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR binary operator emission helpers.
 
@@ -18,7 +19,7 @@ fn mir_emit_overloaded_binary_call(ctx: LowerCtx, callee: String) -> i32 {
     let dest = ctx_fresh_local(ctx, dest_vt)
     let rtn = ctx_fn_return_type_name(ctx, clone(callee))
     if len(rtn) > 0 {
-        ctx_set_local_type(ctx, dest, rtn)
+        ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
     }
     call_type_fallback::set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
     ctx_emit(ctx, inst_call::MirInst_call(callee, 2, dest))
@@ -31,7 +32,7 @@ fn mir_emit_overloaded_unary_call(ctx: LowerCtx, callee: String) -> i32 {
     let dest = ctx_fresh_local(ctx, dest_vt)
     let rtn = ctx_fn_return_type_name(ctx, clone(callee))
     if len(rtn) > 0 {
-        ctx_set_local_type(ctx, dest, rtn)
+        ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
     }
     call_type_fallback::set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
     ctx_emit(ctx, inst_call::MirInst_call(callee, 1, dest))

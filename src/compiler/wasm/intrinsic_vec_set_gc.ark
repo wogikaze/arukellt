@@ -14,6 +14,7 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use mir::inst_accessors_operands
 use mir::function_locals_view
+use mir::function_param_view
 use mir::local_access
 
 fn emit_vec_set_gc_save_value(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool) {
@@ -99,7 +100,17 @@ fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if local_idx < function_locals_view::MirFunction_local_count(f) {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("vec:String")) {
+        if eq(clone(tname), String_from("vec:String")) || eq(clone(tname), String_from("vec:string")) {
+            return true
+        }
+    }
+    // Fallback: check the function's parameter list.  Parameters are pushed
+    // to f.params with the correct type_name, but SSA renaming or other
+    // passes may leave f.locals with an empty type_name for the same index.
+    if local_idx < function_param_view::MirFunction_param_count(f) {
+        let param = function_param_view::MirFunction_param_at(f, local_idx)
+        let pname = local_access::MirLocal_type_name(param)
+        if eq(clone(pname), String_from("vec:String")) || eq(clone(pname), String_from("vec:string")) {
             return true
         }
     }
