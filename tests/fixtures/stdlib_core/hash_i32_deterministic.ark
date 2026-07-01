@@ -1,0 +1,13 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    // Same input always produces same hash
+    let values = [1, 100, 999, -5, 0, 2147483647]
+    let mut i = 0
+    while i < 6 {
+        let v = get_unchecked(values, i)
+        test::assert_eq_i32(hash::hash_i32(v), hash::hash_i32(v))
+        i = i + 1
+    }
+}

@@ -1,0 +1,12 @@
+use std::core
+use std::test
+
+fn main() {
+    let r = core::range_inclusive_new(0, 5)
+    // Closed range: [0, 5]
+    test::assert_true(core::range_inclusive_contains(r, 0))
+    test::assert_true(core::range_inclusive_contains(r, 5))
+    test::assert_true(core::range_inclusive_contains(r, 3))
+    test::assert_false(core::range_inclusive_contains(r, -1))
+    test::assert_false(core::range_inclusive_contains(r, 6))
+}

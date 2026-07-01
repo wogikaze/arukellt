@@ -1,0 +1,14 @@
+use std::core::either
+use std::test
+
+fn main() {
+    let l = either::left(42)
+    let swapped = either::swap(l)
+    test::assert_true(either::is_right(swapped))
+    test::assert_eq_i32(either::from_right(swapped, -1), 42)
+
+    let r = either::right(99)
+    let swapped2 = either::swap(r)
+    test::assert_true(either::is_left(swapped2))
+    test::assert_eq_i32(either::from_left(swapped2, -1), 99)
+}

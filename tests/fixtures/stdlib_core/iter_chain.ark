@@ -1,0 +1,17 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let a: Vec<i32> = Vec_new_i32()
+    push(a, 1)
+    push(a, 2)
+    let b: Vec<i32> = Vec_new_i32()
+    push(b, 3)
+    push(b, 4)
+
+    let chained = iter::collect_chain_i32(a, b)
+    test::assert_eq_i32(len(chained), 4)
+    test::assert_eq_i32(get_unchecked(chained, 0), 1)
+    test::assert_eq_i32(get_unchecked(chained, 2), 3)
+    test::assert_eq_i32(get_unchecked(chained, 3), 4)
+}

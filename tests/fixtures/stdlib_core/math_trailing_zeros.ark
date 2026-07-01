@@ -1,0 +1,11 @@
+use std::core::math
+use std::test
+
+fn main() {
+    test::assert_eq_i32(math::trailing_zeros(0), 32)
+    test::assert_eq_i32(math::trailing_zeros(1), 0)
+    test::assert_eq_i32(math::trailing_zeros(2), 1)
+    test::assert_eq_i32(math::trailing_zeros(4), 2)
+    test::assert_eq_i32(math::trailing_zeros(8), 3)
+    test::assert_eq_i32(math::trailing_zeros(16), 4)
+}

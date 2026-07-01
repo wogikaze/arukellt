@@ -1,0 +1,10 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    let h = hash::hash_i32(-42)
+    test::assert_true(h >= 0)
+    // negative and positive of same magnitude may differ
+    let hp = hash::hash_i32(42)
+    test::assert_eq_i32(h, hp)
+}

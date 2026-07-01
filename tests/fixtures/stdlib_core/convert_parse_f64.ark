@@ -1,0 +1,18 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    match convert::parse_f64("3.14") {
+        Option::Some(v) => test::assert_eq_f64(v, 3.14),
+        None => panic("expected Some(3.14)"),
+    }
+    match convert::parse_f64("0.0") {
+        Option::Some(v) => test::assert_eq_f64(v, 0.0),
+        None => panic("expected Some(0.0)"),
+    }
+    match convert::parse_f64("abc") {
+        Option::Some(v) => panic("expected None for abc"),
+        None => {
+        },
+    }
+}

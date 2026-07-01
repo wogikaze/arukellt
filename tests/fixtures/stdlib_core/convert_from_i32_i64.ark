@@ -1,0 +1,14 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    // From<i32> for i64 — widening conversion via trait dispatch
+    let wide: i64 = (42).into()
+    test::assert_eq_i64(wide, 42i64)
+
+    let wide2: i64 = (0).into()
+    test::assert_eq_i64(wide2, 0i64)
+
+    let wide3: i64 = (-5).into()
+    test::assert_eq_i64(wide3, -5i64)
+}

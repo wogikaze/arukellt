@@ -1,0 +1,9 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    test::assert_eq_i32(cmp::max(10, 3), 10)
+    test::assert_eq_i32(cmp::max(3, 10), 10)
+    test::assert_eq_i32(cmp::max(-5, 0), 0)
+    test::assert_eq_i32(cmp::max(7, 7), 7)
+}

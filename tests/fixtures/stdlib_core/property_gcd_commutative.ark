@@ -1,0 +1,18 @@
+// Property: gcd is commutative — gcd(a, b) == gcd(b, a).
+use std::core::math
+use std::test
+
+fn main() {
+    let values = [0, 1, 12, 8, 15, 25, 7, 13, 100, 0]
+    let mut i = 0
+    while i < 10 {
+        let a = get_unchecked(values, i)
+        let mut j = 0
+        while j < 10 {
+            let b = get_unchecked(values, j)
+            test::assert_eq_i32(math::gcd(a, b), math::gcd(b, a))
+            j = j + 1
+        }
+        i = i + 1
+    }
+}

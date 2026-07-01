@@ -1,0 +1,8 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    test::assert_eq_string(convert::f64_to_string(3.14), "3.14")
+    test::assert_eq_string(convert::f64_to_string(0.0), "0")
+    test::assert_eq_string(convert::f64_to_string(2.5), "2.5")
+}

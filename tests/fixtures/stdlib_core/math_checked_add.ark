@@ -1,0 +1,21 @@
+use std::core::math
+use std::test
+
+fn main() {
+    // Normal addition returns Some
+    match (5).checked_add(3) {
+        Option::Some(v) => test::assert_eq_i32(v, 8),
+        None => panic("expected Some(8)"),
+    }
+    // Adding zero is fine
+    match (42).checked_add(0) {
+        Option::Some(v) => test::assert_eq_i32(v, 42),
+        None => panic("expected Some(42)"),
+    }
+    // Overflow returns None
+    match (0x7FFFFFFF).checked_add(1) {
+        Option::Some(v) => panic("expected None on overflow"),
+        None => {
+        },
+    }
+}

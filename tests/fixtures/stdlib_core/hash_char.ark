@@ -1,0 +1,11 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    // Hash trait dispatch for char: identity hash
+    let h_a = 'a'.hash()
+    let h_b = 'b'.hash()
+    test::assert_eq_i32(h_a, 97)
+    test::assert_eq_i32(h_b, 98)
+    test::assert_true(h_a != h_b)
+}

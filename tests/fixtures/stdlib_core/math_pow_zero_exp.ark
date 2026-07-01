@@ -1,0 +1,10 @@
+use std::core::math
+use std::test
+
+fn main() {
+    // Any base to the power of 0 is 1
+    test::assert_eq_i32(math::pow_i32(2, 0), 1)
+    test::assert_eq_i32(math::pow_i32(0, 0), 1)
+    test::assert_eq_i32(math::pow_i32(100, 0), 1)
+    test::assert_eq_i32(math::pow_i32(-5, 0), 1)
+}

@@ -1,0 +1,9 @@
+use std::core::math
+use std::test
+
+fn main() {
+    test::assert_eq_i32(math::lcm(4, 6), 12)
+    test::assert_eq_i32(math::lcm(3, 5), 15)
+    test::assert_eq_i32(math::lcm(12, 8), 24)
+    test::assert_eq_i32(math::lcm(7, 13), 91)
+}

@@ -1,0 +1,15 @@
+use std::core::either
+use std::test
+
+fn add_one(x: i32) -> i32 { x + 1 }
+fn mul_ten(x: i32) -> i32 { x * 10 }
+
+fn main() {
+    let l = either::left(5)
+    let result_l = either::either_fold(l, add_one, mul_ten)
+    test::assert_eq_i32(result_l, 6)
+
+    let r = either::right(5)
+    let result_r = either::either_fold(r, add_one, mul_ten)
+    test::assert_eq_i32(result_r, 50)
+}

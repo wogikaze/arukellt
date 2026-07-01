@@ -1,0 +1,9 @@
+use std::core::math
+use std::test
+
+fn main() {
+    // lcm with zero is 0
+    test::assert_eq_i32(math::lcm(0, 5), 0)
+    test::assert_eq_i32(math::lcm(5, 0), 0)
+    test::assert_eq_i32(math::lcm(0, 0), 0)
+}

@@ -1,0 +1,13 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    match convert::parse_i32("-42") {
+        Option::Some(v) => test::assert_eq_i32(v, -42),
+        None => panic("expected Some(-42)"),
+    }
+    match convert::parse_i32("-1") {
+        Option::Some(v) => test::assert_eq_i32(v, -1),
+        None => panic("expected Some(-1)"),
+    }
+}

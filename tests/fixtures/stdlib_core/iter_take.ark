@@ -1,0 +1,20 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+    push(v, 30)
+    push(v, 40)
+    push(v, 50)
+
+    let taken = iter::collect_take_i32(v, 3)
+    test::assert_eq_i32(len(taken), 3)
+    test::assert_eq_i32(get_unchecked(taken, 0), 10)
+    test::assert_eq_i32(get_unchecked(taken, 2), 30)
+
+    // Take more than available
+    let taken_all = iter::collect_take_i32(v, 100)
+    test::assert_eq_i32(len(taken_all), 5)
+}

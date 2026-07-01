@@ -1,0 +1,13 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    // Hash trait dispatch for f64
+    let h1 = (3.14).hash()
+    let h2 = (3.14).hash()
+    test::assert_eq_i32(h1, h2)
+    test::assert_true(h1 >= 0)
+    // Different floats should likely differ
+    let h3 = (2.71).hash()
+    test::assert_true(h1 != h3)
+}

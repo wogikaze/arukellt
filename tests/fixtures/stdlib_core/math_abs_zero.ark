@@ -1,0 +1,9 @@
+use std::core::math
+use std::test
+
+fn main() {
+    test::assert_eq_i32(math::abs_i32(0), 0)
+    // abs and abs_i32 are aliases
+    test::assert_eq_i32(math::abs(0), 0)
+    test::assert_eq_i32(math::abs(0), math::abs_i32(0))
+}

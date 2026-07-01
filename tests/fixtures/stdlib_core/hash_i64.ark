@@ -1,0 +1,13 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    // Hash trait dispatch for i64
+    let h1 = (9001i64).hash()
+    let h2 = (9001i64).hash()
+    test::assert_eq_i32(h1, h2)
+    test::assert_true(h1 >= 0)
+    // Different i64 values should likely differ
+    let h3 = (0i64).hash()
+    test::assert_true(h1 != h3)
+}
