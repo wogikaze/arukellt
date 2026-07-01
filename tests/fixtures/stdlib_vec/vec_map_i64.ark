@@ -1,0 +1,17 @@
+use std::test
+
+fn double(x: i64) -> i64 {
+    x * 2
+}
+
+fn main() {
+    let mut v: Vec<i64> = Vec_new_i64()
+    let a: i64 = 10
+    let b: i64 = 20
+    push(v, a)
+    push(v, b)
+    let result: Vec<i64> = map_i64_i64(v, double)
+    test::assert_eq_i32(len(result), 2)
+    test::assert_eq_i64(get_unchecked(result, 0), 20)
+    test::assert_eq_i64(get_unchecked(result, 1), 40)
+}

@@ -1,0 +1,17 @@
+use std::test
+
+fn add(acc: i64, x: i64) -> i64 {
+    acc + x
+}
+
+fn main() {
+    let mut v: Vec<i64> = Vec_new_i64()
+    let a: i64 = 10
+    let b: i64 = 20
+    let c: i64 = 30
+    push(v, a)
+    push(v, b)
+    push(v, c)
+    let result: i64 = fold_i64_i64(v, 0, add)
+    test::assert_eq_i64(result, 60)
+}

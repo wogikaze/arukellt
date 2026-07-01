@@ -1,0 +1,6 @@
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    test::assert_eq_i32(product_i32(v), 1)
+}

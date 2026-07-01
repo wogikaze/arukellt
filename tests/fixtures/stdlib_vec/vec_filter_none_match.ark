@@ -1,0 +1,14 @@
+use std::test
+
+fn is_negative(x: i32) -> bool {
+    x < 0
+}
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    let result: Vec<i32> = filter_i32(v, is_negative)
+    test::assert_eq_i32(len(result), 0)
+}

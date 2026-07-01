@@ -1,0 +1,11 @@
+use std::test
+
+fn add(acc: i32, x: i32) -> i32 {
+    acc + x
+}
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    let result: i32 = fold_i32_i32(v, 0, add)
+    test::assert_eq_i32(result, 0)
+}

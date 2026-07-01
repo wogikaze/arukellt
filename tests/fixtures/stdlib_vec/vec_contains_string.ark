@@ -1,0 +1,10 @@
+use std::test
+
+fn main() {
+    let mut v: Vec<String> = Vec_new_String()
+    push(v, String_from("hello"))
+    push(v, String_from("world"))
+    test::assert_true(contains_String(v, String_from("hello")))
+    test::assert_true(contains_String(v, String_from("world")))
+    test::assert_false(contains_String(v, String_from("foo")))
+}

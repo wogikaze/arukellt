@@ -1,0 +1,20 @@
+use std::test
+
+fn max_of(acc: i32, x: i32) -> i32 {
+    if x > acc {
+        x
+    } else {
+        acc
+    }
+}
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 30)
+    push(v, 10)
+    push(v, 50)
+    push(v, 20)
+    push(v, 40)
+    let result: i32 = fold_i32_i32(v, 0, max_of)
+    test::assert_eq_i32(result, 50)
+}

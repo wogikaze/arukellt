@@ -1,0 +1,20 @@
+use std::test
+
+fn is_hundred(x: i64) -> bool {
+    x == 100
+}
+
+fn main() {
+    let mut v: Vec<i64> = Vec_new_i64()
+    let a: i64 = 50
+    let b: i64 = 100
+    let c: i64 = 150
+    push(v, a)
+    push(v, b)
+    push(v, c)
+    let result = find_i64(v, is_hundred)
+    match result {
+        Option::Some(val) => test::assert_eq_i64(val, 100),
+        None => panic("expected Some, got None"),
+    }
+}

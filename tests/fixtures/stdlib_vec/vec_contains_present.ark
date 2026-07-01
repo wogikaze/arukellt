@@ -1,0 +1,11 @@
+use std::test
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+    push(v, 30)
+    test::assert_true(contains_i32(v, 20))
+    test::assert_true(contains_i32(v, 10))
+    test::assert_true(contains_i32(v, 30))
+}

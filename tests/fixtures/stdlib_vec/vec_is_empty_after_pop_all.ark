@@ -1,0 +1,24 @@
+use std::test
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    match pop(v) {
+        Option::Some(_) => {
+        },
+        None => panic("expected Some, got None"),
+    }
+    match pop(v) {
+        Option::Some(_) => {
+        },
+        None => panic("expected Some, got None"),
+    }
+    match pop(v) {
+        Option::Some(_) => {
+        },
+        None => panic("expected Some, got None"),
+    }
+    test::assert_true(is_empty(v))
+}

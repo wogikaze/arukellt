@@ -1,0 +1,19 @@
+use std::test
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < 100 {
+        push(v, 100 - i)
+        i = i + 1
+    }
+    sort_i32(v)
+    test::assert_eq_i32(len(v), 100)
+    test::assert_eq_i32(get_unchecked(v, 0), 1)
+    test::assert_eq_i32(get_unchecked(v, 99), 100)
+    let mut k: i32 = 0
+    while k < 99 {
+        test::assert_true(get_unchecked(v, k) <= get_unchecked(v, k + 1))
+        k = k + 1
+    }
+}
