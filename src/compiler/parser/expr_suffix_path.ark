@@ -10,7 +10,9 @@ use parser::core_api_cursor
 use parser::core_api_expect
 use parser::expr_prefix_struct_fields
 use parser::expr_prefix_struct_probe
+use parser::state_record
 use parser::token_state
+use parser::types
 
 pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1
@@ -23,5 +25,63 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
         core_ast_text_fields::AstNode_set_text(lit, core_ast_text_fields::AstNode_text(node))
         return lit
     }
+    // Turbofish: Type::function<T>() — parse explicit type arguments after path.
+    // Only attempt when the token after < is an identifier (valid type start).
+    // Use backtracking: if the type arg list is not properly closed with >,
+    // restore position so < is treated as a binary less-than operator.
+    if core_api_cursor::peek_kind(p) == tokens::TK_LT() {
+        let saved_pos = state_record::parser_position(p)
+        p.pos = p.pos + 1
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() {
+            let type_args = parse_turbofish_type_args(p)
+            if len(type_args) > 0 {
+                let mut k = 0
+                while k < len(type_args) {
+                    core_ast_children::AstNode_push_child(node, get_unchecked(type_args, k))
+                    k = k + 1
+                }
+            } else {
+                state_record::parser_set_position(p, saved_pos)
+            }
+        } else {
+            state_record::parser_set_position(p, saved_pos)
+        }
+    }
     node
+}
+
+// Parse turbofish type arguments: < already consumed, parse type, type, ... >
+// Returns a Vec of type AST nodes, or empty Vec if > not found (backtrack needed).
+fn parse_turbofish_type_args(p: Parser) -> Vec<AstNode> {
+    let args = Vec_new_AstNode()
+    let mut first = true
+    while true {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_GT() {
+            p.pos = p.pos + 1
+            return args
+        }
+        if core_api_cursor::peek_kind(p) == tokens::TK_SHR() {
+            // Split >> into > and remaining >
+            let t = core_api_cursor::cur(p)
+            let gt_tok = token_state::Token_new(tokens::TK_GT(), String_from(">"), token_state::Token_start(t), token_state::Token_end(t))
+            state_record::parser_set_current_token(p, gt_tok)
+            return args
+        }
+        if !first {
+            if core_api_cursor::peek_kind(p) != tokens::TK_COMMA() {
+                return Vec_new_AstNode()
+            }
+            p.pos = p.pos + 1
+            core_api_cursor::skip_newlines(p)
+        }
+        first = false
+        if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
+            return Vec_new_AstNode()
+        }
+        let arg = types::parse_type(p)
+        push(args, arg)
+    }
+    args
 }
