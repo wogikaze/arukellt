@@ -1,0 +1,987 @@
+//! WIT AST node types and full WIT 1.0 text parser (#706).
+//!
+//! This module provides a recursive-descent parser for WIT 1.0 text
+//! syntax covering: package, world, interface, record, enum, flags,
+//! variant, resource, own/borrow, type aliases, use, and func
+//! declarations.
+//!
+//! The parser produces a `WitNode` tree that can be inspected with
+//! `ast_kind`, `ast_name`, and other accessor helpers.
+
+use std::wit::types
+use std::wit::scan
+
+// ─── AST node type ───────────────────────────────────────────────
+
+/// A node in the parsed WIT AST.
+pub enum WitNode {
+    Package(String, Vec<WitNode>),
+    World(String, Vec<WitNode>),
+    Interface(String, Vec<WitNode>),
+    Record(String, Vec<types::WitField>),
+    Enum(String, Vec<String>),
+    Flags(String, Vec<String>),
+    Variant(String, Vec<types::WitVariantCase>),
+    Resource(String, Vec<types::WitField>),
+    TypeAlias(String, types::WitType),
+    Use(String, String),
+    Func(String, Vec<types::WitParam>, Option<types::WitType>),
+    Import(String, String),
+    Export(String, String),
+    Error(String),
+}
+
+// ─── Accessor helpers ────────────────────────────────────────────
+
+/// Return the kind string of a `WitNode` (e.g. `"world"`, `"record"`).
+pub fn ast_kind(node: WitNode) -> String {
+    match node {
+        WitNode::Package(_, _) => "package",
+        WitNode::World(_, _) => "world",
+        WitNode::Interface(_, _) => "interface",
+        WitNode::Record(_, _) => "record",
+        WitNode::Enum(_, _) => "enum",
+        WitNode::Flags(_, _) => "flags",
+        WitNode::Variant(_, _) => "variant",
+        WitNode::Resource(_, _) => "resource",
+        WitNode::TypeAlias(_, _) => "type",
+        WitNode::Use(_, _) => "use",
+        WitNode::Func(_, _, _) => "func",
+        WitNode::Import(_, _) => "import",
+        WitNode::Export(_, _) => "export",
+        WitNode::Error(_) => "error",
+    }
+}
+
+/// Return the name string of a `WitNode`.
+pub fn ast_name(node: WitNode) -> String {
+    match node {
+        WitNode::Package(name, _) => clone(name),
+        WitNode::World(name, _) => clone(name),
+        WitNode::Interface(name, _) => clone(name),
+        WitNode::Record(name, _) => clone(name),
+        WitNode::Enum(name, _) => clone(name),
+        WitNode::Flags(name, _) => clone(name),
+        WitNode::Variant(name, _) => clone(name),
+        WitNode::Resource(name, _) => clone(name),
+        WitNode::TypeAlias(name, _) => clone(name),
+        WitNode::Use(path, _) => clone(path),
+        WitNode::Func(name, _, _) => clone(name),
+        WitNode::Import(path, _) => clone(path),
+        WitNode::Export(path, _) => clone(path),
+        WitNode::Error(msg) => clone(msg),
+    }
+}
+
+/// Return the number of child items in a container `WitNode`
+/// (package, world, interface).  Returns 0 for leaf nodes.
+pub fn ast_child_count(node: WitNode) -> i32 {
+    match node {
+        WitNode::Package(_, items) => len(items),
+        WitNode::World(_, items) => len(items),
+        WitNode::Interface(_, items) => len(items),
+        WitNode::Record(_, fields) => len(fields),
+        WitNode::Enum(_, variants) => len(variants),
+        WitNode::Flags(_, members) => len(members),
+        WitNode::Variant(_, cases) => len(cases),
+        WitNode::Resource(_, fields) => len(fields),
+        WitNode::Func(_, params, _) => len(params),
+        _ => 0,
+    }
+}
+
+/// Return the child `WitNode` at `index` for container nodes
+/// (package, world, interface).  Returns `WitNode::Error` on out-of-bounds.
+pub fn ast_child_at(node: WitNode, index: i32) -> WitNode {
+    match node {
+        WitNode::Package(_, items) => {
+            if index < 0 || index >= len(items) {
+                WitNode::Error(String_from("ast_child_at: index out of bounds"))
+            } else {
+                clone(get_unchecked(items, index))
+            }
+        },
+        WitNode::World(_, items) => {
+            if index < 0 || index >= len(items) {
+                WitNode::Error(String_from("ast_child_at: index out of bounds"))
+            } else {
+                clone(get_unchecked(items, index))
+            }
+        },
+        WitNode::Interface(_, items) => {
+            if index < 0 || index >= len(items) {
+                WitNode::Error(String_from("ast_child_at: index out of bounds"))
+            } else {
+                clone(get_unchecked(items, index))
+            }
+        },
+        _ => WitNode::Error(String_from("ast_child_at: not a container node")),
+    }
+}
+
+/// Return the field name at `index` for record/resource nodes.
+pub fn ast_field_name_at(node: WitNode, index: i32) -> String {
+    match node {
+        WitNode::Record(_, fields) => {
+            if index < 0 || index >= len(fields) {
+                String_new()
+            } else {
+                clone(get_unchecked(fields, index).name)
+            }
+        },
+        WitNode::Resource(_, fields) => {
+            if index < 0 || index >= len(fields) {
+                String_new()
+            } else {
+                clone(get_unchecked(fields, index).name)
+            }
+        },
+        _ => String_new(),
+    }
+}
+
+/// Return the field type at `index` for record/resource nodes.
+pub fn ast_field_type_at(node: WitNode, index: i32) -> types::WitType {
+    match node {
+        WitNode::Record(_, fields) => {
+            if index < 0 || index >= len(fields) {
+                types::wit_type_from_id(0)
+            } else {
+                clone(get_unchecked(fields, index).ty)
+            }
+        },
+        WitNode::Resource(_, fields) => {
+            if index < 0 || index >= len(fields) {
+                types::wit_type_from_id(0)
+            } else {
+                clone(get_unchecked(fields, index).ty)
+            }
+        },
+        _ => types::wit_type_from_id(0),
+    }
+}
+
+/// Return the enum variant name at `index`.
+pub fn ast_enum_variant_at(node: WitNode, index: i32) -> String {
+    match node {
+        WitNode::Enum(_, variants) => {
+            if index < 0 || index >= len(variants) {
+                String_new()
+            } else {
+                clone(get_unchecked(variants, index))
+            }
+        },
+        _ => String_new(),
+    }
+}
+
+/// Return the flags member name at `index`.
+pub fn ast_flags_member_at(node: WitNode, index: i32) -> String {
+    match node {
+        WitNode::Flags(_, members) => {
+            if index < 0 || index >= len(members) {
+                String_new()
+            } else {
+                clone(get_unchecked(members, index))
+            }
+        },
+        _ => String_new(),
+    }
+}
+
+/// Return the func param count.
+pub fn ast_func_param_count(node: WitNode) -> i32 {
+    match node {
+        WitNode::Func(_, params, _) => len(params),
+        _ => 0,
+    }
+}
+
+/// Return the func param name at `index`.
+pub fn ast_func_param_name_at(node: WitNode, index: i32) -> String {
+    match node {
+        WitNode::Func(_, params, _) => {
+            if index < 0 || index >= len(params) {
+                String_new()
+            } else {
+                clone(get_unchecked(params, index).name)
+            }
+        },
+        _ => String_new(),
+    }
+}
+
+/// Return the func param type at `index`.
+pub fn ast_func_param_type_at(node: WitNode, index: i32) -> types::WitType {
+    match node {
+        WitNode::Func(_, params, _) => {
+            if index < 0 || index >= len(params) {
+                types::wit_type_from_id(0)
+            } else {
+                clone(get_unchecked(params, index).ty)
+            }
+        },
+        _ => types::wit_type_from_id(0),
+    }
+}
+
+/// Return whether a func has a result type.
+pub fn ast_func_has_result(node: WitNode) -> bool {
+    match node {
+        WitNode::Func(_, _, result) => {
+            match result {
+                Option::Some(_) => true,
+                Option::None => false,
+            }
+        },
+        _ => false,
+    }
+}
+
+/// Return the func result type (or `Unknown(0)` if none).
+pub fn ast_func_result(node: WitNode) -> types::WitType {
+    match node {
+        WitNode::Func(_, _, result) => {
+            match result {
+                Option::Some(ty) => clone(ty),
+                Option::None => types::wit_type_from_id(0),
+            }
+        },
+        _ => types::wit_type_from_id(0),
+    }
+}
+
+/// Return the type alias target type.
+pub fn ast_type_alias_target(node: WitNode) -> types::WitType {
+    match node {
+        WitNode::TypeAlias(_, ty) => clone(ty),
+        _ => types::wit_type_from_id(0),
+    }
+}
+
+/// Return the use path.
+pub fn ast_use_path(node: WitNode) -> String {
+    match node {
+        WitNode::Use(path, _) => clone(path),
+        _ => String_new(),
+    }
+}
+
+/// Return the use alias (may be empty).
+pub fn ast_use_alias(node: WitNode) -> String {
+    match node {
+        WitNode::Use(_, alias) => clone(alias),
+        _ => String_new(),
+    }
+}
+
+// ─── Parser ──────────────────────────────────────────────────────
+
+/// Skip whitespace (space, tab, newline, carriage return).
+fn p_skip_ws(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 {
+            i = i + 1
+        } else {
+            return i
+        }
+    }
+    i
+}
+
+/// Skip whitespace and comments (`//` line comments and `/* */` block comments).
+fn p_skip_ws_comments(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 {
+            i = i + 1
+        } else {
+            if c == 47 && i + 1 < n && char_at(s, i + 1) == 47 {
+                // line comment
+                i = i + 2
+                while i < n && char_at(s, i) != 10 {
+                    i = i + 1
+                }
+            } else {
+                if c == 47 && i + 1 < n && char_at(s, i + 1) == 42 {
+                    // block comment
+                    i = i + 2
+                    while i + 1 < n {
+                        if char_at(s, i) == 42 && char_at(s, i + 1) == 47 {
+                            i = i + 2
+                            break
+                        }
+                        i = i + 1
+                    }
+                } else {
+                    return i
+                }
+            }
+        }
+    }
+    i
+}
+
+/// Read an identifier-like word.  Stops at whitespace, `{}();:,<>=$@/-` etc.
+/// For WIT, kebab-case names include `-`, so we allow `-` in words.
+fn p_word(s: String, pos: i32) -> (String, i32) {
+    let n = len(s)
+    let start = pos
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 || c == 58 || c == 40 || c == 41 || c == 44 || c == 59 || c == 123 || c == 125 || c == 60 || c == 62 || c == 61 || c == 36 || c == 64 {
+            break
+        }
+        i = i + 1
+    }
+    (slice(s, start, i), i)
+}
+
+/// Read a path-like word that may include `:` and `/` and `@` and `.`.
+/// Used for package paths and use/import paths.
+fn p_path(s: String, pos: i32) -> (String, i32) {
+    let n = len(s)
+    let start = pos
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 || c == 40 || c == 41 || c == 44 || c == 59 || c == 123 || c == 125 || c == 60 || c == 62 || c == 61 || c == 36 {
+            break
+        }
+        i = i + 1
+    }
+    (slice(s, start, i), i)
+}
+
+/// Find a matching closing brace starting at `pos` (which should be `{`).
+/// Returns the index of the closing `}`, or -1 if not found.
+fn p_find_matching_brace(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    if pos >= n || char_at(s, pos) != 123 {
+        return 0 - 1
+    }
+    let mut depth = 0
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 123 {
+            depth = depth + 1
+        }
+        if c == 125 {
+            depth = depth - 1
+            if depth == 0 {
+                return i
+            }
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+/// Parse a WIT type from a type-name string.
+fn p_type_name(name: String) -> types::WitType {
+    if eq(name, "bool") {
+        return types::wit_type_bool()
+    }
+    if eq(name, "u8") {
+        return types::wit_type_u8()
+    }
+    if eq(name, "u16") {
+        return types::wit_type_u16()
+    }
+    if eq(name, "u32") {
+        return types::wit_type_u32()
+    }
+    if eq(name, "u64") {
+        return types::wit_type_u64()
+    }
+    if eq(name, "s8") {
+        return types::wit_type_s8()
+    }
+    if eq(name, "s16") {
+        return types::wit_type_s16()
+    }
+    if eq(name, "s32") {
+        return types::wit_type_s32()
+    }
+    if eq(name, "s64") {
+        return types::wit_type_s64()
+    }
+    if eq(name, "f32") {
+        return types::wit_type_f32()
+    }
+    if eq(name, "f64") {
+        return types::wit_type_f64()
+    }
+    if eq(name, "char") {
+        return types::wit_type_char()
+    }
+    if eq(name, "string") {
+        return types::wit_type_string()
+    }
+    // Unknown named type (could be a resource or type alias reference)
+    types::WitType::Unknown(0)
+}
+
+/// Parse a WIT type from source starting at `pos`.  Returns the type
+/// and the position after the type.
+fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    let (word, p1) = p_word(s, i)
+    i = p1
+    if eq(word, "list") {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 60 {
+            let (inner, p2) = p_type(s, i + 1)
+            i = p_skip_ws_comments(s, p2)
+            if i < n && char_at(s, i) == 62 {
+                i = i + 1
+            }
+            return (types::wit_type_list(inner), i)
+        }
+        return (types::wit_type_list(types::wit_type_from_id(0)), i)
+    }
+    if eq(word, "option") {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 60 {
+            let (inner, p3) = p_type(s, i + 1)
+            i = p_skip_ws_comments(s, p3)
+            if i < n && char_at(s, i) == 62 {
+                i = i + 1
+            }
+            return (types::wit_type_option(inner), i)
+        }
+        return (types::wit_type_option(types::wit_type_from_id(0)), i)
+    }
+    if eq(word, "own") {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 60 {
+            let (inner_name, p4) = p_word(s, i + 1)
+            i = p_skip_ws_comments(s, p4)
+            if i < n && char_at(s, i) == 62 {
+                i = i + 1
+            }
+            return (types::WitType::Resource(inner_name), i)
+        }
+        return (types::WitType::Resource(String_new()), i)
+    }
+    if eq(word, "borrow") {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 60 {
+            let (inner_name, p5) = p_word(s, i + 1)
+            i = p_skip_ws_comments(s, p5)
+            if i < n && char_at(s, i) == 62 {
+                i = i + 1
+            }
+            return (types::WitType::Resource(inner_name), i)
+        }
+        return (types::WitType::Resource(String_new()), i)
+    }
+    (p_type_name(word), i)
+}
+
+/// Parse function parameters inside `(...)`.
+fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
+    let params = Vec_new_WitParam()
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    while i < n {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 41 {
+            return (params, i + 1)
+        }
+        let (pname, p1) = p_word(s, i)
+        i = p_skip_ws_comments(s, p1)
+        if i >= n || char_at(s, i) != 58 {
+            return (params, i)
+        }
+        i = p_skip_ws_comments(s, i + 1)
+        let (ty, p2) = p_type(s, i)
+        push(params, types::wit_param(pname, ty))
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 44 {
+            i = i + 1
+        }
+    }
+    (params, i)
+}
+
+/// Parse a func declaration: `name: func(params) -> result;`
+fn p_func(s: String, pos: i32) -> (WitNode, i32) {
+    let (fname, p1) = p_word(s, pos)
+    let mut i = p_skip_ws_comments(s, p1)
+    if i < len(s) && char_at(s, i) == 58 {
+        i = p_skip_ws_comments(s, i + 1)
+        let (kw, p2) = p_word(s, i)
+        if eq(kw, "func") {
+            i = p_skip_ws_comments(s, p2)
+            if i < len(s) && char_at(s, i) == 40 {
+                let (params, p3) = p_params(s, i + 1)
+                i = p_skip_ws_comments(s, p3)
+                let mut result = Option::None
+                if i + 1 < len(s) && char_at(s, i) == 45 && char_at(s, i + 1) == 62 {
+                    i = p_skip_ws_comments(s, i + 2)
+                    let (ty, p4) = p_type(s, i)
+                    result = Option::Some(ty)
+                    i = p4
+                }
+                if i < len(s) && char_at(s, i) == 59 {
+                    i = i + 1
+                }
+                return (WitNode::Func(fname, params, result), i)
+            }
+        }
+    }
+    (WitNode::Error(String_from("expected func")), pos)
+}
+
+/// Parse record fields inside `{ ... }`.
+fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
+    let fields = Vec_new_WitField()
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    while i < n {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 125 {
+            return (fields, i + 1)
+        }
+        let (fname, p1) = p_word(s, i)
+        i = p_skip_ws_comments(s, p1)
+        if i >= n || char_at(s, i) != 58 {
+            return (fields, i)
+        }
+        i = p_skip_ws_comments(s, i + 1)
+        let (ty, p2) = p_type(s, i)
+        push(fields, types::WitField { name: fname, ty: ty })
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 44 {
+            i = i + 1
+        }
+    }
+    (fields, i)
+}
+
+/// Parse enum variants inside `{ ... }`.
+fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
+    let variants = Vec_new_String()
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    while i < n {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 125 {
+            return (variants, i + 1)
+        }
+        let (vname, p1) = p_word(s, i)
+        if len(vname) > 0 {
+            push(variants, vname)
+        }
+        i = p_skip_ws_comments(s, p1)
+        if i < n && char_at(s, i) == 44 {
+            i = i + 1
+        }
+    }
+    (variants, i)
+}
+
+/// Parse variant cases inside `{ ... }`.
+/// Each case is `name` or `name(type)`.
+fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
+    let cases = Vec_new_WitVariantCase()
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    while i < n {
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 125 {
+            return (cases, i + 1)
+        }
+        let (cname, p1) = p_word(s, i)
+        i = p_skip_ws_comments(s, p1)
+        let mut payload = Option::None
+        if i < n && char_at(s, i) == 40 {
+            let (ty, p2) = p_type(s, i + 1)
+            payload = Option::Some(ty)
+            i = p_skip_ws_comments(s, p2)
+            if i < n && char_at(s, i) == 41 {
+                i = i + 1
+            }
+        }
+        push(cases, types::WitVariantCase { name: cname, ty: payload })
+        i = p_skip_ws_comments(s, i)
+        if i < n && char_at(s, i) == 44 {
+            i = i + 1
+        }
+    }
+    (cases, i)
+}
+
+/// Parse a single declaration inside an interface or world body.
+/// Returns the parsed `WitNode` and the position after it.
+fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    if i >= n {
+        return (WitNode::Error(String_from("unexpected end of input")), i)
+    }
+    if char_at(s, i) == 125 {
+        return (WitNode::Error(String_from("}")), i)
+    }
+    let (kw, p1) = p_word(s, i)
+    // Check for import/export with path: `import path: iface;`
+    if eq(kw, "import") || eq(kw, "export") {
+        i = p_skip_ws_comments(s, p1)
+        // Check if next is a path (followed by `:` and then a keyword like `interface` or `func`)
+        let (path, p2) = p_path(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 58 {
+            // `import path: interface { ... }` or `import path: func(...);`
+            i = p_skip_ws_comments(s, i + 1)
+            let (kind_word, p3) = p_word(s, i)
+            if eq(kind_word, "interface") {
+                i = p_skip_ws_comments(s, p3)
+                if i < n && char_at(s, i) == 123 {
+                    let close = p_find_matching_brace(s, i)
+                    if close < 0 {
+                        return (WitNode::Error(String_from("unterminated interface")), i)
+                    }
+                    let body = substring(s, i + 1, close)
+                    let (items, _) = p_body(body, 0)
+                    if eq(kw, "import") {
+                        return (WitNode::Import(path, String_from("interface")), close + 1)
+                    } else {
+                        // For inline export interface, we return the interface node
+                        // but also record the export path
+                        let _ = items  // consume to avoid unused warning
+                        return (WitNode::Export(path, String_from("interface")), close + 1)
+                    }
+                }
+            } else {
+                if eq(kind_word, "func") {
+                    // `import path: func(...);`
+                    i = p_skip_ws_comments(s, p3)
+                    if i < n && char_at(s, i) == 40 {
+                        let (params, p4) = p_params(s, i + 1)
+                        i = p_skip_ws_comments(s, p4)
+                        let mut result = Option::None
+                        if i + 1 < n && char_at(s, i) == 45 && char_at(s, i + 1) == 62 {
+                            i = p_skip_ws_comments(s, i + 2)
+                            let (ty, p5) = p_type(s, i)
+                            result = Option::Some(ty)
+                            i = p5
+                        }
+                        if i < n && char_at(s, i) == 59 {
+                            i = i + 1
+                        }
+                        let func_node = WitNode::Func(path, params, result)
+                        if eq(kw, "import") {
+                            return (WitNode::Import(path, String_from("func")), i)
+                        } else {
+                            let _ = func_node
+                            return (WitNode::Export(path, String_from("func")), i)
+                        }
+                    }
+                }
+            }
+        }
+        // Bare `import path;` or `export path;`
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 59 {
+            i = i + 1
+        }
+        if eq(kw, "import") {
+            return (WitNode::Import(path, String_new()), i)
+        } else {
+            return (WitNode::Export(path, String_new()), i)
+        }
+    }
+    if eq(kw, "use") {
+        i = p_skip_ws_comments(s, p1)
+        let (path, p2) = p_path(s, i)
+        i = p_skip_ws_comments(s, p2)
+        let mut alias = String_new()
+        // Check for `as alias`
+        let (as_kw, p3) = p_word(s, i)
+        if eq(as_kw, "as") {
+            i = p_skip_ws_comments(s, p3)
+            let (aname, p4) = p_word(s, i)
+            alias = aname
+            i = p4
+        }
+        if i < n && char_at(s, i) == 59 {
+            i = i + 1
+        }
+        return (WitNode::Use(path, alias), i)
+    }
+    if eq(kw, "type") {
+        i = p_skip_ws_comments(s, p1)
+        let (tname, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        // Expect `=`
+        if i < n && char_at(s, i) == 61 {
+            i = p_skip_ws_comments(s, i + 1)
+            let (ty, p3) = p_type(s, i)
+            i = p3
+            if i < n && char_at(s, i) == 59 {
+                i = i + 1
+            }
+            return (WitNode::TypeAlias(tname, ty), i)
+        }
+        return (WitNode::Error(String_from("expected = in type alias")), i)
+    }
+    if eq(kw, "record") {
+        i = p_skip_ws_comments(s, p1)
+        let (rname, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 123 {
+            let (fields, p3) = p_record_fields(s, i + 1)
+            i = p3
+            if i < n && char_at(s, i) == 59 {
+                i = i + 1
+            }
+            return (WitNode::Record(rname, fields), i)
+        }
+        return (WitNode::Error(String_from("expected { in record")), i)
+    }
+    if eq(kw, "enum") {
+        i = p_skip_ws_comments(s, p1)
+        let (ename, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 123 {
+            let (variants, p3) = p_enum_variants(s, i + 1)
+            i = p3
+            if i < n && char_at(s, i) == 59 {
+                i = i + 1
+            }
+            return (WitNode::Enum(ename, variants), i)
+        }
+        return (WitNode::Error(String_from("expected { in enum")), i)
+    }
+    if eq(kw, "flags") {
+        i = p_skip_ws_comments(s, p1)
+        let (fname, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 123 {
+            let (members, p3) = p_enum_variants(s, i + 1)
+            i = p3
+            if i < n && char_at(s, i) == 59 {
+                i = i + 1
+            }
+            return (WitNode::Flags(fname, members), i)
+        }
+        return (WitNode::Error(String_from("expected { in flags")), i)
+    }
+    if eq(kw, "variant") {
+        i = p_skip_ws_comments(s, p1)
+        let (vname, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 123 {
+            let (cases, p3) = p_variant_cases(s, i + 1)
+            i = p3
+            if i < n && char_at(s, i) == 59 {
+                i = i + 1
+            }
+            return (WitNode::Variant(vname, cases), i)
+        }
+        return (WitNode::Error(String_from("expected { in variant")), i)
+    }
+    if eq(kw, "resource") {
+        i = p_skip_ws_comments(s, p1)
+        let (rname, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 123 {
+            let (fields, p3) = p_record_fields(s, i + 1)
+            i = p3
+            if i < n && char_at(s, i) == 59 {
+                i = i + 1
+            }
+            return (WitNode::Resource(rname, fields), i)
+        }
+        // resource without body: `resource handle;`
+        if i < n && char_at(s, i) == 59 {
+            i = i + 1
+            return (WitNode::Resource(rname, Vec_new_WitField()), i)
+        }
+        return (WitNode::Error(String_from("expected { or ; in resource")), i)
+    }
+    if eq(kw, "interface") {
+        i = p_skip_ws_comments(s, p1)
+        let (iname, p2) = p_word(s, i)
+        i = p_skip_ws_comments(s, p2)
+        if i < n && char_at(s, i) == 123 {
+            let close = p_find_matching_brace(s, i)
+            if close < 0 {
+                return (WitNode::Error(String_from("unterminated interface")), i)
+            }
+            let body = substring(s, i + 1, close)
+            let (items, _) = p_body(body, 0)
+            return (WitNode::Interface(iname, items), close + 1)
+        }
+        return (WitNode::Error(String_from("expected { in interface")), i)
+    }
+    // Otherwise, it might be a func declaration: `name: func(...)`
+    // Rewind to the start of the word and try parsing as func
+    i = p_skip_ws_comments(s, pos)
+    let (func_node, func_pos) = p_func(s, i)
+    if !eq(ast_kind(func_node), "error") {
+        return (func_node, func_pos)
+    }
+    // Skip unknown token
+    (WitNode::Error(concat(String_from("unknown declaration: "), kw)), p1)
+}
+
+/// Parse a body (sequence of declarations) inside `{ ... }`.
+fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
+    let items = Vec_new_WitNode()
+    let mut i = p_skip_ws_comments(s, pos)
+    let n = len(s)
+    while i < n {
+        i = p_skip_ws_comments(s, i)
+        if i >= n || char_at(s, i) == 125 {
+            return (items, i)
+        }
+        let (node, p1) = p_decl(s, i)
+        if !eq(ast_kind(node), "error") {
+            push(items, node)
+        } else {
+            // Check if it's just a closing brace marker
+            if eq(ast_name(node), "}") {
+                return (items, i)
+            }
+        }
+        i = p1
+        if i <= p_skip_ws_comments(s, pos) && i >= n {
+            break
+        }
+    }
+    (items, i)
+}
+
+/// Parse a world declaration.
+fn p_world(s: String, pos: i32) -> (WitNode, i32) {
+    let mut i = p_skip_ws_comments(s, pos)
+    let (kw, p1) = p_word(s, i)
+    if !eq(kw, "world") {
+        return (WitNode::Error(String_from("expected world")), p1)
+    }
+    i = p_skip_ws_comments(s, p1)
+    let (wname, p2) = p_word(s, i)
+    i = p_skip_ws_comments(s, p2)
+    if i >= len(s) || char_at(s, i) != 123 {
+        return (WitNode::Error(String_from("expected { after world name")), i)
+    }
+    let close = p_find_matching_brace(s, i)
+    if close < 0 {
+        return (WitNode::Error(String_from("unterminated world")), i)
+    }
+    let body = substring(s, i + 1, close)
+    let (items, _) = p_body(body, 0)
+    (WitNode::World(wname, items), close + 1)
+}
+
+/// Parse an interface declaration.
+fn p_interface(s: String, pos: i32) -> (WitNode, i32) {
+    let mut i = p_skip_ws_comments(s, pos)
+    let (kw, p1) = p_word(s, i)
+    if !eq(kw, "interface") {
+        return (WitNode::Error(String_from("expected interface")), p1)
+    }
+    i = p_skip_ws_comments(s, p1)
+    let (iname, p2) = p_word(s, i)
+    i = p_skip_ws_comments(s, p2)
+    if i >= len(s) || char_at(s, i) != 123 {
+        return (WitNode::Error(String_from("expected { after interface name")), i)
+    }
+    let close = p_find_matching_brace(s, i)
+    if close < 0 {
+        return (WitNode::Error(String_from("unterminated interface")), i)
+    }
+    let body = substring(s, i + 1, close)
+    let (items, _) = p_body(body, 0)
+    (WitNode::Interface(iname, items), close + 1)
+}
+
+/// Parse a package declaration: `package test:foo@1.0.0;`
+fn p_package_decl(s: String, pos: i32) -> (String, i32) {
+    let mut i = p_skip_ws_comments(s, pos)
+    let (kw, p1) = p_word(s, i)
+    if !eq(kw, "package") {
+        return (String_new(), p1)
+    }
+    i = p_skip_ws_comments(s, p1)
+    let (path, p2) = p_path(s, i)
+    i = p_skip_ws_comments(s, p2)
+    if i < len(s) && char_at(s, i) == 59 {
+        i = i + 1
+    }
+    (path, i)
+}
+
+/// Parse a full WIT source text into a `WitNode` tree.
+///
+/// The source may start with `package ...;` followed by `world` or
+/// `interface` declarations, or it may be a single declaration
+/// (`record`, `enum`, `flags`, `variant`, `resource`, `type`, `use`).
+///
+/// Returns the top-level node.  If the source contains a package
+/// declaration followed by multiple items, returns a `Package` node
+/// containing the items.
+pub fn parse(source: String) -> WitNode {
+    let mut i = p_skip_ws_comments(source, 0)
+    let n = len(source)
+    if i >= n {
+        return WitNode::Error(String_from("empty input"))
+    }
+    // Check for package declaration
+    let (first_word, _) = p_word(source, i)
+    if eq(first_word, "package") {
+        let (pkg, p1) = p_package_decl(source, i)
+        i = p_skip_ws_comments(source, p1)
+        // Parse all top-level items (world, interface, etc.)
+        let items = Vec_new_WitNode()
+        while i < n {
+            i = p_skip_ws_comments(source, i)
+            if i >= n {
+                break
+            }
+            let (kw, _) = p_word(source, i)
+            if eq(kw, "world") {
+                let (node, p2) = p_world(source, i)
+                push(items, node)
+                i = p2
+            } else {
+                if eq(kw, "interface") {
+                    let (node, p2) = p_interface(source, i)
+                    push(items, node)
+                    i = p2
+                } else {
+                    // Try generic decl
+                    let (node, p2) = p_decl(source, i)
+                    if !eq(ast_kind(node), "error") {
+                        push(items, node)
+                    }
+                    i = p2
+                }
+            }
+            i = p_skip_ws_comments(source, i)
+        }
+        return WitNode::Package(pkg, items)
+    }
+    // No package — try single top-level declaration
+    if eq(first_word, "world") {
+        let (node, _) = p_world(source, i)
+        return node
+    }
+    if eq(first_word, "interface") {
+        let (node, _) = p_interface(source, i)
+        return node
+    }
+    // Try as a single declaration (record, enum, flags, variant, resource, type, use, func)
+    let (node, _) = p_decl(source, i)
+    node
+}

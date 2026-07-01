@@ -1283,3 +1283,7 @@ run:stdlib_toml/toml_full_table_header.ark
 run:stdlib_toml/toml_full_inline_dotted.ark
 t3-compile:stdlib_toml/toml_full_table_header.ark
 t3-compile:stdlib_toml/toml_full_inline_dotted.ark
+run:stdlib_wit/wit_names.ark
+run:stdlib_wit/wit_ast_parse.ark
+t3-compile:stdlib_wit/wit_names.ark
+t3-compile:stdlib_wit/wit_ast_parse.ark

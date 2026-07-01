@@ -1,0 +1,43 @@
+// Issue #706: WIT AST parser — parse world/interface/record/enum/flags.
+use std::host::stdio
+use std::wit::ast
+use std::wit::types
+
+fn main() {
+    // Parse a simple world declaration
+    let src = String_from("world hello { }")
+    let node = ast::parse(src)
+    assert(eq(ast::ast_kind(node), String_from("world")))
+    assert(eq(ast::ast_name(node), String_from("hello")))
+
+    // Parse an interface declaration
+    let src2 = String_from("interface my-iface { }")
+    let node2 = ast::parse(src2)
+    assert(eq(ast::ast_kind(node2), String_from("interface")))
+    assert(eq(ast::ast_name(node2), String_from("my-iface")))
+
+    // Parse a record declaration
+    let src3 = String_from("record point { x: u32, y: u32 }")
+    let node3 = ast::parse(src3)
+    assert(eq(ast::ast_kind(node3), String_from("record")))
+    assert(eq(ast::ast_name(node3), String_from("point")))
+
+    // Parse an enum declaration
+    let src4 = String_from("enum color { red, green, blue }")
+    let node4 = ast::parse(src4)
+    assert(eq(ast::ast_kind(node4), String_from("enum")))
+    assert(eq(ast::ast_name(node4), String_from("color")))
+
+    // Parse flags declaration
+    let src5 = String_from("flags perms { read, write, exec }")
+    let node5 = ast::parse(src5)
+    assert(eq(ast::ast_kind(node5), String_from("flags")))
+    assert(eq(ast::ast_name(node5), String_from("perms")))
+
+    // wit_type_from_ast: render WitType as WIT text
+    assert(eq(types::wit_type_from_ast(types::wit_type_bool()), String_from("bool")))
+    assert(eq(types::wit_type_from_ast(types::wit_type_string()), String_from("string")))
+    assert(eq(types::wit_type_from_ast(types::wit_type_u32()), String_from("u32")))
+
+    stdio::println(String_from("OK"))
+}

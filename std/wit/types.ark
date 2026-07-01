@@ -178,3 +178,78 @@ pub fn wit_type_name(ty: WitType) -> String {
         WitType::Unknown(_) => "unknown",
     }
 }
+
+/// Render a `WitType` as WIT text (e.g. `list<string>`, `option<u32>`).
+/// This is the AST→WIT type lowering function (#706).
+pub fn wit_type_from_ast(ty: WitType) -> String {
+    match ty {
+        WitType::Bool => "bool",
+        WitType::U8 => "u8",
+        WitType::U16 => "u16",
+        WitType::U32 => "u32",
+        WitType::U64 => "u64",
+        WitType::S8 => "s8",
+        WitType::S16 => "s16",
+        WitType::S32 => "s32",
+        WitType::S64 => "s64",
+        WitType::F32 => "f32",
+        WitType::F64 => "f64",
+        WitType::Char => "char",
+        WitType::String => "string",
+        WitType::List(inner) => concat("list<", concat(wit_type_from_ast(unbox(inner)), ">")),
+        WitType::Option(inner) => concat("option<", concat(wit_type_from_ast(unbox(inner)), ">")),
+        WitType::Tuple(_) => "tuple",
+        WitType::Record(_) => "record",
+        WitType::Variant(_) => "variant",
+        WitType::Enum(_) => "enum",
+        WitType::Flags(_) => "flags",
+        WitType::Resource(name) => name,
+        WitType::Unknown(_) => "unknown",
+    }
+}
+
+/// Convert an Arukellt type name string to its WIT type name string.
+/// This handles the mapping from Arukellt built-in types (`i32`→`s32`,
+/// `String`→`string`, etc.) to WIT primitive types.
+pub fn wit_type_name_from_ark(name: String) -> String {
+    if eq(name, "i32") {
+        return String_from("s32")
+    }
+    if eq(name, "i64") {
+        return String_from("s64")
+    }
+    if eq(name, "f32") {
+        return String_from("f32")
+    }
+    if eq(name, "f64") {
+        return String_from("f64")
+    }
+    if eq(name, "bool") {
+        return String_from("bool")
+    }
+    if eq(name, "char") {
+        return String_from("char")
+    }
+    if eq(name, "u8") {
+        return String_from("u8")
+    }
+    if eq(name, "u16") {
+        return String_from("u16")
+    }
+    if eq(name, "u32") {
+        return String_from("u32")
+    }
+    if eq(name, "u64") {
+        return String_from("u64")
+    }
+    if eq(name, "i8") {
+        return String_from("s8")
+    }
+    if eq(name, "i16") {
+        return String_from("s16")
+    }
+    if eq(name, "String") || eq(name, "string") {
+        return String_from("string")
+    }
+    clone(name)
+}
