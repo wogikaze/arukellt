@@ -1,0 +1,53 @@
+// Issue #693: Backward compatibility of trait-based IO with existing Vec<i32> IO.
+//
+// Verifies that the new Read/Write/BufRead/Seek traits coexist with the
+// existing reader_from_bytes / writer_new / copy_bytes APIs, and that
+// both can operate on the same memory buffer representation.
+use std::host::stdio
+use std::io
+
+fn main() {
+    // --- Legacy API path ---
+    // Create a reader from bytes using the existing API
+    let legacy_data: Vec<i32> = Vec_new_i32()
+    push(legacy_data, 88)  // 'X'
+    push(legacy_data, 89)  // 'Y'
+    push(legacy_data, 90)  // 'Z'
+    let reader: Vec<i32> = io::reader_from_bytes(legacy_data)
+
+    // Create a writer using the existing API
+    let writer: Vec<i32> = io::writer_new()
+
+    // Copy using the existing copy_bytes API
+    let res: Result<i32, io::IoError> = io::copy_bytes(reader, writer)
+    match res {
+        Result::Ok(n) => assert(n == 3),
+        Result::Err(_e) => assert(false),
+    }
+
+    // Verify writer contents via existing writer_to_bytes
+    let out: Vec<i32> = io::writer_to_bytes(writer)
+    assert(len(out) == 3)
+    assert(get_unchecked(out, 0) == 88)
+    assert(get_unchecked(out, 1) == 89)
+    assert(get_unchecked(out, 2) == 90)
+
+    // --- New trait API path ---
+    // Create a memory buffer using the new API
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 72)  // 'H'
+    push(data, 73)  // 'I'
+    let written: i32 = io::write_bytes(buf, data)
+    assert(written == 2)
+
+    // Reset cursor and read back
+    let _s: i64 = io::seek_to(buf, 0)
+    let read: Vec<i32> = io::read_bytes(buf, 2)
+    assert(len(read) == 2)
+    assert(get_unchecked(read, 0) == 72)
+    assert(get_unchecked(read, 1) == 73)
+
+    // Both paths produce correct results
+    stdio::println("OK")
+}

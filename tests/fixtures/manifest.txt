@@ -544,6 +544,11 @@ run:stdlib_trait/hash_trait.ark
 run:stdlib_trait/clone_default_from.ark
 run:stdlib_trait/self_return_clone.ark
 run:stdlib_trait/self_return_add.ark
+run:stdlib_trait/read_write.ark
+run:stdlib_trait/io_copy.ark
+run:stdlib_trait/buf_read.ark
+run:stdlib_trait/seek.ark
+run:stdlib_trait/io_backward_compat.ark
 run:stdlib_csv/csv_basic.ark
 run:stdlib_csv/csv_parse_doc.ark
 run:stdlib_csv/csv_parse_row.ark
@@ -797,6 +802,11 @@ t3-compile:stdlib_trait/eq_trait_string.ark
 t3-compile:stdlib_trait/hash_trait_nested.ark
 t3-compile:stdlib_trait/self_return_clone.ark
 t3-compile:stdlib_trait/self_return_add.ark
+t3-compile:stdlib_trait/read_write.ark
+t3-compile:stdlib_trait/io_copy.ark
+t3-compile:stdlib_trait/buf_read.ark
+t3-compile:stdlib_trait/seek.ark
+t3-compile:stdlib_trait/io_backward_compat.ark
 t3-compile:functions/basic_fn.ark
 t3-compile:functions/closure_basic.ark
 t3-compile:functions/closure_capture.ark
@@ -987,6 +997,11 @@ t3-run:stdlib_trait/eq_trait_string.ark
 t3-run:stdlib_trait/hash_trait_nested.ark
 t3-run:stdlib_trait/self_return_clone.ark
 t3-run:stdlib_trait/self_return_add.ark
+t3-run:stdlib_trait/read_write.ark
+t3-run:stdlib_trait/io_copy.ark
+t3-run:stdlib_trait/buf_read.ark
+t3-run:stdlib_trait/seek.ark
+t3-run:stdlib_trait/io_backward_compat.ark
 t3-run:enums/enum_struct_variant.ark
 t3-run:enums/exhaustive_match.ark
 t3-run:enums/nested_enum.ark
@@ -1201,6 +1216,11 @@ run:stdlib_trait/eq_trait_string.ark
 run:stdlib_trait/hash_trait_nested.ark
 run:stdlib_trait/self_return_clone.ark
 run:stdlib_trait/self_return_add.ark
+run:stdlib_trait/read_write.ark
+run:stdlib_trait/io_copy.ark
+run:stdlib_trait/buf_read.ark
+run:stdlib_trait/seek.ark
+run:stdlib_trait/io_backward_compat.ark
 run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 # issue 487: Vec<Struct> len() correctness (fix in mir_lower)
 run:regression/vec_struct_len.ark

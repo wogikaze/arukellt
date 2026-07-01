@@ -5141,6 +5141,96 @@ stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Result<i32, String>"
 
+[[functions]]
+name = "new_memory_buffer"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new memory buffer for trait-based Read/Write (#693)."
+
+[[functions]]
+name = "write_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Write byte values into a memory buffer via Write trait dispatch (#693)."
+
+[[functions]]
+name = "read_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+doc = "Read up to n bytes from a memory buffer via Read trait dispatch (#693)."
+
+[[functions]]
+name = "seek_to"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i64"]
+returns = "i64"
+doc = "Seek to absolute position in a memory buffer via Seek trait dispatch (#693)."
+
+[[functions]]
+name = "position"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i64"
+doc = "Return the current cursor position of a memory buffer (#693)."
+
+[[functions]]
+name = "buffer_len"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i64"
+doc = "Return the total number of bytes available in a memory buffer (#693)."
+
+[[functions]]
+name = "fill_buffer"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Fill the internal buffer of a BufRead source (#693)."
+
+[[functions]]
+name = "file_from_fd"
+module = "std::io"
+doc_category = "io"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Create a FileHandle from a raw file descriptor (#693)."
+
+[[functions]]
+name = "file_read"
+module = "std::io"
+doc_category = "io"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Read bytes from a FileHandle into buf (#693)."
+
+[[functions]]
+name = "file_write"
+module = "std::io"
+doc_category = "io"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Write buf bytes to a FileHandle (#693)."
+
 # ── std::collections::linear (Deque and PriorityQueue, i32 monomorphic) ──────
 # Generics not yet available; these are i32-only per STOP_IF in issue #045.
 # All Deque functions use a Vec<i32> as a ring-buffer:
