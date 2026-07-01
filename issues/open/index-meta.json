@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-01T14:57:13Z",
+  "generated_at": "2026-07-01T17:47:21Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -101,33 +101,6 @@
       "acceptance": {
         "checked": 2,
         "unchecked": 12
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "668",
-      "path": "668-p2-native-component-polish.md",
-      "title": "668 — P2 native component polish (post-#074)",
-      "track": "wasi-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "074",
-        "done)",
-        "510",
-        "done)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -791,6 +764,33 @@
       }
     },
     {
+      "id": "714",
+      "path": "714-wasi-p2-emitter-native-component-output.md",
+      "title": "714 — Emitter-native WASI P2 component output without wrapper",
+      "track": "component-model",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "blocks_issue_ids": [
+        "668"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "646",
       "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
@@ -972,6 +972,32 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+      }
+    },
+    {
+      "id": "668",
+      "path": "668-p2-native-component-polish.md",
+      "title": "668 — P2 native component polish (post-#074)",
+      "track": "wasi-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "074",
+        "510",
+        "714"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
       }
     },
     {

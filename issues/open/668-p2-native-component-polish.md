@@ -5,7 +5,7 @@ Updated: 2026-06-17
 ID: 668
 Track: wasi-feature
 Parent: 074
-Depends on: "074 (wasi-p2-native-component, done), 510 (t3-p2-import-table-switch, done)"
+Depends on: 074, 510, 714
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none
@@ -28,7 +28,9 @@ if the queue grows.
 ## Background
 
 - Stdout uses `p2_component_wrap.py` + canonical ABI patch; stderr and direct
-  `wasi:io/streams` guest imports are not wired.
+  `wasi:io/streams` guest imports are not wired. #714 tracks the architecture
+  correction: emit wrapper-free WASI 0.2 Component Model output directly from the
+  compiler instead of repairing pseudo core imports after compilation.
 - `tests/fixtures/wasi_p2_native/` contains only `hello.ark`.
 - `BOOTSTRAP_COMPONENT_STUB` remains in `scripts/selfhost/checks.py` (FD-07 risk).
 - `docs/target-contract.md` still says P2 native is "deferred to v5+" while
@@ -39,8 +41,10 @@ if the queue grows.
 
 - [ ] P2 `eprintln` routes through `wasi:cli/stderr` (or documented equivalent
       streams path) with wasmtime stderr proof fixture
-- [ ] Guest print path documents whether stdout uses `wasi:cli/stdout` direct
-      import vs wrap-time `wasi:io/streams` adapt; prefer one coherent architecture
+- [ ] Guest print path follows #714's coherent architecture: wrapper-free
+      emitter-native WASI 0.2 component output using `wasi:cli/stdout.get-stdout`
+      plus `wasi:io/streams` resource methods, not pseudo direct
+      `wasi:cli/stdout::write` core imports
 - [ ] `tests/fixtures/wasi_p2_native/` gains runnable gates for at least:
       `eprintln_stderr.ark`, `exit_code.ark`, `args.ark`, `env_var.ark`
       (rename or alias `hello.ark` → `hello_stdout.ark` if desired)
@@ -73,6 +77,7 @@ New script `scripts/check/gate-668-p2-native-polish.py` (or extend `gate_074`) t
 ## References
 
 - `issues/done/074-wasi-p2-native-component.md`
+- `issues/open/714-wasi-p2-emitter-native-component-output.md`
 - `scripts/selfhost/p2_component_wrap.py`, `p2_guest_stdio_patch.py`
 - `scripts/check/check-false-done-close-gates.py` (`gate_074`)
 - `docs/process/false-done-prevention.md` (FD-07)

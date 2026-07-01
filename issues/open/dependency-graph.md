@@ -10,7 +10,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I667["667 667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path"]
-  I668["668 668 — P2 native component polish (post-#074)"]
   I669["669 669 — WIT import IDE and formatter surface"]
   I670["670 670 — WIT import resolver hardening (duplicates, spans, collisions)"]
   I671["671 671 — WIT import callable type matrix (fixtures + gates)"]
@@ -37,6 +36,7 @@ graph LR
   I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
+  I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
@@ -44,6 +44,7 @@ graph LR
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
+  I668["668 668 — P2 native component polish (post-#074)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
@@ -60,6 +61,7 @@ graph LR
   I695 --> I697
   I691 --> I703
   I695 --> I703
+  I714 --> I668
   I682 --> I683
   I691 --> I709
   I695 --> I709
@@ -85,7 +87,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: 646
 - **649** depends on: 641; blocks: 699
 - **667** depends on: 666; blocks: 673
-- **668** depends on: 074, done), 510, done); blocks: none
 - **669** depends on: 652, done); blocks: none
 - **670** depends on: 653, done); blocks: none
 - **671** depends on: 653, 654; blocks: none
@@ -112,6 +113,7 @@ graph LR
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none
+- **714** depends on: 074, 510; blocks: 668
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
@@ -119,6 +121,7 @@ graph LR
 - **694** depends on: 690, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
+- **668** depends on: 074, 510, 714; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
