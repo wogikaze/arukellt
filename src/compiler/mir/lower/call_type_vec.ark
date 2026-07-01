@@ -1,5 +1,7 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
+use mir::value_types
 // Arukellt Selfhost - MIR call result type propagation for vec-producing calls.
 
 
@@ -28,6 +30,7 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
         if starts_with(clone(vec_type), "vec:") {
             let elem_ty = substring(vec_type, 4, len(vec_type))
             ctx_api_local_types::ctx_set_local_type(ctx, dest, elem_ty)
+            set_ref_vt_for_elem_type(ctx, dest, elem_ty)
         }
     }
 }
@@ -38,6 +41,21 @@ fn mark_vec_get_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
         if starts_with(clone(vec_type), "vec:") {
             let elem_ty = substring(vec_type, 4, len(vec_type))
             ctx_api_local_types::ctx_set_local_type(ctx, dest, concat(String_from("option:"), elem_ty))
+            set_ref_vt_for_elem_type(ctx, dest, elem_ty)
+        }
+    }
+}
+
+// Set the local's val_type to VT_GC_REF or VT_REF when the element type
+// is a reference type (String, string, or any non-scalar type).
+// This prevents the emitter from declaring the local as i32 and then
+// storing a GC reference value into it, which produces invalid wasm.
+fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
+    if eq(clone(elem_ty), String_from("String")) || eq(clone(elem_ty), String_from("string")) {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
 }

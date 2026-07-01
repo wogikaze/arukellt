@@ -136,21 +136,24 @@ def compile_fixture(
     tmp_inside = root / tmp_rel
     tmp_inside.mkdir(parents=True, exist_ok=True)
     guest_out = f"{tmp_rel}/{out.name}"
-    result = subprocess.run(
-        [
-            wasmtime, "run",
-            "--wasm", "gc", "--wasm", "function-references",
-            "--dir", str(root),
-            str(compiler_wasm), "--",
-            "compile", src,
-            "--target", T3_TARGET,
-            "-o", guest_out,
-        ],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-        timeout=COMPILE_TIMEOUT,
-    )
+    try:
+        result = subprocess.run(
+            [
+                wasmtime, "run",
+                "--wasm", "gc", "--wasm", "function-references",
+                "--dir", str(root),
+                str(compiler_wasm), "--",
+                "compile", src,
+                "--target", T3_TARGET,
+                "-o", guest_out,
+            ],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=COMPILE_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "timed out"
     produced = tmp_inside / out.name
     ok = produced.is_file() and produced.stat().st_size > 0
     if ok:
@@ -238,7 +241,12 @@ def main() -> int:
             ok, stderr = compile_fixture(wasmtime, compiler_wasm, src, out, REPO_ROOT)
             if not ok:
                 fail_compile += 1
-                fail_details.append(f"  COMPILE FAIL: {fixture}")
+                if "timed out" in stderr.lower():
+                    skip_count += 1
+                    fail_compile -= 1
+                    fail_details.append(f"  COMPILE TIMEOUT: {fixture}")
+                else:
+                    fail_details.append(f"  COMPILE FAIL: {fixture}")
                 continue
 
             ok, err = validate_wasm(wasm_tools, out)

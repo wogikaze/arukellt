@@ -14,6 +14,10 @@ fn MirModule_gc_enum_variant_name_at(m: MirModule, idx: i32) -> String {
     clone(get_unchecked(m.gc_enum_variant_names, idx))
 }
 
+fn MirModule_gc_enum_variant_names(m: MirModule) -> Vec<String> {
+    clone(m.gc_enum_variant_names)
+}
+
 fn MirModule_push_gc_enum_variant(m: MirModule, name: String, sig: String) {
     push(m.gc_enum_variant_names, name)
     push(m.gc_enum_variant_sigs, sig)

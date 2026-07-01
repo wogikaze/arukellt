@@ -8,6 +8,7 @@ use wasm::wasm_sections_facade
 use mir::module_functions
 use mir::module_wit_imports
 use mir::module_gc_struct
+use mir::module_gc_enum
 
 fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let fn_count = module_functions::MirModule_function_count(mir)
@@ -22,6 +23,7 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_context::emit_wasm_context_set_gc_type_base(ctx, wasm_sections_facade::type_plan_gc_type_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, wasm_sections_facade::type_plan_gc_enum_variant_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_type_map(ctx, wasm_sections_facade::type_plan_gc_enum_variant_type_map(type_plan))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_names(ctx, module_gc_enum::MirModule_gc_enum_variant_names(mir))
     wasm_context::emit_wasm_context_set_gc_struct_base(ctx, wasm_sections_facade::type_plan_gc_struct_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_struct_type_map(ctx, wasm_sections_facade::type_plan_gc_struct_type_map(type_plan))
     wasm_context::emit_wasm_context_set_gc_struct_names(ctx, module_gc_struct::MirModule_gc_struct_names(mir))

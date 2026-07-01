@@ -31,15 +31,18 @@ fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
         i = i + 1
     }
     // Record variants: payload info is in children (field nodes with type anns).
-    let child_count = decl_layout_shape::decl_layout_variant_child_count(variant)
-    let mut ci = 0
-    while ci < child_count {
-        let field_node = decl_layout_shape::decl_layout_variant_child_at(variant, ci)
-        let field_name = decl_layout_shape::decl_layout_member_name(field_node)
-        let field_type = decl_layout_shape::decl_layout_field_type_name(field_node)
-        push(payload_field_names, field_name)
-        push(payload_types, field_type)
-        ci = ci + 1
+    // Only run this loop for record variants (when no type annotations were found on the variant itself).
+    if payload_count == 0 {
+        let child_count = decl_layout_shape::decl_layout_variant_child_count(variant)
+        let mut ci = 0
+        while ci < child_count {
+            let field_node = decl_layout_shape::decl_layout_variant_child_at(variant, ci)
+            let field_name = decl_layout_shape::decl_layout_member_name(field_node)
+            let field_type = decl_layout_shape::decl_layout_field_type_name(field_node)
+            push(payload_field_names, field_name)
+            push(payload_types, field_type)
+            ci = ci + 1
+        }
     }
     layout_variant::CoreHirLayoutVariant_new(decl_layout_shape::decl_layout_member_name(variant), payload_types, payload_field_names)
 }

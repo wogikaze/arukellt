@@ -20,6 +20,10 @@ fn emit_wasm_context_set_gc_enum_variant_type_map(ctx: SelfEmitCtx, gc_enum_vari
     ctx_record::SelfEmitCtx_set_gc_enum_variant_type_map(ctx, gc_enum_variant_type_map)
 }
 
+fn emit_wasm_context_set_gc_enum_variant_names(ctx: SelfEmitCtx, gc_enum_variant_names: Vec<String>) {
+    ctx_record::SelfEmitCtx_set_gc_enum_variant_names(ctx, gc_enum_variant_names)
+}
+
 fn emit_wasm_context_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_struct_base(ctx, gc_struct_base)
 }

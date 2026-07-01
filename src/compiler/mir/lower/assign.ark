@@ -2,6 +2,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - MIR lowering helpers for assignment targets.
 
 use mir::inst_convert
@@ -22,7 +23,8 @@ fn mir_emit_ident_assign(ctx: LowerCtx, name: String, val_idx: i32) {
 }
 
 fn mir_save_field_base_from_stack(ctx: LowerCtx) -> i32 {
-    let temp = ctx_fresh_local(ctx, value_types::VT_REF())
+    let ref_vt = if ctx_gc_enum::ctx_is_gc_target(ctx) { value_types::VT_GC_REF() } else { value_types::VT_REF() }
+    let temp = ctx_fresh_local(ctx, ref_vt)
     ctx_emit(ctx, inst_local_set::MirInst_local_set(temp))
     temp
 }

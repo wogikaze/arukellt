@@ -136,6 +136,19 @@ fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32
         }
         i = i + 1
     }
+    // Check enum variant names: map slot to the enum variant type map.
+    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let ev_count = len(ev_names)
+    let mut ei = 0
+    while ei < ev_count {
+        if eq(clone(get_unchecked(ev_names, ei)), clone(struct_name)) {
+            let ev_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+            if ei < len(ev_map) {
+                return get_unchecked(ev_map, ei)
+            }
+        }
+        ei = ei + 1
+    }
     0 - 1
 }
 
@@ -148,6 +161,16 @@ fn SelfEmitCtx_has_struct_type(ctx: SelfEmitCtx, struct_name: String) -> bool {
             return true
         }
         i = i + 1
+    }
+    // Check enum variant names.
+    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let ev_count = len(ev_names)
+    let mut ei = 0
+    while ei < ev_count {
+        if eq(clone(get_unchecked(ev_names, ei)), clone(struct_name)) {
+            return true
+        }
+        ei = ei + 1
     }
     false
 }
