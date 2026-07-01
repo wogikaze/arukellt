@@ -1,0 +1,47 @@
+// Issue #696: Debug rendering for Vec<T> container types.
+//
+// Container types cannot yet receive generic `impl Debug for Vec<T>` blocks,
+// so monomorphic helpers in std::text::fmt provide Rust {:?} parity:
+//   Vec<i32>   -> [1, 2, 3]
+//   Vec<String>-> ["a", "b"]
+use std::host::stdio
+use std::text::fmt
+
+fn main() {
+    // Empty Vec<i32> -> "[]"
+    let empty: Vec<i32> = Vec_new_i32()
+    assert(eq(fmt::debug_format_vec_i32(empty), String_from("[]")))
+
+    // Vec<i32> -> "[1, 2, 3]"
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    assert(eq(fmt::debug_format_vec_i32(v), String_from("[1, 2, 3]")))
+
+    // Vec<i64> -> "[10, 20]"
+    let vl: Vec<i64> = Vec_new_i64()
+    push(vl, 10)
+    push(vl, 20)
+    assert(eq(fmt::debug_format_vec_i64(vl), String_from("[10, 20]")))
+
+    // Vec<f64> -> "[1.5, 2.5]" (compare against same intrinsic formatting)
+    let vf: Vec<f64> = Vec_new_f64()
+    push(vf, 1.5)
+    push(vf, 2.5)
+    let expected_f = concat("[", concat(f64_to_string(1.5), concat(", ", concat(f64_to_string(2.5), "]"))))
+    assert(eq(fmt::debug_format_vec_f64(vf), expected_f))
+
+    // Vec<String> -> ["a", "b"] (elements quoted via Debug for String)
+    let vs: Vec<String> = Vec_new_String()
+    push(vs, String_from("a"))
+    push(vs, String_from("b"))
+    assert(eq(fmt::debug_format_vec_string(vs), String_from("[\"a\", \"b\"]")))
+
+    // Single element Vec<i32> -> "[42]"
+    let one: Vec<i32> = Vec_new_i32()
+    push(one, 42)
+    assert(eq(fmt::debug_format_vec_i32(one), String_from("[42]")))
+
+    stdio::println(String_from("OK"))
+}

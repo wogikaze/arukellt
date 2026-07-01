@@ -1307,3 +1307,7 @@ run:stdlib_wit/wit_names.ark
 run:stdlib_wit/wit_ast_parse.ark
 t3-compile:stdlib_wit/wit_names.ark
 t3-compile:stdlib_wit/wit_ast_parse.ark
+run:stdlib_trait/debug_trait.ark
+run:stdlib_trait/debug_vec.ark
+t3-compile:stdlib_trait/debug_trait.ark
+t3-compile:stdlib_trait/debug_vec.ark
