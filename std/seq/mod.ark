@@ -276,3 +276,145 @@ pub fn upper_bound<T: Ord>(v: Vec<T>, target: T) -> i32 {
     }
     lo
 }
+
+// ── comparison-based algorithms (Ord trait) ─────────────────────────────────
+
+/// Sorts `v` in place into ascending order using the `Ord::cmp` method.
+///
+/// Uses an insertion sort — O(n²) worst case but stable and allocation-free.
+/// The input `Vec<T>` is mutated in place and also returned for convenience.
+pub fn sort_by<T: Ord>(v: Vec<T>) -> Vec<T> {
+    let n: i32 = len(v)
+    let mut i: i32 = 1
+    while i < n {
+        let mut j: i32 = i
+        while j > 0 {
+            let cur = get_unchecked(v, j)
+            let prev = get_unchecked(v, j - 1)
+            // Swap when the predecessor is greater than the current element
+            // (i.e. the pair is out of ascending order).
+            match prev.cmp(cur) {
+                Ordering::Greater => {
+                    set(v, j, prev)
+                    set(v, j - 1, cur)
+                }
+                _ => {
+                    break
+                }
+            }
+            j = j - 1
+        }
+        i = i + 1
+    }
+    v
+}
+
+/// Binary search on a sorted `Vec<T: Ord>` using the `Ord::cmp` method.
+/// Returns the index of an element equal to `target`, or -1 if not found.
+pub fn binary_search_by<T: Ord>(v: Vec<T>, target: T) -> i32 {
+    let mut lo: i32 = 0
+    let mut hi: i32 = len(v) - 1
+    let mut result: i32 = 0 - 1
+    while lo <= hi {
+        let mid: i32 = lo + (hi - lo) / 2
+        match get_unchecked(v, mid).cmp(target) {
+            Ordering::Equal => {
+                result = mid
+                lo = hi + 1
+            }
+            Ordering::Less => {
+                lo = mid + 1
+            }
+            Ordering::Greater => {
+                hi = mid - 1
+            }
+        }
+    }
+    result
+}
+
+/// Returns the minimum element of `v` by `Ord` ordering.
+/// Panics (traps) if `v` is empty.
+pub fn min_by<T: Ord>(v: Vec<T>) -> T {
+    let n: i32 = len(v)
+    let mut best = get_unchecked(v, 0)
+    let mut i: i32 = 1
+    while i < n {
+        let cur = get_unchecked(v, i)
+        match cur.cmp(best) {
+            Ordering::Less => {
+                best = cur
+            }
+            _ => {
+            }
+        }
+        i = i + 1
+    }
+    best
+}
+
+/// Returns the maximum element of `v` by `Ord` ordering.
+/// Panics (traps) if `v` is empty.
+pub fn max_by<T: Ord>(v: Vec<T>) -> T {
+    let n: i32 = len(v)
+    let mut best = get_unchecked(v, 0)
+    let mut i: i32 = 1
+    while i < n {
+        let cur = get_unchecked(v, i)
+        match cur.cmp(best) {
+            Ordering::Greater => {
+                best = cur
+            }
+            _ => {
+            }
+        }
+        i = i + 1
+    }
+    best
+}
+
+/// Returns the element of `v` whose `key(element)` is minimal by `Ord`.
+/// Panics (traps) if `v` is empty.
+pub fn min_by_key<T, K: Ord>(v: Vec<T>, key: fn(T) -> K) -> T {
+    let n: i32 = len(v)
+    let mut best = get_unchecked(v, 0)
+    let mut best_key = key(best)
+    let mut i: i32 = 1
+    while i < n {
+        let cur = get_unchecked(v, i)
+        let cur_key = key(cur)
+        match cur_key.cmp(best_key) {
+            Ordering::Less => {
+                best = cur
+                best_key = cur_key
+            }
+            _ => {
+            }
+        }
+        i = i + 1
+    }
+    best
+}
+
+/// Returns the element of `v` whose `key(element)` is maximal by `Ord`.
+/// Panics (traps) if `v` is empty.
+pub fn max_by_key<T, K: Ord>(v: Vec<T>, key: fn(T) -> K) -> T {
+    let n: i32 = len(v)
+    let mut best = get_unchecked(v, 0)
+    let mut best_key = key(best)
+    let mut i: i32 = 1
+    while i < n {
+        let cur = get_unchecked(v, i)
+        let cur_key = key(cur)
+        match cur_key.cmp(best_key) {
+            Ordering::Greater => {
+                best = cur
+                best_key = cur_key
+            }
+            _ => {
+            }
+        }
+        i = i + 1
+    }
+    best
+}

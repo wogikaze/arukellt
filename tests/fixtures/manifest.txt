@@ -1262,3 +1262,7 @@ t3-compile:stdlib_trait/iterator_adapters.ark
 run:associated_fn/vec_new.ark
 run:associated_fn/string_from.ark
 run:associated_fn/i32_from.ark
+run:stdlib_trait/ord_trait.ark
+run:stdlib_trait/ord_sort_by.ark
+t3-compile:stdlib_trait/ord_trait.ark
+t3-compile:stdlib_trait/ord_sort_by.ark
