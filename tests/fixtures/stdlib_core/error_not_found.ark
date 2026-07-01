@@ -1,0 +1,13 @@
+use std::core::error
+use std::test
+
+fn main() {
+    let e = Error::NotFound("missing.txt")
+    test::assert_eq_string(error::error_message(e), "NotFound: missing.txt")
+
+    let e2 = Error::WasmError("bad opcode")
+    test::assert_eq_string(error::error_message(e2), "WasmError: bad opcode")
+
+    let e3 = Error::ComponentError("link failed")
+    test::assert_eq_string(error::error_message(e3), "ComponentError: link failed")
+}

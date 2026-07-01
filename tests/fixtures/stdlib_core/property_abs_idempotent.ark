@@ -1,0 +1,17 @@
+// Property: abs(abs(x)) == abs(x) for all x.
+use std::core::math
+use std::test
+
+fn main() {
+    let values = [0, 1, -1, 42, -42, 100, -100, 7, -7]
+    let mut i = 0
+    while i < 9 {
+        let x = get_unchecked(values, i)
+        let a1 = math::abs_i32(x)
+        let a2 = math::abs_i32(a1)
+        test::assert_eq_i32(a1, a2)
+        // abs result is always non-negative
+        test::assert_true(a1 >= 0)
+        i = i + 1
+    }
+}

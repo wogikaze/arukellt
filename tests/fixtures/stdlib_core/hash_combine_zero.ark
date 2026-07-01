@@ -1,0 +1,9 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    let combined = hash::combine(0, 0)
+    test::assert_true(combined >= 0)
+    // hash_combine is an alias for combine
+    test::assert_eq_i32(hash::hash_combine(0, 0), combined)
+}

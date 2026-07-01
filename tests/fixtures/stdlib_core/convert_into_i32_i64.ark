@@ -1,0 +1,16 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    // Into<i64> for i32 — widening
+    let wide: i64 = (100).into()
+    test::assert_eq_i64(wide, 100i64)
+
+    // Into<i32> for i64 — narrowing
+    let narrow: i32 = (42i64).into()
+    test::assert_eq_i32(narrow, 42)
+
+    // Round-trip: i32 -> i64 -> i32
+    let rt: i32 = ((999).into()).into()
+    test::assert_eq_i32(rt, 999)
+}

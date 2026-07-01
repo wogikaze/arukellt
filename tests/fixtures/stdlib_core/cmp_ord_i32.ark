@@ -1,0 +1,18 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    // Ord trait dispatch for i32
+    match (1).cmp(2) {
+        Ordering::Less => test::assert_true(true),
+        _ => panic("expected Less"),
+    }
+    match (5).cmp(5) {
+        Ordering::Equal => test::assert_true(true),
+        _ => panic("expected Equal"),
+    }
+    match (10).cmp(3) {
+        Ordering::Greater => test::assert_true(true),
+        _ => panic("expected Greater"),
+    }
+}

@@ -1,0 +1,11 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    // From<i64> for i32 — narrowing conversion (truncation) via trait dispatch
+    let narrow: i32 = (9001i64).into()
+    test::assert_eq_i32(narrow, 9001)
+
+    let narrow2: i32 = (0i64).into()
+    test::assert_eq_i32(narrow2, 0)
+}

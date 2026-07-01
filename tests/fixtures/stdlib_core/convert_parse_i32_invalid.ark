@@ -1,0 +1,20 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    match convert::parse_i32("abc") {
+        Option::Some(v) => panic("expected None for abc"),
+        None => {
+        },
+    }
+    match convert::parse_i32("") {
+        Option::Some(v) => panic("expected None for empty"),
+        None => {
+        },
+    }
+    match convert::parse_i32("12.5") {
+        Option::Some(v) => panic("expected None for 12.5"),
+        None => {
+        },
+    }
+}

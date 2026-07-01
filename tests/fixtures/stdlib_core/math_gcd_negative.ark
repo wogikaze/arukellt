@@ -1,0 +1,9 @@
+use std::core::math
+use std::test
+
+fn main() {
+    // gcd with negatives uses absolute values
+    test::assert_eq_i32(math::gcd(-12, 8), 4)
+    test::assert_eq_i32(math::gcd(12, -8), 4)
+    test::assert_eq_i32(math::gcd(-12, -8), 4)
+}

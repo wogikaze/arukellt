@@ -1,0 +1,14 @@
+use std::core
+use std::test
+
+fn main() {
+    let r = core::range_new(0, 5)
+    test::assert_eq_i32(core::range_len(r), 5)
+
+    // Empty range (end <= start) has length 0
+    let empty = core::range_new(5, 5)
+    test::assert_eq_i32(core::range_len(empty), 0)
+
+    let inverted = core::range_new(10, 3)
+    test::assert_eq_i32(core::range_len(inverted), 0)
+}

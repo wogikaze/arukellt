@@ -1,0 +1,9 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    let h = hash::hash_string("")
+    // Empty string hash should be the FNV offset basis (positive)
+    test::assert_true(h >= 0)
+    test::assert_eq_i32(h, hash::hash_string(""))
+}

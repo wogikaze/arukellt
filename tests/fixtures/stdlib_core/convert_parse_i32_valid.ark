@@ -1,0 +1,17 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    match convert::parse_i32("123") {
+        Option::Some(v) => test::assert_eq_i32(v, 123),
+        None => panic("expected Some(123)"),
+    }
+    match convert::parse_i32("0") {
+        Option::Some(v) => test::assert_eq_i32(v, 0),
+        None => panic("expected Some(0)"),
+    }
+    match convert::parse_i32("999999") {
+        Option::Some(v) => test::assert_eq_i32(v, 999999),
+        None => panic("expected Some(999999)"),
+    }
+}

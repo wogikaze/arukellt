@@ -1,0 +1,9 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    // Value above range is clamped to hi
+    test::assert_eq_i32(cmp::clamp(15, 0, 10), 10)
+    test::assert_eq_i32(cmp::clamp(100, 0, 10), 10)
+    test::assert_eq_i32(cmp::clamp(11, 0, 10), 10)
+}

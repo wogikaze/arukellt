@@ -1,0 +1,15 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    match cmp::cmp(1, 2) {
+        Ordering::Less => test::assert_true(true),
+        Ordering::Equal => panic("expected Less"),
+        Ordering::Greater => panic("expected Less"),
+    }
+    match cmp::cmp(-5, 0) {
+        Ordering::Less => test::assert_true(true),
+        Ordering::Equal => panic("expected Less"),
+        Ordering::Greater => panic("expected Less"),
+    }
+}

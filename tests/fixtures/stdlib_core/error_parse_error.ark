@@ -1,0 +1,10 @@
+use std::core::error
+use std::test
+
+fn main() {
+    let e = Error::ParseError { kind: "integer", input: "abc" }
+    let msg = error::error_message(e)
+    test::assert_true(contains(msg, "ParseError"))
+    test::assert_true(contains(msg, "integer"))
+    test::assert_true(contains(msg, "abc"))
+}

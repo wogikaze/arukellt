@@ -1,0 +1,8 @@
+use std::core::math
+use std::test
+
+fn main() {
+    test::assert_eq_i32(math::abs_i32(-42), 42)
+    test::assert_eq_i32(math::abs_i32(-1), 1)
+    test::assert_eq_i32(math::abs_i32(-100), 100)
+}

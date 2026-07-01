@@ -1,0 +1,10 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    // Hash trait dispatch for bool: false=0, true=1
+    let h_true = true.hash()
+    let h_false = false.hash()
+    test::assert_eq_i32(h_true, 1)
+    test::assert_eq_i32(h_false, 0)
+}

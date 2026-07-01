@@ -1,0 +1,11 @@
+use std::core::math
+use std::test
+
+fn main() {
+    test::assert_eq_i32(math::popcount(0), 0)
+    test::assert_eq_i32(math::popcount(1), 1)
+    test::assert_eq_i32(math::popcount(3), 2)
+    test::assert_eq_i32(math::popcount(7), 3)
+    test::assert_eq_i32(math::popcount(255), 8)
+    test::assert_eq_i32(math::popcount(-1), 32)
+}

@@ -1,0 +1,17 @@
+use std::core
+use std::test
+
+fn main() {
+    // Single-element inclusive range
+    let single = core::range_inclusive_new(3, 3)
+    test::assert_true(core::range_inclusive_contains(single, 3))
+    test::assert_false(core::range_inclusive_contains(single, 2))
+    test::assert_false(core::range_inclusive_contains(single, 4))
+
+    // Negative range
+    let neg = core::range_inclusive_new(-5, -1)
+    test::assert_true(core::range_inclusive_contains(neg, -5))
+    test::assert_true(core::range_inclusive_contains(neg, -3))
+    test::assert_true(core::range_inclusive_contains(neg, -1))
+    test::assert_false(core::range_inclusive_contains(neg, 0))
+}

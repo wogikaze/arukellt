@@ -1,0 +1,47 @@
+// Property: cmp defines a total order — for any a, b exactly one of
+// Less, Equal, Greater holds, and cmp(a,b) == Equal iff a == b.
+use std::core::cmp
+use std::test
+
+fn check_pair(a: i32, b: i32) {
+    let result = cmp::cmp(a, b)
+    // Exactly one variant
+    let mut count = 0
+    match result {
+        Ordering::Less => { count = count + 1 },
+        _ => {
+        },
+    }
+    match result {
+        Ordering::Equal => { count = count + 1 },
+        _ => {
+        },
+    }
+    match result {
+        Ordering::Greater => { count = count + 1 },
+        _ => {
+        },
+    }
+    test::assert_eq_i32(count, 1)
+    // Equal iff a == b
+    if a == b {
+        match result {
+            Ordering::Equal => {
+            },
+            _ => panic("expected Equal when a == b"),
+        }
+    }
+}
+
+fn main() {
+    let values = [0, 1, -1, 5, 10, -5, 100, 50]
+    let mut i = 0
+    while i < 8 {
+        let mut j = 0
+        while j < 8 {
+            check_pair(get_unchecked(values, i), get_unchecked(values, j))
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
