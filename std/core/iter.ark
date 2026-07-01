@@ -1,0 +1,733 @@
+//! std::core::iter — `Iterator`, `IntoIterator`, `FromIterator` traits and
+//! lazy adapter types.
+//!
+//! This module formalises the iteration protocol that the `for x in v` syntax
+//! uses structurally (a `next() -> Option<T>` method). It defines the three
+//! core traits from Rust's `std::iter` and provides lazy adapter structs that
+//! hold an upstream source plus a closure, pulling elements on demand.
+//!
+//! Because Arukellt's monomorphisation model does not yet support trait-object
+//! dynamic dispatch, the adapter structs are monomorphic over `i32` (matching
+//! the existing `std::seq` helpers). Each adapter exposes an inherent
+//! `next() -> Option<i32>` method so it can be used directly in `for` loops
+//! and drained by `collect_i32`. Generic trait definitions are included to
+//! formalise the protocol and enable future generalisation.
+//!
+//! **Availability:** All targets (T1 + T3). No host capability required.
+
+// ---------------------------------------------------------------------------
+// Trait definitions
+// ---------------------------------------------------------------------------
+
+/// Trait for lazy, pull-based iteration over a sequence of `T` values.
+///
+/// The sole required method is `next`, which returns `Option::Some(item)` for
+/// each successive element or `Option::None` when the iterator is exhausted.
+/// This mirrors the structural protocol that `for x in v` already uses — any
+/// type with a `next() -> Option<T>` method is iterable.
+///
+/// ## Protocol catalog: `Iterator`
+///
+/// | Type        | Status | Notes                                  |
+/// |-------------|--------|----------------------------------------|
+/// | VecIter     | impl   | Adapter over `Vec<i32>`                |
+/// | RangeIter   | impl   | Adapter over `Range`                   |
+/// | MapIter     | impl   | Lazy map adapter                       |
+/// | FilterIter  | impl   | Lazy filter adapter                    |
+/// | TakeIter    | impl   | Lazy take adapter                      |
+/// | SkipIter    | impl   | Lazy skip adapter                      |
+/// | ChainIter   | impl   | Lazy chain of two `Vec<i32>`           |
+/// | EnumerateIter | impl | Lazy enumerate adapter                 |
+/// | ZipIter     | impl   | Lazy zip of two `Vec<i32>`             |
+trait Iterator<T> {
+    fn next(self: Self) -> Option<T>
+}
+
+/// Trait for types that can be converted into an iterator.
+///
+/// `into_iter` consumes `self` and returns an `Iterator<T>`.
+trait IntoIterator<T> {
+    fn into_iter(self: Self) -> Self
+}
+
+/// Trait for collections that can be built from an iterator.
+///
+/// `from_iter` drains an iterator and constructs the collection.
+trait FromIterator<T> {
+    fn from_iter(it: Self) -> Self
+}
+
+// ---------------------------------------------------------------------------
+// VecIter — lazy adapter over Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator over the elements of a `Vec<i32>`.
+///
+/// Holds a reference to the source vector and a current index. Each `next`
+/// call advances the index and returns the next element, or `None` when the
+/// end is reached.
+pub struct VecIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+}
+
+/// Construct a `VecIter` over `v`. The iterator borrows `v` by handle.
+pub fn vec_iter(v: Vec<i32>) -> VecIter {
+    VecIter { vec: v, index: 0, length: len(v) }
+}
+
+impl VecIter {
+    /// Returns the next element, or `None` when exhausted.
+    fn next(self: VecIter) -> Option<i32> {
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+
+    /// Returns true when no more elements remain.
+    fn is_empty(self: VecIter) -> bool {
+        self.index >= self.length
+    }
+}
+
+impl Iterator<i32> for VecIter {
+    fn next(self: VecIter) -> Option<i32> {
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl IntoIterator<i32> for VecIter {
+    fn into_iter(self: VecIter) -> VecIter {
+        self
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RangeIter — lazy adapter over Range
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator over a half-open integer range `[start, end)`.
+pub struct RangeIter {
+    current: i32,
+    end: i32,
+}
+
+/// Construct a `RangeIter` from a `Range`.
+pub fn range_iter(r: Range) -> RangeIter {
+    RangeIter { current: r.start, end: r.end }
+}
+
+impl RangeIter {
+    /// Returns the next integer, or `None` when the range is exhausted.
+    fn next(self: RangeIter) -> Option<i32> {
+        if self.current < self.end {
+            let val: i32 = self.current
+            self.current = self.current + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl Iterator<i32> for RangeIter {
+    fn next(self: RangeIter) -> Option<i32> {
+        if self.current < self.end {
+            let val: i32 = self.current
+            self.current = self.current + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MapIter — lazy map adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that applies `f` to each element of the source vector.
+pub struct MapIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    f: fn(i32) -> i32,
+}
+
+/// Construct a `MapIter` over `v` with transform `f`.
+pub fn map_iter(v: Vec<i32>, f: fn(i32) -> i32) -> MapIter {
+    MapIter { vec: v, index: 0, length: len(v), f: f }
+}
+
+impl MapIter {
+    fn next(self: MapIter) -> Option<i32> {
+        if self.index < self.length {
+            let raw: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some((self.f)(raw))
+        } else {
+            None
+        }
+    }
+}
+
+impl Iterator<i32> for MapIter {
+    fn next(self: MapIter) -> Option<i32> {
+        if self.index < self.length {
+            let raw: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some((self.f)(raw))
+        } else {
+            None
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// FilterIter — lazy filter adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields only elements for which `f` returns `true`.
+pub struct FilterIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    f: fn(i32) -> bool,
+}
+
+/// Construct a `FilterIter` over `v` with predicate `f`.
+pub fn filter_iter(v: Vec<i32>, f: fn(i32) -> bool) -> FilterIter {
+    FilterIter { vec: v, index: 0, length: len(v), f: f }
+}
+
+impl FilterIter {
+    fn next(self: FilterIter) -> Option<i32> {
+        while self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            if (self.f)(val) {
+                return Some(val)
+            }
+        }
+        None
+    }
+}
+
+impl Iterator<i32> for FilterIter {
+    fn next(self: FilterIter) -> Option<i32> {
+        while self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            if (self.f)(val) {
+                return Some(val)
+            }
+        }
+        None
+    }
+}
+
+// ---------------------------------------------------------------------------
+// TakeIter — lazy take adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields at most `n` elements from the source.
+pub struct TakeIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    remaining: i32,
+}
+
+/// Construct a `TakeIter` over `v` limited to `n` elements.
+pub fn take_iter(v: Vec<i32>, n: i32) -> TakeIter {
+    TakeIter { vec: v, index: 0, length: len(v), remaining: n }
+}
+
+impl TakeIter {
+    fn next(self: TakeIter) -> Option<i32> {
+        if self.remaining <= 0 {
+            return None
+        }
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl Iterator<i32> for TakeIter {
+    fn next(self: TakeIter) -> Option<i32> {
+        if self.remaining <= 0 {
+            return None
+        }
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            self.remaining = self.remaining - 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SkipIter — lazy skip adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that skips the first `n` elements of the source.
+pub struct SkipIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+    to_skip: i32,
+}
+
+/// Construct a `SkipIter` over `v` that drops the first `n` elements.
+pub fn skip_iter(v: Vec<i32>, n: i32) -> SkipIter {
+    SkipIter { vec: v, index: 0, length: len(v), to_skip: n }
+}
+
+impl SkipIter {
+    fn next(self: SkipIter) -> Option<i32> {
+        while self.to_skip > 0 && self.index < self.length {
+            self.index = self.index + 1
+            self.to_skip = self.to_skip - 1
+        }
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl Iterator<i32> for SkipIter {
+    fn next(self: SkipIter) -> Option<i32> {
+        while self.to_skip > 0 && self.index < self.length {
+            self.index = self.index + 1
+            self.to_skip = self.to_skip - 1
+        }
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            self.index = self.index + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ChainIter — lazy chain of two Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields all elements of `first` then all of `second`.
+pub struct ChainIter {
+    first: Vec<i32>,
+    second: Vec<i32>,
+    index: i32,
+    first_len: i32,
+    second_len: i32,
+}
+
+/// Construct a `ChainIter` over two vectors.
+pub fn chain_iter(first: Vec<i32>, second: Vec<i32>) -> ChainIter {
+    ChainIter {
+        first: first,
+        second: second,
+        index: 0,
+        first_len: len(first),
+        second_len: len(second),
+    }
+}
+
+impl ChainIter {
+    fn next(self: ChainIter) -> Option<i32> {
+        if self.index < self.first_len {
+            let val: i32 = get_unchecked(self.first, self.index)
+            self.index = self.index + 1
+            Some(val)
+        } else {
+            let second_index: i32 = self.index - self.first_len
+            if second_index < self.second_len {
+                let val: i32 = get_unchecked(self.second, second_index)
+                self.index = self.index + 1
+                Some(val)
+            } else {
+                None
+            }
+        }
+    }
+}
+
+impl Iterator<i32> for ChainIter {
+    fn next(self: ChainIter) -> Option<i32> {
+        if self.index < self.first_len {
+            let val: i32 = get_unchecked(self.first, self.index)
+            self.index = self.index + 1
+            Some(val)
+        } else {
+            let second_index: i32 = self.index - self.first_len
+            if second_index < self.second_len {
+                let val: i32 = get_unchecked(self.second, second_index)
+                self.index = self.index + 1
+                Some(val)
+            } else {
+                None
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EnumerateIter — lazy enumerate adapter
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields `(index, value)` pairs as a packed i32.
+///
+/// The index is stored in the high 16 bits and the value in the low 16 bits
+/// so the result fits in a single `i32`. This keeps the adapter monomorphic
+/// while still carrying both pieces of information.
+pub struct EnumerateIter {
+    vec: Vec<i32>,
+    index: i32,
+    length: i32,
+}
+
+/// Construct an `EnumerateIter` over `v`.
+pub fn enumerate_iter(v: Vec<i32>) -> EnumerateIter {
+    EnumerateIter { vec: v, index: 0, length: len(v) }
+}
+
+impl EnumerateIter {
+    /// Returns `Some(index * 65536 + value)` or `None` when exhausted.
+    fn next(self: EnumerateIter) -> Option<i32> {
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            let packed: i32 = self.index * 65536 + val
+            self.index = self.index + 1
+            Some(packed)
+        } else {
+            None
+        }
+    }
+}
+
+impl Iterator<i32> for EnumerateIter {
+    fn next(self: EnumerateIter) -> Option<i32> {
+        if self.index < self.length {
+            let val: i32 = get_unchecked(self.vec, self.index)
+            let packed: i32 = self.index * 65536 + val
+            self.index = self.index + 1
+            Some(packed)
+        } else {
+            None
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ZipIter — lazy zip of two Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// Lazy iterator that yields paired elements from two vectors as a packed i32.
+///
+/// The first vector's element occupies the high 16 bits and the second's the
+/// low 16 bits.
+pub struct ZipIter {
+    first: Vec<i32>,
+    second: Vec<i32>,
+    index: i32,
+    length: i32,
+}
+
+/// Construct a `ZipIter` over two vectors. Iteration stops at the shorter length.
+pub fn zip_iter(first: Vec<i32>, second: Vec<i32>) -> ZipIter {
+    let len_a: i32 = len(first)
+    let len_b: i32 = len(second)
+    let min_len: i32 = if len_a < len_b { len_a } else { len_b }
+    ZipIter { first: first, second: second, index: 0, length: min_len }
+}
+
+impl ZipIter {
+    /// Returns `Some(a * 65536 + b)` or `None` when exhausted.
+    fn next(self: ZipIter) -> Option<i32> {
+        if self.index < self.length {
+            let a: i32 = get_unchecked(self.first, self.index)
+            let b: i32 = get_unchecked(self.second, self.index)
+            self.index = self.index + 1
+            Some(a * 65536 + b)
+        } else {
+            None
+        }
+    }
+}
+
+impl Iterator<i32> for ZipIter {
+    fn next(self: ZipIter) -> Option<i32> {
+        if self.index < self.length {
+            let a: i32 = get_unchecked(self.first, self.index)
+            let b: i32 = get_unchecked(self.second, self.index)
+            self.index = self.index + 1
+            Some(a * 65536 + b)
+        } else {
+            None
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// collect — drain an iterator into a Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// Drain a `VecIter` into a new `Vec<i32>`.
+pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+/// Drain a `MapIter` into a new `Vec<i32>`.
+pub fn collect_map_iter(it: MapIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+/// Drain a `FilterIter` into a new `Vec<i32>`.
+pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+/// Drain a `TakeIter` into a new `Vec<i32>`.
+pub fn collect_take_iter(it: TakeIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+/// Drain a `SkipIter` into a new `Vec<i32>`.
+pub fn collect_skip_iter(it: SkipIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+/// Drain a `ChainIter` into a new `Vec<i32>`.
+pub fn collect_chain_iter(it: ChainIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+/// Drain a `RangeIter` into a new `Vec<i32>`.
+pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    while true {
+        match it.next() {
+            Some(v) => push(result, v),
+            None => break,
+        }
+    }
+    result
+}
+
+// ---------------------------------------------------------------------------
+// FromIterator impl for Vec<i32>
+// ---------------------------------------------------------------------------
+
+/// `FromIterator<i32>` impl for `Vec<i32>` — drains a `VecIter`.
+impl FromIterator<i32> for Vec<i32> {
+    fn from_iter(it: VecIter) -> Vec<i32> {
+        let result: Vec<i32> = Vec_new_i32()
+        while true {
+            match it.next() {
+                Some(v) => push(result, v),
+                None => break,
+            }
+        }
+        result
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Convenience pipeline functions (single-pass, no intermediate allocation)
+// ---------------------------------------------------------------------------
+
+/// Map `f` over `v` and collect into a new `Vec<i32>`.
+///
+/// This is the lazy-pipeline replacement for `std::seq::map_i32_i32`.
+pub fn collect_map_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
+    collect_map_iter(map_iter(v, f))
+}
+
+/// Filter `v` with `f` and collect into a new `Vec<i32>`.
+///
+/// This is the lazy-pipeline replacement for `std::seq::filter_i32`.
+pub fn collect_filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
+    collect_filter_iter(filter_iter(v, f))
+}
+
+/// Take the first `n` elements of `v` and collect into a new `Vec<i32>`.
+///
+/// This is the lazy-pipeline replacement for `std::seq::take_i32`.
+pub fn collect_take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+    collect_take_iter(take_iter(v, n))
+}
+
+/// Skip the first `n` elements of `v` and collect the rest into a new `Vec<i32>`.
+///
+/// This is the lazy-pipeline replacement for `std::seq::skip_i32`.
+pub fn collect_skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+    collect_skip_iter(skip_iter(v, n))
+}
+
+/// Chain two vectors and collect into a new `Vec<i32>`.
+pub fn collect_chain_i32(first: Vec<i32>, second: Vec<i32>) -> Vec<i32> {
+    collect_chain_iter(chain_iter(first, second))
+}
+
+/// Collect a `Range` into a `Vec<i32>`.
+pub fn collect_range_i32(r: Range) -> Vec<i32> {
+    collect_range_iter(range_iter(r))
+}
+
+/// Map then filter in a single pass — no intermediate `Vec` allocation.
+///
+/// This replaces the eager `std::seq::map_i32_i32` + `std::seq::filter_i32`
+/// chain with a single lazy traversal.
+pub fn collect_map_filter_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    while i < n {
+        let mapped: i32 = map_f(get_unchecked(v, i))
+        if filter_f(mapped) {
+            push(result, mapped)
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Map, filter, then take in a single pass — no intermediate `Vec` allocation.
+///
+/// This is the canonical lazy pipeline fixture:
+/// `v.iter().map(f).filter(g).take(n).collect()`.
+pub fn collect_map_filter_take_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool, n: i32) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let total: i32 = len(v)
+    let mut i: i32 = 0
+    let mut taken: i32 = 0
+    while i < total && taken < n {
+        let mapped: i32 = map_f(get_unchecked(v, i))
+        if filter_f(mapped) {
+            push(result, mapped)
+            taken = taken + 1
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Reduce `v` to a single value using `f`, starting from `init`.
+///
+/// This is the lazy-pipeline replacement for `std::seq::fold_i32_i32`.
+pub fn iter_fold_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    let n: i32 = len(v)
+    let mut acc: i32 = init
+    let mut i: i32 = 0
+    while i < n {
+        acc = f(acc, get_unchecked(v, i))
+        i = i + 1
+    }
+    acc
+}
+
+/// Count the number of elements yielded by the iterator.
+pub fn iter_count_i32(v: Vec<i32>) -> i32 {
+    len(v)
+}
+
+/// Sum all elements of `v`.
+pub fn iter_sum_i32(v: Vec<i32>) -> i32 {
+    iter_fold_i32(v, 0, fn(a: i32, b: i32) -> i32 { a + b })
+}
+
+/// Returns true if any element of `v` satisfies `f`.
+pub fn iter_any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if f(get_unchecked(v, i)) {
+            found = true
+        }
+        i = i + 1
+    }
+    found
+}
+
+/// Returns true if all elements of `v` satisfy `f`.
+pub fn iter_all_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    let mut all: bool = true
+    while i < n {
+        if f(get_unchecked(v, i)) == false {
+            all = false
+        }
+        i = i + 1
+    }
+    all
+}
