@@ -2,6 +2,7 @@
 
 use resolver::scope_lookup
 use resolver::ast_access
+use resolver::ref_sites
 use resolver::scope_error
 use resolver::kinds
 use resolver::paths
@@ -12,6 +13,20 @@ fn resolve_path(ctx: ResolveCtx, node: AstNode) {
     host_stub_gate::reject_host_stub_call(ctx, clone(path))
     let module_part = paths::path_module_part(clone(path))
     let symbol_part = paths::path_symbol_part(clone(path))
+    // When the parser rewrites associated function syntax (Vec::new<i32> →
+    // Vec_new_i32, String::from → String_from, i32::from → parse_i32), the
+    // NK_PATH node text no longer contains "::". Treat it as a simple ident
+    // lookup — the prelude function is already in the scope.
+    if eq(clone(module_part), clone(path)) {
+        let idx = scope_lookup::lookup(ctx, clone(path))
+        ref_sites::record_use(ctx, idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+        return
+    }
+    // Associated function syntax on builtin types (Vec::new, String::from,
+    // i32::from, ...) — the type is not a module, so skip module lookup.
+    if is_builtin_type_name(clone(module_part)) {
+        return
+    }
     let mod_idx = scope_lookup::lookup(ctx, clone(module_part))
     if mod_idx < 0 {
         scope_error::resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
@@ -26,4 +41,18 @@ fn resolve_path(ctx: ResolveCtx, node: AstNode) {
             }
         }
     }
+}
+
+// Builtin type names that support associated function syntax (Type::method).
+// These are not modules, so a path like `Vec::new` must bypass module lookup.
+fn is_builtin_type_name(name: String) -> bool {
+    if eq(clone(name), String_from("Vec")) { return true }
+    if eq(clone(name), String_from("String")) { return true }
+    if eq(clone(name), String_from("i32")) { return true }
+    if eq(clone(name), String_from("i64")) { return true }
+    if eq(clone(name), String_from("f64")) { return true }
+    if eq(clone(name), String_from("f32")) { return true }
+    if eq(clone(name), String_from("bool")) { return true }
+    if eq(clone(name), String_from("char")) { return true }
+    false
 }

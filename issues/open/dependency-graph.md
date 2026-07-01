@@ -32,7 +32,6 @@ graph LR
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I696["696 696 — `Debug` trait and `format!` / `write!` formatting ecosystem"]
-  I701["701 701 — Associated function syntax (`Vec::new<T>()`, `String::from()`)"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I704["704 std::json Full JSON RFC 8259 Compliance"]
   I705["705 std::toml Full TOML 1.0 Compliance"]
@@ -61,7 +60,6 @@ graph LR
   I690 --> I694
   I691 --> I697
   I695 --> I697
-  I701 --> I703
   I691 --> I703
   I695 --> I703
   I682 --> I683
@@ -73,7 +71,6 @@ graph LR
   I703 --> I709
   I691 --> I710
   I697 --> I710
-  I701 --> I710
   I709 --> I710
   I681 --> I711
   I709 --> I711
@@ -114,7 +111,6 @@ graph LR
 - **693** depends on: 688, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
 - **696** depends on: 688, 692; blocks: none
-- **701** depends on: 700; blocks: 703, 710
 - **702** depends on: 688, 700, 692; blocks: none
 - **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none
