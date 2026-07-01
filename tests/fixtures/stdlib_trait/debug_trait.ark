@@ -1,0 +1,46 @@
+// Issue #696: Debug trait scalar impls + format_debug / write_debug_to.
+//
+// Verifies that every built-in scalar type implements `Debug` (defined in
+// std::core::convert) and that the `format!` equivalent `fmt::format_debug`
+// dispatches to the correct impl via trait dispatch. Also exercises the
+// `write!` equivalent `fmt::write_debug_to`.
+use std::host::stdio
+use std::core::convert
+use std::text::fmt
+
+fn main() {
+    // Debug for i32 — mirrors Display.
+    assert(eq(fmt::format_debug(42), String_from("42")))
+    assert(eq(fmt::format_debug(-7), String_from("-7")))
+    assert(eq(fmt::format_debug(0), String_from("0")))
+
+    // Debug for i64 — mirrors Display.
+    let big: i64 = 1000000000000
+    assert(eq(fmt::format_debug(big), i64_to_string(big)))
+
+    // Debug for f64 — mirrors Display (compare against the same intrinsic).
+    assert(eq(fmt::format_debug(3.14), f64_to_string(3.14)))
+    assert(eq(fmt::format_debug(0.0), f64_to_string(0.0)))
+
+    // Debug for bool.
+    assert(eq(fmt::format_debug(true), String_from("true")))
+    assert(eq(fmt::format_debug(false), String_from("false")))
+
+    // Debug for char.
+    assert(eq(fmt::format_debug('A'), String_from("A")))
+    assert(eq(fmt::format_debug('z'), String_from("z")))
+
+    // Debug for String — quoted with double quotes (Rust {:?} parity).
+    assert(eq(fmt::format_debug(String_from("hello")), String_from("\"hello\"")))
+    assert(eq(fmt::format_debug(String_from("")), String_from("\"\"")))
+
+    // write_debug_to appends the Debug rendering onto a buffer.
+    let buf = fmt::write_debug_to(String_from("value="), 42)
+    assert(eq(buf, String_from("value=42")))
+
+    // write_debug_to on a String quotes it.
+    let buf2 = fmt::write_debug_to(String_from("s="), String_from("hi"))
+    assert(eq(buf2, String_from("s=\"hi\"")))
+
+    stdio::println(String_from("OK"))
+}

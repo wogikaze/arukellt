@@ -1,4 +1,13 @@
-/// Format utilities — primitive-to-string conversion and padding.
+/// Format utilities — primitive-to-string conversion, padding, and the
+/// `Debug` formatting ecosystem (issue #696).
+///
+/// The `Debug` trait itself and scalar impls live in `std::core::convert`.
+/// This module provides the `format!` / `write!` equivalents
+/// (`format_debug`, `write_debug_to`) and monomorphic `Debug` helpers for
+/// container types (`Vec<T>`, `Option<T>`, `Result<T, E>`) that cannot yet
+/// receive generic trait impls.
+use std::core::convert
+
 /// Formats an `i32` as a decimal string.
 pub fn format_i32(n: i32) -> String {
     __intrinsic_i32_to_string(n)
@@ -52,4 +61,176 @@ pub fn pad_right(s: String, width: i32, fill: String) -> String {
     }
     let padded = __intrinsic_concat(s, padding)
     __intrinsic_string_slice(padded, 0, width)
+}
+
+// ---------------------------------------------------------------------------
+// `Debug` formatting ecosystem (issue #696).
+//
+// `format_debug` is the `format!("{:?}", value)` equivalent: a generic
+// function bounded by `Debug` that dispatches to the type's `fmt_debug` impl
+// via monomorphization-based static dispatch (#688).
+//
+// `write_debug_to` is the `write!(buf, "{:?}", value)` equivalent: it appends
+// the `Debug` rendering of `value` onto a string buffer and returns the
+// updated buffer (Arukellt strings are immutable, so the buffer is threaded
+// through return values rather than mutated in place).
+//
+// Container types (`Vec<T>`, `Option<T>`, `Result<T, E>`) cannot yet receive
+// generic `impl Debug for Vec<T>` blocks, so monomorphic helpers are provided
+// for the most common element types. Each helper renders with Rust `{:?}`
+// parity:
+//
+//   Vec<T>     -> `[1, 2, 3]`        / `["a", "b"]`
+//   Option<T>  -> `Some(42)`         / `None`
+//   Result<T,E>-> `Ok(42)`           / `Err("msg")`
+// ---------------------------------------------------------------------------
+
+/// `format!("{:?}", value)` equivalent — renders any `Debug` value to a
+/// `String` via trait dispatch.
+pub fn format_debug<T: Debug>(value: T) -> String {
+    value.fmt_debug()
+}
+
+/// `write!(buf, "{:?}", value)` equivalent — appends the `Debug` rendering of
+/// `value` to `buf` and returns the updated buffer.
+pub fn write_debug_to<T: Debug>(buf: String, value: T) -> String {
+    __intrinsic_concat(buf, value.fmt_debug())
+}
+
+// ── Vec<T> Debug helpers ────────────────────────────────────────────────────
+
+/// `Debug` rendering of `Vec<i32>`: `[1, 2, 3]`.
+pub fn debug_format_vec_i32(v: Vec<i32>) -> String {
+    let n = len(v)
+    let mut s = "["
+    let mut i = 0
+    while i < n {
+        match get(v, i) {
+            Option::Some(val) => {
+                s = __intrinsic_concat(s, format_debug(val))
+            }
+            None => {}
+        }
+        if i < n - 1 {
+            s = __intrinsic_concat(s, ", ")
+        }
+        i = i + 1
+    }
+    __intrinsic_concat(s, "]")
+}
+
+/// `Debug` rendering of `Vec<i64>`: `[1, 2, 3]`.
+pub fn debug_format_vec_i64(v: Vec<i64>) -> String {
+    let n = len(v)
+    let mut s = "["
+    let mut i = 0
+    while i < n {
+        match get(v, i) {
+            Option::Some(val) => {
+                s = __intrinsic_concat(s, format_debug(val))
+            }
+            None => {}
+        }
+        if i < n - 1 {
+            s = __intrinsic_concat(s, ", ")
+        }
+        i = i + 1
+    }
+    __intrinsic_concat(s, "]")
+}
+
+/// `Debug` rendering of `Vec<f64>`: `[1.5, 2.5]`.
+pub fn debug_format_vec_f64(v: Vec<f64>) -> String {
+    let n = len(v)
+    let mut s = "["
+    let mut i = 0
+    while i < n {
+        match get(v, i) {
+            Option::Some(val) => {
+                s = __intrinsic_concat(s, format_debug(val))
+            }
+            None => {}
+        }
+        if i < n - 1 {
+            s = __intrinsic_concat(s, ", ")
+        }
+        i = i + 1
+    }
+    __intrinsic_concat(s, "]")
+}
+
+/// `Debug` rendering of `Vec<bool>`: `[true, false]`.
+pub fn debug_format_vec_bool(v: Vec<bool>) -> String {
+    let n = len(v)
+    let mut s = "["
+    let mut i = 0
+    while i < n {
+        match get(v, i) {
+            Option::Some(val) => {
+                s = __intrinsic_concat(s, format_debug(val))
+            }
+            None => {}
+        }
+        if i < n - 1 {
+            s = __intrinsic_concat(s, ", ")
+        }
+        i = i + 1
+    }
+    __intrinsic_concat(s, "]")
+}
+
+/// `Debug` rendering of `Vec<String>`: `["a", "b"]` (each element quoted).
+pub fn debug_format_vec_string(v: Vec<String>) -> String {
+    let n = len(v)
+    let mut s = "["
+    let mut i = 0
+    while i < n {
+        match get(v, i) {
+            Option::Some(val) => {
+                s = __intrinsic_concat(s, format_debug(val))
+            }
+            None => {}
+        }
+        if i < n - 1 {
+            s = __intrinsic_concat(s, ", ")
+        }
+        i = i + 1
+    }
+    __intrinsic_concat(s, "]")
+}
+
+// ── Option<T> Debug helpers ─────────────────────────────────────────────────
+
+/// `Debug` rendering of `Option<i32>`: `Some(42)` / `None`.
+pub fn debug_format_option_i32(o: Option<i32>) -> String {
+    match o {
+        Option::Some(v) => __intrinsic_concat("Some(", __intrinsic_concat(format_debug(v), ")")),
+        None => "None",
+    }
+}
+
+/// `Debug` rendering of `Option<String>`: `Some("msg")` / `None`.
+pub fn debug_format_option_string(o: Option<String>) -> String {
+    match o {
+        Option::Some(v) => __intrinsic_concat("Some(", __intrinsic_concat(format_debug(v), ")")),
+        None => "None",
+    }
+}
+
+// ── Result<T, E> Debug helpers ──────────────────────────────────────────────
+
+/// `Debug` rendering of `Result<i32, String>`: `Ok(42)` / `Err("msg")`.
+pub fn debug_format_result_i32_string(r: Result<i32, String>) -> String {
+    match r {
+        Result::Ok(v) => __intrinsic_concat("Ok(", __intrinsic_concat(format_debug(v), ")")),
+        Result::Err(e) => __intrinsic_concat("Err(", __intrinsic_concat(format_debug(e), ")")),
+    }
+}
+
+/// `Debug` rendering of `Result<String, String>`: `Ok("ok")` / `Err("msg")`.
+pub fn debug_format_result_string_string(r: Result<String, String>) -> String {
+    match r {
+        Result::Ok(v) => __intrinsic_concat("Ok(", __intrinsic_concat(format_debug(v), ")")),
+        Result::Err(e) => __intrinsic_concat("Err(", __intrinsic_concat(format_debug(e), ")")),
+    }
 }

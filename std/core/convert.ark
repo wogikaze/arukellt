@@ -68,6 +68,98 @@ impl Display for String {
     }
 }
 
+// ---------------------------------------------------------------------------
+// `Debug` trait (issue #696).
+//
+// `Debug` is the diagnostic formatting trait. Unlike `Display` (human-readable),
+// `Debug` produces a developer-facing representation suitable for `assert_eq!`
+// failure messages and structured inspection.
+//
+// For scalars the output mirrors `Display`, except for `String` which is
+// wrapped in double quotes (Rust `{:?}` parity).
+//
+// Container types (`Vec<T>`, `Option<T>`, `Result<T, E>`) cannot yet receive
+// generic trait impls (see `cmp.ark` — `Vec<T>` Eq is "future"), so
+// `Debug` formatting for containers is provided as monomorphic helper
+// functions in `std::text::fmt` (`debug_format_vec_i32`, etc.).
+//
+// ## Protocol catalog: `Debug`
+//
+// | Type    | Status | Notes                                    |
+// |---------|--------|------------------------------------------|
+// | i32     | impl   | Same as `Display`                        |
+// | i64     | impl   | Same as `Display`                        |
+// | f64     | impl   | Same as `Display`                        |
+// | bool    | impl   | Same as `Display`                        |
+// | char    | impl   | Same as `Display`                        |
+// | String  | impl   | Quoted: `"hello"`                        |
+// | structs | user   | Custom `impl Debug for T` (manual derive)|
+// ---------------------------------------------------------------------------
+
+/// Trait for types that can be formatted as a developer-facing diagnostic
+/// string representation (Rust `Debug` / `{:?}` equivalent).
+///
+/// Implementations should produce output that can be re-parsed where practical.
+/// For user-defined structs the conventional manual derive pattern is:
+///
+/// ```ignore
+/// impl Debug for Point {
+///     fn fmt_debug(self: Point) -> String {
+///         concat(concat(concat(concat(
+///             "Point { x: "), to_string(self.x)),
+///             ", y: "), concat(to_string(self.y), " }"))
+///     }
+/// }
+/// ```
+trait Debug {
+    fn fmt_debug(self: Debug) -> String
+}
+
+/// `Debug` impl for `i32` — mirrors `Display`.
+impl Debug for i32 {
+    fn fmt_debug(self: i32) -> String {
+        __intrinsic_i32_to_string(self)
+    }
+}
+
+/// `Debug` impl for `i64` — mirrors `Display`.
+impl Debug for i64 {
+    fn fmt_debug(self: i64) -> String {
+        __intrinsic_i64_to_string(self)
+    }
+}
+
+/// `Debug` impl for `f64` — mirrors `Display`.
+impl Debug for f64 {
+    fn fmt_debug(self: f64) -> String {
+        __intrinsic_f64_to_string(self)
+    }
+}
+
+/// `Debug` impl for `bool` — mirrors `Display`.
+impl Debug for bool {
+    fn fmt_debug(self: bool) -> String {
+        __intrinsic_bool_to_string(self)
+    }
+}
+
+/// `Debug` impl for `char` — mirrors `Display`.
+impl Debug for char {
+    fn fmt_debug(self: char) -> String {
+        __intrinsic_char_to_string(self)
+    }
+}
+
+/// `Debug` impl for `String` — quoted with double quotes (Rust `{:?}` parity).
+///
+/// NOTE: Inner quotes / control characters are not escaped; this is a
+/// best-effort scalar impl (see `docs/stdlib/604-contract-honesty-gap-ledger.md`).
+impl Debug for String {
+    fn fmt_debug(self: String) -> String {
+        __intrinsic_concat("\"", __intrinsic_concat(self, "\""))
+    }
+}
+
 pub fn i32_to_string(x: i32) -> String {
     __intrinsic_i32_to_string(x)
 }
