@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn inc(x: i32) -> i32 { x + 1 }
+fn main() {
+    let r: Result<i32, i32> = Ok(9)
+    let m: Result<i32, i32> = match r { Result::Ok(v) => Ok(inc(v)), Result::Err(e) => Err(e) }
+    match m { Result::Ok(v) => test::assert_eq_i32(v, 10), Result::Err(e) => panic("err") }
+    stdio::println("ok")
+}

@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn maybe(opt: bool, v: i32) -> Option<i32> {
+    if opt { Some(v) } else { None }
+}
+fn main() {
+    test::assert_true(is_some(maybe(true, 10)))
+    test::assert_true(is_none(maybe(false, 10)))
+    stdio::println("ok")
+}

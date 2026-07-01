@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    for i in 0..30 {
+        let opt: Option<i32> = if i % 2 == 0 { Some(i) } else { None }
+        let v: i32 = unwrap_or(opt, -1)
+        if i % 2 == 0 { test::assert_eq_i32(v, i) }
+        else { test::assert_eq_i32(v, -1) }
+    }
+    stdio::println("ok")
+}

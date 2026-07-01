@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let s: Option<i32> = Some(10)
+    let n: Option<i32> = None
+    test::assert_true(is_some(s))
+    test::assert_true(is_none(n))
+    test::assert_false(is_none(s))
+    test::assert_false(is_some(n))
+    stdio::println("ok")
+}

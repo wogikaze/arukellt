@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let ok_r: Result<i32, i32> = Ok(5)
+    let err_r: Result<i32, i32> = Err(5)
+    test::assert_true(is_ok(ok_r) != is_err(ok_r))
+    test::assert_true(is_ok(err_r) != is_err(err_r))
+    stdio::println("ok")
+}

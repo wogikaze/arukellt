@@ -1,0 +1,12 @@
+use std::host::stdio
+use std::test
+fn parse_and_double(s: String) -> Result<i32, String> {
+    let val: i32 = parse_i32(s)?
+    Ok(val * 2)
+}
+fn main() {
+    let r = parse_and_double(String_from("abc"))
+    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => {} }
+    test::assert_true(is_err(r))
+    stdio::println("ok")
+}

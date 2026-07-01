@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn try_parse(s: String) -> Result<i32, String> {
+    if eq(s, "42") { Ok(42) } else { Err(concat(String_from("parse error: "), s)) }
+}
+fn main() {
+    let r = try_parse(String_from("bad"))
+    test::assert_true(is_err(r))
+    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("parse error: bad")) }
+    stdio::println("ok")
+}

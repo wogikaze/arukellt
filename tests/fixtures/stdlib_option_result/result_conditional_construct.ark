@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn maybe(ok: bool, v: i32) -> Result<i32, i32> {
+    if ok { Ok(v) } else { Err(v) }
+}
+fn main() {
+    test::assert_true(is_ok(maybe(true, 10)))
+    test::assert_true(is_err(maybe(false, 10)))
+    stdio::println("ok")
+}

@@ -1,0 +1,15 @@
+use std::host::stdio
+use std::test
+fn step1(s: String) -> Result<i32, String> {
+    let v: i32 = parse_i32(s)?
+    Ok(v + 1)
+}
+fn step2(s: String) -> Result<i32, String> {
+    let v: i32 = step1(s)?
+    Ok(v * 2)
+}
+fn main() {
+    let r = step2(String_from("20"))
+    match r { Result::Ok(v) => test::assert_eq_i32(v, 42), Result::Err(e) => panic(e) }
+    stdio::println("ok")
+}

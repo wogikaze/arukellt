@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_false(is_none(Some(1)))
+    test::assert_false(is_none(Some(0)))
+    stdio::println("ok")
+}

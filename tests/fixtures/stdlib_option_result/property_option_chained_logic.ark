@@ -1,0 +1,12 @@
+use std::host::stdio
+use std::test
+fn main() {
+    for i in 0..20 {
+        let a: Option<i32> = Some(i)
+        let b: Option<i32> = None
+        test::assert_true(is_some(a))
+        test::assert_true(is_none(b))
+        test::assert_true(is_some(a) != is_some(b))
+    }
+    stdio::println("ok")
+}

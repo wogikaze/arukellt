@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_true(is_err(Err(1)))
+    test::assert_true(is_err(Err(0)))
+    stdio::println("ok")
+}

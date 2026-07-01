@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let mut some_count: i32 = 0
+    let mut none_count: i32 = 0
+    for i in 0..100 {
+        let opt: Option<i32> = if i % 5 == 0 { None } else { Some(i) }
+        match opt {
+            Option::Some(v) => some_count = some_count + 1,
+            None => none_count = none_count + 1,
+        }
+    }
+    test::assert_eq_i32(some_count, 80)
+    test::assert_eq_i32(none_count, 20)
+    stdio::println("ok")
+}

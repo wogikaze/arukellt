@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let mut sum: i32 = 0
+    for i in 0..20 {
+        let opt: Option<i32> = if i % 2 == 0 { Some(i) } else { None }
+        let r: Result<i32, i32> = if i % 3 == 0 { Ok(i) } else { Err(0) }
+        match opt { Option::Some(v) => sum = sum + v, None => {} }
+        match r { Result::Ok(v) => sum = sum + v, Result::Err(e) => {} }
+    }
+    test::assert_true(sum > 0)
+    stdio::println("ok")
+}

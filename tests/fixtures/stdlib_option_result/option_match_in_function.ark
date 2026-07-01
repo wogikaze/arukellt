@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn extract(o: Option<i32>) -> i32 {
+    match o {
+        Option::Some(v) => v,
+        None => 0,
+    }
+}
+fn main() {
+    test::assert_eq_i32(extract(Some(99)), 99)
+    test::assert_eq_i32(extract(None), 0)
+    stdio::println("ok")
+}

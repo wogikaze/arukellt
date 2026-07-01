@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn inc(x: i32) -> i32 { x + 1 }
+fn main() {
+    let a: Option<i32> = Some(9)
+    let m = map_option_i32_i32(a, inc)
+    match m { Option::Some(v) => test::assert_eq_i32(v, 10), None => panic("none") }
+    stdio::println("ok")
+}

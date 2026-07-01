@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let mut sum: i32 = 0
+    for i in 1..11 {
+        let opt: Option<i32> = Some(i)
+        match opt { Option::Some(v) => sum = sum + v, None => {} }
+    }
+    test::assert_eq_i32(sum, 55)
+    stdio::println("ok")
+}

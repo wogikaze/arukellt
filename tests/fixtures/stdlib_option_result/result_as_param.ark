@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let ok_r: Result<i32, i32> = Ok(5)
+    let ok_result: i32 = match ok_r { Result::Ok(v) => v * 10, Result::Err(e) => 0 }
+    test::assert_eq_i32(ok_result, 50)
+    let err_r: Result<i32, i32> = Err(3)
+    let err_result: i32 = match err_r { Result::Ok(v) => 0, Result::Err(e) => -e }
+    test::assert_eq_i32(err_result, -3)
+    stdio::println("ok")
+}

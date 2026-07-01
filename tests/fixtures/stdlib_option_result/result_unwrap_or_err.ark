@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let r: Result<i32, i32> = Err(99)
+    test::assert_eq_i32(unwrap_or(r, 77), 77)
+    stdio::println("ok")
+}

@@ -1,0 +1,15 @@
+use std::host::stdio
+use std::test
+fn double(x: i32) -> i32 { x * 2 }
+fn main() {
+    for i in 0..20 {
+        let r: Result<i32, i32> = if i % 3 == 0 { Err(i) } else { Ok(i) }
+        let m: Result<i32, i32> = match r { Result::Ok(v) => Ok(double(v)), Result::Err(e) => Err(e) }
+        if i % 3 == 0 {
+            match m { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_i32(e, i) }
+        } else {
+            match m { Result::Ok(v) => test::assert_eq_i32(v, i * 2), Result::Err(e) => panic("err") }
+        }
+    }
+    stdio::println("ok")
+}

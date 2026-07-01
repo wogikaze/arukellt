@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<Option<i32>> = Some(None)
+    match a {
+        Option::Some(inner) => match inner {
+            Option::Some(v) => panic("inner some"),
+            None => {},
+        },
+        None => panic("outer none"),
+    }
+    stdio::println("ok")
+}

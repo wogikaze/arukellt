@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn make_none() -> Option<i32> {
+    None
+}
+fn main() {
+    let a = make_none()
+    test::assert_true(is_none(a))
+    stdio::println("ok")
+}

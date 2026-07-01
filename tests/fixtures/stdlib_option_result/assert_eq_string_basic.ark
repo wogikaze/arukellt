@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_eq_string(String_from("hello"), String_from("hello"))
+    test::assert_eq_string(String_from(""), String_from(""))
+    stdio::println("ok")
+}

@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn double(x: i32) -> i32 { x * 2 }
+fn main() {
+    let a: Option<i32> = Some(21)
+    let m = map_option_i32_i32(a, double)
+    match m { Option::Some(v) => test::assert_eq_i32(v, 42), None => panic("none") }
+    stdio::println("ok")
+}

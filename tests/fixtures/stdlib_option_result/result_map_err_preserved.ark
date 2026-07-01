@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn double(x: i32) -> i32 { x * 2 }
+fn main() {
+    let r: Result<i32, i32> = Err(5)
+    let m: Result<i32, i32> = match r { Result::Ok(v) => Ok(double(v)), Result::Err(e) => Err(e) }
+    match m { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_i32(e, 5) }
+    stdio::println("ok")
+}

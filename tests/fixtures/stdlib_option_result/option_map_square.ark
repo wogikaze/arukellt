@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn square(x: i32) -> i32 { x * x }
+fn main() {
+    let a: Option<i32> = Some(7)
+    let m = map_option_i32_i32(a, square)
+    match m { Option::Some(v) => test::assert_eq_i32(v, 49), None => panic("none") }
+    stdio::println("ok")
+}

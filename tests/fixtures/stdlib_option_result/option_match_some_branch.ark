@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<i32> = Some(5)
+    match a {
+        Option::Some(v) => test::assert_eq_i32(v, 5),
+        None => panic("expected Some"),
+    }
+    stdio::println("ok")
+}

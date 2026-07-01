@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn describe(o: Option<i32>) -> String {
+    match o {
+        Option::Some(v) => concat(String_from("value="), i32_to_string(v)),
+        None => String_from("empty"),
+    }
+}
+fn main() {
+    test::assert_eq_string(describe(Some(42)), String_from("value=42"))
+    test::assert_eq_string(describe(None), String_from("empty"))
+    stdio::println("ok")
+}

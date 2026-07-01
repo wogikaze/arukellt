@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_contains(String_from("parse error: bad"), String_from("error"))
+    test::assert_contains(String_from("hello world"), String_from("world"))
+    stdio::println("ok")
+}

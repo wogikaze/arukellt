@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn validate(n: i32) -> Result<i32, String> {
+    if n > 0 { Ok(n) } else { Err(String_from("must be positive")) }
+}
+fn main() {
+    test::assert_true(is_ok(validate(5)))
+    let r = validate(-1)
+    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("must be positive")) }
+    stdio::println("ok")
+}

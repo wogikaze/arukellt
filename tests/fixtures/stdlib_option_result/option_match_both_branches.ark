@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<i32> = Some(100)
+    let b: Option<i32> = None
+    match a { Option::Some(v) => test::assert_eq_i32(v, 100), None => panic("none") }
+    match b { Option::Some(v) => panic("some"), None => {} }
+    stdio::println("ok")
+}

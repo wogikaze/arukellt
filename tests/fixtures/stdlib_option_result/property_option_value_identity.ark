@@ -1,0 +1,12 @@
+use std::host::stdio
+use std::test
+fn main() {
+    for i in 0..20 {
+        let opt: Option<i32> = Some(i)
+        match opt {
+            Option::Some(v) => test::assert_eq_i32(v, i),
+            None => panic("should be some"),
+        }
+    }
+    stdio::println("ok")
+}

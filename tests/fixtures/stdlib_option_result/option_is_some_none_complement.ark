@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<i32> = Some(5)
+    let b: Option<i32> = None
+    test::assert_true(is_some(a) != is_none(a))
+    test::assert_true(is_some(b) != is_none(b))
+    stdio::println("ok")
+}

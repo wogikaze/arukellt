@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_eq_i32(unwrap_or(Some(55), 0), 55)
+    test::assert_eq_i32(unwrap_or(Some(0), 99), 0)
+    stdio::println("ok")
+}

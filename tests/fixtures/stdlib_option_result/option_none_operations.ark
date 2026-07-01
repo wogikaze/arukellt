@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let n: Option<i32> = None
+    test::assert_true(is_none(n))
+    test::assert_false(is_some(n))
+    match n { Option::Some(v) => panic("some"), None => {} }
+    test::assert_eq_i32(unwrap_or(n, 42), 42)
+    stdio::println("ok")
+}

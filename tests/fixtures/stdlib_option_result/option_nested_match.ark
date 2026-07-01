@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<Option<i32>> = Some(Some(42))
+    match a {
+        Option::Some(inner) => match inner {
+            Option::Some(v) => test::assert_eq_i32(v, 42),
+            None => panic("inner none"),
+        },
+        None => panic("outer none"),
+    }
+    stdio::println("ok")
+}

@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let mut ok_count: i32 = 0
+    for i in 0..50 {
+        let r: Result<i32, i32> = if i % 3 == 0 { Ok(i) } else { Err(i) }
+        if is_ok(r) { ok_count = ok_count + 1 }
+    }
+    test::assert_eq_i32(ok_count, 17)
+    stdio::println("ok")
+}

@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<i32> = None
+    match a {
+        Option::Some(v) => panic("expected None"),
+        None => {},
+    }
+    stdio::println("ok")
+}

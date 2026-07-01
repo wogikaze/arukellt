@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let r1: Result<i32, i32> = Ok(0)
+    match r1 { Result::Ok(v) => test::assert_eq_i32(v, 0), Result::Err(e) => panic("err") }
+    let r2: Result<i32, i32> = Ok(5)
+    match r2 { Result::Ok(v) => test::assert_eq_i32(v, 5), Result::Err(e) => panic("err") }
+    let r3: Result<i32, i32> = Err(0)
+    match r3 { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_i32(e, 0) }
+    let r4: Result<i32, i32> = Err(5)
+    match r4 { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_i32(e, 5) }
+    stdio::println("ok")
+}

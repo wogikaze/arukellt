@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let r1: Result<i32, i32> = Ok(1)
+    let r2: Result<i32, i32> = Ok(0)
+    let r3: Result<i32, i32> = Ok(-1)
+    test::assert_true(is_ok(r1))
+    test::assert_true(is_ok(r2))
+    test::assert_true(is_ok(r3))
+    stdio::println("ok")
+}

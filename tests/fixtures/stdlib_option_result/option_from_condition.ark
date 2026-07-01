@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let n: i32 = 10
+    let opt: Option<i32> = if n > 5 { Some(n) } else { None }
+    test::assert_true(is_some(opt))
+    let opt2: Option<i32> = if n > 100 { Some(n) } else { None }
+    test::assert_true(is_none(opt2))
+    stdio::println("ok")
+}

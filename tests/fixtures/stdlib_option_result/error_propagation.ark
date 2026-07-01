@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::test
+fn inner(s: String) -> Result<i32, String> {
+    if eq(s, "ok") { Ok(1) } else { Err(String_from("inner fail")) }
+}
+fn outer(s: String) -> Result<i32, String> {
+    let v: i32 = inner(s)?
+    Ok(v + 10)
+}
+fn main() {
+    let ok_r = outer(String_from("ok"))
+    match ok_r { Result::Ok(v) => test::assert_eq_i32(v, 11), Result::Err(e) => panic(e) }
+    let err_r = outer(String_from("bad"))
+    test::assert_true(is_err(err_r))
+    stdio::println("ok")
+}

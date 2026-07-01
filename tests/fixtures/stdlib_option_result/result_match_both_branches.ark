@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let ok_r: Result<i32, i32> = Ok(100)
+    let err_r: Result<i32, i32> = Err(200)
+    match ok_r { Result::Ok(v) => test::assert_eq_i32(v, 100), Result::Err(e) => panic("err") }
+    match err_r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_i32(e, 200) }
+    stdio::println("ok")
+}

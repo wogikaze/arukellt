@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::test
+fn option_to_result(o: Option<i32>) -> Result<i32, String> {
+    match o {
+        Option::Some(v) => Ok(v),
+        None => Err(String_from("was none")),
+    }
+}
+fn main() {
+    let ok_r = option_to_result(Some(42))
+    test::assert_true(is_ok(ok_r))
+    match ok_r { Result::Ok(v) => test::assert_eq_i32(v, 42), Result::Err(e) => panic(e) }
+    let err_r = option_to_result(None)
+    test::assert_true(is_err(err_r))
+    stdio::println("ok")
+}
