@@ -1228,3 +1228,7 @@ run:test_enum_gc.ark
 run:test_enum_payload_gc.ark
 run:test_gc_struct_min.ark
 diag:diagnostics/capability_stub.ark
+run:stdlib_wit/wit_names.ark
+run:stdlib_wit/wit_ast_parse.ark
+t3-compile:stdlib_wit/wit_names.ark
+t3-compile:stdlib_wit/wit_ast_parse.ark

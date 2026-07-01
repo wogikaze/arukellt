@@ -1,0 +1,125 @@
+//! WIT naming helpers (#706).
+//!
+//! Shared naming helpers used by both `std::wit` and the compiler's
+//! component-model layer.  These convert between the kebab-case names
+//! used in WIT source text and the snake_case / PascalCase identifiers
+//! used in Arukellt surface syntax.
+//!
+//! - `kebab_name`    — snake_case / PascalCase → kebab-case
+//! - `kebab_to_snake` — kebab-case → snake_case
+//! - `pascal_case`   — kebab-case / snake_case → PascalCase
+
+use std::text
+
+/// Convert an Arukellt identifier (snake_case or PascalCase) to WIT
+/// kebab-case.
+///
+/// Examples:
+///   `my_func`   → `my-func`
+///   `MyFunc`    → `my-func`
+///   `myFunc`    → `my-func`
+///   `my-func`   → `my-func` (already kebab)
+pub fn kebab_name(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 95 {
+            // underscore → hyphen
+            out = text::builder_append(out, String_from("-"))
+        } else {
+            if ch >= 65 && ch <= 90 {
+                // A-Z: insert hyphen before (unless at start or previous is hyphen)
+                if len(out) > 0 {
+                    let prev = char_at(out, len(out) - 1)
+                    if prev != 45 {
+                        out = text::builder_append(out, String_from("-"))
+                    }
+                }
+                out = text::builder_append(out, char_to_string(ch + 32))
+            } else {
+                if ch == 45 {
+                    // already a hyphen
+                    out = text::builder_append(out, String_from("-"))
+                } else {
+                    out = text::builder_append(out, substring(name, i, i + 1))
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+/// Convert a WIT kebab-case name to Arukellt snake_case.
+///
+/// Examples:
+///   `my-func`   → `my_func`
+///   `parse-markdown` → `parse_markdown`
+pub fn kebab_to_snake(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 45 {
+            out = text::builder_append(out, String_from("_"))
+        } else {
+            out = text::builder_append(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+/// Convert a kebab-case or snake_case name to PascalCase.
+///
+/// Examples:
+///   `my-func`   → `MyFunc`
+///   `my_func`   → `MyFunc`
+///   `document`  → `Document`
+pub fn pascal_case(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    let mut capitalize_next = true
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 45 || ch == 95 {
+            capitalize_next = true
+        } else {
+            if capitalize_next {
+                if ch >= 97 && ch <= 122 {
+                    out = text::builder_append(out, char_to_string(ch - 32))
+                } else {
+                    out = text::builder_append(out, substring(name, i, i + 1))
+                }
+                capitalize_next = false
+            } else {
+                out = text::builder_append(out, substring(name, i, i + 1))
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+/// Capitalize the first letter of a name (used for record/enum type names).
+/// This is a simpler form of `pascal_case` that only uppercases the first
+/// character without changing word boundaries.
+///
+/// Examples:
+///   `document`  → `Document`
+///   `Document`  → `Document`
+pub fn capitalize_first(name: String) -> String {
+    if len(name) == 0 {
+        return String_new()
+    }
+    let first = char_at(name, 0)
+    if first >= 97 && first <= 122 {
+        concat(char_to_string(first - 32), substring(name, 1, len(name)))
+    } else {
+        clone(name)
+    }
+}
