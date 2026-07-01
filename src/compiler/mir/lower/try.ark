@@ -51,6 +51,12 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
                 } else {
                     if eq(clone(ok_type_name), "i64") || eq(clone(ok_type_name), "I64") {
                         ok_vt = value_types::VT_I64()
+                    } else {
+                        // Non-scalar types (Vec, HashMap, Option, Result, etc.)
+                        // are GC refs on GC targets.
+                        if starts_with(clone(ok_type_name), String_from("vec:")) || starts_with(clone(ok_type_name), String_from("Vec_")) || starts_with(clone(ok_type_name), String_from("hashmap:")) || starts_with(clone(ok_type_name), String_from("HashMap_")) || starts_with(clone(ok_type_name), String_from("Option_")) || starts_with(clone(ok_type_name), String_from("option:")) || starts_with(clone(ok_type_name), String_from("Result_")) || starts_with(clone(ok_type_name), String_from("result:")) || starts_with(clone(ok_type_name), String_from("enum:")) {
+                            ok_vt = value_types::VT_GC_REF()
+                        }
                     }
                 }
             }
@@ -63,7 +69,7 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     if is_gc {
         let payload_vts = Vec_new_i32()
         push(payload_vts, ok_vt)
-        let mut ok_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, String_from("Ok"), payload_vts)
+        let mut ok_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Ok"), payload_vts, clone(ok_type_name))
         if ok_slot < 0 {
             ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Ok"))
         }

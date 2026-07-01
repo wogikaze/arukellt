@@ -139,6 +139,24 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     if tag == 5 { return String_from("String") }
     if tag == 4 { return String_from("bool") }
     if tag == 6 { return String_from("char") }
+    // Vec types (tag 10) are GC refs on GC targets.  Use the same
+    // "vec:<elem>" naming as mir_vec_return_type_name_from_type_info so
+    // that Result<Vec<i32>, ...> mangles to "Result_vec:i32_..." instead
+    // of "Result_i32_...".  Without this, the match payload type inference
+    // incorrectly treats the Ok payload as scalar i32 and overrides
+    // VT_GC_REF with VT_I32, causing the GC enum variant to be registered
+    // with an i32 field instead of a ref field.
+    if tag == 10 {
+        return mir_vec_return_type_name_from_type_info(ty)
+    }
+    // Option types (tag 11) are also GC refs on GC targets.
+    if tag == 11 {
+        return mir_option_return_type_name_from_type_info(ty)
+    }
+    // HashMap types (tag 13) are GC refs on GC targets.
+    if tag == 13 {
+        return mir_hashmap_return_type_name_from_type_info(ty)
+    }
     let name = typeinfo_shape::mir_type_info_name(ty)
     if len(name) > 0 {
         return name

@@ -85,10 +85,16 @@ fn core_emit_payload_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: 
                         // For non-scalar, non-String types (e.g. AppError),
                         // prefix with "enum:" so the emitter's ref local type
                         // inference maps it to the enum open type.
+                        // However, types that already have a recognised ref
+                        // prefix (vec:, hashmap:, Option_, Result_, option:,
+                        // result:) should NOT be prefixed with "enum:" because
+                        // the emitter has dedicated GC type mappings for them.
                         let mut set_type = elem_ty
                         if !core_payload_scalar_type_name(clone(elem_ty)) {
                             if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
-                                set_type = concat(String_from("enum:"), elem_ty)
+                                if !starts_with(clone(elem_ty), String_from("vec:")) && !starts_with(clone(elem_ty), String_from("hashmap:")) && !starts_with(clone(elem_ty), String_from("Option_")) && !starts_with(clone(elem_ty), String_from("option:")) && !starts_with(clone(elem_ty), String_from("Result_")) && !starts_with(clone(elem_ty), String_from("result:")) {
+                                    set_type = concat(String_from("enum:"), elem_ty)
+                                }
                             }
                         }
                         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, set_type)
@@ -159,7 +165,10 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
         if bi == 0 {
             let payload_vts = Vec_new_i32()
             push(payload_vts, effective_vt)
-            let payload_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, clone(variant_name), payload_vts)
+            // Pass the bind local's type name so that the correct GC ref
+            // type offset is used (e.g. ref10 for Vec, ref0 for String).
+            let bind_type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
+            let payload_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), payload_vts, clone(bind_type_name))
             if payload_slot >= 0 {
                 type_slot = payload_slot
             }
@@ -295,12 +304,16 @@ fn core_payload_scalar_type_name(type_name: String) -> bool {
 fn core_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    // Determine the separator: "Result_" uses '_', "result:" uses ':'.
+    // Type names like "vec:i32" contain ':' so we must not treat ':' as a
+    // separator when the prefix is "Result_".
+    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
     let mut sep = 0 - 1
     let mut i = 0
     let rlen = len(rest)
     while i < rlen {
         let ch = char_at(rest, i)
-        if ch == 95 || ch == 58 {
+        if ch == sep_char {
             sep = i
             i = rlen
         }
@@ -317,12 +330,13 @@ fn core_extract_first_result_type_param(scrut_type: String) -> String {
 fn core_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
     let mut first_sep = 0 - 1
     let mut i = 0
     let rlen = len(rest)
     while i < rlen {
         let ch = char_at(rest, i)
-        if ch == 95 || ch == 58 {
+        if ch == sep_char {
             first_sep = i
             i = rlen
         }
