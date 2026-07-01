@@ -1,9 +1,12 @@
 use typechecker::kinds
 // Arukellt Typechecker - compound expression inference dispatch.
 
+use typechecker::ast_access
 use typechecker::ast_stmt_predicates
 use typechecker::ast_expr_predicates
 use typechecker::call
+use typechecker::contract_type_constructors
+use typechecker::contract_type_access
 use typechecker::infer_binary
 use typechecker::infer_block
 use typechecker::infer_closure
@@ -11,6 +14,10 @@ use typechecker::infer_comprehension
 use typechecker::match
 
 fn infer_compound_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
+    if ast_expr_predicates::node_is_struct_lit(node) {
+        let struct_name = ast_access::node_text(node)
+        return contract_type_constructors::TypeInfo_named(commands::TY_STRUCT(), struct_name)
+    }
     if ast_expr_predicates::node_is_closure(node) {
         return infer_closure::infer_closure_expr(env, scope, fn_sigs, enum_defs, node)
     }

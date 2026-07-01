@@ -25,6 +25,9 @@ fn NK_ASSIGN() -> i32 { 18 }
 fn NK_CALL() -> i32 { 8 }
 fn NK_PATH() -> i32 { 16 }
 fn NK_METHOD_CALL() -> i32 { 21 }
+fn NK_STRUCT_LIT() -> i32 { 11 }
+fn NK_FIELD_ACCESS() -> i32 { 9 }
+fn NK_CHAR_LIT() -> i32 { 23 }
 
 // Control expression node kinds.
 fn NK_IF_EXPR() -> i32 { 13 }

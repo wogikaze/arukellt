@@ -115,30 +115,87 @@ fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, pay
 }
 
 fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
-    if eq(clone(variant_name), String_from("Some")) || eq(clone(variant_name), String_from("Option::Some")) {
-        let some_found = ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
-        if some_found >= 0 {
-            return some_found
-        }
+    // Try payload-specific lookup first — this ensures we find a variant
+    // whose field types match the actual payload value types.  This is
+    // critical when the same variant name (e.g. "Err") is used with
+    // different payload types (e.g. Result<i32, string> vs Result<i32, i32>).
+    let payload_found = ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
+    if payload_found >= 0 {
+        return payload_found
     }
-    // First try name-only lookup — the registration path may have already
+    // Fall back to name-only lookup — the registration path may have already
     // created the variant with correct field sigs derived from type names.
     // This is essential for nested enum payloads (e.g. Outer::Wrap(Inner))
     // where the value-type-based sig (VT_GC_REF -> _f1_ref0 = String) differs
     // from the type-name-based sig ("Inner" -> _f1_ref14 = enum open type).
+    // However, only accept the name-only match if the payload field types
+    // are compatible (both ref or both non-ref).  An i32 payload must not
+    // reuse a variant registered with a ref payload, and vice versa.
     let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
-        return name_slot
-    }
-    let found = ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
-    if found >= 0 {
-        return found
+        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
+        let want_field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+        if gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
+            return name_slot
+        }
     }
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
     let sig = gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
     ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
     len(ctx.gc_enum_variant_names) - 1
+}
+
+// Check if an existing variant sig is compatible with the expected payload
+// field sigs.  Two sigs are compatible if, for each payload field, both are
+// ref types or both are non-ref types (i32/i64/f64).  This allows reusing a
+// variant registered with a type-name-based ref sig (e.g. _f1_ref14) for a
+// value-type-based ref payload (e.g. _f1_ref0), but prevents reusing a ref
+// variant for an i32 payload.
+fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
+    // Extract the payload field sigs from the existing sig (everything after
+    // the base "SubF+14_S_f0_i32" prefix).
+    let base = String_from("SubF+14_S_f0_i32")
+    let existing_payload = substring_after(existing_sig, base)
+    // For single-field payloads (the common case), check if both are ref or
+    // both are non-ref.  A field sig is a ref type if it contains "ref".
+    let want_has_ref = contains(clone(want_field_sigs), String_from("ref"))
+    let existing_has_ref = contains(clone(existing_payload), String_from("ref"))
+    if want_has_ref && !existing_has_ref {
+        return false
+    }
+    if existing_has_ref && !want_has_ref {
+        return false
+    }
+    // For zero-payload (unit) variants, existing_payload is empty.
+    // If want has payload fields but existing has none, incompatible.
+    let want_len = len(want_field_sigs)
+    let existing_len = len(existing_payload)
+    if want_len > 0 && existing_len == 0 {
+        return false
+    }
+    if existing_len > 0 && want_len == 0 {
+        return false
+    }
+    true
+}
+
+// Extract the substring after the first occurrence of a prefix.
+fn substring_after(s: String, prefix: String) -> String {
+    let prefix_len = len(prefix)
+    let s_len = len(s)
+    if s_len < prefix_len {
+        return String_new()
+    }
+    // Check if s starts with prefix
+    let mut i = 0
+    while i < prefix_len {
+        if char_at(s, i) != char_at(prefix, i) {
+            return String_new()
+        }
+        i = i + 1
+    }
+    substring(s, prefix_len, s_len)
 }
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {

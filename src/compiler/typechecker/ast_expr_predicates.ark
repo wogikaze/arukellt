@@ -62,3 +62,11 @@ fn node_is_match_expr(node: AstNode) -> bool {
 fn node_is_try(node: AstNode) -> bool {
     ast_access::node_kind_is(node, kinds::NK_TRY())
 }
+
+fn node_is_struct_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_STRUCT_LIT())
+}
+
+fn node_is_char_lit(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_CHAR_LIT())
+}

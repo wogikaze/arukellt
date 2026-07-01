@@ -35,6 +35,9 @@ fn infer_leaf_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if ast_expr_predicates::node_is_bool_lit(node) {
         return TypeInfo_simple(commands::TY_BOOL())
     }
+    if ast_expr_predicates::node_is_char_lit(node) {
+        return TypeInfo_simple(commands::TY_CHAR())
+    }
     if ast_expr_predicates::node_is_ident(node) {
         let name = ast_access::node_text(node)
         contract_env_record::type_env_mark_binding_used(env, clone(name))
