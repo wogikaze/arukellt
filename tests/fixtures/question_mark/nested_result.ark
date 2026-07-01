@@ -1,0 +1,57 @@
+use std::host::stdio
+
+// Nested ? calls: multi-step error propagation across several
+// fallible functions, all sharing the same error type (String).
+// Each ? desugars to
+//   match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }
+// and From<String> for String is the identity impl, so errors
+// propagate unchanged through the call chain.
+
+fn parse_num(s: String) -> Result<i32, String> {
+    parse_i32(s)
+}
+
+fn validate_positive(n: i32) -> Result<i32, String> {
+    if n > 0 {
+        Ok(n)
+    } else {
+        Err(String_from("must be positive"))
+    }
+}
+
+fn double(n: i32) -> Result<i32, String> {
+    Ok(n * 2)
+}
+
+// Chains three ? operators: parse → validate → double.
+fn parse_validate_double(s: String) -> Result<i32, String> {
+    let n: i32 = parse_num(s)?
+    let pos: i32 = validate_positive(n)?
+    let result: i32 = double(pos)?
+    Ok(result)
+}
+
+fn main() {
+    // Ok path: "21" → 21 → positive → 42.
+    let r1 = parse_validate_double(String_from("21"))
+    match r1 {
+        Result::Ok(v) => assert(v == 42),
+        Result::Err(_) => assert(false),
+    }
+
+    // Err path: parse fails, propagates immediately.
+    let r2 = parse_validate_double(String_from("abc"))
+    match r2 {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => {}  // expected — parse error propagated
+    }
+
+    // Err path: parse succeeds but validation fails (0 is not positive).
+    let r3 = parse_validate_double(String_from("0"))
+    match r3 {
+        Result::Ok(_) => assert(false),
+        Result::Err(e) => assert(eq(e, String_from("must be positive"))),
+    }
+
+    stdio::println(String_from("OK"))
+}

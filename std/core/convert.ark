@@ -205,6 +205,19 @@ impl From<i64> for i32 {
     }
 }
 
+/// `From<String>` impl for `String` — identity passthrough.
+///
+/// This is the most common `?`-operator error conversion: when both the
+/// fallible call and the enclosing function use `String` as the error type,
+/// `From::from(e)` is a no-op. Required by the `?` operator desugaring
+/// (issue #690): `expr?` becomes
+/// `match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }`.
+impl From<String> for String {
+    fn from(v: String) -> String {
+        v
+    }
+}
+
 /// Trait for conversion into `T` (the dual of `From`).
 trait Into<T> {
     fn into(self: Into) -> T

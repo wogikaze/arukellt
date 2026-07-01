@@ -41,6 +41,17 @@ pub fn io_error_message(err: IoError) -> String {
         IoError::Other(msg) => msg,
     }
 }
+
+/// `From<IoError>` impl for `String` — flattens an `IoError` into its
+/// message string. Used by the `?` operator (issue #690) to convert
+/// `Result<_, IoError>` failures into `Result<_, String>` return types:
+/// `expr?` desugars to
+/// `match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }`.
+impl From<IoError> for String {
+    fn from(err: IoError) -> String {
+        io_error_message(err)
+    }
+}
 // ─── Reader ──────────────────────────────────────────────────────────────────
 /// Creates a Reader over the given byte buffer.
 /// 

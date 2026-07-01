@@ -1,0 +1,59 @@
+use std::host::stdio
+
+// From<E> error conversion with ?.
+//
+// `read_line` returns Result<String, String>; `process` returns
+// Result<i32, AppError>.  The ? operator applies From<String> for
+// AppError to convert the inner String error into the function's
+// AppError error type:
+//   match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }
+//
+// The From<String> for AppError impl wraps the string in AppError::Io.
+
+enum AppError {
+    Io(String),
+    Parse,
+}
+
+impl From<String> for AppError {
+    fn from(e: String) -> AppError {
+        AppError::Io(e)
+    }
+}
+
+fn read_line(s: String) -> Result<String, String> {
+    if eq(s, "ok") {
+        Ok(String_from("data"))
+    } else {
+        Err(String_from("read failed"))
+    }
+}
+
+fn process(s: String) -> Result<i32, AppError> {
+    // ? propagates the String error, converting via From<String> for AppError.
+    let line: String = read_line(s)?
+    Ok(len(line))
+}
+
+fn main() {
+    // Ok path: read succeeds, returns length of "data" (4).
+    let r1 = process(String_from("ok"))
+    match r1 {
+        Result::Ok(n) => assert(n == 4),
+        Result::Err(_) => assert(false),
+    }
+
+    // Err path: read fails, String error converted to AppError::Io.
+    let r2 = process(String_from("bad"))
+    match r2 {
+        Result::Ok(_) => assert(false),
+        Result::Err(e) => {
+            match e {
+                AppError::Io(msg) => assert(eq(msg, String_from("read failed"))),
+                AppError::Parse => assert(false),
+            }
+        },
+    }
+
+    stdio::println(String_from("OK"))
+}
