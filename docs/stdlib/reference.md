@@ -10,7 +10,7 @@
 | [stable](#stable-apis) | 432 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 28 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 309 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 26 | Superseded — see migration guidance. |
 
 ## Prelude Types
 
@@ -151,6 +151,7 @@
 | `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
 | ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
 | `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
+| ~~`Vec_new_v128`~~ ⚠️ Deprecated → `Vec::new<v128>` | `() -> Vec<v128>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
@@ -2070,7 +2071,7 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **25 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **26 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -2096,6 +2097,7 @@ Expected output: `hello world`
 | ~~`HashMap_new_i32_String`~~ | `hashmap_i32_str_new` | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i32`~~ | `Vec::new<i32>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i64`~~ | `Vec::new<i64>` | [migration-guidance.md](migration-guidance.md) |
+| ~~`Vec_new_v128`~~ | `Vec::new<v128>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `filter<i32>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |

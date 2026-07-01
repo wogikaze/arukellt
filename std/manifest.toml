@@ -667,6 +667,17 @@ stability = "stable"
 doc_category = "collections"
 
 [[functions]]
+name = "Vec_new_v128"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_v128"
+params = []
+returns = "Vec<v128>"
+prelude = true
+stability = "deprecated"
+deprecated_by = "Vec::new<v128>"
+doc_category = "collections"
+
+[[functions]]
 name = "Vec_new_String"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_Vec_new_String"

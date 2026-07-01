@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-01T12:21:05Z",
+  "generated_at": "2026-07-01T14:57:13Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -70,7 +70,6 @@
         "641"
       ],
       "blocks_issue_ids": [
-        "698",
         "699"
       ],
       "acceptance": {
@@ -475,9 +474,7 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [
-        "698"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 12,
         "unchecked": 4
@@ -818,6 +815,31 @@
       }
     },
     {
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "649",
+        "698"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "673",
       "path": "673-component-export-aggregate-expansion.md",
       "title": "673 — Component export aggregate expansion (Tier 2 blocked shapes)",
@@ -868,33 +890,6 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "wasm-tools (CI install policy)"
-      }
-    },
-    {
-      "id": "698",
-      "path": "698-std-simd-explicit-library.md",
-      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
-      "track": "wasm-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "686",
-        "649"
-      ],
-      "blocks_issue_ids": [
-        "699"
-      ],
-      "acceptance": {
-        "checked": 39,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -1001,31 +996,6 @@
       },
       "orchestration": {
         "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },

@@ -32,10 +32,14 @@ fn scratch_gc_hashmap_str_local_count() -> i32 { 1 }
 
 fn scratch_gc_enum_local_count() -> i32 { 1 }
 
+fn scratch_gc_v128_array_local_count() -> i32 { 2 }
+
+fn scratch_v128_local_count() -> i32 { 1 }
+
 fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
     let mut count = scratch_i32_local_count() + scratch_f64_local_count() + scratch_f32_local_count() + scratch_i64_local_count()
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count() + scratch_gc_string_ref_array_local_count() + scratch_gc_hashmap_str_local_count() + scratch_gc_enum_local_count()
+        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count() + scratch_gc_string_ref_array_local_count() + scratch_gc_hashmap_str_local_count() + scratch_gc_enum_local_count() + scratch_gc_v128_array_local_count() + scratch_v128_local_count()
     }
     count
 }
@@ -52,7 +56,8 @@ fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
     if scratch_i64_local_count() > 0 { count = count + 1 }
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // Each GC scratch local is emitted as a separate group (1 local per group).
-        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count() + scratch_gc_string_ref_array_local_count() + scratch_gc_hashmap_str_local_count() + scratch_gc_enum_local_count()
+        count = count + scratch_gc_local_count() + scratch_gc_i32_array_local_count() + scratch_gc_vec_local_count() + scratch_gc_string_ref_array_local_count() + scratch_gc_hashmap_str_local_count() + scratch_gc_enum_local_count() + scratch_gc_v128_array_local_count()
+        if scratch_v128_local_count() > 0 { count = count + 1 }
     }
     count
 }
@@ -69,6 +74,8 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
         emit_gc_scratch_local_decls(body, scratch_gc_string_ref_array_local_count(), ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_hashmap_str_local_count(), ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_enum_local_count(), ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        emit_gc_scratch_local_decls(body, scratch_gc_v128_array_local_count(), ctx_gc_type::SelfEmitCtx_v128_array_type(ctx))
+        emit_v128_scratch_local_decls(body, scratch_v128_local_count())
     }
 }
 
@@ -97,6 +104,13 @@ fn emit_i64_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
         writer_leb::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_I64())
+    }
+}
+
+fn emit_v128_scratch_local_decls(body: WasmWriter, count: i32) {
+    if count > 0 {
+        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_byte(body, constants::WASM_V128())
     }
 }
 

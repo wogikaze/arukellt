@@ -289,6 +289,11 @@ pub fn Vec_new_f64() -> Vec<f64> {
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
+pub fn Vec_new_v128() -> Vec<v128> {
+    __intrinsic_Vec_new_v128()
+}
+
+// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_String() -> Vec<String> {
     __intrinsic_Vec_new_String()
 }

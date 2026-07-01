@@ -11,7 +11,7 @@
 - Component emit: available on `wasm32-wasi-p2` (requires external `wasm-tools` binary and WASI adapter module)
 - Fixture harness: 654 passed, 29 skipped / 1199 entries
 - Verification: `python3 scripts/manager.py verify quick` — 162/168 checks pass
-- Stdlib manifest-backed public API: 794 functions
+- Stdlib manifest-backed public API: 795 functions
 
 - [Current state](current-state.md)
 - [Quickstart](quickstart.md)

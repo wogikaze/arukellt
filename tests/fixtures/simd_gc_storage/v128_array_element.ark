@@ -4,7 +4,7 @@ use std::simd::i32x4
 fn main() {
     let v = i32x4::splat(99)
     let arr: Vec<v128> = Vec_new_v128()
-    push_v128(arr, v)
+    arr.push(v)
     let lane0 = i32x4::extract_lane(arr[0], 0)
     stdio::println(i32_to_string(lane0))
 }

@@ -11,8 +11,11 @@ use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::intrinsics::helpers_core_heap
+use mir::function_locals_view
+use mir::local_access
 
 fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -38,6 +41,17 @@ fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
 fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        if array_base_is_vec_v128(inst, ctx) {
+            let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+            writer_leb::emit_leb128_u(w, s_idx)
+            writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
+            writer_gc::emit_gc_struct_get(w, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx), 0)
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_leb::emit_leb128_u(w, s_idx)
+            writer_gc::emit_gc_array_get(w, ctx_gc_type::SelfEmitCtx_v128_array_type(ctx))
+            return
+        }
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
         writer_gc::emit_gc_array_get(w, gc_type_idx)
     } else {
@@ -49,6 +63,23 @@ fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_core::emit_byte(w, 2)
         writer_core::emit_byte(w, 0)
     }
+}
+
+fn array_base_is_vec_v128(inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let base_idx = inst_accessors_operands::MirInst_arg0(inst)
+    if base_idx < 0 {
+        return false
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if base_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, base_idx)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+            return true
+        }
+    }
+    false
 }
 
 fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

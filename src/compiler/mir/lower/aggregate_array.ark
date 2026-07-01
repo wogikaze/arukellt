@@ -24,8 +24,15 @@ fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
 }
 
 fn mir_emit_array_index(ctx: LowerCtx, base_idx: i32, index_idx: i32) -> i32 {
-    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+    let base_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
+    let mut dest_vt = value_types::VT_I32()
+    let mut dest_type = String_from("i32")
+    if eq(clone(base_type), String_from("vec:v128")) || eq(clone(base_type), String_from("vec:V128")) {
+        dest_vt = value_types::VT_V128()
+        dest_type = String_from("v128")
+    }
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, dest_type)
     ctx_api_emit::ctx_emit(ctx, inst_array::MirInst_array_get(base_idx, index_idx, dest))
     dest
 }

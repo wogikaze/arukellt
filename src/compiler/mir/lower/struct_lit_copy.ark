@@ -23,6 +23,9 @@ fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, ba
         if field_vt == value_types::VT_I32() && is_i64_field {
             field_vt = value_types::VT_I64()
         }
+        if ctx_struct_field_is_v128(ctx, clone(struct_name), fi) {
+            field_vt = value_types::VT_V128()
+        }
         let tmp = ctx_fresh_local(ctx, field_vt)
         emit_struct_base_field_get(ctx, clone(struct_name), base_idx, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), is_f64_field, is_i64_field, byte_size)
         emit_struct_base_field_set(ctx, clone(struct_name), dest, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), is_f64_field, is_i64_field, byte_size)
@@ -39,6 +42,9 @@ fn emit_struct_base_field_get(ctx: LowerCtx, struct_name: String, base_idx: i32,
     if field_vt == value_types::VT_VOID() && is_i64_field {
         field_vt = value_types::VT_I64()
     }
+    if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(struct_name), offset) {
+        field_vt = value_types::VT_V128()
+    }
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(base_idx, clone(struct_name), offset, byte_size, field_vt, tmp))
 }
 
@@ -49,6 +55,9 @@ fn emit_struct_base_field_set(ctx: LowerCtx, struct_name: String, dest: i32, tmp
     }
     if field_vt == value_types::VT_VOID() && is_i64_field {
         field_vt = value_types::VT_I64()
+    }
+    if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(struct_name), offset) {
+        field_vt = value_types::VT_V128()
     }
     ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_sized(dest, tmp, clone(struct_name), offset, byte_size, field_vt))
 }

@@ -19,7 +19,7 @@ fn mir_register_struct_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
         fi = fi + 1
     }
     if ctx_gc_struct::ctx_is_gc_target(ctx) {
-        if ctx_gc_struct::gc_struct_has_ref_field(ctx, clone(name), fc) {
+        if ctx_gc_struct::gc_struct_needs_named_type(ctx, clone(name), fc) {
             let sig = ctx_gc_struct::gc_struct_build_sig(ctx, clone(name), fc)
             ctx_gc_struct::ctx_register_gc_struct(ctx, clone(name), sig)
         }

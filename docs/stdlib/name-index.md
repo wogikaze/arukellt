@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 769
-- **Historical/deprecated names:** 25
-- **Total entries:** 794
+- **Historical/deprecated names:** 26
+- **Total entries:** 795
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -824,6 +824,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`HashMap_String_String_len`~~ | `hashmap_str_str_len` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i32`~~ | `Vec::new<i32>` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i64`~~ | `Vec::new<i64>` | Collections | [migration-guidance.md](migration-guidance.md) |
+| ~~`Vec_new_v128`~~ | `Vec::new<v128>` | Collections | [migration-guidance.md](migration-guidance.md) |
 
 ---
 
@@ -1581,6 +1582,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | ~~`Vec_new_i64`~~ | ⚠️ deprecated | `prelude` | → `Vec::new<i64>` · [migration guide](migration-guidance.md) |
 | `Vec_new_i64_with_cap` | ✅ `stable` | `prelude` | Collections |
 | `Vec_new_String` | ✅ `stable` | `prelude` | Collections |
+| ~~`Vec_new_v128`~~ | ⚠️ deprecated | `prelude` | → `Vec::new<v128>` · [migration guide](migration-guidance.md) |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |

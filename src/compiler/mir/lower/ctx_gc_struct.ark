@@ -53,6 +53,9 @@ fn gc_struct_field_sig_for_type(type_name: String, field_idx: i32) -> String {
     if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
         return concat(prefix, String_from("_i64"))
     }
+    if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
+        return concat(prefix, String_from("_v128"))
+    }
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return concat(prefix, String_from("_ref0"))
     }
@@ -72,6 +75,20 @@ fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32)
     let mut fi = 0
     while fi < field_count {
         if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(struct_name), fi) {
+            return true
+        }
+        fi = fi + 1
+    }
+    false
+}
+
+fn gc_struct_needs_named_type(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
+    let mut fi = 0
+    while fi < field_count {
+        if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(struct_name), fi) {
+            return true
+        }
+        if ctx_struct_field_type::ctx_struct_field_is_v128(ctx, clone(struct_name), fi) {
             return true
         }
         fi = fi + 1

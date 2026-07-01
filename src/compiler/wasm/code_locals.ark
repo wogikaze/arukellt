@@ -61,6 +61,8 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             if eq(clone(type_name), String_from("vec:String")) {
                 writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
+            } else if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
             } else {
                 writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
             }

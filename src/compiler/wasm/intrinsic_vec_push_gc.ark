@@ -24,6 +24,7 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let arr_old_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
     let is_vec_string = ctx_has_vec_string_local(ctx)
+    let is_vec_v128 = ctx_gc_type::ctx_has_vec_v128_local(ctx)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
     let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
 
@@ -31,17 +32,23 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     // For Vec<i32>, value is i32 → use i32 scratch local.
     let s_val = if is_vec_string {
         ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    } else if is_vec_v128 {
+        ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
     } else {
         ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     }
     // For Vec<String>, array scratch locals must be String ref array type.
     let arr_tmp = if is_vec_string {
         ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    } else if is_vec_v128 {
+        ctx_scratch::SelfEmitCtx_scratch_gc_v128_array_local(ctx, 0)
     } else {
         arr_tmp_i32
     }
     let arr_old = if is_vec_string {
         ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 1)
+    } else if is_vec_v128 {
+        ctx_scratch::SelfEmitCtx_scratch_gc_v128_array_local(ctx, 1)
     } else {
         arr_old_i32
     }

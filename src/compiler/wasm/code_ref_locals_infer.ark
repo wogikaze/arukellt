@@ -393,6 +393,9 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
         if eq(clone(type_name), String_from("vec:String")) {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
+        if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+            return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+        }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
     if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {

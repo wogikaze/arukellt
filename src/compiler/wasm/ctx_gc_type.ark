@@ -47,10 +47,18 @@ fn SelfEmitCtx_vec_string_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 19
 }
 
+fn SelfEmitCtx_vec_v128_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 21
+}
+
 fn SelfEmitCtx_string_array_type(ctx: SelfEmitCtx) -> i32 {
     // Vec<String> uses the same element type as String (i8 array = type 0).
     // The String ref array type is at offset 15 (A_ref0).
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 15
+}
+
+fn SelfEmitCtx_v128_array_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 20
 }
 
 fn SelfEmitCtx_is_vec_string_context(ctx: SelfEmitCtx) -> bool {
@@ -68,12 +76,18 @@ fn SelfEmitCtx_vec_type_for_ctx(ctx: SelfEmitCtx) -> i32 {
     if SelfEmitCtx_is_vec_string_context(ctx) || ctx_has_vec_string_local(ctx) {
         return SelfEmitCtx_vec_string_type(ctx)
     }
+    if ctx_has_vec_v128_local(ctx) {
+        return SelfEmitCtx_vec_v128_type(ctx)
+    }
     SelfEmitCtx_vec_type(ctx)
 }
 
 fn SelfEmitCtx_array_type_for_vec(ctx: SelfEmitCtx) -> i32 {
     if SelfEmitCtx_is_vec_string_context(ctx) || ctx_has_vec_string_local(ctx) {
         return SelfEmitCtx_string_array_type(ctx)
+    }
+    if ctx_has_vec_v128_local(ctx) {
+        return SelfEmitCtx_v128_array_type(ctx)
     }
     SelfEmitCtx_i32_array_type(ctx)
 }
@@ -91,6 +105,26 @@ fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         let tname = local_access::MirLocal_type_name(loc)
         if eq(clone(tname), String_from("vec:String")) {
+            return true
+        }
+        li = li + 1
+    }
+    false
+}
+
+fn ctx_has_vec_v128_local(ctx: SelfEmitCtx) -> bool {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let name = function_identity::MirFunction_name(f)
+    if ends_with(clone(name), String_from("__v128")) {
+        return true
+    }
+    let nlocals = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < nlocals {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
             return true
         }
         li = li + 1

@@ -45,6 +45,9 @@ fn mir_emit_field_assign(ctx: LowerCtx, field_name: String, struct_idx: i32, val
         if field_vt == value_types::VT_VOID() && ctx_struct_field_is_i64(ctx, clone(base_type), fi_assign) {
             field_vt = value_types::VT_I64()
         }
+        if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(base_type), fi_assign) {
+            field_vt = value_types::VT_V128()
+        }
     } else {
         fi_assign = ctx_field_index_any(ctx, clone(field_name))
         field_off = fi_assign * 4

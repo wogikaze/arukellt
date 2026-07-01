@@ -37,6 +37,9 @@ fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i3
             dest_vt = value_types::VT_REF()
         }
     }
+    if len(base_type) > 0 && ctx_struct_layout::ctx_struct_field_is_v128(ctx, clone(base_type), field_idx) {
+        dest_vt = value_types::VT_V128()
+    }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
     let mut field_off = field_idx * 4
     let mut field_vt = value_types::VT_VOID()
@@ -47,6 +50,9 @@ fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i3
         }
         if dest_vt == value_types::VT_I64() {
             field_vt = value_types::VT_I64()
+        }
+        if ctx_struct_layout::ctx_struct_field_is_v128(ctx, clone(base_type), field_idx) {
+            field_vt = value_types::VT_V128()
         }
         let ft = ctx_struct_lookup::ctx_get_field_type(ctx, clone(base_type), clone(field_name))
         if len(ft) > 0 {

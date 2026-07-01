@@ -33,12 +33,30 @@ pub fn zero() -> v128 {
 
 /// Extract a single u16 lane (0..7) from a v128, zero-extended to i32.
 pub fn extract_lane(v: v128, lane: i32) -> i32 {
-    __simd_u16x8_extract_lane_u(v, lane)
+    if lane == 0 { return __simd_u16x8_extract_lane_u(v, 0) }
+    if lane == 1 { return __simd_u16x8_extract_lane_u(v, 1) }
+    if lane == 2 { return __simd_u16x8_extract_lane_u(v, 2) }
+    if lane == 3 { return __simd_u16x8_extract_lane_u(v, 3) }
+    if lane == 4 { return __simd_u16x8_extract_lane_u(v, 4) }
+    if lane == 5 { return __simd_u16x8_extract_lane_u(v, 5) }
+    if lane == 6 { return __simd_u16x8_extract_lane_u(v, 6) }
+    if lane == 7 { return __simd_u16x8_extract_lane_u(v, 7) }
+    panic("u16x8::extract_lane: lane out of range")
+    0
 }
 
 /// Replace a single u16 lane (0..7) in a v128, returning a new v128.
 pub fn replace_lane(v: v128, lane: i32, x: i32) -> v128 {
-    __simd_u16x8_replace_lane(v, lane, x)
+    if lane == 0 { return __simd_u16x8_replace_lane(v, 0, x) }
+    if lane == 1 { return __simd_u16x8_replace_lane(v, 1, x) }
+    if lane == 2 { return __simd_u16x8_replace_lane(v, 2, x) }
+    if lane == 3 { return __simd_u16x8_replace_lane(v, 3, x) }
+    if lane == 4 { return __simd_u16x8_replace_lane(v, 4, x) }
+    if lane == 5 { return __simd_u16x8_replace_lane(v, 5, x) }
+    if lane == 6 { return __simd_u16x8_replace_lane(v, 6, x) }
+    if lane == 7 { return __simd_u16x8_replace_lane(v, 7, x) }
+    panic("u16x8::replace_lane: lane out of range")
+    v
 }
 
 // --- Arithmetic ---

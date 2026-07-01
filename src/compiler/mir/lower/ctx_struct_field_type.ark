@@ -112,3 +112,8 @@ fn ctx_struct_field_is_i64(ctx: LowerCtx, struct_name: String, field_idx: i32) -
     }
     false
 }
+
+fn ctx_struct_field_is_v128(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
+    let ft = ctx_struct_field_type_name(ctx, clone(struct_name), field_idx)
+    eq(clone(ft), "v128") || eq(clone(ft), "V128")
+}

@@ -26,12 +26,18 @@ pub fn zero() -> v128 {
 
 /// Extract a single f64 lane (0..1) from a v128.
 pub fn extract_lane(v: v128, lane: i32) -> f64 {
-    __simd_f64x2_extract_lane(v, lane)
+    if lane == 0 { return __simd_f64x2_extract_lane(v, 0) }
+    if lane == 1 { return __simd_f64x2_extract_lane(v, 1) }
+    panic("f64x2::extract_lane: lane out of range")
+    0.0
 }
 
 /// Replace a single f64 lane (0..1) in a v128, returning a new v128.
 pub fn replace_lane(v: v128, lane: i32, x: f64) -> v128 {
-    __simd_f64x2_replace_lane(v, lane, x)
+    if lane == 0 { return __simd_f64x2_replace_lane(v, 0, x) }
+    if lane == 1 { return __simd_f64x2_replace_lane(v, 1, x) }
+    panic("f64x2::replace_lane: lane out of range")
+    v
 }
 
 // --- Arithmetic ---
