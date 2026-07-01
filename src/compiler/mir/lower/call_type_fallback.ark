@@ -16,7 +16,15 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
         if len(rtn) > 1 {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, rtn)
+            // For monomorphized calls, resolve the concrete return type
+            // name by substituting type variables with concrete types
+            // from the MonoInstance (e.g. "option:T" → "option:i32").
+            let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
+            if len(mono_rtn) > 0 {
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
+            } else {
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, rtn)
+            }
         }
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
