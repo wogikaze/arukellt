@@ -1,0 +1,17 @@
+use std::host::stdio
+use std::test
+fn find_item(found: bool) -> Result<Option<i32>, String> {
+    if !found { Err(String_from("not found")) }
+    else { Ok(Some(42)) }
+}
+fn main() {
+    let r = find_item(true)
+    match r {
+        Result::Ok(opt) => match opt {
+            Option::Some(v) => test::assert_eq_i32(v, 42),
+            None => panic("none"),
+        },
+        Result::Err(e) => panic(e),
+    }
+    stdio::println("ok")
+}

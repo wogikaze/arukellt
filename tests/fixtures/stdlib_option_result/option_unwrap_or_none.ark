@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<i32> = None
+    test::assert_eq_i32(unwrap_or(a, 99), 99)
+    stdio::println("ok")
+}

@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let r: Result<i32, i32> = Ok(55)
+    test::assert_eq_i32(unwrap(r), 55)
+    stdio::println("ok")
+}

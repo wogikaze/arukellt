@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let a: Option<String> = Some(String_from("hello"))
+    match a {
+        Option::Some(v) => test::assert_eq_string(v, String_from("hello")),
+        None => panic("none"),
+    }
+    stdio::println("ok")
+}

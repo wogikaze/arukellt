@@ -1,0 +1,14 @@
+use std::host::stdio
+use std::test
+fn compute(o: Option<i32>) -> i32 {
+    match o {
+        Option::Some(v) => v * v + 1,
+        None => 0,
+    }
+}
+fn main() {
+    test::assert_eq_i32(compute(Some(3)), 10)
+    test::assert_eq_i32(compute(Some(0)), 1)
+    test::assert_eq_i32(compute(None), 0)
+    stdio::println("ok")
+}

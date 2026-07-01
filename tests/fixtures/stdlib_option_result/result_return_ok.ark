@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn make_ok(v: i32) -> Result<i32, i32> {
+    Ok(v)
+}
+fn main() {
+    let r = make_ok(42)
+    test::assert_true(is_ok(r))
+    match r { Result::Ok(v) => test::assert_eq_i32(v, 42), Result::Err(e) => panic("err") }
+    stdio::println("ok")
+}

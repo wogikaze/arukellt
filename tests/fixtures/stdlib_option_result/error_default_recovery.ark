@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn safe_parse(s: String) -> i32 {
+    let r: Result<i32, String> = if eq(s, "0") { Ok(0) } else { Err(String_from("bad")) }
+    match r { Result::Ok(v) => v, Result::Err(e) => -1 }
+}
+fn main() {
+    test::assert_eq_i32(safe_parse(String_from("0")), 0)
+    test::assert_eq_i32(safe_parse(String_from("x")), -1)
+    stdio::println("ok")
+}

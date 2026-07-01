@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn main() {
+    for i in 0..20 {
+        let opt: Option<i32> = Some(i)
+        test::assert_true(is_some(opt))
+        test::assert_false(is_none(opt))
+    }
+    stdio::println("ok")
+}

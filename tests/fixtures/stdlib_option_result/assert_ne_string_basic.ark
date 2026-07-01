@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_ne_string(String_from("a"), String_from("b"))
+    test::assert_ne_string(String_from("ok"), String_from("err"))
+    stdio::println("ok")
+}

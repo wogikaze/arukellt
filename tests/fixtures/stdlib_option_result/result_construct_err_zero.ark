@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let r: Result<i32, i32> = Err(0)
+    test::assert_true(is_err(r))
+    stdio::println("ok")
+}

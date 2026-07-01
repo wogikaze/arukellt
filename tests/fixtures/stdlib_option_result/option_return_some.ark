@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn make_some(v: i32) -> Option<i32> {
+    Some(v)
+}
+fn main() {
+    let a = make_some(33)
+    test::assert_true(is_some(a))
+    match a { Option::Some(v) => test::assert_eq_i32(v, 33), None => panic("none") }
+    stdio::println("ok")
+}

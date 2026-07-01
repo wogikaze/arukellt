@@ -1,0 +1,9 @@
+use std::host::stdio
+use std::test
+fn get_value(o: Option<i32>) -> i32 {
+    unwrap(o)
+}
+fn main() {
+    test::assert_eq_i32(get_value(Some(77)), 77)
+    stdio::println("ok")
+}

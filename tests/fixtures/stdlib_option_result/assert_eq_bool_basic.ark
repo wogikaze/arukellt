@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_eq_bool(true, true)
+    test::assert_eq_bool(false, false)
+    stdio::println("ok")
+}

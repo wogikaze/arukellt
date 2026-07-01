@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let ok_r: Result<i32, String> = Ok(42)
+    let some: Option<i32> = match ok_r { Result::Ok(v) => Some(v), Result::Err(e) => None }
+    test::assert_true(is_some(some))
+    let err_r: Result<i32, String> = Err(String_from("fail"))
+    let none: Option<i32> = match err_r { Result::Ok(v) => Some(v), Result::Err(e) => None }
+    test::assert_true(is_none(none))
+    stdio::println("ok")
+}

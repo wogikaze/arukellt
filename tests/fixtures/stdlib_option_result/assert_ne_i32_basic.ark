@@ -1,0 +1,8 @@
+use std::host::stdio
+use std::test
+fn main() {
+    test::assert_ne_i32(1, 2)
+    test::assert_ne_i32(0, 1)
+    test::assert_ne_i32(-1, 1)
+    stdio::println("ok")
+}

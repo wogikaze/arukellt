@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+fn make_error(msg: String, ctx: String) -> Result<i32, String> {
+    Err(concat(concat(msg, String_from(" in ")), ctx))
+}
+fn main() {
+    let r = make_error(String_from("fail"), String_from("ctx"))
+    match r { Result::Ok(v) => panic("ok"), Result::Err(e) => test::assert_eq_string(e, String_from("fail in ctx")) }
+    stdio::println("ok")
+}

@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::test
+fn main() {
+    let v1: Option<i32> = Some(1)
+    let v2: Option<i32> = Some(0)
+    let v3: Option<i32> = Some(-1)
+    let v4: Option<i32> = Some(2147483647)
+    test::assert_true(is_some(v1))
+    test::assert_true(is_some(v2))
+    test::assert_true(is_some(v3))
+    test::assert_true(is_some(v4))
+    stdio::println("ok")
+}

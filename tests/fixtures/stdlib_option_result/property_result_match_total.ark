@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::test
+fn main() {
+    for i in 0..30 {
+        let r: Result<i32, i32> = if i % 2 == 0 { Ok(i) } else { Err(i) }
+        let result: i32 = match r { Result::Ok(v) => v, Result::Err(e) => -e }
+        if i % 2 == 0 { test::assert_eq_i32(result, i) }
+        else { test::assert_eq_i32(result, -i) }
+    }
+    stdio::println("ok")
+}
