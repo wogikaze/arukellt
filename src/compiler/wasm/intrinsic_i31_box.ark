@@ -28,10 +28,5 @@ fn try_emit_i31_box_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
         writer_gc::emit_gc_ref_i31(w)
         writer_gc::emit_gc_i31_get_s(w)
     }
-    let dest = inst_accessors_operands::MirInst_dest(inst)
-    if dest >= 0 {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, dest)
-    }
     return true
 }
