@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("p = { x = 1, y = 2, }")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "p") {
+            Option::Some(p) => {
+                let keys = toml::toml_table_keys(p)
+                test::assert_eq_i32(len(keys), 2)
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// trailing comma in inline table is accepted

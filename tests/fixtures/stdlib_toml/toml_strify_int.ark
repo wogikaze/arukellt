@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("n = 42")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "n") {
+            Option::Some(v) => test::assert_eq_string(toml::toml_stringify(v), "42"),
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// toml_stringify on Integer produces decimal text

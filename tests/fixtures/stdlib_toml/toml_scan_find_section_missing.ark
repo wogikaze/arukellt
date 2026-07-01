@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let content = "[server]\nhost = \"x\""
+    let body = toml::find_toml_section(content, "missing")
+    test::assert_eq_string(body, "")
+    stdio::println("OK")
+}
+// find_toml_section returns empty string for missing section

@@ -1,0 +1,28 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("a = inf\nb = nan")
+    match t {
+        Result::Ok(table) => {
+            match toml::toml_get(table, "a") {
+                Option::Some(v) => match toml::toml_as_string(v) {
+                    Option::Some(s) => test::assert_eq_string(s, "inf"),
+                    None => assert(false),
+                },
+                None => assert(false),
+            }
+            match toml::toml_get(table, "b") {
+                Option::Some(v) => match toml::toml_as_string(v) {
+                    Option::Some(s) => test::assert_eq_string(s, "nan"),
+                    None => assert(false),
+                },
+                None => assert(false),
+            }
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// inf and nan stored as String (no f64 inf/nan constructor)

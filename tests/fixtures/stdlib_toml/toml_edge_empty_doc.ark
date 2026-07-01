@@ -1,0 +1,16 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("")
+    match t {
+        Result::Ok(table) => {
+            let keys = toml::toml_table_keys(table)
+            test::assert_eq_i32(len(keys), 0)
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// empty document parses to empty table

@@ -1,0 +1,25 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("outer = { inner = { val = 9 } }")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "outer") {
+            Option::Some(o) => match toml::toml_get(o, "inner") {
+                Option::Some(i) => match toml::toml_get(i, "val") {
+                    Option::Some(v) => match toml::toml_as_int(v) {
+                        Option::Some(n) => test::assert_eq_i32(n, 9),
+                        None => assert(false),
+                    },
+                    None => assert(false),
+                },
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// nested inline table parses recursively

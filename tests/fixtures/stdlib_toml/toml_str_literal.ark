@@ -1,0 +1,19 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("path = 'C:\\Users\\dev'")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "path") {
+            Option::Some(v) => match toml::toml_as_string(v) {
+                Option::Some(s) => test::assert_eq_string(s, "C:\\Users\\dev"),
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// literal single-quoted string preserves backslashes verbatim

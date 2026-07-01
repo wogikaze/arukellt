@@ -1,0 +1,11 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let content = "[server]\nhost = \"x\"\nport = 80\n[client]\nname = \"y\""
+    let body = toml::find_toml_section(content, "server")
+    test::assert_eq_string(body, "host = \"x\"\nport = 80")
+    stdio::println("OK")
+}
+// find_toml_section extracts body between header and next section

@@ -1,0 +1,36 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("[a]\nx = 1\n[b]\ny = 2")
+    match t {
+        Result::Ok(table) => {
+            let keys = toml::toml_table_keys(table)
+            test::assert_eq_i32(len(keys), 2)
+            match toml::toml_get(table, "a") {
+                Option::Some(a) => match toml::toml_get(a, "x") {
+                    Option::Some(v) => match toml::toml_as_int(v) {
+                        Option::Some(n) => test::assert_eq_i32(n, 1),
+                        None => assert(false),
+                    },
+                    None => assert(false),
+                },
+                None => assert(false),
+            }
+            match toml::toml_get(table, "b") {
+                Option::Some(b) => match toml::toml_get(b, "y") {
+                    Option::Some(v) => match toml::toml_as_int(v) {
+                        Option::Some(n) => test::assert_eq_i32(n, 2),
+                        None => assert(false),
+                    },
+                    None => assert(false),
+                },
+                None => assert(false),
+            }
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// multiple [table] headers produce separate top-level keys

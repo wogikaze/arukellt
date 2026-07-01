@@ -1,0 +1,34 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let doc = "[a.b.c.d.e]\nval = 1"
+    match toml::toml_parse(doc) {
+        Result::Ok(table) => match toml::toml_get(table, "a") {
+            Option::Some(a) => match toml::toml_get(a, "b") {
+                Option::Some(b) => match toml::toml_get(b, "c") {
+                    Option::Some(c) => match toml::toml_get(c, "d") {
+                        Option::Some(d) => match toml::toml_get(d, "e") {
+                            Option::Some(e) => match toml::toml_get(e, "val") {
+                                Option::Some(v) => match toml::toml_as_int(v) {
+                                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                                    None => assert(false),
+                                },
+                                None => assert(false),
+                            },
+                            None => assert(false),
+                        },
+                        None => assert(false),
+                    },
+                    None => assert(false),
+                },
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// deeply nested table header [a.b.c.d.e] parses

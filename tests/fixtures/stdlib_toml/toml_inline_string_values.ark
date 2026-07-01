@@ -1,0 +1,22 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let t = toml::toml_parse("meta = { name = \"tom\", role = \"admin\" }")
+    match t {
+        Result::Ok(table) => match toml::toml_get(table, "meta") {
+            Option::Some(m) => match toml::toml_get(m, "name") {
+                Option::Some(v) => match toml::toml_as_string(v) {
+                    Option::Some(s) => test::assert_eq_string(s, "tom"),
+                    None => assert(false),
+                },
+                None => assert(false),
+            },
+            None => assert(false),
+        },
+        Result::Err(_) => assert(false),
+    }
+    stdio::println("OK")
+}
+// inline table with string values parses
