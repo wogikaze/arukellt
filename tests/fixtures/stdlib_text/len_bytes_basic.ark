@@ -1,0 +1,14 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_i32(text::len_bytes("hello"), 5)
+    test::assert_eq_i32(text::len_bytes(""), 0)
+    test::assert_eq_i32(text::len_bytes(" "), 1)
+    test::assert_eq_i32(text::len_bytes("hello world"), 11)
+    test::assert_eq_i32(text::len_bytes("a"), 1)
+    // is_empty consistency
+    test::assert_true(text::is_empty(""))
+    test::assert_false(text::is_empty("a"))
+    test::assert_false(text::is_empty(" "))
+}

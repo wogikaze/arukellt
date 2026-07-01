@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::format_i64(9223372036854775807), "9223372036854775807")
+    test::assert_eq_string(text::format_i64(-9223372036854775808), "-9223372036854775808")
+    test::assert_eq_string(text::format_i64(1000000000000), "1000000000000")
+    test::assert_eq_string(text::format_i64(-1000000000000), "-1000000000000")
+    test::assert_eq_i32(len(text::format_i64(9223372036854775807)), 19)
+}

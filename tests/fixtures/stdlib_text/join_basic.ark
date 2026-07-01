@@ -1,0 +1,9 @@
+use std::test
+use std::text
+
+fn main() {
+    let parts = text::split("a,b,c", ",")
+    test::assert_eq_string(text::join(parts, "-"), "a-b-c")
+    test::assert_eq_string(text::join(parts, ", "), "a, b, c")
+    test::assert_eq_string(text::join(parts, ""), "abc")
+}

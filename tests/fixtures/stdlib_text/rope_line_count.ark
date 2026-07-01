@@ -1,0 +1,24 @@
+use std::test
+use std::text::rope
+
+fn main() {
+    // No newlines — 1 line
+    let r = rope::rope_from_string("hello")
+    test::assert_eq_i32(rope::rope_line_count(r), 1)
+
+    // Single newline — 2 lines
+    let r2 = rope::rope_from_string("line1\nline2")
+    test::assert_eq_i32(rope::rope_line_count(r2), 2)
+
+    // Multiple newlines
+    let r3 = rope::rope_from_string("a\nb\nc\nd")
+    test::assert_eq_i32(rope::rope_line_count(r3), 4)
+
+    // Empty string — 1 line
+    let r4 = rope::rope_from_string("")
+    test::assert_eq_i32(rope::rope_line_count(r4), 1)
+
+    // Trailing newline
+    let r5 = rope::rope_from_string("hello\n")
+    test::assert_eq_i32(rope::rope_line_count(r5), 2)
+}

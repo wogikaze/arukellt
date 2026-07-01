@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    // index_of returns the FIRST occurrence
+    test::assert_eq_i32(text::index_of("abcabc", "abc"), 0)
+    test::assert_eq_i32(text::index_of("xxabcxxabc", "abc"), 2)
+    test::assert_eq_i32(text::index_of("aaa", "a"), 0)
+    test::assert_eq_i32(text::index_of("ababab", "ab"), 0)
+    // Search for space in multiple spaces
+    test::assert_eq_i32(text::index_of("a  b", " "), 1)
+}

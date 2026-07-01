@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    // Empty builder
+    let sb = text::builder_new()
+    test::assert_eq_i32(text::builder_len(sb), 0)
+    test::assert_eq_string(text::builder_build(sb), "")
+    test::assert_true(text::is_empty(text::builder_build(sb)))
+}

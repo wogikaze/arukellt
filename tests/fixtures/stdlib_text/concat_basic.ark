@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::concat("foo", "bar"), "foobar")
+    test::assert_eq_string(text::concat("hello", " "), "hello ")
+    test::assert_eq_string(text::concat("", "abc"), "abc")
+    test::assert_eq_string(text::concat("abc", ""), "abc")
+    test::assert_eq_string(text::concat("a", "b"), "ab")
+}

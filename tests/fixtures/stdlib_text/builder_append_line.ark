@@ -1,0 +1,18 @@
+use std::test
+use std::text
+
+fn main() {
+    // builder_append_line adds a newline after the string
+    let sb = text::builder_new()
+    let sb = text::builder_append_line(sb, "line1")
+    let sb = text::builder_append_line(sb, "line2")
+    let sb = text::builder_append(sb, "line3")
+    let result = text::builder_build(sb)
+    test::assert_eq_string(result, "line1\nline2\nline3")
+    test::assert_eq_i32(text::builder_len(sb), 17)
+
+    // Single append_line
+    let sb2 = text::builder_new()
+    let sb2 = text::builder_append_line(sb2, "hello")
+    test::assert_eq_string(text::builder_build(sb2), "hello\n")
+}

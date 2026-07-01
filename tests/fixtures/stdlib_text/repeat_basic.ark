@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::repeat("ab", 3), "ababab")
+    test::assert_eq_string(text::repeat("x", 5), "xxxxx")
+    test::assert_eq_string(text::repeat("hello", 2), "hellohello")
+    test::assert_eq_string(text::repeat(" ", 4), "    ")
+    test::assert_eq_string(text::repeat("123", 3), "123123123")
+}

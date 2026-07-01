@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_i32(text::index_of("hello world", "world"), 6)
+    test::assert_eq_i32(text::index_of("hello world", "hello"), 0)
+    test::assert_eq_i32(text::index_of("hello world", " "), 5)
+    test::assert_eq_i32(text::index_of("abc", "b"), 1)
+    test::assert_eq_i32(text::index_of("abc", "abc"), 0)
+}

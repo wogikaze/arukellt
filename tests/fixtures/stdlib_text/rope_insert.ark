@@ -1,0 +1,21 @@
+use std::test
+use std::text::rope
+
+fn main() {
+    let r = rope::rope_from_string("hello")
+    // Insert at end
+    let r2 = rope::rope_insert(r, 5, " world")
+    test::assert_eq_string(rope::rope_to_string(r2), "hello world")
+    // Insert at beginning
+    let r3 = rope::rope_insert(r, 0, ">>")
+    test::assert_eq_string(rope::rope_to_string(r3), ">>hello")
+    // Insert in middle
+    let r4 = rope::rope_insert(r, 2, "XX")
+    test::assert_eq_string(rope::rope_to_string(r4), "heXXllo")
+    // Insert at out-of-bounds position (clamped to end)
+    let r5 = rope::rope_insert(r, 100, "!")
+    test::assert_eq_string(rope::rope_to_string(r5), "hello!")
+    // Insert at negative position (clamped to 0)
+    let r6 = rope::rope_insert(r, -1, ">>")
+    test::assert_eq_string(rope::rope_to_string(r6), ">>hello")
+}

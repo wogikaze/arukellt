@@ -1,0 +1,9 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::format_bool(true), "true")
+    test::assert_eq_string(text::format_bool(false), "false")
+    test::assert_eq_i32(len(text::format_bool(true)), 4)
+    test::assert_eq_i32(len(text::format_bool(false)), 5)
+}

@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    // Split with empty separator splits into individual characters
+    let parts = text::split("abc", "")
+    test::assert_eq_i32(len(parts), 3)
+
+    // Empty string with empty separator
+    let parts2 = text::split("", "")
+    test::assert_eq_i32(len(parts2), 1)
+}

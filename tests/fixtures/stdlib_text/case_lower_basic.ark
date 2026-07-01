@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::to_lower("HELLO"), "hello")
+    test::assert_eq_string(text::to_lower("Hello World"), "hello world")
+    test::assert_eq_string(text::to_lower("ABCDEF"), "abcdef")
+    test::assert_eq_string(text::to_lower("already lower"), "already lower")
+    test::assert_eq_string(text::to_lower("MixedCaseString"), "mixedcasestring")
+    test::assert_eq_string(text::to_lower("A"), "a")
+    test::assert_eq_string(text::to_lower("Z"), "z")
+}

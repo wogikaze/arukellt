@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    // Separator not found — entire string is the single element
+    let parts = text::split("hello", ",")
+    test::assert_eq_i32(len(parts), 1)
+
+    // Separator not found in longer string
+    let parts2 = text::split("no match here", "|")
+    test::assert_eq_i32(len(parts2), 1)
+}

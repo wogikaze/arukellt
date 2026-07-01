@@ -1,0 +1,25 @@
+use std::test
+use std::text
+
+fn main() {
+    // Roundtrip: string -> bytes -> string
+    let original = "hello"
+    let bytes = text::to_utf8_bytes(original)
+    let restored = text::from_utf8(bytes)
+    test::assert_eq_string(restored, original)
+
+    // Roundtrip with empty string
+    let bytes2 = text::to_utf8_bytes("")
+    let restored2 = text::from_utf8(bytes2)
+    test::assert_eq_string(restored2, "")
+
+    // Roundtrip with special chars
+    let original3 = "a b\nc"
+    let bytes3 = text::to_utf8_bytes(original3)
+    let restored3 = text::from_utf8(bytes3)
+    test::assert_eq_string(restored3, original3)
+
+    // Byte count matches len_bytes
+    let s = "hello world"
+    test::assert_eq_i32(len(text::to_utf8_bytes(s)), text::len_bytes(s))
+}

@@ -1,0 +1,12 @@
+use std::test
+use std::text::rope
+
+fn main() {
+    let r = rope::rope_new()
+    test::assert_eq_i32(rope::rope_len(r), 0)
+    test::assert_eq_string(rope::rope_to_string(r), "")
+
+    let r2 = rope::rope_from_string("hello")
+    test::assert_eq_i32(rope::rope_len(r2), 5)
+    test::assert_eq_string(rope::rope_to_string(r2), "hello")
+}
