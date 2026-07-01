@@ -61,6 +61,12 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if starts_with(clone(type_name), String_from("struct:")) {
         return type_name
     }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+        return type_name
+    }
     if ctx_is_registered_enum_type(ctx, clone(type_name)) {
         return concat(String_from("enum:"), type_name)
     }

@@ -113,6 +113,9 @@ fn type_name_is_ref_type(ctx: LowerCtx, type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
         return true
     }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+        return true
+    }
     if starts_with(clone(type_name), String_from("enum:")) {
         return true
     }

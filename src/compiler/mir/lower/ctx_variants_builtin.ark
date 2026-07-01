@@ -26,8 +26,14 @@ fn ctx_register_builtin_payload_variants(ctx: LowerCtx) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         register_builtin_gc_variant(ctx, String_from("Option::None"), false, String_new())
         register_builtin_gc_variant(ctx, String_from("Option::Some"), true, String_from("_f1_i32"))
+        register_builtin_gc_variant(ctx, String_from("Option::Some"), true, String_from("_f1_i64"))
+        register_builtin_gc_variant(ctx, String_from("Option::Some"), true, String_from("_f1_f64"))
         register_builtin_gc_variant(ctx, String_from("Option::Some"), true, String_from("_f1_ref0"))
         register_builtin_gc_variant(ctx, String_from("Result::Ok"), true, String_from("_f1_i32"))
+        register_builtin_gc_variant(ctx, String_from("Result::Ok"), true, String_from("_f1_i64"))
+        register_builtin_gc_variant(ctx, String_from("Result::Ok"), true, String_from("_f1_f64"))
+        register_builtin_gc_variant(ctx, String_from("Result::Ok"), true, String_from("_f1_ref0"))
+        register_builtin_gc_variant(ctx, String_from("Result::Err"), true, String_from("_f1_i32"))
         register_builtin_gc_variant(ctx, String_from("Result::Err"), true, String_from("_f1_ref0"))
     }
 }

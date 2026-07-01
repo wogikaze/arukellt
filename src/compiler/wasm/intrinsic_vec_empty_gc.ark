@@ -1,6 +1,7 @@
 // Arukellt Selfhost - GC vec emptiness intrinsic handler.
 //
 // GC target: is_empty → struct.get vec_type 1 (len) → eqz
+// For String arguments: is_empty → array.len → eqz
 
 use wasm::opcodes
 use wasm::writer_core
@@ -11,12 +12,25 @@ use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
 use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::block_inst_access
+use mir::function_block_queries
 use mir::function_locals_view
 use mir::local_access
+use mir::opcodes as mir_opcodes
 
 fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    // Stack: [vec_ref]
+    // Stack: [vec_ref or string_ref]
     // After: [i32]  (1 if empty, 0 if not)
+    // String is a GC array — use array.len instead of struct.get.
+    // MIR_CALL stores arg0=-1, so look at the preceding MIR_LOCAL_GET
+    // in the block to find the source local and check its type_name.
+    if is_empty_arg_is_string(inst, ctx) {
+        writer_gc::emit_gc_array_len(w)
+        writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+        return true
+    }
     // Determine vec type per-operation from the vec local (arg0).
     let is_vec_string = check_local_is_vec_string(inst_accessors_operands::MirInst_arg0(inst), ctx) || ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) || ctx_gc_type::ctx_has_vec_string_local(ctx)
     let vec_type = if is_vec_string {
@@ -30,6 +44,40 @@ fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+// Check if the argument to is_empty is a String by looking at the
+// preceding MIR_LOCAL_GET in the block.
+fn is_empty_arg_is_string(inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
+                let callee = inst_accessors_literals::MirInst_str_val(cur)
+                if eq(clone(callee), String_from("is_empty")) {
+                    if ii > 0 {
+                        let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                        if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
+                            let src = inst_accessors_operands::MirInst_arg0(prev)
+                            if check_local_is_string(src, ctx) {
+                                return true
+                            }
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
 fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if local_idx < 0 {
         return false
@@ -40,6 +88,22 @@ fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let tname = local_access::MirLocal_type_name(loc)
         if eq(clone(tname), String_from("vec:String")) {
+            return true
+        }
+    }
+    false
+}
+
+fn check_local_is_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    if local_idx < 0 {
+        return false
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("String")) || eq(clone(tname), String_from("string")) {
             return true
         }
     }

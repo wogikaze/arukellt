@@ -36,7 +36,12 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
     let result = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     if is_gc {
-        let ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Ok"))
+        let payload_vts = Vec_new_i32()
+        push(payload_vts, value_types::VT_I32())
+        let mut ok_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, String_from("Ok"), payload_vts)
+        if ok_slot < 0 {
+            ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Ok"))
+        }
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(result, res_ptr, ok_slot, 1, value_types::VT_I32()))
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))

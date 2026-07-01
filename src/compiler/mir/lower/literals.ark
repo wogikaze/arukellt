@@ -8,6 +8,14 @@ fn lower_int_literal(ctx: LowerCtx, node: AstNode) -> i32 {
     literal_int::lower_int_literal(ctx, node)
 }
 
+fn lower_int_literal_forced_i64(ctx: LowerCtx, node: AstNode) -> i32 {
+    literal_int::lower_int_literal_forced_i64(ctx, node)
+}
+
+fn lower_unary_neg_forced_i64(ctx: LowerCtx, operand_node: AstNode) -> i32 {
+    literal_int::lower_unary_neg_forced_i64(ctx, operand_node)
+}
+
 fn lower_char_literal(ctx: LowerCtx, node: AstNode) -> i32 {
     literal_float_char::lower_char_literal(ctx, node)
 }

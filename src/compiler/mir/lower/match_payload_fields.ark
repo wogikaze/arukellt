@@ -27,29 +27,53 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
         }
         set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
         set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, scrut_ok_is_i32)
-        // Infer concrete payload type from scrutinee type for Option::Some.
-        if bi == 0 && match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
-            let current_type = ctx_get_local_type(ctx, bind_local)
-            // Override when type is empty, "enum:open", or contains an
-            // unresolved type variable (e.g. "enum:T" where T is a generic
-            // type parameter name, not a concrete type).
-            if len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) {
-                let scrut_type = ctx_get_local_type(ctx, scrut_idx)
-                let mut elem_ty = String_new()
-                if starts_with(clone(scrut_type), String_from("option:")) {
-                    elem_ty = substring(scrut_type, 7, len(scrut_type))
-                } else {
-                    if starts_with(clone(scrut_type), String_from("Option_")) {
-                        elem_ty = substring(scrut_type, 7, len(scrut_type))
+        // Infer concrete payload type from scrutinee type for Option/Result.
+        if bi == 0 {
+            let is_some_or_ok = match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name))
+            let is_err = match_payload_field_type::mir_match_variant_is_err(clone(variant_name))
+            if is_some_or_ok || is_err {
+                let current_type = ctx_get_local_type(ctx, bind_local)
+                // Override when type is empty, "enum:open", or contains an
+                // unresolved type variable (e.g. "enum:T" where T is a generic
+                // type parameter name, not a concrete type).
+                if len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) {
+                    let scrut_type = ctx_get_local_type(ctx, scrut_idx)
+                    let mut elem_ty = String_new()
+                    if is_some_or_ok {
+                        // Ok/Some payload is the first type parameter.
+                        if starts_with(clone(scrut_type), String_from("option:")) {
+                            elem_ty = substring(scrut_type, 7, len(scrut_type))
+                        } else {
+                            if starts_with(clone(scrut_type), String_from("Option_")) {
+                                elem_ty = substring(scrut_type, 7, len(scrut_type))
+                            } else {
+                                if starts_with(clone(scrut_type), String_from("Result_")) {
+                                    elem_ty = extract_first_result_type_param(scrut_type)
+                                } else {
+                                    if starts_with(clone(scrut_type), String_from("result:")) {
+                                        elem_ty = extract_first_result_type_param(scrut_type)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Err payload is the second type parameter.
+                        if starts_with(clone(scrut_type), String_from("Result_")) {
+                            elem_ty = extract_second_result_type_param(scrut_type)
+                        } else {
+                            if starts_with(clone(scrut_type), String_from("result:")) {
+                                elem_ty = extract_second_result_type_param(scrut_type)
+                            }
+                        }
                     }
-                }
-                if len(elem_ty) > 0 {
-                    ctx_set_local_type(ctx, bind_local, elem_ty)
-                    // Fix vt: if the element type is scalar, override
-                    // VT_GC_REF with VT_I32 to match the actual payload.
-                    if match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
-                        if bind_vt == value_types::VT_GC_REF() {
-                            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
+                    if len(elem_ty) > 0 {
+                        ctx_set_local_type(ctx, bind_local, elem_ty)
+                        // Fix vt: if the element type is scalar, override
+                        // VT_GC_REF with VT_I32 to match the actual payload.
+                        if match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
+                            if bind_vt == value_types::VT_GC_REF() {
+                                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
+                            }
                         }
                     }
                 }
@@ -121,7 +145,7 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
     }
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
-        if field_idx == 0 && match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
+        if field_idx == 0 {
             let payload_vts = Vec_new_i32()
             push(payload_vts, effective_vt)
             let payload_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, clone(variant_name), payload_vts)
@@ -135,4 +159,54 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
     ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get(ctx_struct_field_offset(ctx, clone(variant_name), field_idx + 1), field_vt))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+}
+
+// Extract the first type parameter from a Result type string like
+// "Result_i32_String" or "result:i32:String".
+fn extract_first_result_type_param(scrut_type: String) -> String {
+    // Skip the prefix ("Result_" or "result:")
+    let prefix_len = 7
+    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    // Find the separator between first and second type parameters.
+    // For "Result_i32_String", separator is "_" at the position after "i32".
+    // For "result:i32:String", separator is ":".
+    let mut sep = 0 - 1
+    let mut i = 0
+    let rlen = len(rest)
+    while i < rlen {
+        let ch = char_at(rest, i)
+        if ch == 95 || ch == 58 {
+            sep = i
+            i = rlen
+        }
+        i = i + 1
+    }
+    if sep < 0 {
+        return rest
+    }
+    substring(rest, 0, sep)
+}
+
+// Extract the second type parameter from a Result type string like
+// "Result_i32_String" or "result:i32:String".
+fn extract_second_result_type_param(scrut_type: String) -> String {
+    let prefix_len = 7
+    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    // Find the first separator to skip the first type parameter.
+    let mut first_sep = 0 - 1
+    let mut i = 0
+    let rlen = len(rest)
+    while i < rlen {
+        let ch = char_at(rest, i)
+        if ch == 95 || ch == 58 {
+            first_sep = i
+            i = rlen
+        }
+        i = i + 1
+    }
+    if first_sep < 0 {
+        return String_new()
+    }
+    // Return everything after the first separator.
+    substring(rest, first_sep + 1, rlen)
 }

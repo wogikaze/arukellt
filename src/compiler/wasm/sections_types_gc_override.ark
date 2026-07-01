@@ -65,7 +65,10 @@ fn gc_enum_return_type_sig(type_name: String, target: String) -> String {
     if starts_with(clone(type_name), String_from("Option_")) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if eq(clone(type_name), String_from("Option")) {
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if eq(clone(type_name), String_from("Option")) || eq(clone(type_name), String_from("Result")) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     String_new()
