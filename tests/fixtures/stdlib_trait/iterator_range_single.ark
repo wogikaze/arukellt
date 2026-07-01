@@ -1,0 +1,9 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let r = range_new(7, 8)
+    let collected = iter::collect_range_i32(r)
+    test::assert_eq_i32(len(collected), 1)
+    test::assert_eq_i32(get_unchecked(collected, 0), 7)
+}

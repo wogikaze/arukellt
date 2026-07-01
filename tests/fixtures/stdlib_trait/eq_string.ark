@@ -1,0 +1,9 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    test::assert_true(eq(String_from("hello"), String_from("hello")))
+    test::assert_false(eq(String_from("hello"), String_from("world")))
+    test::assert_true(eq(String_from(""), String_from("")))
+    test::assert_false(eq(String_from("a"), String_from("ab")))
+}

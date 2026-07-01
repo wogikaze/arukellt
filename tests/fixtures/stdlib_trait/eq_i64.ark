@@ -1,0 +1,11 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    let a: i64 = 1000000000000
+    let b: i64 = 1000000000000
+    let c: i64 = 1000000000001
+
+    test::assert_true(eq(a, b))
+    test::assert_false(eq(a, c))
+}

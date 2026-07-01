@@ -1,0 +1,13 @@
+use std::io
+use std::test
+
+fn main() {
+    let src = io::new_memory_buffer()
+    let dst = io::new_memory_buffer()
+
+    let copied = io::copy_trait(src, dst)
+    test::assert_eq_i32(copied, 0)
+
+    let dst_len: i64 = io::buffer_len(dst)
+    test::assert_eq_i64(dst_len, 0)
+}

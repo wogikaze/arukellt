@@ -1,0 +1,13 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    let a: i64 = 5
+    test::assert_eq_i64(a.neg(), -5)
+
+    let b: i64 = -5
+    test::assert_eq_i64(b.neg(), 5)
+
+    let c: i64 = 0
+    test::assert_eq_i64(c.neg(), 0)
+}

@@ -1,0 +1,22 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    // false < true
+    match false.cmp(true) {
+        Ordering::Less => {}
+        _ => panic("expected Less"),
+    }
+    match true.cmp(false) {
+        Ordering::Greater => {}
+        _ => panic("expected Greater"),
+    }
+    match true.cmp(true) {
+        Ordering::Equal => {}
+        _ => panic("expected Equal"),
+    }
+    match false.cmp(false) {
+        Ordering::Equal => {}
+        _ => panic("expected Equal"),
+    }
+}

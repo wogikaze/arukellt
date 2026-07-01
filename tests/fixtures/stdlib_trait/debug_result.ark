@@ -1,0 +1,16 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    let ok: Result<i32, String> = Ok(42)
+    test::assert_eq_string(fmt::debug_format_result_i32_string(ok), "Ok(42)")
+
+    let err: Result<i32, String> = Err(String_from("fail"))
+    test::assert_eq_string(fmt::debug_format_result_i32_string(err), "Err(\"fail\")")
+
+    let ok_s: Result<String, String> = Ok(String_from("good"))
+    test::assert_eq_string(fmt::debug_format_result_string_string(ok_s), "Ok(\"good\")")
+
+    let err_s: Result<String, String> = Err(String_from("bad"))
+    test::assert_eq_string(fmt::debug_format_result_string_string(err_s), "Err(\"bad\")")
+}

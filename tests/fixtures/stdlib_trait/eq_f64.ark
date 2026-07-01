@@ -1,0 +1,9 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    test::assert_true(eq(3.14, 3.14))
+    test::assert_false(eq(3.14, 3.15))
+    test::assert_true(eq(0.0, 0.0))
+    test::assert_false(eq(-1.0, 1.0))
+}

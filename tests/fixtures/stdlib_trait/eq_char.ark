@@ -1,0 +1,9 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    test::assert_true(eq('A', 'A'))
+    test::assert_false(eq('A', 'B'))
+    test::assert_true(eq('z', 'z'))
+    test::assert_false(eq('a', 'A'))
+}

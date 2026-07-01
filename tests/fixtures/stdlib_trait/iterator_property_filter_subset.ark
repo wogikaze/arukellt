@@ -1,0 +1,15 @@
+// Property: filter result length is always <= source length.
+use std::core::iter
+use std::test
+
+fn is_even(x: i32) -> bool { x / 2 * 2 == x }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    for i in 0..50 {
+        push(v, i)
+    }
+    let filtered = iter::collect_filter_i32(v, is_even)
+    test::assert_true(len(filtered) <= len(v))
+    test::assert_eq_i32(len(filtered), 25)
+}

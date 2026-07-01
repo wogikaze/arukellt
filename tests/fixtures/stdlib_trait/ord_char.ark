@@ -1,0 +1,17 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    match 'A'.cmp('B') {
+        Ordering::Less => {}
+        _ => panic("expected Less"),
+    }
+    match 'A'.cmp('A') {
+        Ordering::Equal => {}
+        _ => panic("expected Equal"),
+    }
+    match 'Z'.cmp('A') {
+        Ordering::Greater => {}
+        _ => panic("expected Greater"),
+    }
+}

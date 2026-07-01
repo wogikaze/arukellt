@@ -1,0 +1,10 @@
+// Property: adding zero is identity for i32.
+use std::core::ops
+use std::test
+
+fn main() {
+    for i in 0..50 {
+        test::assert_eq_i32(i.add(0), i)
+    }
+    test::assert_eq_i32((-100).add(0), -100)
+}

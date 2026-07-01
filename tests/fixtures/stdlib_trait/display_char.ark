@@ -1,0 +1,9 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    test::assert_eq_string(to_string('A'), "A")
+    test::assert_eq_string(to_string('z'), "z")
+    test::assert_eq_string(to_string('1'), "1")
+    test::assert_eq_string(to_string(' '), " ")
+}

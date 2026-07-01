@@ -1,0 +1,7 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    test::assert_eq_string(fmt::format_debug(String_from("")), "\"\"")
+    test::assert_eq_string(fmt::write_debug_to("s=", String_from("")), "s=\"\"")
+}

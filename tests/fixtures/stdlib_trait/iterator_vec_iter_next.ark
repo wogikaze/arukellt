@@ -1,0 +1,27 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 100)
+    push(v, 200)
+
+    let it = iter::vec_iter(v)
+    match it.next() {
+        Some(x) => test::assert_eq_i32(x, 100),
+        None => panic("expected Some(100)"),
+    }
+    let it2 = iter::vec_iter(v)
+    match it2.next() {
+        Some(x) => test::assert_eq_i32(x, 100),
+        None => panic("expected Some(100)"),
+    }
+    match it2.next() {
+        Some(x) => test::assert_eq_i32(x, 200),
+        None => panic("expected Some(200)"),
+    }
+    match it2.next() {
+        Some(_) => panic("expected None"),
+        None => {}
+    }
+}

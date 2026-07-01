@@ -1,0 +1,9 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    test::assert_eq_i32((10).sub(3), 7)
+    test::assert_eq_i32((0).sub(0), 0)
+    test::assert_eq_i32((5).sub(-5), 10)
+    test::assert_eq_i32((-5).sub(5), -10)
+}

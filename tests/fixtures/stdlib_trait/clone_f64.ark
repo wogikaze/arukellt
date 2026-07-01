@@ -1,0 +1,12 @@
+use std::core::clone
+use std::test
+
+fn main() {
+    let x: f64 = 3.14
+    let y: f64 = x.clone()
+    test::assert_eq_f64(y, 3.14)
+
+    let z: f64 = 0.0
+    let zc: f64 = z.clone()
+    test::assert_eq_f64(zc, 0.0)
+}

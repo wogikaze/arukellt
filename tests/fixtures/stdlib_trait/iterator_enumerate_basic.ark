@@ -1,0 +1,32 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 100)
+    push(v, 200)
+    push(v, 300)
+
+    let it = iter::enumerate_iter(v)
+    match it.next() {
+        Some(packed) => test::assert_eq_i32(packed, 0 * 65536 + 100),
+        None => panic("expected Some"),
+    }
+    let it2 = iter::enumerate_iter(v)
+    match it2.next() {
+        Some(packed) => test::assert_eq_i32(packed, 0 * 65536 + 100),
+        None => panic("expected Some"),
+    }
+    match it2.next() {
+        Some(packed) => test::assert_eq_i32(packed, 1 * 65536 + 200),
+        None => panic("expected Some"),
+    }
+    match it2.next() {
+        Some(packed) => test::assert_eq_i32(packed, 2 * 65536 + 300),
+        None => panic("expected Some"),
+    }
+    match it2.next() {
+        Some(_) => panic("expected None"),
+        None => {}
+    }
+}

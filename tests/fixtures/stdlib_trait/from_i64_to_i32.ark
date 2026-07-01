@@ -1,0 +1,12 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    let big: i64 = 100000
+    let narrow: i32 = From::from(big)
+    test::assert_eq_i32(narrow, 100000)
+
+    let small: i64 = 42
+    let small_narrow: i32 = From::from(small)
+    test::assert_eq_i32(small_narrow, 42)
+}

@@ -1,0 +1,17 @@
+use std::core::clone
+use std::test
+
+fn main() {
+    let n: i32 = 42
+    let m: i32 = n.clone()
+    test::assert_eq_i32(m, 42)
+    test::assert_eq_i32(n, 42)
+
+    let z: i32 = 0
+    let zc: i32 = z.clone()
+    test::assert_eq_i32(zc, 0)
+
+    let neg: i32 = -7
+    let negc: i32 = neg.clone()
+    test::assert_eq_i32(negc, -7)
+}

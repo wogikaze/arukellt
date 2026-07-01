@@ -1,0 +1,21 @@
+use std::io
+use std::test
+
+fn main() {
+    let w = io::writer_new()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 65)
+    push(data, 66)
+    push(data, 67)
+
+    match io::writer_write(w, data) {
+        Result::Ok(n) => test::assert_eq_i32(n, 3),
+        Result::Err(_e) => panic("expected Ok"),
+    }
+
+    let out = io::writer_to_bytes(w)
+    test::assert_eq_i32(len(out), 3)
+    test::assert_eq_i32(get_unchecked(out, 0), 65)
+    test::assert_eq_i32(get_unchecked(out, 1), 66)
+    test::assert_eq_i32(get_unchecked(out, 2), 67)
+}

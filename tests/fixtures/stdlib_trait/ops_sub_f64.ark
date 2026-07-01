@@ -1,0 +1,8 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    test::assert_eq_f64((5.0).sub(2.0), 3.0)
+    test::assert_eq_f64((0.0).sub(0.0), 0.0)
+    test::assert_eq_f64((-1.0).sub(1.0), -2.0)
+}

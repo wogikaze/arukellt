@@ -1,0 +1,14 @@
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 1)
+    push(data, 2)
+    let reader = io::reader_from_bytes(data)
+
+    test::assert_false(io::reader_eof(reader))
+
+    let _r = io::reader_read(reader, 2)
+    test::assert_true(io::reader_eof(reader))
+}

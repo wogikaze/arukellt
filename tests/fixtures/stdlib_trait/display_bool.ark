@@ -1,0 +1,7 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    test::assert_eq_string(to_string(true), "true")
+    test::assert_eq_string(to_string(false), "false")
+}

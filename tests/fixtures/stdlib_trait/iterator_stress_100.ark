@@ -1,0 +1,22 @@
+use std::core::iter
+use std::test
+
+fn double(x: i32) -> i32 { x * 2 }
+fn add(a: i32, b: i32) -> i32 { a + b }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    for i in 0..100 {
+        push(v, i)
+    }
+    test::assert_eq_i32(len(v), 100)
+
+    let doubled = iter::collect_map_i32(v, double)
+    test::assert_eq_i32(len(doubled), 100)
+    test::assert_eq_i32(get_unchecked(doubled, 0), 0)
+    test::assert_eq_i32(get_unchecked(doubled, 50), 100)
+    test::assert_eq_i32(get_unchecked(doubled, 99), 198)
+
+    let sum = iter::iter_fold_i32(v, 0, add)
+    test::assert_eq_i32(sum, 4950)
+}

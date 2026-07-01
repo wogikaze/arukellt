@@ -1,0 +1,12 @@
+use std::core::clone
+use std::test
+
+fn main() {
+    let b: bool = true
+    let bc: bool = b.clone()
+    test::assert_true(bc)
+
+    let f: bool = false
+    let fc: bool = f.clone()
+    test::assert_false(fc)
+}

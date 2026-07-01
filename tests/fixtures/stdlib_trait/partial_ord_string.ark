@@ -1,0 +1,17 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    match String_from("abc").partial_cmp(String_from("abd")) {
+        Some(Ordering::Less) => {}
+        _ => panic("expected Some(Less)"),
+    }
+    match String_from("abc").partial_cmp(String_from("abc")) {
+        Some(Ordering::Equal) => {}
+        _ => panic("expected Some(Equal)"),
+    }
+    match String_from("z").partial_cmp(String_from("a")) {
+        Some(Ordering::Greater) => {}
+        _ => panic("expected Some(Greater)"),
+    }
+}

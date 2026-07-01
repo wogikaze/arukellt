@@ -1,0 +1,13 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    // bool: false -> 0, true -> 1
+    test::assert_eq_i32(hash(false), 0)
+    test::assert_eq_i32(hash(true), 1)
+
+    // char: identity hash
+    test::assert_eq_i32(hash('A'), 65)
+    test::assert_eq_i32(hash('z'), 122)
+    test::assert_eq_i32(hash('0'), 48)
+}

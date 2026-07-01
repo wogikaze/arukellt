@@ -1,0 +1,23 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    let a: i64 = 100
+    let b: i64 = 200
+    match a.cmp(b) {
+        Ordering::Less => {}
+        _ => panic("expected Less"),
+    }
+
+    let c: i64 = 200
+    match b.cmp(c) {
+        Ordering::Equal => {}
+        _ => panic("expected Equal"),
+    }
+
+    let d: i64 = 50
+    match b.cmp(d) {
+        Ordering::Greater => {}
+        _ => panic("expected Greater"),
+    }
+}

@@ -1,0 +1,13 @@
+use std::io
+use std::test
+
+fn main() {
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+
+    let written = io::write_bytes(buf, data)
+    test::assert_eq_i32(written, 0)
+
+    let blen: i64 = io::buffer_len(buf)
+    test::assert_eq_i64(blen, 0)
+}

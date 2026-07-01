@@ -1,0 +1,7 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    test::assert_eq_string(fmt::format_debug(0), "0")
+    test::assert_eq_string(fmt::write_debug_to("val=", 0), "val=0")
+}

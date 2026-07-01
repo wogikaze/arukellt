@@ -1,0 +1,13 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+
+    let taken = iter::collect_take_i32(v, 10)
+    test::assert_eq_i32(len(taken), 2)
+    test::assert_eq_i32(get_unchecked(taken, 0), 1)
+    test::assert_eq_i32(get_unchecked(taken, 1), 2)
+}

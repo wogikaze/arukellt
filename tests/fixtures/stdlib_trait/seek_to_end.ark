@@ -1,0 +1,19 @@
+use std::io
+use std::test
+
+fn main() {
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 1)
+    push(data, 2)
+    push(data, 3)
+    let _w = io::write_bytes(buf, data)
+
+    let blen: i64 = io::buffer_len(buf)
+    let pos: i64 = io::seek_to(buf, blen)
+    test::assert_eq_i64(pos, 3)
+
+    // Reading at end returns 0 bytes
+    let r = io::read_bytes(buf, 1)
+    test::assert_eq_i32(len(r), 0)
+}

@@ -1,0 +1,17 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    match (1).partial_cmp(2) {
+        Some(Ordering::Less) => {}
+        _ => panic("expected Some(Less)"),
+    }
+    match (5).partial_cmp(5) {
+        Some(Ordering::Equal) => {}
+        _ => panic("expected Some(Equal)"),
+    }
+    match (10).partial_cmp(3) {
+        Some(Ordering::Greater) => {}
+        _ => panic("expected Some(Greater)"),
+    }
+}

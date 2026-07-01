@@ -1,0 +1,10 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    test::assert_eq_string(fmt::debug_format_vec_i32(v), "[]")
+
+    let vs: Vec<String> = Vec_new_String()
+    test::assert_eq_string(fmt::debug_format_vec_string(vs), "[]")
+}

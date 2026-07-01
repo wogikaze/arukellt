@@ -1,0 +1,18 @@
+// Self return type: generic Mul dispatch.
+use std::core::ops
+
+fn mul_any<T: Mul>(x: T, y: T) -> T {
+    x.mul(y)
+}
+
+fn main() {
+    let a: i32 = 6
+    let b: i32 = 7
+    let c: i32 = mul_any(a, b)
+    assert(c == 42)
+
+    let x: f64 = 2.5
+    let y: f64 = 4.0
+    let z: f64 = mul_any(x, y)
+    assert(z == 10.0)
+}

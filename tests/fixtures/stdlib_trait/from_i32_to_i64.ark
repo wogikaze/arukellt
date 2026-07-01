@@ -1,0 +1,12 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    let n: i32 = 42
+    let wide: i64 = From::from(n)
+    test::assert_eq_i64(wide, 42)
+
+    let big: i32 = 2147483647
+    let big_wide: i64 = From::from(big)
+    test::assert_eq_i64(big_wide, 2147483647)
+}

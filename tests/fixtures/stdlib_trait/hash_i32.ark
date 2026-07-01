@@ -1,0 +1,16 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    let h1: i32 = hash(42)
+    let h2: i32 = hash(42)
+    test::assert_eq_i32(h1, h2)
+
+    // Different values should (probabilistically) produce different hashes
+    let h3: i32 = hash(43)
+    test::assert_true(h1 != h3)
+
+    // Hash of 0
+    let h0: i32 = hash(0)
+    test::assert_true(h0 >= 0)
+}

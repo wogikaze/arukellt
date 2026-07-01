@@ -1,0 +1,30 @@
+use std::io
+use std::test
+
+fn main() {
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 10)
+    push(data, 20)
+    push(data, 30)
+    push(data, 40)
+    push(data, 50)
+    let _w = io::write_bytes(buf, data)
+
+    // Seek to position 3
+    let pos: i64 = io::seek_to(buf, 3)
+    test::assert_eq_i64(pos, 3)
+
+    // Read from position 3 -> should get 40
+    let r = io::read_bytes(buf, 1)
+    test::assert_eq_i32(len(r), 1)
+    test::assert_eq_i32(get_unchecked(r, 0), 40)
+
+    // Seek to position 1
+    let pos2: i64 = io::seek_to(buf, 1)
+    test::assert_eq_i64(pos2, 1)
+
+    // Read from position 1 -> should get 20
+    let r2 = io::read_bytes(buf, 1)
+    test::assert_eq_i32(get_unchecked(r2, 0), 20)
+}

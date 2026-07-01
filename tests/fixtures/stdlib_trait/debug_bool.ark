@@ -1,0 +1,9 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    test::assert_eq_string(fmt::format_debug(true), "true")
+    test::assert_eq_string(fmt::format_debug(false), "false")
+    test::assert_eq_string(fmt::write_debug_to("b=", true), "b=true")
+    test::assert_eq_string(fmt::write_debug_to("b=", false), "b=false")
+}
