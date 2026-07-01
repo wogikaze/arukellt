@@ -1,0 +1,51 @@
+// Issue #693: io::copy generic helper via Read/Write traits.
+//
+// Verifies that the trait-based copy moves bytes between two different
+// memory buffers through Read and Write trait dispatch.
+use std::host::stdio
+use std::io
+
+fn main() {
+    // Source buffer: write "Hello World" then reset cursor to 0
+    let src = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 72)   // 'H'
+    push(data, 101)  // 'e'
+    push(data, 108)  // 'l'
+    push(data, 108)  // 'l'
+    push(data, 111)  // 'o'
+    push(data, 32)   // ' '
+    push(data, 87)   // 'W'
+    push(data, 111)  // 'o'
+    push(data, 114)  // 'r'
+    push(data, 108)  // 'l'
+    push(data, 100)  // 'd'
+
+    let written: i32 = io::write_bytes(src, data)
+    assert(written == 11)
+
+    // Reset cursor to 0 so we can read from the beginning
+    let seek_result: i64 = io::seek_to(src, 0)
+    assert(seek_result == 0)
+
+    // Destination buffer
+    let dst = io::new_memory_buffer()
+
+    // Copy all bytes from src to dst via trait dispatch
+    let copied: i32 = io::copy_trait(src, dst)
+    assert(copied == 11)
+
+    // Verify dst contains the copied bytes
+    let dst_len: i64 = io::buffer_len(dst)
+    assert(dst_len == 11)
+
+    // Read back from dst to verify content
+    let _seek2: i64 = io::seek_to(dst, 0)
+    let out: Vec<i32> = io::read_bytes(dst, 11)
+    assert(len(out) == 11)
+    assert(get_unchecked(out, 0) == 72)   // 'H'
+    assert(get_unchecked(out, 5) == 32)   // ' '
+    assert(get_unchecked(out, 10) == 100) // 'd'
+
+    stdio::println("OK")
+}

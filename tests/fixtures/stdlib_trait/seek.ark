@@ -1,0 +1,61 @@
+// Issue #693: Seek trait for repositioning within a stream.
+//
+// Verifies that the Seek trait can reposition the cursor in a memory
+// buffer, including clamping to valid bounds.
+use std::host::stdio
+use std::io
+
+fn main() {
+    // Create a memory buffer with "ABCDE" (65, 66, 67, 68, 69)
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 65)  // 'A'
+    push(data, 66)  // 'B'
+    push(data, 67)  // 'C'
+    push(data, 68)  // 'D'
+    push(data, 69)  // 'E'
+
+    let written: i32 = io::write_bytes(buf, data)
+    assert(written == 5)
+
+    // Seek to position 2
+    let pos1: i64 = io::seek_to(buf, 2)
+    assert(pos1 == 2)
+
+    // Read from position 2 -> should get 'C' (67)
+    let r1: Vec<i32> = io::read_bytes(buf, 1)
+    assert(len(r1) == 1)
+    assert(get_unchecked(r1, 0) == 67)
+
+    // Seek back to position 0
+    let pos2: i64 = io::seek_to(buf, 0)
+    assert(pos2 == 0)
+
+    // Read from position 0 -> should get 'A' (65)
+    let r2: Vec<i32> = io::read_bytes(buf, 1)
+    assert(len(r2) == 1)
+    assert(get_unchecked(r2, 0) == 65)
+
+    // Seek to position 4 (last byte)
+    let pos3: i64 = io::seek_to(buf, 4)
+    assert(pos3 == 4)
+
+    // Read from position 4 -> should get 'E' (69)
+    let r3: Vec<i32> = io::read_bytes(buf, 1)
+    assert(len(r3) == 1)
+    assert(get_unchecked(r3, 0) == 69)
+
+    // Seek past end should clamp to end (5)
+    let pos4: i64 = io::seek_to(buf, 100)
+    assert(pos4 == 5)
+
+    // Reading at end should return 0 bytes
+    let r4: Vec<i32> = io::read_bytes(buf, 1)
+    assert(len(r4) == 0)
+
+    // Seek to negative should clamp to 0
+    let pos5: i64 = io::seek_to(buf, -1)
+    assert(pos5 == 0)
+
+    stdio::println("OK")
+}

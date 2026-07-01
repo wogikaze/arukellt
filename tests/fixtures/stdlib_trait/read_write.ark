@@ -1,0 +1,45 @@
+// Issue #693: Read/Write traits for IO unification.
+//
+// Verifies that the Read and Write traits work on memory buffers:
+// - Write bytes into a memory buffer via Write trait dispatch
+// - Read bytes back via Read trait dispatch
+// - Asserts correct byte values and return counts
+use std::host::stdio
+use std::io
+
+fn main() {
+    // Create a memory buffer and write "Hello" (72, 101, 108, 108, 111)
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 72)   // 'H'
+    push(data, 101)  // 'e'
+    push(data, 108)  // 'l'
+    push(data, 108)  // 'l'
+    push(data, 111)  // 'o'
+
+    let written: i32 = io::write_bytes(buf, data)
+    assert(written == 5)
+
+    // Buffer should have 5 bytes (cursor is at 0, data follows)
+    let blen: i64 = io::buffer_len(buf)
+    assert(blen == 5)
+
+    // Read 5 bytes back from the buffer
+    let read: Vec<i32> = io::read_bytes(buf, 5)
+    assert(len(read) == 5)
+    assert(get_unchecked(read, 0) == 72)   // 'H'
+    assert(get_unchecked(read, 1) == 101)  // 'e'
+    assert(get_unchecked(read, 2) == 108)  // 'l'
+    assert(get_unchecked(read, 3) == 108)  // 'l'
+    assert(get_unchecked(read, 4) == 111)  // 'o'
+
+    // After reading all 5 bytes, cursor should be at 5
+    let pos: i64 = io::position(buf)
+    assert(pos == 5)
+
+    // Reading again should return 0 bytes (EOF)
+    let read2: Vec<i32> = io::read_bytes(buf, 5)
+    assert(len(read2) == 0)
+
+    stdio::println("OK")
+}
