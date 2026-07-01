@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_emit
 use mir::opcodes
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - Option HOF setup lowering.
 
 use mir::inst_struct_get
@@ -9,6 +10,7 @@ use mir::inst_structured_control
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_op
+use mir::inst_gc_struct
 use mir::value_types
 
 fn emit_map_option_setup(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32, mopt_new_local: i32) {
@@ -23,12 +25,21 @@ fn emit_map_option_bind_input(ctx: LowerCtx, mopt_opt_local: i32) {
 }
 
 fn emit_map_option_extract_tag(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(mopt_tag_local, mopt_opt_local, 0 - 1, 0, value_types::VT_VOID()))
+        return
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_opt_local))
     ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(mopt_tag_local))
 }
 
 fn emit_map_option_alloc_result(ctx: LowerCtx, mopt_new_local: i32) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        // On GC target, the result is allocated inside each branch
+        // (Some variant in the some branch, None variant in the none branch).
+        return
+    }
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(mopt_new_local, 8))
 }
 

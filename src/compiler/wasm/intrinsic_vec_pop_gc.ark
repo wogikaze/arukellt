@@ -28,6 +28,7 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
     let array_type = ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
     let arr_tmp = if is_vec_string { arr_tmp_str } else { arr_tmp_i32 }
+    let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
 
     // Step 1: Store vec_ref from stack into scratch local
     helpers_core_locals::emit_local_set(w, s_vec)
@@ -43,13 +44,13 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)  // void block
-    emit_vec_pop_some_branch(w, ctx, s_vec, vec_type, array_type, arr_tmp, s_newlen, s_optptr, is_vec_string)
+    emit_vec_pop_some_branch(w, ctx, s_vec, vec_type, array_type, arr_tmp, s_newlen, s_optptr, is_vec_string, enum_type)
     writer_core::emit_byte(w, opcodes::OP_ELSE())
-    emit_vec_pop_none_branch(w, ctx, s_optptr, is_vec_string)
+    emit_vec_pop_none_branch(w, ctx, s_optptr, is_vec_string, enum_type)
     writer_core::emit_byte(w, opcodes::OP_END())
 
     // Load result from scratch
-    emit_vec_pop_load_result(w, ctx, is_vec_string)
+    emit_vec_pop_load_result(w, ctx, is_vec_string, s_optptr)
     return true
 }
 
@@ -77,38 +78,39 @@ fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
 }
 
 // Some branch: len > 0 — decrement, save, read last element
-fn emit_vec_pop_some_branch(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i32, array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32, is_vec_string: bool) {
+fn emit_vec_pop_some_branch(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i32, array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32, is_vec_string: bool, enum_type: i32) {
     if is_vec_string {
-        let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         let s_ref = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
         emit_gc_pop_some_string(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, enum_type)
         helpers_core_locals::emit_local_set(w, s_ref)
     } else {
-        emit_gc_pop_some(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr)
+        emit_gc_pop_some(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr, enum_type)
     }
 }
 
 // None branch: len == 0
-fn emit_vec_pop_none_branch(w: WasmWriter, ctx: SelfEmitCtx, s_optptr: i32, is_vec_string: bool) {
+fn emit_vec_pop_none_branch(w: WasmWriter, ctx: SelfEmitCtx, s_optptr: i32, is_vec_string: bool, enum_type: i32) {
     if is_vec_string {
         let s_ref = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
         writer_core::emit_byte(w, opcodes::OP_REF_NULL())
-        writer_leb::emit_leb128_s(w, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        writer_leb::emit_leb128_s(w, enum_type)
         helpers_core_locals::emit_local_set(w, s_ref)
     } else {
-        emit_gc_pop_none(w, s_optptr)
+        emit_gc_pop_none(w, s_optptr, enum_type)
     }
 }
 
-// Load result from scratch local for Vec<String> GC enum path
-fn emit_vec_pop_load_result(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool) {
+// Load result from scratch local
+fn emit_vec_pop_load_result(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool, s_optptr: i32) {
     if is_vec_string {
         let s_ref = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
         helpers_core_locals::emit_local_get(w, s_ref)
+    } else {
+        helpers_core_locals::emit_local_get(w, s_optptr)
     }
 }
 
-fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32) {
+fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32, enum_type: i32) {
     // len was saved in s_newlen by local.tee in the caller.
     // new_len = len - 1
     helpers_core_locals::emit_local_get(w, s_newlen)
@@ -132,8 +134,12 @@ fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type
     // Save value from array.get to i32 scratch (s_newlen is done with)
     helpers_core_locals::emit_local_set(w, s_newlen)
 
-    // Allocate Some on linear-memory heap
-    emit_gc_alloc_option_some(w, s_newlen, s_optptr)
+    // Allocate Option::Some as GC struct: struct.new enum_type (tag=0, payload=value)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    helpers_core_locals::emit_local_get(w, s_newlen)
+    writer_gc::emit_gc_struct_new(w, enum_type)
+    helpers_core_locals::emit_local_set(w, s_optptr)
 }
 
 fn emit_gc_pop_some_string(w: WasmWriter, vec_local: i32, vec_type: i32, array_type: i32, arr_tmp: i32, s_newlen: i32, enum_type: i32) {
@@ -166,57 +172,12 @@ fn emit_gc_pop_some_string(w: WasmWriter, vec_local: i32, vec_type: i32, array_t
     writer_leb::emit_leb128_s(w, enum_type)
 }
 
-fn emit_gc_alloc_option_some(w: WasmWriter, s_value: i32, s_optptr: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    helpers_core_locals::emit_local_set(w, s_optptr)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_locals::emit_local_get(w, s_value)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
-    helpers_core_locals::emit_local_get(w, s_optptr)
-}
-
-fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32) {
-    emit_gc_alloc_option_none(w, s_optptr)
-}
-
-fn emit_gc_alloc_option_none(w: WasmWriter, s_optptr: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    helpers_core_locals::emit_local_set(w, s_optptr)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32, enum_type: i32) {
+    // Allocate Option::None as GC struct: struct.new enum_type (tag=1, payload=0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
-    writer_leb::emit_leb128_u(w, 0)
-    helpers_core_locals::emit_local_get(w, s_optptr)
+    writer_leb::emit_leb128_s(w, 0)
+    writer_gc::emit_gc_struct_new(w, enum_type)
+    helpers_core_locals::emit_local_set(w, s_optptr)
 }

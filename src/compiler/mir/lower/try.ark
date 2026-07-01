@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - MIR lowering try expression helper
 
 use mir::inst_struct_get
@@ -8,24 +9,40 @@ use mir::inst_return
 use mir::inst_structured_control
 use mir::inst_local_get
 use mir::inst_local_set
+use mir::inst_gc_struct
 use mir::value_types
 
 fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
-    let res_ptr = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let is_gc = ctx_gc_enum::ctx_is_gc_target(ctx)
+    let res_vt = if is_gc {
+        value_types::VT_GC_REF()
+    } else {
+        value_types::VT_I32()
+    }
+    let res_ptr = ctx_api_local_alloc::ctx_fresh_local(ctx, res_vt)
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(res_ptr))
     let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
-    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
+    if is_gc {
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, res_ptr, 0 - 1, 0, value_types::VT_VOID()))
+    } else {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
+        ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(0, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(tag_local))
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_local))
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
     let result = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(4, value_types::VT_VOID()))
-    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+    if is_gc {
+        let ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Ok"))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(result, res_ptr, ok_slot, 1, value_types::VT_I32()))
+    } else {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
+        ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(4, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(result))
+    }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(result))
     result
 }

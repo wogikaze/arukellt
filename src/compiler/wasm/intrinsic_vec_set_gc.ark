@@ -54,7 +54,11 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let vec_local = inst_accessors_operands::MirInst_arg0(inst)
-    let is_vec_string = check_local_is_vec_string(vec_local, ctx)
+    // Use context-based detection (same as emit_get_unchecked_gc) plus
+    // per-local detection.  The context check handles functions like
+    // vec_string_remove_at whose Vec<String> parameter type_name may not
+    // be propagated to f.locals by the time the set intrinsic is emitted.
+    let is_vec_string = check_local_is_vec_string(vec_local, ctx) || ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) || ctx_gc_type::ctx_has_vec_string_local(ctx)
     let vec_type = if is_vec_string {
         ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     } else {

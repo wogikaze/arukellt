@@ -18,7 +18,7 @@ fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref]
     // After: [i32]  (1 if empty, 0 if not)
     // Determine vec type per-operation from the vec local (arg0).
-    let is_vec_string = check_local_is_vec_string(inst_accessors_operands::MirInst_arg0(inst), ctx)
+    let is_vec_string = check_local_is_vec_string(inst_accessors_operands::MirInst_arg0(inst), ctx) || ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) || ctx_gc_type::ctx_has_vec_string_local(ctx)
     let vec_type = if is_vec_string {
         ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     } else {
