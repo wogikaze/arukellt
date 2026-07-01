@@ -1,22 +1,16 @@
 use std::collections::hash
-use std::host::stdio
+use std::test
 
 fn main() {
     let s = hash::hashset_str_new()
-    stdio::println(bool_to_string(hash::hashset_str_insert(s, "apple")))
-    stdio::println(bool_to_string(hash::hashset_str_insert(s, "banana")))
-    stdio::println(bool_to_string(hash::hashset_str_insert(s, "cherry")))
-    stdio::println(bool_to_string(hash::hashset_str_insert(s, "apple")))
-    stdio::println(i32_to_string(hash::hashset_str_len(s)))
-    stdio::println(bool_to_string(hash::hashset_str_contains(s, "banana")))
-    stdio::println(bool_to_string(hash::hashset_str_contains(s, "mango")))
-    stdio::println(bool_to_string(hash::hashset_str_remove(s, "banana")))
-    stdio::println(bool_to_string(hash::hashset_str_remove(s, "mango")))
-    stdio::println(i32_to_string(hash::hashset_str_len(s)))
+    test::assert_true(hash::hashset_str_insert(s, "apple"))
+    test::assert_true(hash::hashset_str_insert(s, "banana"))
+    test::assert_true(hash::hashset_str_insert(s, "cherry"))
+    test::assert_false(hash::hashset_str_insert(s, "apple"))
+    test::assert_eq_i32(hash::hashset_str_len(s), 3)
+    test::assert_true(hash::hashset_str_contains(s, "banana"))
+    test::assert_false(hash::hashset_str_contains(s, "mango"))
+    test::assert_true(hash::hashset_str_remove(s, "banana"))
+    test::assert_false(hash::hashset_str_remove(s, "mango"))
+    test::assert_eq_i32(hash::hashset_str_len(s), 2)
 }
-// insert new elements
-// duplicate insert returns false
-// len
-// contains
-// remove
-// len after remove

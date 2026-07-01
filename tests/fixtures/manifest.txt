@@ -628,6 +628,7 @@ run:stdlib_linear/deque_ops.ark
 run:stdlib_linear/pq_ops.ark
 run:stdlib_linear/deque_wrap.ark
 run:stdlib_linear/pq_sort.ark
+run:stdlib_bimap/bimap_basic.ark
 run:stdlib_map/map_string.ark
 run:stdlib_math/abs_min_max.ark
 run:stdlib_math/clamp_i32.ark

@@ -1,22 +1,30 @@
 use std::collections::hash
 use std::collections::hash_map
-use std::host::stdio
+use std::test
 
-fn print_i32_option(v: Option<i32>) {
+fn assert_none(v: Option<i32>) {
     match v {
-        Option::Some(n) => stdio::println(i32_to_string(n)),
-        None => stdio::println("none"),
+        Option::Some(_) => panic("expected None"),
+        None => {
+        },
+    }
+}
+
+fn assert_some(v: Option<i32>, expected: i32) {
+    match v {
+        Option::Some(n) => test::assert_eq_i32(n, expected),
+        None => panic("expected Some"),
     }
 }
 
 fn main() {
     let raw = hash::hashmap_new()
-    print_i32_option(hash::hashmap_insert(raw, 7, 70))
-    print_i32_option(hash::hashmap_insert(raw, 7, 700))
-    print_i32_option(hash::hashmap_get_option(raw, 7))
+    assert_none(hash::hashmap_insert(raw, 7, 70))
+    assert_some(hash::hashmap_insert(raw, 7, 700), 70)
+    assert_some(hash::hashmap_get_option(raw, 7), 700)
 
     let m = HashMap_i32_i32_new()
-    print_i32_option(hash_map::hashmap_i32_i32_insert(m, 1, 10))
-    print_i32_option(hash_map::hashmap_i32_i32_insert(m, 1, 11))
-    print_i32_option(hash_map::hashmap_i32_i32_get(m, 1))
+    assert_none(hash_map::hashmap_i32_i32_insert(m, 1, 10))
+    assert_some(hash_map::hashmap_i32_i32_insert(m, 1, 11), 10)
+    assert_some(hash_map::hashmap_i32_i32_get(m, 1), 11)
 }

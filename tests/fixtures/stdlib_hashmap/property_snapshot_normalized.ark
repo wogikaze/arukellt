@@ -2,31 +2,11 @@
 //
 // Invariant: a snapshot of a HashMap is independent of the hash map's
 // iteration order when the snapshot is produced under an explicit
-// normalization rule.  The normalization rule used here is:
-//
-//     1. collect the keys via `hashmap_keys` into a `Vec<i32>`
-//     2. sort the key vector in ascending order (inline insertion sort)
-//     3. for each key (in sorted order) emit key then value on separate
-//        lines
-//
-// Under this rule two logically equal maps produce byte-identical stdout
-// regardless of the order in which `hashmap_keys` returned them.  We
-// verify this by building the same logical map twice with DIFFERENT
-// insertion orders and confirming the normalized snapshots match by
-// construction (expected stdout is a single canonical block).
-//
-// This is the "differential replay against a reference snapshot that does
-// not depend on iteration order" criterion in issue #528 (acceptance
-// item 2).  The snapshot rule above is the documented deterministic
-// normalization rule (acceptance item 3).
-//
-// This fixture MUST NOT alter `std/collections/hash*` (acceptance item 4).
+// normalization rule.
 use std::collections::hash
-use std::host::stdio
+use std::test
 
-// Inline ascending insertion sort on a `Vec<i32>`.  Kept in-fixture so
-// the normalization rule is visible at the call site and does not depend
-// on any stdlib sort helper that might not exist yet.
+// Inline ascending insertion sort on a `Vec<i32>`.
 fn sort_asc(v: Vec<i32>) {
     let n: i32 = len(v)
     for i in 1..n {
@@ -50,17 +30,23 @@ fn sort_asc(v: Vec<i32>) {
     }
 }
 
-fn snapshot(label: String, m: Vec<i32>) {
-    stdio::println(label)
+fn assert_snapshot(m: Vec<i32>) {
     let keys: Vec<i32> = hash::hashmap_keys(m)
     sort_asc(keys)
     let n: i32 = len(keys)
+    test::assert_eq_i32(n, 5)
+    // Sorted keys must be 1, 3, 5, 7, 11
+    test::assert_eq_i32(get_unchecked(keys, 0), 1)
+    test::assert_eq_i32(get_unchecked(keys, 1), 3)
+    test::assert_eq_i32(get_unchecked(keys, 2), 5)
+    test::assert_eq_i32(get_unchecked(keys, 3), 7)
+    test::assert_eq_i32(get_unchecked(keys, 4), 11)
+    // Each key must map to key * 10
     for i in 0..n {
         let k: i32 = get_unchecked(keys, i)
-        stdio::println(i32_to_string(k))
         match hash::hashmap_get_option(m, k) {
-            Option::Some(v) => stdio::println(i32_to_string(v)),
-            None => stdio::println(String_from("none")),
+            Option::Some(v) => test::assert_eq_i32(v, k * 10),
+            None => panic("expected Some"),
         }
     }
 }
@@ -82,6 +68,6 @@ fn main() {
     hash::hashmap_set(y, 5, 50)
     hash::hashmap_set(y, 7, 70)
 
-    snapshot(String_from("X"), x)
-    snapshot(String_from("Y"), y)
+    assert_snapshot(x)
+    assert_snapshot(y)
 }

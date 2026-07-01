@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let m = HashMap_new_i32_String()
@@ -6,25 +6,20 @@ fn main() {
     HashMap_i32_String_insert(m, 2, "two")
     HashMap_i32_String_insert(m, 3, "three")
     HashMap_i32_String_insert(m, 2, "TWO")
-    stdio::println(i32_to_string(HashMap_i32_String_len(m)))
+    test::assert_eq_i32(HashMap_i32_String_len(m), 3)
     match HashMap_i32_String_get(m, 1) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_string(v, "one"),
+        None => panic("expected Some(one)"),
     }
     match HashMap_i32_String_get(m, 2) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_string(v, "TWO"),
+        None => panic("expected Some(TWO)"),
     }
     match HashMap_i32_String_get(m, 99) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => panic("expected None"),
+        None => {
+        },
     }
-    stdio::println(bool_to_string(HashMap_i32_String_contains_key(m, 3)))
-    stdio::println(bool_to_string(HashMap_i32_String_contains_key(m, 42)))
+    test::assert_true(HashMap_i32_String_contains_key(m, 3))
+    test::assert_false(HashMap_i32_String_contains_key(m, 42))
 }
-// Update existing key
-// len
-// get existing key
-// get updated key
-// get missing key
-// contains_key

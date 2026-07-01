@@ -50,7 +50,7 @@ pub fn bimap_i32_i32_insert(buf: Vec<i32>, key: i32, value: i32) {
     let fwd = bimap_fwd(buf)
     let rev = bimap_rev(buf)
     // Remove old forward mapping (key → old_value) if present
-    let old_val = hash::hashmap_get(fwd, key)
+    let old_val = hash::hashmap_get_option(fwd, key)
     match old_val {
         Option::Some(v) => {
             hash::hashmap_remove(rev, v)
@@ -58,7 +58,7 @@ pub fn bimap_i32_i32_insert(buf: Vec<i32>, key: i32, value: i32) {
         Option::None => {}
     }
     // Remove old reverse mapping (value → old_key) if present
-    let old_key = hash::hashmap_get(rev, value)
+    let old_key = hash::hashmap_get_option(rev, value)
     match old_key {
         Option::Some(k) => {
             hash::hashmap_remove(fwd, k)
@@ -72,28 +72,22 @@ pub fn bimap_i32_i32_insert(buf: Vec<i32>, key: i32, value: i32) {
 
 /// Look up the value for a key. Returns `Option::Some(value)` or `Option::None`.
 pub fn bimap_i32_i32_get_by_key(buf: Vec<i32>, key: i32) -> Option<i32> {
-    hash::hashmap_get(bimap_fwd(buf), key)
+    hash::hashmap_get_option(bimap_fwd(buf), key)
 }
 
 /// Look up the key for a value. Returns `Option::Some(key)` or `Option::None`.
 pub fn bimap_i32_i32_get_by_value(buf: Vec<i32>, value: i32) -> Option<i32> {
-    hash::hashmap_get(bimap_rev(buf), value)
+    hash::hashmap_get_option(bimap_rev(buf), value)
 }
 
 /// Returns true if the key exists in the bimap.
 pub fn bimap_i32_i32_contains_key(buf: Vec<i32>, key: i32) -> bool {
-    match hash::hashmap_get(bimap_fwd(buf), key) {
-        Option::Some(_) => true,
-        Option::None => false,
-    }
+    hash::hashmap_contains(bimap_fwd(buf), key)
 }
 
 /// Returns true if the value exists in the bimap.
 pub fn bimap_i32_i32_contains_value(buf: Vec<i32>, value: i32) -> bool {
-    match hash::hashmap_get(bimap_rev(buf), value) {
-        Option::Some(_) => true,
-        Option::None => false,
-    }
+    hash::hashmap_contains(bimap_rev(buf), value)
 }
 
 /// Remove a key and its associated value from the bimap.
@@ -101,7 +95,7 @@ pub fn bimap_i32_i32_contains_value(buf: Vec<i32>, value: i32) -> bool {
 pub fn bimap_i32_i32_remove_by_key(buf: Vec<i32>, key: i32) -> bool {
     let fwd = bimap_fwd(buf)
     let rev = bimap_rev(buf)
-    let val = hash::hashmap_get(fwd, key)
+    let val = hash::hashmap_get_option(fwd, key)
     match val {
         Option::Some(v) => {
             hash::hashmap_remove(fwd, key)
@@ -117,7 +111,7 @@ pub fn bimap_i32_i32_remove_by_key(buf: Vec<i32>, key: i32) -> bool {
 pub fn bimap_i32_i32_remove_by_value(buf: Vec<i32>, value: i32) -> bool {
     let fwd = bimap_fwd(buf)
     let rev = bimap_rev(buf)
-    let key = hash::hashmap_get(rev, value)
+    let key = hash::hashmap_get_option(rev, value)
     match key {
         Option::Some(k) => {
             hash::hashmap_remove(rev, value)
@@ -130,10 +124,10 @@ pub fn bimap_i32_i32_remove_by_value(buf: Vec<i32>, value: i32) -> bool {
 
 /// Return the number of pairs in the bimap.
 pub fn bimap_i32_i32_len(buf: Vec<i32>) -> i32 {
-    hash::hashmap_len(bimap_fwd(buf))
+    hash::hashmap_size(bimap_fwd(buf))
 }
 
 /// Return true if the bimap is empty.
 pub fn bimap_i32_i32_is_empty(buf: Vec<i32>) -> bool {
-    hash::hashmap_len(bimap_fwd(buf)) == 0
+    hash::hashmap_size(bimap_fwd(buf)) == 0
 }

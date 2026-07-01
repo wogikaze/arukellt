@@ -1,29 +1,29 @@
 use std::collections::hash
-use std::host::stdio
+use std::test
 
-fn print_get(m: Vec<i32>, key: i32) {
+fn assert_get(m: Vec<i32>, key: i32, expected: i32) {
     match hash::hashmap_get_option(m, key) {
-        Option::Some(v) => stdio::println(i32_to_string(v)),
-        None => stdio::println("none"),
+        Option::Some(v) => test::assert_eq_i32(v, expected),
+        None => panic("expected Some"),
     }
 }
 
 fn main() {
     let m = hash::hashmap_with_capacity(1)
-    stdio::println(i32_to_string(hash::hashmap_capacity(m)))
+    test::assert_eq_i32(hash::hashmap_capacity(m), 1)
     hash::hashmap_reserve(m, 3)
-    stdio::println(bool_to_string(hash::hashmap_capacity(m) >= 4))
-    stdio::println(bool_to_string(hash::hashmap_try_reserve(m, 2)))
+    test::assert_true(hash::hashmap_capacity(m) >= 4)
+    test::assert_true(hash::hashmap_try_reserve(m, 2))
 
-    stdio::println(bool_to_string(hash::hashmap_set(m, 1, 10)))
-    stdio::println(bool_to_string(hash::hashmap_set(m, 2, 20)))
-    stdio::println(bool_to_string(hash::hashmap_set(m, 3, 30)))
-    print_get(m, 1)
-    print_get(m, 2)
-    print_get(m, 3)
+    test::assert_true(hash::hashmap_set(m, 1, 10))
+    test::assert_true(hash::hashmap_set(m, 2, 20))
+    test::assert_true(hash::hashmap_set(m, 3, 30))
+    assert_get(m, 1, 10)
+    assert_get(m, 2, 20)
+    assert_get(m, 3, 30)
 
     hash::hashmap_shrink_to_fit(m)
-    stdio::println(bool_to_string(hash::hashmap_capacity(m) >= 4))
-    stdio::println(i32_to_string(hash::hashmap_size(m)))
-    print_get(m, 2)
+    test::assert_true(hash::hashmap_capacity(m) >= 4)
+    test::assert_eq_i32(hash::hashmap_size(m), 3)
+    assert_get(m, 2, 20)
 }

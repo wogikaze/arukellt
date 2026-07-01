@@ -1,0 +1,58 @@
+use std::collections::bimap
+use std::test
+
+fn main() {
+    let bm = bimap::bimap_i32_i32_new()
+    test::assert_true(bimap::bimap_i32_i32_is_empty(bm))
+    test::assert_eq_i32(bimap::bimap_i32_i32_len(bm), 0)
+
+    // insert
+    bimap::bimap_i32_i32_insert(bm, 1, 100)
+    bimap::bimap_i32_i32_insert(bm, 2, 200)
+    bimap::bimap_i32_i32_insert(bm, 3, 300)
+    test::assert_eq_i32(bimap::bimap_i32_i32_len(bm), 3)
+
+    // get_by_key
+    match bimap::bimap_i32_i32_get_by_key(bm, 1) {
+        Option::Some(v) => test::assert_eq_i32(v, 100),
+        None => panic("expected Some(100)"),
+    }
+    match bimap::bimap_i32_i32_get_by_key(bm, 99) {
+        Option::Some(v) => panic("expected None"),
+        None => {
+        },
+    }
+
+    // get_by_value
+    match bimap::bimap_i32_i32_get_by_value(bm, 200) {
+        Option::Some(k) => test::assert_eq_i32(k, 2),
+        None => panic("expected Some(2)"),
+    }
+
+    // contains
+    test::assert_true(bimap::bimap_i32_i32_contains_key(bm, 1))
+    test::assert_false(bimap::bimap_i32_i32_contains_key(bm, 99))
+    test::assert_true(bimap::bimap_i32_i32_contains_value(bm, 100))
+    test::assert_false(bimap::bimap_i32_i32_contains_value(bm, 999))
+
+    // insert overwriting key removes old value association
+    bimap::bimap_i32_i32_insert(bm, 1, 999)
+    match bimap::bimap_i32_i32_get_by_key(bm, 1) {
+        Option::Some(v) => test::assert_eq_i32(v, 999),
+        None => panic("expected Some(999)"),
+    }
+    test::assert_false(bimap::bimap_i32_i32_contains_value(bm, 100))
+
+    // remove_by_key
+    test::assert_true(bimap::bimap_i32_i32_remove_by_key(bm, 2))
+    test::assert_false(bimap::bimap_i32_i32_contains_key(bm, 2))
+    test::assert_false(bimap::bimap_i32_i32_contains_value(bm, 200))
+    test::assert_false(bimap::bimap_i32_i32_remove_by_key(bm, 99))
+
+    // remove_by_value
+    test::assert_true(bimap::bimap_i32_i32_remove_by_value(bm, 300))
+    test::assert_false(bimap::bimap_i32_i32_contains_key(bm, 3))
+    test::assert_true(bimap::bimap_i32_i32_remove_by_value(bm, 999))
+    test::assert_false(bimap::bimap_i32_i32_contains_key(bm, 1))
+    test::assert_false(bimap::bimap_i32_i32_remove_by_value(bm, 999))
+}

@@ -1,6 +1,6 @@
 use std::collections::hash
 use std::collections::hash_map
-use std::host::stdio
+use std::test
 
 fn main() {
     // --- HashMap<String, i32> via wrapper API ---
@@ -8,50 +8,51 @@ fn main() {
     let _ = hash_map::hashmap_str_i32_insert(m, "alpha", 1)
     let _ = hash_map::hashmap_str_i32_insert(m, "beta", 2)
     let _ = hash_map::hashmap_str_i32_insert(m, "alpha", 10)
-    stdio::println(i32_to_string(hash_map::hashmap_str_i32_len(m)))
+    test::assert_eq_i32(hash_map::hashmap_str_i32_len(m), 2)
     match hash_map::hashmap_str_i32_get(m, "alpha") {
-        Option::Some(v) => stdio::println(i32_to_string(v)),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_i32(v, 10),
+        None => panic("expected Some(10)"),
     }
     match hash_map::hashmap_str_i32_get(m, "gamma") {
-        Option::Some(v) => stdio::println(i32_to_string(v)),
-        None => stdio::println("not found"),
+        Option::Some(v) => panic("expected None for gamma"),
+        None => {
+        },
     }
-    stdio::println(bool_to_string(hash_map::hashmap_str_i32_contains(m, "beta")))
-    stdio::println(bool_to_string(hash_map::hashmap_str_i32_contains(m, "unknown")))
+    test::assert_true(hash_map::hashmap_str_i32_contains(m, "beta"))
+    test::assert_false(hash_map::hashmap_str_i32_contains(m, "unknown"))
 
     // --- HashMap<i32, String> via wrapper API ---
     let m2 = hash_map::hashmap_i32_str_new()
     let _ = hash_map::hashmap_i32_str_insert(m2, 1, "one")
     let _ = hash_map::hashmap_i32_str_insert(m2, 2, "two")
     let _ = hash_map::hashmap_i32_str_insert(m2, 1, "ONE")
-    stdio::println(i32_to_string(hash_map::hashmap_i32_str_len(m2)))
+    test::assert_eq_i32(hash_map::hashmap_i32_str_len(m2), 2)
     match hash_map::hashmap_i32_str_get(m2, 1) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_string(v, "ONE"),
+        None => panic("expected Some(\"ONE\")"),
     }
 
     // --- HashMap<String, String> via wrapper API ---
     let m3 = hash_map::hashmap_str_str_new()
     let _ = hash_map::hashmap_str_str_insert(m3, "greeting", "hello")
     let _ = hash_map::hashmap_str_str_insert(m3, "farewell", "goodbye")
-    stdio::println(i32_to_string(hash_map::hashmap_str_str_len(m3)))
+    test::assert_eq_i32(hash_map::hashmap_str_str_len(m3), 2)
     match hash_map::hashmap_str_str_get(m3, "greeting") {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_string(v, "hello"),
+        None => panic("expected Some(\"hello\")"),
     }
-    stdio::println(bool_to_string(hash_map::hashmap_str_str_contains(m3, "farewell")))
+    test::assert_true(hash_map::hashmap_str_str_contains(m3, "farewell"))
 
     // --- HashSet<String> via wrapper API ---
     let s = hash_map::hashset_str_new()
-    stdio::println(bool_to_string(hash_map::hashset_str_insert(s, "red")))
-    stdio::println(bool_to_string(hash_map::hashset_str_insert(s, "green")))
-    stdio::println(bool_to_string(hash_map::hashset_str_insert(s, "red")))
-    stdio::println(i32_to_string(hash_map::hashset_str_len(s)))
-    stdio::println(bool_to_string(hash_map::hashset_str_contains(s, "green")))
-    stdio::println(bool_to_string(hash_map::hashset_str_contains(s, "blue")))
-    stdio::println(bool_to_string(hash_map::hashset_str_remove(s, "green")))
-    stdio::println(i32_to_string(hash_map::hashset_str_len(s)))
+    test::assert_true(hash_map::hashset_str_insert(s, "red"))
+    test::assert_true(hash_map::hashset_str_insert(s, "green"))
+    test::assert_false(hash_map::hashset_str_insert(s, "red"))
+    test::assert_eq_i32(hash_map::hashset_str_len(s), 2)
+    test::assert_true(hash_map::hashset_str_contains(s, "green"))
+    test::assert_false(hash_map::hashset_str_contains(s, "blue"))
+    test::assert_true(hash_map::hashset_str_remove(s, "green"))
+    test::assert_eq_i32(hash_map::hashset_str_len(s), 1)
 
     // --- HashSet<i32> operations via direct hash module ---
     let s2 = hash::hashset_new()
@@ -63,14 +64,9 @@ fn main() {
     let _ = hash::hashset_insert(s3, 30)
     let _ = hash::hashset_insert(s3, 40)
     let u = hash::hashset_union(s2, s3)
-    stdio::println(i32_to_string(hash::hashset_len(u)))
+    test::assert_eq_i32(hash::hashset_len(u), 4)
     let i = hash::hashset_intersection(s2, s3)
-    stdio::println(i32_to_string(hash::hashset_len(i)))
+    test::assert_eq_i32(hash::hashset_len(i), 2)
     let d = hash::hashset_difference(s2, s3)
-    stdio::println(i32_to_string(hash::hashset_len(d)))
+    test::assert_eq_i32(hash::hashset_len(d), 1)
 }
-// HashMap<String,i32> basic operations
-// HashMap<i32,String> basic operations
-// HashMap<String,String> basic operations
-// HashSet<String> operations
-// HashSet<i32> set operations (union/intersection/difference)

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let m = HashMap_i32_i32_new()
@@ -6,15 +6,15 @@ fn main() {
     HashMap_i32_i32_insert(m, 2, 200)
     HashMap_i32_i32_insert(m, 3, 300)
     match HashMap_i32_i32_get(m, 2) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println(-1),
+        Option::Some(v) => test::assert_eq_i32(v, 200),
+        None => panic("expected Some(200)"),
     }
-    stdio::println(HashMap_i32_i32_len(m))
-    if HashMap_i32_i32_contains_key(m, 1) {
-        stdio::println(String_from("found"))
-    }
+    test::assert_eq_i32(HashMap_i32_i32_len(m), 3)
+    test::assert_true(HashMap_i32_i32_contains_key(m, 1))
+    test::assert_false(HashMap_i32_i32_contains_key(m, 99))
     match HashMap_i32_i32_get(m, 99) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println(String_from("not found")),
+        Option::Some(v) => panic("expected None for key 99"),
+        None => {
+        },
     }
 }

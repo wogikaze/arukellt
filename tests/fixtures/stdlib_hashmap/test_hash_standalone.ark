@@ -1,9 +1,9 @@
 use std::collections::hash
-use std::host::stdio
+use std::test
 
 fn main() {
     let m = hash::hashmap_new()
     hash::hashmap_set(m, 1, 42)
     let s: i32 = hash::hashmap_size(m)
-    stdio::println(i32_to_string(s))
+    test::assert_eq_i32(s, 1)
 }

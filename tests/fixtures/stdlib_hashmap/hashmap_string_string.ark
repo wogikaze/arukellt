@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let m = HashMap_new_String_String()
@@ -6,25 +6,20 @@ fn main() {
     HashMap_String_String_insert(m, "farewell", "goodbye")
     HashMap_String_String_insert(m, "color", "red")
     HashMap_String_String_insert(m, "color", "blue")
-    stdio::println(i32_to_string(HashMap_String_String_len(m)))
+    test::assert_eq_i32(HashMap_String_String_len(m), 3)
     match HashMap_String_String_get(m, "greeting") {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_string(v, "hello"),
+        None => panic("expected Some(hello)"),
     }
     match HashMap_String_String_get(m, "color") {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => test::assert_eq_string(v, "blue"),
+        None => panic("expected Some(blue)"),
     }
     match HashMap_String_String_get(m, "missing") {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println("not found"),
+        Option::Some(v) => panic("expected None"),
+        None => {
+        },
     }
-    stdio::println(bool_to_string(HashMap_String_String_contains_key(m, "farewell")))
-    stdio::println(bool_to_string(HashMap_String_String_contains_key(m, "unknown")))
+    test::assert_true(HashMap_String_String_contains_key(m, "farewell"))
+    test::assert_false(HashMap_String_String_contains_key(m, "unknown"))
 }
-// Update existing key
-// len
-// get existing key
-// get updated key
-// get missing key
-// contains_key
