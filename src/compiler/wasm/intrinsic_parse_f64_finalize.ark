@@ -22,7 +22,7 @@ fn emit_parse_f64_invalid_branch_begin(w: WasmWriter) {
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_IF())
-    writer_core::emit_byte(w, 127)
+    writer_core::emit_byte(w, 64)
 }
 
 fn emit_parse_f64_invalid_branch_else(w: WasmWriter) {
