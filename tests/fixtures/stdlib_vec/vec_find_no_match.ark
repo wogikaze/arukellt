@@ -1,0 +1,18 @@
+use std::test
+
+fn is_large(x: i32) -> bool {
+    x > 100
+}
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    let result = find_i32(v, is_large)
+    match result {
+        Option::Some(val) => panic("expected None, got Some"),
+        None => {
+        },
+    }
+}

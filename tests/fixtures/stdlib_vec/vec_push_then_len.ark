@@ -1,0 +1,12 @@
+use std::test
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    test::assert_eq_i32(len(v), 0)
+    push(v, 10)
+    test::assert_eq_i32(len(v), 1)
+    push(v, 20)
+    test::assert_eq_i32(len(v), 2)
+    push(v, 30)
+    test::assert_eq_i32(len(v), 3)
+}

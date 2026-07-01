@@ -1,0 +1,11 @@
+use std::test
+
+fn is_even(x: i32) -> bool {
+    x % 2 == 0
+}
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = filter_i32(v, is_even)
+    test::assert_eq_i32(len(result), 0)
+}

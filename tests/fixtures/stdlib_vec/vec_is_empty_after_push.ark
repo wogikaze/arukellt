@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 42)
+    test::assert_false(is_empty(v))
+}

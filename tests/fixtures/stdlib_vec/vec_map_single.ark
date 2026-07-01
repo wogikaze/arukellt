@@ -1,0 +1,13 @@
+use std::test
+
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 42)
+    let result: Vec<i32> = map_i32_i32(v, double)
+    test::assert_eq_i32(len(result), 1)
+    test::assert_eq_i32(get_unchecked(result, 0), 84)
+}

@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let v: Vec<f64> = Vec_new_f64()
+    test::assert_eq_i32(len(v), 0)
+    test::assert_true(is_empty(v))
+}

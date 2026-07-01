@@ -1,0 +1,17 @@
+use std::test
+
+fn is_large(x: f64) -> bool {
+    x > 2.5
+}
+
+fn main() {
+    let mut v: Vec<f64> = Vec_new_f64()
+    push(v, 1.0)
+    push(v, 2.0)
+    push(v, 3.0)
+    push(v, 4.0)
+    let result: Vec<f64> = filter_f64(v, is_large)
+    test::assert_eq_i32(len(result), 2)
+    test::assert_eq_f64(get_unchecked(result, 0), 3.0)
+    test::assert_eq_f64(get_unchecked(result, 1), 4.0)
+}

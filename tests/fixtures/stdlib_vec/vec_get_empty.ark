@@ -1,0 +1,10 @@
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    match get(v, 0) {
+        Option::Some(val) => panic("expected None, got Some"),
+        None => {
+        },
+    }
+}

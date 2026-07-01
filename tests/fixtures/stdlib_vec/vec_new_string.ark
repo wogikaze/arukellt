@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let v: Vec<String> = Vec_new_String()
+    test::assert_eq_i32(len(v), 0)
+    test::assert_true(is_empty(v))
+}
