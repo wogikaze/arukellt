@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let a = String_from("123")
+    let b = String_from("456")
+    test::assert_eq_string(concat(a, b), "123456")
+    test::assert_false(eq(concat(a, b), concat(b, a)))
+}

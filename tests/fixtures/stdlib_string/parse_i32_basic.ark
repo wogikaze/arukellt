@@ -1,0 +1,14 @@
+use std::test
+
+fn main() {
+    let r: Result<i32, String> = parse_i32(String_from("123"))
+    match r {
+        Result::Ok(v) => test::assert_eq_i32(v, 123),
+        Result::Err(e) => panic("expected Ok"),
+    }
+    let z: Result<i32, String> = parse_i32(String_from("0"))
+    match z {
+        Result::Ok(v) => test::assert_eq_i32(v, 0),
+        Result::Err(e) => panic("expected Ok"),
+    }
+}

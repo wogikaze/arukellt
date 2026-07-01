@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let mut s = String_from("hi")
+    push_char(s, '!')
+    push_char(s, '!')
+    test::assert_true(eq(s, String_from("hi!!")))
+}

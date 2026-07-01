@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("ALREADY UPPER")
+    test::assert_eq_string(to_upper(s), "ALREADY UPPER")
+    test::assert_eq_string(to_upper(String_from("")), "")
+}

@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    test::assert_eq_i32(byte_len(String_from("hello")), 5)
+    test::assert_eq_i32(byte_len(String_from("")), 0)
+    test::assert_eq_i32(byte_len(String_from("A")), 1)
+}

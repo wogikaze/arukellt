@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("already lower")
+    test::assert_eq_string(to_lower(s), "already lower")
+    test::assert_eq_string(to_lower(String_from("")), "")
+}

@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(trim(String_from("hello")), "hello")
+    test::assert_eq_string(trim_start(String_from("hello")), "hello")
+    test::assert_eq_string(trim_end(String_from("hello")), "hello")
+}

@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("RoundTrip")
+    let up = to_upper(s)
+    test::assert_true(eq(to_lower(up), String_from("roundtrip")))
+}

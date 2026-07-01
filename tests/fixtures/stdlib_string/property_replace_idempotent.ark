@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("hello")
+    let once = replace(s, String_from("zz"), String_from("QQ"))
+    let twice = replace(once, String_from("zz"), String_from("QQ"))
+    test::assert_true(eq(once, twice))
+}

@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    test::assert_eq_i32(len(String_from("A")), 1)
+    test::assert_eq_i32(len(String_from(" ")), 1)
+    test::assert_eq_i32(len(String_from("!")), 1)
+}

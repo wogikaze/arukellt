@@ -1,0 +1,13 @@
+use std::test
+
+fn main() {
+    let mut s = String_from("")
+    let mut i = 0
+    while i < 10 {
+        s = concat(s, i32_to_string(i))
+        s = concat(s, String_from(","))
+        i = i + 1
+    }
+    let parts = split(s, String_from(","))
+    test::assert_eq_i32(len(parts), 11)
+}

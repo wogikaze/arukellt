@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("abc")
+    let n = 4
+    let r = repeat(s, n)
+    test::assert_eq_i32(len(r), len(s) * n)
+}

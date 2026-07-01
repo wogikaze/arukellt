@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    let a = String_from("one-")
+    let b = String_from("two-")
+    let c = String_from("three")
+    let ab = concat(a, b)
+    test::assert_eq_string(concat(ab, c), "one-two-three")
+}

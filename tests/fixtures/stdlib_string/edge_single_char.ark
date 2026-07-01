@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    let s = String_from("A")
+    test::assert_eq_i32(len(s), 1)
+    test::assert_false(is_empty(s))
+    test::assert_eq_string(slice(s, 0, 1), "A")
+    test::assert_eq_i32(char_at(s, 0), 65)
+}

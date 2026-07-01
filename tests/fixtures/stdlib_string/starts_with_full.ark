@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("hello")
+    test::assert_true(starts_with(s, String_from("hello")))
+    test::assert_false(starts_with(s, String_from("hellox")))
+}

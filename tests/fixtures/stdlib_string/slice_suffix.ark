@@ -1,0 +1,6 @@
+use std::test
+
+fn main() {
+    let s = String_from("hello world")
+    test::assert_eq_string(slice(s, 6, 11), "world")
+}

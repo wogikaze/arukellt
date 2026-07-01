@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let a = String_from("")
+    let b = String_from("world")
+    test::assert_eq_string(concat(a, b), "world")
+}

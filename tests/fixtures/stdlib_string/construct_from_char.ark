@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(char_to_string('A'), "A")
+    test::assert_eq_string(char_to_string('z'), "z")
+    test::assert_eq_string(char_to_string('0'), "0")
+    test::assert_eq_string(char_to_string(' '), " ")
+}

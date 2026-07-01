@@ -1,0 +1,7 @@
+use std::test
+
+fn main() {
+    let s = String_from("clone-me")
+    test::assert_true(eq(clone(s), s))
+    test::assert_eq_i32(len(clone(s)), len(s))
+}

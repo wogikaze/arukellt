@@ -1,0 +1,10 @@
+use std::test
+
+fn main() {
+    let a = String_from("abc")
+    let b = String_from("def")
+    let c = concat(a, b)
+    test::assert_eq_i32(len(c), 6)
+    let d = concat(c, String_from("gh"))
+    test::assert_eq_i32(len(d), 8)
+}

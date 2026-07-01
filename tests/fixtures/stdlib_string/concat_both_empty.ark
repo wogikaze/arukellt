@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    let a = String_from("")
+    let b = String_from("")
+    let c = concat(a, b)
+    test::assert_eq_i32(len(c), 0)
+    test::assert_true(is_empty(c))
+}

@@ -1,0 +1,9 @@
+use std::test
+
+fn main() {
+    test::assert_eq_string(i32_to_string(0), "0")
+    test::assert_eq_string(i32_to_string(42), "42")
+    test::assert_eq_string(i32_to_string(-1), "-1")
+    test::assert_eq_string(i32_to_string(2147483647), "2147483647")
+    test::assert_eq_string(i32_to_string(-2147483648), "-2147483648")
+}

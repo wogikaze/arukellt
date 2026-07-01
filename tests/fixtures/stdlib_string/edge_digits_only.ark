@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("1234567890")
+    test::assert_eq_i32(len(s), 10)
+    test::assert_true(contains(s, String_from("567")))
+    test::assert_eq_i32(index_of(s, String_from("0")), 9)
+}

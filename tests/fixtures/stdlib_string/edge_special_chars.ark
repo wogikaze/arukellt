@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("a.b,c!d@e")
+    test::assert_eq_i32(len(s), 10)
+    test::assert_true(contains(s, String_from("!")))
+    test::assert_true(contains(s, String_from("@")))
+}

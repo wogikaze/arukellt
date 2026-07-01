@@ -1,0 +1,8 @@
+use std::test
+
+fn main() {
+    let s = String_from("AbC")
+    test::assert_eq_i32(char_at(s, 0), 65)
+    test::assert_eq_i32(char_at(s, 1), 98)
+    test::assert_eq_i32(char_at(s, 2), 67)
+}
