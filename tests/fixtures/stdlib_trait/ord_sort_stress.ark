@@ -1,0 +1,16 @@
+use std::seq
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    // Insert in reverse order
+    for i in 0..50 {
+        push(v, 49 - i)
+    }
+
+    let s = seq::sort_by(v)
+    test::assert_eq_i32(len(s), 50)
+    for i in 0..50 {
+        test::assert_eq_i32(get_unchecked(s, i), i)
+    }
+}

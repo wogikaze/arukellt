@@ -1,0 +1,8 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    test::assert_eq_string(to_string(String_from("hello")), "hello")
+    test::assert_eq_string(to_string(String_from("")), "")
+    test::assert_eq_string(to_string(String_from("world")), "world")
+}

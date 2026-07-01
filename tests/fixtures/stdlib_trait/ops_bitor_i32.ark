@@ -1,0 +1,9 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    test::assert_eq_i32((12).bitor(10), 14)
+    test::assert_eq_i32((240).bitor(15), 255)
+    test::assert_eq_i32((0).bitor(0), 0)
+    test::assert_eq_i32((0).bitor(1), 1)
+}

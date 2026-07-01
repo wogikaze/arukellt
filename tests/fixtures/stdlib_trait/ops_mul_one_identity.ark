@@ -1,0 +1,10 @@
+// Property: multiplying by 1 is identity for i32.
+use std::core::ops
+use std::test
+
+fn main() {
+    for i in 0..50 {
+        test::assert_eq_i32(i.mul(1), i)
+    }
+    test::assert_eq_i32((-100).mul(1), -100)
+}

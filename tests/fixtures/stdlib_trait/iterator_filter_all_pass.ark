@@ -1,0 +1,17 @@
+use std::core::iter
+use std::test
+
+fn always_true(x: i32) -> bool { true }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+    push(v, 30)
+
+    let filtered = iter::collect_filter_i32(v, always_true)
+    test::assert_eq_i32(len(filtered), 3)
+    test::assert_eq_i32(get_unchecked(filtered, 0), 10)
+    test::assert_eq_i32(get_unchecked(filtered, 1), 20)
+    test::assert_eq_i32(get_unchecked(filtered, 2), 30)
+}

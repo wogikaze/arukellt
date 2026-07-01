@@ -1,0 +1,12 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    let o = (5).cmp(5)
+    match o {
+        Ordering::Equal => {}
+        Ordering::Less => panic("expected Equal"),
+        Ordering::Greater => panic("expected Equal"),
+    }
+    test::assert_true(true)
+}

@@ -1,0 +1,12 @@
+use std::core::clone
+use std::test
+
+fn main() {
+    let big: i64 = 1000000000000
+    let bigc: i64 = big.clone()
+    test::assert_eq_i64(bigc, 1000000000000)
+
+    let neg: i64 = -42
+    let negc: i64 = neg.clone()
+    test::assert_eq_i64(negc, -42)
+}

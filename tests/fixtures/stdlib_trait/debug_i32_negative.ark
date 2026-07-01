@@ -1,0 +1,8 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    test::assert_eq_string(fmt::format_debug(-1), "-1")
+    test::assert_eq_string(fmt::format_debug(-42), "-42")
+    test::assert_eq_string(fmt::format_debug(-2147483647), "-2147483647")
+}

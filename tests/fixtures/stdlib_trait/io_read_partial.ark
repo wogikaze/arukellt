@@ -1,0 +1,19 @@
+use std::io
+use std::test
+
+fn main() {
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 10)
+    push(data, 20)
+    push(data, 30)
+
+    let _w = io::write_bytes(buf, data)
+
+    // Request 10 bytes but only 3 available
+    let read = io::read_bytes(buf, 10)
+    test::assert_eq_i32(len(read), 3)
+    test::assert_eq_i32(get_unchecked(read, 0), 10)
+    test::assert_eq_i32(get_unchecked(read, 1), 20)
+    test::assert_eq_i32(get_unchecked(read, 2), 30)
+}

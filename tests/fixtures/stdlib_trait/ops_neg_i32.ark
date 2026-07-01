@@ -1,0 +1,8 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    test::assert_eq_i32((5).neg(), -5)
+    test::assert_eq_i32((-5).neg(), 5)
+    test::assert_eq_i32((0).neg(), 0)
+}

@@ -1,0 +1,25 @@
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 10)
+    push(data, 20)
+    push(data, 30)
+    let reader = io::reader_from_bytes(data)
+
+    match io::reader_read_exact(reader, 2) {
+        Result::Ok(bytes) => {
+            test::assert_eq_i32(len(bytes), 2)
+            test::assert_eq_i32(get_unchecked(bytes, 0), 10)
+            test::assert_eq_i32(get_unchecked(bytes, 1), 20)
+        },
+        Result::Err(_e) => panic("expected Ok"),
+    }
+
+    // Only 1 byte left, requesting 5 should fail
+    match io::reader_read_exact(reader, 5) {
+        Result::Ok(_) => panic("expected Err"),
+        Result::Err(_e) => {}
+    }
+}

@@ -1,0 +1,20 @@
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 1)
+    push(data, 2)
+    push(data, 3)
+    push(data, 4)
+    let reader = io::reader_from_bytes(data)
+
+    match io::reader_read_all(reader) {
+        Result::Ok(bytes) => {
+            test::assert_eq_i32(len(bytes), 4)
+            test::assert_eq_i32(get_unchecked(bytes, 0), 1)
+            test::assert_eq_i32(get_unchecked(bytes, 3), 4)
+        },
+        Result::Err(_e) => panic("expected Ok"),
+    }
+}

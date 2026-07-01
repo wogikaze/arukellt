@@ -1,0 +1,12 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    let a: i64 = 1000000000000
+    let b: i64 = 1
+    test::assert_eq_i64(a.add(b), 1000000000001)
+
+    let c: i64 = -5
+    let d: i64 = 5
+    test::assert_eq_i64(c.add(d), 0)
+}

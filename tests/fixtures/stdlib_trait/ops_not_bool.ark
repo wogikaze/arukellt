@@ -1,0 +1,7 @@
+use std::core::ops
+use std::test
+
+fn main() {
+    test::assert_true(true.not())
+    test::assert_false(false.not())
+}

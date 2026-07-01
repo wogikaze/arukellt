@@ -1,0 +1,20 @@
+use std::core::cmp
+use std::test
+
+fn main() {
+    // NaN != NaN, so partial_cmp returns None
+    let nan: f64 = 0.0 / 0.0
+    match nan.partial_cmp(1.0) {
+        None => {}
+        Some(_) => panic("expected None for NaN"),
+    }
+    match (1.0).partial_cmp(nan) {
+        None => {}
+        Some(_) => panic("expected None for NaN"),
+    }
+    // Normal f64 comparison still works
+    match (1.5).partial_cmp(2.5) {
+        Some(Ordering::Less) => {}
+        _ => panic("expected Some(Less)"),
+    }
+}

@@ -1,0 +1,13 @@
+use std::core::clone
+use std::test
+
+fn main() {
+    let s: String = String_from("hello")
+    let t: String = s.clone()
+    test::assert_eq_string(t, "hello")
+    test::assert_eq_string(s, "hello")
+
+    let empty: String = String_from("")
+    let empty_c: String = empty.clone()
+    test::assert_eq_string(empty_c, "")
+}

@@ -1,0 +1,10 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    let big: i64 = 1000000000000
+    test::assert_eq_string(to_string(big), i64_to_string(big))
+
+    let neg: i64 = -42
+    test::assert_eq_string(to_string(neg), "-42")
+}

@@ -1,0 +1,12 @@
+use std::io
+use std::test
+
+fn main() {
+    let err = io::IoError::UnexpectedEof("need 5 have 3")
+    let msg = io::io_error_message(err)
+    test::assert_eq_string(msg, "need 5 have 3")
+
+    let err2 = io::IoError::Other("disk full")
+    let msg2 = io::io_error_message(err2)
+    test::assert_eq_string(msg2, "disk full")
+}

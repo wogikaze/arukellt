@@ -1,0 +1,24 @@
+use std::io
+use std::test
+
+fn main() {
+    // "AB\nCD" — read_line should return "AB" and consume the newline
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 65)
+    push(data, 66)
+    push(data, 10)
+    push(data, 67)
+    push(data, 68)
+    let reader = io::reader_from_bytes(data)
+
+    match io::reader_read_line(reader) {
+        Result::Ok(line) => test::assert_eq_string(line, "AB"),
+        Result::Err(_e) => panic("expected Ok"),
+    }
+
+    // Second read should get "CD" (no trailing newline)
+    match io::reader_read_line(reader) {
+        Result::Ok(line) => test::assert_eq_string(line, "CD"),
+        Result::Err(_e) => panic("expected Ok"),
+    }
+}

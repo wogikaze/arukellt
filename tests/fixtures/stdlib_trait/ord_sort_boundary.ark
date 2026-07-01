@@ -1,0 +1,15 @@
+use std::seq
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 2147483647)
+    push(v, -2147483647)
+    push(v, 0)
+
+    let s = seq::sort_by(v)
+    test::assert_eq_i32(len(s), 3)
+    test::assert_eq_i32(get_unchecked(s, 0), -2147483647)
+    test::assert_eq_i32(get_unchecked(s, 1), 0)
+    test::assert_eq_i32(get_unchecked(s, 2), 2147483647)
+}

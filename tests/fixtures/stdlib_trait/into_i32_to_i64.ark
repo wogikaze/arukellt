@@ -1,0 +1,16 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    let n: i32 = 42
+    let wide: i64 = n.into()
+    test::assert_eq_i64(wide, 42)
+
+    let m: i32 = 0
+    let wide_m: i64 = m.into()
+    test::assert_eq_i64(wide_m, 0)
+
+    let neg: i32 = -5
+    let wide_neg: i64 = neg.into()
+    test::assert_eq_i64(wide_neg, -5)
+}

@@ -1,0 +1,14 @@
+use std::core::hash
+use std::test
+
+fn main() {
+    let h1: i32 = hash(String_from("hello"))
+    let h2: i32 = hash(String_from("hello"))
+    test::assert_eq_i32(h1, h2)
+
+    let h3: i32 = hash(String_from("world"))
+    test::assert_true(h1 != h3)
+
+    let h_empty: i32 = hash(String_from(""))
+    test::assert_true(h_empty >= 0)
+}

@@ -1,0 +1,19 @@
+use std::core::iter
+use std::test
+
+fn negate(x: i32) -> i32 { 0 - x }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, -2)
+    push(v, 3)
+    push(v, -4)
+
+    let mapped = iter::collect_map_i32(v, negate)
+    test::assert_eq_i32(len(mapped), 4)
+    test::assert_eq_i32(get_unchecked(mapped, 0), -1)
+    test::assert_eq_i32(get_unchecked(mapped, 1), 2)
+    test::assert_eq_i32(get_unchecked(mapped, 2), -3)
+    test::assert_eq_i32(get_unchecked(mapped, 3), 4)
+}

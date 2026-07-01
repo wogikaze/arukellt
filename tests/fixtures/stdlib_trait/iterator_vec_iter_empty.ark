@@ -1,0 +1,11 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    let it = iter::vec_iter(v)
+    match it.next() {
+        Some(_) => panic("expected None on empty iterator"),
+        None => {}
+    }
+}

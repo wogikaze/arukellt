@@ -1,0 +1,9 @@
+use std::core::iter
+use std::test
+
+fn is_even(x: i32) -> bool { x / 2 * 2 == x }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    test::assert_false(iter::iter_any_i32(v, is_even))
+}

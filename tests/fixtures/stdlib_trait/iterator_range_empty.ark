@@ -1,0 +1,8 @@
+use std::core::iter
+use std::test
+
+fn main() {
+    let r = range_new(5, 5)
+    let collected = iter::collect_range_i32(r)
+    test::assert_eq_i32(len(collected), 0)
+}

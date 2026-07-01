@@ -1,0 +1,9 @@
+use std::text::fmt
+use std::test
+
+fn main() {
+    test::assert_eq_string(fmt::debug_format_option_i32(Some(42)), "Some(42)")
+    test::assert_eq_string(fmt::debug_format_option_i32(None), "None")
+    test::assert_eq_string(fmt::debug_format_option_string(Some(String_from("hi"))), "Some(\"hi\")")
+    test::assert_eq_string(fmt::debug_format_option_string(None), "None")
+}

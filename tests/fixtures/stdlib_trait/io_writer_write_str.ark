@@ -1,0 +1,16 @@
+use std::io
+use std::test
+
+fn main() {
+    let w = io::writer_new()
+
+    match io::writer_write_str(w, "hello") {
+        Result::Ok(n) => test::assert_eq_i32(n, 5),
+        Result::Err(_e) => panic("expected Ok"),
+    }
+
+    let out = io::writer_to_bytes(w)
+    test::assert_eq_i32(len(out), 5)
+    test::assert_eq_i32(get_unchecked(out, 0), 104)
+    test::assert_eq_i32(get_unchecked(out, 4), 111)
+}

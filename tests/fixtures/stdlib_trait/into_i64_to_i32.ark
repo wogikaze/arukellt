@@ -1,0 +1,12 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    let big: i64 = 99999
+    let narrow: i32 = big.into()
+    test::assert_eq_i32(narrow, 99999)
+
+    let neg: i64 = -42
+    let neg_narrow: i32 = neg.into()
+    test::assert_eq_i32(neg_narrow, -42)
+}

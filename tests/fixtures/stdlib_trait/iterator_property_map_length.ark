@@ -1,0 +1,14 @@
+// Property: map preserves the length of the source vector.
+use std::core::iter
+use std::test
+
+fn double(x: i32) -> i32 { x * 2 }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    for i in 0..50 {
+        push(v, i)
+    }
+    let mapped = iter::collect_map_i32(v, double)
+    test::assert_eq_i32(len(mapped), len(v))
+}

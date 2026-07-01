@@ -1,0 +1,26 @@
+use std::io
+use std::test
+
+fn main() {
+    let buf = io::new_memory_buffer()
+    let data: Vec<i32> = Vec_new_i32()
+    push(data, 72)
+    push(data, 101)
+    push(data, 108)
+    push(data, 108)
+    push(data, 111)
+
+    let written = io::write_bytes(buf, data)
+    test::assert_eq_i32(written, 5)
+
+    let read = io::read_bytes(buf, 5)
+    test::assert_eq_i32(len(read), 5)
+    test::assert_eq_i32(get_unchecked(read, 0), 72)
+    test::assert_eq_i32(get_unchecked(read, 1), 101)
+    test::assert_eq_i32(get_unchecked(read, 2), 108)
+    test::assert_eq_i32(get_unchecked(read, 3), 108)
+    test::assert_eq_i32(get_unchecked(read, 4), 111)
+
+    let pos: i64 = io::position(buf)
+    test::assert_eq_i64(pos, 5)
+}

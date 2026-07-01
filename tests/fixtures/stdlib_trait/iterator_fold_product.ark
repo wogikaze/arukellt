@@ -1,0 +1,14 @@
+use std::core::iter
+use std::test
+
+fn mul(a: i32, b: i32) -> i32 { a * b }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 2)
+    push(v, 3)
+    push(v, 4)
+
+    let product = iter::iter_fold_i32(v, 1, mul)
+    test::assert_eq_i32(product, 24)
+}

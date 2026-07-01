@@ -1,0 +1,12 @@
+// Property: hashing the same value always produces the same hash.
+use std::core::hash
+use std::test
+
+fn main() {
+    for i in 0..50 {
+        let h1: i32 = hash(i)
+        let h2: i32 = hash(i)
+        test::assert_eq_i32(h1, h2)
+        test::assert_true(h1 >= 0)
+    }
+}

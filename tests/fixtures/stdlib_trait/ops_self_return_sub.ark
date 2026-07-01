@@ -1,0 +1,18 @@
+// Self return type: generic Sub dispatch.
+use std::core::ops
+
+fn sub_any<T: Sub>(x: T, y: T) -> T {
+    x.sub(y)
+}
+
+fn main() {
+    let a: i32 = 50
+    let b: i32 = 8
+    let c: i32 = sub_any(a, b)
+    assert(c == 42)
+
+    let x: f64 = 10.0
+    let y: f64 = 3.0
+    let z: f64 = sub_any(x, y)
+    assert(z == 7.0)
+}
