@@ -1,0 +1,18 @@
+// Insert: hashmap_insert returns Some(old) on overwrite
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_insert(m, 1, 100)
+    match hash::hashmap_insert(m, 1, 200) {
+        Option::Some(v) => test::assert_eq_i32(v, 100),
+        None => panic("expected Some(100) on overwrite"),
+    }
+    match hash::hashmap_insert(m, 1, 300) {
+        Option::Some(v) => test::assert_eq_i32(v, 200),
+        None => panic("expected Some(200) on overwrite"),
+    }
+    test::assert_eq_i32(hash::hashmap_get(m, 1), 300)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+}

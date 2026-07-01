@@ -1,0 +1,22 @@
+// Remove: present key returns Some(value), decreases size
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 10)
+    hash::hashmap_set(m, 2, 20)
+    hash::hashmap_set(m, 3, 30)
+    test::assert_eq_i32(hash::hashmap_size(m), 3)
+
+    match hash::hashmap_remove(m, 2) {
+        Option::Some(v) => test::assert_eq_i32(v, 20),
+        None => panic("expected Some(20) on remove"),
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 2)
+    test::assert_false(hash::hashmap_contains(m, 2))
+
+    // Remaining keys still accessible
+    test::assert_eq_i32(hash::hashmap_get(m, 1), 10)
+    test::assert_eq_i32(hash::hashmap_get(m, 3), 30)
+}

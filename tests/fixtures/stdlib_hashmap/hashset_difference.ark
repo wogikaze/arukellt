@@ -1,0 +1,22 @@
+// HashSet: difference a - b contains elements in a not in b
+use std::collections::hash
+use std::test
+
+fn main() {
+    let a = hash::hashset_new()
+    hash::hashset_insert(a, 1)
+    hash::hashset_insert(a, 2)
+    hash::hashset_insert(a, 3)
+    hash::hashset_insert(a, 4)
+
+    let b = hash::hashset_new()
+    hash::hashset_insert(b, 2)
+    hash::hashset_insert(b, 4)
+
+    let diff = hash::hashset_difference(a, b)
+    test::assert_eq_i32(hash::hashset_len(diff), 2)
+    test::assert_true(hash::hashset_contains(diff, 1))
+    test::assert_true(hash::hashset_contains(diff, 3))
+    test::assert_false(hash::hashset_contains(diff, 2))
+    test::assert_false(hash::hashset_contains(diff, 4))
+}

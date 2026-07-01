@@ -1,0 +1,28 @@
+// Property: insert N keys, size == N (no duplicates)
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    let mut i = 0
+    while i < 30 {
+        hash::hashmap_set(m, i, i)
+        i = i + 1
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 30)
+
+    // Re-insert same keys, size unchanged
+    i = 0
+    while i < 30 {
+        hash::hashmap_set(m, i, i + 1000)
+        i = i + 1
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 30)
+
+    // Values updated
+    i = 0
+    while i < 30 {
+        test::assert_eq_i32(hash::hashmap_get(m, i), i + 1000)
+        i = i + 1
+    }
+}

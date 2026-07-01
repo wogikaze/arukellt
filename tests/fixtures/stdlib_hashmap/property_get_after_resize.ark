@@ -1,0 +1,20 @@
+// Property: after resize, all keys remain accessible
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_with_capacity(2)
+    let mut i = 0
+    while i < 100 {
+        hash::hashmap_set(m, i * 7, i)
+        i = i + 1
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 100)
+
+    // All keys accessible
+    i = 0
+    while i < 100 {
+        test::assert_eq_i32(hash::hashmap_get(m, i * 7), i)
+        i = i + 1
+    }
+}

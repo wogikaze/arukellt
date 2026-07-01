@@ -1,0 +1,16 @@
+// Try_reserve: returns true on success
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_with_capacity(4)
+    test::assert_true(hash::hashmap_try_reserve(m, 8))
+    test::assert_true(hash::hashmap_capacity(m) >= 12)
+
+    // Try_reserve with 0 additional
+    test::assert_true(hash::hashmap_try_reserve(m, 0))
+
+    // Try_reserve with large additional
+    test::assert_true(hash::hashmap_try_reserve(m, 1000))
+    test::assert_true(hash::hashmap_capacity(m) >= 1000)
+}

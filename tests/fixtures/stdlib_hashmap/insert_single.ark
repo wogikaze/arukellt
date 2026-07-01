@@ -1,0 +1,12 @@
+// Insert: single key-value pair
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    test::assert_true(hash::hashmap_set(m, 42, 100))
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+    test::assert_false(hash::hashmap_is_empty(m))
+    test::assert_true(hash::hashmap_contains(m, 42))
+    test::assert_eq_i32(hash::hashmap_get(m, 42), 100)
+}

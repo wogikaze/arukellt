@@ -1,0 +1,26 @@
+// Insert: zero value is distinct from missing key
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 5, 0)
+    test::assert_true(hash::hashmap_contains(m, 5))
+    test::assert_eq_i32(hash::hashmap_get(m, 5), 0)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+
+    // hashmap_get returns 0 for both missing and stored-zero —
+    // must use contains to distinguish
+    test::assert_false(hash::hashmap_contains(m, 6))
+    test::assert_eq_i32(hash::hashmap_get(m, 6), 0)
+
+    // get_option distinguishes missing from stored-zero
+    match hash::hashmap_get_option(m, 5) {
+        Option::Some(v) => test::assert_eq_i32(v, 0),
+        None => panic("expected Some(0) for stored zero"),
+    }
+    match hash::hashmap_get_option(m, 6) {
+        Option::Some(_) => panic("expected None for missing key"),
+        None => {}
+    }
+}

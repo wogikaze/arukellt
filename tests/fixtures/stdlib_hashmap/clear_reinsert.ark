@@ -1,0 +1,18 @@
+// Clear + reinsert: map is usable after clear
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 10)
+    hash::hashmap_set(m, 2, 20)
+    hash::hashmap_clear(m)
+
+    // Reinsert same and new keys
+    hash::hashmap_set(m, 1, 100)
+    hash::hashmap_set(m, 3, 300)
+    test::assert_eq_i32(hash::hashmap_size(m), 2)
+    test::assert_eq_i32(hash::hashmap_get(m, 1), 100)
+    test::assert_eq_i32(hash::hashmap_get(m, 3), 300)
+    test::assert_false(hash::hashmap_contains(m, 2))
+}

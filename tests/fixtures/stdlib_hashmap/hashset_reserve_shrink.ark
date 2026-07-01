@@ -1,0 +1,22 @@
+// HashSet: reserve and shrink_to_fit
+use std::collections::hash
+use std::test
+
+fn main() {
+    let s = hash::hashset_new()
+    hash::hashset_insert(s, 1)
+    hash::hashset_insert(s, 2)
+
+    let cap_before = hash::hashset_capacity(s)
+    hash::hashset_reserve(s, 20)
+    test::assert_true(hash::hashset_capacity(s) >= cap_before + 20)
+    test::assert_eq_i32(hash::hashset_len(s), 2)
+    test::assert_true(hash::hashset_contains(s, 1))
+    test::assert_true(hash::hashset_contains(s, 2))
+
+    hash::hashset_shrink_to_fit(s)
+    test::assert_true(hash::hashset_capacity(s) <= cap_before + 20)
+    test::assert_eq_i32(hash::hashset_len(s), 2)
+    test::assert_true(hash::hashset_contains(s, 1))
+    test::assert_true(hash::hashset_contains(s, 2))
+}

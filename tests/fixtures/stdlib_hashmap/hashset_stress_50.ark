@@ -1,0 +1,40 @@
+// HashSet: stress with 50 elements
+use std::collections::hash
+use std::test
+
+fn main() {
+    let s = hash::hashset_new()
+    let mut i = 0
+    while i < 50 {
+        hash::hashset_insert(s, i)
+        i = i + 1
+    }
+    test::assert_eq_i32(hash::hashset_len(s), 50)
+
+    // All present
+    i = 0
+    while i < 50 {
+        test::assert_true(hash::hashset_contains(s, i))
+        i = i + 1
+    }
+
+    // Remove half
+    i = 0
+    while i < 50 {
+        hash::hashset_remove(s, i)
+        i = i + 2
+    }
+    test::assert_eq_i32(hash::hashset_len(s), 25)
+
+    // Odd remain, even gone
+    i = 1
+    while i < 50 {
+        test::assert_true(hash::hashset_contains(s, i))
+        i = i + 2
+    }
+    i = 0
+    while i < 50 {
+        test::assert_false(hash::hashset_contains(s, i))
+        i = i + 2
+    }
+}

@@ -1,0 +1,18 @@
+// Remove_entry: returns empty Vec for absent key
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 10)
+
+    let entry = hash::hashmap_remove_entry(m, 999)
+    test::assert_eq_i32(len(entry), 0)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+    test::assert_true(hash::hashmap_contains(m, 1))
+
+    // Remove_entry from empty map
+    let m2 = hash::hashmap_new()
+    let entry2 = hash::hashmap_remove_entry(m2, 1)
+    test::assert_eq_i32(len(entry2), 0)
+}

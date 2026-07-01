@@ -1,0 +1,28 @@
+// Values: returns snapshot of all values
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 111)
+    hash::hashmap_set(m, 2, 222)
+    hash::hashmap_set(m, 3, 333)
+
+    let vals = hash::hashmap_values(m)
+    test::assert_eq_i32(len(vals), 3)
+
+    let mut found_111 = false
+    let mut found_222 = false
+    let mut found_333 = false
+    let mut i = 0
+    while i < len(vals) {
+        let v = get_unchecked(vals, i)
+        if v == 111 { found_111 = true }
+        if v == 222 { found_222 = true }
+        if v == 333 { found_333 = true }
+        i = i + 1
+    }
+    test::assert_true(found_111)
+    test::assert_true(found_222)
+    test::assert_true(found_333)
+}

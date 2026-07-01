@@ -1,0 +1,23 @@
+// Stress: repeated insert/overwrite cycle
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    let mut round = 0
+    while round < 5 {
+        let mut i = 0
+        while i < 20 {
+            hash::hashmap_set(m, i, round * 100 + i)
+            i = i + 1
+        }
+        round = round + 1
+    }
+    // After 5 rounds of overwriting, size is 20, values are from last round
+    test::assert_eq_i32(hash::hashmap_size(m), 20)
+    let mut i = 0
+    while i < 20 {
+        test::assert_eq_i32(hash::hashmap_get(m, i), 400 + i)
+        i = i + 1
+    }
+}

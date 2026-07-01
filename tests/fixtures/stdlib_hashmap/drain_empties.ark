@@ -1,0 +1,16 @@
+// Drain: returns all entries, empties the map
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 10)
+    hash::hashmap_set(m, 2, 20)
+
+    let drained = hash::hashmap_drain(m)
+    test::assert_eq_i32(len(drained), 4)  // 2 pairs
+    test::assert_true(hash::hashmap_is_empty(m))
+    test::assert_eq_i32(hash::hashmap_size(m), 0)
+    test::assert_false(hash::hashmap_contains(m, 1))
+    test::assert_false(hash::hashmap_contains(m, 2))
+}

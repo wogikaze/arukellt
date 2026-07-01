@@ -1,0 +1,10 @@
+// Drain on empty map returns empty Vec
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    let drained = hash::hashmap_drain(m)
+    test::assert_eq_i32(len(drained), 0)
+    test::assert_true(hash::hashmap_is_empty(m))
+}

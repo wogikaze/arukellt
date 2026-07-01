@@ -1,0 +1,10 @@
+// Keys/values/entries on empty map return empty
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    test::assert_eq_i32(len(hash::hashmap_keys(m)), 0)
+    test::assert_eq_i32(len(hash::hashmap_values(m)), 0)
+    test::assert_eq_i32(len(hash::hashmap_entries(m)), 0)
+}

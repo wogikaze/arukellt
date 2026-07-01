@@ -1,0 +1,20 @@
+// Stress: insert 100 keys, verify all present
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    let mut i = 0
+    while i < 100 {
+        hash::hashmap_set(m, i, i * 2)
+        i = i + 1
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 100)
+
+    i = 0
+    while i < 100 {
+        test::assert_true(hash::hashmap_contains(m, i))
+        test::assert_eq_i32(hash::hashmap_get(m, i), i * 2)
+        i = i + 1
+    }
+}

@@ -1,0 +1,13 @@
+// Insert: overwrite existing key preserves size, updates value
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 10)
+    hash::hashmap_set(m, 1, 20)
+    hash::hashmap_set(m, 1, 30)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+    test::assert_eq_i32(hash::hashmap_get(m, 1), 30)
+    test::assert_true(hash::hashmap_contains(m, 1))
+}
