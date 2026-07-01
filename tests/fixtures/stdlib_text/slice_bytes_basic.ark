@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::slice_bytes("hello world", 0, 5), "hello")
+    test::assert_eq_string(text::slice_bytes("hello world", 6, 11), "world")
+    test::assert_eq_string(text::slice_bytes("hello", 1, 4), "ell")
+    test::assert_eq_string(text::slice_bytes("hello", 0, 1), "h")
+    test::assert_eq_string(text::slice_bytes("hello", 4, 5), "o")
+}

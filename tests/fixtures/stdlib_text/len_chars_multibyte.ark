@@ -1,0 +1,24 @@
+use std::test
+use std::text
+
+fn main() {
+    // Construct a 2-byte UTF-8 sequence (é = 0xC3 0xA9) from byte array
+    let bytes = Vec_new_i32()
+    push(bytes, 195)
+    push(bytes, 169)
+    let s = text::from_utf8(bytes)
+    test::assert_eq_i32(text::len_bytes(s), 2)
+    test::assert_eq_i32(text::len_chars(s), 1)
+
+    // Construct a 3-byte UTF-8 sequence (中 = U+4E2D = 0xE4 0xB8 0xAD)
+    let bytes2 = Vec_new_i32()
+    push(bytes2, 228)
+    push(bytes2, 184)
+    push(bytes2, 173)
+    let s2 = text::from_utf8(bytes2)
+    test::assert_eq_i32(text::len_bytes(s2), 3)
+    test::assert_eq_i32(text::len_chars(s2), 1)
+
+    // Empty string
+    test::assert_eq_i32(text::len_chars(""), 0)
+}

@@ -1,0 +1,18 @@
+use std::test
+use std::text::rope
+
+fn main() {
+    let r = rope::rope_from_string("hello world")
+    // Delete from middle
+    let r2 = rope::rope_delete(r, 5, 11)
+    test::assert_eq_string(rope::rope_to_string(r2), "hello")
+    // Delete from beginning
+    let r3 = rope::rope_delete(r, 0, 6)
+    test::assert_eq_string(rope::rope_to_string(r3), "world")
+    // Delete entire string
+    let r4 = rope::rope_delete(r, 0, 11)
+    test::assert_eq_string(rope::rope_to_string(r4), "")
+    // Delete with out-of-bounds (clamped)
+    let r5 = rope::rope_delete(r, 0, 100)
+    test::assert_eq_string(rope::rope_to_string(r5), "")
+}

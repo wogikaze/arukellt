@@ -1,0 +1,21 @@
+use std::test
+use std::text::fmt
+
+fn main() {
+    // Debug for i32 mirrors Display (no quoting)
+    test::assert_eq_string(fmt::format_debug(42), "42")
+    test::assert_eq_string(fmt::format_debug(-7), "-7")
+    test::assert_eq_string(fmt::format_debug(0), "0")
+
+    // Debug for bool
+    test::assert_eq_string(fmt::format_debug(true), "true")
+    test::assert_eq_string(fmt::format_debug(false), "false")
+
+    // Debug for String — quoted with double quotes
+    test::assert_eq_string(fmt::format_debug("hello"), "\"hello\"")
+    test::assert_eq_string(fmt::format_debug(""), "\"\"")
+
+    // write_debug_to appends to buffer
+    test::assert_eq_string(fmt::write_debug_to("value=", 42), "value=42")
+    test::assert_eq_string(fmt::write_debug_to("s=", "hi"), "s=\"hi\"")
+}

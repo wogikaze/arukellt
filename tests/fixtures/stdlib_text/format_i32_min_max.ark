@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::format_i32(2147483647), "2147483647")
+    test::assert_eq_string(text::format_i32(-2147483648), "-2147483648")
+    test::assert_eq_string(text::format_i32(2147483647), "2147483647")
+    test::assert_eq_i32(len(text::format_i32(2147483647)), 10)
+    test::assert_eq_i32(len(text::format_i32(-2147483648)), 11)
+}

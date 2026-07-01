@@ -1,0 +1,17 @@
+use std::test
+use std::text::fmt
+
+fn main() {
+    // Ok(i32) -> "Ok(42)"
+    test::assert_eq_string(fmt::debug_format_result_i32_string(Result::Ok(42)), "Ok(42)")
+    // Err(String) -> "Err(\"msg\")"
+    test::assert_eq_string(fmt::debug_format_result_i32_string(Result::Err("fail")), "Err(\"fail\")")
+    // Ok with zero
+    test::assert_eq_string(fmt::debug_format_result_i32_string(Result::Ok(0)), "Ok(0)")
+    // Ok with negative
+    test::assert_eq_string(fmt::debug_format_result_i32_string(Result::Ok(-5)), "Ok(-5)")
+
+    // Result<String, String>
+    test::assert_eq_string(fmt::debug_format_result_string_string(Result::Ok("ok")), "Ok(\"ok\")")
+    test::assert_eq_string(fmt::debug_format_result_string_string(Result::Err("err")), "Err(\"err\")")
+}

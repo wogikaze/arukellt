@@ -1,0 +1,13 @@
+use std::test
+use std::text
+
+fn main() {
+    // Negative start returns empty
+    test::assert_eq_string(text::slice_bytes("hello", -1, 3), "")
+    // End beyond length returns empty
+    test::assert_eq_string(text::slice_bytes("hello", 0, 10), "")
+    // Start > end returns empty
+    test::assert_eq_string(text::slice_bytes("hello", 3, 1), "")
+    // Negative start with valid end
+    test::assert_eq_string(text::slice_bytes("hello", -5, 3), "")
+}

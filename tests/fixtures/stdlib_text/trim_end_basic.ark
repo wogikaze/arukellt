@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::trim_end("  hello  "), "  hello")
+    test::assert_eq_string(text::trim_end("hello"), "hello")
+    test::assert_eq_string(text::trim_end("hello   "), "hello")
+    test::assert_eq_string(text::trim_end("   "), "")
+    test::assert_eq_string(text::trim_end(""), "")
+}

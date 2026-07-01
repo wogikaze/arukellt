@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::format_i32(-1), "-1")
+    test::assert_eq_string(text::format_i32(-42), "-42")
+    test::assert_eq_string(text::format_i32(-100), "-100")
+    test::assert_eq_string(text::format_i32(-999999), "-999999")
+    test::assert_eq_string(text::format_i32(-2147483647), "-2147483647")
+}

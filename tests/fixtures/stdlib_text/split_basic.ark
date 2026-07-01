@@ -1,0 +1,14 @@
+use std::test
+use std::text
+
+fn main() {
+    let parts = text::split("a,b,c", ",")
+    test::assert_eq_i32(len(parts), 3)
+    test::assert_eq_string(text::join(parts, "-"), "a-b-c")
+
+    let parts2 = text::split("hello world foo", " ")
+    test::assert_eq_i32(len(parts2), 3)
+
+    let parts3 = text::split("one::two::three", "::")
+    test::assert_eq_i32(len(parts3), 3)
+}

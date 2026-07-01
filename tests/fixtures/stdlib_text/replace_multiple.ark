@@ -1,0 +1,11 @@
+use std::test
+use std::text
+
+fn main() {
+    // Multiple occurrences all replaced
+    test::assert_eq_string(text::replace("aaa", "a", "bb"), "bbbbbb")
+    test::assert_eq_string(text::replace("a-b-c-d", "-", "+"), "a+b+c+d")
+    test::assert_eq_string(text::replace("xxx", "x", "yy"), "yyyyyy")
+    // Overlapping pattern — non-overlapping matches
+    test::assert_eq_string(text::replace("aaaa", "aa", "b"), "bb")
+}

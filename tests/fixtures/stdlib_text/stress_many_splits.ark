@@ -1,0 +1,15 @@
+use std::test
+use std::text
+
+fn main() {
+    // Many splits — comma-separated values
+    let s = "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p"
+    let parts = text::split(s, ",")
+    test::assert_eq_i32(len(parts), 16)
+    test::assert_eq_string(text::join(parts, ","), s)
+
+    // Split on single char
+    let s2 = text::repeat("x", 50)
+    let parts2 = text::split(s2, "")
+    test::assert_eq_i32(len(parts2), 50)
+}

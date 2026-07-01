@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    // Join of empty-separated parts with a separator
+    let parts = text::split("", "")
+    test::assert_eq_string(text::join(parts, ","), "")
+
+    // Join of a single empty string
+    let parts2 = text::split("", ",")
+    test::assert_eq_string(text::join(parts2, "-"), "")
+}

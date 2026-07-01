@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    // For ASCII, len_chars == len_bytes
+    test::assert_eq_i32(text::len_chars("hello"), 5)
+    test::assert_eq_i32(text::len_chars(""), 0)
+    test::assert_eq_i32(text::len_chars("abc"), 3)
+    test::assert_eq_i32(text::len_chars("a"), 1)
+    // ASCII with spaces and digits
+    test::assert_eq_i32(text::len_chars("hello world 123"), 15)
+}

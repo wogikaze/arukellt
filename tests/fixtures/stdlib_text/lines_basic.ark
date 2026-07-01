@@ -1,0 +1,13 @@
+use std::test
+use std::text
+
+fn main() {
+    let l = text::lines("line1\nline2\nline3")
+    test::assert_eq_i32(len(l), 3)
+    // Single line (no newline)
+    let l2 = text::lines("single")
+    test::assert_eq_i32(len(l2), 1)
+    // Empty string
+    let l3 = text::lines("")
+    test::assert_eq_i32(len(l3), 1)
+}

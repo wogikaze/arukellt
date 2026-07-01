@@ -1,0 +1,18 @@
+use std::test
+use std::text
+
+fn main() {
+    // concat(a, concat(b, c)) == concat(concat(a, b), c)
+    let a = "hello"
+    let b = " "
+    let c = "world"
+    let left = text::concat(a, text::concat(b, c))
+    let right = text::concat(text::concat(a, b), c)
+    test::assert_eq_string(left, right)
+    test::assert_eq_string(left, "hello world")
+
+    // concat with empty is identity
+    test::assert_eq_string(text::concat("abc", ""), "abc")
+    test::assert_eq_string(text::concat("", "abc"), "abc")
+    test::assert_eq_string(text::concat("", ""), "")
+}

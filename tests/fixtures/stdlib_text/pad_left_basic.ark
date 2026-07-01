@@ -1,0 +1,10 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::pad_left("42", 5, "0"), "00042")
+    test::assert_eq_string(text::pad_left("abc", 6, " "), "   abc")
+    test::assert_eq_string(text::pad_left("x", 4, "-"), "---x")
+    test::assert_eq_string(text::pad_left("hi", 4, "0"), "00hi")
+    test::assert_eq_string(text::pad_left("test", 8, "ab"), "babatest")
+}

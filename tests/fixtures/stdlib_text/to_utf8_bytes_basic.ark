@@ -1,0 +1,19 @@
+use std::test
+use std::text
+
+fn main() {
+    // Convert ASCII string to bytes
+    let bytes = text::to_utf8_bytes("Hi")
+    test::assert_eq_i32(len(bytes), 2)
+    test::assert_eq_i32(get(bytes, 0), 72)
+    test::assert_eq_i32(get(bytes, 1), 105)
+
+    // Empty string
+    let bytes2 = text::to_utf8_bytes("")
+    test::assert_eq_i32(len(bytes2), 0)
+
+    // Single char
+    let bytes3 = text::to_utf8_bytes("A")
+    test::assert_eq_i32(len(bytes3), 1)
+    test::assert_eq_i32(get(bytes3, 0), 65)
+}

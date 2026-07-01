@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    // Splitting an empty string yields one empty element
+    let parts = text::split("", ",")
+    test::assert_eq_i32(len(parts), 1)
+
+    // Splitting empty by empty
+    let parts2 = text::split("", "")
+    test::assert_eq_i32(len(parts2), 1)
+}

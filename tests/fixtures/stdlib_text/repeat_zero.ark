@@ -1,0 +1,15 @@
+use std::test
+use std::text
+
+fn main() {
+    // Repeat zero times yields empty string
+    test::assert_eq_string(text::repeat("abc", 0), "")
+    test::assert_eq_string(text::repeat("", 0), "")
+    // Repeat empty string any times is still empty
+    test::assert_eq_string(text::repeat("", 5), "")
+    // Repeat once is the original string
+    test::assert_eq_string(text::repeat("hello", 1), "hello")
+    // Length checks
+    test::assert_eq_i32(len(text::repeat("ab", 3)), 6)
+    test::assert_eq_i32(len(text::repeat("ab", 0)), 0)
+}

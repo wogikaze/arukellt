@@ -1,0 +1,19 @@
+use std::test
+use std::text
+
+fn main() {
+    // trim(trim(s)) == trim(s) — idempotency
+    let s = "  hello world  "
+    test::assert_eq_string(text::trim(text::trim(s)), text::trim(s))
+    test::assert_eq_string(text::trim(text::trim(s)), "hello world")
+
+    // trim_start(trim_start(s)) == trim_start(s)
+    test::assert_eq_string(text::trim_start(text::trim_start(s)), text::trim_start(s))
+
+    // trim_end(trim_end(s)) == trim_end(s)
+    test::assert_eq_string(text::trim_end(text::trim_end(s)), text::trim_end(s))
+
+    // trim of already-trimmed string is no-op
+    let t = text::trim(s)
+    test::assert_eq_string(text::trim(t), t)
+}

@@ -1,0 +1,12 @@
+use std::test
+use std::text
+
+fn main() {
+    test::assert_eq_string(text::to_upper("hello"), "HELLO")
+    test::assert_eq_string(text::to_upper("Hello World"), "HELLO WORLD")
+    test::assert_eq_string(text::to_upper("abcdef"), "ABCDEF")
+    test::assert_eq_string(text::to_upper("already upper"), "ALREADY UPPER")
+    test::assert_eq_string(text::to_upper("MixedCaseString"), "MIXEDCASESTRING")
+    test::assert_eq_string(text::to_upper("a"), "A")
+    test::assert_eq_string(text::to_upper("z"), "Z")
+}

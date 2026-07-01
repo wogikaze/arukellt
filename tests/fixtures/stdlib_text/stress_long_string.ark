@@ -1,0 +1,20 @@
+use std::test
+use std::text
+
+fn main() {
+    // Build a long string by repeating and verify length
+    let s = text::repeat("abcdefghij", 100)
+    test::assert_eq_i32(text::len_bytes(s), 1000)
+
+    // Split and rejoin
+    let parts = text::split(s, "j")
+    test::assert_eq_i32(len(parts), 101)
+    let rejoined = text::join(parts, "j")
+    test::assert_eq_string(rejoined, s)
+
+    // Replace in long string
+    let replaced = text::replace(s, "abc", "XYZ")
+    test::assert_eq_i32(text::len_bytes(replaced), 1000)
+    test::assert_false(text::contains(replaced, "abc"))
+    test::assert_true(text::contains(replaced, "XYZ"))
+}

@@ -1,0 +1,17 @@
+use std::test
+use std::text::fmt
+
+fn main() {
+    // Some(i32) -> "Some(42)"
+    test::assert_eq_string(fmt::debug_format_option_i32(Option::Some(42)), "Some(42)")
+    // None -> "None"
+    test::assert_eq_string(fmt::debug_format_option_i32(None), "None")
+    // Some with negative
+    test::assert_eq_string(fmt::debug_format_option_i32(Option::Some(-1)), "Some(-1)")
+    // Some with zero
+    test::assert_eq_string(fmt::debug_format_option_i32(Option::Some(0)), "Some(0)")
+
+    // Option<String>
+    test::assert_eq_string(fmt::debug_format_option_string(Option::Some("hi")), "Some(\"hi\")")
+    test::assert_eq_string(fmt::debug_format_option_string(None), "None")
+}
