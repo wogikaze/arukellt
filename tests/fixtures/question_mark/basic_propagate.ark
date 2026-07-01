@@ -1,0 +1,29 @@
+use std::host::stdio
+
+// Basic ? propagation: the error type (String) matches between the
+// fallible call and the enclosing function, so no From conversion is
+// needed — `expr?` desugars to
+//   match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }
+// and From<String> for String is the identity impl.
+fn parse_and_double(s: String) -> Result<i32, String> {
+    let n: i32 = parse_i32(s)?
+    Ok(n * 2)
+}
+
+fn main() {
+    // Ok path: "21" parses to 21, doubled to 42.
+    let r1 = parse_and_double(String_from("21"))
+    match r1 {
+        Result::Ok(v) => assert(v == 42),
+        Result::Err(_) => assert(false),
+    }
+
+    // Err path: "abc" fails to parse, error propagates.
+    let r2 = parse_and_double(String_from("abc"))
+    match r2 {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => {}  // expected — error propagated
+    }
+
+    stdio::println(String_from("OK"))
+}

@@ -4,6 +4,7 @@ use typechecker::kinds
 use typechecker::ast_stmt_predicates
 use typechecker::ast_expr_predicates
 use typechecker::ast_access
+use typechecker::contract_type_access
 use typechecker::unify
 
 fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
@@ -30,6 +31,24 @@ fn infer_wrapper_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum
             return infer_expr(env, scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 0))
         }
         return TypeInfo_simple(commands::TY_UNIT())
+    }
+    if ast_expr_predicates::node_is_try(node) {
+        if ast_access::node_child_count(node) > 0 {
+            let inner = ast_access::node_child_at(node, 0)
+            let inner_ty = infer_expr(env, scope, fn_sigs, enum_defs, inner)
+            let tag = contract_type_access::TypeInfo_tag(inner_ty)
+            if tag == commands::TY_RESULT() {
+                if contract_type_access::TypeInfo_type_arg_count(inner_ty) >= 1 {
+                    return contract_type_access::TypeInfo_type_arg_at(inner_ty, 0)
+                }
+            }
+            if tag == commands::TY_OPTION() {
+                if contract_type_access::TypeInfo_type_arg_count(inner_ty) >= 1 {
+                    return contract_type_access::TypeInfo_type_arg_at(inner_ty, 0)
+                }
+            }
+            return inner_ty
+        }
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
 }

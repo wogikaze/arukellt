@@ -326,6 +326,9 @@ run:for_loops/for_range.ark
 run:for_loops/for_sum.ark
 run:for_loops/for_values.ark
 run:from_trait/from_auto_convert.ark
+run:question_mark/basic_propagate.ark
+run:question_mark/from_error.ark
+run:question_mark/nested_result.ark
 run:functions/basic_fn.ark
 run:functions/closure_basic.ark
 run:functions/closure_capture.ark
@@ -789,6 +792,9 @@ t3-compile:for_loops/for_range.ark
 t3-compile:for_loops/for_sum.ark
 t3-compile:for_loops/for_values.ark
 t3-compile:from_trait/from_auto_convert.ark
+t3-compile:question_mark/basic_propagate.ark
+t3-compile:question_mark/from_error.ark
+t3-compile:question_mark/nested_result.ark
 t3-compile:stdlib_trait/display_trait.ark
 t3-compile:stdlib_trait/eq_trait.ark
 t3-compile:stdlib_trait/hash_trait.ark
@@ -1097,6 +1103,9 @@ t3-run:stdlib_option_result/is_some_none.ark
 t3-run:stdlib_option_result/none_unwrap_or.ark
 t3-run:stdlib_option_result/option_match.ark
 t3-run:stdlib_option_result/question_mark.ark
+t3-run:question_mark/basic_propagate.ark
+t3-run:question_mark/from_error.ark
+t3-run:question_mark/nested_result.ark
 t3-run:stdlib_option_result/result_err_match.ark
 t3-run:stdlib_option_result/result_ok_unwrap.ark
 t3-run:stdlib_option_result/some_unwrap.ark

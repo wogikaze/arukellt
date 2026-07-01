@@ -31,6 +31,7 @@ fn NK_IF_EXPR() -> i32 { 13 }
 fn NK_MATCH_EXPR() -> i32 { 14 }
 fn NK_CLOSURE() -> i32 { 15 }
 fn NK_COMPREHENSION() -> i32 { 38 }
+fn NK_TRY() -> i32 { 25 }
 
 // Pattern node kinds.
 fn NK_MATCH_ARM() -> i32 { 26 }
