@@ -60,6 +60,12 @@ fn emit_push_char(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: String_new
 fn emit_String_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+        string_gc_helpers::emit_gc_i32_const(w, 0)
+        string_gc_helpers::emit_gc_array_new(w, string_type)
+        return true
+    }
     let s_str_base = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     emit_String_new_alloc(w, s_str_base)
     emit_String_new_header(w, s_str_base)

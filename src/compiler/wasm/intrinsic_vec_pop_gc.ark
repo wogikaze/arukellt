@@ -20,7 +20,7 @@ use mir::local_access
 
 fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_newlen = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let s_optptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_optptr = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let arr_tmp_str = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
@@ -84,7 +84,7 @@ fn emit_vec_pop_some_branch(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec
         emit_gc_pop_some_string(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, enum_type)
         helpers_core_locals::emit_local_set(w, s_ref)
     } else {
-        emit_gc_pop_some(w, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr, enum_type)
+        emit_gc_pop_some(w, ctx, vec_local, vec_type, array_type, arr_tmp, s_newlen, s_optptr, enum_type)
     }
 }
 
@@ -96,7 +96,7 @@ fn emit_vec_pop_none_branch(w: WasmWriter, ctx: SelfEmitCtx, s_optptr: i32, is_v
         writer_leb::emit_leb128_s(w, enum_type)
         helpers_core_locals::emit_local_set(w, s_ref)
     } else {
-        emit_gc_pop_none(w, s_optptr, enum_type)
+        emit_gc_pop_none(w, s_optptr, enum_type, ctx)
     }
 }
 
@@ -110,7 +110,7 @@ fn emit_vec_pop_load_result(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool
     }
 }
 
-fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32, enum_type: i32) {
+fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i32, i32_array_type: i32, arr_tmp: i32, s_newlen: i32, s_optptr: i32, enum_type: i32) {
     // len was saved in s_newlen by local.tee in the caller.
     // new_len = len - 1
     helpers_core_locals::emit_local_get(w, s_newlen)
@@ -134,11 +134,14 @@ fn emit_gc_pop_some(w: WasmWriter, vec_local: i32, vec_type: i32, i32_array_type
     // Save value from array.get to i32 scratch (s_newlen is done with)
     helpers_core_locals::emit_local_set(w, s_newlen)
 
-    // Allocate Option::Some as GC struct: struct.new enum_type (tag=0, payload=value)
+    // Allocate Option::Some as GC struct using the Some variant type.
+    // struct.new some_variant_type (tag=0, payload=value)
+    let some_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::Some"))
+    let some_type_idx = if some_type >= 0 { some_type } else { enum_type }
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_leb::emit_leb128_s(w, 0)
     helpers_core_locals::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_struct_new(w, enum_type)
+    writer_gc::emit_gc_struct_new(w, some_type_idx)
     helpers_core_locals::emit_local_set(w, s_optptr)
 }
 
@@ -172,12 +175,10 @@ fn emit_gc_pop_some_string(w: WasmWriter, vec_local: i32, vec_type: i32, array_t
     writer_leb::emit_leb128_s(w, enum_type)
 }
 
-fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32, enum_type: i32) {
-    // Allocate Option::None as GC struct: struct.new enum_type (tag=1, payload=0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
-    writer_gc::emit_gc_struct_new(w, enum_type)
+fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32, enum_type: i32, ctx: SelfEmitCtx) {
+    // Allocate Option::None as GC struct using the None variant type.
+    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
+    let none_type_idx = if none_type >= 0 { none_type } else { enum_type }
+    writer_gc::emit_gc_struct_new_default(w, none_type_idx)
     helpers_core_locals::emit_local_set(w, s_optptr)
 }
