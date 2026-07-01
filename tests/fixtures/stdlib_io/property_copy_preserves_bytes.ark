@@ -1,0 +1,23 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 65)
+    bytes::bytes_push(data, 66)
+    bytes::bytes_push(data, 67)
+    bytes::bytes_push(data, 68)
+    let src: Vec<i32> = io::reader_from_bytes(data)
+    let dst: Vec<i32> = io::writer_new()
+    let res: Result<i32, io::IoError> = io::copy_bytes(src, dst)
+    match res {
+        Result::Ok(n) => test::assert_eq_i32(n, 4),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let original: Vec<i32> = io::writer_to_bytes(dst)
+    test::assert_eq_i32(bytes::bytes_get(original, 0), 65)
+    test::assert_eq_i32(bytes::bytes_get(original, 1), 66)
+    test::assert_eq_i32(bytes::bytes_get(original, 2), 67)
+    test::assert_eq_i32(bytes::bytes_get(original, 3), 68)
+}

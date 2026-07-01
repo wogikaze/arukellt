@@ -1,0 +1,16 @@
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let res: Result<(), io::IoError> = io::writer_flush(w)
+    match res {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let res2: Result<(), io::IoError> = io::flush(w)
+    match res2 {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

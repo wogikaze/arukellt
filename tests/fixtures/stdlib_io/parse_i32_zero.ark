@@ -1,0 +1,10 @@
+use std::host::stdio
+use std::test
+
+fn main() {
+    let r: Result<i32, String> = parse_i32(String_from("0"))
+    match r {
+        Result::Ok(val) => test::assert_eq_i32(val, 0),
+        Result::Err(e) => panic(e),
+    }
+}

@@ -1,0 +1,7 @@
+use std::host::random
+use std::test
+
+fn main() {
+    let b: bool = random::random_bool()
+    test::assert_true(b || !b)
+}

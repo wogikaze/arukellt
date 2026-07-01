@@ -1,0 +1,12 @@
+use std::host::fs
+use std::test
+
+fn main() {
+    match fs::metadata("some_path") {
+        Result::Ok(_) => panic("expected error"),
+        Result::Err(err) => match err {
+            fs::FsError::IoError(msg) => test::assert_true(contains(msg, "not yet supported")),
+            _ => panic("expected IoError"),
+        },
+    }
+}

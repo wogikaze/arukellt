@@ -1,0 +1,7 @@
+use std::host::fs
+use std::test
+
+fn main() {
+    let err: fs::FsError = fs::FsError::Utf8Error
+    test::assert_eq_string(fs::fs_error_message(err), "invalid utf-8")
+}

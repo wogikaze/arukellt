@@ -1,0 +1,18 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let buf: Vec<i32> = io::new_memory_buffer()
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 20)
+    bytes::bytes_push(data, 30)
+    let _: i32 = io::write_bytes(buf, data)
+    let pos: i64 = io::seek_to(buf, 1)
+    test::assert_eq_i64(pos, 1)
+    test::assert_eq_i64(io::position(buf), 1)
+    let read: Vec<i32> = io::read_bytes(buf, 2)
+    test::assert_eq_i32(bytes::bytes_get(read, 0), 20)
+    test::assert_eq_i32(bytes::bytes_get(read, 1), 30)
+}

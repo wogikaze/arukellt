@@ -1,0 +1,8 @@
+use std::host::stdio
+
+fn main() {
+    let ch: char = 'A'
+    stdio::println(to_string(ch))
+    let ch2: char = 'z'
+    stdio::println(to_string(ch2))
+}

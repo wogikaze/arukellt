@@ -1,0 +1,11 @@
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let res: Result<i32, io::IoError> = io::writer_write_str(w, "hello")
+    match res {
+        Result::Ok(n) => test::assert_eq_i32(n, 5),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

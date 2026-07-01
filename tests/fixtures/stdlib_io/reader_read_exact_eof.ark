@@ -1,0 +1,17 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 72)
+    bytes::bytes_push(data, 73)
+    let r: Vec<i32> = io::reader_from_bytes(data)
+    match io::reader_read_exact(r, 5) {
+        Result::Ok(_) => panic("expected error"),
+        Result::Err(err) => match err {
+            io::IoError::UnexpectedEof(msg) => test::assert_true(contains(msg, "UnexpectedEof")),
+            io::IoError::Other(msg) => panic(msg),
+        },
+    }
+}

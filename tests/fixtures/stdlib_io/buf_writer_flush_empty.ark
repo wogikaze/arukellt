@@ -1,0 +1,12 @@
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let bw: Vec<i32> = io::buf_writer_new(w, 64)
+    let res: Result<(), io::IoError> = io::buf_writer_flush(bw)
+    match res {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

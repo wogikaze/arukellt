@@ -1,0 +1,10 @@
+use std::host::random
+use std::test
+
+fn main() {
+    let lo: i32 = -10
+    let hi: i32 = -5
+    let r: i32 = random::random_i32_range(lo, hi)
+    test::assert_true(r >= lo)
+    test::assert_true(r < hi)
+}

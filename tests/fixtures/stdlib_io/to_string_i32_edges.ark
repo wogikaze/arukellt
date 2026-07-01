@@ -1,0 +1,8 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println(to_string(0))
+    stdio::println(to_string(-1))
+    stdio::println(to_string(2147483647))
+    stdio::println(to_string(-2147483648))
+}

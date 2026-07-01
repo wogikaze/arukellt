@@ -1,0 +1,14 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let mut i: i32 = 0
+    while i < 50 {
+        let _: Result<i32, io::IoError> = io::writer_write_str(w, "ab")
+        i = i + 1
+    }
+    let b: Vec<i32> = io::writer_to_bytes(w)
+    test::assert_eq_i32(bytes::bytes_len(b), 100)
+}

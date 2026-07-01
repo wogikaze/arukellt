@@ -1,0 +1,7 @@
+use std::host::random
+use std::test
+
+fn main() {
+    let r: i32 = random::random_i32_range(5, 5)
+    test::assert_eq_i32(r, 5)
+}

@@ -1,0 +1,8 @@
+use std::io
+use std::test
+
+fn main() {
+    let err: io::IoError = io::IoError::Other("some error")
+    let s: String = io::io_error_message(err)
+    test::assert_eq_string(s, "some error")
+}

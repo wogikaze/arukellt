@@ -1,0 +1,10 @@
+use std::io
+use std::test
+
+fn main() {
+    let r: Result<String, io::IoError> = io::read_stdin_line()
+    match r {
+        Result::Ok(s) => test::assert_eq_string(s, ""),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

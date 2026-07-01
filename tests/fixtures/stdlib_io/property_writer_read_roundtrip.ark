@@ -1,0 +1,15 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let _: Result<i32, io::IoError> = io::writer_write_str(w, "roundtrip")
+    let b: Vec<i32> = io::writer_to_bytes(w)
+    let r: Vec<i32> = io::reader_from_bytes(b)
+    let res: Result<Vec<i32>, io::IoError> = io::reader_read_all(r)
+    match res {
+        Result::Ok(chunk) => test::assert_eq_string(bytes::string_from_bytes(chunk), "roundtrip"),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}
