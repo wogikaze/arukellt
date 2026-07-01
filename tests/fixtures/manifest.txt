@@ -399,6 +399,10 @@ run:operators/precedence.ark
 run:operators/short_circuit.ark
 run:operators/string_eq.ark
 run:operators/unary.ark
+run:operator_overload/add_complex.ark
+run:operator_overload/sub_vec.ark
+run:operator_overload/index_custom.ark
+run:operator_overload/neg_wrapper.ark
 run:opt/tail_call_deep.ark
 run:scalar/comparison.ark
 run:scalar/conversion.ark
@@ -782,6 +786,7 @@ t3-compile:control/match_enum.ark
 t3-compile:control/match_int.ark
 t3-compile:control/match_wildcard.ark
 t3-compile:control/nested_loops.ark
+t3-compile:control/trait_dispatch_spike.ark
 t3-compile:control/while_basic.ark
 t3-compile:control/while_counter.ark
 t3-compile:diagnostics/method_syntax.ark
@@ -870,6 +875,10 @@ t3-compile:operators/precedence.ark
 t3-compile:operators/short_circuit.ark
 t3-compile:operators/string_eq.ark
 t3-compile:operators/unary.ark
+t3-compile:operator_overload/add_complex.ark
+t3-compile:operator_overload/sub_vec.ark
+t3-compile:operator_overload/index_custom.ark
+t3-compile:operator_overload/neg_wrapper.ark
 t3-compile:regression/type_table/enum_match_variants.ark
 t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
@@ -1085,6 +1094,10 @@ t3-run:operators/precedence.ark
 t3-run:operators/short_circuit.ark
 t3-run:operators/string_eq.ark
 t3-run:operators/unary.ark
+t3-run:operator_overload/add_complex.ark
+t3-run:operator_overload/sub_vec.ark
+t3-run:operator_overload/index_custom.ark
+t3-run:operator_overload/neg_wrapper.ark
 t3-run:stdlib_env/env_var_lookup.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark

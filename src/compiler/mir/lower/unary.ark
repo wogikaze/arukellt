@@ -1,7 +1,11 @@
 use mir::opcodes
+use mir::lower::binary_method
+use mir::lower::binary_type_names
+use mir::lower::binary_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_fn_exists
 use mir::lower::ctx_types
 use mir::lower_kinds
 // Arukellt Selfhost - MIR lowering unary operator helpers
@@ -9,6 +13,16 @@ use mir::lower_kinds
 use mir::inst_op
 
 fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
+    let ov_type = ctx_get_local_type(ctx, operand_idx)
+    if !binary_type_names::mir_is_primitive_operator_type(clone(ov_type)) {
+        let ov_method = binary_method::mir_unary_operator_method_name(op)
+        if len(ov_method) > 0 {
+            let ov_callee = concat(clone(ov_type), concat(String_from("::"), clone(ov_method)))
+            if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
+                return binary_emit::mir_emit_overloaded_unary_call(ctx, ov_callee)
+            }
+        }
+    }
     let uvt = ctx_local_vt(ctx, operand_idx)
     let dest = ctx_fresh_local(ctx, uvt)
     let mut mir_op = opcodes::MIR_NOP()

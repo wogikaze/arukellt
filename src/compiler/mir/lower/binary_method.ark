@@ -1,4 +1,5 @@
 use mir::opcodes
+use mir::lower_kinds
 // Arukellt Selfhost - MIR operator method name mapping.
 
 
@@ -14,6 +15,9 @@ fn mir_operator_method_name(mir_op: i32) -> String {
     }
     if mir_op == opcodes::MIR_DIV() {
         return String_from("div")
+    }
+    if mir_op == opcodes::MIR_MOD() {
+        return String_from("rem")
     }
     if mir_op == opcodes::MIR_EQ() {
         return String_from("eq")
@@ -32,6 +36,13 @@ fn mir_operator_method_name(mir_op: i32) -> String {
     }
     if mir_op == opcodes::MIR_GTEQ() {
         return String_from("ge")
+    }
+    String_new()
+}
+
+fn mir_unary_operator_method_name(uop: i32) -> String {
+    if uop == lower_kinds::UOP_NEG() {
+        return String_from("neg")
     }
     String_new()
 }

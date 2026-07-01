@@ -1,0 +1,32 @@
+// Issue #689: Operator overload — Index trait on a user-defined struct.
+//
+// Verifies that `s[i]` resolves to `Index::index` (mangled `IntStore::index`)
+// when the base is a user-defined struct, not a built-in array/Vec.
+use std::host::stdio
+use std::core::ops
+
+struct IntStore {
+    a: i32,
+    b: i32,
+    c: i32,
+}
+
+impl Index for IntStore {
+    fn index(self: IntStore, idx: i32) -> i32 {
+        if idx == 0 {
+            return self.a
+        }
+        if idx == 1 {
+            return self.b
+        }
+        self.c
+    }
+}
+
+fn main() {
+    let s = IntStore { a: 10, b: 20, c: 30 }
+    assert(s[0] == 10)
+    assert(s[1] == 20)
+    assert(s[2] == 30)
+    stdio::println(String_from("OK"))
+}
