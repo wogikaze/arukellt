@@ -7,6 +7,7 @@ use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
 use wasm::call_text_mir_view
 use mir::inst_accessors_operands
+use mir::inst_record
 use mir::opcodes as mir_opcodes
 use wasm::ctx_record
 use wasm::emit_target
@@ -206,6 +207,15 @@ fn to_string_arg_is_ref(inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn to_string_arg_vt(inst: MirInst, ctx: SelfEmitCtx) -> i32 {
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if arg0 < 0 {
+        // Value is a constant on the stack. Use the instruction's val_type
+        // to determine the correct to_string variant (i32 vs i64 vs f64).
+        let vt = inst_record::mir_inst_val_type(inst)
+        if vt == call_text_mir_view::VT_I64() {
+            return call_text_mir_view::VT_I64()
+        }
+        if vt == call_text_mir_view::VT_F64() {
+            return call_text_mir_view::VT_F64()
+        }
         return call_text_mir_view::VT_I32()
     }
     let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))

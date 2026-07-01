@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_types
+use mir::value_types
 // Arukellt Selfhost - MIR call rewrite rules for to_string.
 
 struct MirStringCallRewrite {
@@ -34,14 +35,18 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
                 if eq(clone(arg_type), "bool") {
                     rewritten = String_from("bool_to_string")
                 } else {
-                    if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
-                        return_local = first_arg_idx
+                    if eq(clone(arg_type), "i64") || eq(clone(arg_type), "u64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_I64() {
+                        rewritten = String_from("i64_to_string")
                     } else {
-                        // User-defined struct/enum with a trait impl: try
-                        // mangled name "Type::to_string" (e.g. "Point::to_string").
-                        let mangled = concat(clone(arg_type), String_from("::to_string"))
-                        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mangled)) {
-                            rewritten = mangled
+                        if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
+                            return_local = first_arg_idx
+                        } else {
+                            // User-defined struct/enum with a trait impl: try
+                            // mangled name "Type::to_string" (e.g. "Point::to_string").
+                            let mangled = concat(clone(arg_type), String_from("::to_string"))
+                            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mangled)) {
+                                rewritten = mangled
+                            }
                         }
                     }
                 }

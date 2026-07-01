@@ -73,7 +73,7 @@ fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             writer_core::emit_byte(w, opcodes::OP_F32_NEG())
         } else {
             if vt == value_types::VT_I64() {
-                let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+                let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
                 writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
                 writer_leb::emit_leb128_u(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I64_CONST())
