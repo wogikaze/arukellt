@@ -1,0 +1,8 @@
+use std::host::clock
+use std::test
+
+fn main() {
+    let t1: i64 = clock::monotonic_now()
+    let t2: i64 = clock::monotonic_now()
+    test::assert_true(t2 >= t1)
+}

@@ -1,0 +1,14 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let buf: Vec<i32> = io::new_memory_buffer()
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 1)
+    bytes::bytes_push(data, 2)
+    let _: i32 = io::write_bytes(buf, data)
+    let pos: i64 = io::seek_to(buf, 100)
+    test::assert_eq_i64(pos, 2)
+    test::assert_eq_i64(io::position(buf), 2)
+}

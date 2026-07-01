@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::test
+
+fn main() {
+    let s: String = stdio::read_stdin()
+    test::assert_eq_string(s, "")
+}

@@ -1,0 +1,9 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    let r: Vec<i32> = io::reader_from_bytes(data)
+    test::assert_true(io::reader_eof(r))
+}

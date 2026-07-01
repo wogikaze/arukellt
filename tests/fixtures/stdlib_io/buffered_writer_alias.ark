@@ -1,0 +1,18 @@
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let bw1: Vec<i32> = io::buf_writer_new(w, 32)
+    let bw2: Vec<i32> = io::buffered_writer(w, 32)
+    let r1: Result<i32, io::IoError> = io::buf_writer_write_str(bw1, "x")
+    let r2: Result<i32, io::IoError> = io::buf_writer_write_str(bw2, "x")
+    match r1 {
+        Result::Ok(n) => test::assert_eq_i32(n, 1),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    match r2 {
+        Result::Ok(n) => test::assert_eq_i32(n, 1),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

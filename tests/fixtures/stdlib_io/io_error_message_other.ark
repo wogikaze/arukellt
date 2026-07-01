@@ -1,0 +1,7 @@
+use std::io
+use std::test
+
+fn main() {
+    let err: io::IoError = io::IoError::Other("disk full")
+    test::assert_eq_string(io::io_error_message(err), "disk full")
+}

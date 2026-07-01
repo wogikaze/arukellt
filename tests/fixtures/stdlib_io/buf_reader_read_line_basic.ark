@@ -1,0 +1,16 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 76)
+    bytes::bytes_push(data, 10)
+    let r: Vec<i32> = io::reader_from_bytes(data)
+    let br: Vec<i32> = io::buf_reader_new(r, 64)
+    let res: Result<String, io::IoError> = io::buf_reader_read_line(br)
+    match res {
+        Result::Ok(line) => test::assert_eq_string(line, "L"),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

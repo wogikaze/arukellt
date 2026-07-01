@@ -1,0 +1,22 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 1)
+    bytes::bytes_push(data, 2)
+    bytes::bytes_push(data, 3)
+    bytes::bytes_push(data, 4)
+    let r: Vec<i32> = io::reader_from_bytes(data)
+    let res: Result<Vec<i32>, io::IoError> = io::reader_read_exact(r, 4)
+    match res {
+        Result::Ok(chunk) => {
+            test::assert_eq_i32(bytes::bytes_len(chunk), 4)
+            test::assert_eq_i32(bytes::bytes_get(chunk, 0), 1)
+            test::assert_eq_i32(bytes::bytes_get(chunk, 3), 4)
+        },
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    test::assert_true(io::reader_eof(r))
+}

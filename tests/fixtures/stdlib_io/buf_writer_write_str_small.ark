@@ -1,0 +1,17 @@
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let bw: Vec<i32> = io::buf_writer_new(w, 100)
+    let res: Result<i32, io::IoError> = io::buf_writer_write_str(bw, "short")
+    match res {
+        Result::Ok(n) => test::assert_eq_i32(n, 5),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let res2: Result<(), io::IoError> = io::buf_writer_flush(bw)
+    match res2 {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

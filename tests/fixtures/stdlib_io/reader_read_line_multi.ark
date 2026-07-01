@@ -1,0 +1,28 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 65)
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 66)
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 67)
+    let r: Vec<i32> = io::reader_from_bytes(data)
+    let l1: Result<String, io::IoError> = io::reader_read_line(r)
+    match l1 {
+        Result::Ok(s) => test::assert_eq_string(s, "A"),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let l2: Result<String, io::IoError> = io::reader_read_line(r)
+    match l2 {
+        Result::Ok(s) => test::assert_eq_string(s, "B"),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let l3: Result<String, io::IoError> = io::reader_read_line(r)
+    match l3 {
+        Result::Ok(s) => test::assert_eq_string(s, "C"),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+}

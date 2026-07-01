@@ -1,0 +1,20 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 65)
+    bytes::bytes_push(data, 66)
+    bytes::bytes_push(data, 67)
+    let res: Result<i32, io::IoError> = io::writer_write(w, data)
+    match res {
+        Result::Ok(n) => test::assert_eq_i32(n, 3),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let b: Vec<i32> = io::writer_to_bytes(w)
+    test::assert_eq_i32(bytes::bytes_len(b), 3)
+    test::assert_eq_i32(bytes::bytes_get(b, 0), 65)
+    test::assert_eq_i32(bytes::bytes_get(b, 2), 67)
+}

@@ -1,0 +1,14 @@
+use std::bytes
+use std::io
+use std::test
+
+fn main() {
+    let w: Vec<i32> = io::writer_new()
+    let res: Result<(), io::IoError> = io::write_string(w, "test")
+    match res {
+        Result::Ok(_) => (),
+        Result::Err(e) => panic(io::io_error_message(e)),
+    }
+    let b: Vec<i32> = io::writer_to_bytes(w)
+    test::assert_eq_string(bytes::string_from_bytes(b), "test")
+}
