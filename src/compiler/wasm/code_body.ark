@@ -25,10 +25,9 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
         writer_core::emit_byte(body, opcodes::OP_END())
         return body
     }
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && is_host_intrinsic_ref_return(f) {
-        // Host intrinsic functions that return ref types (Option, Result, Vec,
-        // String) on GC targets build results in linear memory (i32) but the
-        // function signature expects a GC ref return. Emit unreachable to
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && is_host_intrinsic_stub(f) {
+        // Host intrinsic functions on GC targets that are not yet fully
+        // implemented with GC-aware result emission. Emit unreachable to
         // satisfy validation until proper GC result emission is implemented.
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
@@ -58,10 +57,12 @@ fn is_generic_function(f: MirFunction) -> bool {
     false
 }
 
-fn is_host_intrinsic_ref_return(f: MirFunction) -> bool {
-    // Host intrinsic functions that return ref types (Option, Result, Vec,
-    // String) on GC targets. These functions build results in linear memory
-    // (i32) but the function signature expects a GC ref return type.
+fn is_host_intrinsic_stub(f: MirFunction) -> bool {
+    // Host intrinsic functions on GC targets that are not yet fully
+    // implemented with GC-aware result emission. These functions build
+    // results in linear memory (i32) but the function signature expects
+    // a GC ref return type, or have unreachable stubs with dead code
+    // that fails validation.
     let name = function_identity::MirFunction_name(f)
     if eq(clone(name), String_from("args")) { return true }
     if eq(clone(name), String_from("arg_at")) { return true }
@@ -69,6 +70,15 @@ fn is_host_intrinsic_ref_return(f: MirFunction) -> bool {
     if eq(clone(name), String_from("get_var")) { return true }
     if eq(clone(name), String_from("var_or_default")) { return true }
     if eq(clone(name), String_from("read_stdin")) { return true }
+    if eq(clone(name), String_from("read_to_string")) { return true }
+    if eq(clone(name), String_from("write_string")) { return true }
+    if eq(clone(name), String_from("write_bytes")) { return true }
+    if eq(clone(name), String_from("read_dir")) { return true }
+    if eq(clone(name), String_from("metadata")) { return true }
+    if eq(clone(name), String_from("is_readable_file")) { return true }
+    if eq(clone(name), String_from("exists")) { return true }
+    if eq(clone(name), String_from("is_file")) { return true }
+    if eq(clone(name), String_from("is_dir")) { return true }
     if eq(clone(name), String_from("connect")) { return true }
     if eq(clone(name), String_from("read")) { return true }
     if eq(clone(name), String_from("write")) { return true }
