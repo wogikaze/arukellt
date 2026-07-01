@@ -1,0 +1,50 @@
+// Issue #705: Full TOML 1.0 table header parsing.
+use std::host::stdio
+use std::toml
+
+fn main() {
+    // Table header + key=value entries
+    let input = String_from("[server]\nhost = \"localhost\"\nport = 8080")
+    match toml::toml_parse(input) {
+        Result::Ok(table) => {
+            // toml_get on nested table
+            match toml::toml_get(table, String_from("server")) {
+                Result::Ok(server) => {
+                    match toml::toml_get(server, String_from("host")) {
+                        Result::Ok(host) => {
+                            match toml::toml_as_string(host) {
+                                Result::Ok(s) => assert(eq(s, String_from("localhost"))),
+                                Result::Err(_) => assert(false),
+                            }
+                        },
+                        Result::Err(_) => assert(false),
+                    }
+                    match toml::toml_get(server, String_from("port")) {
+                        Result::Ok(port) => {
+                            match toml::toml_as_int(port) {
+                                Result::Ok(n) => assert(n == 8080),
+                                Result::Err(_) => assert(false),
+                            }
+                        },
+                        Result::Err(_) => assert(false),
+                    }
+                },
+                Result::Err(_) => assert(false),
+            }
+        },
+        Result::Err(e) => {
+            stdio::println(concat(String_from("parse error: "), e))
+            assert(false)
+        },
+    }
+
+    // find_toml_section public API
+    let section = toml::find_toml_section(input, String_from("server"))
+    assert(eq(section, String_from("host = \"localhost\"\nport = 8080")))
+
+    // find_toml_value public API
+    let val = toml::find_toml_value(input, String_from("port"))
+    assert(eq(val, String_from("8080")))
+
+    stdio::println(String_from("OK"))
+}
