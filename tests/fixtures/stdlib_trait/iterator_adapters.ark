@@ -1,0 +1,66 @@
+use std::core::iter
+use std::host::stdio
+
+fn double(x: i32) -> i32 { x * 2 }
+fn is_even(x: i32) -> bool { x / 2 * 2 == x }
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    push(v, 4)
+    push(v, 5)
+    // map + collect
+    let doubled = iter::collect_map_i32(v, double)
+    assert(len(doubled) == 5)
+    assert(get_unchecked(doubled, 0) == 2)
+    assert(get_unchecked(doubled, 4) == 10)
+    // filter + collect
+    let evens = iter::collect_filter_i32(v, is_even)
+    assert(len(evens) == 2)
+    assert(get_unchecked(evens, 0) == 2)
+    // take + collect
+    let taken = iter::collect_take_i32(v, 3)
+    assert(len(taken) == 3)
+    assert(get_unchecked(taken, 2) == 3)
+    // skip + collect
+    let skipped = iter::collect_skip_i32(v, 2)
+    assert(len(skipped) == 3)
+    assert(get_unchecked(skipped, 0) == 3)
+    // map+filter+take pipeline (single pass, no intermediate Vec)
+    let pipe = iter::collect_map_filter_take_i32(v, double, is_even, 2)
+    assert(len(pipe) == 2)
+    assert(get_unchecked(pipe, 0) == 4)
+    assert(get_unchecked(pipe, 1) == 8)
+    // fold
+    let sum = iter::iter_fold_i32(v, 0, |a: i32, b: i32| -> i32 { a + b })
+    assert(sum == 15)
+    // chain
+    let a: Vec<i32> = Vec_new_i32()
+    push(a, 10)
+    push(a, 20)
+    let chained = iter::collect_chain_i32(v, a)
+    assert(len(chained) == 7)
+    assert(get_unchecked(chained, 5) == 10)
+    // range
+    let r = range_new(0, 4)
+    let rng = iter::collect_range_i32(r)
+    assert(len(rng) == 4)
+    assert(get_unchecked(rng, 3) == 3)
+    // VecIter direct next() + for loop
+    let it = iter::vec_iter(v)
+    let first = it.next()
+    match first {
+        Some(x) => assert(x == 1),
+        None => assert(false),
+    }
+    // for loop over VecIter (structural next protocol)
+    let it2 = iter::vec_iter(v)
+    let mut total: i32 = 0
+    for x in it2 {
+        total = total + x
+    }
+    assert(total == 15)
+    stdio::println("OK")
+}
