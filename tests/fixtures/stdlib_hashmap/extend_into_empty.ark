@@ -1,0 +1,16 @@
+// Extend empty map with non-empty map
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m1 = hash::hashmap_new()
+    let m2 = hash::hashmap_new()
+    hash::hashmap_set(m2, 1, 10)
+    hash::hashmap_set(m2, 2, 20)
+
+    hash::hashmap_extend(m1, m2)
+
+    test::assert_eq_i32(hash::hashmap_size(m1), 2)
+    test::assert_eq_i32(hash::hashmap_get(m1, 1), 10)
+    test::assert_eq_i32(hash::hashmap_get(m1, 2), 20)
+}

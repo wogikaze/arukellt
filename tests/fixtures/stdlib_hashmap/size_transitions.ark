@@ -1,0 +1,26 @@
+// Size/is_empty transitions through insert and remove
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    test::assert_eq_i32(hash::hashmap_size(m), 0)
+    test::assert_true(hash::hashmap_is_empty(m))
+
+    hash::hashmap_set(m, 1, 10)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+    test::assert_false(hash::hashmap_is_empty(m))
+
+    hash::hashmap_set(m, 2, 20)
+    test::assert_eq_i32(hash::hashmap_size(m), 2)
+
+    hash::hashmap_set(m, 1, 11)  // overwrite, size unchanged
+    test::assert_eq_i32(hash::hashmap_size(m), 2)
+
+    hash::hashmap_remove(m, 2)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+
+    hash::hashmap_remove(m, 1)
+    test::assert_eq_i32(hash::hashmap_size(m), 0)
+    test::assert_true(hash::hashmap_is_empty(m))
+}

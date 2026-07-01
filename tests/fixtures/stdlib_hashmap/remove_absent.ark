@@ -1,0 +1,24 @@
+// Remove: absent key returns None, size unchanged
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 1, 10)
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+
+    match hash::hashmap_remove(m, 999) {
+        Option::Some(_) => panic("expected None for absent key"),
+        None => {}
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 1)
+    test::assert_true(hash::hashmap_contains(m, 1))
+
+    // Remove from empty map
+    let m2 = hash::hashmap_new()
+    match hash::hashmap_remove(m2, 1) {
+        Option::Some(_) => panic("expected None for empty map"),
+        None => {}
+    }
+    test::assert_eq_i32(hash::hashmap_size(m2), 0)
+}

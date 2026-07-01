@@ -1,0 +1,17 @@
+// Shrink_to_fit on empty map
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_with_capacity(50)
+    test::assert_eq_i32(hash::hashmap_capacity(m), 50)
+
+    hash::hashmap_shrink_to_fit(m)
+    test::assert_true(hash::hashmap_capacity(m) <= 50)
+    test::assert_eq_i32(hash::hashmap_size(m), 0)
+    test::assert_true(hash::hashmap_is_empty(m))
+
+    // Still usable
+    hash::hashmap_set(m, 1, 10)
+    test::assert_eq_i32(hash::hashmap_get(m, 1), 10)
+}

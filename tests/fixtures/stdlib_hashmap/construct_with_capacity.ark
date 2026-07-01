@@ -1,0 +1,26 @@
+// Construction: hashmap_with_capacity() invariants
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m0 = hash::hashmap_with_capacity(0)
+    test::assert_eq_i32(hash::hashmap_capacity(m0), 1)
+    test::assert_true(hash::hashmap_is_empty(m0))
+
+    let m1 = hash::hashmap_with_capacity(1)
+    test::assert_eq_i32(hash::hashmap_capacity(m1), 1)
+    test::assert_true(hash::hashmap_is_empty(m1))
+
+    let m8 = hash::hashmap_with_capacity(8)
+    test::assert_eq_i32(hash::hashmap_capacity(m8), 8)
+    test::assert_eq_i32(hash::hashmap_size(m8), 0)
+
+    let m100 = hash::hashmap_with_capacity(100)
+    test::assert_eq_i32(hash::hashmap_capacity(m100), 100)
+    test::assert_true(hash::hashmap_is_empty(m100))
+
+    // with_capacity does not pre-populate any slots
+    test::assert_false(hash::hashmap_contains(m100, 0))
+    test::assert_false(hash::hashmap_contains(m100, 50))
+    test::assert_false(hash::hashmap_contains(m100, 99))
+}

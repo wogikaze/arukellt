@@ -1,0 +1,16 @@
+// Insert: hashmap_insert returns None for new key
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    match hash::hashmap_insert(m, 1, 100) {
+        Option::Some(_) => panic("expected None for new key"),
+        None => {}
+    }
+    match hash::hashmap_insert(m, 2, 200) {
+        Option::Some(_) => panic("expected None for new key"),
+        None => {}
+    }
+    test::assert_eq_i32(hash::hashmap_size(m), 2)
+}

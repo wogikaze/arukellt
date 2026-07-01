@@ -1,0 +1,22 @@
+// Typed map: String->i32 basic operations
+use std::collections::hash_map
+use std::test
+
+fn main() {
+    let m = hash_map::hashmap_str_i32_new()
+    hash_map::hashmap_str_i32_insert(m, "apple", 100)
+    hash_map::hashmap_str_i32_insert(m, "banana", 200)
+
+    test::assert_eq_i32(hash_map::hashmap_str_i32_len(m), 2)
+    test::assert_true(hash_map::hashmap_str_i32_contains(m, "apple"))
+    test::assert_false(hash_map::hashmap_str_i32_contains(m, "cherry"))
+
+    match hash_map::hashmap_str_i32_get(m, "apple") {
+        Option::Some(v) => test::assert_eq_i32(v, 100),
+        None => panic("expected Some(100)"),
+    }
+    match hash_map::hashmap_str_i32_get(m, "banana") {
+        Option::Some(v) => test::assert_eq_i32(v, 200),
+        None => panic("expected Some(200)"),
+    }
+}

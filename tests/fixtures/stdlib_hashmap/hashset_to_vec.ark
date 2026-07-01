@@ -1,0 +1,29 @@
+// HashSet: to_vec returns all elements
+use std::collections::hash
+use std::test
+
+fn main() {
+    let s = hash::hashset_new()
+    hash::hashset_insert(s, 1)
+    hash::hashset_insert(s, 2)
+    hash::hashset_insert(s, 3)
+
+    let v = hash::hashset_to_vec(s)
+    test::assert_eq_i32(len(v), 3)
+
+    // Every element should be in the set
+    let mut found_1 = false
+    let mut found_2 = false
+    let mut found_3 = false
+    let mut i = 0
+    while i < len(v) {
+        let x = get_unchecked(v, i)
+        if x == 1 { found_1 = true }
+        if x == 2 { found_2 = true }
+        if x == 3 { found_3 = true }
+        i = i + 1
+    }
+    test::assert_true(found_1)
+    test::assert_true(found_2)
+    test::assert_true(found_3)
+}

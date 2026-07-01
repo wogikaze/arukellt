@@ -1,0 +1,29 @@
+// Keys: returns snapshot of all keys
+use std::collections::hash
+use std::test
+
+fn main() {
+    let m = hash::hashmap_new()
+    hash::hashmap_set(m, 10, 100)
+    hash::hashmap_set(m, 20, 200)
+    hash::hashmap_set(m, 30, 300)
+
+    let keys = hash::hashmap_keys(m)
+    test::assert_eq_i32(len(keys), 3)
+
+    // Every key should be present in the map
+    let mut found_10 = false
+    let mut found_20 = false
+    let mut found_30 = false
+    let mut i = 0
+    while i < len(keys) {
+        let k = get_unchecked(keys, i)
+        if k == 10 { found_10 = true }
+        if k == 20 { found_20 = true }
+        if k == 30 { found_30 = true }
+        i = i + 1
+    }
+    test::assert_true(found_10)
+    test::assert_true(found_20)
+    test::assert_true(found_30)
+}
