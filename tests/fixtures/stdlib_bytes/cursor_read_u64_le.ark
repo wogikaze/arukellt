@@ -1,0 +1,16 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 1)
+    bytes::bytes_push(data, 0)
+    bytes::bytes_push(data, 0)
+    bytes::bytes_push(data, 0)
+    bytes::bytes_push(data, 0)
+    bytes::bytes_push(data, 0)
+    bytes::bytes_push(data, 0)
+    bytes::bytes_push(data, 0)
+    let c: Vec<i32> = bytes::cursor_new(data)
+    test::assert_eq_i64(bytes::read_u64_le(c), i32_to_i64(1))
+}

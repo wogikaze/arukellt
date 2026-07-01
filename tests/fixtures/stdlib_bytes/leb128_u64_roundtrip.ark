@@ -1,0 +1,9 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let enc: Vec<i32> = bytes::leb128_encode_u64(i32_to_i64(300))
+    let c: Vec<i32> = bytes::cursor_new(enc)
+    let dec: i64 = bytes::leb128_decode_u64(c)
+    test::assert_eq_i64(dec, i32_to_i64(300))
+}

@@ -1,0 +1,9 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let leb: Vec<i32> = bytes::leb128_encode_u64(i32_to_i64(300))
+    test::assert_eq_i32(bytes::bytes_len(leb), 2)
+    test::assert_eq_i32(bytes::bytes_get(leb, 0), 172)
+    test::assert_eq_i32(bytes::bytes_get(leb, 1), 2)
+}

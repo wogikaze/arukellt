@@ -1,0 +1,17 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let a: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(a, 10)
+    bytes::bytes_push(a, 20)
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 30)
+    bytes::bytes_push(b, 40)
+    let r: Vec<i32> = bytes::bytes_concat(a, b)
+    test::assert_eq_i32(bytes::bytes_len(r), 4)
+    test::assert_eq_i32(bytes::bytes_get(r, 0), 10)
+    test::assert_eq_i32(bytes::bytes_get(r, 1), 20)
+    test::assert_eq_i32(bytes::bytes_get(r, 2), 30)
+    test::assert_eq_i32(bytes::bytes_get(r, 3), 40)
+}

@@ -1,0 +1,9 @@
+use std::bytes
+use std::test
+
+fn main() {
+    test::assert_eq_string(bytes::hex_char(0), "0")
+    test::assert_eq_string(bytes::hex_char(9), "9")
+    test::assert_eq_string(bytes::hex_char(10), "a")
+    test::assert_eq_string(bytes::hex_char(15), "f")
+}

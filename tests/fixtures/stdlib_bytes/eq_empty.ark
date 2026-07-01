@@ -1,0 +1,6 @@
+use std::bytes
+use std::test
+
+fn main() {
+    test::assert_true(bytes::bytes_eq(bytes::bytes_new(), bytes::bytes_new()))
+}

@@ -1,0 +1,25 @@
+use std::bytes
+use std::test
+
+fn assert_some(v: Option<i32>, expected: i32) {
+    match v {
+        Option::Some(n) => test::assert_eq_i32(n, expected),
+        None => panic("expected Some"),
+    }
+}
+
+fn assert_none(v: Option<i32>) {
+    match v {
+        Option::Some(_) => panic("expected None"),
+        None => {
+        },
+    }
+}
+
+fn main() {
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 42)
+    let c: Vec<i32> = bytes::cursor_new(data)
+    assert_some(bytes::try_read_u8(c), 42)
+    assert_none(bytes::try_read_u8(c))
+}

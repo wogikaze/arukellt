@@ -1,0 +1,21 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let vals: Vec<i32> = Vec_new_i32()
+    push(vals, 0)
+    push(vals, 1)
+    push(vals, 127)
+    push(vals, 128)
+    push(vals, 624485)
+    let n = len(vals)
+    let mut i = 0
+    while i < n {
+        let v = get_unchecked(vals, i)
+        let enc: Vec<i32> = bytes::leb128_encode_u32(v)
+        let c: Vec<i32> = bytes::cursor_new(enc)
+        let dec: i32 = bytes::leb128_decode_u32(c)
+        test::assert_eq_i32(dec, v)
+        i = i + 1
+    }
+}

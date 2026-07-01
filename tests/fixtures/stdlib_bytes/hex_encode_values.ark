@@ -1,0 +1,11 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 0)
+    bytes::bytes_push(b, 255)
+    bytes::bytes_push(b, 16)
+    bytes::bytes_push(b, 171)
+    test::assert_eq_string(bytes::hex_encode(b), "00ff10ab")
+}

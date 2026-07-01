@@ -1,0 +1,9 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 77)
+    bytes::bytes_push(b, 97)
+    test::assert_eq_string(bytes::base64_encode(b), "TWE=")
+}

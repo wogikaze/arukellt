@@ -1,0 +1,11 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let d: Vec<i32> = bytes::hex_decode("DEADBEEF")
+    test::assert_eq_i32(bytes::bytes_len(d), 4)
+    test::assert_eq_i32(bytes::bytes_get(d, 0), 222)
+    test::assert_eq_i32(bytes::bytes_get(d, 1), 173)
+    test::assert_eq_i32(bytes::bytes_get(d, 2), 190)
+    test::assert_eq_i32(bytes::bytes_get(d, 3), 239)
+}

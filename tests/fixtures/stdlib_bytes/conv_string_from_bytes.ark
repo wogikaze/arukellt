@@ -1,0 +1,10 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 72)
+    bytes::bytes_push(b, 73)
+    let s: String = bytes::string_from_bytes(b)
+    test::assert_eq_string(s, "HI")
+}

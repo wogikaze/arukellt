@@ -1,0 +1,10 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let buf: Vec<i32> = bytes::buf_new()
+    bytes::buf_push_u32_le(buf, 305419896)
+    test::assert_eq_i32(bytes::buf_len(buf), 4)
+    test::assert_eq_i32(bytes::bytes_get(buf, 0), 120)
+    test::assert_eq_i32(bytes::bytes_get(buf, 3), 18)
+}

@@ -1,0 +1,8 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let dec: Vec<i32> = bytes::base64_decode("TQ==")
+    test::assert_eq_i32(bytes::bytes_len(dec), 1)
+    test::assert_eq_i32(bytes::bytes_get(dec, 0), 77)
+}

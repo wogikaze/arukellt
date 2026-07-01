@@ -1,0 +1,22 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let vals: Vec<i32> = Vec_new_i32()
+    push(vals, 0)
+    push(vals, 1)
+    push(vals, 255)
+    push(vals, 256)
+    push(vals, 65535)
+    push(vals, 305419896)
+    let n = len(vals)
+    let mut i = 0
+    while i < n {
+        let v = get_unchecked(vals, i)
+        let le: Vec<i32> = bytes::u32_to_le_bytes(v)
+        test::assert_eq_i32(bytes::u32_from_le_bytes(le), v)
+        let be: Vec<i32> = bytes::u32_to_be_bytes(v)
+        test::assert_eq_i32(bytes::u32_from_be_bytes(be), v)
+        i = i + 1
+    }
+}

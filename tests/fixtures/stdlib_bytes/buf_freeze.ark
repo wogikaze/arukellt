@@ -1,0 +1,11 @@
+use std::bytes
+use std::test
+
+fn main() {
+    let buf: Vec<i32> = bytes::buf_new()
+    bytes::buf_push_u8(buf, 10)
+    bytes::buf_push_u8(buf, 20)
+    let frozen: Vec<i32> = bytes::buf_freeze(buf)
+    test::assert_eq_i32(bytes::bytes_len(frozen), 2)
+    test::assert_true(bytes::bytes_eq(frozen, buf))
+}
