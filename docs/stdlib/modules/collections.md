@@ -143,8 +143,8 @@ Return the number of interned strings.
 ## `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 36
-- Stability: stable 36
+- Manifest-backed functions: 42
+- Stability: stable 42
 
 Hash-based collection helpers.
 
@@ -211,6 +211,7 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return all entries as flat key/value pairs and clear the map. |
 | `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Remove a key from the map and return its previous value, or None if absent. |
 | `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
+| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | Extend a map with all key/value pairs from another map (other). |
 | `hashset_new` | `() -> Vec<i32>` | `stable` | Create a new empty HashSet. |
 | `hashset_insert` | `(Vec<i32>, i32) -> bool` | `stable` | Insert a value into the set. Returns true if the value was newly added, |
 | `hashset_contains` | `(Vec<i32>, i32) -> bool` | `stable` | Return true if the set contains the given value. |
@@ -221,12 +222,41 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the union of two sets (all elements present in a or b). |
 | `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the intersection of two sets (elements present in both a and b). |
 | `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the difference a - b (elements in a that are not in b). |
+| `hashset_capacity` | `(Vec<i32>) -> i32` | `stable` | Return the current bucket capacity of the set. |
+| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | Ensure the set can hold at least additional more elements without |
+| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | Shrink the set to the minimum capacity preserving the load-factor invariant. |
+| `hashset_clear` | `(Vec<i32>) -> ()` | `stable` | Remove all elements from the set, resetting size to 0. |
+| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | Extend a set with all elements from another set (other). |
 | `hashset_str_new` | `() -> Vec<String>` | `stable` | - |
 | `hashset_str_insert` | `(Vec<String>, String) -> bool` | `stable` | - |
 | `hashset_str_contains` | `(Vec<String>, String) -> bool` | `stable` | - |
 | `hashset_str_remove` | `(Vec<String>, String) -> bool` | `stable` | - |
 | `hashset_str_len` | `(Vec<String>) -> i32` | `stable` | - |
 | `hashset_str_is_empty` | `(Vec<String>) -> bool` | `stable` | - |
+
+#### `hashmap_extend`
+
+Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend.
+
+#### `hashset_capacity`
+
+Return the current bucket capacity of a HashSet<i32>.
+
+#### `hashset_reserve`
+
+Ensure a HashSet<i32> can hold at least `additional` more elements without exceeding the load-factor threshold.
+
+#### `hashset_shrink_to_fit`
+
+Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant.
+
+#### `hashset_clear`
+
+Remove all elements from a HashSet<i32>, resetting size to 0.
+
+#### `hashset_extend`
+
+Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend.
 
 ## `std::collections::linear`
 

@@ -1292,7 +1292,8 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
     targets = state["targets"]
     passed = verification.get("fixture_passed", fixture_total)
     skipped = verification.get("fixture_skipped", 0)
-    harness_str = f"{passed} passed, {skipped} skipped / {fixture_total} entries" if skipped else f"{passed} passed / {fixture_total} entries"
+    manifest_count = verification.get("fixture_manifest_count", fixture_total)
+    harness_str = f"{passed} passed, {skipped} skipped / {manifest_count} entries" if skipped else f"{passed} passed / {manifest_count} entries"
     return "\n".join(
         [
             "## Status",
@@ -1312,7 +1313,8 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
 def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: int, manifest_stats: dict) -> str:
     _passed = state["verification"].get("fixture_passed", fixture_total)
     _skipped = state["verification"].get("fixture_skipped", 0)
-    _harness = f"{_passed} passed, {_skipped} skipped / {fixture_total} entries" if _skipped else f"{_passed} passed / {fixture_total} entries"
+    _manifest_count = state["verification"].get("fixture_manifest_count", fixture_total)
+    _harness = f"{_passed} passed, {_skipped} skipped / {_manifest_count} entries" if _skipped else f"{_passed} passed / {_manifest_count} entries"
     lines = [
         "# Arukellt Documentation",
         "",

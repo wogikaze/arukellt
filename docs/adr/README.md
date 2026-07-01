@@ -12,6 +12,7 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
+| [029-selfhost-native-verification-contract.md](029-selfhost-native-verification-contract.md) | ADR-029 — Selfhost-native verification contract | Archive | Status: Accepted |
 | [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Archive | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | Archive | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | Archive | ステータス: DECIDED — 制限付きMonomorphization（型ごとのコード生成）を採用 |

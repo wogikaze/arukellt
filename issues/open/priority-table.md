@@ -11,7 +11,7 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 686 | Wasm GC Selfhost Implementation | main | 1 | 0 | 3 | 5 | 4 | 13 |
+| 1 | 686 | Wasm GC Selfhost Implementation | main | 1 | 0 | 4 | 5 | 4 | 14 |
 | 2 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 4 | 5 | 3 | 13 |
 | 3 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
 | 4 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |

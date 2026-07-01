@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 753
+- **Canonical names:** 769
 - **Historical/deprecated names:** 25
-- **Total entries:** 778
+- **Total entries:** 794
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -130,6 +130,7 @@ Current public API names, sorted alphabetically.
 | `buf_writer_flush` | `std::io` | `stable` | Io |
 | `buf_writer_new` | `std::io` | `stable` | Io |
 | `buf_writer_write_str` | `std::io` | `stable` | Io |
+| `buffer_len` | `std::io` | `stable` | Io |
 | `buffered_reader` | `std::io` | `stable` | Io |
 | `buffered_writer` | `std::io` | `stable` | Io |
 | `builder_append` | `std::text` | `stable` | Text |
@@ -245,7 +246,11 @@ Current public API names, sorted alphabetically.
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `fft` | `std::signal` | `stable` | Signal |
+| `file_from_fd` | `std::io` | `experimental` | Io |
 | `file_name` | `std::path` | `stable` | Path |
+| `file_read` | `std::io` | `experimental` | Io |
+| `file_write` | `std::io` | `experimental` | Io |
+| `fill_buffer` | `std::io` | `stable` | Io |
 | `filter_f64` | `prelude` | `stable` | Collections |
 | `filter_i32` | `std::seq` | `stable` | Seq |
 | `filter_i64` | `prelude` | `stable` | Collections |
@@ -294,6 +299,7 @@ Current public API names, sorted alphabetically.
 | `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_drain` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_entries` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_extend` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_insert` | `std::collections::hash` | `stable` | Collections |
@@ -309,14 +315,19 @@ Current public API names, sorted alphabetically.
 | `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
+| `hashset_capacity` | `std::collections::hash` | `stable` | Collections |
+| `hashset_clear` | `std::collections::hash` | `stable` | Collections |
 | `hashset_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashset_difference` | `std::collections::hash` | `stable` | Collections |
+| `hashset_extend` | `std::collections::hash` | `stable` | Collections |
 | `hashset_insert` | `std::collections::hash` | `stable` | Collections |
 | `hashset_intersection` | `std::collections::hash` | `stable` | Collections |
 | `hashset_is_empty` | `std::collections::hash` | `stable` | Collections |
 | `hashset_len` | `std::collections::hash` | `stable` | Collections |
 | `hashset_new` | `std::collections::hash` | `stable` | Collections |
 | `hashset_remove` | `std::collections::hash` | `stable` | Collections |
+| `hashset_reserve` | `std::collections::hash` | `stable` | Collections |
+| `hashset_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
 | `hashset_str_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashset_str_insert` | `std::collections::hash` | `stable` | Collections |
 | `hashset_str_is_empty` | `std::collections::hash` | `stable` | Collections |
@@ -467,6 +478,7 @@ Current public API names, sorted alphabetically.
 | `new` | `std::simd::i32x4` | `experimental` | Simd |
 | `new` | `std::simd::f64x2` | `experimental` | Simd |
 | `new` | `std::simd::i64x2` | `experimental` | Simd |
+| `new_memory_buffer` | `std::io` | `stable` | Io |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
 | `normalize` | `std::path` | `stable` | Path |
 | `not` | `std::simd::v128` | `experimental` | Simd |
@@ -501,6 +513,7 @@ Current public API names, sorted alphabetically.
 | `parse_i64` | `prelude` | `stable` | Conversion |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
+| `position` | `std::io` | `stable` | Io |
 | `pow_i32` | `prelude` | `stable` | Math |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
@@ -533,6 +546,7 @@ Current public API names, sorted alphabetically.
 | `read` | `std::host::streams` | `provisional` | Host Streams |
 | `read_body` | `std::host::http` | `provisional` | Host Http |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
+| `read_bytes` | `std::io` | `stable` | Io |
 | `read_dir` | `std::fs` | `provisional` | Fs |
 | `read_dir` | `std::host::fs` | `provisional` | Host Fs |
 | `read_stdin_line` | `std::io` | `stable` | Io |
@@ -588,6 +602,7 @@ Current public API names, sorted alphabetically.
 | `section_type` | `std::wasm` | `experimental` | Wasm |
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
+| `seek_to` | `std::io` | `stable` | Io |
 | `send` | `std::host::udp` | `provisional` | Host Udp |
 | `seq_contains` | `std::seq` | `stable` | Seq |
 | `seq_reverse` | `std::seq` | `stable` | Seq |
@@ -754,6 +769,7 @@ Current public API names, sorted alphabetically.
 | `write` | `std::host::streams` | `provisional` | Host Streams |
 | `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `provisional` | Host Fs |
+| `write_bytes` | `std::io` | `stable` | Io |
 | `write_string` | `std::fs` | `stable` | Fs |
 | `write_string` | `std::host::fs` | `provisional` | Host Fs |
 | `write_string` | `std::io` | `stable` | Io |
@@ -926,6 +942,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `buf_writer_flush` | ✅ `stable` | `std::io` | Io |
 | `buf_writer_new` | ✅ `stable` | `std::io` | Io |
 | `buf_writer_write_str` | ✅ `stable` | `std::io` | Io |
+| `buffer_len` | ✅ `stable` | `std::io` | Io |
 | `buffered_reader` | ✅ `stable` | `std::io` | Io |
 | `buffered_writer` | ✅ `stable` | `std::io` | Io |
 | `builder_append` | ✅ `stable` | `std::text` | Text |
@@ -1042,7 +1059,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fft` | ✅ `stable` | `std::signal` | Signal |
+| `file_from_fd` | ✅ `experimental` | `std::io` | Io |
 | `file_name` | ✅ `stable` | `std::path` | Path |
+| `file_read` | ✅ `experimental` | `std::io` | Io |
+| `file_write` | ✅ `experimental` | `std::io` | Io |
+| `fill_buffer` | ✅ `stable` | `std::io` | Io |
 | `filter_f64` | ✅ `stable` | `prelude` | Collections |
 | `filter_i32` | ✅ `stable` | `std::seq` | Seq |
 | ~~`filter_i32`~~ | ⚠️ deprecated | `prelude` | → `filter<i32>` · [migration guide](migration-guidance.md) |
@@ -1093,6 +1114,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_drain` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_entries` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_extend` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get_option` | ✅ `stable` | `std::collections::hash` | Collections |
 | ~~`HashMap_i32_i32_contains_key`~~ | ⚠️ deprecated | `prelude` | → `std::collections::hash_map` · [migration guide](migration-guidance.md) |
@@ -1128,14 +1150,19 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_clear` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_contains` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_difference` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_extend` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_insert` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_intersection` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_len` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_new` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_remove` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_str_contains` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_str_insert` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_str_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -1286,6 +1313,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `new` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `new` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `new` | ✅ `experimental` | `std::simd::i64x2` | Simd |
+| `new_memory_buffer` | ✅ `stable` | `std::io` | Io |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
 | `normalize` | ✅ `stable` | `std::path` | Path |
 | `not` | ✅ `experimental` | `std::simd::v128` | Simd |
@@ -1320,6 +1348,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
+| `position` | ✅ `stable` | `std::io` | Io |
 | `pow_i32` | ✅ `stable` | `prelude` | Math |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -1352,6 +1381,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `read` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `read_body` | ✅ `provisional` | `std::host::http` | Host Http |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_bytes` | ✅ `stable` | `std::io` | Io |
 | `read_dir` | ✅ `provisional` | `std::fs` | Fs |
 | `read_dir` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
@@ -1407,6 +1437,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `section_type` | ✅ `experimental` | `std::wasm` | Wasm |
 | `seeded_random` | ✅ `stable` | `std::random` | Random |
 | `seeded_range` | ✅ `stable` | `std::random` | Random |
+| `seek_to` | ✅ `stable` | `std::io` | Io |
 | `send` | ✅ `provisional` | `std::host::udp` | Host Udp |
 | `seq_contains` | ✅ `stable` | `std::seq` | Seq |
 | `seq_reverse` | ✅ `stable` | `std::seq` | Seq |
@@ -1575,6 +1606,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `write` | ✅ `provisional` | `std::host::streams` | Host Streams |
 | `write_all` | ✅ `stable` | `std::io` | Io |
 | `write_bytes` | ✅ `provisional` | `std::host::fs` | Host Fs |
+| `write_bytes` | ✅ `stable` | `std::io` | Io |
 | `write_string` | ✅ `stable` | `std::fs` | Fs |
 | `write_string` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::io` | Io |

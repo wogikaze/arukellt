@@ -19,9 +19,11 @@
 | [diagnostic-parity.md](diagnostic-parity.md) | Diagnostic Parity: Rust Compiler vs Selfhost Compiler | Comparison of error diagnostic output between the Rust-hosted compiler |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [error-codes.md](error-codes.md) | Error Code Reference | Canonical listing of every diagnostic code emitted by the Arukellt compiler. |
+| [incremental-parse-design.md](incremental-parse-design.md) | Incremental Parse Design | The fundamental unit of incremental parsing is the file (module). When a file changes, the entire file is re-parsed. Fine-grained incremental parsing at the declaration or function level is considered out of scope for Phase 1 to limit complexity. |
 | [ir-spec.md](ir-spec.md) | CoreHIR / MIR Specification | This document describes the intermediate representations (IRs) used by the |
 | [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the v4 optimization pipeline. |
 | [panic-ice-policy.md](panic-ice-policy.md) | Panic / ICE Policy | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |
 | [t3-reachability.md](t3-reachability.md) | T3 Reachability Root Contract | Defines the root set for dead function elimination on T3 (wasm32-wasi-p2) |
+| [t3-rmw-optimization.md](t3-rmw-optimization.md) | T3 Backend: Read-Modify-Write Optimization Analysis | Resolved: T3 backend already generates optimal RMW code for struct fields. |
 | [wit-resource-handles.md](wit-resource-handles.md) | WIT resource handles (resource, own<T>, borrow<T>) | Design for Tier 3 component emission of WIT resource types at the canonical ABI |

@@ -7,9 +7,9 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 419 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 432 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 28 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 306 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 309 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 25 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -227,6 +227,7 @@
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritt… |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -242,14 +243,19 @@
 | `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
+| `hashset_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
 | `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
 | `hashset_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
+| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
 | `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -736,12 +742,20 @@ let input = read_to_string()
 | `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the total number of bytes available in a memory buffer (#693). |
 | `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `builtin` | no | - | Create a FileHandle from a raw file descriptor (#693). |
+| `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Read bytes from a FileHandle into buf (#693). |
+| `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Write buf bytes to a FileHandle (#693). |
+| `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Fill the internal buffer of a BufRead source (#693). |
 | `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Create a new memory buffer for trait-based Read/Write (#693). |
+| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the current cursor position of a memory buffer (#693). |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `builtin` | no | - | - |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Read up to n bytes from a memory buffer via Read trait dispatch (#693). |
 | `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
@@ -749,10 +763,12 @@ let input = read_to_string()
 | `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `builtin` | no | - | Seek to absolute position in a memory buffer via Seek trait dispatch (#693). |
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `builtin` | no | - | Write byte values into a memory buffer via Write trait dispatch (#693). |
 | `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
@@ -1336,6 +1352,7 @@ Expected output: `hello world`
 | `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the total number of bytes available in a memory buffer (#693). |
 | `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -1425,6 +1442,7 @@ Expected output: `hello world`
 | `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` | - |
 | `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Fill the internal buffer of a BufRead source (#693). |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Keep only elements of v for which f returns true. |
@@ -1456,6 +1474,7 @@ Expected output: `hello world`
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritt… |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -1471,14 +1490,19 @@ Expected output: `hello world`
 | `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
+| `hashset_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
 | `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
 | `hashset_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
+| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
 | `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -1546,6 +1570,7 @@ Expected output: `hello world`
 | `min_i32` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
+| `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Create a new memory buffer for trait-based Read/Write (#693). |
 | `next_f64` | `() -> f64` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
 | `normalize` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Resolves . and .. components and collapses redundant / separators. |
 | `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
@@ -1562,6 +1587,7 @@ Expected output: `hello world`
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
 | `pi` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the current cursor position of a memory buffer (#693). |
 | `pow_i32` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_pow_i32` | - |
 | `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
@@ -1591,6 +1617,7 @@ Expected output: `hello world`
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Read up to n bytes from a memory buffer via Read trait dispatch (#693). |
 | `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
 | `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
@@ -1613,6 +1640,7 @@ Expected output: `hello world`
 | `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
 | `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
 | `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
+| `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `builtin` | no | - | Seek to absolute position in a memory buffer via Seek trait dispatch (#693). |
 | `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
@@ -1679,6 +1707,7 @@ Expected output: `hello world`
 | `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `builtin` | no | - | Write byte values into a memory buffer via Write trait dispatch (#693). |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 | `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
@@ -1803,6 +1832,9 @@ Expected output: `hello world`
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
+| `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `builtin` | no | - | Create a FileHandle from a raw file descriptor (#693). |
+| `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Read bytes from a FileHandle into buf (#693). |
+| `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Write buf bytes to a FileHandle (#693). |
 | `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
 | `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |

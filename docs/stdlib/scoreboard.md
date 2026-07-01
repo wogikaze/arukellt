@@ -5,19 +5,19 @@
 
 | Family | APIs | Stable | Exp | Depr | Fixture Coverage | Host Dep |
 |--------|------|--------|-----|------|------------------|----------|
-| `prelude` | 149 | 124 | 1 | 24 | 91/125 (73%) | no |
-| `std::bytes` | 45 | 45 | 0 | 0 | 40/45 (89%) | no |
+| `prelude` | 149 | 124 | 1 | 24 | 101/125 (81%) | no |
+| `std::bytes` | 45 | 45 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 18 | 0 | 18 | 0 | 18/18 (100%) | no |
-| `std::collections::hash` | 36 | 36 | 0 | 0 | 35/36 (97%) | no |
+| `std::collections::hash` | 42 | 42 | 0 | 0 | 41/42 (98%) | no |
 | `std::collections::linear` | 31 | 31 | 0 | 0 | 31/31 (100%) | no |
 | `std::collections::ordered` | 37 | 10 | 27 | 0 | 36/37 (97%) | no |
 | `std::component` | 2 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::component::handle` | 5 | 0 | 5 | 0 | 5/5 (100%) | no |
-| `std::core` | 6 | 6 | 0 | 0 | 4/6 (67%) | no |
+| `std::core` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
 | `std::core::cmp` | 4 | 4 | 0 | 0 | 4/4 (100%) | no |
 | `std::core::error` | 1 | 1 | 0 | 0 | 1/1 (100%) | no |
-| `std::core::hash` | 4 | 4 | 0 | 0 | 3/4 (75%) | no |
+| `std::core::hash` | 4 | 4 | 0 | 0 | 4/4 (100%) | no |
 | `std::core::math` | 7 | 7 | 0 | 0 | 7/7 (100%) | no |
 | `std::csv` | 7 | 0 | 7 | 0 | 5/7 (71%) | no |
 | `std::env` | 6 | 5 | 0 | 1 | 4/5 (80%) | no |
@@ -27,22 +27,22 @@
 | `std::host::fs` | 13 | 2 | 11 | 0 | 10/13 (77%) | yes |
 | `std::host::http` | 6 | 0 | 6 | 0 | 3/6 (50%) | yes |
 | `std::host::process` | 2 | 2 | 0 | 0 | 2/2 (100%) | yes |
-| `std::host::random` | 4 | 4 | 0 | 0 | 2/4 (50%) | yes |
+| `std::host::random` | 4 | 4 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::sockets` | 5 | 0 | 5 | 0 | 5/5 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::streams` | 3 | 0 | 3 | 0 | 3/3 (100%) | yes |
 | `std::host::udp` | 1 | 0 | 1 | 0 | 1/1 (100%) | yes |
-| `std::io` | 28 | 28 | 0 | 0 | 21/28 (75%) | no |
-| `std::json` | 22 | 0 | 22 | 0 | 20/22 (91%) | no |
+| `std::io` | 38 | 35 | 3 | 0 | 34/38 (89%) | no |
+| `std::json` | 22 | 0 | 22 | 0 | 22/22 (100%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 3/3 (100%) | no |
 | `std::seq` | 13 | 13 | 0 | 0 | 12/13 (92%) | no |
-| `std::signal` | 11 | 11 | 0 | 0 | 7/11 (64%) | no |
-| `std::simd::f32x4` | 24 | 0 | 24 | 0 | 15/24 (62%) | no |
-| `std::simd::f64x2` | 14 | 0 | 14 | 0 | 12/14 (86%) | no |
+| `std::signal` | 11 | 11 | 0 | 0 | 8/11 (73%) | no |
+| `std::simd::f32x4` | 24 | 0 | 24 | 0 | 16/24 (67%) | no |
+| `std::simd::f64x2` | 14 | 0 | 14 | 0 | 13/14 (93%) | no |
 | `std::simd::i16x8` | 10 | 0 | 10 | 0 | 7/10 (70%) | no |
-| `std::simd::i32x4` | 15 | 0 | 15 | 0 | 11/15 (73%) | no |
+| `std::simd::i32x4` | 15 | 0 | 15 | 0 | 12/15 (80%) | no |
 | `std::simd::i64x2` | 10 | 0 | 10 | 0 | 9/10 (90%) | no |
 | `std::simd::i8x16` | 12 | 0 | 12 | 0 | 7/12 (58%) | no |
 | `std::simd::u16x8` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
@@ -51,14 +51,14 @@
 | `std::simd::u8x16` | 4 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::v128` | 7 | 0 | 7 | 0 | 4/7 (57%) | no |
 | `std::test` | 17 | 16 | 1 | 0 | 17/17 (100%) | no |
-| `std::text` | 34 | 32 | 2 | 0 | 29/34 (85%) | no |
+| `std::text` | 34 | 32 | 2 | 0 | 34/34 (100%) | no |
 | `std::text::rope` | 8 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 2/3 (67%) | no |
 | `std::toml` | 8 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::wasm` | 79 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 778 APIs, 419 stable, 334 experimental, 25 deprecated, 599/753 (80%) fixture coverage
+**Total**: 794 APIs, 432 stable, 337 experimental, 25 deprecated, 649/769 (84%) fixture coverage
 
 ## Legend
 

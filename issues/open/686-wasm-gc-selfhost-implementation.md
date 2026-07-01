@@ -151,11 +151,11 @@ ADR-035's phased plan.
     ```
   - 期待: validate OK、`stop` / `caution` / `go` が順に出力される
 
-- [ ] HashMap GC 表現
+- [x] HashMap GC 表現
   - **注記 (2026-06-24):** `hashmap_basic.ark` validate + host-run 通過（`200` / `found` / `not found` 出力）。根因は GC `vec_push` growth が `array.new_default` 後に旧要素をコピーしておらず、`hashmap_new` の 9 回目 push で `capacity`（index 0）が 0 に戻り `hashmap_set` が `i32.rem_s` trap していたこと。`intrinsic_vec_push_gc.ark` に `array.copy`（opcode `0xfb11`）を追加して修復。`match_println_i32.ark` host-run も通過。`vec_push.ark` validate + host-run 継続 OK。
   - **注記 (2026-06-25):** `hashmap_string_i32.ark` validate + host-run 通過（期待出力 `3` / `3` / `42` / `not found` / `true` / `false`）。修復: 3 引数 call staging で `local.set_from` を使う（GC 文字列リテラルがローカルに入った後に空スタック `local.set` していた）、GC `bool_to_string` が linear offset のみ残していたのを GC 配列へ materialize。
   - **注記 (2026-06-25, len):** `hashmap_basic.ark` の `HashMap_i32_i32_len` が `0` を出力していた問題を修復。CoreHIR `println` 変換が `CALL` 結果を `LOCAL_GET` で読む際、`CALL`→`LOCAL_GET`→`CALL`（`i32_to_string`）パターンで `local.set` がスキップされ未初期化ローカルを参照していた。`inst_store_policy.ark` で `MIR_CALL`/`MIR_WIT_CALL` に限定して store を強制、`call_fallback.ark` で `LOCAL_SET_FROM` 経路も補完。
-  - **残:** `hashmap_i32_string.ark` / `hashmap_string_string.ark` validate 失敗（ref/i32 型不一致）、`hashset_string_basic.ark` runtime trap。
+  - **注記 (2026-07-01):** `hashmap_i32_string.ark` / `hashmap_string_string.ark` / `hashset_string_basic.ark` の GC validate 失敗を修復。`Option<String>` の `Some` 構築・match bind が i32 payload 形状を選んでいたため、payload VT で `Option::Some` GC variant slot を選択するよう変更。`HashSet<String>` facade の `let _updated: Vec<String> = push(...)` は GC push の void path と衝突していたため statement 呼び出しへ変更。`__hm_is_get_val` / `__hm_ss_get_key` / `__hm_ss_get_val` の String callee 推論も補完。
   - **Verify (実装後):**
     ```
     arukeit compile tests/fixtures/stdlib_hashmap/hashmap_basic.ark -o /tmp/hm_gc.wasm --target wasm32-wasi-p2

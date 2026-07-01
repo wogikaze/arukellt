@@ -164,7 +164,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 681 | [681 — Stdlib manifest reachability contract audit](681-stdlib-manifest-reachability-audit.md) | docs-audit | none | 679 | 711 | 0 checked / 6 open | audit-ready | None | |
 | 684 | [684 — False-done and limited-scope done issue re-audit program](684-false-done-limited-scope-reaudit.md) | docs-audit | none | none | none | 0 checked / 6 open | audit-ready | None | |
 | 685 | [685 — IDE / Playground / Extension product-claim vs compiler gate audit](685-ide-playground-extension-claim-audit.md) | docs-audit | none | 679 | none | 0 checked / 6 open | audit-ready | None | |
-| 686 | [Wasm GC Selfhost Implementation](686-wasm-gc-selfhost-implementation.md) | main | none | none | 698 | 11 checked / 5 open | — | — | |
+| 686 | [Wasm GC Selfhost Implementation](686-wasm-gc-selfhost-implementation.md) | main | none | none | 698 | 12 checked / 4 open | — | — | |
 | 687 | [687 — HashMap / HashSet Rust parity gap audit and closure](687-hashmap-hashset-rust-parity-gap.md) | stdlib-api | none | 495 | none | 8 checked / 1 open | implementation-ready | None | |
 | 689 | [689 — Operator overload trait surface (Add / Index / Deref / ...)](689-operator-overload-traits.md) | language-design | none | 688, 707 | none | 3 checked / 9 open | design-required | None | |
 | 690 | [690 — `?` operator and `From<E>` error conversion](690-question-mark-operator.md) | language-design | none | 688 | 694 | 1 checked / 11 open | design-required | None | |
