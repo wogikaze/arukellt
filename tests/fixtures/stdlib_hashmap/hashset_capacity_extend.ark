@@ -1,0 +1,58 @@
+use std::collections::hash
+use std::host::stdio
+
+fn main() {
+    let s = hash::hashset_new()
+    assert(hash::hashset_is_empty(s))
+    assert_eq(hash::hashset_len(s), 0)
+    assert(hash::hashset_capacity(s) >= 1)
+
+    // insert / contains / len
+    assert(hash::hashset_insert(s, 1))
+    assert(hash::hashset_insert(s, 2))
+    assert(hash::hashset_insert(s, 3))
+    assert(!hash::hashset_insert(s, 2)) // duplicate returns false
+    assert_eq(hash::hashset_len(s), 3)
+    assert(hash::hashset_contains(s, 1))
+    assert(hash::hashset_contains(s, 2))
+    assert(hash::hashset_contains(s, 3))
+    assert(!hash::hashset_contains(s, 99))
+
+    // reserve / capacity grow
+    let cap_before = hash::hashset_capacity(s)
+    hash::hashset_reserve(s, 20)
+    assert(hash::hashset_capacity(s) > cap_before)
+    // entries preserved after reserve
+    assert_eq(hash::hashset_len(s), 3)
+    assert(hash::hashset_contains(s, 2))
+
+    // extend adds elements from another set
+    let other = hash::hashset_new()
+    assert(hash::hashset_insert(other, 3)) // duplicate of existing
+    assert(hash::hashset_insert(other, 4))
+    assert(hash::hashset_insert(other, 5))
+    hash::hashset_extend(s, other)
+    assert_eq(hash::hashset_len(s), 5)
+    assert(hash::hashset_contains(s, 4))
+    assert(hash::hashset_contains(s, 5))
+
+    // shrink_to_fit reduces capacity, entries preserved
+    let big_cap = hash::hashset_capacity(s)
+    hash::hashset_shrink_to_fit(s)
+    assert(hash::hashset_capacity(s) <= big_cap)
+    assert_eq(hash::hashset_len(s), 5)
+
+    // remove
+    assert(hash::hashset_remove(s, 3))
+    assert(!hash::hashset_contains(s, 3))
+    assert(!hash::hashset_remove(s, 3)) // removing absent returns false
+    assert_eq(hash::hashset_len(s), 4)
+
+    // clear resets the set
+    hash::hashset_clear(s)
+    assert(hash::hashset_is_empty(s))
+    assert_eq(hash::hashset_len(s), 0)
+    assert(!hash::hashset_contains(s, 1))
+
+    stdio::println("OK")
+}
