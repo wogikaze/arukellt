@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let s = String_from("original")
     let c = clone(s)
-    stdio::println(c)
+    test::assert_eq_string(c, "original")
 }

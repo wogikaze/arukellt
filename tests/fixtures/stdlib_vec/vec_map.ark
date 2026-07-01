@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn double(x: i32) -> i32 {
     x * 2
@@ -10,9 +10,8 @@ fn main() {
     push(v, 2)
     push(v, 3)
     let doubled: Vec<i32> = map_i32_i32(v, double)
-    let mut i: i32 = 0
-    while i < len(doubled) {
-        stdio::println(i32_to_string(get_unchecked(doubled, i)))
-        i = i + 1
-    }
+    test::assert_eq_i32(len(doubled), 3)
+    test::assert_eq_i32(get_unchecked(doubled, 0), 2)
+    test::assert_eq_i32(get_unchecked(doubled, 1), 4)
+    test::assert_eq_i32(get_unchecked(doubled, 2), 6)
 }

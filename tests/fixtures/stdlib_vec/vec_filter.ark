@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn is_even(x: i32) -> bool {
     x % 2 == 0
@@ -12,9 +12,7 @@ fn main() {
     push(v, 4)
     push(v, 5)
     let evens: Vec<i32> = filter_i32(v, is_even)
-    let mut i: i32 = 0
-    while i < len(evens) {
-        stdio::println(i32_to_string(get_unchecked(evens, i)))
-        i = i + 1
-    }
+    test::assert_eq_i32(len(evens), 2)
+    test::assert_eq_i32(get_unchecked(evens, 0), 2)
+    test::assert_eq_i32(get_unchecked(evens, 1), 4)
 }

@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
@@ -6,11 +6,12 @@ fn main() {
     push(v, 20)
     push(v, 30)
     match get(v, 1) {
-        Option::Some(val) => stdio::println(i32_to_string(val)),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => test::assert_eq_i32(val, 20),
+        None => panic("expected Some, got None"),
     }
     match get(v, 5) {
-        Option::Some(val) => stdio::println(i32_to_string(val)),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => panic("expected None, got Some"),
+        None => {
+        },
     }
 }

@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let s: String = String_from("hello world")
     let sub: String = slice(s, 0, 5)
-    stdio::println(sub)
+    test::assert_eq_string(sub, "hello")
 }

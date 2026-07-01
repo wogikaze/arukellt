@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let s: String = String_new()
-    stdio::println(i32_to_string(len(s)))
-    stdio::println(bool_to_string(is_empty(s)))
+    test::assert_eq_i32(len(s), 0)
+    test::assert_true(is_empty(s))
 }

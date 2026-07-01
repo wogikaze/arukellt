@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn add(acc: i32, x: i32) -> i32 {
     acc + x
@@ -12,5 +12,5 @@ fn main() {
     push(v, 4)
     push(v, 5)
     let sum: i32 = fold_i32_i32(v, 0, add)
-    stdio::println(i32_to_string(sum))
+    test::assert_eq_i32(sum, 15)
 }

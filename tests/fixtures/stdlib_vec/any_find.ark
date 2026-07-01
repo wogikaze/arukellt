@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn is_even(x: i32) -> bool {
     x % 2 == 0
@@ -15,26 +15,22 @@ fn main() {
     push(v, 3)
     push(v, 4)
     let has_even: bool = any_i32(v, is_even)
-    if has_even {
-        stdio::println(String_from("has even: true"))
-    } else {
-        stdio::println(String_from("has even: false"))
-    }
+    test::assert_true(has_even)
+
     let found = find_i32(v, is_even)
     match found {
-        Option::Some(x) => stdio::println(concat("first even: ", to_string(x))),
-        None => stdio::println(String_from("none")),
+        Option::Some(x) => test::assert_eq_i32(x, 2),
+        None => panic("expected Some, got None"),
     }
+
     let empty = Vec_new_i32()
     let any_empty: bool = any_i32(empty, is_even)
-    if any_empty {
-        stdio::println(String_from("empty has even: true"))
-    } else {
-        stdio::println(String_from("empty has even: false"))
-    }
+    test::assert_false(any_empty)
+
     let find_neg = find_i32(v, is_negative)
     match find_neg {
-        Option::Some(x) => stdio::println(concat("found negative: ", to_string(x))),
-        None => stdio::println(String_from("no negatives")),
+        Option::Some(x) => panic("expected None, got Some"),
+        None => {
+        },
     }
 }

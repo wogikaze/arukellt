@@ -1,4 +1,4 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let mut parts: Vec<String> = Vec_new_String()
@@ -6,5 +6,5 @@ fn main() {
     push(parts, String_from("two"))
     push(parts, String_from("three"))
     let result: String = join(parts, String_from("-"))
-    stdio::println(result)
+    test::assert_eq_string(result, "one-two-three")
 }

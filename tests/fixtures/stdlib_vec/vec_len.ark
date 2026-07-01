@@ -1,11 +1,11 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
-    stdio::println(i32_to_string(len(v)))
+    test::assert_eq_i32(len(v), 0)
     push(v, 1)
     push(v, 2)
-    stdio::println(i32_to_string(len(v)))
+    test::assert_eq_i32(len(v), 2)
     let _ = pop(v)
-    stdio::println(i32_to_string(len(v)))
+    test::assert_eq_i32(len(v), 1)
 }

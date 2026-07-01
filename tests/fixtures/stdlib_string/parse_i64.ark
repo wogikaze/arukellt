@@ -1,29 +1,29 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let r1: Result<i64, String> = parse_i64(String_from("42"))
     match r1 {
-        Result::Ok(v) => stdio::println(i64_to_string(v)),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(v) => test::assert_eq_i64(v, 42),
+        Result::Err(e) => panic("expected Ok, got Err"),
     }
     let r2: Result<i64, String> = parse_i64(String_from("-100"))
     match r2 {
-        Result::Ok(v) => stdio::println(i64_to_string(v)),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(v) => test::assert_eq_i64(v, -100),
+        Result::Err(e) => panic("expected Ok, got Err"),
     }
     let r3: Result<i64, String> = parse_i64(String_from("0"))
     match r3 {
-        Result::Ok(v) => stdio::println(i64_to_string(v)),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(v) => test::assert_eq_i64(v, 0),
+        Result::Err(e) => panic("expected Ok, got Err"),
     }
     let r4: Result<i64, String> = parse_i64(String_from("9999999999"))
     match r4 {
-        Result::Ok(v) => stdio::println(i64_to_string(v)),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(v) => test::assert_eq_i64(v, 9999999999),
+        Result::Err(e) => panic("expected Ok, got Err"),
     }
     let r5: Result<i64, String> = parse_i64(String_from("abc"))
     match r5 {
-        Result::Ok(v) => stdio::println(i64_to_string(v)),
-        Result::Err(e) => stdio::println(e),
+        Result::Ok(v) => panic("expected Err, got Ok"),
+        Result::Err(e) => test::assert_eq_string(e, "parse error: invalid integer"),
     }
 }

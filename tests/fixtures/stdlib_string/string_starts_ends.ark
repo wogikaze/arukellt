@@ -1,9 +1,9 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let s: String = String_from("hello world")
-    stdio::println(bool_to_string(starts_with(s, String_from("hello"))))
-    stdio::println(bool_to_string(starts_with(s, String_from("world"))))
-    stdio::println(bool_to_string(ends_with(s, String_from("world"))))
-    stdio::println(bool_to_string(ends_with(s, String_from("hello"))))
+    test::assert_true(starts_with(s, String_from("hello")))
+    test::assert_false(starts_with(s, String_from("world")))
+    test::assert_true(ends_with(s, String_from("world")))
+    test::assert_false(ends_with(s, String_from("hello")))
 }

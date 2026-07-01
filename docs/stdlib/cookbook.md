@@ -30,13 +30,13 @@
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    stdio::println(i32_to_string(len(v)))   // 3
+    test::assert_eq_i32(len(v), 3)
 }
 ```
 
@@ -46,18 +46,19 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
     push(v, 10)
     push(v, 20)
     match get(v, 1) {
-        Some(val) => stdio::println(i32_to_string(val)),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => test::assert_eq_i32(val, 20),
+        None => panic("expected Some, got None"),
     }
     match get(v, 5) {
-        Some(val) => stdio::println(i32_to_string(val)),
-        None => stdio::println("out of bounds"),
+        Option::Some(val) => panic("expected None, got Some"),
+        None => {
+        },
     }
 }
 ```
@@ -68,17 +69,17 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
     push(v, 10)
     push(v, 20)
     let last: Option<i32> = pop(v)
     match last {
-        Some(val) => stdio::println(i32_to_string(val)),  // 20
-        None => stdio::println("empty"),
+        Option::Some(val) => test::assert_eq_i32(val, 20),
+        None => panic("expected Some, got None"),
     }
-    stdio::println(i32_to_string(len(v)))  // 1
+    test::assert_eq_i32(len(v), 1)
 }
 ```
 
@@ -103,7 +104,7 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn double(x: i32) -> i32 { x * 2 }
 fn is_even(x: i32) -> bool { x % 2 == 0 }
 fn add(acc: i32, x: i32) -> i32 { acc + x }
@@ -119,7 +120,7 @@ fn main() {
     let doubled: Vec<i32> = map_i32_i32(v, double)
     let evens: Vec<i32> = filter_i32(doubled, is_even)
     let total: i32 = fold_i32_i32(evens, 0, add)
-    stdio::println(i32_to_string(total))  // 12
+    test::assert_eq_i32(total, 12)
 }
 ```
 
@@ -132,7 +133,7 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn is_even(x: i32) -> bool { x % 2 == 0 }
 
 fn main() {
@@ -146,11 +147,13 @@ fn main() {
 
     let has_20: bool = contains_i32(v, 20)   // true
     let has_even: bool = any_i32(v, is_even) // true
+    test::assert_true(has_20)
+    test::assert_true(has_even)
 
     let found = find_i32(v, is_even)
     match found {
-        Some(x) => stdio::println(i32_to_string(x)),
-        None => stdio::println("none"),
+        Option::Some(x) => test::assert_eq_i32(x, 30),
+        None => panic("expected Some, got None"),
     }
 }
 ```
@@ -185,7 +188,7 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let m = HashMap_i32_i32_new()
     HashMap_i32_i32_insert(m, 1, 100)
@@ -193,19 +196,18 @@ fn main() {
     HashMap_i32_i32_insert(m, 3, 300)
 
     match HashMap_i32_i32_get(m, 2) {
-        Option::Some(v) => stdio::println(i32_to_string(v)),       // 200
-        None => stdio::println(String_from("-1")),
+        Option::Some(v) => test::assert_eq_i32(v, 200),
+        None => panic("expected Some(200)"),
     }
 
-    stdio::println(i32_to_string(HashMap_i32_i32_len(m)))  // 3
+    test::assert_eq_i32(HashMap_i32_i32_len(m), 3)
 
-    if HashMap_i32_i32_contains_key(m, 1) {
-        stdio::println(String_from("found"))
-    }
+    test::assert_true(HashMap_i32_i32_contains_key(m, 1))
 
     match HashMap_i32_i32_get(m, 99) {
-        Option::Some(v) => stdio::println(v),
-        None => stdio::println(String_from("not found")),
+        Option::Some(v) => panic("expected None for key 99"),
+        None => {
+        },
     }
 }
 ```
@@ -224,14 +226,14 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let s: String = String_new()
-    stdio::println(bool_to_string(is_empty(s)))  // true
-    stdio::println(i32_to_string(len(s)))         // 0
+    test::assert_true(is_empty(s))
+    test::assert_eq_i32(len(s), 0)
 
     let hello: String = String_from("hello")
-    stdio::println(i32_to_string(len(hello)))     // 5
+    test::assert_eq_i32(len(hello), 5)
 }
 ```
 
@@ -242,15 +244,16 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let a: String = String_from("hello")
     let b: String = String_from(" world")
     let c: String = concat(a, b)
-    stdio::println(c)           // hello world
+    test::assert_eq_string(c, "hello world")
 
-    let d: String = clone(a)    // 独立したコピー
-    stdio::println(d)
+    let s = String_from("original")
+    let d: String = clone(s)    // 独立したコピー
+    test::assert_eq_string(d, "original")
 }
 ```
 
@@ -260,13 +263,13 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let a: String = String_from("test")
     let b: String = String_from("test")
     let c: String = String_from("other")
-    stdio::println(bool_to_string(eq(a, b)))  // true
-    stdio::println(bool_to_string(eq(a, c)))  // false
+    test::assert_true(eq(a, b))   // true
+    test::assert_false(eq(a, c))  // false
 }
 ```
 
@@ -278,15 +281,16 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let s: String = String_from("hello world")
     let sub: String = slice(s, 0, 5)
-    stdio::println(sub)  // hello
+    test::assert_eq_string(sub, "hello")
 
     let parts: Vec<String> = split(String_from("a,b,c"), String_from(","))
+    test::assert_eq_i32(len(parts), 3)
     let joined: String = join(parts, String_from("-"))
-    stdio::println(joined)  // a-b-c
+    test::assert_eq_string(joined, "a-b-c")
 }
 ```
 
@@ -296,12 +300,12 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let s: String = String_from("hello world")
-    stdio::println(bool_to_string(starts_with(s, String_from("hello"))))  // true
-    stdio::println(bool_to_string(ends_with(s, String_from("world"))))    // true
-    stdio::println(bool_to_string(starts_with(s, String_from("world"))))  // false
+    test::assert_true(starts_with(s, String_from("hello")))   // true
+    test::assert_true(ends_with(s, String_from("world")))     // true
+    test::assert_false(starts_with(s, String_from("world")))  // false
 }
 ```
 
@@ -312,15 +316,17 @@ fn main() {
 
 <!-- skip-doc-check -->
 ```ark
-use std::host::stdio
+use std::test
 fn main() {
     let s = String_from("Hello World")
-    stdio::println(to_lower(s))   // hello world
-    stdio::println(to_upper(s))   // HELLO WORLD
+    test::assert_eq_string(to_lower(s), "hello world")
+    test::assert_eq_string(to_upper(s), "HELLO WORLD")
 
     let mut greeting = String_from("hello")
     push_char(greeting, '!')
-    stdio::println(greeting)      // hello!
+    let mut expected = String_from("hello")
+    push_char(expected, '!')
+    test::assert_true(eq(greeting, expected))  // hello!
 }
 ```
 

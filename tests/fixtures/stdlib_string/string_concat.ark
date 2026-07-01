@@ -1,8 +1,8 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let a: String = String_from("hello")
     let b: String = String_from(" world")
     let c: String = concat(a, b)
-    stdio::println(c)
+    test::assert_eq_string(c, "hello world")
 }

@@ -1,7 +1,7 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let s = String_from("Hello World")
-    stdio::println(to_lower(s))
-    stdio::println(to_upper(s))
+    test::assert_eq_string(to_lower(s), "hello world")
+    test::assert_eq_string(to_upper(s), "HELLO WORLD")
 }

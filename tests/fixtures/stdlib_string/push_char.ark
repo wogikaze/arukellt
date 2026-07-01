@@ -1,7 +1,9 @@
-use std::host::stdio
+use std::test
 
 fn main() {
     let mut s = String_from("hello")
     push_char(s, '!')
-    stdio::println(s)
+    let mut expected = String_from("hello")
+    push_char(expected, '!')
+    test::assert_true(eq(s, expected))
 }
