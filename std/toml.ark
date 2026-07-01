@@ -96,6 +96,20 @@ pub fn toml_find_value(content: String, key: String) -> String {
     String_new()
 }
 
+// ─── Public find_toml_section / find_toml_value aliases (#705) ───────────────
+// These are the canonical public names consumed by the compiler's
+// main/script_toml.ark and lsp/symbol_index_paths.ark.  They delegate to the
+// streaming scanner utilities above so that no compiler-internal TOML
+// implementation files remain outside std::toml.
+
+pub fn find_toml_section(content: String, section: String) -> String {
+    toml_find_section(content, section)
+}
+
+pub fn find_toml_value(content: String, key: String) -> String {
+    toml_find_value(content, key)
+}
+
 // ─── Re-exports from std/toml/parser.ark ────────────────────────────────────
 // The full TOML parser (toml_parse, toml_stringify, toml_get, etc.) lives in
 // std/toml/parser.ark.  These wrappers delegate to the parser submodule so
@@ -121,6 +135,18 @@ pub fn toml_as_int(v: parser::TomlValue) -> Option<i32> {
 
 pub fn toml_as_bool(v: parser::TomlValue) -> Option<bool> {
     parser::toml_as_bool(v)
+}
+
+pub fn toml_as_float(v: parser::TomlValue) -> Option<f64> {
+    parser::toml_as_float(v)
+}
+
+pub fn toml_as_array(v: parser::TomlValue) -> Option<Vec<parser::TomlValue>> {
+    parser::toml_as_array(v)
+}
+
+pub fn toml_as_table(v: parser::TomlValue) -> Option<Vec<parser::TomlField>> {
+    parser::toml_as_table(v)
 }
 
 pub fn toml_get(v: parser::TomlValue, key: String) -> Option<parser::TomlValue> {

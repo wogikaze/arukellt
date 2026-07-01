@@ -1279,3 +1279,7 @@ run:stdlib_trait/ord_trait.ark
 run:stdlib_trait/ord_sort_by.ark
 t3-compile:stdlib_trait/ord_trait.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
+run:stdlib_toml/toml_full_table_header.ark
+run:stdlib_toml/toml_full_inline_dotted.ark
+t3-compile:stdlib_toml/toml_full_table_header.ark
+t3-compile:stdlib_toml/toml_full_inline_dotted.ark
