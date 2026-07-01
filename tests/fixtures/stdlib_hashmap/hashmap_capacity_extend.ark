@@ -1,0 +1,51 @@
+use std::collections::hash
+use std::host::stdio
+
+fn expect_some(v: Option<i32>, expected: i32) {
+    match v {
+        Option::Some(x) => assert_eq(x, expected),
+        None => assert(false),
+    }
+}
+
+fn main() {
+    let m = hash::hashmap_with_capacity(2)
+    assert(hash::hashmap_capacity(m) >= 2)
+
+    // reserve grows capacity to satisfy the load-factor invariant.
+    let cap_before = hash::hashmap_capacity(m)
+    hash::hashmap_reserve(m, 5)
+    assert(hash::hashmap_capacity(m) > cap_before)
+    assert(hash::hashmap_try_reserve(m, 3))
+
+    // Insertions beyond the original capacity trigger automatic growth.
+    let mut i: i32 = 0
+    while i < 20 {
+        let _ = hash::hashmap_set(m, i, i * 10)
+        i = i + 1
+    }
+    assert_eq(hash::hashmap_size(m), 20)
+    let mut j: i32 = 0
+    while j < 20 {
+        expect_some(hash::hashmap_get_option(m, j), j * 10)
+        j = j + 1
+    }
+
+    // shrink_to_fit reduces capacity while preserving entries.
+    let big_cap = hash::hashmap_capacity(m)
+    hash::hashmap_shrink_to_fit(m)
+    assert(hash::hashmap_capacity(m) <= big_cap)
+    assert_eq(hash::hashmap_size(m), 20)
+    expect_some(hash::hashmap_get_option(m, 7), 70)
+
+    // extend copies entries from another map, overwriting existing keys.
+    let other = hash::hashmap_new()
+    let _ = hash::hashmap_set(other, 0, 999)
+    let _ = hash::hashmap_set(other, 100, 1000)
+    hash::hashmap_extend(m, other)
+    expect_some(hash::hashmap_get_option(m, 0), 999)
+    expect_some(hash::hashmap_get_option(m, 100), 1000)
+    assert_eq(hash::hashmap_size(m), 21)
+
+    stdio::println("OK")
+}

@@ -3545,6 +3545,15 @@ stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
+[[functions]]
+name = "hashmap_extend"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+doc = "Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend."
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "()"
+
 # --- HashSet API (#044 — monomorphic i32 element, backed by HashMap<i32,i32>) ---
 
 [[functions]]
@@ -3626,6 +3635,51 @@ doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_capacity"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+doc = "Return the current bucket capacity of a HashSet<i32>."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "hashset_reserve"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+doc = "Ensure a HashSet<i32> can hold at least `additional` more elements without exceeding the load-factor threshold."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "hashset_shrink_to_fit"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+doc = "Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant."
+params = ["Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "hashset_clear"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+doc = "Remove all elements from a HashSet<i32>, resetting size to 0."
+params = ["Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "hashset_extend"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+doc = "Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend."
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "()"
 
 # --- HashSet<String> facade (Vec<String>-backed) ---
 

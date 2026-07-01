@@ -385,6 +385,19 @@ pub fn hashmap_remove_entry(m: Vec<i32>, key: i32) -> Vec<i32> {
     result
 }
 
+/// Extend a map with all key/value pairs from another map (`other`).
+/// Mirrors Rust's `HashMap::extend` for the raw i32->i32 surface.  Existing
+/// keys in `m` are overwritten by the corresponding entry in `other`.
+pub fn hashmap_extend(m: Vec<i32>, other: Vec<i32>) {
+    let entries: Vec<i32> = hashmap_entries(other)
+    let n: i32 = len(entries)
+    let mut i: i32 = 0
+    while i + 1 < n {
+        let _stored: bool = hashmap_set(m, get_unchecked(entries, i), get_unchecked(entries, i + 1))
+        i = i + 2
+    }
+}
+
 // ─── HashSet API (monomorphic i32, backed by HashMap<i32,i32>) ──────────────
 /// Create a new empty HashSet.
 pub fn hashset_new() -> Vec<i32> {
@@ -481,6 +494,39 @@ pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
         i = i + 1
     }
     result
+}
+
+/// Return the current bucket capacity of the set.
+pub fn hashset_capacity(s: Vec<i32>) -> i32 {
+    hashmap_capacity(s)
+}
+
+/// Ensure the set can hold at least `additional` more elements without
+/// exceeding the load-factor threshold.
+pub fn hashset_reserve(s: Vec<i32>, additional: i32) {
+    hashmap_reserve(s, additional)
+}
+
+/// Shrink the set to the minimum capacity preserving the load-factor invariant.
+pub fn hashset_shrink_to_fit(s: Vec<i32>) {
+    hashmap_shrink_to_fit(s)
+}
+
+/// Remove all elements from the set, resetting size to 0.
+pub fn hashset_clear(s: Vec<i32>) {
+    hashmap_clear(s)
+}
+
+/// Extend a set with all elements from another set (`other`).
+/// Mirrors Rust's `HashSet::extend`.
+pub fn hashset_extend(s: Vec<i32>, other: Vec<i32>) {
+    let keys: Vec<i32> = hashmap_keys(other)
+    let n: i32 = len(keys)
+    let mut i: i32 = 0
+    while i < n {
+        let _ = hashset_insert(s, get_unchecked(keys, i))
+        i = i + 1
+    }
 }
 
 // ─── HashSet<String> facade (Vec<String>-backed) ────────────────────────────

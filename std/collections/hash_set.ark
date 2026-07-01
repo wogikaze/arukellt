@@ -56,6 +56,34 @@ pub fn hashset_i32_difference(a: HashSet<i32>, b: HashSet<i32>) -> HashSet<i32> 
     hash::hashset_difference(a, b)
 }
 
+/// Return the current bucket capacity of the HashSet<i32>.
+pub fn hashset_i32_capacity(s: HashSet<i32>) -> i32 {
+    hash::hashset_capacity(s)
+}
+
+/// Ensure the HashSet<i32> can hold at least `additional` more elements
+/// without exceeding the load-factor threshold.
+pub fn hashset_i32_reserve(s: HashSet<i32>, additional: i32) {
+    hash::hashset_reserve(s, additional)
+}
+
+/// Shrink the HashSet<i32> to the minimum capacity preserving the load-factor
+/// invariant.
+pub fn hashset_i32_shrink_to_fit(s: HashSet<i32>) {
+    hash::hashset_shrink_to_fit(s)
+}
+
+/// Remove all elements from the HashSet<i32>, resetting size to 0.
+pub fn hashset_i32_clear(s: HashSet<i32>) {
+    hash::hashset_clear(s)
+}
+
+/// Extend a HashSet<i32> with all elements from another set (`other`).
+/// Mirrors Rust's `HashSet::extend`.
+pub fn hashset_i32_extend(s: HashSet<i32>, other: HashSet<i32>) {
+    hash::hashset_extend(s, other)
+}
+
 /// Create a new HashSet<String>.
 pub fn hashset_str_new() -> Vec<String> {
     hash_string::hashset_str_new()

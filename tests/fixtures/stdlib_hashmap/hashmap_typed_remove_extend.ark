@@ -1,0 +1,63 @@
+use std::collections::hash_map
+use std::collections::hash_set
+use std::host::stdio
+
+fn expect_some_i32(v: Option<i32>, expected: i32) {
+    match v {
+        Option::Some(x) => assert_eq(x, expected),
+        None => assert(false),
+    }
+}
+
+fn expect_none_i32(v: Option<i32>) {
+    match v {
+        Option::Some(_) => assert(false),
+        None => {}
+    }
+}
+
+fn main() {
+    // Typed HashMap<i32,i32> remove wrapper.
+    let m = hash_map::hashmap_i32_i32_new()
+    let _ = hash_map::hashmap_i32_i32_insert(m, 1, 10)
+    let _ = hash_map::hashmap_i32_i32_insert(m, 2, 20)
+    assert_eq(hash_map::hashmap_i32_i32_len(m), 2)
+
+    expect_some_i32(hash_map::hashmap_i32_i32_remove(m, 1), 10)
+    assert(!hash_map::hashmap_i32_i32_contains(m, 1))
+    assert(hash_map::hashmap_i32_i32_contains(m, 2))
+    assert_eq(hash_map::hashmap_i32_i32_len(m), 1)
+
+    expect_none_i32(hash_map::hashmap_i32_i32_remove(m, 999))
+    assert(!hash_map::hashmap_i32_i32_is_empty(m))
+
+    // Typed HashSet<i32> capacity/clear/extend wrappers.
+    let s = hash_set::hashset_i32_new()
+    assert(hash_set::hashset_i32_is_empty(s))
+    assert(hash_set::hashset_i32_insert(s, 1))
+    assert(hash_set::hashset_i32_insert(s, 2))
+    assert(hash_set::hashset_i32_insert(s, 3))
+    assert_eq(hash_set::hashset_i32_len(s), 3)
+
+    let cap_before = hash_set::hashset_i32_capacity(s)
+    hash_set::hashset_i32_reserve(s, 20)
+    assert(hash_set::hashset_i32_capacity(s) > cap_before)
+    assert_eq(hash_set::hashset_i32_len(s), 3)
+
+    let other = hash_set::hashset_i32_new()
+    assert(hash_set::hashset_i32_insert(other, 4))
+    assert(hash_set::hashset_i32_insert(other, 5))
+    hash_set::hashset_i32_extend(s, other)
+    assert_eq(hash_set::hashset_i32_len(s), 5)
+    assert(hash_set::hashset_i32_contains(s, 4))
+    assert(hash_set::hashset_i32_contains(s, 5))
+
+    hash_set::hashset_i32_shrink_to_fit(s)
+    assert_eq(hash_set::hashset_i32_len(s), 5)
+
+    hash_set::hashset_i32_clear(s)
+    assert(hash_set::hashset_i32_is_empty(s))
+    assert_eq(hash_set::hashset_i32_len(s), 0)
+
+    stdio::println("OK")
+}

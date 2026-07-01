@@ -1,0 +1,55 @@
+use std::collections::hash
+use std::host::stdio
+
+fn expect_some(v: Option<i32>, expected: i32) {
+    match v {
+        Option::Some(x) => assert_eq(x, expected),
+        None => assert(false),
+    }
+}
+
+fn expect_none(v: Option<i32>) {
+    match v {
+        Option::Some(_) => assert(false),
+        None => {}
+    }
+}
+
+fn main() {
+    let m = hash::hashmap_new()
+    let _ = hash::hashmap_set(m, 1, 10)
+    let _ = hash::hashmap_set(m, 2, 20)
+    let _ = hash::hashmap_set(m, 3, 30)
+    assert_eq(hash::hashmap_size(m), 3)
+
+    // Remove present key returns Some(old value).
+    expect_some(hash::hashmap_remove(m, 2), 20)
+    assert(!hash::hashmap_contains(m, 2))
+    assert_eq(hash::hashmap_size(m), 2)
+    // Remaining keys are still accessible.
+    expect_some(hash::hashmap_get_option(m, 1), 10)
+    expect_some(hash::hashmap_get_option(m, 3), 30)
+
+    // Remove absent key returns None, size unchanged.
+    expect_none(hash::hashmap_remove(m, 999))
+    assert_eq(hash::hashmap_size(m), 2)
+
+    // remove_entry returns flat [key, value] or empty Vec.
+    let entry: Vec<i32> = hash::hashmap_remove_entry(m, 1)
+    assert_eq(len(entry), 2)
+    assert_eq(get_unchecked(entry, 0), 1)
+    assert_eq(get_unchecked(entry, 1), 10)
+    assert(!hash::hashmap_contains(m, 1))
+    assert_eq(hash::hashmap_size(m), 1)
+
+    let empty_entry: Vec<i32> = hash::hashmap_remove_entry(m, 4242)
+    assert_eq(len(empty_entry), 0)
+
+    // clear resets the map.
+    hash::hashmap_clear(m)
+    assert(hash::hashmap_is_empty(m))
+    assert_eq(hash::hashmap_size(m), 0)
+    assert(!hash::hashmap_contains(m, 3))
+
+    stdio::println("OK")
+}
