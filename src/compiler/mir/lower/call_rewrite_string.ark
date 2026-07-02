@@ -1,5 +1,5 @@
+use mir::lower::call_rewrite_method
 use mir::lower::ctx_api_local_types
-use mir::lower::ctx_fn_exists
 use mir::lower::ctx_types
 use mir::value_types
 // Arukellt Selfhost - MIR call rewrite rules for to_string.
@@ -41,15 +41,7 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
                         if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
                             return_local = first_arg_idx
                         } else {
-                            // User-defined struct/enum with a trait impl: try
-                            // mangled name "Type::to_string" (e.g. "Point::to_string").
-                            // Strip "struct:TypeName:byte_size" prefix to get the bare
-                            // type name for mangling.
-                            let struct_name = strip_struct_prefix(clone(arg_type))
-                            let mangled = concat(clone(struct_name), String_from("::to_string"))
-                            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mangled)) {
-                                rewritten = mangled
-                            }
+                            rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, String_from("to_string"), first_arg_idx)
                         }
                     }
                 }
@@ -59,21 +51,3 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
     mir_string_call_rewrite_new(rewritten, return_local)
 }
 
-// Strip "struct:TypeName:byte_size" prefix to get the bare type name.
-// Returns the original string if it doesn't start with "struct:".
-fn strip_struct_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), String_from("struct:")) {
-        return type_name
-    }
-    // Extract "TypeName" from "struct:TypeName:byte_size"
-    let rest = substring(clone(type_name), 7, len(type_name))
-    let n = len(rest)
-    let mut i = 0
-    while i < n {
-        if char_at(rest, i) == 58 {
-            return substring(rest, 0, i)
-        }
-        i = i + 1
-    }
-    rest
-}

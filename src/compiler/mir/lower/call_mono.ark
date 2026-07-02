@@ -27,11 +27,17 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
                 resolved = mono_candidate
                 mono_resolved_by_type = true
             } else {
-                if eq(clone(mono_type_key), String_from("string")) {
-                    let mono_candidate_string = mono::mono_safe_name(concat(clone(resolved), String_from("__String")))
-                    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
-                        resolved = mono_candidate_string
-                        mono_resolved_by_type = true
+                let type_method = concat(clone(mono_type_key), concat(String_from("::"), clone(resolved)))
+                if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
+                    resolved = type_method
+                    mono_resolved_by_type = true
+                } else {
+                    if eq(clone(mono_type_key), String_from("string")) {
+                        let mono_candidate_string = mono::mono_safe_name(concat(clone(resolved), String_from("__String")))
+                        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
+                            resolved = mono_candidate_string
+                            mono_resolved_by_type = true
+                        }
                     }
                 }
             }

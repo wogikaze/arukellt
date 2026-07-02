@@ -1,0 +1,55 @@
+// Arukellt Selfhost - MIR impl/trait method callee resolution from receiver type.
+//
+// Direct calls like `to_string(t)` or `eq(a, b)` must resolve to the
+// monomorphized impl method (e.g. "Token::to_string", "Point::eq") when the
+// receiver type is a user-defined struct carried via enum:/struct: local types.
+
+use mir::lower::ctx_fn_exists
+use mir::lower::ctx_api_local_types
+
+fn mir_bare_receiver_type_name(arg_type: String) -> String {
+    if len(arg_type) == 0 {
+        return String_new()
+    }
+    if starts_with(clone(arg_type), String_from("struct:")) {
+        let rest = substring(clone(arg_type), 7, len(arg_type))
+        let n = len(rest)
+        let mut i = 0
+        while i < n {
+            if char_at(rest, i) == 58 {
+                return substring(rest, 0, i)
+            }
+            i = i + 1
+        }
+        return rest
+    }
+    if starts_with(clone(arg_type), String_from("enum:")) {
+        return substring(clone(arg_type), 5, len(arg_type))
+    }
+    if starts_with(clone(arg_type), String_from("vec:")) {
+        return substring(clone(arg_type), 4, len(arg_type))
+    }
+    if starts_with(clone(arg_type), String_from("option:")) {
+        return substring(clone(arg_type), 7, len(arg_type))
+    }
+    if starts_with(clone(arg_type), String_from("Option_")) {
+        return substring(clone(arg_type), 7, len(arg_type))
+    }
+    arg_type
+}
+
+fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx: i32) -> String {
+    if first_arg_idx < 0 {
+        return bare_method
+    }
+    let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    let bare_type = mir_bare_receiver_type_name(clone(arg_type))
+    if len(bare_type) == 0 {
+        return bare_method
+    }
+    let mangled = concat(clone(bare_type), concat(String_from("::"), clone(bare_method)))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mangled)) {
+        return mangled
+    }
+    bare_method
+}

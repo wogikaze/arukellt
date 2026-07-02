@@ -2,6 +2,7 @@
 
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_fn_return_vt_simd
+use mir::lower::ctx_gc_enum
 use mir::lower::mono_return_vt
 use mir::value_types
 
@@ -14,6 +15,9 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
             if mono_vt != value_types::VT_I32() {
                 return mono_vt
             }
+        }
+        if rvt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+            return value_types::VT_GC_REF()
         }
         return rvt
     }
@@ -43,6 +47,15 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
         return value_types::VT_VOID()
     }
     if eq(clone(bare_name), "to_string") || eq(clone(bare_name), "i32_to_string") || eq(clone(bare_name), "i64_to_string") || eq(clone(bare_name), "f64_to_string") || eq(clone(bare_name), "bool_to_string") || eq(clone(bare_name), "char_to_string") || eq(clone(bare_name), "f32_to_string") {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
+    if ends_with(clone(bare_name), String_from("::to_string")) {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            return value_types::VT_GC_REF()
+        }
         return value_types::VT_REF()
     }
     if eq(clone(bare_name), "i32_to_i64") || eq(clone(bare_name), "u32_to_u64") {

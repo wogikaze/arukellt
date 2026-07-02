@@ -337,6 +337,9 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(return_type_name), mir)
     }
+    if emit_target::is_gc_target(clone(target)) && (eq(clone(return_type_name), String_from("string")) || eq(clone(return_type_name), String_from("String"))) {
+        return sections_types_gc::gc_string_type_sig()
+    }
     // Check if the return type name is a registered gc_struct (raw name without "struct:" prefix).
     if emit_target::is_gc_target(clone(target)) && len(return_type_name) > 0 {
         let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))

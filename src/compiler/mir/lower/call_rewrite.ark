@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering call target rewrites
 
 use mir::lower::call_mono
+use mir::lower::call_rewrite_method
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
 use mir::lower::ctx_api_local_types
@@ -32,6 +33,9 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let mut rewritten = clone(callee_name)
     let mut return_local = 0 - 1
     let mut push_i64_needs_extend = false
+    if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
+        rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
+    }
     if eq(clone(rewritten), "to_string") {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, rewritten, first_arg_idx)
         rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
