@@ -191,16 +191,60 @@ fn extract_first_type_var(rest: String) -> String {
 }
 
 fn extract_mono_suffix(fn_name: String) -> String {
-    // Extract the full suffix after the FIRST "__" separator.
-    // This contains all type parameter keys joined by "__"
-    // (e.g. "i32__String" for ok_or_default__i32__String).
+    // Extract the full mono type suffix from the function name.
+    // For method names like "Picker__echo__i32", the base name contains "__"
+    // (from "::" → "__"). We try all "__" positions from right to left and
+    // check if all suffix parts are valid type keys. The rightmost valid
+    // position is the correct separator.
     let name_len = len(fn_name)
+    let sep_positions = Vec_new_i32()
     let mut i = 0
     while i < name_len - 1 {
         if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
-            return substring(fn_name, i + 2, name_len)
+            push(sep_positions, i)
         }
         i = i + 1
     }
-    String_new()
+    let sep_count = len(sep_positions)
+    if sep_count == 0 {
+        return String_new()
+    }
+    let mut si = 0
+    while si < sep_count {
+        let sep_pos = get_unchecked(sep_positions, si)
+        let suffix = substring(fn_name, sep_pos + 2, name_len)
+        let type_keys = split_mono_suffix(suffix)
+        let key_count = len(type_keys)
+        if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {
+            return suffix
+        }
+        si = si + 1
+    }
+    let first_sep = get_unchecked(sep_positions, 0)
+    substring(fn_name, first_sep + 2, name_len)
+}
+
+fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
+    let mut ki = 0
+    while ki < key_count {
+        let key = get_unchecked(type_keys, ki)
+        if !is_valid_mono_type_key(key) {
+            return false
+        }
+        ki = ki + 1
+    }
+    true
+}
+
+fn is_valid_mono_type_key(key: String) -> bool {
+    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
+        return true
+    }
+    if len(key) > 0 {
+        let first = char_at(key, 0)
+        if first >= 65 && first <= 90 {
+            return true
+        }
+    }
+    false
 }

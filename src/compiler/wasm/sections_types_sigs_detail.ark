@@ -94,6 +94,75 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
 }
 
+// Extract the mono type suffix from a function name.
+// For method names like "Picker__echo__i32", the base name contains "__"
+// (from "::" → "__"). We try all "__" positions from right to left and
+// check if all suffix parts are valid type keys. The rightmost valid
+// position is the correct separator.
+fn extract_mono_suffix(fn_name: String) -> String {
+    let name_len = len(fn_name)
+    // Collect all "__" positions
+    let sep_positions = Vec_new_i32()
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+            push(sep_positions, i)
+        }
+        i = i + 1
+    }
+    let sep_count = len(sep_positions)
+    if sep_count == 0 {
+        return String_new()
+    }
+    // Try positions from left to right: the first position where all suffix
+    // parts are valid type keys is the correct separator. This handles both
+    // method names (e.g. "Picker__echo__i32" → "echo" is invalid, "i32" is valid)
+    // and multi-param generics (e.g. "pair_first__i32__String" → "i32__String" all valid).
+    let mut si = 0
+    while si < sep_count {
+        let sep_pos = get_unchecked(sep_positions, si)
+        let suffix = substring(fn_name, sep_pos + 2, name_len)
+        let type_keys = split_by_double_underscore(suffix)
+        let key_count = len(type_keys)
+        if key_count > 0 && all_valid_type_keys(type_keys, key_count) {
+            return suffix
+        }
+        si = si + 1
+    }
+    // Fallback: use the first "__" separator (original behavior)
+    let first_sep = get_unchecked(sep_positions, 0)
+    substring(fn_name, first_sep + 2, name_len)
+}
+
+// Check if all type keys in a list are valid mono type keys.
+// Valid keys: known primitives (i32, i64, f64, f32, bool, char),
+// "String", or identifiers starting with an uppercase letter (struct/enum names).
+fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
+    let mut ki = 0
+    while ki < key_count {
+        let key = get_unchecked(type_keys, ki)
+        if !is_valid_type_key(key) {
+            return false
+        }
+        ki = ki + 1
+    }
+    true
+}
+
+fn is_valid_type_key(key: String) -> bool {
+    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
+        return true
+    }
+    // User-defined type names start with uppercase letter (A-Z = 65-90)
+    if len(key) > 0 {
+        let first = char_at(key, 0)
+        if first >= 65 && first <= 90 {
+            return true
+        }
+    }
+    false
+}
+
 fn try_collection_param_sig(p_type_name: String, target: String) -> String {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
         if eq(clone(p_type_name), String_from("vec:String")) {
@@ -122,21 +191,15 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
     // concrete type from the function name suffix and map it to a wasm type sig.
     // The suffix may contain multiple type parameters separated by "__"
     // (e.g. "i32__String" for ok_or_default<i32, String>).
-    let name_len = len(fn_name)
-    // Find the FIRST "__" separator to get the full suffix.
-    let mut first_sep = 0 - 1
-    let mut i = 0
-    while i < name_len - 1 {
-        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
-            first_sep = i
-            i = name_len
-        }
-        i = i + 1
-    }
-    if first_sep < 0 {
+    //
+    // For method names like "Picker__echo__i32", the base name itself contains
+    // "__" (from "::" → "__"). We must find the correct "__" that separates the
+    // base name from the mono suffix by trying positions from right to left and
+    // checking if all suffix parts are valid type keys.
+    let full_suffix = extract_mono_suffix(fn_name)
+    if len(full_suffix) == 0 {
         return String_new()
     }
-    let full_suffix = substring(fn_name, first_sep + 2, name_len)
     // Split the suffix by "__" to get individual type parameter concrete types.
     let type_keys = split_by_double_underscore(full_suffix)
     let key_count = len(type_keys)
@@ -157,20 +220,10 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
 // if it's a registered gc_struct in the module.  Returns "gcsref<slot>" if
 // found, empty otherwise.
 fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_ordinal: i32, mir: MirModule) -> String {
-    let name_len = len(fn_name)
-    let mut first_sep = 0 - 1
-    let mut i = 0
-    while i < name_len - 1 {
-        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
-            first_sep = i
-            i = name_len
-        }
-        i = i + 1
-    }
-    if first_sep < 0 {
+    let full_suffix = extract_mono_suffix(fn_name)
+    if len(full_suffix) == 0 {
         return String_new()
     }
-    let full_suffix = substring(fn_name, first_sep + 2, name_len)
     let type_keys = split_by_double_underscore(full_suffix)
     let key_count = len(type_keys)
     if key_count == 0 {
