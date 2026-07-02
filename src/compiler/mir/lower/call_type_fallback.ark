@@ -15,16 +15,23 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
-        if len(rtn) > 1 {
-            // For monomorphized calls, resolve the concrete return type
-            // name by substituting type variables with concrete types
-            // from the MonoInstance (e.g. "option:T" → "option:i32").
-            let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
-            if len(mono_rtn) > 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, mono_rtn))
-            } else {
-                ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
-            }
+        // For monomorphized calls, resolve the concrete return type
+        // name by substituting type variables with concrete types
+        // from the MonoInstance (e.g. "option:T" → "option:i32").
+        // This also handles generic functions returning T where the
+        // base return type name is empty — the MonoInstance has the
+        // concrete type (e.g. T→Point → "struct:Point:8").
+        let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
+        if len(mono_rtn) > 0 {
+            // Use the raw concrete type name (e.g. "Point") for the local
+            // type, not the transformed "struct:Point:8" form.  The local
+            // type name is used by call rewrites (e.g. to_string) which
+            // expect the bare type name to build mangled callees like
+            // "Point::to_string".  The struct: prefix is only needed for
+            // parameter type signatures, not for local type names.
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
+        } else if len(rtn) > 1 {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
         }
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {

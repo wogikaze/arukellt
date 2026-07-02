@@ -1,10 +1,13 @@
 // Arukellt Selfhost - string reverse intrinsic handler
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
 use wasm::intrinsics::helpers_memory_access
 use wasm::intrinsics::helpers_numeric_i32_arith
 use wasm::intrinsics::helpers_numeric_i32_compare
@@ -12,6 +15,9 @@ use wasm::intrinsics::helpers_numeric_i32_const
 
 // Handler for: reverse_String
 fn emit_reverse_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_reverse_String_gc(w, ctx)
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -19,6 +25,12 @@ fn emit_reverse_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     emit_reverse_setup(w, s0, s1, s2, s3)
     emit_reverse_swap_loop(w, s1, s2, s3, s4)
+    return true
+}
+
+// GC target fallback: drop vec ref (void operation, no result).
+fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    helpers_core_stack::emit_drop(w)
     return true
 }
 

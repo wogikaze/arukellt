@@ -133,10 +133,12 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("GS_f0_ref15_f1_i32"))
     push(type_sigs, String_from("A_v128"))
     push(type_sigs, String_from("GS_f0_ref20_f1_i32"))
+    push(type_sigs, String_from("GS_f0_ref11_f1_i32"))
+    push(type_sigs, String_from("GS_f0_ref12_f1_i32"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    22
+    24
 }
 
 fn gc_enum_open_type_offset() -> i32 {
@@ -173,6 +175,14 @@ fn gc_vec_string_type_sig() -> String {
 
 fn gc_vec_v128_type_sig() -> String {
     String_from("gcref21")
+}
+
+fn gc_vec_i64_type_sig() -> String {
+    String_from("gcref22")
+}
+
+fn gc_vec_f64_type_sig() -> String {
+    String_from("gcref23")
 }
 
 fn gc_string_type_sig() -> String {

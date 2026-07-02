@@ -3,11 +3,11 @@
 // After mono type params are set up, re-substitute type-variable param
 // locals with the concrete monomorphized type.
 
-use mir::lower::ann_types
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
+use mir::lower::ctx_struct_layout
 use mir::function_identity
 use mir::function_param_view
 use mir::local_access
@@ -64,16 +64,51 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
                     let type_var = substring(clone(ty_name), 1, len(ty_name))
                     let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
                     if len(concrete) > 0 {
-                        let pvt = ann_types::mir_local_vt_from_type_name(clone(concrete))
+                        let pvt = mono_concrete_type_vt(clone(concrete))
+                        // For struct/enum types, transform the concrete type
+                        // name the same way the return type does (e.g.
+                        // "Point" → "struct:Point:8") so the emitter's type
+                        // sig builder can use the byte-size fallback when the
+                        // struct is not in the gc_struct list (deduplicated by
+                        // sig).  Skip this for String and primitives, which
+                        // have their own dedicated type sigs.
+                        let sig_type_name = clone(concrete)
+                        if pvt == value_types::VT_GC_REF() {
+                            if !eq(clone(concrete), String_from("String")) && !eq(clone(concrete), String_from("string")) {
+                                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(concrete))
+                            }
+                        }
                         ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
                         ctx_api_local_types::ctx_set_local_type(ctx, p, clone(concrete))
-                        ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, concrete)
+                        ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, sig_type_name)
                     }
                 }
             }
         }
         p = p + 1
     }
+}
+
+// Determine the value type (VT) for a concrete monomorphized type name.
+// Primitive types map to their corresponding VT; all other types (String,
+// struct, enum, vec, etc.) are GC reference types.
+fn mono_concrete_type_vt(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+        return value_types::VT_I32()
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(type_name), String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return value_types::VT_F32()
+    }
+    if eq(clone(type_name), String_from("v128")) {
+        return value_types::VT_V128()
+    }
+    value_types::VT_GC_REF()
 }
 
 // Resolve a type variable name to its concrete monomorphized type.

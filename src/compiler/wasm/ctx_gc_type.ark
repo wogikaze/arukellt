@@ -51,6 +51,14 @@ fn SelfEmitCtx_vec_v128_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + 21
 }
 
+fn SelfEmitCtx_vec_i64_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 22
+}
+
+fn SelfEmitCtx_vec_f64_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 23
+}
+
 fn SelfEmitCtx_string_array_type(ctx: SelfEmitCtx) -> i32 {
     // Vec<String> uses the same element type as String (i8 array = type 0).
     // The String ref array type is at offset 15 (A_ref0).
@@ -79,6 +87,12 @@ fn SelfEmitCtx_vec_type_for_ctx(ctx: SelfEmitCtx) -> i32 {
     if ctx_has_vec_v128_local(ctx) {
         return SelfEmitCtx_vec_v128_type(ctx)
     }
+    if ctx_has_vec_i64_local(ctx) {
+        return SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if ctx_has_vec_f64_local(ctx) {
+        return SelfEmitCtx_vec_f64_type(ctx)
+    }
     SelfEmitCtx_vec_type(ctx)
 }
 
@@ -102,6 +116,12 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
         return SelfEmitCtx_vec_v128_type(ctx)
     }
+    if eq(clone(tname), String_from("vec:i64")) || eq(clone(tname), String_from("vec:I64")) {
+        return SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
+        return SelfEmitCtx_vec_f64_type(ctx)
+    }
     if starts_with(clone(tname), String_from("vec:")) {
         return SelfEmitCtx_vec_type(ctx)
     }
@@ -114,6 +134,12 @@ fn SelfEmitCtx_array_type_for_vec(ctx: SelfEmitCtx) -> i32 {
     }
     if ctx_has_vec_v128_local(ctx) {
         return SelfEmitCtx_v128_array_type(ctx)
+    }
+    if ctx_has_vec_i64_local(ctx) {
+        return SelfEmitCtx_i64_array_type(ctx)
+    }
+    if ctx_has_vec_f64_local(ctx) {
+        return SelfEmitCtx_f64_array_type(ctx)
     }
     SelfEmitCtx_i32_array_type(ctx)
 }
@@ -151,6 +177,46 @@ fn ctx_has_vec_v128_local(ctx: SelfEmitCtx) -> bool {
         let loc = function_locals_view::MirFunction_local_at(f, li)
         let tname = local_access::MirLocal_type_name(loc)
         if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+            return true
+        }
+        li = li + 1
+    }
+    false
+}
+
+fn ctx_has_vec_i64_local(ctx: SelfEmitCtx) -> bool {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let name = function_identity::MirFunction_name(f)
+    if ends_with(clone(name), String_from("__i64")) {
+        return true
+    }
+    let nlocals = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < nlocals {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:i64")) || eq(clone(tname), String_from("vec:I64")) {
+            return true
+        }
+        li = li + 1
+    }
+    false
+}
+
+fn ctx_has_vec_f64_local(ctx: SelfEmitCtx) -> bool {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let name = function_identity::MirFunction_name(f)
+    if ends_with(clone(name), String_from("__f64")) {
+        return true
+    }
+    let nlocals = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < nlocals {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let tname = local_access::MirLocal_type_name(loc)
+        if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
             return true
         }
         li = li + 1

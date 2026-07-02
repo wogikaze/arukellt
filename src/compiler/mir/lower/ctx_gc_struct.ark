@@ -91,6 +91,12 @@ fn gc_struct_needs_named_type(ctx: LowerCtx, struct_name: String, field_count: i
         if ctx_struct_field_type::ctx_struct_field_is_v128(ctx, clone(struct_name), fi) {
             return true
         }
+        if ctx_struct_field_type::ctx_struct_field_is_f64(ctx, clone(struct_name), fi) {
+            return true
+        }
+        if ctx_struct_field_type::ctx_struct_field_is_i64(ctx, clone(struct_name), fi) {
+            return true
+        }
         fi = fi + 1
     }
     false

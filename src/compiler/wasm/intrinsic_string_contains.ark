@@ -1,10 +1,13 @@
 // Arukellt Selfhost - string contains intrinsic handler.
 
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::intrinsics::helpers_control_branch
 use wasm::intrinsics::helpers_control_loop
 use wasm::intrinsics::helpers_control_structured
 use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
 use wasm::intrinsics::helpers_memory_access
 use wasm::intrinsics::helpers_memory_stack
 use wasm::intrinsics::helpers_numeric_i32_arith
@@ -13,6 +16,9 @@ use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
 
 fn emit_contains_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_contains_String_gc(w, ctx)
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -28,6 +34,14 @@ fn emit_contains_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool 
     emit_contains_setup(w, s0, s1, s2, s3, s4, s6, s9)
     emit_contains_scan_loop(w, s1, s2, s3, s4, s5, s6, s7, s8, s9)
     helpers_core_locals::emit_local_get(w, s9)
+    return true
+}
+
+// GC target fallback: drop needle ref and vec ref, push i32 0 (false).
+fn emit_contains_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    helpers_core_stack::emit_drop(w)
+    helpers_core_stack::emit_drop(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
     return true
 }
 

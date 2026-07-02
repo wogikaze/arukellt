@@ -58,4 +58,10 @@ fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
+    if eq(clone(elem_ty), String_from("i64")) || eq(clone(elem_ty), String_from("I64")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
+    }
+    if eq(clone(elem_ty), String_from("f64")) || eq(clone(elem_ty), String_from("F64")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
+    }
 }

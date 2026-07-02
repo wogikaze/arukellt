@@ -361,7 +361,7 @@ fn is_stack_value_producing_op(op: i32) -> bool {
     if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_GC_STRUCT_GET() {
         return true
     }
-    if op == opcodes::MIR_REF_CAST() || op == opcodes::MIR_REF_TEST() {
+    if op == opcodes::MIR_REF_CAST() || op == opcodes::MIR_REF_TEST() || op == opcodes::MIR_REF_FUNC() {
         return true
     }
     if op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() || op == opcodes::MIR_EQZ() {
@@ -457,6 +457,15 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
         if eq(clone(callee), String_from("Vec_new_String")) {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
+        if eq(clone(callee), String_from("Vec_new_i64")) {
+            return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+        }
+        if eq(clone(callee), String_from("Vec_new_f64")) {
+            return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+        }
+        if eq(clone(callee), String_from("Vec_new_v128")) {
+            return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+        }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
     // vec_pop returns Option<T> → enum open type on GC targets
@@ -465,6 +474,15 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     }
     // vec_get returns Option<T> → enum open type on GC targets
     if eq(clone(callee), "vec_get") {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    // find_i32/find_i64/find_f64/find_String return Option<T> → enum open
+    // type on GC targets.  These are prelude wrappers around __intrinsic_find
+    // that are not included in the MIR module (prelude is skipped), so
+    // resolve_fn_index cannot find them.  Without this, the local storing the
+    // result is typed as i32, causing validation errors when the match code
+    // uses struct.get on it.
+    if eq(clone(callee), "find_i32") || eq(clone(callee), "find_i64") || eq(clone(callee), "find_f64") || eq(clone(callee), "find_String") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
     // vec_push returns Vec<T> but the result is often discarded (void push).
@@ -527,6 +545,12 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
         }
         if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
             return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+        }
+        if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+            return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+        }
+        if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+            return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
         }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }

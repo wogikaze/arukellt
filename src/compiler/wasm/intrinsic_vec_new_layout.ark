@@ -37,10 +37,16 @@ fn emit_vec_new_layout_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     // Determine vec type by checking function name patterns and locals.
     let is_vec_string = ctx_has_vec_string_local(ctx)
     let is_vec_v128 = ctx_gc_type::ctx_has_vec_v128_local(ctx)
+    let is_vec_i64 = ctx_gc_type::ctx_has_vec_i64_local(ctx)
+    let is_vec_f64 = ctx_gc_type::ctx_has_vec_f64_local(ctx)
     let vec_type = if is_vec_string {
         ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     } else if is_vec_v128 {
         ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    } else if is_vec_i64 {
+        ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    } else if is_vec_f64 {
+        ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     } else {
         ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
@@ -48,6 +54,10 @@ fn emit_vec_new_layout_gc(w: WasmWriter, ctx: SelfEmitCtx) {
         ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
     } else if is_vec_v128 {
         ctx_gc_type::SelfEmitCtx_v128_array_type(ctx)
+    } else if is_vec_i64 {
+        ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
+    } else if is_vec_f64 {
+        ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     } else {
         ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     }
@@ -55,6 +65,10 @@ fn emit_vec_new_layout_gc(w: WasmWriter, ctx: SelfEmitCtx) {
         ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
     } else if is_vec_v128 {
         ctx_scratch::SelfEmitCtx_scratch_gc_v128_array_local(ctx, 0)
+    } else if is_vec_i64 {
+        ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 0)
+    } else if is_vec_f64 {
+        ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 0)
     } else {
         ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     }

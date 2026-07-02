@@ -82,6 +82,13 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
         if len(mono_type) > 0 {
             return mono_type
         }
+        // Fallback: check if the mono type key from the function name is a
+        // registered gc_struct (e.g. "Point" in "show__Point").  This handles
+        // struct types that mono_type_key_to_sig doesn't know about.
+        let gc_struct_sig = try_mono_gc_struct_param_sig(clone(uf.name), clone(p_type_name), pi, mir)
+        if len(gc_struct_sig) > 0 {
+            return gc_struct_sig
+        }
         return String_from("gcref")
     }
     sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
@@ -143,6 +150,42 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
         return mono_type_key_to_sig(get_unchecked(type_keys, 0))
     }
     mono_type_key_to_sig(get_unchecked(type_keys, type_idx))
+}
+
+// Try to resolve a mono type variable parameter to a gc_struct type sig.
+// Extracts the concrete type key from the function name suffix and checks
+// if it's a registered gc_struct in the module.  Returns "gcsref<slot>" if
+// found, empty otherwise.
+fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_ordinal: i32, mir: MirModule) -> String {
+    let name_len = len(fn_name)
+    let mut first_sep = 0 - 1
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+            first_sep = i
+            i = name_len
+        }
+        i = i + 1
+    }
+    if first_sep < 0 {
+        return String_new()
+    }
+    let full_suffix = substring(fn_name, first_sep + 2, name_len)
+    let type_keys = split_by_double_underscore(full_suffix)
+    let key_count = len(type_keys)
+    if key_count == 0 {
+        return String_new()
+    }
+    let type_idx = type_var_name_to_index(type_var_name, key_count)
+    if type_idx < 0 || type_idx >= key_count {
+        return String_new()
+    }
+    let key = get_unchecked(type_keys, type_idx)
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(key))
+    if slot >= 0 {
+        return concat(String_from("gcsref"), i32_to_string(slot))
+    }
+    String_new()
 }
 
 // Split a string by "__" separator into a Vec<String>.
@@ -271,6 +314,12 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
         let mono_ret_type = resolve_mono_param_type_from_fn_name(clone(uf.name), clone(return_type_name), 0 - 1)
         if len(mono_ret_type) > 0 {
             return mono_ret_type
+        }
+        // Fallback: check if the mono type key from the function name is a
+        // registered gc_struct (e.g. "Point" in "show__Point").
+        let gc_struct_sig = try_mono_gc_struct_param_sig(clone(uf.name), clone(return_type_name), 0, mir)
+        if len(gc_struct_sig) > 0 {
+            return gc_struct_sig
         }
         return String_from("gcref")
     }

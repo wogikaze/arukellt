@@ -6,12 +6,16 @@ use wasm::emit_target
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_leb
+use wasm::writer_gc
+use wasm::ctx_gc_type
+use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_push
 use wasm::intrinsics::helpers_core_locals
+use mir::inst_accessors_literals
 
 fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_push_numeric_gc(w, ctx, is_void_push_i64)
+        return emit_push_numeric_gc(w, inst, ctx, is_void_push_i64, true)
     }
     let s_val_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_vec_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -32,7 +36,7 @@ fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i6
 
 fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_push_numeric_gc(w, ctx, true)
+        return emit_push_numeric_gc(w, inst, ctx, true, false)
     }
     let s_val_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
     let s_vec_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -49,14 +53,100 @@ fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-// GC target fallback: pop value and vec ref, push vec ref back (no-op push).
-fn emit_push_numeric_gc(w: WasmWriter, ctx: SelfEmitCtx, is_void: bool) -> bool {
+// GC target: push i64/f64 value onto Vec<i64>/Vec<f64>.
+// Stack: [vec_ref, value] (value on top)
+fn emit_push_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void: bool, is_i64: bool) -> bool {
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    // Stack: [vec_ref, value] (value on top)
-    // Drop value (i64 or f64 — just drop the top stack value)
-    writer_core::emit_byte(w, opcodes::OP_DROP())
-    // Pop vec ref into GC vec scratch
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+    let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
+    // Value scratch: i64 scratch (offset 15) or f64 scratch (offset 12)
+    let s_val = if is_i64 {
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+    } else {
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    }
+    // Array scratch: i64 or f64 array scratch
+    let arr_tmp = if is_i64 {
+        ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 0)
+    } else {
+        ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 0)
+    }
+    let arr_old = if is_i64 {
+        ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 1)
+    } else {
+        ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 1)
+    }
+
+    // Save value and vec_ref from stack
+    helpers_core_locals::emit_local_set(w, s_val)
     helpers_core_locals::emit_local_set(w, s_vec)
+
+    // Get data array: struct.get vec_type 0
+    helpers_core_locals::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core_locals::emit_local_set(w, arr_tmp)
+
+    // Get len: struct.get vec_type 1
+    helpers_core_locals::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    helpers_core_locals::emit_local_set(w, s_len)
+
+    // Growth check: if len >= cap then grow
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core_locals::emit_local_set(w, s_cap)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core_locals::emit_local_get(w, s_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+
+    // Save old array, create new doubled array, copy, update struct field 0
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core_locals::emit_local_set(w, arr_old)
+    helpers_core_locals::emit_local_get(w, s_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_gc::emit_gc_array_new(w, array_type)
+    writer_gc::emit_gc_ref_cast(w, array_type)
+    helpers_core_locals::emit_local_set(w, arr_tmp)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    helpers_core_locals::emit_local_get(w, arr_old)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 0)
+    helpers_core_locals::emit_local_get(w, s_len)
+    writer_gc::emit_gc_array_copy(w, array_type, array_type)
+    helpers_core_locals::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    writer_gc::emit_gc_ref_cast(w, array_type)
+    writer_gc::emit_gc_struct_set(w, vec_type, 0)
+
+    writer_core::emit_byte(w, opcodes::OP_END())
+
+    // array.set arr[len] = value
+    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core_locals::emit_local_get(w, s_val)
+    writer_gc::emit_gc_array_set(w, array_type)
+
+    // struct.set vec_type 1 = len + 1
+    helpers_core_locals::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    helpers_core_locals::emit_local_get(w, s_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+
     if !is_void {
         helpers_core_locals::emit_local_get(w, s_vec)
     }
@@ -65,7 +155,7 @@ fn emit_push_numeric_gc(w: WasmWriter, ctx: SelfEmitCtx, is_void: bool) -> bool 
 
 fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_vec_get_unchecked_numeric_gc(w, ctx, true)
+        return emit_vec_get_unchecked_numeric_gc(w, inst, ctx, true)
     }
     let s_idx_i64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec_i64c = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -79,7 +169,7 @@ fn emit_vec_get_unchecked_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) ->
 
 fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_vec_get_unchecked_numeric_gc(w, ctx, false)
+        return emit_vec_get_unchecked_numeric_gc(w, inst, ctx, false)
     }
     let s_idx_f64 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec_f64c = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -91,26 +181,26 @@ fn emit_vec_get_unchecked_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) ->
     return true
 }
 
-// GC target fallback: pop index and vec ref, push dummy i64/f64 value.
-fn emit_vec_get_unchecked_numeric_gc(w: WasmWriter, ctx: SelfEmitCtx, is_i64: bool) -> bool {
+// GC target: get i64/f64 element from Vec<i64>/Vec<f64>.
+// Stack: [vec_ref, idx] (idx on top)
+// After: [value]
+fn emit_vec_get_unchecked_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_i64: bool) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+
+    // Save idx, vec_ref stays on stack for struct.get
     helpers_core_locals::emit_local_set(w, s_idx)
-    helpers_core_locals::emit_local_set(w, s_vec)
-    if is_i64 {
-        writer_core::emit_byte(w, opcodes::OP_I64_CONST())
-        writer_leb::emit_leb128_s(w, 0)
-    } else {
-        writer_core::emit_byte(w, opcodes::OP_F64_CONST())
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-        writer_core::emit_byte(w, 0)
-    }
+
+    // Get data array: struct.get vec_type 0
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+
+    // Push idx
+    helpers_core_locals::emit_local_get(w, s_idx)
+
+    // Get element: array.get array_type
+    writer_gc::emit_gc_array_get(w, array_type)
     return true
 }
 

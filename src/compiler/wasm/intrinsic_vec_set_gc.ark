@@ -61,16 +61,40 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
     let is_vec_string = vec_type == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let array_type = if is_vec_string {
         ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
+    } else if is_vec_i64 {
+        ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
+    } else if is_vec_f64 {
+        ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     } else {
         ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     }
 
     // Step 1: Save value, idx, drop vec_ref
     // For Vec<String>, value is a String ref → use GC ref scratch local.
+    // For Vec<i64>, value is i64 → use i64 scratch local (offset 15).
+    // For Vec<f64>, value is f64 → use f64 scratch local (offset 12).
     // For Vec<i32>, value is i32 → use i32 scratch local.
-    emit_vec_set_gc_save_value(w, ctx, is_vec_string)
+    if is_vec_string {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+    } else if is_vec_i64 {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+    } else if is_vec_f64 {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+    } else {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_leb::emit_leb128_u(w, s_val)
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_leb::emit_leb128_u(w, s_idx)
     writer_core::emit_byte(w, opcodes::OP_DROP())
@@ -83,7 +107,23 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Step 3: array.set data[idx] = value
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_leb::emit_leb128_u(w, s_idx)
-    emit_vec_set_gc_load_value(w, ctx, is_vec_string)
+    if is_vec_string {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, s_val)
+    } else if is_vec_i64 {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, s_val)
+    } else if is_vec_f64 {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, s_val)
+    } else {
+        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_leb::emit_leb128_u(w, s_val)
+    }
     writer_gc::emit_gc_array_set(w, array_type)
 
     // Step 4: Return vec_ref
