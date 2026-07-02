@@ -1,0 +1,38 @@
+---
+description: Require isolated git worktrees for parallel subagents; merge via branches
+alwaysApply: true
+---
+
+# Parallel Agent Worktree Policy
+
+When launching **multiple subagents in parallel** on the same repository:
+
+## Mandatory isolation
+
+1. **Never** run parallel implementation agents on `master` / main worktree.
+2. Each parallel lane gets its own worktree under `.worktrees/`:
+   ```bash
+   git worktree add .worktrees/wave-N-x -b wave/N-x-description
+   ```
+3. Subagent prompts must include the **absolute worktree path** and forbid edits outside it.
+4. Parent orchestrator merges branches after each lane commits — never cherry-pick from dirty master.
+
+## Merge order
+
+1. Wait for all lane commits on their branches.
+2. Merge/rebase onto master one branch at a time; resolve conflicts in orchestrator session.
+3. Run `python3 scripts/check/check-t3-wasm-validate.py` after each merge.
+4. Phase completion gate: `python3 scripts/manager.py verify quick` must pass (no `--no-verify`).
+
+## Cleanup
+
+```bash
+git worktree remove .worktrees/wave-N-x
+git branch -d wave/N-x-description   # after merge
+```
+
+## Do not use
+
+- `best-of-n-runner` without verifying the agent actually `cd`s into the created worktree.
+- Staging on master while another agent is running.
+- Shared log paths without lane-specific `runId` tags.
