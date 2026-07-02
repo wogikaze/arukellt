@@ -74,6 +74,14 @@ fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
     if eq(clone(elem_ty), String_from("f64")) || eq(clone(elem_ty), String_from("F64")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
     }
+    // Struct/enum element types are GC references on GC targets.
+    if !eq(clone(elem_ty), String_from("i32")) && !eq(clone(elem_ty), String_from("I32")) && !eq(clone(elem_ty), String_from("i64")) && !eq(clone(elem_ty), String_from("I64")) && !eq(clone(elem_ty), String_from("f64")) && !eq(clone(elem_ty), String_from("F64")) && !eq(clone(elem_ty), String_from("String")) && !eq(clone(elem_ty), String_from("string")) && !eq(clone(elem_ty), String_from("bool")) && !eq(clone(elem_ty), String_from("char")) {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+        }
+    }
 }
 
 fn strip_with_cap_suffix(s: String) -> String {
