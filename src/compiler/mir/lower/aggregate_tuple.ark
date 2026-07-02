@@ -29,7 +29,7 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
             }
             byte_off = byte_off + 4
         }
-        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, field_local, set_off, set_vt))
+        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_sized(dest, field_local, String_new(), set_off, total_bytes, set_vt))
         ti = ti + 1
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))

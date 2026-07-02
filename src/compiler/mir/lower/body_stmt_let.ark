@@ -2,8 +2,15 @@ use mir::lower::ast_node
 // Arukellt MIR lowering body - let statement lowering.
 
 use mir::lower::stmt_let
+use mir::lower::stmt_let_tuple
+use mir::lower_kinds
 
 fn lower_let_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let binding_name = ast_node::node_text(node)
+    if eq(clone(binding_name), String_from("__tuple_destructure")) {
+        stmt_let_tuple::lower_tuple_destructure_let(ctx, node)
+        return 0 - 1
+    }
     let mut vt = stmt_let::mir_initial_let_vt(node)
     let child_count = ast_node::node_child_count(node)
     let mut pre_val_idx = 0 - 1

@@ -15,3 +15,7 @@ fn MirInst_struct_set_named(base: i32, value: i32, field_name: String, offset: i
 fn MirInst_struct_set_named_sized(base: i32, value: i32, field_name: String, offset: i32, struct_byte_size: i32, vt: i32) -> MirInst {
     inst_factory::MirInst_full(opcodes::MIR_STRUCT_SET(), struct_byte_size, base, value, offset, 0.0, field_name, vt)
 }
+
+fn MirInst_struct_set_named_idx(base: i32, value: i32, field_name: String, offset: i32, field_idx: i32, struct_byte_size: i32, vt: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_STRUCT_SET(), field_idx * 100000 + struct_byte_size, base, value, offset, 0.0, field_name, vt)
+}

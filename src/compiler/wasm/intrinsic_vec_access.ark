@@ -186,7 +186,7 @@ fn emit_vec_get_if_in_bounds(w: WasmWriter, s_idx: i32, s_vec: i32) {
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 73)
     writer_core::emit_byte(w, 4)
-    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, 127)
 }
 
 fn emit_vec_get_some_i32(w: WasmWriter, s_idx: i32, s_vec: i32, s_res: i32) {

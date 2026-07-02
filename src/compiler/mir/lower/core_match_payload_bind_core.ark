@@ -177,7 +177,7 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
         return
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), bi + 1), field_vt))
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(variant_name), ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), bi + 1), bi + 1, ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name)), field_vt, bind_local))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
 }
 

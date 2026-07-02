@@ -11,6 +11,7 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_layout
 use mir::lower::match_payload_field_type
 use mir::value_types
 
@@ -194,7 +195,7 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
         return
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
-    ctx_emit(ctx, inst_struct_get::MirInst_struct_get(ctx_struct_field_offset(ctx, clone(variant_name), field_idx + 1), field_vt))
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(variant_name), ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), field_idx + 1), field_idx + 1, ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name)), field_vt, bind_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
 }
 

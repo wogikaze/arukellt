@@ -30,7 +30,7 @@ fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_leb::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
     writer_core::emit_byte(w, opcodes::OP_IF())
-    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, 127)
     emit_vec_pop_some(w, s_vec_pop, s_newlen, s_optptr)
     writer_core::emit_byte(w, opcodes::OP_ELSE())
     emit_vec_pop_none(w, s_optptr)

@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering variant payload fields.
 
@@ -8,6 +9,7 @@ use mir::inst_convert
 use mir::value_types
 
 fn emit_variant_payload_fields(ctx: LowerCtx, dest: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) {
+    let total_bytes = ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name))
     let mut byte_off = 4
     let mut pi = 0
     let payload_count = len(payload_locals)
@@ -39,7 +41,7 @@ fn emit_variant_payload_fields(ctx: LowerCtx, dest: i32, payload_locals: Vec<i32
                 }
             }
         }
-        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, store_local, set_off, field_vt))
+        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, store_local, clone(variant_name), set_off, pi + 1, total_bytes, field_vt))
         pi = pi + 1
     }
 }

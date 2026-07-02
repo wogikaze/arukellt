@@ -52,14 +52,16 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
         } else {
             let size_hint = inst_accessors_operands::MirInst_arg1(inst)
-            let struct_size_est = if size_hint > 0 {
+            let struct_size_est = if size_hint >= 100000 {
+                size_hint % 100000
+            } else if size_hint > 0 {
                 size_hint
             } else {
                 byte_offset + 4
             }
             ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
         }
-        let field_idx = byte_offset / 4
+        let field_idx = compute_field_idx_get(inst, byte_offset)
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
         return
     }
@@ -100,14 +102,16 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
         } else {
             let size_hint = inst_accessors_operands::MirInst_dest(inst)
-            let struct_size_est = if size_hint > 0 {
+            let struct_size_est = if size_hint >= 100000 {
+                size_hint % 100000
+            } else if size_hint > 0 {
                 size_hint
             } else {
                 byte_offset + 4
             }
             ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
         }
-        let field_idx = byte_offset / 4
+        let field_idx = compute_field_idx_set(inst, byte_offset)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
@@ -144,4 +148,20 @@ fn emit_struct_store_value(w: WasmWriter, inst: MirInst, value_local: i32, store
     writer_core::emit_byte(w, store_opcode)
     writer_core::emit_byte(w, align)
     writer_core::emit_byte(w, 0)
+}
+
+fn compute_field_idx_set(inst: MirInst, byte_offset: i32) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest >= 100000 {
+        return dest / 100000
+    }
+    byte_offset / 4
+}
+
+fn compute_field_idx_get(inst: MirInst, byte_offset: i32) -> i32 {
+    let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+    if arg1 >= 100000 {
+        return arg1 / 100000
+    }
+    byte_offset / 4
 }

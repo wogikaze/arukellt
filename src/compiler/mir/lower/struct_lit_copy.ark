@@ -27,13 +27,13 @@ fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, ba
             field_vt = value_types::VT_V128()
         }
         let tmp = ctx_fresh_local(ctx, field_vt)
-        emit_struct_base_field_get(ctx, clone(struct_name), base_idx, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), is_f64_field, is_i64_field, byte_size)
-        emit_struct_base_field_set(ctx, clone(struct_name), dest, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), is_f64_field, is_i64_field, byte_size)
+        emit_struct_base_field_get(ctx, clone(struct_name), base_idx, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), fi, is_f64_field, is_i64_field, byte_size)
+        emit_struct_base_field_set(ctx, clone(struct_name), dest, tmp, ctx_struct_field_offset(ctx, clone(struct_name), fi), fi, is_f64_field, is_i64_field, byte_size)
         fi = fi + 1
     }
 }
 
-fn emit_struct_base_field_get(ctx: LowerCtx, struct_name: String, base_idx: i32, tmp: i32, offset: i32, is_f64_field: bool, is_i64_field: bool, byte_size: i32) {
+fn emit_struct_base_field_get(ctx: LowerCtx, struct_name: String, base_idx: i32, tmp: i32, offset: i32, field_idx: i32, is_f64_field: bool, is_i64_field: bool, byte_size: i32) {
     ctx_emit(ctx, inst_local_get::MirInst_local_get_to(base_idx, base_idx))
     let mut field_vt = value_types::VT_VOID()
     if is_f64_field {
@@ -45,10 +45,10 @@ fn emit_struct_base_field_get(ctx: LowerCtx, struct_name: String, base_idx: i32,
     if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(struct_name), offset) {
         field_vt = value_types::VT_V128()
     }
-    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(base_idx, clone(struct_name), offset, byte_size, field_vt, tmp))
+    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(base_idx, clone(struct_name), offset, field_idx, byte_size, field_vt, tmp))
 }
 
-fn emit_struct_base_field_set(ctx: LowerCtx, struct_name: String, dest: i32, tmp: i32, offset: i32, is_f64_field: bool, is_i64_field: bool, byte_size: i32) {
+fn emit_struct_base_field_set(ctx: LowerCtx, struct_name: String, dest: i32, tmp: i32, offset: i32, field_idx: i32, is_f64_field: bool, is_i64_field: bool, byte_size: i32) {
     let mut field_vt = value_types::VT_VOID()
     if is_f64_field {
         field_vt = value_types::VT_F64()
@@ -59,5 +59,5 @@ fn emit_struct_base_field_set(ctx: LowerCtx, struct_name: String, dest: i32, tmp
     if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(struct_name), offset) {
         field_vt = value_types::VT_V128()
     }
-    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_sized(dest, tmp, clone(struct_name), offset, byte_size, field_vt))
+    ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, tmp, clone(struct_name), offset, field_idx, byte_size, field_vt))
 }

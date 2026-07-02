@@ -1,0 +1,44 @@
+// Arukellt Selfhost - MIR lowering tuple destructuring let statements.
+
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_types
+use mir::lower_kinds
+
+use mir::inst_local_get
+use mir::inst_struct_get
+use mir::value_types
+
+fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
+    let child_count = ast_node::node_child_count(node)
+    if child_count < 2 {
+        return
+    }
+    let pat = ast_node::node_child_at(node, 0)
+    let init = ast_node::node_child_at(node, 1)
+    let tuple_local = lower_expr(ctx, init)
+    if tuple_local < 0 {
+        return
+    }
+    let pat_kind = ast_node::node_kind(pat)
+    if pat_kind != lower_kinds::NK_PAT_TUPLE() {
+        return
+    }
+    let elem_count = ast_node::node_child_count(pat)
+    let total_bytes = elem_count * 4
+    let mut byte_off = 0
+    let mut ei = 0
+    while ei < elem_count {
+        let elem = ast_node::node_child_at(pat, ei)
+        if ast_node::node_kind_is(elem, lower_kinds::NK_PAT_IDENT()) {
+            let bind_name = ast_node::node_text(elem)
+            let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), value_types::VT_I32())
+            ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_local))
+            ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(tuple_local, String_new(), byte_off, total_bytes, value_types::VT_VOID(), dest))
+        }
+        byte_off = byte_off + 4
+        ei = ei + 1
+    }
+}
