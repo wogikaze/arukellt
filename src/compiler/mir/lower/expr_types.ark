@@ -31,6 +31,12 @@ fn peek_expr_vt(ctx: LowerCtx, node: AstNode) -> i32 {
             return ctx_api_local_types::ctx_local_vt(ctx, idx)
         }
     }
+    if ast_node::node_kind_is(node, lower_kinds::NK_STRING_LIT()) {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
     if ast_node::node_kind_is(node, lower_kinds::NK_FLOAT_LIT()) {
         return value_types::VT_F64()
     }

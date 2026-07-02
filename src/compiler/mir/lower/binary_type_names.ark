@@ -48,5 +48,8 @@ fn mir_binop_dest_type_name(dest_vt: i32, is_cmp: bool) -> String {
     if dest_vt == value_types::VT_I64() {
         return String_from("i64")
     }
+    if dest_vt == value_types::VT_GC_REF() || dest_vt == value_types::VT_REF() {
+        return String_from("string")
+    }
     String_from("i32")
 }

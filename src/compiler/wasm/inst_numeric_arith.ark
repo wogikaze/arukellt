@@ -21,8 +21,12 @@ fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             if val_type == value_types::VT_I64() {
                 writer_core::emit_byte(w, opcodes::OP_I64_ADD())
             } else {
-                if val_type == value_types::VT_REF() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-                    intrinsic_string_basic::emit_concat(w, inst, ctx)
+                if val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF() {
+                    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+                        intrinsic_string_basic::emit_concat(w, inst, ctx)
+                    } else {
+                        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+                    }
                 } else {
                     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
                 }

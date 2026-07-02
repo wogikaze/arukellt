@@ -83,7 +83,7 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 
     emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, array_type, vec_type, s_vec)
 
-    emit_gc_push_store_finish(w, arr_tmp, s_len, s_val, array_type, s_vec, vec_type, is_void_push, next_op)
+    emit_gc_push_store_finish(w, ctx, arr_tmp, s_len, s_val, array_type, s_vec, vec_type, is_void_push, next_op)
     return !is_void_push
 }
 
@@ -96,10 +96,13 @@ fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_
     helpers_core_locals::emit_local_set(w, arr_tmp)
 }
 
-fn emit_gc_push_store_finish(w: WasmWriter, arr_tmp: i32, s_len: i32, s_val: i32, i32_array_type: i32, vec_local: i32, vec_type: i32, is_void_push: bool, next_op: i32) {
+fn emit_gc_push_store_finish(w: WasmWriter, ctx: SelfEmitCtx, arr_tmp: i32, s_len: i32, s_val: i32, i32_array_type: i32, vec_local: i32, vec_type: i32, is_void_push: bool, next_op: i32) {
     helpers_core_locals::emit_local_get(w, arr_tmp)
     helpers_core_locals::emit_local_get(w, s_len)
     helpers_core_locals::emit_local_get(w, s_val)
+    if i32_array_type == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) {
+        writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+    }
     writer_gc::emit_gc_array_set(w, i32_array_type)
 
     helpers_core_locals::emit_local_get(w, vec_local)

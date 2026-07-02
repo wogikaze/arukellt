@@ -1,0 +1,67 @@
+use mir::lower::ast_node
+use mir::lower_kinds
+use mir::inst_local_set
+use mir::inst_struct_get
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_lookup
+// Arukellt Selfhost - MIR struct pattern field binding.
+
+use mir::value_types
+
+fn mir_emit_struct_pattern_binds_if_needed(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
+    if !ast_node::node_kind_is(pat, lower_kinds::NK_PAT_STRUCT()) {
+        return
+    }
+    let struct_name = ast_node::node_text(pat)
+    let child_count = ast_node::node_child_count(pat)
+    let mut ci = 0
+    while ci < child_count {
+        let field_pat = ast_node::node_child_at(pat, ci)
+        if ast_node::node_kind_is(field_pat, lower_kinds::NK_PAT_IDENT()) {
+            mir_emit_struct_field_bind(ctx, clone(struct_name), field_pat, scrut_idx)
+        }
+        ci = ci + 1
+    }
+}
+
+fn mir_emit_struct_field_bind(ctx: LowerCtx, struct_name: String, field_pat: AstNode, scrut_idx: i32) {
+    let bind_name = ast_node::node_text(field_pat)
+    let field_name = clone(bind_name)
+    let field_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), clone(field_name))
+    let mut bind_vt = value_types::VT_I32()
+    if ctx_struct_layout::ctx_struct_field_is_f64(ctx, clone(struct_name), field_idx) {
+        bind_vt = value_types::VT_F64()
+    } else if ctx_struct_layout::ctx_struct_field_is_i64(ctx, clone(struct_name), field_idx) {
+        bind_vt = value_types::VT_I64()
+    } else if ctx_struct_layout::ctx_struct_field_is_v128(ctx, clone(struct_name), field_idx) {
+        bind_vt = value_types::VT_V128()
+    } else if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(struct_name), field_idx) {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            bind_vt = value_types::VT_GC_REF()
+        } else {
+            bind_vt = value_types::VT_REF()
+        }
+    }
+    let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), bind_vt)
+    let ft = ctx_struct_lookup::ctx_get_field_type(ctx, clone(struct_name), clone(field_name))
+    if len(ft) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, ft))
+    }
+    let field_off = ctx_struct_layout::ctx_struct_field_offset(ctx, clone(struct_name), field_idx)
+    let struct_byte_size = ctx_struct_layout::ctx_struct_byte_size(ctx, clone(struct_name))
+    let mut field_vt = value_types::VT_VOID()
+    if bind_vt == value_types::VT_F64() {
+        field_vt = value_types::VT_F64()
+    } else if bind_vt == value_types::VT_I64() {
+        field_vt = value_types::VT_I64()
+    } else if bind_vt == value_types::VT_V128() {
+        field_vt = value_types::VT_V128()
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(struct_name), field_off, field_idx, struct_byte_size, field_vt, bind_local))
+    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+}
