@@ -19,16 +19,16 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
             writer_core::emit_byte(type_sec, constants::WASM_I32())
         } else {
             if starts_with(clone(csig), String_from("SubF")) {
-                emit_sub_type_entry(type_sec, csig, gc_type_base, 1)
+                emit_sub_type_entry(type_sec, csig, gc_type_base, 1, gc_struct_type_map)
             } else {
                 if starts_with(clone(csig), String_from("Sub0_")) {
-                    emit_open_sub_type_entry(type_sec, csig, gc_type_base)
+                    emit_open_sub_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
                 } else {
                 if starts_with(clone(csig), String_from("Sub")) {
-                    emit_sub_type_entry(type_sec, csig, gc_type_base, 0)
+                    emit_sub_type_entry(type_sec, csig, gc_type_base, 0, gc_struct_type_map)
                 } else {
                 if starts_with(clone(csig), String_from("GS_f")) {
-                    emit_struct_type_entry(type_sec, csig, gc_type_base)
+                    emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
                 } else {
                     if char_at(clone(csig), 0) == 65 {
                         sections_types_gc::emit_array_type_entry(type_sec, csig, gc_type_base)
@@ -47,13 +47,13 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
     }
 }
 
-fn emit_open_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+fn emit_open_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
     writer_leb::emit_leb128_u(type_sec, 0)
-    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base)
+    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map)
 }
 
-fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, is_final: i32) {
+fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, is_final: i32, gc_struct_type_map: Vec<i32>) {
     if is_final == 1 {
         writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FINAL_SUB())
     } else {
@@ -62,19 +62,29 @@ fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, is_
     writer_leb::emit_leb128_u(type_sec, 1)
     let super_off = sections_types_sig_parse::parse_sub_super_offset(sig)
     writer_leb::emit_leb128_u(type_sec, gc_type_base + super_off)
-    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base)
+    emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map)
 }
 
-fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
     writer_leb::emit_leb128_u(type_sec, len(field_sigs))
     for fi in 0..len(field_sigs) {
-        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
+        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base, gc_struct_type_map)
     }
 }
 
-fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
+fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+    if starts_with(clone(ft), String_from("gcsref")) {
+        let slot = sections_types_sig_parse::parse_type_sig_int(substring(ft, 6, len(ft)))
+        if slot < len(gc_struct_type_map) {
+            let type_idx = get_unchecked(gc_struct_type_map, slot)
+            writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+            writer_leb::emit_leb128_s(type_sec, type_idx)
+            writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+            return
+        }
+    }
     if starts_with(clone(ft), String_from("ref")) {
         let offset_str = substring(ft, 3, len(ft))
         let offset = sections_types_sig_parse::parse_type_sig_int(offset_str)

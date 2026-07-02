@@ -3,6 +3,7 @@
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_size
 use mir::module_gc_struct
 use std::text
 
@@ -45,7 +46,7 @@ fn ctx_flush_gc_structs(ctx: LowerCtx) {
     }
 }
 
-fn gc_struct_field_sig_for_type(type_name: String, field_idx: i32) -> String {
+fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
     let prefix = concat(String_from("_f"), i32_to_string(field_idx))
     if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
         return concat(prefix, String_from("_f64"))
@@ -67,6 +68,25 @@ fn gc_struct_field_sig_for_type(type_name: String, field_idx: i32) -> String {
     }
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
         return concat(prefix, String_from("_i32"))
+    }
+    // Struct-typed field: resolve the correct GC type offset.
+    // If the referenced struct is a named GC struct (has ref/v128/f64/i64
+    // fields), use gcsref<slot> so the type section builder can resolve it.
+    // Otherwise (all-i32 fields), compute the generic struct type offset
+    // from byte_size so it matches what the emitter uses.
+    let struct_slot = ctx_gc_struct_slot(ctx, clone(type_name))
+    if struct_slot >= 0 {
+        return concat(prefix, concat(String_from("_gcsref"), i32_to_string(struct_slot)))
+    }
+    // Check if it's a registered struct layout with only i32 fields
+    let byte_size = ctx_struct_size::ctx_struct_byte_size(ctx, clone(type_name))
+    if byte_size > 0 {
+        let field_count = (byte_size + 3) / 4
+        let mut offset = field_count + 1
+        if offset > 9 {
+            offset = 9
+        }
+        return concat(prefix, concat(String_from("_ref"), i32_to_string(offset)))
     }
     concat(prefix, String_from("_ref14"))
 }
@@ -107,7 +127,7 @@ fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> 
     let mut fi = 0
     while fi < field_count {
         let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))
-        let field_sig = gc_struct_field_sig_for_type(ft, fi)
+        let field_sig = gc_struct_field_sig_for_type(ctx, ft, fi)
         sig = text::builder_append(sig, field_sig)
         fi = fi + 1
     }

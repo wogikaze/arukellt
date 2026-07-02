@@ -109,12 +109,15 @@ def find_wasmtime() -> str | None:
 
 
 def find_wasm_tools() -> str | None:
-    wt = shutil.which("wasm-tools")
-    if wt:
-        return wt
+    # Prefer ~/.cargo/bin/wasm-tools (the Rust wasm-tools CLI that supports
+    # `validate --features gc`) over any other `wasm-tools` that may appear
+    # earlier in PATH (e.g. a unrelated binary in ~/.local/bin).
     cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
     if cargo.is_file():
         return str(cargo)
+    wt = shutil.which("wasm-tools")
+    if wt:
+        return wt
     return None
 
 

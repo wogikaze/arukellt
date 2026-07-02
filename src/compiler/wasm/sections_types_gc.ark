@@ -25,6 +25,17 @@ fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) 
 }
 
 fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
+    if starts_with(clone(ft), String_from("gcsref")) {
+        // gcsref<slot> is handled by the caller (sections_types_emit)
+        // which has access to gc_struct_type_map.  Fall through to ref handling.
+        let _slot = parse_type_sig_int(substring(ft, 6, len(ft)))
+        // Without gc_struct_type_map, we cannot resolve the slot.
+        // Use ref14 as fallback (should not happen in practice).
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_leb::emit_leb128_s(type_sec, gc_type_base + 14)
+        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+        return
+    }
     if starts_with(clone(ft), String_from("ref")) {
         let offset_str = substring(ft, 3, len(ft))
         let offset = parse_type_sig_int(offset_str)

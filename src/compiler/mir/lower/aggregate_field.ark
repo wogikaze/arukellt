@@ -10,8 +10,35 @@ use mir::lower::ctx_types
 use mir::inst_struct_get
 use mir::value_types
 
+// Strip "struct:TypeName:byte_size" → "TypeName" so struct layout lookups
+// (ctx_field_index, ctx_struct_byte_size, etc.) match the registered name.
+// Passes through non-"struct:" type names unchanged.
+fn strip_struct_type_prefix(type_name: String) -> String {
+    if !starts_with(clone(type_name), String_from("struct:")) {
+        return type_name
+    }
+    let n = len(type_name)
+    let mut first_colon = 0 - 1
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == ':' {
+            if first_colon < 0 {
+                first_colon = i
+            }
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
+        return type_name
+    }
+    substring(type_name, first_colon + 1, last_colon)
+}
+
 fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i32 {
-    let base_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
+    let raw_type = ctx_api_local_types::ctx_get_local_type(ctx, base_idx)
+    let base_type = strip_struct_type_prefix(raw_type)
     let mut field_idx = 0
     let mut is_f64_field = false
     if len(base_type) > 0 {
