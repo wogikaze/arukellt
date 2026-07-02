@@ -59,3 +59,19 @@ fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
     get_unchecked(instance.type_args, index)
 }
+
+fn TypeInfo_simple(tag: i32) -> TypeInfo {
+    TypeInfo { tag: tag, name: String_new(), type_args: Vec_new_TypeInfo() }
+}
+
+fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
+    TypeInfo { tag: tag, name: name, type_args: type_args }
+}
+
+fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+    push(ty.type_args, arg)
+}
+
+fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {
+    MonoInstance { fn_name: fn_name, mangled_name: mangled_name, type_args: type_args }
+}

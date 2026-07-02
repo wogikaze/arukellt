@@ -146,6 +146,9 @@ fn type_name_is_ref_type(ctx: LowerCtx, type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("struct:")) {
         return true
     }
+    if starts_with(clone(type_name), String_from("tuple:")) {
+        return true
+    }
     if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(type_name)) {
         return true
     }

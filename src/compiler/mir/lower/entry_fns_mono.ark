@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR entry top-level mono function body emission loop.
 
 use corehir::mir_type_source
+use mir::lower::aggregate_tuple
 use mir::lower::entry_emit_top
 use mir::lower::entry_view_record
 use mir::lower::return_typeinfo
@@ -13,20 +14,17 @@ use mir::typeinfo_shape
 
 fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, decl_name: String, typed_index: i32, param_count: i32, entry_view: MirLowerEntryView, fn_info_index: i32, midx: MonoIndex, mir_tr: i32) {
     let mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
-    let mono_emit_count = mono_emit_count_raw + 1
-    let mut mono_emit_i = 0
-    let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
-    let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
-    let generic_rt_type_var_name = mir_entry_typed_return_type_var_name(entry_view, typed_index)
-    while mono_emit_i < mono_emit_count {
-        let mut emit_fn_name = clone(decl_name)
-        let mut rt_tag = generic_rt_tag
-        let mut rt_type_name = clone(generic_rt_type_name)
-        if mono_emit_i > 0 {
-            let mangled = mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i - 1)
-            emit_fn_name = mono::mono_safe_name(mangled)
-            // For monomorphized variants, substitute the generic return type
-            // with the concrete type from the MonoInstance (#707).
+    if mono_emit_count_raw > 0 {
+        let mut mono_emit_i = 0
+        let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
+        let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
+        let generic_rt_type_var_name = mir_entry_typed_return_type_var_name(entry_view, typed_index)
+        let generic_return_ty = mir_entry_typed_return_type_at(entry_view, typed_index)
+        while mono_emit_i < mono_emit_count_raw {
+            let mangled = mono::mono_index_mangled_at(midx, clone(decl_name), mono_emit_i)
+            let emit_fn_name = mono::mono_safe_name(mangled)
+            let mut rt_tag = generic_rt_tag
+            let mut rt_type_name = clone(generic_rt_type_name)
             if generic_rt_tag == lower_kinds::TY_TYPE_VAR() {
                 let arg_count = lookup_mono_type_arg_count(ctx, clone(mangled))
                 let type_idx = mono_return_type_arg_index_from_var_name(clone(generic_rt_type_var_name), arg_count)
@@ -35,11 +33,66 @@ fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBod
                     rt_tag = return_typeinfo::mir_return_tag_from_type_info(mono_ty)
                     rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
                 }
+            } else if generic_rt_tag == lower_kinds::TY_TUPLE() {
+                let concrete = mono_instantiate_return_from_instance(ctx, clone(mangled), generic_return_ty)
+                if type_contracts::TypeInfo_tag(concrete) != 0 {
+                    rt_tag = return_typeinfo::mir_return_tag_from_type_info(concrete)
+                    rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
+                    aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, clone(rt_type_name))
+                }
             }
+            entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, rt_type_name, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
+            mono_emit_i = mono_emit_i + 1
         }
-        entry_top::mir_emit_top_level_fn_body(ctx, body_input, rt_tag, rt_type_name, emit_fn_name, param_count, typed_index, mir_tr, entry_view, fn_info_index)
-        mono_emit_i = mono_emit_i + 1
+        return
     }
+    let generic_rt_tag = mir_entry_typed_return_tag_at(entry_view, typed_index)
+    let generic_rt_type_name = mir_entry_typed_return_type_name_at(entry_view, typed_index)
+    entry_top::mir_emit_top_level_fn_body(ctx, body_input, generic_rt_tag, generic_rt_type_name, clone(decl_name), param_count, typed_index, mir_tr, entry_view, fn_info_index)
+}
+
+fn mono_instantiate_return_from_instance(ctx: LowerCtx, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
+    let arg_count = lookup_mono_type_arg_count(ctx, clone(mangled))
+    if arg_count <= 0 {
+        return type_contracts::TypeInfo_simple(0)
+    }
+    let safe = mono_names::mono_safe_name(mangled)
+    let count = len(ctx.mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(ctx.mono_instances, i)
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        let inst_safe = mono_names::mono_safe_name(inst_mangled)
+        if eq(clone(inst_safe), clone(safe)) {
+            return mono_instantiate_return_type(generic_return_ty, inst)
+        }
+        i = i + 1
+    }
+    type_contracts::TypeInfo_simple(0)
+}
+
+fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
+    let tag = type_contracts::TypeInfo_tag(ty)
+    if tag == lower_kinds::TY_TYPE_VAR() {
+        let var_name = type_contracts::TypeInfo_name(ty)
+        let idx = mono_return_type_arg_index_from_var_name(var_name, type_contracts::MonoInstance_type_arg_count(inst))
+        if idx >= 0 && idx < type_contracts::MonoInstance_type_arg_count(inst) {
+            return type_contracts::MonoInstance_type_arg_at(inst, idx)
+        }
+        return type_contracts::TypeInfo_simple(0)
+    }
+    let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
+    if arg_count <= 0 {
+        return ty
+    }
+    let result = type_contracts::TypeInfo_new(tag, type_contracts::TypeInfo_name(ty), Vec_new_TypeInfo())
+    let mut ai = 0
+    while ai < arg_count {
+        let arg = type_contracts::TypeInfo_type_arg_at(ty, ai)
+        type_contracts::TypeInfo_push_type_arg(result, mono_instantiate_return_type(arg, inst))
+        ai = ai + 1
+    }
+    result
 }
 
 // Find the first type argument from the MonoInstance matching `mangled`.
@@ -105,7 +158,6 @@ fn lookup_mono_type_arg_count(ctx: LowerCtx, mangled: String) -> i32 {
 }
 
 // Map a return type variable name (e.g. "B") to a type argument index.
-// Uses common naming conventions: A→0, B→1, C→2, D→3, T→0, E→1, etc.
 fn mono_return_type_arg_index_from_var_name(var_name: String, arg_count: i32) -> i32 {
     if arg_count <= 0 {
         return 0
@@ -120,34 +172,6 @@ fn mono_return_type_arg_index_from_var_name(var_name: String, arg_count: i32) ->
     0
 }
 
-// Map a return type variable name (e.g. "?B") to a type argument index.
-// Uses common naming conventions: A→0, B→1, C→2, D→3, T→0, E→1, etc.
-fn mono_return_type_arg_index_from_name(type_name: String, arg_count: i32) -> i32 {
-    if arg_count <= 0 {
-        return 0
-    }
-    // Extract the type variable name from the return type name.
-    let var_name = extract_type_var_name(type_name)
-    if len(var_name) == 0 {
-        return 0
-    }
-    let idx = type_var_to_index(var_name)
-    if idx >= 0 && idx < arg_count {
-        return idx
-    }
-    0
-}
-
-// Extract the type variable name from a return type name string.
-// "?T" → "T", "?B" → "B"
-fn extract_type_var_name(rtn: String) -> String {
-    if !starts_with(clone(rtn), String_from("?")) {
-        return String_new()
-    }
-    substring(clone(rtn), 1, len(rtn))
-}
-
-// Map a type variable name to a type parameter index.
 fn type_var_to_index(var_name: String) -> i32 {
     if eq(clone(var_name), String_from("T")) { return 0 }
     if eq(clone(var_name), String_from("E")) { return 1 }
@@ -177,9 +201,16 @@ fn mir_entry_typed_return_type_name_at(view: MirLowerEntryView, typed_index: i32
     return_types::mir_return_type_name_from_typed_fn(tf)
 }
 
-// Get the type variable name from the return type TypeInfo.
-// For `fn pair_second<A, B>(...) -> B`, this returns "B".
-// Returns empty string if the return type is not a type variable.
+fn mir_entry_typed_return_type_at(view: MirLowerEntryView, typed_index: i32) -> TypeInfo {
+    let ts = entry_view_record::entry_view_type_source(view)
+    let count = type_source::mir_type_source_typed_fn_count(ts)
+    if typed_index < 0 || typed_index >= count {
+        return type_contracts::TypeInfo_simple(0)
+    }
+    let tf = type_source::mir_type_source_typed_fn_at(ts, typed_index)
+    typeinfo_shape::mir_typed_fn_return_type(tf)
+}
+
 fn mir_entry_typed_return_type_var_name(view: MirLowerEntryView, typed_index: i32) -> String {
     let ts = entry_view_record::entry_view_type_source(view)
     let count = type_source::mir_type_source_typed_fn_count(ts)
