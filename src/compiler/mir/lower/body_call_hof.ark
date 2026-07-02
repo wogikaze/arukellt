@@ -37,7 +37,7 @@ fn try_lower_hof_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count
         return hof::mir_lower_hof_i32(ctx, hof_callee_text, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
     }
     if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_F64()) {
-        return hof::mir_lower_hof_f64(ctx, hof_fn_name, hof_vec_local, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan))
+        return hof::mir_lower_hof_f64(ctx, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
     }
     0 - 1
 }

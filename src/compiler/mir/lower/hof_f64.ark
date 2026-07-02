@@ -1,14 +1,20 @@
 // Arukellt Selfhost - MIR lowering for f64 higher-order sequence helpers.
 
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
 use mir::lower::hof_loop
 use mir::lower::hof_loop_steps
 use mir::lower::hof_results
 use mir::value_types
 
-fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: i32, is_map_f64_f64: bool, is_filter_f64: bool) -> i32 {
+use mir::inst_local_set
+
+fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: i32, hof_f64_init_idx: i32, is_map_f64_f64: bool, is_filter_f64: bool, is_fold_f64_f64: bool) -> i32 {
+    let hof_f64_acc_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F64())
+    emit_f64_fold_acc_init(ctx, hof_f64_init_idx, hof_f64_acc_local, is_fold_f64_f64)
     let hof_f64_n_local = hof_loop::emit_hof_len_local(ctx, hof_f64_vec_local)
     let hof_f64_idx_local = hof_loop::emit_hof_zero_index(ctx)
-    let hof_f64_result_local = emit_f64_result_vec(ctx)
+    let hof_f64_result_local = emit_f64_result_vec(ctx, is_fold_f64_f64)
     hof_loop::emit_hof_loop_open(ctx)
     hof_loop::emit_hof_loop_bounds(ctx, hof_f64_idx_local, hof_f64_n_local)
     let hof_f64_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof_f64_vec_local, hof_f64_idx_local, value_types::VT_F64(), String_from("vec_get_unchecked_f64"))
@@ -18,17 +24,28 @@ fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: 
     if is_filter_f64 {
         hof_loop_steps::emit_hof_filter_step(ctx, hof_f64_fn_name, hof_f64_result_local, hof_f64_elem_local, String_from("push_f64"))
     }
+    if is_fold_f64_f64 {
+        hof_loop_steps::emit_hof_fold_step(ctx, hof_f64_fn_name, hof_f64_acc_local, hof_f64_elem_local, value_types::VT_F64())
+    }
     hof_loop_steps::emit_hof_index_advance(ctx, hof_f64_idx_local)
     hof_loop::emit_hof_loop_close(ctx)
-    emit_f64_hof_result(ctx, hof_f64_result_local)
+    emit_f64_hof_result(ctx, hof_f64_acc_local, hof_f64_result_local, is_fold_f64_f64)
 }
 
-fn emit_f64_hof_result(ctx: LowerCtx, hof_f64_result_local: i32) -> i32 {
-    hof_results::emit_hof_result_value(ctx, hof_f64_result_local)
+fn emit_f64_hof_result(ctx: LowerCtx, hof_f64_acc_local: i32, hof_f64_result_local: i32, is_fold_f64_f64: bool) -> i32 {
+    hof_results::emit_hof_result_select(ctx, hof_f64_acc_local, hof_f64_result_local, is_fold_f64_f64)
 }
 
-fn emit_f64_result_vec(ctx: LowerCtx) -> i32 {
+fn emit_f64_fold_acc_init(ctx: LowerCtx, hof_f64_init_idx: i32, hof_f64_acc_local: i32, is_fold_f64_f64: bool) {
+    if is_fold_f64_f64 {
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(hof_f64_acc_local, hof_f64_init_idx))
+    }
+}
+
+fn emit_f64_result_vec(ctx: LowerCtx, is_fold_f64_f64: bool) -> i32 {
     let hof_f64_result_local = hof_results::hof_result_local(ctx)
-    hof_results::emit_hof_result_vec_init(ctx, hof_f64_result_local, String_from("Vec_new_f64"), String_from("vec:f64"))
+    if !is_fold_f64_f64 {
+        hof_results::emit_hof_result_vec_init(ctx, hof_f64_result_local, String_from("Vec_new_f64"), String_from("vec:f64"))
+    }
     hof_f64_result_local
 }

@@ -50,8 +50,11 @@ fn mir_classify_hof_i32_call(callee: String) -> MirHofCallPlan {
 fn mir_classify_hof_f64_call(callee: String) -> MirHofCallPlan {
     let is_map_f64_f64 = eq(clone(callee), "map_f64_f64")
     let is_filter_f64 = eq(clone(callee), "filter_f64")
-    if is_map_f64_f64 || is_filter_f64 {
-        return hof_call_plan::mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_F64(), 3, 2, String_from("vec:f64"), is_map_f64_f64, is_filter_f64, false)
+    let is_fold_f64_f64 = eq(clone(callee), "fold_f64_f64")
+    if is_map_f64_f64 || is_filter_f64 || is_fold_f64_f64 {
+        let min_children_f64 = if is_fold_f64_f64 { 4 } else { 3 }
+        let callback_index_f64 = if is_fold_f64_f64 { 3 } else { 2 }
+        return hof_call_plan::mir_hof_call_plan_new(lower_kinds::MIR_HOF_KIND_F64(), min_children_f64, callback_index_f64, String_from("vec:f64"), is_map_f64_f64, is_filter_f64, is_fold_f64_f64)
     }
     hof_call_plan::mir_hof_call_plan_none()
 }

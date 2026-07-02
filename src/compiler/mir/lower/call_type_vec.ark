@@ -7,7 +7,9 @@ use mir::value_types
 
 fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     if starts_with(clone(callee_name), "Vec_new_") {
-        let elem_ty = substring(callee_name, 8, len(callee_name))
+        let raw_elem = substring(callee_name, 8, len(callee_name))
+        // Strip "_with_cap" suffix so Vec_new_i64_with_cap → "i64", not "i64_with_cap"
+        let elem_ty = strip_with_cap_suffix(clone(raw_elem))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, concat(String_from("vec:"), elem_ty))
     }
     if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") || eq(clone(callee_name), "string::split") {
@@ -16,8 +18,16 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     if eq(clone(callee_name), "env::args") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
     }
-    if eq(clone(callee_name), "vec_get_unchecked") {
+    if eq(clone(callee_name), "vec_get_unchecked") || eq(clone(callee_name), "get_unchecked") || eq(clone(callee_name), "__intrinsic_get_unchecked") {
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
+    }
+    if eq(clone(callee_name), "vec_get_unchecked_i64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i64"))
+        set_ref_vt_for_elem_type(ctx, dest, String_from("i64"))
+    }
+    if eq(clone(callee_name), "vec_get_unchecked_f64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
+        set_ref_vt_for_elem_type(ctx, dest, String_from("f64"))
     }
     if eq(clone(callee_name), "vec_get") {
         mark_vec_get_result_type(ctx, dest, first_arg_idx)
@@ -64,4 +74,14 @@ fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
     if eq(clone(elem_ty), String_from("f64")) || eq(clone(elem_ty), String_from("F64")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
     }
+}
+
+fn strip_with_cap_suffix(s: String) -> String {
+    let suffix = String_from("_with_cap")
+    let sl = len(s)
+    let sufl = len(suffix)
+    if sl > sufl && ends_with(clone(s), clone(suffix)) {
+        return substring(s, 0, sl - sufl)
+    }
+    s
 }

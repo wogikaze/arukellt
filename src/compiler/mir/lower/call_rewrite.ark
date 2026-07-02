@@ -3,6 +3,8 @@
 use mir::lower::call_mono
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
+use mir::lower::ctx_api_local_types
+use mir::value_types
 
 struct MirCallRewrite {
     callee_name: String,
@@ -38,6 +40,15 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let vec_rewrite = call_rewrite_vec::mir_rewrite_vec_call(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
     rewritten = call_rewrite_vec::mir_vec_call_rewrite_callee_name(vec_rewrite)
     push_i64_needs_extend = call_rewrite_vec::mir_vec_call_rewrite_push_i64_needs_extend(vec_rewrite)
+    // Extend i32 literals to i64 for assert_eq_i64 calls when the second
+    // argument is an i32-typed local (e.g. integer literal not yet widened).
+    if !push_i64_needs_extend && stage_call_args && second_arg_idx >= 0 {
+        if ends_with(clone(rewritten), String_from("assert_eq_i64")) {
+            if ctx_api_local_types::ctx_local_vt(ctx, second_arg_idx) == value_types::VT_I32() {
+                push_i64_needs_extend = true
+            }
+        }
+    }
     rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
     MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
 }
