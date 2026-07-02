@@ -7,6 +7,9 @@ use typechecker::contract_type_mutation
 use typechecker::type_names
 
 fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
+    if ast_access::node_kind_is(ann, kinds::NK_TYPE_TUPLE()) {
+        return resolve_type_tuple_node_generic(ann, type_params)
+    }
     if ast_type_predicates::node_is_type_generic(ann) {
         let base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
         let child_count = ast_access::node_child_count(ann)
@@ -20,6 +23,19 @@ fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> Type
         return base_ty
     }
     resolve_type_name_generic(ast_access::node_text(ann), type_params)
+}
+
+fn resolve_type_tuple_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
+    let tuple_ty = type_names::type_info_named(commands::TY_TUPLE(), String_new())
+    let child_count = ast_access::node_child_count(ann)
+    let mut k = 0
+    while k < child_count {
+        let elem = ast_access::node_child_at(ann, k)
+        let elem_ty = resolve_type_ann_node_generic(elem, type_params)
+        contract_type_mutation::TypeInfo_push_type_arg(tuple_ty, elem_ty)
+        k = k + 1
+    }
+    tuple_ty
 }
 
 fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {

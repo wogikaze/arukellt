@@ -37,3 +37,19 @@ fn MonoInstance_type_arg_count(instance: MonoInstance) -> i32 {
 fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
     type_contracts::MonoInstance_type_arg_at(instance, index)
 }
+
+fn TypeInfo_simple(tag: i32) -> TypeInfo {
+    type_contracts::TypeInfo_simple(tag)
+}
+
+fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {
+    type_contracts::TypeInfo_new(tag, name, type_args)
+}
+
+fn TypeInfo_push_type_arg(ty: TypeInfo, arg: TypeInfo) {
+    type_contracts::TypeInfo_push_type_arg(ty, arg)
+}
+
+fn MonoInstance_new(fn_name: String, mangled_name: String, type_args: Vec<TypeInfo>) -> MonoInstance {
+    type_contracts::MonoInstance_new(fn_name, mangled_name, type_args)
+}

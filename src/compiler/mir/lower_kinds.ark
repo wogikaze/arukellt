@@ -93,6 +93,7 @@ fn TY_CHAR() -> i32 { 6 }
 fn TY_VEC() -> i32 { 10 }
 fn TY_STRUCT() -> i32 { 21 }
 fn TY_ENUM() -> i32 { 22 }
+fn TY_TUPLE() -> i32 { 23 }
 fn TY_TYPE_VAR() -> i32 { 30 }
 
 // Higher-order function call kind tags.

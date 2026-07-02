@@ -3,9 +3,22 @@
 use typechecker::ast_type_predicates
 use typechecker::ast_access
 use typechecker::contract_type_mutation
+use typechecker::kinds
 use typechecker::type_names
 
 fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
+    if ast_access::node_kind_is(ann, kinds::NK_TYPE_TUPLE()) {
+        let tuple_ty = type_names::type_info_named(commands::TY_TUPLE(), String_new())
+        let child_count = ast_access::node_child_count(ann)
+        let mut k = 0
+        while k < child_count {
+            let elem = ast_access::node_child_at(ann, k)
+            let elem_ty = resolve_type_ann_node(elem)
+            contract_type_mutation::TypeInfo_push_type_arg(tuple_ty, elem_ty)
+            k = k + 1
+        }
+        return tuple_ty
+    }
     if ast_type_predicates::node_is_type_generic(ann) {
         let base_ty = type_names::resolve_type_name(ast_access::node_text(ann))
         let child_count = ast_access::node_child_count(ann)

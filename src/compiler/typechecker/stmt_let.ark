@@ -13,11 +13,15 @@ use typechecker::types
 use typechecker::unify
 
 fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    let bind_name = ast_access::node_text(node)
+    if eq(clone(bind_name), String_from("__tuple_destructure")) {
+        check_tuple_destructure_let(env, scope, fn_sigs, enum_defs, node)
+        return
+    }
     let mut bind_ty = TypeInfo_simple(commands::TY_UNKNOWN())
     if ast_access::node_child_count(node) > 0 {
         let init = ast_access::node_child_at(node, 0)
         bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
-        // W0001: shared mutable alias detection
         check_shared_mut_alias(env, node, init, bind_ty)
     }
     if ast_access::node_type_ann_count(node) > 0 {
@@ -29,30 +33,60 @@ fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_def
             bind_ty = unify::unify(env, bind_ty, ann_ty)
         }
     }
-    let bind_name = ast_access::node_text(node)
     if !eq(clone(bind_name), "_") {
         scope::scope_define(scope, bind_name, bind_ty)
         contract_env_record::type_env_track_binding(env, clone(bind_name), ast_access::node_span_start(node), ast_access::node_span_end(node))
     }
 }
 
+fn check_tuple_destructure_let(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    if ast_access::node_child_count(node) < 2 {
+        return
+    }
+    let pat = ast_access::node_child_at(node, 0)
+    let init = ast_access::node_child_at(node, 1)
+    let bind_ty = infer_expr(env, scope, fn_sigs, enum_defs, init)
+    check_shared_mut_alias(env, node, init, bind_ty)
+    bind_tuple_pat_identifiers(scope, pat, bind_ty)
+}
+
+fn bind_tuple_pat_identifiers(scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
+    if !ast_access::node_kind_is(pat, kinds::NK_PAT_TUPLE()) {
+        return
+    }
+    let pat_count = ast_access::node_child_count(pat)
+    let mut i = 0
+    while i < pat_count {
+        let elem = ast_access::node_child_at(pat, i)
+        if ast_access::node_kind_is(elem, kinds::NK_PAT_IDENT()) {
+            let name = ast_access::node_text(elem)
+            if !eq(clone(name), "_") {
+                scope::scope_define(scope, name, tuple_element_type_at(tuple_ty, i))
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn tuple_element_type_at(tuple_ty: TypeInfo, index: i32) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(tuple_ty) != commands::TY_TUPLE() {
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(tuple_ty)
+    if index >= 0 && index < arg_count {
+        return contract_type_access::TypeInfo_type_arg_at(tuple_ty, index)
+    }
+    TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
 // W0001: detect `let alias = v` where `v` is `mut` and the type is a reference type.
 fn check_shared_mut_alias(env: TypeEnv, let_node: AstNode, init: AstNode, bind_ty: TypeInfo) {
-    // Only check if this let is NOT mut (aliasing a mut into a non-mut)
     if ast_access::node_is_mut(let_node) {
         return
     }
-    // The initializer must be a simple identifier
     if !ast_expr_predicates::node_is_ident(init) {
         return
     }
-    let src_name = ast_access::node_text(init)
-    // Check if the source name has a `_mut` marker — we detect by checking if
-    // the source binding was declared with `mut` by looking at the source node.
-    // Since the typechecker scope doesn't track mutability, we use a heuristic:
-    // if the type is a reference type (Vec, String, struct), emit the warning
-    // when the source identifier name matches a mut binding pattern.
-    // For now, we check the type tag — if it's a container type, emit warning.
     if is_reference_type(bind_ty) {
         let msg = String_from("possible unintended sharing of reference type")
         let span = diag_record::DiagnosticSpan_from_raw(ast_access::node_span_start(init), ast_access::node_span_end(init))
@@ -61,10 +95,8 @@ fn check_shared_mut_alias(env: TypeEnv, let_node: AstNode, init: AstNode, bind_t
     }
 }
 
-// Check if a type is a reference (heap-allocated) type that could be shared.
 fn is_reference_type(ty: TypeInfo) -> bool {
     let tag = contract_type_access::TypeInfo_tag(ty)
-    // Vec, String, struct, enum, resource are reference types
     if tag == commands::TY_VEC() {
         return true
     }
@@ -83,11 +115,6 @@ fn is_reference_type(ty: TypeInfo) -> bool {
     false
 }
 
-// When the initializer type and annotation type share the same container tag
-// (e.g. Vec<i32> vs Vec<Vec<i32>>), the annotation should win because legacy
-// constructors like Vec_new_i32() return a concrete Vec<i32> that can be
-// re-typed to any Vec<T> via the annotation. This avoids spurious type
-// mismatches on nested generic annotations (issue #312).
 fn should_prefer_annotation(init_ty: TypeInfo, ann_ty: TypeInfo) -> bool {
     let init_tag = contract_type_access::TypeInfo_tag(init_ty)
     let ann_tag = contract_type_access::TypeInfo_tag(ann_ty)

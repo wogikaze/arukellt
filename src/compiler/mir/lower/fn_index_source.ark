@@ -6,6 +6,8 @@ use corehir::mir_signature_method
 use corehir::mir_type_source
 use corehir::mod
 use mir::lower::return_types
+use mir::type_contracts
+use mir::typeinfo_shape
 use mir::value_types
 
 struct MirLowerFnIndexSource {
@@ -55,6 +57,19 @@ fn mir_fn_index_source_typed_return_type_name(source: MirLowerFnIndexSource, typ
         return return_types::mir_return_type_name_from_typed_fn(tf)
     }
     String_from("")
+}
+
+fn mir_fn_index_source_typed_return_type(source: MirLowerFnIndexSource, typed_index: i32) -> TypeInfo {
+    let type_source = source.type_source
+    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+        let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
+        return typeinfo_shape::mir_typed_fn_return_type(tf)
+    }
+    type_contracts::TypeInfo_simple(0)
+}
+
+fn mir_fn_index_source_mono_instances(source: MirLowerFnIndexSource) -> Vec<MonoInstance> {
+    type_source::mir_type_source_mono_instances(source.type_source)
 }
 
 fn mir_fn_index_source_method_info_index(source: MirLowerFnIndexSource, impl_decl_index: i32, method_index: i32) -> i32 {

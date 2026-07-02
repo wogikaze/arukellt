@@ -26,6 +26,7 @@ fn NK_CALL() -> i32 { 8 }
 fn NK_PATH() -> i32 { 16 }
 fn NK_METHOD_CALL() -> i32 { 21 }
 fn NK_STRUCT_LIT() -> i32 { 11 }
+fn NK_TUPLE() -> i32 { 17 }
 fn NK_FIELD_ACCESS() -> i32 { 9 }
 fn NK_CHAR_LIT() -> i32 { 23 }
 
@@ -42,6 +43,7 @@ fn NK_PAT_IDENT() -> i32 { 70 }
 fn NK_PAT_WILDCARD() -> i32 { 71 }
 fn NK_PAT_LITERAL() -> i32 { 72 }
 fn NK_PAT_VARIANT() -> i32 { 73 }
+fn NK_PAT_TUPLE() -> i32 { 75 }
 
 // Statement node kinds.
 fn NK_BLOCK() -> i32 { 20 }
@@ -53,6 +55,7 @@ fn NK_EXPR_STMT() -> i32 { 37 }
 
 // Type annotation node kinds.
 fn NK_TYPE_GENERIC() -> i32 { 91 }
+fn NK_TYPE_TUPLE() -> i32 { 93 }
 
 // Comparison operator kinds.
 fn OP_EQ() -> i32 { 6 }

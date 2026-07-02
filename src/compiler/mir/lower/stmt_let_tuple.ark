@@ -28,17 +28,83 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
     }
     let elem_count = ast_node::node_child_count(pat)
     let total_bytes = elem_count * 4
+    let struct_name = tuple_struct_name_from_type(ctx_api_local_types::ctx_get_local_type(ctx, tuple_local))
     let mut byte_off = 0
     let mut ei = 0
     while ei < elem_count {
         let elem = ast_node::node_child_at(pat, ei)
         if ast_node::node_kind_is(elem, lower_kinds::NK_PAT_IDENT()) {
             let bind_name = ast_node::node_text(elem)
-            let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), value_types::VT_I32())
+            let field_vt = tuple_field_vt_from_struct_name(struct_name, ei)
+            let dest = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(bind_name), field_vt)
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tuple_local))
-            ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(tuple_local, String_new(), byte_off, total_bytes, value_types::VT_VOID(), dest))
+            if len(struct_name) > 0 {
+                ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(tuple_local, clone(struct_name), byte_off, ei, total_bytes, field_vt, dest))
+            } else {
+                ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(tuple_local, String_new(), byte_off, total_bytes, field_vt, dest))
+            }
         }
         byte_off = byte_off + 4
         ei = ei + 1
     }
+}
+
+fn tuple_struct_name_from_type(type_name: String) -> String {
+    if !starts_with(clone(type_name), String_from("struct:")) {
+        return String_new()
+    }
+    let n = len(type_name)
+    let mut first = 0 - 1
+    let mut last = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == 58 {
+            if first < 0 {
+                first = i
+            }
+            last = i
+        }
+        i = i + 1
+    }
+    if first < 0 || last <= first {
+        return String_new()
+    }
+    let inner = substring(type_name, first + 1, last)
+    if starts_with(clone(inner), String_from("tuple:")) {
+        return inner
+    }
+    String_new()
+}
+
+fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 {
+    if len(struct_name) == 0 {
+        if elem_index > 0 {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_I32()
+    }
+    let keys = substring(struct_name, 6, len(struct_name))
+    let key = tuple_key_at(keys, elem_index)
+    if eq(clone(key), String_from("String")) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_I32()
+}
+
+fn tuple_key_at(keys: String, index: i32) -> String {
+    let n = len(keys)
+    let mut cur = 0
+    let mut start = 0
+    let mut i = 0
+    while i <= n {
+        if i == n || char_at(keys, i) == 44 {
+            if cur == index {
+                return substring(keys, start, i)
+            }
+            cur = cur + 1
+            start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
 }

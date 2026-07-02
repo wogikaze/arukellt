@@ -27,6 +27,7 @@ fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
         13 => value_types::VT_GC_REF(),
         21 => value_types::VT_GC_REF(),
         22 => value_types::VT_GC_REF(),
+        23 => value_types::VT_GC_REF(),
         40 => value_types::VT_V128(),
         _ => value_types::VT_I32(),
     }
@@ -74,6 +75,98 @@ fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
     String_from("hashmap:si32")
 }
 
+fn mir_tuple_elem_byte_size(ty: TypeInfo) -> i32 {
+    let tag = mir_return_tag_from_type_info(ty)
+    if tag == 3 {
+        return 8
+    }
+    4
+}
+
+fn mir_tuple_byte_size_from_type_info(ty: TypeInfo) -> i32 {
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    let mut total = 0
+    let mut i = 0
+    while i < arg_count {
+        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
+        total = total + mir_tuple_elem_byte_size(elem)
+        i = i + 1
+    }
+    total
+}
+
+fn mir_tuple_has_gc_ref_elem(ty: TypeInfo) -> bool {
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    let mut i = 0
+    while i < arg_count {
+        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
+        let tag = mir_return_tag_from_type_info(elem)
+        if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn mir_tuple_inner_name_from_type_info(ty: TypeInfo) -> String {
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    if arg_count <= 0 {
+        return String_new()
+    }
+    let mut name = String_from("tuple:")
+    let mut i = 0
+    while i < arg_count {
+        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
+        if i > 0 {
+            name = concat(name, String_from(","))
+        }
+        name = concat(name, mir_type_info_to_mono_key(elem))
+        i = i + 1
+    }
+    name
+}
+
+fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    if arg_count <= 0 {
+        return String_from("struct:tuple:0")
+    }
+    let mut has_type_var = false
+    let mut i = 0
+    while i < arg_count {
+        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
+        if typeinfo_shape::mir_type_info_tag(elem) == 30 {
+            has_type_var = true
+            i = arg_count
+        }
+        i = i + 1
+    }
+    let byte_size = mir_tuple_byte_size_from_type_info(ty)
+    if has_type_var {
+        let mut name = String_from("struct:tuple:v:")
+        i = 0
+        while i < arg_count {
+            let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
+            if i > 0 {
+                name = concat(name, String_from(","))
+            }
+            if typeinfo_shape::mir_type_info_tag(elem) == 30 {
+                name = concat(name, typeinfo_shape::mir_type_info_name(elem))
+            } else {
+                name = concat(name, mir_type_info_to_mono_key(elem))
+            }
+            i = i + 1
+        }
+        return name
+    }
+    if mir_tuple_has_gc_ref_elem(ty) {
+        let inner = mir_tuple_inner_name_from_type_info(ty)
+        return concat(String_from("struct:"), concat(inner, concat(String_from(":"), i32_to_string(byte_size))))
+    }
+    concat(String_from("struct:tuple:"), i32_to_string(byte_size))
+}
+
 fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
         return String_from("option:")
@@ -113,6 +206,7 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         13 => mir_hashmap_return_type_name_from_type_info(ty),
         21 => typeinfo_shape::mir_type_info_name(ty),
         22 => mir_enum_return_type_name_from_type_info(ty),
+        23 => mir_tuple_return_type_name_from_type_info(ty),
         _ => String_from(""),
     }
 }

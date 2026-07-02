@@ -1,17 +1,88 @@
 // Arukellt Selfhost - MIR lowering function index mono variants.
 
+use mir::lower::return_typeinfo
+use mir::lower_kinds
 use mir::mono
+use mir::mono_names
+use mir::type_contracts
+use mir::typeinfo_shape
 
-fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String) {
+fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo) {
     let mono_count = mono::mono_index_count(midx, clone(base_name))
     if mono_count > 0 {
         let mut mono_i = 0
         while mono_i < mono_count {
             let mono_name = mono::mono_index_mangled_at(midx, clone(base_name), mono_i)
-            push(fn_names, mono::mono_safe_name(mono_name))
-            push(fn_return_vts, return_vt)
-            push(fn_return_type_names, clone(return_type_name))
+            let safe_name = mono::mono_safe_name(mono_name)
+            let mut mono_rvt = return_vt
+            let mut mono_rtn = clone(return_type_name)
+            let concrete_ret = mono_concrete_return_type(mono_instances, clone(safe_name), generic_return_ty)
+            if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
+                mono_rvt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
+                mono_rtn = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
+            }
+            push(fn_names, safe_name)
+            push(fn_return_vts, mono_rvt)
+            push(fn_return_type_names, mono_rtn)
             mono_i = mono_i + 1
         }
     }
+}
+
+fn mono_concrete_return_type(mono_instances: Vec<MonoInstance>, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
+    let inst = mono_find_instance(mono_instances, clone(mangled))
+    if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
+        return type_contracts::TypeInfo_simple(0)
+    }
+    mono_instantiate_return_type(generic_return_ty, inst)
+}
+
+fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
+    let tag = type_contracts::TypeInfo_tag(ty)
+    if tag == lower_kinds::TY_TYPE_VAR() {
+        let var_name = type_contracts::TypeInfo_name(ty)
+        let idx = mono_type_var_index(var_name)
+        let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
+        if idx >= 0 && idx < arg_count {
+            return type_contracts::MonoInstance_type_arg_at(inst, idx)
+        }
+        return type_contracts::TypeInfo_simple(0)
+    }
+    let arg_count = type_contracts::TypeInfo_type_arg_count(ty)
+    if arg_count <= 0 {
+        return ty
+    }
+    let result = type_contracts::TypeInfo_new(tag, type_contracts::TypeInfo_name(ty), Vec_new_TypeInfo())
+    let mut ai = 0
+    while ai < arg_count {
+        let arg = type_contracts::TypeInfo_type_arg_at(ty, ai)
+        type_contracts::TypeInfo_push_type_arg(result, mono_instantiate_return_type(arg, inst))
+        ai = ai + 1
+    }
+    result
+}
+
+fn mono_type_var_index(var_name: String) -> i32 {
+    if eq(clone(var_name), String_from("T")) || eq(clone(var_name), String_from("A")) || eq(clone(var_name), String_from("K")) { return 0 }
+    if eq(clone(var_name), String_from("E")) || eq(clone(var_name), String_from("B")) { return 1 }
+    if eq(clone(var_name), String_from("U")) || eq(clone(var_name), String_from("C")) { return 2 }
+    if eq(clone(var_name), String_from("V")) || eq(clone(var_name), String_from("D")) { return 3 }
+    if eq(clone(var_name), String_from("W")) { return 4 }
+    0
+}
+
+fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {
+    let safe = mono_names::mono_safe_name(mangled)
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(mono_instances, i)
+        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
+        let inst_safe = mono_names::mono_safe_name(inst_mangled)
+        if eq(clone(inst_safe), clone(safe)) {
+            return inst
+        }
+        i = i + 1
+    }
+    type_contracts::MonoInstance_new(String_new(), String_new(), Vec_new_TypeInfo())
 }

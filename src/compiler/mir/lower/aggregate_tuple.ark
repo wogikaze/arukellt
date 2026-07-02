@@ -1,5 +1,6 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_gc_struct
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering tuple aggregate emission
 
@@ -7,13 +8,21 @@ use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::inst_local_get
 use mir::value_types
+use std::text
 
 fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
-    ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
+    let child_count = len(field_locals)
+    let struct_name = tuple_struct_name_from_field_vts(field_vts, child_count, total_bytes)
+    if len(struct_name) > 0 {
+        let sig = tuple_gc_sig_from_field_vts(field_vts, child_count)
+        ctx_gc_struct::ctx_register_gc_struct(ctx, clone(struct_name), sig)
+        ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(struct_name), total_bytes))
+    } else {
+        ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
+    }
     let mut byte_off = 0
     let mut ti = 0
-    let child_count = len(field_locals)
     while ti < child_count {
         let field_local = get_unchecked(field_locals, ti)
         let field_vt = get_unchecked(field_vts, ti)
@@ -26,12 +35,180 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
         } else {
             if field_vt == value_types::VT_I64() {
                 set_vt = value_types::VT_I64()
+            } else {
+                if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
+                    set_vt = value_types::VT_GC_REF()
+                }
             }
             byte_off = byte_off + 4
         }
-        ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_sized(dest, field_local, String_new(), set_off, total_bytes, set_vt))
+        if len(struct_name) > 0 {
+            ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_idx(dest, field_local, clone(struct_name), set_off, ti, total_bytes, set_vt))
+        } else {
+            ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set_named_sized(dest, field_local, String_new(), set_off, total_bytes, set_vt))
+        }
         ti = ti + 1
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))
     dest
+}
+
+fn tuple_struct_name_from_field_vts(field_vts: Vec<i32>, field_count: i32, total_bytes: i32) -> String {
+    if !tuple_field_vts_need_named_gc_struct(field_vts, field_count) {
+        return String_new()
+    }
+    let mut name = String_from("tuple:")
+    let mut ti = 0
+    while ti < field_count {
+        if ti > 0 {
+            name = concat(name, String_from(","))
+        }
+        name = concat(name, tuple_field_mono_key(get_unchecked(field_vts, ti)))
+        ti = ti + 1
+    }
+    let _ = total_bytes
+    name
+}
+
+fn tuple_field_vts_need_named_gc_struct(field_vts: Vec<i32>, field_count: i32) -> bool {
+    let mut ti = 0
+    while ti < field_count {
+        let field_vt = get_unchecked(field_vts, ti)
+        if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
+            return true
+        }
+        ti = ti + 1
+    }
+    false
+}
+
+fn tuple_field_mono_key(field_vt: i32) -> String {
+    if field_vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    if field_vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
+        return String_from("String")
+    }
+    String_from("i32")
+}
+
+fn tuple_gc_sig_from_field_vts(field_vts: Vec<i32>, field_count: i32) -> String {
+    let mut sig = String_from("GS")
+    let mut ti = 0
+    while ti < field_count {
+        let field_vt = get_unchecked(field_vts, ti)
+        sig = text::builder_append(sig, tuple_gc_field_sig_for_vt(field_vt, ti))
+        ti = ti + 1
+    }
+    sig
+}
+
+fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
+    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    if field_vt == value_types::VT_F64() {
+        return concat(prefix, String_from("_f64"))
+    }
+    if field_vt == value_types::VT_I64() {
+        return concat(prefix, String_from("_i64"))
+    }
+    if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
+        return concat(prefix, String_from("_ref0"))
+    }
+    concat(prefix, String_from("_i32"))
+}
+
+fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name: String) -> i32 {
+    if !starts_with(clone(return_type_name), String_from("struct:")) {
+        return 0
+    }
+    let n = len(return_type_name)
+    let mut first_colon = 0 - 1
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(return_type_name, i) == 58 {
+            if first_colon < 0 {
+                first_colon = i
+            }
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if first_colon < 0 || last_colon <= first_colon {
+        return 0
+    }
+    let inner = substring(return_type_name, first_colon + 1, last_colon)
+    if !starts_with(clone(inner), String_from("tuple:")) {
+        return 0
+    }
+    let keys = substring(inner, 6, len(inner))
+    let sig = tuple_gc_sig_from_type_keys(keys)
+    if len(sig) <= 2 {
+        return 0
+    }
+    ctx_gc_struct::ctx_register_gc_struct(ctx, clone(inner), sig)
+    1
+}
+
+fn tuple_gc_sig_from_type_keys(keys: String) -> String {
+    let mut sig = String_from("GS")
+    let key_count = tuple_key_count(keys)
+    let mut i = 0
+    while i < key_count {
+        let key = tuple_field_key_at(keys, i)
+        sig = text::builder_append(sig, tuple_gc_field_sig_for_key(key, i))
+        i = i + 1
+    }
+    sig
+}
+
+fn tuple_key_count(keys: String) -> i32 {
+    let n = len(keys)
+    if n == 0 {
+        return 0
+    }
+    let mut count = 1
+    let mut i = 0
+    while i < n {
+        if char_at(keys, i) == 44 {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn tuple_field_key_at(keys: String, index: i32) -> String {
+    let n = len(keys)
+    let mut cur = 0
+    let mut start = 0
+    let mut i = 0
+    while i <= n {
+        if i == n || char_at(keys, i) == 44 {
+            if cur == index {
+                return substring(keys, start, i)
+            }
+            cur = cur + 1
+            start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn tuple_gc_field_sig_for_key(key: String, field_idx: i32) -> String {
+    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    if eq(clone(key), String_from("f64")) || eq(clone(key), String_from("F64")) {
+        return concat(prefix, String_from("_f64"))
+    }
+    if eq(clone(key), String_from("i64")) || eq(clone(key), String_from("I64")) {
+        return concat(prefix, String_from("_i64"))
+    }
+    if eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) || starts_with(clone(key), String_from("vec:")) || starts_with(clone(key), String_from("option:")) || starts_with(clone(key), String_from("Option:")) {
+        return concat(prefix, String_from("_ref0"))
+    }
+    concat(prefix, String_from("_i32"))
 }
