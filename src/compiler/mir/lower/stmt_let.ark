@@ -35,7 +35,7 @@ fn mir_adjust_let_vt_from_init(ctx: LowerCtx, vt: i32, node: AstNode, pre_val_id
     let ta_count = ast_node::node_type_ann_count(node)
     if vt == value_types::VT_I32() && ta_count == 0 && pre_val_idx >= 0 {
         let inferred_vt = ctx_api_local_types::ctx_local_vt(ctx, pre_val_idx)
-        if inferred_vt == value_types::VT_F64() || inferred_vt == value_types::VT_I64() {
+        if inferred_vt == value_types::VT_F64() || inferred_vt == value_types::VT_I64() || inferred_vt == value_types::VT_GC_REF() {
             return inferred_vt
         }
     }

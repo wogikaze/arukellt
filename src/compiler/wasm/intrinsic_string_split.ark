@@ -18,6 +18,7 @@ use wasm::intrinsics::helpers_numeric_i32_arith
 use wasm::intrinsics::helpers_numeric_i32_bitwise
 use wasm::intrinsics::helpers_numeric_i32_compare
 use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::writer_gc
 
 // Handler for: split, text::split, string::split
 fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -59,6 +60,7 @@ fn emit_split_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
     writer_leb::emit_leb128_u(w, vec_type)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     return true
 }
 
