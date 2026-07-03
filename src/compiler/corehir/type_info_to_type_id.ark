@@ -1,0 +1,16 @@
+// Arukellt Selfhost - TypeInfo to TypeId intern bridge (PR-1 flat approximation).
+
+use corehir::type_contracts
+use corehir::type_info_kind
+use corehir::type_kind
+use corehir::type_table
+
+fn type_info_to_type_id(table: TypeTable, ty: TypeInfo) -> TypeId {
+    let tag = type_contracts::TypeInfo_tag(ty)
+    if tag == 0 {
+        return type_table::TypeTable_intern(table, type_kind::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId())
+    }
+    let kind = type_info_kind::type_info_tag_to_kind(tag)
+    let name = type_info_kind::type_info_display_name(ty)
+    type_table::TypeTable_intern(table, kind, name, Vec_new_TypeId())
+}

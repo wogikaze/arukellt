@@ -1,0 +1,21 @@
+// Arukellt Selfhost - ADR-040 function registry identifier.
+
+struct FunctionId {
+    raw: i32,
+}
+
+fn FunctionId_new(raw: i32) -> FunctionId {
+    FunctionId { raw: raw }
+}
+
+fn FunctionId_raw(id: FunctionId) -> i32 {
+    id.raw
+}
+
+fn FUNCTION_ID_INVALID() -> FunctionId {
+    FunctionId_new(0 - 1)
+}
+
+fn function_id_is_valid(id: FunctionId) -> bool {
+    FunctionId_raw(id) >= 0
+}

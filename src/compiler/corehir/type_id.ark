@@ -1,0 +1,25 @@
+// Arukellt Selfhost - ADR-040 semantic type identifier.
+
+struct TypeId {
+    raw: i32,
+}
+
+fn TypeId_new(raw: i32) -> TypeId {
+    TypeId { raw: raw }
+}
+
+fn TypeId_raw(id: TypeId) -> i32 {
+    id.raw
+}
+
+fn TYPE_ID_INVALID() -> TypeId {
+    TypeId_new(0 - 1)
+}
+
+fn type_id_is_valid(id: TypeId) -> bool {
+    TypeId_raw(id) >= 0
+}
+
+fn type_id_eq(a: TypeId, b: TypeId) -> bool {
+    TypeId_raw(a) == TypeId_raw(b)
+}

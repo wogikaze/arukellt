@@ -1,0 +1,114 @@
+// Arukellt Selfhost - ADR-040 interned semantic type table (INV-TT-1 canonical intern).
+
+use corehir::type_id
+use corehir::type_kind
+
+fn type_id_is_valid(id: TypeId) -> bool {
+    type_id::type_id_is_valid(id)
+}
+
+fn TYPE_ID_INVALID() -> TypeId {
+    type_id::TYPE_ID_INVALID()
+}
+
+fn TypeId_new(raw: i32) -> TypeId {
+    type_id::TypeId_new(raw)
+}
+
+fn TypeId_raw(id: TypeId) -> i32 {
+    type_id::TypeId_raw(id)
+}
+
+struct TypeEntry {
+    id: TypeId,
+    kind: i32,
+    name: String,
+    type_param_ids: Vec<TypeId>,
+}
+
+struct TypeTable {
+    entries: Vec<TypeEntry>,
+    next_id: i32,
+}
+
+fn TypeTable_new() -> TypeTable {
+    TypeTable { entries: Vec_new_TypeEntry(), next_id: 0 }
+}
+
+fn TypeTable_entry_count(table: TypeTable) -> i32 {
+    len(table.entries)
+}
+
+fn TypeTable_entry_at(table: TypeTable, index: i32) -> TypeEntry {
+    get_unchecked(table.entries, index)
+}
+
+fn type_entry_id(entry: TypeEntry) -> TypeId {
+    entry.id
+}
+
+fn type_entry_kind(entry: TypeEntry) -> i32 {
+    entry.kind
+}
+
+fn type_entry_name(entry: TypeEntry) -> String {
+    clone(entry.name)
+}
+
+fn type_entry_type_param_count(entry: TypeEntry) -> i32 {
+    len(entry.type_param_ids)
+}
+
+fn type_entry_type_param_at(entry: TypeEntry, index: i32) -> TypeId {
+    get_unchecked(entry.type_param_ids, index)
+}
+
+fn type_table_type_param_ids_equal(a: Vec<TypeId>, b: Vec<TypeId>) -> bool {
+    let count = len(a)
+    if count != len(b) {
+        return false
+    }
+    let mut i = 0
+    while i < count {
+        let ai = get_unchecked(a, i)
+        let bi = get_unchecked(b, i)
+        if TypeId_raw(ai) != TypeId_raw(bi) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
+    let count = len(table.entries)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(table.entries, i)
+        if entry.kind == kind && eq(clone(entry.name), clone(name)) && type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
+            return entry.id
+        }
+        i = i + 1
+    }
+    TYPE_ID_INVALID()
+}
+
+fn TypeTable_intern(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
+    let existing = type_table_find_existing(table, kind, clone(name), type_param_ids)
+    if type_id_is_valid(existing) {
+        return existing
+    }
+    let id = TypeId_new(table.next_id)
+    table.next_id = table.next_id + 1
+    let entry = TypeEntry { id: id, kind: kind, name: name, type_param_ids: type_param_ids }
+    push(table.entries, entry)
+    id
+}
+
+fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
+    let raw = TypeId_raw(id)
+    if raw >= 0 && raw < len(table.entries) {
+        return get_unchecked(table.entries, raw)
+    }
+    TypeEntry { id: TYPE_ID_INVALID(), kind: type_kind::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec_new_TypeId() }
+}

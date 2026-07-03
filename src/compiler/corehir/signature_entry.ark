@@ -1,0 +1,57 @@
+// Arukellt Selfhost - ADR-040 signature registry entry.
+
+use corehir::function_id
+use corehir::mir_value_type
+
+struct SignatureEntry {
+    id: FunctionId,
+    base_name: String,
+    param_types: Vec<MirValueType>,
+    return_types: Vec<MirValueType>,
+    receiver_present: bool,
+    receiver_type: MirValueType,
+    trait_id: i32,
+    impl_id: i32,
+    mono_instance_id: i32,
+    abi_kind: i32,
+}
+
+fn SignatureEntry_new(id: FunctionId, base_name: String, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>, receiver_present: bool, receiver_type: MirValueType, trait_id: i32, impl_id: i32, mono_instance_id: i32, abi_kind: i32) -> SignatureEntry {
+    SignatureEntry { id: id, base_name: base_name, param_types: param_types, return_types: return_types, receiver_present: receiver_present, receiver_type: receiver_type, trait_id: trait_id, impl_id: impl_id, mono_instance_id: mono_instance_id, abi_kind: abi_kind }
+}
+
+fn signature_entry_id(entry: SignatureEntry) -> FunctionId {
+    entry.id
+}
+
+fn signature_entry_base_name(entry: SignatureEntry) -> String {
+    clone(entry.base_name)
+}
+
+fn signature_entry_param_count(entry: SignatureEntry) -> i32 {
+    len(entry.param_types)
+}
+
+fn signature_entry_param_at(entry: SignatureEntry, index: i32) -> MirValueType {
+    get_unchecked(entry.param_types, index)
+}
+
+fn signature_entry_return_count(entry: SignatureEntry) -> i32 {
+    len(entry.return_types)
+}
+
+fn signature_entry_return_at(entry: SignatureEntry, index: i32) -> MirValueType {
+    get_unchecked(entry.return_types, index)
+}
+
+fn signature_entry_abi_kind(entry: SignatureEntry) -> i32 {
+    entry.abi_kind
+}
+
+fn signature_entry_impl_id(entry: SignatureEntry) -> i32 {
+    entry.impl_id
+}
+
+fn signature_entry_mono_instance_id(entry: SignatureEntry) -> i32 {
+    entry.mono_instance_id
+}

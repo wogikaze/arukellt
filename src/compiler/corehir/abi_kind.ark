@@ -1,0 +1,6 @@
+// Arukellt Selfhost - ADR-040 signature ABI classification.
+
+fn ABI_KIND_NORMAL() -> i32 { 1 }
+fn ABI_KIND_HOST_INTRINSIC() -> i32 { 2 }
+fn ABI_KIND_BUILTIN() -> i32 { 3 }
+fn ABI_KIND_TRAIT_DISPATCH() -> i32 { 4 }

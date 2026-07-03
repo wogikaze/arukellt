@@ -29,6 +29,10 @@ fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_re
     }
 }
 
+fn mir_mono_concrete_return_type(mono_instances: Vec<MonoInstance>, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
+    mono_concrete_return_type(mono_instances, mangled, generic_return_ty)
+}
+
 fn mono_concrete_return_type(mono_instances: Vec<MonoInstance>, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
     let inst = mono_find_instance(mono_instances, clone(mangled))
     if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {

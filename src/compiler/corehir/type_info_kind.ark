@@ -1,0 +1,37 @@
+// Arukellt Selfhost - TypeInfo tag to TypeKind (ADR-040 PR-1 conservative approximation).
+
+use corehir::type_contracts
+use corehir::type_kind
+
+fn type_info_tag_to_kind(tag: i32) -> i32 {
+    if tag == 5 { return type_kind::TYPE_KIND_STRING() }
+    if tag == 10 { return type_kind::TYPE_KIND_VEC() }
+    if tag == 11 { return type_kind::TYPE_KIND_OPTION() }
+    if tag == 12 { return type_kind::TYPE_KIND_RESULT() }
+    if tag == 13 { return type_kind::TYPE_KIND_HASHMAP() }
+    if tag == 21 { return type_kind::TYPE_KIND_STRUCT() }
+    if tag == 22 { return type_kind::TYPE_KIND_ENUM() }
+    if tag == 23 { return type_kind::TYPE_KIND_TUPLE() }
+    if tag == 30 { return type_kind::TYPE_KIND_TYPE_VAR() }
+    type_kind::TYPE_KIND_PRIMITIVE()
+}
+
+fn type_info_display_name(ty: TypeInfo) -> String {
+    let tag = type_contracts::TypeInfo_tag(ty)
+    if tag == 1 { return String_from("i32") }
+    if tag == 2 { return String_from("i64") }
+    if tag == 3 { return String_from("f64") }
+    if tag == 9 { return String_from("f32") }
+    if tag == 4 { return String_from("bool") }
+    if tag == 6 { return String_from("char") }
+    if tag == 5 { return String_from("String") }
+    if tag == 10 { return String_from("Vec") }
+    if tag == 11 { return String_from("Option") }
+    if tag == 12 { return String_from("Result") }
+    if tag == 13 { return String_from("HashMap") }
+    let name = type_contracts::TypeInfo_name(ty)
+    if len(name) > 0 {
+        return clone(name)
+    }
+    String_from("i32")
+}

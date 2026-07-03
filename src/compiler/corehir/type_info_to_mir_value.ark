@@ -1,0 +1,81 @@
+// Arukellt Selfhost - TypeInfo to MirValueType bridge (PR-1 flat conservative approximation).
+
+use corehir::mir_value_type
+use corehir::nullability
+use corehir::type_contracts
+use corehir::type_info_kind
+use corehir::type_info_to_type_id
+use corehir::type_kind
+use corehir::type_table
+use corehir::value_repr
+use corehir::value_types
+
+fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
+    let type_id = type_info_to_type_id::type_info_to_type_id(table, ty)
+    let tag = type_contracts::TypeInfo_tag(ty)
+    mir_value_type::MirValueType_new(type_id, type_info_repr_approx(tag), type_info_nullability_approx(tag))
+}
+
+fn type_info_repr_approx(tag: i32) -> i32 {
+    if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 || tag == 23 {
+        return value_repr::VALUE_REPR_GC_REF()
+    }
+    value_repr::VALUE_REPR_SCALAR()
+}
+
+fn type_info_nullability_approx(tag: i32) -> i32 {
+    if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 || tag == 23 {
+        return nullability::NULLABILITY_NULLABLE()
+    }
+    nullability::NULLABILITY_NOT_REF()
+}
+
+fn vt_to_mir_value(table: TypeTable, val_type: i32, type_name: String) -> MirValueType {
+    if len(type_name) > 0 {
+        return mir_value_type_from_type_name(table, clone(type_name), val_type)
+    }
+    let tag = vt_tag_from_mir_vt(val_type)
+    let ty = type_contracts::TypeInfo_simple(tag)
+    type_info_to_mir_value(table, ty)
+}
+
+fn vt_tag_from_mir_vt(vt: i32) -> i32 {
+    if vt == value_types::VT_I64() { return 2 }
+    if vt == value_types::VT_F64() { return 3 }
+    if vt == value_types::VT_F32() { return 9 }
+    if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() { return 5 }
+    if vt == value_types::VT_VOID() { return 0 }
+    1
+}
+
+fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
+    if eq(clone(type_name), String_from("String")) {
+        let id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
+        return mir_value_type::MirValueType_new(id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        let id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_STRUCT(), type_name, Vec_new_TypeId())
+        return mir_value_type::MirValueType_new(id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        let id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_ENUM(), type_name, Vec_new_TypeId())
+        return mir_value_type::MirValueType_new(id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        let id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_VEC(), type_name, Vec_new_TypeId())
+        return mir_value_type::MirValueType_new(id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    }
+    if starts_with(clone(type_name), String_from("option:")) {
+        let id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_OPTION(), type_name, Vec_new_TypeId())
+        return mir_value_type::MirValueType_new(id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    }
+    let tag = vt_tag_from_mir_vt(val_type)
+    let id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_PRIMITIVE(), type_name, Vec_new_TypeId())
+    mir_value_type::MirValueType_new(id, type_info_repr_approx(tag), type_info_nullability_approx(tag))
+}
+
+fn mir_value_type_vec_single(table: TypeTable, ty: TypeInfo) -> Vec<MirValueType> {
+    let result = Vec_new_MirValueType()
+    push(result, type_info_to_mir_value(table, ty))
+    result
+}

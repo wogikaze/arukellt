@@ -1,0 +1,33 @@
+// Arukellt Selfhost - PR-1 signature spine side storage (not on LowerCtx; emit-unused).
+
+use corehir::signature_registry
+use corehir::type_table
+use mir::lower::signature_spine
+
+struct MirSignatureSpineSlot {
+    type_table: TypeTable,
+    signature_registry: SignatureRegistry,
+    populated: bool,
+}
+
+fn mir_signature_spine_slot_new() -> MirSignatureSpineSlot {
+    MirSignatureSpineSlot { type_table: type_table::TypeTable_new(), signature_registry: signature_registry::SignatureRegistry_new(), populated: false }
+}
+
+fn mir_signature_spine_slot_store(slot: MirSignatureSpineSlot, spine: MirSignatureSpine) {
+    slot.type_table = signature_spine::mir_signature_spine_type_table(spine)
+    slot.signature_registry = signature_spine::mir_signature_spine_registry(spine)
+    slot.populated = true
+}
+
+fn mir_signature_spine_slot_populated(slot: MirSignatureSpineSlot) -> bool {
+    slot.populated
+}
+
+fn mir_signature_spine_slot_type_table(slot: MirSignatureSpineSlot) -> TypeTable {
+    slot.type_table
+}
+
+fn mir_signature_spine_slot_registry(slot: MirSignatureSpineSlot) -> SignatureRegistry {
+    slot.signature_registry
+}

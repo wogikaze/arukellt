@@ -1,0 +1,65 @@
+// Arukellt Selfhost - register host intrinsic stubs into signature registry (diff observation).
+
+use corehir::abi_kind
+use corehir::function_id
+use corehir::nullability
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::type_kind
+use corehir::type_table
+use corehir::value_repr
+use mir::host_intrinsic_stub_names
+
+fn sig_reg_register_host_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
+    let stub_count = host_intrinsic_stub_names::host_intrinsic_stub_count()
+    let mut missing = 0
+    let mut i = 0
+    while i < stub_count {
+        let stub_name = host_intrinsic_stub_names::host_intrinsic_stub_name_at(i)
+        if !sig_reg_registry_has_mangled(registry, clone(stub_name)) {
+            sig_reg_register_host_entry(table, registry, clone(stub_name))
+            missing = missing + 1
+        }
+        i = i + 1
+    }
+    sig_reg_log_stub_diff(registry, stub_count)
+    missing
+}
+
+fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bool {
+    let count = signature_registry::signature_registry_entry_count(registry)
+    let mut i = 0
+    while i < count {
+        if eq(clone(name), signature_registry::signature_registry_mangled_at(registry, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, name: String) {
+    let ret_id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
+    let ret_mv = mir_value_type::MirValueType_new(ret_id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    let returns = Vec_new_MirValueType()
+    push(returns, ret_mv)
+    let params = Vec_new_MirValueType()
+    let receiver = mir_value_type::MirValueType_new(type_table::TypeTable_intern(table, type_kind::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()), value_repr::VALUE_REPR_SCALAR(), nullability::NULLABILITY_NOT_REF())
+    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(name), params, returns, false, receiver, 0 - 1, 0 - 1, 0 - 1, abi_kind::ABI_KIND_HOST_INTRINSIC())
+    signature_registry::signature_registry_register(registry, entry, name)
+}
+
+fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
+    let mut diff = 0
+    let mut i = 0
+    while i < stub_count {
+        let stub_name = host_intrinsic_stub_names::host_intrinsic_stub_name_at(i)
+        if !sig_reg_registry_has_mangled(registry, clone(stub_name)) {
+            diff = diff + 1
+        }
+        i = i + 1
+    }
+    if diff > 0 {
+        stdio::eprintln(concat(String_from("sig-reg: host intrinsic stub diff count="), i32_to_string(diff)))
+    }
+}

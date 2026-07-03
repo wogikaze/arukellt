@@ -1,0 +1,5 @@
+// Arukellt Selfhost - ADR-040 MirValueType representation kind.
+
+fn VALUE_REPR_SCALAR() -> i32 { 1 }
+fn VALUE_REPR_GC_REF() -> i32 { 2 }
+fn VALUE_REPR_LINEAR_PTR() -> i32 { 3 }

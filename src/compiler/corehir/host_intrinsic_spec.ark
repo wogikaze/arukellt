@@ -1,0 +1,18 @@
+// Arukellt Selfhost - ADR-040 host intrinsic spec (type definition only; stub list in mir/).
+
+struct HostIntrinsicSpec {
+    name: String,
+    abi_kind: i32,
+}
+
+fn HostIntrinsicSpec_new(name: String, abi_kind: i32) -> HostIntrinsicSpec {
+    HostIntrinsicSpec { name: name, abi_kind: abi_kind }
+}
+
+fn host_intrinsic_spec_name(spec: HostIntrinsicSpec) -> String {
+    clone(spec.name)
+}
+
+fn host_intrinsic_spec_abi_kind(spec: HostIntrinsicSpec) -> i32 {
+    spec.abi_kind
+}

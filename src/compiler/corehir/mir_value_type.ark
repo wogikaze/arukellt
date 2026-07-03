@@ -1,0 +1,29 @@
+// Arukellt Selfhost - ADR-040 compiler-internal value type (conservative approximation in PR-1).
+
+use corehir::type_id
+
+struct MirValueType {
+    type_id: TypeId,
+    repr: i32,
+    nullability: i32,
+}
+
+fn MirValueType_new(type_id: TypeId, repr: i32, nullability: i32) -> MirValueType {
+    MirValueType { type_id: type_id, repr: repr, nullability: nullability }
+}
+
+fn mir_value_type_type_id(vt: MirValueType) -> TypeId {
+    vt.type_id
+}
+
+fn mir_value_type_repr(vt: MirValueType) -> i32 {
+    vt.repr
+}
+
+fn mir_value_type_nullability(vt: MirValueType) -> i32 {
+    vt.nullability
+}
+
+fn mir_value_type_copy(vt: MirValueType) -> MirValueType {
+    MirValueType_new(mir_value_type_type_id(vt), mir_value_type_repr(vt), mir_value_type_nullability(vt))
+}

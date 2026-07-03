@@ -1,0 +1,59 @@
+// Arukellt Selfhost - ADR-040 central function signature registry.
+
+use corehir::abi_kind
+use corehir::function_id
+use corehir::mir_value_type
+use corehir::signature_entry
+use corehir::type_id
+
+struct SignatureRegistry {
+    entries: Vec<SignatureEntry>,
+    id_to_mangled: Vec<String>,
+    next_id: i32,
+}
+
+fn SignatureRegistry_new() -> SignatureRegistry {
+    SignatureRegistry { entries: Vec_new_SignatureEntry(), id_to_mangled: Vec_new_String(), next_id: 0 }
+}
+
+fn signature_registry_entry_count(registry: SignatureRegistry) -> i32 {
+    len(registry.entries)
+}
+
+fn signature_registry_register(registry: SignatureRegistry, entry: SignatureEntry, mangled_name: String) -> FunctionId {
+    push(registry.entries, entry)
+    push(registry.id_to_mangled, mangled_name)
+    let id = FunctionId_new(registry.next_id)
+    registry.next_id = registry.next_id + 1
+    id
+}
+
+fn signature_registry_entry_at(registry: SignatureRegistry, index: i32) -> SignatureEntry {
+    get_unchecked(registry.entries, index)
+}
+
+fn signature_registry_mangled_at(registry: SignatureRegistry, index: i32) -> String {
+    get_unchecked(registry.id_to_mangled, index)
+}
+
+fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) -> SignatureEntry {
+    let raw = FunctionId_raw(id)
+    if raw >= 0 && raw < len(registry.entries) {
+        return get_unchecked(registry.entries, raw)
+    }
+    signature_entry::SignatureEntry_new(FUNCTION_ID_INVALID(), String_new(), Vec_new_MirValueType(), Vec_new_MirValueType(), false, mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0), 0 - 1, 0 - 1, 0 - 1, abi_kind::ABI_KIND_NORMAL())
+}
+
+fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {
+    let count = len(registry.entries)
+    let mut total = 0
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(registry.entries, i)
+        if signature_entry::signature_entry_abi_kind(entry) == abi_kind::ABI_KIND_HOST_INTRINSIC() {
+            total = total + 1
+        }
+        i = i + 1
+    }
+    total
+}

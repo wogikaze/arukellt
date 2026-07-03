@@ -6,9 +6,11 @@ use mir::lower::decl_source
 use mir::lower::fn_index
 use mir::lower::fn_index_fns
 use mir::lower::fn_index_methods
+use mir::lower::signature_registry_build
+use mir::lower::signature_spine_slot
 use mir::lower::fn_index_source
 
-fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex) -> MirLowerFnIndex {
+fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, spine_slot: MirSignatureSpineSlot) -> MirLowerFnIndex {
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let source = fn_index_source::mir_fn_index_source_from_view(view)
@@ -30,5 +32,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex) -> MirLow
     }
     let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
     let typed_fn_count = fn_index_source::mir_fn_index_source_typed_fn_count(source)
+    let spine = signature_registry_build::mir_build_signature_spine_from_view(view, midx, fn_names)
+    signature_spine_slot::mir_signature_spine_slot_store(spine_slot, spine)
     fn_index::MirLowerFnIndex_new(fn_names, fn_return_vts, fn_return_type_names, entry_main_decl_index, typed_fn_count)
 }
