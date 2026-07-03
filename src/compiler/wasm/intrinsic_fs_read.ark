@@ -16,10 +16,10 @@ use wasm::intrinsics::helpers_numeric_i64_const
 fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_path = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     emit_fs_read_open_branch(w, s_path)
-    intrinsic_fs_read_body::emit_fs_read_open_error(w)
+    intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
     helpers_control_structured::emit_else(w)
     intrinsic_fs_read_body::emit_fs_read_loop(w)
-    intrinsic_fs_read_body::emit_fs_read_success(w)
+    intrinsic_fs_read_body::emit_fs_read_success(w, ctx)
     helpers_control_structured::emit_end(w)
     return true
 }

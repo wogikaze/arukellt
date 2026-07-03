@@ -28,6 +28,7 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
             ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_accessors_literals::MirInst_int_val(inst))
         }
         writer_gc::emit_gc_struct_new_default(w, gc_type_idx)
+        writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_leb::emit_leb128_u(w, dest)
         return

@@ -65,7 +65,7 @@ fn emit_unresolved_fallback_call(w: WasmWriter, inst: MirInst) {
 }
 
 fn emit_vec_new_fallback_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
-    intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, ctx)
+    intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
     inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }

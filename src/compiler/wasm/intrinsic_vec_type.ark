@@ -17,7 +17,32 @@ use mir::opcodes as mir_opcodes
 use wasm::ctx_gc_type
 use wasm::ctx_record
 
-// Resolve the GC vec struct type for a vec intrinsic call.
+// Resolve vec/array GC types for Vec_new from the destination local.
+fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
+    let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, dest_local)
+    if vt >= 0 {
+        return vt
+    }
+    ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+}
+
+fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
+    let tname = local_type_name(ctx, dest_local)
+    if eq(clone(tname), String_from("vec:String")) {
+        return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+        return ctx_gc_type::SelfEmitCtx_v128_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:i64")) || eq(clone(tname), String_from("vec:I64")) {
+        return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
+        return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
+    }
+    ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+}
+
 // `callee` is the intrinsic name (e.g. "vec_len", "get_unchecked").
 // `inst`  is the MIR_CALL instruction being emitted.
 // Returns the vec type index, falling back to vec_type_for_ctx when the

@@ -61,5 +61,8 @@ fn is_gc_const_string_consumer(next_op: i32) -> bool {
     if next_op == opcodes::MIR_ARRAY_SET() {
         return true
     }
+    if next_op == opcodes::MIR_ADD() {
+        return true
+    }
     false
 }

@@ -1,6 +1,7 @@
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::inst_local_set
+use mir::inst_local_get
 use mir::inst_struct_get
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
@@ -62,6 +63,7 @@ fn mir_emit_struct_field_bind(ctx: LowerCtx, struct_name: String, field_pat: Ast
     } else if bind_vt == value_types::VT_V128() {
         field_vt = value_types::VT_V128()
     }
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(struct_name), field_off, field_idx, struct_byte_size, field_vt, bind_local))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
 }

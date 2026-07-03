@@ -19,7 +19,7 @@ use wasm::emit_target
 
 // Handler for: Vec_new_i64, Vec_new_f64
 fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_vec_new_layout::emit_vec_new_layout(w, 64, 76, ctx)
+    intrinsic_vec_new_layout::emit_vec_new_layout(w, 64, 76, inst, ctx)
     inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
     return true
 }

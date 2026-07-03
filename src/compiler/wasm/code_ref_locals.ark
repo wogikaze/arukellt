@@ -4,6 +4,7 @@ use mir::function_return_view
 use mir::function_locals_view
 use mir::value_types
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_infer
 
@@ -21,6 +22,15 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
         return false
     }
     if code_ref_locals_types::is_option_type_name(clone(type_name)) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
         return true
     }
     if mir_function_returns_option(f) && storage == ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) {
