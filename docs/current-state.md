@@ -323,6 +323,7 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 - **MIR validation** brackets every pass for early bug detection
 - **ADR-040 PR-1/2 (2026-07)**: `TypeTable` / `MirValueType` / `SignatureRegistry` 骨格を `fn_index` からミラー構築（conservative approximation、emit 未使用）。`mir::verify_mir_warn_only` を compile パイプラインに warning-only で挿入（W001–W005 集計ログ）
 - **ADR-040 PR-3 (2026-07)**: `MirModule` へ spine 永続化（`type_table` / `signature_registry` / `mono_instance_table`）、`MonoInstanceTable` + subst、`MIR_CALL.func_id_raw` を lowering で設定。W003 除外強化。代表 fixture の mir-verify baseline を `.build/mir-verify-baseline/` に記録。`mir::verify_mir`（W005 fail）を追加（パイプラインは warn-only 維持）
+- **ADR-040 PR-4a-pre (2026-07)**: `legacy_vt_compat`（MirValueType→LegacyVT）経由で emit 時 old/new 差分監査（`reg-vt-audit`）。一致する通常 CALL のみ registry 経由 void 判定へ切替。PR-4b: `mono_return_vt_table` で MonoInstanceTable 観測（不一致時は legacy 維持）
 - Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
 
 ### T3 MIR optimization re-enabled (issue #486, 2026-04-15; #650 wasm emit unlock 2026-06)

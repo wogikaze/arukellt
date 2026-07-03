@@ -5,6 +5,7 @@
 // module looks up the concrete return type from the MonoInstance.
 
 use mir::lower::return_typeinfo
+use mir::lower::mono_return_vt_table
 use mir::lower::ctx_fn_return_type
 use mir::lower_kinds
 use mir::mono_names
@@ -12,6 +13,12 @@ use mir::type_contracts
 use mir::value_types
 
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
+    let legacy_vt = mono_return_vt_legacy_path(ctx, clone(name), fallback_vt)
+    let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, clone(name))
+    mono_return_vt_table::mono_return_vt_apply_table_when_matched(table_vt, legacy_vt, name)
+}
+
+fn mono_return_vt_legacy_path(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let inst_idx = mono_find_instance(ctx.mono_instances, clone(name))
     if inst_idx < 0 {
         return fallback_vt

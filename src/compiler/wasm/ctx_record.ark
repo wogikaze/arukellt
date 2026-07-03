@@ -1,5 +1,7 @@
 // Arukellt Selfhost - Wasm emitter context data record.
 
+use corehir::signature_registry
+use corehir::type_table
 use mir::function_identity
 
 pub struct SelfEmitCtx {
@@ -26,6 +28,13 @@ pub struct SelfEmitCtx {
     gc_struct_names: Vec<String>,
     current_func_idx: i32,
     fn_type_map: Vec<i32>,
+    signature_registry: SignatureRegistry,
+    type_table: TypeTable,
+    spine_populated: bool,
+    registry_audit_candidates: i32,
+    registry_audit_matched: i32,
+    registry_audit_mismatched: i32,
+    registry_audit_mismatch_budget: i32,
 }
 
 fn SelfEmitCtx_new(functions: Vec<MirFunction>, string_offsets: Vec<i32>, string_lengths: Vec<i32>, string_values: Vec<String>, true_str_idx: i32, false_str_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> SelfEmitCtx {
@@ -36,7 +45,7 @@ fn SelfEmitCtx_new(functions: Vec<MirFunction>, string_offsets: Vec<i32>, string
         push(name_lengths, len(function_identity::MirFunction_name(get_unchecked(functions, fi))))
         fi = fi + 1
     }
-    SelfEmitCtx { functions: functions, function_name_lengths: name_lengths, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target, wasi_version: wasi_version, needs_arukellt_host: needs_arukellt_host, gc_hint_offsets: Vec_new_i32(), needs_wasi_http_outgoing: needs_wasi_http_outgoing, gc_type_base: 0, gc_enum_variant_base: 0 - 1, gc_enum_variant_type_map: Vec_new_i32(), gc_enum_variant_names: Vec_new_String(), gc_struct_base: 0 - 1, gc_struct_type_map: Vec_new_i32(), gc_struct_names: Vec_new_String(), current_func_idx: 0, fn_type_map: Vec_new_i32() }
+    SelfEmitCtx { functions: functions, function_name_lengths: name_lengths, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target, wasi_version: wasi_version, needs_arukellt_host: needs_arukellt_host, gc_hint_offsets: Vec_new_i32(), needs_wasi_http_outgoing: needs_wasi_http_outgoing, gc_type_base: 0, gc_enum_variant_base: 0 - 1, gc_enum_variant_type_map: Vec_new_i32(), gc_enum_variant_names: Vec_new_String(), gc_struct_base: 0 - 1, gc_struct_type_map: Vec_new_i32(), gc_struct_names: Vec_new_String(), current_func_idx: 0, fn_type_map: Vec_new_i32(), signature_registry: signature_registry::SignatureRegistry_new(), type_table: type_table::TypeTable_new(), spine_populated: false, registry_audit_candidates: 0, registry_audit_matched: 0, registry_audit_mismatched: 0, registry_audit_mismatch_budget: 32 }
 }
 
 fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {
@@ -141,4 +150,60 @@ fn SelfEmitCtx_fn_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
 
 fn SelfEmitCtx_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx.fn_type_map = fn_type_map
+}
+
+fn SelfEmitCtx_signature_registry(ctx: SelfEmitCtx) -> SignatureRegistry {
+    ctx.signature_registry
+}
+
+fn SelfEmitCtx_set_signature_registry(ctx: SelfEmitCtx, signature_registry: SignatureRegistry) {
+    ctx.signature_registry = signature_registry
+}
+
+fn SelfEmitCtx_type_table(ctx: SelfEmitCtx) -> TypeTable {
+    ctx.type_table
+}
+
+fn SelfEmitCtx_set_type_table(ctx: SelfEmitCtx, type_table: TypeTable) {
+    ctx.type_table = type_table
+}
+
+fn SelfEmitCtx_spine_populated(ctx: SelfEmitCtx) -> bool {
+    ctx.spine_populated
+}
+
+fn SelfEmitCtx_set_spine_populated(ctx: SelfEmitCtx, spine_populated: bool) {
+    ctx.spine_populated = spine_populated
+}
+
+fn SelfEmitCtx_registry_audit_candidates(ctx: SelfEmitCtx) -> i32 {
+    ctx.registry_audit_candidates
+}
+
+fn SelfEmitCtx_registry_audit_matched(ctx: SelfEmitCtx) -> i32 {
+    ctx.registry_audit_matched
+}
+
+fn SelfEmitCtx_registry_audit_mismatched(ctx: SelfEmitCtx) -> i32 {
+    ctx.registry_audit_mismatched
+}
+
+fn SelfEmitCtx_registry_audit_mismatch_budget(ctx: SelfEmitCtx) -> i32 {
+    ctx.registry_audit_mismatch_budget
+}
+
+fn SelfEmitCtx_registry_audit_inc_candidates(ctx: SelfEmitCtx) {
+    ctx.registry_audit_candidates = ctx.registry_audit_candidates + 1
+}
+
+fn SelfEmitCtx_registry_audit_inc_matched(ctx: SelfEmitCtx) {
+    ctx.registry_audit_matched = ctx.registry_audit_matched + 1
+}
+
+fn SelfEmitCtx_registry_audit_inc_mismatched(ctx: SelfEmitCtx) {
+    ctx.registry_audit_mismatched = ctx.registry_audit_mismatched + 1
+}
+
+fn SelfEmitCtx_registry_audit_dec_mismatch_budget(ctx: SelfEmitCtx) {
+    ctx.registry_audit_mismatch_budget = ctx.registry_audit_mismatch_budget - 1
 }

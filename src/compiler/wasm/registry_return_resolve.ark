@@ -1,0 +1,32 @@
+// Arukellt Selfhost - PR-4a registry legacy return VT resolution via compat table.
+
+use corehir::function_id
+use corehir::legacy_vt_compat
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::inst_record
+use mir::value_types
+use wasm::ctx_record
+use wasm::registry_return_guard
+
+fn registry_resolve_legacy_return_vt(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    let table = ctx_record::SelfEmitCtx_type_table(ctx)
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
+    if signature_entry::signature_entry_return_count(entry) <= 0 {
+        return value_types::VT_VOID()
+    }
+    legacy_vt_compat::legacy_vt_from_mir_value_type(table, signature_entry::signature_entry_return_at(entry, 0))
+}
+
+fn registry_resolve_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst) -> bool {
+    legacy_vt_compat::legacy_vt_is_void(registry_resolve_legacy_return_vt(ctx, inst))
+}
+
+fn registry_should_use_matched_path(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
+    if !registry_return_guard::registry_guard_is_normal_call(ctx, inst, callee) {
+        return false
+    }
+    let reg_vt = registry_resolve_legacy_return_vt(ctx, inst)
+    legacy_vt_compat::legacy_vt_values_equal(reg_vt, fn_legacy_vt)
+}

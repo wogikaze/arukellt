@@ -1,0 +1,40 @@
+// Arukellt Selfhost - PR-4b MonoInstanceTable return VT via legacy compat (lowering only).
+
+use corehir::legacy_vt_compat
+use mir::lower::ctx_current_storage
+use mir::lower::mono_instance_table
+use mir::module_spine
+
+fn mono_return_vt_from_instance_table(ctx: LowerCtx, name: String) -> i32 {
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return 0 - 1
+    }
+    let mono_table = module_spine::MirModule_mono_instance_table(m)
+    let type_table = module_spine::MirModule_type_table(m)
+    let idx = mono_instance_table::mono_instance_table_find_by_mangled(mono_table, name)
+    if idx < 0 {
+        return 0 - 1
+    }
+    let entry = mono_instance_table::mono_instance_table_entry_at(mono_table, idx)
+    if mono_instance_table::mono_instance_entry_return_count(entry) <= 0 {
+        return 0 - 1
+    }
+    legacy_vt_compat::legacy_vt_from_mir_value_type(type_table, mono_instance_table::mono_instance_entry_return_at(entry, 0))
+}
+
+fn mono_return_vt_audit_log_mismatch(name: String, table_vt: i32, legacy_vt: i32) {
+    let line = concat(String_from("mono-vt-audit: mismatch callee="), concat(name, concat(String_from(" table="), concat(i32_to_string(table_vt), concat(String_from(" legacy="), i32_to_string(legacy_vt))))))
+    stdio::eprintln(line)
+}
+
+fn mono_return_vt_apply_table_when_matched(table_vt: i32, legacy_vt: i32, name: String) -> i32 {
+    if table_vt < 0 {
+        return legacy_vt
+    }
+    if table_vt != legacy_vt {
+        mono_return_vt_audit_log_mismatch(name, table_vt, legacy_vt)
+        return legacy_vt
+    }
+    table_vt
+}

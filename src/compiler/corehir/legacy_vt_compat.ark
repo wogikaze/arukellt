@@ -1,0 +1,69 @@
+// Arukellt Selfhost - ADR-040 MirValueType to legacy MIR val_type (PR-4a compat table).
+
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_kind
+use corehir::type_table
+use corehir::value_repr
+use mir::value_types
+
+fn legacy_vt_from_mir_value_type(table: TypeTable, mvt: MirValueType) -> i32 {
+    let repr = mir_value_type::mir_value_type_repr(mvt)
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return legacy_vt_from_repr_only(repr)
+    }
+    let entry = type_table::TypeTable_lookup(table, tid)
+    let kind = type_table::type_entry_kind(entry)
+    let name = type_table::type_entry_name(entry)
+    if kind == type_kind::TYPE_KIND_PRIMITIVE() {
+        return legacy_vt_from_primitive_name(name)
+    }
+    if kind == type_kind::TYPE_KIND_STRING() {
+        if repr == value_repr::VALUE_REPR_GC_REF() {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
+    if repr == value_repr::VALUE_REPR_GC_REF() {
+        return value_types::VT_GC_REF()
+    }
+    if repr == value_repr::VALUE_REPR_LINEAR_PTR() {
+        return value_types::VT_REF()
+    }
+    value_types::VT_I32()
+}
+
+fn legacy_vt_from_repr_only(repr: i32) -> i32 {
+    if repr == value_repr::VALUE_REPR_GC_REF() {
+        return value_types::VT_GC_REF()
+    }
+    if repr == value_repr::VALUE_REPR_LINEAR_PTR() {
+        return value_types::VT_REF()
+    }
+    value_types::VT_VOID()
+}
+
+fn legacy_vt_from_primitive_name(name: String) -> i32 {
+    if eq(clone(name), String_from("void")) {
+        return value_types::VT_VOID()
+    }
+    if eq(clone(name), String_from("i64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(name), String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(name), String_from("f32")) {
+        return value_types::VT_F32()
+    }
+    value_types::VT_I32()
+}
+
+fn legacy_vt_is_void(vt: i32) -> bool {
+    vt == value_types::VT_VOID()
+}
+
+fn legacy_vt_values_equal(a: i32, b: i32) -> bool {
+    a == b
+}
