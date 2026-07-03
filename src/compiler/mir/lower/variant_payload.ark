@@ -26,7 +26,18 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
 
 fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Vec<i32>, payload_vts: Vec<i32>, variant_name: String) -> i32 {
     let type_slot = if len(payload_vts) > 0 {
-        ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, clone(variant_name), payload_vts)
+        let first_vt = get_unchecked(payload_vts, 0)
+        if first_vt == value_types::VT_GC_REF() || first_vt == value_types::VT_REF() {
+            let first_local = get_unchecked(payload_locals, 0)
+            let payload_type_name = ctx_get_local_type(ctx, first_local)
+            if starts_with(clone(payload_type_name), String_from("enum:")) || eq(clone(payload_type_name), String_from("Ordering")) {
+                ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), payload_vts, clone(payload_type_name))
+            } else {
+                ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, clone(variant_name), payload_vts)
+            }
+        } else {
+            ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, clone(variant_name), payload_vts)
+        }
     } else {
         ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     }
