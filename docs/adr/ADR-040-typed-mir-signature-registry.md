@@ -1,6 +1,6 @@
 # ADR-040: Semantic Type Spine — 意味情報を保存する背骨
 
-ステータス: **Accepted; implementation started** (PR-1 型 spine 骨格 + PR-2 MIR verifier warning-only 導入済み。MonoInstanceTable / emit 切替は未着手)
+ステータス: **Accepted; implementation in progress** (PR-3 完了: MirModule spine 永続化、MonoInstanceTable、CALL `func_id_raw`、verifier W003 強化。PR-4 emit registry 切替・PR-5 推論削除は T3 退行のため別 PR で再着手)
 
 決定日: 2026-07-03
 

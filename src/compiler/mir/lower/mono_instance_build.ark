@@ -1,0 +1,50 @@
+// Arukellt Selfhost - build MonoInstanceTable entries from mono instances (PR-3).
+
+use corehir::function_id
+use corehir::mir_value_type
+use corehir::type_info_to_type_id
+use corehir::type_table
+use mir::lower::mono_instance_table
+use mir::mono_names
+use mir::type_contracts
+
+fn mono_instance_table_register_from_instances(table: MonoInstanceTable, type_table: TypeTable, mono_instances: Vec<MonoInstance>, mangled: String, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>) {
+    let inst = mono_find_instance(mono_instances, clone(mangled))
+    if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
+        return
+    }
+    let subst_names = Vec_new_String()
+    let subst_ids = Vec_new_TypeId()
+    let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
+    let mut ai = 0
+    while ai < arg_count {
+        push(subst_names, mono_type_var_name_at(ai))
+        push(subst_ids, type_info_to_type_id::type_info_to_type_id(type_table, type_contracts::MonoInstance_type_arg_at(inst, ai)))
+        ai = ai + 1
+    }
+    let entry = mono_instance_table::MonoInstanceEntry_new(clone(mangled), subst_names, subst_ids, param_types, return_types, function_id::FUNCTION_ID_INVALID(), function_id::FUNCTION_ID_INVALID())
+    mono_instance_table::mono_instance_table_register(table, entry)
+}
+
+fn mono_type_var_name_at(index: i32) -> String {
+    if index == 0 { return String_from("T") }
+    if index == 1 { return String_from("E") }
+    if index == 2 { return String_from("U") }
+    if index == 3 { return String_from("V") }
+    if index == 4 { return String_from("W") }
+    concat(String_from("T"), i32_to_string(index))
+}
+
+fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {
+    let safe = mono_names::mono_safe_name(mangled)
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(mono_instances, i)
+        if eq(mono_names::mono_safe_name(type_contracts::MonoInstance_mangled_name(inst)), clone(safe)) {
+            return inst
+        }
+        i = i + 1
+    }
+    type_contracts::MonoInstance_new(String_new(), String_new(), Vec_new_TypeInfo())
+}

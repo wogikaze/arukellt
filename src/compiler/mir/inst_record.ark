@@ -9,10 +9,11 @@ pub struct MirInst {
     float_val: f64,
     str_val: String,
     val_type: i32,
+    func_id_raw: i32,
 }
 
 fn MirInst_new_full(op: i32, dest: i32, arg0: i32, arg1: i32, int_val: i32, float_val: f64, str_val: String, val_type: i32) -> MirInst {
-    MirInst { op: op, dest: dest, arg0: arg0, arg1: arg1, int_val: int_val, float_val: float_val, str_val: str_val, val_type: val_type }
+    MirInst { op: op, dest: dest, arg0: arg0, arg1: arg1, int_val: int_val, float_val: float_val, str_val: str_val, val_type: val_type, func_id_raw: 0 - 1 }
 }
 
 fn mir_inst_val_type(inst: MirInst) -> i32 {
@@ -57,4 +58,12 @@ fn mir_inst_set_arg1(inst: MirInst, arg1: i32) {
 
 fn mir_inst_set_dest(inst: MirInst, dest: i32) {
     inst.dest = dest
+}
+
+fn mir_inst_func_id_raw(inst: MirInst) -> i32 {
+    inst.func_id_raw
+}
+
+fn mir_inst_set_func_id_raw(inst: MirInst, func_id_raw: i32) {
+    inst.func_id_raw = func_id_raw
 }

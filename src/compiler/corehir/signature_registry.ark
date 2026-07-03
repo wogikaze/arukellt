@@ -36,6 +36,18 @@ fn signature_registry_mangled_at(registry: SignatureRegistry, index: i32) -> Str
     get_unchecked(registry.id_to_mangled, index)
 }
 
+fn signature_registry_lookup_by_mangled(registry: SignatureRegistry, mangled: String) -> FunctionId {
+    let count = len(registry.id_to_mangled)
+    let mut i = 0
+    while i < count {
+        if eq(clone(mangled), signature_registry_mangled_at(registry, i)) {
+            return FunctionId_new(i)
+        }
+        i = i + 1
+    }
+    FUNCTION_ID_INVALID()
+}
+
 fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) -> SignatureEntry {
     let raw = FunctionId_raw(id)
     if raw >= 0 && raw < len(registry.entries) {

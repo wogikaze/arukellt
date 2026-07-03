@@ -1,0 +1,30 @@
+// Arukellt Selfhost - MirModule ADR-040 spine accessors (emit-unused until PR-4).
+
+use corehir::signature_registry
+use corehir::type_table
+use mir::lower::mono_instance_table
+use mir::lower::signature_spine
+use mir::module_record
+
+fn MirModule_set_signature_spine(m: MirModule, spine: MirSignatureSpine) {
+    m.type_table = signature_spine::mir_signature_spine_type_table(spine)
+    m.signature_registry = signature_spine::mir_signature_spine_registry(spine)
+    m.mono_instance_table = signature_spine::mir_signature_spine_mono_table(spine)
+    m.spine_populated = true
+}
+
+fn MirModule_signature_spine_populated(m: MirModule) -> bool {
+    m.spine_populated
+}
+
+fn MirModule_type_table(m: MirModule) -> TypeTable {
+    m.type_table
+}
+
+fn MirModule_signature_registry(m: MirModule) -> SignatureRegistry {
+    m.signature_registry
+}
+
+fn MirModule_mono_instance_table(m: MirModule) -> MonoInstanceTable {
+    m.mono_instance_table
+}

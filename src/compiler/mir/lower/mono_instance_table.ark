@@ -1,0 +1,73 @@
+// Arukellt Selfhost - ADR-040 MonoInstanceTable with explicit subst (PR-3).
+
+use corehir::function_id
+use corehir::mir_value_type
+use corehir::type_id
+
+struct MonoInstanceId {
+    raw: i32,
+}
+
+struct MonoInstanceEntry {
+    id: MonoInstanceId,
+    mangled_name: String,
+    subst_var_names: Vec<String>,
+    subst_type_ids: Vec<TypeId>,
+    instantiated_param_types: Vec<MirValueType>,
+    instantiated_return_types: Vec<MirValueType>,
+    base_function_id: FunctionId,
+    signature_id: FunctionId,
+}
+
+struct MonoInstanceTable {
+    entries: Vec<MonoInstanceEntry>,
+    next_id: i32,
+}
+
+fn MONO_INSTANCE_ID_INVALID() -> MonoInstanceId {
+    MonoInstanceId { raw: 0 - 1 }
+}
+
+fn MonoInstanceTable_new() -> MonoInstanceTable {
+    MonoInstanceTable { entries: Vec_new_MonoInstanceEntry(), next_id: 0 }
+}
+
+fn mono_instance_table_entry_count(table: MonoInstanceTable) -> i32 {
+    len(table.entries)
+}
+
+fn mono_instance_table_register(table: MonoInstanceTable, entry: MonoInstanceEntry) -> MonoInstanceId {
+    push(table.entries, entry)
+    let id = MonoInstanceId { raw: table.next_id }
+    table.next_id = table.next_id + 1
+    id
+}
+
+fn mono_instance_table_entry_at(table: MonoInstanceTable, index: i32) -> MonoInstanceEntry {
+    get_unchecked(table.entries, index)
+}
+
+fn mono_instance_table_find_by_mangled(table: MonoInstanceTable, mangled: String) -> i32 {
+    let count = len(table.entries)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(table.entries, i)
+        if eq(clone(entry.mangled_name), clone(mangled)) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn MonoInstanceEntry_new(mangled_name: String, subst_var_names: Vec<String>, subst_type_ids: Vec<TypeId>, instantiated_param_types: Vec<MirValueType>, instantiated_return_types: Vec<MirValueType>, base_function_id: FunctionId, signature_id: FunctionId) -> MonoInstanceEntry {
+    MonoInstanceEntry { id: MONO_INSTANCE_ID_INVALID(), mangled_name: mangled_name, subst_var_names: subst_var_names, subst_type_ids: subst_type_ids, instantiated_param_types: instantiated_param_types, instantiated_return_types: instantiated_return_types, base_function_id: base_function_id, signature_id: signature_id }
+}
+
+fn mono_instance_entry_return_at(entry: MonoInstanceEntry, index: i32) -> MirValueType {
+    get_unchecked(entry.instantiated_return_types, index)
+}
+
+fn mono_instance_entry_return_count(entry: MonoInstanceEntry) -> i32 {
+    len(entry.instantiated_return_types)
+}

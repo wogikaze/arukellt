@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR verifier CALL checks (W002, W003).
 
 use mir::function_identity
+use mir::host_intrinsic_stub_names
 use mir::module_functions
 use mir::block_inst_access
 use mir::function_block_queries
@@ -36,9 +37,28 @@ fn verify_one_call(inst: MirInst, report: MirVerifyReport, verbose: bool, fn_nam
         }
         return
     }
+    if verify_call_w003_excluded(clone(callee)) {
+        return
+    }
     if !verify_fn_names_contains(fn_names, clone(callee)) {
         mir_verify_report_add_w003(report)
     }
+}
+
+fn verify_call_w003_excluded(callee: String) -> bool {
+    if host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(callee)) {
+        return true
+    }
+    if starts_with(clone(callee), String_from("__intrinsic_")) {
+        return true
+    }
+    if starts_with(clone(callee), String_from("__simd_")) {
+        return true
+    }
+    if eq(clone(callee), String_from("print")) || eq(clone(callee), String_from("println")) {
+        return true
+    }
+    false
 }
 
 fn verify_fn_names_contains(fn_names: Vec<String>, name: String) -> bool {

@@ -1,6 +1,9 @@
 // Arukellt Selfhost - MIR module data record.
 
+use corehir::signature_registry
+use corehir::type_table
 use mir::function_core_record
+use mir::lower::mono_instance_table
 
 pub struct MirModule {
     functions: Vec<MirFunction>,
@@ -10,8 +13,12 @@ pub struct MirModule {
     gc_enum_variant_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_names: Vec<String>,
+    spine_populated: bool,
+    type_table: TypeTable,
+    signature_registry: SignatureRegistry,
+    mono_instance_table: MonoInstanceTable,
 }
 
 fn MirModule_new() -> MirModule {
-    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0, gc_enum_variant_sigs: Vec_new_String(), gc_enum_variant_names: Vec_new_String(), gc_struct_sigs: Vec_new_String(), gc_struct_names: Vec_new_String() }
+    MirModule { functions: Vec_new_MirFunction(), string_constants: Vec_new_String(), mono_pruned_count: 0, gc_enum_variant_sigs: Vec_new_String(), gc_enum_variant_names: Vec_new_String(), gc_struct_sigs: Vec_new_String(), gc_struct_names: Vec_new_String(), spine_populated: false, type_table: type_table::TypeTable_new(), signature_registry: signature_registry::SignatureRegistry_new(), mono_instance_table: mono_instance_table::MonoInstanceTable_new() }
 }

@@ -27,6 +27,15 @@ fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport 
     report
 }
 
+fn verify_mir(m: MirModule) -> i32 {
+    let report = verify_mir_warn_only_verbose(m, false)
+    if verify_report::mir_verify_report_w005(report) > 0 {
+        stdio::eprintln(String_from("mir-verify: fail on W005"))
+        return 1
+    }
+    0
+}
+
 fn verify_mir_is_representative_fixture(fn_name: String) -> bool {
     if eq(clone(fn_name), String_from("display_trait_vec")) { return true }
     if eq(clone(fn_name), String_from("two_params")) { return true }

@@ -1,15 +1,17 @@
-// Arukellt Selfhost - ADR-040 signature spine bundle (TypeTable + SignatureRegistry).
+// Arukellt Selfhost - ADR-040 signature spine bundle (TypeTable + SignatureRegistry + MonoInstanceTable).
 
 use corehir::signature_registry
 use corehir::type_table
+use mir::lower::mono_instance_table
 
 struct MirSignatureSpine {
     type_table: TypeTable,
     signature_registry: SignatureRegistry,
+    mono_instance_table: MonoInstanceTable,
 }
 
-fn MirSignatureSpine_new(type_table: TypeTable, signature_registry: SignatureRegistry) -> MirSignatureSpine {
-    MirSignatureSpine { type_table: type_table, signature_registry: signature_registry }
+fn MirSignatureSpine_new(type_table: TypeTable, signature_registry: SignatureRegistry, mono_instance_table: MonoInstanceTable) -> MirSignatureSpine {
+    MirSignatureSpine { type_table: type_table, signature_registry: signature_registry, mono_instance_table: mono_instance_table }
 }
 
 fn mir_signature_spine_type_table(spine: MirSignatureSpine) -> TypeTable {
@@ -18,4 +20,8 @@ fn mir_signature_spine_type_table(spine: MirSignatureSpine) -> TypeTable {
 
 fn mir_signature_spine_registry(spine: MirSignatureSpine) -> SignatureRegistry {
     spine.signature_registry
+}
+
+fn mir_signature_spine_mono_table(spine: MirSignatureSpine) -> MonoInstanceTable {
+    spine.mono_instance_table
 }

@@ -3,8 +3,8 @@
 use mir::lower::fn_index
 use mir::lower::fn_index_view
 
-fn mir_build_fn_index_from_view(view: MirLowerEntryView, midx: MonoIndex, spine_slot: MirSignatureSpineSlot) -> FnIndexInfo {
-    fn_index_view::mir_build_fn_index_from_view(view, midx, spine_slot)
+fn mir_build_fn_index_from_view(view: MirLowerEntryView, midx: MonoIndex, m: MirModule) -> FnIndexInfo {
+    fn_index_view::mir_build_fn_index_from_view(view, midx, m)
 }
 
 fn mir_fn_index_typed_fn_count(info: FnIndexInfo) -> i32 {

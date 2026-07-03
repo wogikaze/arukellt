@@ -17,6 +17,8 @@ use corehir::type_info_to_mir_value
 use mir::lower::decl_source
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
+use mir::lower::mono_instance_build
+use mir::lower::mono_instance_table
 use mir::lower::signature_registry_host
 use mir::lower::signature_spine
 use mir::mono
@@ -24,6 +26,7 @@ use mir::mono
 fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, expected_fn_names: Vec<String>) -> MirSignatureSpine {
     let table = type_table::TypeTable_new()
     let registry = signature_registry::SignatureRegistry_new()
+    let mono_table = mono_instance_table::MonoInstanceTable_new()
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let source = fn_index_source::mir_fn_index_source_from_view(view)
@@ -32,17 +35,17 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
     while d < decl_count {
         let decl_name = decl_source::mir_decl_source_name_at(decl_source, d)
         if decl_source::mir_decl_source_is_fn_at(decl_source, d) {
-            sig_reg_index_top_level_fn(table, registry, source, sig_source, midx, d, decl_name)
+            sig_reg_index_top_level_fn(table, registry, mono_table, source, sig_source, midx, d, decl_name)
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
             let owner = mir_signature_method::mir_signature_method_owner_name_for_impl(sig_source, d, decl_name)
-            sig_reg_index_impl_methods(table, registry, source, sig_source, midx, d, owner)
+            sig_reg_index_impl_methods(table, registry, mono_table, source, sig_source, midx, d, owner)
         }
         d = d + 1
     }
     signature_registry_host::sig_reg_register_host_intrinsics(table, registry)
     sig_reg_log_count_match(expected_fn_names, registry)
-    signature_spine::MirSignatureSpine_new(table, registry)
+    signature_spine::MirSignatureSpine_new(table, registry, mono_table)
 }
 
 fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRegistry) {
@@ -55,7 +58,7 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     }
 }
 
-fn sig_reg_index_top_level_fn(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, decl_index: i32, decl_name: String) {
+fn sig_reg_index_top_level_fn(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, decl_index: i32, decl_name: String) {
     let mut typed_index = 0
     let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
     if fn_info_index >= 0 {
@@ -65,11 +68,11 @@ fn sig_reg_index_top_level_fn(table: TypeTable, registry: SignatureRegistry, sou
     let skip_shadow = eq(clone(decl_name), String_from("main")) && decl_index != entry_main
     if !skip_shadow {
         sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, abi_kind::ABI_KIND_NORMAL())
-        sig_reg_index_mono_variants(table, registry, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
+        sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
     }
 }
 
-fn sig_reg_index_impl_methods(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, impl_decl_index: i32, struct_name: String) {
+fn sig_reg_index_impl_methods(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, impl_decl_index: i32, struct_name: String) {
     let method_count = fn_index_source::mir_fn_index_source_method_count_for_impl(source, impl_decl_index)
     let mut mi = 0
     while mi < method_count {
@@ -79,7 +82,7 @@ fn sig_reg_index_impl_methods(table: TypeTable, registry: SignatureRegistry, sou
             mangled = fn_index_source::mir_fn_index_source_method_mangled_name_at(source, method_info_index, mangled)
         }
         sig_reg_register_method(table, registry, source, sig_source, method_info_index, clone(mangled), impl_decl_index)
-        sig_reg_index_method_mono(table, registry, source, sig_source, midx, clone(mangled), method_info_index, impl_decl_index)
+        sig_reg_index_method_mono(table, registry, mono_table, source, sig_source, midx, clone(mangled), method_info_index, impl_decl_index)
         mi = mi + 1
     }
 }
@@ -133,7 +136,7 @@ fn sig_reg_params_from_method_info(sig_source: CoreHirMirSignatureSource, method
     result
 }
 
-fn sig_reg_index_mono_variants(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, base_name: String, typed_index: i32, fn_info_index: i32, decl_index: i32) {
+fn sig_reg_index_mono_variants(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, base_name: String, typed_index: i32, fn_info_index: i32, decl_index: i32) {
     let mono_count = mono::mono_index_count(midx, clone(base_name))
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let generic_return = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
@@ -141,12 +144,12 @@ fn sig_reg_index_mono_variants(table: TypeTable, registry: SignatureRegistry, so
     while mono_i < mono_count {
         let mono_name = mono::mono_index_mangled_at(midx, clone(base_name), mono_i)
         let safe_name = mono::mono_safe_name(mono_name)
-        sig_reg_register_mono_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(safe_name), mono_instances, generic_return, mono_i, decl_index)
+        sig_reg_register_mono_fn(table, registry, mono_table, source, sig_source, fn_info_index, typed_index, clone(safe_name), mono_instances, generic_return, mono_i, decl_index)
         mono_i = mono_i + 1
     }
 }
 
-fn sig_reg_register_mono_fn(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, fn_info_index: i32, typed_index: i32, mangled: String, mono_instances: Vec<MonoInstance>, generic_return: TypeInfo, mono_i: i32, decl_index: i32) {
+fn sig_reg_register_mono_fn(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, fn_info_index: i32, typed_index: i32, mangled: String, mono_instances: Vec<MonoInstance>, generic_return: TypeInfo, mono_i: i32, decl_index: i32) {
     let concrete = fn_index_mono::mir_mono_concrete_return_type(mono_instances, clone(mangled), generic_return)
     let mut return_ty = generic_return
     if type_contracts::TypeInfo_tag(concrete) != 0 {
@@ -156,10 +159,12 @@ fn sig_reg_register_mono_fn(table: TypeTable, registry: SignatureRegistry, sourc
     let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 0, String_new())
     let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(mangled), params, returns, false, receiver, 0 - 1, decl_index, mono_i, abi_kind::ABI_KIND_NORMAL())
+    let reg_mangled = clone(mangled)
     signature_registry::signature_registry_register(registry, entry, mangled)
+    mono_instance_build::mono_instance_table_register_from_instances(mono_table, table, mono_instances, reg_mangled, params, returns)
 }
 
-fn sig_reg_index_method_mono(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, mangled: String, method_info_index: i32, impl_decl_index: i32) {
+fn sig_reg_index_method_mono(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, mangled: String, method_info_index: i32, impl_decl_index: i32) {
     let mono_count = mono::mono_index_count(midx, clone(mangled))
     let mut mono_i = 0
     while mono_i < mono_count {

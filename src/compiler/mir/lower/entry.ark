@@ -11,7 +11,6 @@ use mir::lower::entry_fn_index_facade
 use mir::lower::entry_trace
 use mir::lower::mono_view
 use mir::lower::registry_view
-use mir::lower::signature_spine_slot
 use mir::lower::trace
 use mir::module_factory
 
@@ -27,8 +26,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> M
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let mono_view = mono_view::mir_lower_mono_view_from_core(view)
     let midx = mono_view::mir_lower_mono_view_index(mono_view)
-    let spine_slot = signature_spine_slot::mir_signature_spine_slot_new()
-    let fn_index_info = entry_fn_index_facade::mir_build_fn_index_from_view(view, midx, spine_slot)
+    let fn_index_info = entry_fn_index_facade::mir_build_fn_index_from_view(view, midx, m)
     let mir_tr = entry_trace::mir_lower_entry_trace_enabled()
     mir_lower_trace_line(mir_tr, -1, decl_count, entry_fn_index_facade::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
     let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target)

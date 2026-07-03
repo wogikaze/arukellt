@@ -44,6 +44,10 @@ fn signature_entry_return_at(entry: SignatureEntry, index: i32) -> MirValueType 
     get_unchecked(entry.return_types, index)
 }
 
+fn signature_entry_return_types(entry: SignatureEntry) -> Vec<MirValueType> {
+    clone(entry.return_types)
+}
+
 fn signature_entry_abi_kind(entry: SignatureEntry) -> i32 {
     entry.abi_kind
 }

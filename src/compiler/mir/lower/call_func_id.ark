@@ -1,0 +1,20 @@
+// Arukellt Selfhost - attach func_id to MIR CALL from module signature registry (PR-3).
+
+use corehir::function_id
+use corehir::signature_registry
+use mir::inst_record
+use mir::lower::ctx_current_storage
+use mir::module_spine
+
+fn mir_call_inst_attach_func_id(ctx: LowerCtx, inst: MirInst, callee_name: String) -> MirInst {
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return inst
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let fid = signature_registry::signature_registry_lookup_by_mangled(registry, callee_name)
+    if function_id::function_id_is_valid(fid) {
+        inst_record::mir_inst_set_func_id_raw(inst, function_id::FunctionId_raw(fid))
+    }
+    inst
+}
