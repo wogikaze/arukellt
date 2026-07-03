@@ -71,6 +71,12 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     if ctx_fn_return_vt_simd::ctx_is_v128_returning_simd_intrinsic(bare_name) {
         return value_types::VT_V128()
     }
+    if eq(clone(bare_name), "concat") || eq(clone(bare_name), "__intrinsic_concat") {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
     value_types::VT_I32()
 }
 

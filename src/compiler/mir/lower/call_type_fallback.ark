@@ -1,6 +1,7 @@
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_fn_return_type
+use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
@@ -10,8 +11,20 @@ use mir::lower::mono_return_vt
 use mir::value_types
 
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let return_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
     // find_i64/find_f64/find_String return Option<T> — set the local type
     // so match expressions can determine the Some variant's payload type.
+    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+        let cn = mir_strip_module_prefix(clone(callee_name))
+        if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:Ordering"))
+            if ctx_gc_enum::ctx_is_gc_target(ctx) {
+                ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+            } else {
+                ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+            }
+        }
+    }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         let cn = mir_strip_module_prefix(clone(callee_name))
         if eq(clone(cn), "find_i64") {
@@ -39,7 +52,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         // base return type name is empty — the MonoInstance has the
         // concrete type (e.g. T→Point → "struct:Point:8").
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
-        if len(mono_rtn) > 0 {
+        if len(mono_rtn) > 0 && return_vt != value_types::VT_I32() && return_vt != value_types::VT_I64() && return_vt != value_types::VT_F64() {
             // Use the raw concrete type name (e.g. "Point") for the local
             // type, not the transformed "struct:Point:8" form.  The local
             // type name is used by call rewrites (e.g. to_string) which

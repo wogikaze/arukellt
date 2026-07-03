@@ -294,6 +294,12 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
     if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap_")) {
         return String_from("_f1_ref16")
     }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return String_from("_f1_ref14")
+    }
+    if eq(clone(type_name), String_from("Ordering")) {
+        return String_from("_f1_ref14")
+    }
     String_from("_f1_ref14")
 }
 
