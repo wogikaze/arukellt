@@ -74,6 +74,7 @@ _VERIFY_QUICK_MEMO_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-memo"
 _VERIFY_QUICK_MEMO_VERSION = "verify-quick-memo-v2"
 _VERIFY_QUICK_CHECK_CACHE_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-check-cache"
 _VERIFY_QUICK_CHECK_CACHE_VERSION = "verify-quick-check-cache-v1"
+_VERIFY_QUICK_FILE_DIGESTS: dict[str, str] | None = None
 
 
 def _hash_bytes(digest, data: bytes) -> None:
@@ -163,53 +164,150 @@ def _git_list_files(root: Path) -> list[str]:
     return sorted(paths)
 
 
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    try:
+        with path.open("rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError:
+        digest.update(b"<missing>")
+    return digest.hexdigest()
+
+
+def _prime_quick_file_digest_cache(root: Path) -> None:
+    """Build rel-path -> content-hash map using git blob OIDs (no file I/O).
+
+    Tracked files use ``git ls-files -s`` blob OIDs (fast, deterministic).
+    Untracked files are excluded — their content can change between runs,
+    making cache keys unstable.  This cuts priming from ~13s to ~0.05s.
+    """
+    global _VERIFY_QUICK_FILE_DIGESTS
+
+    if _VERIFY_QUICK_FILE_DIGESTS is not None:
+        return
+    _VERIFY_QUICK_FILE_DIGESTS = {}
+    tracked = subprocess.run(
+        ["git", "ls-files", "-s", "-z"],
+        cwd=str(root),
+        capture_output=True,
+        check=False,
+    )
+    if tracked.returncode != 0:
+        return
+    for raw in tracked.stdout.split(b"\0"):
+        if not raw:
+            continue
+        try:
+            meta, rel_bytes = raw.split(b"\t", 1)
+        except ValueError:
+            continue
+        parts = meta.split(b" ")
+        if len(parts) < 2:
+            continue
+        oid = parts[1].decode("ascii", errors="replace")
+        rel = rel_bytes.decode("utf-8", errors="surrogateescape")
+        if rel.startswith(".build/"):
+            continue
+        _VERIFY_QUICK_FILE_DIGESTS[rel] = f"git:{oid}"
+
+
 def _path_matches_prefix(rel: str, prefix: str) -> bool:
     prefix = prefix.rstrip("/")
     return rel == prefix or rel.startswith(prefix + "/")
 
 
 def _fingerprint_prefixes(root: Path, prefixes: tuple[str, ...], salt: str) -> str:
+    _prime_quick_file_digest_cache(root)
     digest = hashlib.sha256()
     _hash_bytes(digest, _VERIFY_QUICK_CHECK_CACHE_VERSION.encode("utf-8"))
     _hash_bytes(digest, salt.encode("utf-8"))
+    file_digests = _VERIFY_QUICK_FILE_DIGESTS or {}
     selected = {"scripts/manager.py"}
-    for rel in _git_list_files(root):
+    for rel in file_digests:
         if any(_path_matches_prefix(rel, prefix) for prefix in prefixes):
             selected.add(rel)
     for rel in sorted(selected):
-        path = root / rel
         _hash_bytes(digest, rel.encode("utf-8", errors="surrogateescape"))
-        try:
-            with path.open("rb") as f:
-                for chunk in iter(lambda: f.read(1024 * 1024), b""):
-                    _hash_bytes(digest, chunk)
-        except OSError:
-            _hash_bytes(digest, b"<missing>")
+        _hash_bytes(digest, file_digests.get(rel, "<missing>").encode("ascii"))
     return digest.hexdigest()
 
 
 def _bg_check_prefixes(label: str, cmd_str: str) -> tuple[str, ...]:
+    """Map a bg check to the file prefixes whose changes impact it.
+
+    Finer granularity = fewer false cache invalidations.  The check script
+    itself is always included via the salt in _fingerprint_prefixes.
+    """
     text = f"{label}\n{cmd_str}"
-    if "docs" in text or "ADR" in text or "link" in text or "markdown" in text:
-        return ("docs", "issues", "README.md", "AGENTS.md", "scripts/check", "scripts/gen")
+    # Compiler/stdlib base — most checks transitively depend on these via selfhost.
+    base = ("src/compiler", "std", "scripts/selfhost", "scripts/run", "bootstrap")
+    if "docs consistency" in text:
+        return ("docs", "scripts/gen", "scripts/check/check-docs-consistency.py", "tests/fixtures/manifest.txt", "std")
+    if "docs freshness" in text:
+        return ("docs", "scripts/check/check-docs-freshness.py", "tests/fixtures/manifest.txt")
+    if "docs-runtime contract" in text or "gate-679" in text:
+        return ("docs", "scripts/check/gate-679-docs-runtime-contract-audit.py", "scripts/gen", "scripts/check/check-docs-consistency.py", "tests/fixtures/manifest.txt", "std")
+    if "internal link" in text:
+        return ("docs", "issues", "README.md", "AGENTS.md", "scripts/check/check-links.sh")
+    if "doc example" in text:
+        return ("docs", "scripts/check/check-doc-examples.py")
+    if "Documentation structure" in text or "Language specification" in text or "Platform specification" in text or "Stdlib specification" in text or "All required ADRs" in text:
+        return ("docs", "issues", "AGENTS.md")
     if "playground" in text:
         return ("playground",)
     if "T3 fixture WASM" in text:
-        return ("src/compiler", "std", "tests/fixtures", "scripts/check/check-t3-wasm-validate.py", "scripts/run", "bootstrap")
-    if "component" in text or "WIT" in text or "WASI" in text or "host_stub" in text:
-        return ("src/compiler", "std", "tests", "scripts/check", "scripts/run", "tools/host-linker")
-    if "LSP" in text or "DAP" in text or "analysis" in text or "selfhost" in text:
-        return ("src/compiler", "std", "tests/fixtures/selfhost", "scripts/check", "scripts/selfhost", "scripts/run", "bootstrap")
+        return base + ("tests/fixtures", "scripts/check/check-t3-wasm-validate.py")
+    if "WIT bindings round-trip" in text:
+        return base + ("tests/component-interop/roundtrip", "tests/fixtures/component", "scripts/check")
+    if "component standard-world" in text:
+        return base + ("tests/fixtures/component", "scripts/check/check-component-world.py")
+    if "component WIT parse" in text:
+        return base + ("tests/fixtures", "scripts/check/check-component-wit-parse.py")
+    if "host_stub compile" in text:
+        return base + ("tests/fixtures/host", "std/host", "scripts/check/check-host-stub-gate.py")
+    if "WASI P1 syscall" in text:
+        return base + ("scripts/check/check-wasi-p1-surface.py", "std/host")
+    if "Wasm micro features" in text:
+        return base + ("scripts/check/check-wasm-micro-features.py", "tests/fixtures")
+    if "LSP" in text or "DAP" in text:
+        return base + ("tests/fixtures/selfhost", "scripts/check", "scripts/selfhost")
+    if "analysis API" in text:
+        return base + ("tests/fixtures/selfhost", "scripts/check/check-analysis-api.py")
+    if "selfhost formatter" in text:
+        return base + ("scripts/selfhost", "scripts/manager.py")
     if "compiler boundary" in text:
         return ("src/compiler", "scripts/check/check-compiler-boundaries.py")
-    if "stdlib" in text:
-        return ("std", "docs/stdlib", "tests/fixtures", "scripts/check")
-    if "opt-equivalence" in text or "Wasm micro" in text or "GC array" in text:
-        return ("src/compiler", "std", "tests/fixtures", "scripts/check", "scripts/run", "bootstrap")
-    if "asset" in text:
+    if "stdlib manifest" in text:
+        return ("std", "scripts/check/check-stdlib-manifest.sh", "tests/fixtures/manifest.txt")
+    if "opt-equivalence" in text:
+        return base + ("scripts/run/test-opt-equivalence.sh", "tests/fixtures")
+    if "GC array" in text:
+        return base + ("scripts/check/check-gc-array-smoke.py", "tests/fixtures")
+    if "init template" in text:
+        return ("scripts/check/check-init-templates.py", "templates")
+    if "manifest doc" in text:
+        return ("scripts/check/check-manifest-doc.py", "docs")
+    if "false-done hygiene" in text:
+        return ("issues", "scripts/check/check-false-done-hygiene.py")
+    if "issues/done" in text:
+        return ("issues/done",)
+    if "asset naming" in text:
         return ("assets", "docs", "scripts/check/check-asset-naming.sh")
-    if "repository structure" in text or "generated file" in text:
-        return ("scripts", "docs", "issues", "src", "tests", "std")
+    if "panic" in text or "unwrap" in text:
+        return ("crates", "scripts/check/check-panic-audit.sh")
+    if "orphan" in text:
+        return ("scripts/check/check-orphan-inventory.sh", "docs", "issues")
+    if "artifact size" in text:
+        return ("scripts/check/check-artifact-size-budget.sh", ".build")
+    if "repository structure" in text:
+        return ("scripts/check/check-repo-structure.sh", "scripts")
+    if "generated file" in text:
+        return ("scripts/check/check-generated-files.sh", "docs", "src", "std")
+    if "code actions" in text:
+        return base + ("tests/fixtures/selfhost", "scripts/check/check-code-actions.py")
+    if "LSP standard completeness" in text:
+        return base + ("tests/fixtures/selfhost", "scripts/check/check-lsp-completeness.py")
     return ("AGENTS.md", "docs", "issues", "scripts", "src", "std", "tests", "tools")
 
 
@@ -4738,6 +4836,8 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     ]
 
     bg_results: list[tuple[str, str, int, str]] = []
+    if not dry_run and os.environ.get("ARUKELLT_VERIFY_QUICK_CHECK_CACHE") != "0":
+        _prime_quick_file_digest_cache(root)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
             executor.submit(_cached_quick_check, root, label, cmd_str, _shell): (label, cmd_str)
