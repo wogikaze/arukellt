@@ -1,0 +1,65 @@
+// Arukellt Selfhost - MIR verifier CALL checks (W002, W003).
+
+use mir::function_identity
+use mir::module_functions
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::opcodes
+use mir::verify_report
+
+fn verify_calls_in_function(f: MirFunction, report: MirVerifyReport, verbose: bool, fn_names: Vec<String>) {
+    let bc = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < bc {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let ic = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < ic {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+                verify_one_call(inst, report, verbose, fn_names, function_identity::MirFunction_name(f))
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+}
+
+fn verify_one_call(inst: MirInst, report: MirVerifyReport, verbose: bool, fn_names: Vec<String>, caller: String) {
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    if len(callee) == 0 {
+        mir_verify_report_add_w002(report)
+        if verbose {
+            mir_verify_report_push_detail(report, concat(String_from("W002 empty-callee in "), caller))
+        }
+        return
+    }
+    if !verify_fn_names_contains(fn_names, clone(callee)) {
+        mir_verify_report_add_w003(report)
+    }
+}
+
+fn verify_fn_names_contains(fn_names: Vec<String>, name: String) -> bool {
+    let count = len(fn_names)
+    let mut i = 0
+    while i < count {
+        if eq(clone(name), get_unchecked(fn_names, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn verify_collect_module_fn_names(m: MirModule) -> Vec<String> {
+    let result = Vec_new_String()
+    let count = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < count {
+        push(result, function_identity::MirFunction_name(module_functions::MirModule_function_at(m, i)))
+        i = i + 1
+    }
+    result
+}

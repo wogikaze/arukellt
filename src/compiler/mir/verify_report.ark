@@ -1,0 +1,58 @@
+// Arukellt Selfhost - MIR verifier warning report (aggregate counts).
+
+struct MirVerifyReport {
+    w001: i32,
+    w002: i32,
+    w003: i32,
+    w004: i32,
+    w005: i32,
+    detail_messages: Vec<String>,
+}
+
+fn MirVerifyReport_new() -> MirVerifyReport {
+    MirVerifyReport { w001: 0, w002: 0, w003: 0, w004: 0, w005: 0, detail_messages: Vec_new_String() }
+}
+
+fn mir_verify_report_w001(report: MirVerifyReport) -> i32 { report.w001 }
+fn mir_verify_report_w002(report: MirVerifyReport) -> i32 { report.w002 }
+fn mir_verify_report_w003(report: MirVerifyReport) -> i32 { report.w003 }
+fn mir_verify_report_w004(report: MirVerifyReport) -> i32 { report.w004 }
+fn mir_verify_report_w005(report: MirVerifyReport) -> i32 { report.w005 }
+
+fn mir_verify_report_total(report: MirVerifyReport) -> i32 {
+    report.w001 + report.w002 + report.w003 + report.w004 + report.w005
+}
+
+fn mir_verify_report_add_w001(report: MirVerifyReport) {
+    report.w001 = report.w001 + 1
+}
+
+fn mir_verify_report_add_w002(report: MirVerifyReport) {
+    report.w002 = report.w002 + 1
+}
+
+fn mir_verify_report_add_w003(report: MirVerifyReport) {
+    report.w003 = report.w003 + 1
+}
+
+fn mir_verify_report_add_w004(report: MirVerifyReport) {
+    report.w004 = report.w004 + 1
+}
+
+fn mir_verify_report_add_w005(report: MirVerifyReport) {
+    report.w005 = report.w005 + 1
+}
+
+fn mir_verify_report_push_detail(report: MirVerifyReport, message: String) {
+    if len(report.detail_messages) < 32 {
+        push(report.detail_messages, message)
+    }
+}
+
+fn mir_verify_report_print_summary(report: MirVerifyReport) {
+    if mir_verify_report_total(report) <= 0 {
+        return
+    }
+    let line = concat(String_from("mir-verify: W001="), concat(i32_to_string(report.w001), concat(String_from(" W002="), concat(i32_to_string(report.w002), concat(String_from(" W003="), concat(i32_to_string(report.w003), concat(String_from(" W004="), concat(i32_to_string(report.w004), concat(String_from(" W005="), i32_to_string(report.w005))))))))))
+    stdio::eprintln(line)
+}

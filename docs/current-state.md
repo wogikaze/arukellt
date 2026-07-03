@@ -321,6 +321,7 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 - **Struct field layout reorder**: hot-field-first layout at O2
 - **Backend reachability**: only reachable functions and WASI imports are emitted
 - **MIR validation** brackets every pass for early bug detection
+- **ADR-040 PR-1/2 (2026-07)**: `TypeTable` / `MirValueType` / `SignatureRegistry` 骨格を `fn_index` からミラー構築（conservative approximation、emit 未使用）。`mir::verify_mir_warn_only` を compile パイプラインに warning-only で挿入（W001–W005 集計ログ）
 - Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
 
 ### T3 MIR optimization re-enabled (issue #486, 2026-04-15; #650 wasm emit unlock 2026-06)

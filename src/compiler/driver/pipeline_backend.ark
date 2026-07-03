@@ -10,6 +10,7 @@ use driver::emit
 use driver::lower
 use loader::mod
 use loader::module_decls
+use mir::mod as mir_api
 use mir_opt::optimize_module
 use std::host::clock
 
@@ -43,6 +44,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let mir_lowered = lower::lower_checked_program(program, config)
     let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
+    mir_api::verify_mir_warn_only(mir_module)
     debug::dump_mir_if_enabled(config, mir_module)
     let t_lower = clock::monotonic_now()
     emit::emit_output(mir_module, program, config, t0, t_lex, t_parse, backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked), t_lower)

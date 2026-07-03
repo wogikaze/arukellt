@@ -1,0 +1,35 @@
+// Arukellt Selfhost - MIR verifier entry (warning-only, aggregate logging).
+
+use mir::function_identity
+use mir::module_functions
+use mir::verify_call
+use mir::verify_local
+use mir::verify_report
+
+fn verify_mir_warn_only(m: MirModule) -> MirVerifyReport {
+    verify_mir_warn_only_verbose(m, false)
+}
+
+fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport {
+    let report = verify_report::MirVerifyReport_new()
+    let fn_names = verify_call::verify_collect_module_fn_names(m)
+    let count = module_functions::MirModule_function_count(m)
+    let mut fi = 0
+    while fi < count {
+        let f = module_functions::MirModule_function_at(m, fi)
+        let fname = function_identity::MirFunction_name(f)
+        verify_local::verify_locals_in_function(f, report, verbose, clone(fname))
+        verify_local::verify_function_return(f, report, verbose)
+        verify_call::verify_calls_in_function(f, report, verbose, fn_names)
+        fi = fi + 1
+    }
+    verify_report::mir_verify_report_print_summary(report)
+    report
+}
+
+fn verify_mir_is_representative_fixture(fn_name: String) -> bool {
+    if eq(clone(fn_name), String_from("display_trait_vec")) { return true }
+    if eq(clone(fn_name), String_from("two_params")) { return true }
+    if eq(clone(fn_name), String_from("fs_read_error")) { return true }
+    false
+}
