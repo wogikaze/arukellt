@@ -11,20 +11,22 @@ use mir::lower::body_closure_capture
 use mir::lower::body_closure_context
 use mir::lower::body_closure_params
 use mir::lower::body_closure_return
+use mir::lower::closure_return_type
 use mir::value_types
 
 fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>) -> MirFunction {
     let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let cap_vts = body_closure_capture::mir_closure_capture_vts(ctx, caps)
+    let cap_types = body_closure_capture::mir_closure_capture_types(ctx, caps)
     body_closure_context::mir_begin_closure_function_context(ctx, synth)
     let child_count = ast_node::node_child_count(clos)
     let body = ast_node::node_child_at(clos, child_count - 1)
     body_closure_params::mir_emit_closure_params(ctx, clos, child_count)
-    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts)
+    body_closure_capture::mir_emit_closure_captures(ctx, caps, cap_vts, cap_types)
+    let res = body_closure_return::mir_emit_closure_return(ctx, body)
     let mut fret = ctx_api_local_frame::ctx_current_function(ctx)
-    function_return_mutation::MirFunction_set_return_type(fret, value_types::VT_I32())
+    closure_return_type::mir_set_closure_return_from_local(ctx, fret, res)
     ctx_api_local_frame::ctx_set_current_function(ctx, fret)
-    body_closure_return::mir_emit_closure_return(ctx, body)
     let out_fn = ctx_api_local_frame::ctx_current_function(ctx)
     body_closure_context::mir_restore_closure_parent_context(ctx, saved_frame)
     out_fn

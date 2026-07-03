@@ -1,0 +1,41 @@
+use mir::function_locals_view
+use mir::function_return_mutation
+use mir::local_access
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_struct_layout
+use mir::lower::ctx_types
+// Arukellt MIR lowering - infer closure return type from body result local.
+
+use mir::value_types
+
+fn mir_set_closure_return_from_local(ctx: LowerCtx, f: MirFunction, res_idx: i32) {
+    if res_idx < 0 {
+        function_return_mutation::MirFunction_set_return_type(f, value_types::VT_VOID())
+        return
+    }
+    let mut ret_vt = ctx_api_local_types::ctx_local_vt(ctx, res_idx)
+    let mut ret_type = String_new()
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if res_idx < function_locals_view::MirFunction_local_count(func) {
+        let loc = function_locals_view::MirFunction_local_at(func, res_idx)
+        ret_type = local_access::MirLocal_type_name(loc)
+    }
+    if len(ret_type) == 0 {
+        ret_type = ctx_api_local_types::ctx_get_local_type(ctx, res_idx)
+    }
+    if len(ret_type) > 0 {
+        ret_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(ret_type))
+    } else {
+        if ret_vt == value_types::VT_GC_REF() {
+            ret_type = String_from("String")
+        }
+    }
+    if starts_with(clone(ret_type), String_from("struct:")) || eq(clone(ret_type), String_from("String")) || eq(clone(ret_type), String_from("string")) || starts_with(clone(ret_type), String_from("enum:")) || starts_with(clone(ret_type), String_from("vec:")) || starts_with(clone(ret_type), String_from("Option_")) || starts_with(clone(ret_type), String_from("Result_")) {
+        ret_vt = value_types::VT_GC_REF()
+    }
+    function_return_mutation::MirFunction_set_return_type(f, ret_vt)
+    if len(ret_type) > 0 {
+        function_return_mutation::MirFunction_set_return_type_name(f, ret_type)
+    }
+}

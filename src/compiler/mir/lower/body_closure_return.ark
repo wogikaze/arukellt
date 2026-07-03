@@ -4,11 +4,12 @@ use mir::lower::ctx_types
 
 use mir::inst_return
 
-fn mir_emit_closure_return(ctx: LowerCtx, body: AstNode) {
+fn mir_emit_closure_return(ctx: LowerCtx, body: AstNode) -> i32 {
     let res = lower_expr(ctx, body)
     if res >= 0 {
         ctx_emit(ctx, inst_return::MirInst_return_value(res))
     } else {
         ctx_emit(ctx, inst_return::MirInst_return_void())
     }
+    res
 }
