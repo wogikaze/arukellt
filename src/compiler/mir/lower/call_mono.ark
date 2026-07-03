@@ -53,8 +53,11 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
             if len(mono_target) > 0 {
                 resolved = mono_target
             } else {
-                // Fallback: try name-based rewrite for generic functions.
-                let name_rewrite = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(resolved))
+                // Fallback: assign unused mono specialization in registration order.
+                // ctx_mono_lookup_name_rewrite always returns the first match and
+                // breaks multi-param generics (e.g. pair_first__i32__String for
+                // every pair_first call site).
+                let name_rewrite = ctx_fn_mono::ctx_resolve_unused_mono_by_name(ctx, clone(resolved))
                 if len(name_rewrite) > 0 {
                     resolved = name_rewrite
                 }

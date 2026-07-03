@@ -54,7 +54,32 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_mono_call_result_type(ctx, callee_name, dest)
     }
-    set_ref_vt_for_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
+    set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
+    let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest))
+    ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+}
+
+fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
+    if len(type_name) == 0 {
+        return
+    }
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("I32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+        return
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) || eq(clone(type_name), String_from("u64")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
+        return
+    }
+    if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
+        return
+    }
+    if eq(clone(type_name), String_from("f32")) || eq(clone(type_name), String_from("F32")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F32())
+        return
+    }
+    set_ref_vt_for_type_name(ctx, dest, type_name)
 }
 
 fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -73,6 +98,9 @@ fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
         return
     }
     let suffix = substring(cn_stripped, sep + 2, n)
+    if !mono_suffix_is_single_type_key(suffix) {
+        return
+    }
     if eq(clone(suffix), "String") || eq(clone(suffix), "string") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -81,6 +109,18 @@ fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
+}
+
+fn mono_suffix_is_single_type_key(suffix: String) -> bool {
+    let slen = len(suffix)
+    let mut i = 0
+    while i < slen - 1 {
+        if char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
+            return false
+        }
+        i = i + 1
+    }
+    true
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {

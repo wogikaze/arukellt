@@ -73,7 +73,48 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
     if starts_with(clone(inner), String_from("tuple:")) {
         return inner
     }
+    if eq(clone(inner), String_from("tuple")) {
+        let byte_size = substring(type_name, last + 1, n)
+        return tuple_struct_name_from_byte_size(byte_size)
+    }
     String_new()
+}
+
+fn tuple_struct_name_from_byte_size(byte_size_str: String) -> String {
+    let byte_size = parse_i32_from_string(byte_size_str)
+    if byte_size <= 0 {
+        return String_new()
+    }
+    let field_count = byte_size / 4
+    if field_count <= 0 {
+        return String_new()
+    }
+    let mut name = String_from("tuple:")
+    let mut i = 0
+    while i < field_count {
+        if i > 0 {
+            name = concat(name, String_from(","))
+        }
+        name = concat(name, String_from("i32"))
+        i = i + 1
+    }
+    name
+}
+
+fn parse_i32_from_string(s: String) -> i32 {
+    let n = len(s)
+    let mut value = 0
+    let mut i = 0
+    while i < n {
+        let d = char_at(s, i)
+        if d >= 48 && d <= 57 {
+            value = value * 10 + (d - 48)
+        } else {
+            return 0
+        }
+        i = i + 1
+    }
+    value
 }
 
 fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 {

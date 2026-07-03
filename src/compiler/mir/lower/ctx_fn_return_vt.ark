@@ -10,11 +10,12 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
     if found >= 0 {
         let rvt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
-        if rvt == value_types::VT_I32() {
-            let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(name), rvt)
-            if mono_vt != value_types::VT_I32() {
-                return mono_vt
+        let resolved = mono_return_vt::mono_return_vt(ctx, clone(name), rvt)
+        if resolved == value_types::VT_GC_REF() || resolved == value_types::VT_REF() || resolved == value_types::VT_I32() || resolved == value_types::VT_I64() || resolved == value_types::VT_F64() || resolved == value_types::VT_F32() || resolved == value_types::VT_V128() {
+            if resolved == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+                return value_types::VT_GC_REF()
             }
+            return resolved
         }
         if rvt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()

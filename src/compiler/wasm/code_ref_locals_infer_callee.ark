@@ -73,6 +73,10 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
     // Struct return type with "struct:TypeName:byte_size" format:
     // extract byte size and map to the correct GC struct type index.
     if starts_with(clone(ret_name), String_from("struct:")) {
+        let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+        }
         let byte_size = parse_struct_byte_size_from_ret_name(clone(ret_name))
         if byte_size > 0 {
             return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
@@ -98,6 +102,27 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
     }
     0 - 1
+}
+
+// Extract struct name from "struct:TypeName:byte_size" format.
+fn parse_struct_name_from_ret_name(type_name: String) -> String {
+    let n = len(type_name)
+    let mut first_colon = 0 - 1
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == 58 {
+            if first_colon < 0 {
+                first_colon = i
+            }
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
+        return String_new()
+    }
+    substring(type_name, first_colon + 1, last_colon)
 }
 
 // Extract byte_size from "struct:TypeName:byte_size" format.

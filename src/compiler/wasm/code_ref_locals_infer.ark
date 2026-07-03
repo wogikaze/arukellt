@@ -494,6 +494,19 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     if eq(clone(callee), "vec_set") {
         return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
     }
+    // stdlib filter/map return Vec<T> on GC targets.
+    if eq(clone(callee), "filter_String") || eq(clone(callee), "__intrinsic_filter_String") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(callee), "map_String_String") || eq(clone(callee), "__intrinsic_map_String_String") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(callee), "filter_i32") || eq(clone(callee), "__intrinsic_filter_i32") {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    if eq(clone(callee), "map_i32_i32") || eq(clone(callee), "__intrinsic_map_i32_i32") {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
     // Parse functions return Result<T, E> → enum open type on GC targets.
     // These are intrinsics that may not be resolvable via resolve_fn_index.
     if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") || eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") || eq(clone(callee), "parse_f64") || eq(clone(callee), "convert::parse_f64") || eq(clone(callee), "parse_u64") || eq(clone(callee), "convert::parse_u64") {
@@ -552,6 +565,9 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
         if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
             return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
         }
+        if starts_with(clone(type_name), String_from("vec:Vec")) {
+            return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+        }
         return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
     if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
@@ -566,6 +582,10 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
     // Struct type with "struct:TypeName:byte_size" format: extract byte size
     // and map to the correct GC struct type index.
     if starts_with(clone(type_name), String_from("struct:")) {
+        let struct_name = extract_struct_name_from_type_name(clone(type_name))
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+        }
         let byte_size = parse_struct_byte_size(clone(type_name))
         if byte_size > 0 {
             return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
@@ -576,6 +596,27 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
     }
     0 - 1
+}
+
+// Extract struct name from "struct:TypeName:byte_size" format.
+fn extract_struct_name_from_type_name(type_name: String) -> String {
+    let mut first_colon = 0 - 1
+    let mut last_colon = 0 - 1
+    let n = len(type_name)
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == 58 {
+            if first_colon < 0 {
+                first_colon = i
+            }
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
+        return String_new()
+    }
+    substring(type_name, first_colon + 1, last_colon)
 }
 
 // Extract byte_size from "struct:TypeName:byte_size" format.

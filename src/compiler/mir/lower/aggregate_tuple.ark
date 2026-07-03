@@ -1,5 +1,6 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering tuple aggregate emission
@@ -13,7 +14,7 @@ use std::text
 fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
     let child_count = len(field_locals)
-    let struct_name = tuple_struct_name_from_field_vts(field_vts, child_count, total_bytes)
+    let struct_name = tuple_struct_name_from_field_vts(ctx, field_vts, child_count, total_bytes)
     if len(struct_name) > 0 {
         let sig = tuple_gc_sig_from_field_vts(field_vts, child_count)
         ctx_gc_struct::ctx_register_gc_struct(ctx, clone(struct_name), sig)
@@ -50,11 +51,15 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
         ti = ti + 1
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))
+    if len(struct_name) > 0 {
+        let type_name = concat(String_from("struct:"), concat(clone(struct_name), concat(String_from(":"), i32_to_string(total_bytes))))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
+    }
     dest
 }
 
-fn tuple_struct_name_from_field_vts(field_vts: Vec<i32>, field_count: i32, total_bytes: i32) -> String {
-    if !tuple_field_vts_need_named_gc_struct(field_vts, field_count) {
+fn tuple_struct_name_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32>, field_count: i32, total_bytes: i32) -> String {
+    if !tuple_field_vts_need_named_gc_struct(ctx, field_vts, field_count) {
         return String_new()
     }
     let mut name = String_from("tuple:")
@@ -70,7 +75,10 @@ fn tuple_struct_name_from_field_vts(field_vts: Vec<i32>, field_count: i32, total
     name
 }
 
-fn tuple_field_vts_need_named_gc_struct(field_vts: Vec<i32>, field_count: i32) -> bool {
+fn tuple_field_vts_need_named_gc_struct(ctx: LowerCtx, field_vts: Vec<i32>, field_count: i32) -> bool {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && field_count > 0 {
+        return true
+    }
     let mut ti = 0
     while ti < field_count {
         let field_vt = get_unchecked(field_vts, ti)

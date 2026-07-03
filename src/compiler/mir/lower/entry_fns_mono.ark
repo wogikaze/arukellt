@@ -25,19 +25,11 @@ fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBod
             let emit_fn_name = mono::mono_safe_name(mangled)
             let mut rt_tag = generic_rt_tag
             let mut rt_type_name = clone(generic_rt_type_name)
-            if generic_rt_tag == lower_kinds::TY_TYPE_VAR() {
-                let arg_count = lookup_mono_type_arg_count(ctx, clone(mangled))
-                let type_idx = mono_return_type_arg_index_from_var_name(clone(generic_rt_type_var_name), arg_count)
-                let mono_ty = lookup_mono_type_arg_at(ctx, clone(mangled), type_idx)
-                if type_contracts::TypeInfo_tag(mono_ty) != 0 {
-                    rt_tag = return_typeinfo::mir_return_tag_from_type_info(mono_ty)
-                    rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
-                }
-            } else if generic_rt_tag == lower_kinds::TY_TUPLE() {
-                let concrete = mono_instantiate_return_from_instance(ctx, clone(mangled), generic_return_ty)
-                if type_contracts::TypeInfo_tag(concrete) != 0 {
-                    rt_tag = return_typeinfo::mir_return_tag_from_type_info(concrete)
-                    rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
+            let concrete = mono_instantiate_return_from_instance(ctx, clone(mangled), generic_return_ty)
+            if type_contracts::TypeInfo_tag(concrete) != 0 {
+                rt_tag = return_typeinfo::mir_return_tag_from_type_info(concrete)
+                rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
+                if type_contracts::TypeInfo_tag(concrete) == lower_kinds::TY_TUPLE() {
                     aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(ctx, clone(rt_type_name))
                 }
             }

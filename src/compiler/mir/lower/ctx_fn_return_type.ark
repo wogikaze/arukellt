@@ -7,6 +7,13 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     if found >= 0 {
         return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, found)
     }
+    let base_name = mono_strip_suffix_for_lookup(clone(name))
+    if !eq(clone(base_name), clone(name)) {
+        let base_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(base_name))
+        if base_found >= 0 {
+            return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, base_found)
+        }
+    }
     let nlen = len(name)
     let mut colon_pos = 0 - 1
     let mut ci = nlen - 1
@@ -25,4 +32,70 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
         }
     }
     String_from("")
+}
+
+// Strip mono type suffix from a mangled function name for fn_index lookup.
+fn mono_strip_suffix_for_lookup(name: String) -> String {
+    let name_len = len(name)
+    let sep_positions = Vec_new_i32()
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(name, i) == 95 && char_at(name, i + 1) == 95 {
+            push(sep_positions, i)
+        }
+        i = i + 1
+    }
+    let sep_count = len(sep_positions)
+    if sep_count == 0 {
+        return name
+    }
+    let mut si = 0
+    while si < sep_count {
+        let sep_pos = get_unchecked(sep_positions, si)
+        let suffix = substring(name, sep_pos + 2, name_len)
+        if mono_suffix_looks_like_type_keys(suffix) {
+            return substring(name, 0, sep_pos)
+        }
+        si = si + 1
+    }
+    let first_sep = get_unchecked(sep_positions, 0)
+    substring(name, 0, first_sep)
+}
+
+fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
+    let slen = len(suffix)
+    if slen == 0 {
+        return false
+    }
+    let mut start = 0
+    let mut i = 0
+    while i < slen {
+        if i < slen - 1 && char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
+            let key = substring(suffix, start, i)
+            if !mono_type_key_looks_valid(key) {
+                return false
+            }
+            start = i + 2
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if start <= slen {
+        return mono_type_key_looks_valid(substring(suffix, start, slen))
+    }
+    false
+}
+
+fn mono_type_key_looks_valid(key: String) -> bool {
+    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
+        return true
+    }
+    if len(key) > 0 {
+        let first = char_at(key, 0)
+        if first >= 65 && first <= 90 {
+            return true
+        }
+    }
+    false
 }

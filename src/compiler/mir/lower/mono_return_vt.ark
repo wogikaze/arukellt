@@ -31,6 +31,9 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
 }
 
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
+    if is_concrete_mono_return_type_name(clone(fallback_name)) {
+        return fallback_name
+    }
     let inst_idx = mono_find_instance(ctx.mono_instances, clone(name))
     if inst_idx < 0 {
         return fallback_name
@@ -60,7 +63,11 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
             return concat(String_from("vec:"), concrete_name)
         }
     }
-    return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
+    let resolved = return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
+    if len(resolved) > 0 {
+        return resolved
+    }
+    return mono_type_info_to_concrete_name(mono_ty)
 }
 
 // Convert a TypeInfo to a concrete type name string for substitution
@@ -79,6 +86,43 @@ fn mono_type_info_to_concrete_name(ty: TypeInfo) -> String {
         return name
     }
     String_new()
+}
+
+fn is_concrete_mono_return_type_name(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("?")) {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return !type_name_has_type_var_suffix(clone(type_name))
+    }
+    if starts_with(clone(type_name), String_from("option:")) {
+        return !type_name_has_type_var_suffix(clone(type_name))
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) || eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return true
+    }
+    false
+}
+
+fn type_name_has_type_var_suffix(type_name: String) -> bool {
+    let n = len(type_name)
+    if n == 0 {
+        return false
+    }
+    let last = char_at(type_name, n - 1)
+    if last >= 65 && last <= 90 {
+        return true
+    }
+    false
 }
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> i32 {
