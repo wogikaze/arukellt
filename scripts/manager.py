@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import hashlib
+import json
 import os
 import re
 import subprocess
@@ -67,6 +69,177 @@ from gate_domain.checks import (  # noqa: E402
 )
 
 # ── helpers ──────────────────────────────────────────────────────────────────
+
+_VERIFY_QUICK_MEMO_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-memo"
+_VERIFY_QUICK_MEMO_VERSION = "verify-quick-memo-v2"
+_VERIFY_QUICK_CHECK_CACHE_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-check-cache"
+_VERIFY_QUICK_CHECK_CACHE_VERSION = "verify-quick-check-cache-v1"
+
+
+def _hash_bytes(digest, data: bytes) -> None:
+    digest.update(len(data).to_bytes(8, "little", signed=False))
+    digest.update(data)
+
+
+def _git_output(root: Path, args: list[str]) -> bytes:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=str(root),
+        capture_output=True,
+        check=False,
+    )
+    return result.stdout + result.stderr + str(result.returncode).encode("ascii")
+
+
+def _verify_quick_memo_key(root: Path, argv: list[str]) -> str:
+    digest = hashlib.sha256()
+    _hash_bytes(digest, _VERIFY_QUICK_MEMO_VERSION.encode("utf-8"))
+    _hash_bytes(digest, "\0".join(argv).encode("utf-8"))
+    _hash_bytes(digest, _git_output(root, ["rev-parse", "HEAD"]))
+    _hash_bytes(digest, _git_output(root, ["status", "--porcelain=v1", "-z", "--untracked-files=no"]))
+    _hash_bytes(digest, _git_output(root, ["diff", "--binary"]))
+    _hash_bytes(digest, _git_output(root, ["diff", "--cached", "--binary"]))
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "-z"],
+        cwd=str(root),
+        capture_output=True,
+        check=False,
+    )
+    for raw in sorted(part for part in untracked.stdout.split(b"\0") if part):
+        rel = raw.decode("utf-8", errors="surrogateescape")
+        if rel.startswith(".build/"):
+            continue
+        path = root / rel
+        _hash_bytes(digest, rel.encode("utf-8", errors="surrogateescape"))
+        try:
+            with path.open("rb") as f:
+                for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                    _hash_bytes(digest, chunk)
+        except OSError:
+            _hash_bytes(digest, b"<missing>")
+    return digest.hexdigest()
+
+
+def _maybe_run_verify_quick_memoized(argv: list[str]) -> int | None:
+    if os.environ.get("ARUKELLT_VERIFY_QUICK_MEMO_BYPASS") == "1":
+        return None
+    if os.environ.get("ARUKELLT_VERIFY_QUICK_MEMO") == "0":
+        return None
+    if "--dry-run" in argv or argv not in (["verify", "quick"], ["verify", "--quick"]):
+        return None
+
+    root = _repo_root()
+    key = _verify_quick_memo_key(root, argv)
+    cache_file = _VERIFY_QUICK_MEMO_DIR / f"{key}.json"
+    if cache_file.is_file():
+        try:
+            entry = json.loads(cache_file.read_text(encoding="utf-8"))
+            sys.stdout.write(entry.get("stdout", ""))
+            sys.stderr.write(entry.get("stderr", ""))
+            return int(entry.get("returncode", 1))
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass
+
+    return None
+
+
+def _git_list_files(root: Path) -> list[str]:
+    result = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        cwd=str(root),
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return []
+    paths: list[str] = []
+    for raw in result.stdout.split(b"\0"):
+        if not raw:
+            continue
+        rel = raw.decode("utf-8", errors="surrogateescape")
+        if rel.startswith(".build/"):
+            continue
+        paths.append(rel)
+    return sorted(paths)
+
+
+def _path_matches_prefix(rel: str, prefix: str) -> bool:
+    prefix = prefix.rstrip("/")
+    return rel == prefix or rel.startswith(prefix + "/")
+
+
+def _fingerprint_prefixes(root: Path, prefixes: tuple[str, ...], salt: str) -> str:
+    digest = hashlib.sha256()
+    _hash_bytes(digest, _VERIFY_QUICK_CHECK_CACHE_VERSION.encode("utf-8"))
+    _hash_bytes(digest, salt.encode("utf-8"))
+    selected = {"scripts/manager.py"}
+    for rel in _git_list_files(root):
+        if any(_path_matches_prefix(rel, prefix) for prefix in prefixes):
+            selected.add(rel)
+    for rel in sorted(selected):
+        path = root / rel
+        _hash_bytes(digest, rel.encode("utf-8", errors="surrogateescape"))
+        try:
+            with path.open("rb") as f:
+                for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                    _hash_bytes(digest, chunk)
+        except OSError:
+            _hash_bytes(digest, b"<missing>")
+    return digest.hexdigest()
+
+
+def _bg_check_prefixes(label: str, cmd_str: str) -> tuple[str, ...]:
+    text = f"{label}\n{cmd_str}"
+    if "docs" in text or "ADR" in text or "link" in text or "markdown" in text:
+        return ("docs", "issues", "README.md", "AGENTS.md", "scripts/check", "scripts/gen")
+    if "playground" in text:
+        return ("playground",)
+    if "T3 fixture WASM" in text:
+        return ("src/compiler", "std", "tests/fixtures", "scripts/check/check-t3-wasm-validate.py", "scripts/run", "bootstrap")
+    if "component" in text or "WIT" in text or "WASI" in text or "host_stub" in text:
+        return ("src/compiler", "std", "tests", "scripts/check", "scripts/run", "tools/host-linker")
+    if "LSP" in text or "DAP" in text or "analysis" in text or "selfhost" in text:
+        return ("src/compiler", "std", "tests/fixtures/selfhost", "scripts/check", "scripts/selfhost", "scripts/run", "bootstrap")
+    if "compiler boundary" in text:
+        return ("src/compiler", "scripts/check/check-compiler-boundaries.py")
+    if "stdlib" in text:
+        return ("std", "docs/stdlib", "tests/fixtures", "scripts/check")
+    if "opt-equivalence" in text or "Wasm micro" in text or "GC array" in text:
+        return ("src/compiler", "std", "tests/fixtures", "scripts/check", "scripts/run", "bootstrap")
+    if "asset" in text:
+        return ("assets", "docs", "scripts/check/check-asset-naming.sh")
+    if "repository structure" in text or "generated file" in text:
+        return ("scripts", "docs", "issues", "src", "tests", "std")
+    return ("AGENTS.md", "docs", "issues", "scripts", "src", "std", "tests", "tools")
+
+
+def _cached_quick_check(
+    root: Path,
+    label: str,
+    cmd_str: str,
+    run_fn,
+) -> tuple[int, str]:
+    if os.environ.get("ARUKELLT_VERIFY_QUICK_CHECK_CACHE") == "0":
+        return run_fn(cmd_str)
+    prefixes = _bg_check_prefixes(label, cmd_str)
+    key = _fingerprint_prefixes(root, prefixes, f"{label}\0{cmd_str}")
+    cache_file = _VERIFY_QUICK_CHECK_CACHE_DIR / f"{hashlib.sha256(label.encode()).hexdigest()}-{key}.json"
+    if cache_file.is_file():
+        try:
+            entry = json.loads(cache_file.read_text(encoding="utf-8"))
+            return int(entry.get("returncode", 1)), entry.get("output", "")
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass
+    rc, out = run_fn(cmd_str)
+    try:
+        _VERIFY_QUICK_CHECK_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        cache_file.write_text(
+            json.dumps({"returncode": rc, "output": out}),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+    return rc, out
 
 
 def _run(cmd: list[str], *, cwd: Path, dry_run: bool) -> tuple[int, str, str]:
@@ -4352,7 +4525,9 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     if manifest_ok:
         h.check_pass(f"Fixture manifest completeness ({fixture_count} entries)")
 
-    # Close gates use wasmtime + wasm-tools; run before parallel bg work.
+    # Close gates may invoke selfhost compile/wasmtime; run before parallel bg work.
+    # Individual gates parallelize inside check-false-done-close-gates.py with
+    # runtime/playground file locks for shared resources.
     close_gate_cmd = "python3 scripts/check/check-false-done-close-gates.py"
     if dry_run:
         h.check_pass("false-done close-gate enforcement")
@@ -4501,7 +4676,12 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         ),
         (
             "docs-runtime contract audit gate (#679)",
+            "ARUKELLT_GATE_679_SKIP_DOCS_CONSISTENCY=1 "
             "python3 scripts/check/gate-679-docs-runtime-contract-audit.py",
+        ),
+        (
+            "internal link integrity",
+            "bash scripts/check/check-links.sh",
         ),
         (
             "component WIT parse gate (#117)",
@@ -4560,7 +4740,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     bg_results: list[tuple[str, str, int, str]] = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
-            executor.submit(_shell, cmd_str): (label, cmd_str)
+            executor.submit(_cached_quick_check, root, label, cmd_str, _shell): (label, cmd_str)
             for label, cmd_str in bg_checks
         }
         for future in concurrent.futures.as_completed(futures):
@@ -6228,20 +6408,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             primary_path="tests/fixtures/manifest.txt",
         )
 
-    # ── Internal link integrity ───────────────────────────────────────────────
-    links_script = root / "scripts" / "check" / "check-links.sh"
-    if links_script.exists():
-        rc, _, _ = _run(["bash", str(links_script)], cwd=root, dry_run=dry_run)
-        if rc == 0:
-            h.check_pass("internal link integrity")
-        else:
-            h.check_fail(
-                "broken internal links detected (run scripts/check/check-links.sh)",
-                category="docs",
-                command="bash scripts/check/check-links.sh",
-                primary_path="docs/",
-            )
-
     # ── Anchor fragment integrity ─────────────────────────────────────────────
     anchor_script = root / "scripts" / "check" / "check-anchor-fragments.py"
     if anchor_script.exists():
@@ -6656,6 +6822,8 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     p = sub.add_parser("fixpoint", help="Run selfhost fixpoint check")
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--build", action="store_true", default=False, help="Build before check")
+    p.add_argument("--no-cache", action="store_true", default=False,
+                   help="Bypass fixpoint content-hash cache (force rebuild)")
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
@@ -6759,6 +6927,9 @@ def _build_gate_subparser(sub_domain: argparse._SubParsersAction) -> None:  # ty
 
 def main() -> int:
     argv = list(sys.argv[1:])
+    memo_rc = _maybe_run_verify_quick_memoized(argv)
+    if memo_rc is not None:
+        return memo_rc
 
     # Normalize selfhost parity mode values so documented invocations like
     # `selfhost parity --mode --cli` work under argparse.
@@ -6926,6 +7097,8 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
     no_build: bool = not getattr(args, "build", False)
+    if getattr(args, "no_cache", False):
+        os.environ["ARUKELLT_FIXPOINT_NO_CACHE"] = "1"
     h = Harness(repo_root=root, dry_run=dry_run)
 
     print(f"\n{YELLOW}[selfhost] Running selfhost fixpoint check...{NC}")

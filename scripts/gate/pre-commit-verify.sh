@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # scripts/gate/pre-commit-verify.sh — Pre-commit gate: repo structure check + quick verification + markdownlint (staged files only).
+#
+# Content-hash result cache: if the staged index, selfhost wasm, and check
+# scripts have not changed since the last run, the entire gate is skipped and
+# the cached result is returned in <100ms.  Set PRE_COMMIT_NO_CACHE=1 to bypass.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -21,6 +25,56 @@ staged_files() {
   git diff --cached --name-only --diff-filter=ACMR -z
 }
 
+# ── 0. Content-hash result cache ──────────────────────────────────────────────
+# Fingerprint: git index tree + s2.wasm hash + check-script hashes.
+# On hit: skip the entire gate, return cached exit code.
+CACHE_FILE=".build/pre-commit-cache.json"
+NO_CACHE="${PRE_COMMIT_NO_CACHE:-0}"
+
+compute_fingerprint() {
+  local idx_tree s2_sha scripts_sha
+  idx_tree=$(git write-tree 2>/dev/null || echo "no-index")
+  if [ -f ".build/selfhost/arukellt-s2.wasm" ]; then
+    s2_sha=$(sha256sum .build/selfhost/arukellt-s2.wasm | cut -d' ' -f1)
+  else
+    s2_sha="no-s2"
+  fi
+  # Hash all check scripts + gate scripts + manager.py that define the gate logic.
+  scripts_sha=$({
+    find scripts/check scripts/gate -type f \( -name '*.py' -o -name '*.sh' \) 2>/dev/null
+    echo scripts/manager.py
+    echo scripts/selfhost/checks.py
+  } | sort | xargs sha256sum 2>/dev/null | sha256sum | cut -d' ' -f1)
+  echo "${idx_tree}:${s2_sha}:${scripts_sha}"
+}
+
+if [ "$NO_CACHE" != "1" ] && [ -f "$CACHE_FILE" ]; then
+  CACHED_FP=$(python3 -c "
+import json, sys
+try:
+    d = json.load(open('$CACHE_FILE'))
+    print(d.get('fingerprint', ''))
+except Exception:
+    pass
+" 2>/dev/null || true)
+  CURRENT_FP=$(compute_fingerprint)
+  if [ -n "$CACHED_FP" ] && [ "$CACHED_FP" = "$CURRENT_FP" ]; then
+    CACHED_RC=$(python3 -c "
+import json
+d = json.load(open('$CACHE_FILE'))
+print(d.get('exit_code', 1))
+" 2>/dev/null || echo "1")
+    echo "[pre-commit cache: hit — fingerprint unchanged, skipping gate]"
+    if [ "$CACHED_RC" = "0" ]; then
+      echo "pre-commit: all checks passed (cached)."
+      exit 0
+    else
+      echo "pre-commit: FAILED (cached) — fix errors then re-run with PRE_COMMIT_NO_CACHE=1." >&2
+      exit 1
+    fi
+  fi
+fi
+
 # ── 1. scripts root check ────────────────────────────────────────────────────
 banner "scripts root directory check"
 if bash scripts/check/check-repo-structure.sh; then
@@ -37,6 +91,10 @@ fi
 # can pass even though the new source breaks the compiler.  This step rebuilds
 # the wasm from the working-tree source before running verify so the gate
 # exercises the actual code being committed.
+#
+# The fixpoint build itself uses a content-hash cache (in run_fixpoint) so it
+# is skipped when the source hasn't changed — see ARUKELLT_FIXPOINT_NO_CACHE=1
+# to bypass that inner cache.
 banner "selfhost wasm freshness check"
 NEEDS_REBUILD=0
 while IFS= read -r -d '' path; do
@@ -111,10 +169,26 @@ else
   echo "SKIP: npx not found, skipping markdownlint" >&2
 fi
 
-# ── result ──────────────────────────────────────────────────────────────────
+# ── result + cache write ─────────────────────────────────────────────────────
 echo ""
 if [ "$FAIL" -ne 0 ]; then
   echo "pre-commit: FAILED — fix the above errors before committing."
+  if [ "$NO_CACHE" != "1" ]; then
+    FP=$(compute_fingerprint)
+    mkdir -p .build
+    python3 -c "
+import json
+json.dump({'fingerprint': '$FP', 'exit_code': 1, 'ts': 0}, open('$CACHE_FILE', 'w'))
+"
+  fi
   exit 1
 fi
 echo "pre-commit: all checks passed."
+if [ "$NO_CACHE" != "1" ]; then
+  FP=$(compute_fingerprint)
+  mkdir -p .build
+  python3 -c "
+import json, time
+json.dump({'fingerprint': '$FP', 'exit_code': 0, 'ts': time.time()}, open('$CACHE_FILE', 'w'))
+"
+fi

@@ -9,6 +9,7 @@ The trusted base is the committed pinned-reference wasm at
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -136,6 +137,18 @@ SELFHOST_COMPILE_TIMEOUT = 900
 SELFHOST_TARGET = "wasm32-wasi-p1"
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
+
+# ── Fixpoint content-hash cache ──────────────────────────────────────────────
+# The fixpoint gate compiles the selfhost source twice (stage 2 + stage 3) via
+# wasmtime, taking ~60s.  When the source has not changed since the last run,
+# the result is identical and the rebuild can be skipped entirely.
+#
+# Cache key: SHA-256 of all src/compiler/**/*.ark + std/**/*.ark + pinned wasm.
+# Cache value: {exit_code, passed, skipped, source_hash, s2_sha, s3_sha, ts}.
+# Cache hit requires: key match + s2.wasm exists on disk (+ s3 if exit 0/1).
+
+FIXPOINT_CACHE_REL = ".build/selfhost/fixpoint-cache.json"
+FIXPOINT_CACHE_VERSION = 1
 
 BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "component/",
@@ -391,6 +404,113 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: f.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+# ── Fixpoint cache helpers ───────────────────────────────────────────────────
+
+def _selfhost_source_fingerprint(root: Path) -> str:
+    """Content-hash of all inputs that determine fixpoint output.
+
+    Includes every ``src/compiler/**/*.ark`` and ``std/**/*.ark`` file plus
+    the pinned bootstrap wasm.  If any of these change, the cache is invalidated.
+    """
+    h = hashlib.sha256()
+    h.update(f"v{FIXPOINT_CACHE_VERSION}\n".encode())
+    for base in ("src/compiler", "std"):
+        d = root / base
+        if not d.is_dir():
+            continue
+        for p in sorted(d.rglob("*.ark")):
+            if not p.is_file():
+                continue
+            rel = p.relative_to(root).as_posix()
+            h.update(f"{rel}\0".encode())
+            h.update(p.read_bytes())
+            h.update(b"\0")
+    pinned = root / PINNED_WASM_REL
+    if pinned.is_file():
+        h.update(b"pinned\0")
+        h.update(pinned.read_bytes())
+    return h.hexdigest()
+
+
+def _fixpoint_cache_read(root: Path) -> dict | None:
+    """Read the fixpoint cache; return None if missing or corrupt."""
+    p = root / FIXPOINT_CACHE_REL
+    if not p.is_file():
+        return None
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if data.get("version") != FIXPOINT_CACHE_VERSION:
+            return None
+        return data
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _fixpoint_cache_write(root: Path, entry: dict) -> None:
+    """Write the fixpoint cache atomically."""
+    p = root / FIXPOINT_CACHE_REL
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(entry, indent=2), encoding="utf-8")
+    tmp.replace(p)
+
+
+def _fixpoint_cache_hit(
+    root: Path, cache: dict, fingerprint: str
+) -> SelfhostFixpointResult | None:
+    """Return a cached result if the cache is valid, else None."""
+    if cache.get("source_hash") != fingerprint:
+        return None
+    s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+    if not s2.is_file():
+        return None
+    exit_code = cache.get("exit_code")
+    # For exit 0 (fixpoint reached) or 1 (not yet reached), s3 must exist.
+    if exit_code in (0, 1):
+        s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
+        if not s3.is_file():
+            return None
+    # Verify s2 wasm hash matches cache (detects manual tampering).
+    if cache.get("s2_sha") and _sha256(s2) != cache["s2_sha"]:
+        return None
+    return SelfhostFixpointResult(
+        exit_code=exit_code,
+        passed=cache.get("passed", False),
+        skipped=cache.get("skipped", False),
+        output=cache.get("output", "") + "\n[fixpoint cache: hit]\n",
+    )
+
+
+def _fixpoint_cache_try_write(
+    root: Path, fingerprint: str | None, exit_code: int,
+    passed: bool, skipped: bool, output: str,
+    s2: Path | None = None, s3: Path | None = None,
+) -> None:
+    """Write fixpoint cache if caching is applicable.
+
+    Caches exit 0/1 (both s2+s3 exist) and exit 2 (s2 exists, s3 may not).
+    Skips if fingerprint is None (caching disabled) or s2 is missing.
+    """
+    if fingerprint is None:
+        return
+    if s2 is not None and not s2.is_file():
+        return
+    entry: dict = {
+        "version": FIXPOINT_CACHE_VERSION,
+        "source_hash": fingerprint,
+        "exit_code": exit_code,
+        "passed": passed,
+        "skipped": skipped,
+        "output": output,
+        "ts": time.time(),
+    }
+    if s2 is not None and s2.is_file():
+        entry["s2_sha"] = _sha256(s2)
+    if s3 is not None and s3.is_file():
+        entry["s3_sha"] = _sha256(s3)
+    _fixpoint_cache_write(root, entry)
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
@@ -2576,6 +2696,18 @@ def _run_fixpoint_locked(
         print("DRY-RUN: run_fixpoint()")
         return SelfhostFixpointResult(exit_code=0, passed=True, skipped=False, output="")
 
+    # ── Content-hash cache: skip rebuild when source is unchanged ───────────
+    no_cache = os.environ.get("ARUKELLT_FIXPOINT_NO_CACHE", "") == "1"
+    fingerprint: str | None = None
+    if build and not no_cache:
+        fingerprint = _selfhost_source_fingerprint(root)
+        cached = _fixpoint_cache_read(root)
+        if cached is not None:
+            hit = _fixpoint_cache_hit(root, cached, fingerprint)
+            if hit is not None:
+                print(f"{GREEN}✓ fixpoint cache hit — source unchanged, skipping rebuild{NC}")
+                return hit
+
     pinned = _find_pinned_wasm(root)
     if pinned is None:
         emit(f"{RED}error: pinned-reference selfhost wasm not found at "
@@ -2631,23 +2763,35 @@ def _run_fixpoint_locked(
         stage3_compiler = _stage3_compiler_wasm(root, pinned, s2)
         if stage3_compiler is None:
             emit(f"{RED}error: failed to prepare stage-3 compiler wasm{NC}")
+            _fixpoint_cache_try_write(
+                root, fingerprint, 2, False, True, "\n".join(lines), s2=s2,
+            )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         try:
             r = _wasm_compile_selfhost_source(wasmtime, stage3_compiler, s3_rel, root)
         except BootstrapOverlayError as e:
             emit(f"{RED}✗ bootstrap overlay patch failed during stage 3:{NC}")
             emit(f"  {e}")
+            _fixpoint_cache_try_write(
+                root, fingerprint, 2, False, True, "\n".join(lines), s2=s2,
+            )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         if r.returncode != 0:
             emit(f"{RED}✗ stage 3 compilation failed{NC}")
             if r.stderr:
                 emit(r.stderr[:500])
+            _fixpoint_cache_try_write(
+                root, fingerprint, 2, False, True, "\n".join(lines), s2=s2,
+            )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         _postprocess_selfhost_compiler_wasm(s3, root)
         emit(f"{GREEN}✓ s3.wasm built{NC}")
 
     if not s3.is_file():
         emit(f"{RED}error: s3.wasm not found at {s3} (run without --no-build first){NC}")
+        _fixpoint_cache_try_write(
+            root, fingerprint, 2, False, True, "\n".join(lines), s2=s2,
+        )
         return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
 
     sha2 = _sha256(s2)
@@ -2657,11 +2801,17 @@ def _run_fixpoint_locked(
         emit(f"{GREEN}✓ selfhost fixpoint reached: sha256({s2.name}) == sha256({s3.name}){NC}")
         emit(f"  sha256 = {sha2}")
         emit(f"  pinned base: {PINNED_WASM_REL} (sha256 {_sha256(pinned)})")
+        _fixpoint_cache_try_write(
+            root, fingerprint, 0, True, False, "\n".join(lines), s2=s2, s3=s3,
+        )
         return SelfhostFixpointResult(exit_code=0, passed=True, skipped=False, output="\n".join(lines))
 
     emit(f"{YELLOW}⊙ selfhost fixpoint not yet reached (this is normal during development){NC}")
     emit(f"  sha256(s2) = {sha2}")
     emit(f"  sha256(s3) = {sha3}")
+    _fixpoint_cache_try_write(
+        root, fingerprint, 1, False, True, "\n".join(lines), s2=s2, s3=s3,
+    )
     return SelfhostFixpointResult(exit_code=1, passed=False, skipped=True, output="\n".join(lines))
 
 
