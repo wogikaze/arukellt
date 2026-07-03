@@ -1,37 +1,21 @@
-// Arukellt Selfhost - PR-4a-pre emit-unchanged old/new return VT audit.
+// Arukellt Selfhost - PR-4-wide-audit: registry vs legacy VT observation (emit unchanged).
 
-use mir::value_types
 use wasm::ctx_record
 use wasm::registry_return_guard
 use wasm::registry_return_resolve
 
-struct RegistryReturnAuditCounters {
-    candidates: i32,
-    matched: i32,
-    mismatched: i32,
-    mismatch_log_budget: i32,
-}
-
-fn RegistryReturnAuditCounters_new() -> RegistryReturnAuditCounters {
-    RegistryReturnAuditCounters { candidates: 0, matched: 0, mismatched: 0, mismatch_log_budget: 32 }
-}
-
-fn registry_audit_on_call(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) {
+fn registry_audit_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) {
     if !registry_return_guard::registry_guard_is_normal_call(ctx, inst, callee) {
         return
     }
     ctx_record::SelfEmitCtx_registry_audit_inc_candidates(ctx)
     let reg_vt = registry_return_resolve::registry_resolve_legacy_return_vt(ctx, inst)
-    if legacy_vt_values_equal(reg_vt, fn_legacy_vt) {
+    if reg_vt == fn_legacy_vt {
         ctx_record::SelfEmitCtx_registry_audit_inc_matched(ctx)
         return
     }
     ctx_record::SelfEmitCtx_registry_audit_inc_mismatched(ctx)
     registry_audit_log_mismatch(ctx, callee, fn_legacy_vt, reg_vt)
-}
-
-fn legacy_vt_values_equal(a: i32, b: i32) -> bool {
-    a == b
 }
 
 fn registry_audit_log_mismatch(ctx: SelfEmitCtx, callee: String, old_vt: i32, new_vt: i32) {
@@ -52,10 +36,14 @@ fn registry_audit_print_summary(ctx: SelfEmitCtx) {
     stdio::eprintln(line)
 }
 
-fn registry_emit_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
-    registry_audit_on_call(ctx, inst, callee, fn_legacy_vt)
-    if registry_return_resolve::registry_should_use_matched_path(ctx, inst, callee, fn_legacy_vt) {
-        return registry_return_resolve::registry_resolve_call_has_void_return(ctx, inst)
-    }
-    fn_legacy_vt == value_types::VT_VOID()
+fn registry_audit_matched_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_registry_audit_matched(ctx)
+}
+
+fn registry_audit_mismatched_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx)
+}
+
+fn registry_audit_candidate_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_registry_audit_candidates(ctx)
 }

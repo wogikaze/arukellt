@@ -1,0 +1,13 @@
+// Arukellt Selfhost - PR-4-switch: single emit gate for matched registry return VT.
+//
+// Wired only from PR-4-switch. PR-4-wide-audit keeps emit on legacy path.
+
+use mir::value_types
+use wasm::registry_return_resolve
+
+fn registry_switch_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
+    if registry_return_resolve::registry_should_use_matched_path(ctx, inst, callee, fn_legacy_vt) {
+        return registry_return_resolve::registry_resolve_call_has_void_return(ctx, inst)
+    }
+    fn_legacy_vt == value_types::VT_VOID()
+}

@@ -1,6 +1,21 @@
 # ADR-040: Semantic Type Spine — 意味情報を保存する背骨
 
-ステータス: **Accepted; implementation in progress** (PR-3 完了。PR-4a-pre: legacy_vt_compat + emit 差分監査 + 一致時のみ registry 切替。PR-4b: mono_return_vt_table 観測中)
+ステータス: **Accepted; implementation in progress** (PR-3 完了。PR-4 は wide-audit フェーズ: 監査・compat 修正は並列可、emit 切替は PR-4-switch 単独)
+
+### PR-4 実施レーン（emit 境界で分割）
+
+| Lane | 目的 | emit変更 | 並列 |
+|------|------|----------|------|
+| A | registry vs legacy VT mismatch 分類・集計 | なし | 可 |
+| B | `legacy_vt_compat` 修正（semantic spine は維持、旧 emit ABI 互換のみ） | なし | 可 |
+| C | MonoInstanceTable subst/return_types 監査・修正 | なし | 可 |
+| D | 通常 CALL の一致分のみ registry 経由（`registry_return_switch.ark`） | **あり** | A/B 後・単独 |
+| E | trait/generic/host intrinsic 除外漏れ修正 | なし | 可 |
+| F | docs / ADR 更新 | なし | 可 |
+
+**PR-4-wide-audit**: Lane A–C,E を並列（fixture/callee カテゴリ分割可）。emit は原則不変。  
+**PR-4-switch**: Lane D のみ。一致率が十分になってから単独 PR。  
+**PR-4b-trait-generic**: trait/generic/mono の registry 切替。単独または少数 PR。
 
 決定日: 2026-07-03
 
