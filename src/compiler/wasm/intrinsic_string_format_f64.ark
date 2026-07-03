@@ -1,15 +1,10 @@
 use wasm::ctx_scratch
 use wasm::intrinsic_string_format_f64_assemble
-use wasm::intrinsics::helpers_control_branch
-use wasm::intrinsics::helpers_control_loop
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_f64
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_compare
-use wasm::intrinsics::helpers_numeric_i32_const
-use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::intrinsics::helpers_numeric_i32
 // Handler for: f64_to_string, text::format_f64, convert::f64_to_string, __intrinsic_f64_to_string
 //
 // Emits a *shortest round-trip* decimal representation of the f64 argument
@@ -35,15 +30,15 @@ fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let f_work = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14)
     let digit_buf = 16
     let out_buf = 72
-    helpers_core_locals::emit_local_set(w, f_val)
+    helpers_core::emit_local_set(w, f_val)
     emit_f64_prepare_value(w, s_neg, f_val)
     emit_f64_find_shortest_k(w, s_k, f_val, f_scale, f_work)
     emit_f64_compute_scaled(w, f_val, f_scale, f_work)
     emit_f64_extract_digits(w, f_work, f_scale, s_di, s_j, digit_buf)
     // s_zero = 0 — used as the inclusive lower bound for fraction digit runs
     // where the bound is the literal 0 (not a local index).
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_zero)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_zero)
     intrinsic_string_format_f64_assemble::emit_f64_assemble(w, s_pos, s_neg, s_k, s_di, s_j, s_wpos, s_zero, digit_buf, out_buf)
     if contains(clone(ctx.target), String_from("freestanding")) || contains(clone(ctx.target), String_from("-p2")) || contains(clone(ctx.target), String_from("-p3")) {
         intrinsic_string_format_f64_assemble::emit_f64_alloc_string_gc(w, s_wpos, s_len, s_pos, ctx.gc_type_base, ctx)
@@ -54,121 +49,121 @@ fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 fn emit_f64_prepare_value(w: WasmWriter, s_neg: i32, f_val: i32) {
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_neg)
-    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_neg)
+    helpers_core::emit_local_get(w, f_val)
     helpers_numeric_f64::emit_f64_const_words(w, 0, 0)
     helpers_numeric_f64::emit_f64_lt(w)
-    helpers_control_structured::emit_if_empty(w)
-    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, f_val)
     helpers_numeric_f64::emit_f64_neg(w)
-    helpers_core_locals::emit_local_set(w, f_val)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_core_locals::emit_local_set(w, s_neg)
-    helpers_control_structured::emit_end(w)
+    helpers_core::emit_local_set(w, f_val)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_neg)
+    helpers_control::emit_end(w)
 }
 // Find the smallest k in [1, 17] such that round(f_val * 10^k) / 10^k == f_val.
 // Leaves s_k = k and f_scale = 10^k.  f_work is used as a scratch candidate.
 fn emit_f64_find_shortest_k(w: WasmWriter, s_k: i32, f_val: i32, f_scale: i32, f_work: i32) {
     helpers_numeric_f64::emit_f64_const_words(w, 0, 1076101120)
-    helpers_core_locals::emit_local_set(w, f_scale)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_core_locals::emit_local_set(w, s_k)
-    helpers_control_loop::emit_block_loop_header(w)
+    helpers_core::emit_local_set(w, f_scale)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_k)
+    helpers_control::emit_block_loop_header(w)
     // candidate = round(f_val * f_scale) / f_scale
-    helpers_core_locals::emit_local_get(w, f_val)
-    helpers_core_locals::emit_local_get(w, f_scale)
+    helpers_core::emit_local_get(w, f_val)
+    helpers_core::emit_local_get(w, f_scale)
     helpers_numeric_f64::emit_f64_mul(w)
     helpers_numeric_f64::emit_f64_nearest(w)
-    helpers_core_locals::emit_local_get(w, f_scale)
+    helpers_core::emit_local_get(w, f_scale)
     helpers_numeric_f64::emit_f64_div(w)
-    helpers_core_locals::emit_local_set(w, f_work)
+    helpers_core::emit_local_set(w, f_work)
     // if candidate == f_val: break (found shortest k)
-    helpers_core_locals::emit_local_get(w, f_work)
-    helpers_core_locals::emit_local_get(w, f_val)
+    helpers_core::emit_local_get(w, f_work)
+    helpers_core::emit_local_get(w, f_val)
     helpers_numeric_f64::emit_f64_eq(w)
-    helpers_control_branch::emit_br_if(w, 1)
+    helpers_control::emit_br_if(w, 1)
     // if s_k >= 17: break (fallback to max precision)
-    helpers_core_locals::emit_local_get(w, s_k)
-    helpers_numeric_i32_const::emit_i32_const(w, 17)
-    helpers_numeric_i32_compare::emit_i32_ge_s(w)
-    helpers_control_branch::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_const(w, 17)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_br_if(w, 1)
     // k++, f_scale *= 10
-    helpers_core_locals::emit_local_get(w, s_k)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_k)
-    helpers_core_locals::emit_local_get(w, f_scale)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_k)
+    helpers_core::emit_local_get(w, f_scale)
     helpers_numeric_f64::emit_f64_const_words(w, 0, 1076101120)
     helpers_numeric_f64::emit_f64_mul(w)
-    helpers_core_locals::emit_local_set(w, f_scale)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
+    helpers_core::emit_local_set(w, f_scale)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
 }
 // f_work = round(f_val * f_scale)  (integer-valued f64, the scaled mantissa).
 fn emit_f64_compute_scaled(w: WasmWriter, f_val: i32, f_scale: i32, f_work: i32) {
-    helpers_core_locals::emit_local_get(w, f_val)
-    helpers_core_locals::emit_local_get(w, f_scale)
+    helpers_core::emit_local_get(w, f_val)
+    helpers_core::emit_local_get(w, f_scale)
     helpers_numeric_f64::emit_f64_mul(w)
     helpers_numeric_f64::emit_f64_nearest(w)
-    helpers_core_locals::emit_local_set(w, f_work)
+    helpers_core::emit_local_set(w, f_work)
 }
 // Extract decimal digits of the integer-valued f64 in f_work, least-significant
 // first, into memory at digit_buf.  s_di receives the digit count.  f_temp
 // (passed as f_scale's slot, no longer needed after scaling) holds the next
 // quotient.  s_j holds the current digit value transiently.
 fn emit_f64_extract_digits(w: WasmWriter, f_work: i32, f_temp: i32, s_di: i32, s_j: i32, digit_buf: i32) {
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_di)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_di)
     // if f_work == 0.0: emit a single '0' digit and return.
-    helpers_core_locals::emit_local_get(w, f_work)
+    helpers_core::emit_local_get(w, f_work)
     helpers_numeric_f64::emit_f64_const_words(w, 0, 0)
     helpers_numeric_f64::emit_f64_eq(w)
-    helpers_control_structured::emit_if_empty(w)
-    helpers_numeric_i32_const::emit_i32_const(w, digit_buf)
-    helpers_numeric_i32_const::emit_i32_const(w, 48)
-    helpers_memory_access::emit_i32_store8_default(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_core_locals::emit_local_set(w, s_di)
-    helpers_control_structured::emit_else(w)
-    helpers_control_loop::emit_block_loop_header(w)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i32::emit_i32_const(w, digit_buf)
+    helpers_numeric_i32::emit_i32_const(w, 48)
+    helpers_memory::emit_i32_store8_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_di)
+    helpers_control::emit_else(w)
+    helpers_control::emit_block_loop_header(w)
     // while f_work >= 1.0
-    helpers_core_locals::emit_local_get(w, f_work)
+    helpers_core::emit_local_get(w, f_work)
     helpers_numeric_f64::emit_f64_const_words(w, 0, 1072693248)
     helpers_numeric_f64::emit_f64_lt(w)
-    helpers_control_branch::emit_br_if(w, 1)
+    helpers_control::emit_br_if(w, 1)
     // f_temp = trunc(f_work / 10)
-    helpers_core_locals::emit_local_get(w, f_work)
+    helpers_core::emit_local_get(w, f_work)
     helpers_numeric_f64::emit_f64_const_words(w, 0, 1076101120)
     helpers_numeric_f64::emit_f64_div(w)
     helpers_numeric_f64::emit_f64_trunc(w)
-    helpers_core_locals::emit_local_set(w, f_temp)
+    helpers_core::emit_local_set(w, f_temp)
     // digit = f_work - 10 * f_temp  (in [0, 9])
-    helpers_core_locals::emit_local_get(w, f_work)
-    helpers_core_locals::emit_local_get(w, f_temp)
+    helpers_core::emit_local_get(w, f_work)
+    helpers_core::emit_local_get(w, f_temp)
     helpers_numeric_f64::emit_f64_const_words(w, 0, 1076101120)
     helpers_numeric_f64::emit_f64_mul(w)
     helpers_numeric_f64::emit_f64_sub(w)
-    helpers_numeric_i32_convert::emit_i32_trunc_f64_s(w)
-    helpers_core_locals::emit_local_set(w, s_j)
+    helpers_numeric_i32::emit_i32_trunc_f64_s(w)
+    helpers_core::emit_local_set(w, s_j)
     // buf[digit_buf + s_di] = '0' + digit
-    helpers_numeric_i32_const::emit_i32_const(w, digit_buf)
-    helpers_core_locals::emit_local_get(w, s_di)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, s_j)
-    helpers_numeric_i32_const::emit_i32_const(w, 48)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_numeric_i32::emit_i32_const(w, digit_buf)
+    helpers_core::emit_local_get(w, s_di)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_numeric_i32::emit_i32_const(w, 48)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store8_default(w)
     // s_di++, f_work = f_temp
-    helpers_core_locals::emit_local_get(w, s_di)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_di)
-    helpers_core_locals::emit_local_get(w, f_temp)
-    helpers_core_locals::emit_local_set(w, f_work)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
+    helpers_core::emit_local_get(w, s_di)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_di)
+    helpers_core::emit_local_get(w, f_temp)
+    helpers_core::emit_local_set(w, f_work)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
 }

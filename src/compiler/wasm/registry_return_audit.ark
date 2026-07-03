@@ -1,12 +1,13 @@
 // Arukellt Selfhost - PR-4-wide-audit: registry vs legacy VT observation (emit unchanged).
 
-use corehir::legacy_vt_compat
+use mir::legacy_vt_compat
 use wasm::ctx_record
 use wasm::registry_return_guard
 use wasm::registry_return_resolve
+use mir::value_types
 
 fn registry_audit_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) {
-    if !registry_return_guard::registry_guard_is_normal_call(ctx, inst, callee) {
+    if !registry_return_guard::registry_guard_is_registry_call(ctx, inst, callee) {
         return
     }
     ctx_record::SelfEmitCtx_registry_audit_inc_candidates(ctx)
@@ -51,4 +52,16 @@ fn registry_audit_mismatched_count(ctx: SelfEmitCtx) -> i32 {
 
 fn registry_audit_candidate_count(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_registry_audit_candidates(ctx)
+}
+
+// ---- emit switch (merged from registry_return_switch) ----
+//
+// Wired only from PR-4-switch. PR-4-wide-audit keeps emit on legacy path.
+
+
+fn registry_switch_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
+    if registry_return_resolve::registry_should_use_matched_path(ctx, inst, callee, fn_legacy_vt) {
+        return registry_return_resolve::registry_resolve_call_has_void_return(ctx, inst)
+    }
+    fn_legacy_vt == value_types::VT_VOID()
 }

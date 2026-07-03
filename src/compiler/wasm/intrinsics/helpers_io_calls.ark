@@ -2,11 +2,10 @@ use wasm::opcodes
 // Arukellt Selfhost - Wasm intrinsic I/O call/stack primitive recipes.
 
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_call(w: WasmWriter, index: i32) {
     writer_core::emit_byte(w, opcodes::OP_CALL())
-    writer_leb::emit_leb128_u(w, index)
+    writer_core::emit_leb128_u(w, index)
 }
 
 fn emit_drop(w: WasmWriter) {

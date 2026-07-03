@@ -323,7 +323,7 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 - **MIR validation** brackets every pass for early bug detection
 - **ADR-040 PR-1/2 (2026-07)**: `TypeTable` / `MirValueType` / `SignatureRegistry` 骨格を `fn_index` からミラー構築（conservative approximation、emit 未使用）。`mir::verify_mir_warn_only` を compile パイプラインに warning-only で挿入（W001–W005 集計ログ）
 - **ADR-040 PR-3 (2026-07)**: `MirModule` へ spine 永続化（`type_table` / `signature_registry` / `mono_instance_table`）、`MonoInstanceTable` + subst、`MIR_CALL.func_id_raw` を lowering で設定。W003 除外強化。代表 fixture の mir-verify baseline を `.build/mir-verify-baseline/` に記録。`mir::verify_mir`（W005 fail）を追加（パイプラインは warn-only 維持）
-- **ADR-040 PR-4-wide-audit (進行中)**: `legacy_vt_compat`（`()`→VOID、REF≈GC_REF、tuple/struct kind）と `mono_return_vt`（fn_index fallback 優先）で T3 **381 pass**（PR-3: 378）。`scripts/check/reg-vt-audit-t3.py` で T3 横断集計（残: reg `I32` vs `GC_REF`、mono 型パラム戻り値）。emit は legacy 固定。切替は `wasm/registry_return_switch.ark`（PR-4-switch で単独配線）
+- **ADR-040 PR-4-wide-audit / PR-4-switch (2026-07)**: `legacy_vt_compat` で Vec 戻り値を legacy MirFunction ABI（i32 ハンドル）に整合。`fn_index_mono_sync` で MonoInstanceTable から fn_index mono 戻り値 VT を同期。`mono_return_vt` は spine テーブル優先。T3 `reg-vt-audit-t3.py` mismatched=0（417/419 compiled）。`registry_switch_call_has_void_return` を `call_fallback.ark` に配線（一致 registry パスのみ void 判定）。T3 **381 pass**（ベースライン維持）
 - Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
 
 ### T3 MIR optimization re-enabled (issue #486, 2026-04-15; #650 wasm emit unlock 2026-06)

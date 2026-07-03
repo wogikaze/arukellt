@@ -3,47 +3,44 @@ use wasm::constants
 
 use wasm::ctx_scratch
 use wasm::intrinsic_fs_write_result
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_calls
-use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_compare
-use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
 
 // Handler for: fs::write_string
 fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_path_w = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_content = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    helpers_core_locals::emit_local_set(w, s_content)
-    helpers_core_locals::emit_local_set(w, s_path_w)
+    helpers_core::emit_local_set(w, s_content)
+    helpers_core::emit_local_set(w, s_path_w)
     helpers_io::emit_store_string_local_to_scratch(w, s_path_w, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
     emit_open_status_test(w)
-    helpers_control_structured::emit_if_i32(w)
+    helpers_control::emit_if_i32(w)
     emit_write_error_result(w)
-    helpers_control_structured::emit_else(w)
+    helpers_control::emit_else(w)
     emit_write_success_result(w, s_content)
-    helpers_control_structured::emit_end(w)
+    helpers_control::emit_end(w)
     return true
 }
 
 fn emit_open_status_test(w: WasmWriter) {
-    helpers_numeric_i32_const::emit_i32_const(w, 3)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_PATHPTR())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_PATHLEN())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 9)
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_PATHPTR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_PATHLEN())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 9)
     helpers_numeric_i64_const::emit_i64_const(w, 64)
     helpers_numeric_i64_const::emit_i64_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_FD())
-    helpers_core_calls::emit_call(w, 3)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_core::emit_call(w, 3)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_ne(w)
 }
 
 fn emit_write_error_result(w: WasmWriter) {
@@ -53,23 +50,23 @@ fn emit_write_error_result(w: WasmWriter) {
 
 fn emit_write_success_result(w: WasmWriter, s_content: i32) {
     emit_fs_write_string_iov(w, s_content)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_FD())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_IOV())
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_NWRITTEN())
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV())
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_NWRITTEN())
     intrinsic_fs_write_result::emit_fs_write_success_writev_and_close(w)
     intrinsic_fs_write_result::emit_fs_write_success_unit_result(w)
 }
 
 fn emit_fs_write_string_iov(w: WasmWriter, content_local: i32) {
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_IOV())
-    helpers_core_locals::emit_local_get(w, content_local)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_IOV() + 4)
-    helpers_core_locals::emit_local_get(w, content_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV())
+    helpers_core::emit_local_get(w, content_local)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV() + 4)
+    helpers_core::emit_local_get(w, content_local)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_memory::emit_i32_store_default(w)
 }

@@ -3,10 +3,10 @@
 use mir::lower::ctx_init
 use mir::lower::ctx_types
 
-fn LowerCtx_new(m: MirModule) -> ctx_types::LowerCtx {
+fn LowerCtx_new(m: MirModule) -> LowerCtx {
     ctx_init::LowerCtx_new(m)
 }
 
-fn LowerCtx_new_for_target(m: MirModule, target: String) -> ctx_types::LowerCtx {
+fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
     ctx_init::LowerCtx_new_for_target(m, target)
 }

@@ -1,0 +1,101 @@
+// Arukellt Selfhost - mono mangled-name suffix parsing helpers.
+
+fn split_mono_suffix(suffix: String) -> Vec<String> {
+    let result = Vec_new_String()
+    let slen = len(suffix)
+    let mut start = 0
+    let mut i = 0
+    while i < slen - 1 {
+        if char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
+            push(result, substring(suffix, start, i))
+            start = i + 2
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if start <= slen {
+        push(result, substring(suffix, start, slen))
+    }
+    result
+}
+
+fn mono_type_var_to_index(type_var: String) -> i32 {
+    if eq(clone(type_var), String_from("T")) { return 0 }
+    if eq(clone(type_var), String_from("E")) { return 1 }
+    if eq(clone(type_var), String_from("U")) { return 2 }
+    if eq(clone(type_var), String_from("V")) { return 3 }
+    if eq(clone(type_var), String_from("W")) { return 4 }
+    if eq(clone(type_var), String_from("K")) { return 0 }
+    if eq(clone(type_var), String_from("A")) { return 0 }
+    if eq(clone(type_var), String_from("B")) { return 1 }
+    if eq(clone(type_var), String_from("C")) { return 2 }
+    if eq(clone(type_var), String_from("D")) { return 3 }
+    0
+}
+
+fn extract_first_type_var(rest: String) -> String {
+    let rlen = len(rest)
+    let mut ci = 0
+    while ci < rlen {
+        if char_at(rest, ci) == 58 {
+            return substring(rest, 0, ci)
+        }
+        ci = ci + 1
+    }
+    rest
+}
+
+fn extract_mono_suffix(fn_name: String) -> String {
+    let name_len = len(fn_name)
+    let sep_positions = Vec_new_i32()
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
+            push(sep_positions, i)
+        }
+        i = i + 1
+    }
+    let sep_count = len(sep_positions)
+    if sep_count == 0 {
+        return String_new()
+    }
+    let mut si = 0
+    while si < sep_count {
+        let sep_pos = get_unchecked(sep_positions, si)
+        let suffix = substring(fn_name, sep_pos + 2, name_len)
+        let type_keys = split_mono_suffix(suffix)
+        let key_count = len(type_keys)
+        if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {
+            return suffix
+        }
+        si = si + 1
+    }
+    let first_sep = get_unchecked(sep_positions, 0)
+    substring(fn_name, first_sep + 2, name_len)
+}
+
+fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
+    let mut ki = 0
+    while ki < key_count {
+        let key = get_unchecked(type_keys, ki)
+        if !is_valid_mono_type_key(key) {
+            return false
+        }
+        ki = ki + 1
+    }
+    true
+}
+
+fn is_valid_mono_type_key(key: String) -> bool {
+    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
+        return true
+    }
+    if len(key) > 0 {
+        let first = char_at(key, 0)
+        if first >= 65 && first <= 90 {
+            return true
+        }
+    }
+    false
+}

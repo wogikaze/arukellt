@@ -5,7 +5,6 @@ use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::inst_ctx
@@ -18,7 +17,7 @@ fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     } else {
         let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
         writer_core::emit_byte(w, opcodes::OP_CALL())
-        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+        writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -43,26 +42,26 @@ fn emit_hm_struct_new_gc(w: WasmWriter, ctx: SelfEmitCtx, hm_type: i32, keys_arr
 
 fn emit_hm_struct_new_gc_array(w: WasmWriter, array_type: i32, s_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_leb128_s(w, 16)
     writer_gc::emit_gc_array_new(w, array_type)
     writer_gc::emit_gc_ref_cast(w, array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_local)
+    writer_core::emit_leb128_u(w, s_local)
 }
 
 fn emit_hm_struct_new_gc_final(w: WasmWriter, hm_type: i32, keys_array_type: i32, vals_array_type: i32, flags_array_type: i32, s_keys: i32, s_vals: i32, s_flags: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_leb128_s(w, 16)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_keys)
+    writer_core::emit_leb128_u(w, s_keys)
     writer_gc::emit_gc_ref_cast(w, keys_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_vals)
+    writer_core::emit_leb128_u(w, s_vals)
     writer_gc::emit_gc_ref_cast(w, vals_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_flags)
+    writer_core::emit_leb128_u(w, s_flags)
     writer_gc::emit_gc_ref_cast(w, flags_array_type)
     writer_gc::emit_gc_struct_new(w, hm_type)
 }
@@ -73,7 +72,7 @@ fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     } else {
         let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
         writer_core::emit_byte(w, opcodes::OP_CALL())
-        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+        writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -95,7 +94,7 @@ fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     } else {
         let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
         writer_core::emit_byte(w, opcodes::OP_CALL())
-        writer_leb::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+        writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }

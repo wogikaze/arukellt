@@ -8,6 +8,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_struct_layout
+use mir::lower::mono_suffix_parse
 use mir::function_identity
 use mir::function_param_view
 use mir::local_access
@@ -19,7 +20,7 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
     // Extract the mono type suffix from the function name (e.g. "i32" from
     // "unwrap_or_default__i32"). If no "__" separator, this is not a
     // specialized mono function — skip substitution.
-    let mono_suffix = extract_mono_suffix(clone(fn_name))
+    let mono_suffix = mono_suffix_parse::extract_mono_suffix(clone(fn_name))
     if len(clone(mono_suffix)) == 0 {
         return
     }
@@ -36,79 +37,91 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
         // Handle composite type names containing type variables, e.g.
         // "?Option:T" or "?Result:T" — substitute the inner type variable
         // with the concrete monomorphized type.
-        if starts_with(clone(ty_name), String_from("vec:")) {
-            let type_var = substring(clone(ty_name), 4, len(ty_name))
-            let mut concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
-            if len(concrete) == 0 {
-                concrete = resolve_nested_vec_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
-            }
-            if len(concrete) > 0 {
-                let mono_type_name = concat(String_from("vec:"), concrete)
-                ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
-                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
-            }
-        } else if starts_with(clone(ty_name), String_from("option:")) || starts_with(clone(ty_name), String_from("Option:")) {
-            let prefix_len = if starts_with(clone(ty_name), String_from("option:")) { 7 } else { 7 }
-            let type_var = substring(clone(ty_name), prefix_len, len(ty_name))
-            let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
-            if len(concrete) > 0 {
-                let mono_type_name = concat(String_from("option:"), concrete)
-                ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
-                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
-            }
-        } else if starts_with(clone(ty_name), String_from("?Option:")) {
-            let type_var = substring(clone(ty_name), 8, len(ty_name))
-            let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
-            if len(concrete) > 0 {
-                let mono_type_name = concat(String_from("option:"), concrete)
-                ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
-                ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-                ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
-            }
-        } else {
-            if starts_with(clone(ty_name), String_from("?Result:")) {
-                // Result<T, E> — extract the first type variable T and substitute.
-                let rest = substring(clone(ty_name), 8, len(ty_name))
-                let type_var = extract_first_type_var(rest)
-                let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
-                if len(concrete) > 0 {
-                    let mono_type_name = concat(String_from("enum:Result"), concat(String_from(":"), concrete))
-                    ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
-                    ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
-                    ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
-                }
-            } else {
-                if starts_with(clone(ty_name), String_from("?")) {
-                    // Plain type variable (e.g. "?T") — substitute with the
-                    // concrete type from the mono mapping or function name suffix.
-                    let type_var = substring(clone(ty_name), 1, len(ty_name))
-                    let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
-                    if len(concrete) > 0 {
-                        let pvt = mono_concrete_type_vt(clone(concrete))
-                        // For struct/enum types, transform the concrete type
-                        // name the same way the return type does (e.g.
-                        // "Point" → "struct:Point:8") so the emitter's type
-                        // sig builder can use the byte-size fallback when the
-                        // struct is not in the gc_struct list (deduplicated by
-                        // sig).  Skip this for String and primitives, which
-                        // have their own dedicated type sigs.
-                        let sig_type_name = clone(concrete)
-                        if pvt == value_types::VT_GC_REF() {
-                            if !eq(clone(concrete), String_from("String")) && !eq(clone(concrete), String_from("string")) {
-                                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(concrete))
-                            }
-                        }
-                        ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
-                        ctx_api_local_types::ctx_set_local_type(ctx, p, clone(concrete))
-                        ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, sig_type_name)
-                    }
-                }
-            }
+        if !mono_subst_wrapped_param(ctx, p, clone(ty_name), clone(mono_suffix), has_mono_map) {
+            mono_subst_bare_param(ctx, p, clone(ty_name), clone(mono_suffix), has_mono_map)
         }
         p = p + 1
     }
+}
+
+// Substitute vec:/option:/?Option: wrapped type-variable params.
+// Returns true when the type name matched one of the wrapped forms
+// (whether or not a concrete substitution was applied).
+fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix: String, has_mono_map: bool) -> bool {
+    if starts_with(clone(ty_name), String_from("vec:")) {
+        let type_var = substring(clone(ty_name), 4, len(ty_name))
+        let mut concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+        if len(concrete) == 0 {
+            concrete = resolve_nested_vec_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+        }
+        if len(concrete) > 0 {
+            mono_set_param_gc_type(ctx, p, concat(String_from("vec:"), concrete))
+        }
+        return true
+    }
+    if starts_with(clone(ty_name), String_from("option:")) || starts_with(clone(ty_name), String_from("Option:")) {
+        let type_var = substring(clone(ty_name), 7, len(ty_name))
+        let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+        if len(concrete) > 0 {
+            mono_set_param_gc_type(ctx, p, concat(String_from("option:"), concrete))
+        }
+        return true
+    }
+    if starts_with(clone(ty_name), String_from("?Option:")) {
+        let type_var = substring(clone(ty_name), 8, len(ty_name))
+        let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+        if len(concrete) > 0 {
+            mono_set_param_gc_type(ctx, p, concat(String_from("option:"), concrete))
+        }
+        return true
+    }
+    false
+}
+
+// Substitute ?Result:/? bare type-variable params.
+fn mono_subst_bare_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix: String, has_mono_map: bool) {
+    if starts_with(clone(ty_name), String_from("?Result:")) {
+        // Result<T, E> — extract the first type variable T and substitute.
+        let rest = substring(clone(ty_name), 8, len(ty_name))
+        let type_var = mono_suffix_parse::extract_first_type_var(rest)
+        let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+        if len(concrete) > 0 {
+            mono_set_param_gc_type(ctx, p, concat(String_from("enum:Result"), concat(String_from(":"), concrete)))
+        }
+        return
+    }
+    if starts_with(clone(ty_name), String_from("?")) {
+        // Plain type variable (e.g. "?T") — substitute with the
+        // concrete type from the mono mapping or function name suffix.
+        let type_var = substring(clone(ty_name), 1, len(ty_name))
+        let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
+        if len(concrete) > 0 {
+            let pvt = mono_concrete_type_vt(clone(concrete))
+            // For struct/enum types, transform the concrete type
+            // name the same way the return type does (e.g.
+            // "Point" → "struct:Point:8") so the emitter's type
+            // sig builder can use the byte-size fallback when the
+            // struct is not in the gc_struct list (deduplicated by
+            // sig).  Skip this for String and primitives, which
+            // have their own dedicated type sigs.
+            let sig_type_name = clone(concrete)
+            if pvt == value_types::VT_GC_REF() {
+                if !eq(clone(concrete), String_from("String")) && !eq(clone(concrete), String_from("string")) {
+                    sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(concrete))
+                }
+            }
+            ctx_api_local_types::ctx_set_local_vt(ctx, p, pvt)
+            ctx_api_local_types::ctx_set_local_type(ctx, p, clone(concrete))
+            ctx_api_function_frame::ctx_set_func_param_type(ctx, p, pvt, sig_type_name)
+        }
+    }
+}
+
+// Set a param local to a GC ref with the given mono type name.
+fn mono_set_param_gc_type(ctx: LowerCtx, p: i32, mono_type_name: String) {
+    ctx_api_local_types::ctx_set_local_vt(ctx, p, value_types::VT_GC_REF())
+    ctx_api_local_types::ctx_set_local_type(ctx, p, clone(mono_type_name))
+    ctx_api_function_frame::ctx_set_func_param_type(ctx, p, value_types::VT_GC_REF(), mono_type_name)
 }
 
 // Determine the value type (VT) for a concrete monomorphized type name.
@@ -133,11 +146,6 @@ fn mono_concrete_type_vt(type_name: String) -> i32 {
     value_types::VT_GC_REF()
 }
 
-// Resolve a type variable name to its concrete monomorphized type.
-// Uses the mono type parameter mapping when available, falling back to
-// the function name suffix.  For multi-parameter generics the suffix
-// contains multiple type keys separated by "__" (e.g. "i32__String");
-// the fallback uses the type variable name to pick the right one.
 // Resolve nested generic vec element types (e.g. vec:T with T = Vec<i32>).
 // When the mono suffix is a composite type key like "Vec<i32>", use it
 // directly instead of splitting on "__" type parameter ordinals.
@@ -154,7 +162,7 @@ fn resolve_nested_vec_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix
     if starts_with(clone(mono_suffix), String_from("Vec")) {
         return clone(mono_suffix)
     }
-    let type_keys = split_mono_suffix(clone(mono_suffix))
+    let type_keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
     let key_count = len(type_keys)
     if key_count == 1 {
         let only = get_unchecked(type_keys, 0)
@@ -165,6 +173,11 @@ fn resolve_nested_vec_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix
     String_new()
 }
 
+// Resolve a type variable name to its concrete monomorphized type.
+// Uses the mono type parameter mapping when available, falling back to
+// the function name suffix.  For multi-parameter generics the suffix
+// contains multiple type keys separated by "__" (e.g. "i32__String");
+// the fallback uses the type variable name to pick the right one.
 fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, has_mono_map: bool) -> String {
     if has_mono_map {
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, clone(type_var))
@@ -174,7 +187,7 @@ fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, h
     }
     // Fallback: split the suffix by "__" and use the type variable name
     // to determine the correct type parameter index.
-    let type_keys = split_mono_suffix(clone(mono_suffix))
+    let type_keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
     let key_count = len(type_keys)
     if key_count == 0 {
         return String_new()
@@ -182,118 +195,9 @@ fn resolve_concrete_type(ctx: LowerCtx, type_var: String, mono_suffix: String, h
     if key_count == 1 {
         return get_unchecked(type_keys, 0)
     }
-    let idx = mono_type_var_to_index(clone(type_var))
+    let idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var))
     if idx < 0 || idx >= key_count {
         return get_unchecked(type_keys, 0)
     }
     get_unchecked(type_keys, idx)
-}
-
-// Split a mono suffix string by "__" into individual type keys.
-fn split_mono_suffix(suffix: String) -> Vec<String> {
-    let result = Vec_new_String()
-    let slen = len(suffix)
-    let mut start = 0
-    let mut i = 0
-    while i < slen - 1 {
-        if char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
-            push(result, substring(suffix, start, i))
-            start = i + 2
-            i = i + 2
-        } else {
-            i = i + 1
-        }
-    }
-    if start <= slen {
-        push(result, substring(suffix, start, slen))
-    }
-    result
-}
-
-// Map a type variable name to a type parameter index using common
-// naming conventions (T→0, E→1, U→2, V→3, K→0, etc.).
-fn mono_type_var_to_index(type_var: String) -> i32 {
-    if eq(clone(type_var), String_from("T")) { return 0 }
-    if eq(clone(type_var), String_from("E")) { return 1 }
-    if eq(clone(type_var), String_from("U")) { return 2 }
-    if eq(clone(type_var), String_from("V")) { return 3 }
-    if eq(clone(type_var), String_from("W")) { return 4 }
-    if eq(clone(type_var), String_from("K")) { return 0 }
-    if eq(clone(type_var), String_from("A")) { return 0 }
-    if eq(clone(type_var), String_from("B")) { return 1 }
-    if eq(clone(type_var), String_from("C")) { return 2 }
-    if eq(clone(type_var), String_from("D")) { return 3 }
-    0
-}
-
-// Extract the first type variable from a composite type string like "T:U".
-fn extract_first_type_var(rest: String) -> String {
-    let rlen = len(rest)
-    let mut ci = 0
-    while ci < rlen {
-        if char_at(rest, ci) == 58 {
-            return substring(rest, 0, ci)
-        }
-        ci = ci + 1
-    }
-    rest
-}
-
-fn extract_mono_suffix(fn_name: String) -> String {
-    // Extract the full mono type suffix from the function name.
-    // For method names like "Picker__echo__i32", the base name contains "__"
-    // (from "::" → "__"). We try all "__" positions from right to left and
-    // check if all suffix parts are valid type keys. The rightmost valid
-    // position is the correct separator.
-    let name_len = len(fn_name)
-    let sep_positions = Vec_new_i32()
-    let mut i = 0
-    while i < name_len - 1 {
-        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
-            push(sep_positions, i)
-        }
-        i = i + 1
-    }
-    let sep_count = len(sep_positions)
-    if sep_count == 0 {
-        return String_new()
-    }
-    let mut si = 0
-    while si < sep_count {
-        let sep_pos = get_unchecked(sep_positions, si)
-        let suffix = substring(fn_name, sep_pos + 2, name_len)
-        let type_keys = split_mono_suffix(suffix)
-        let key_count = len(type_keys)
-        if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {
-            return suffix
-        }
-        si = si + 1
-    }
-    let first_sep = get_unchecked(sep_positions, 0)
-    substring(fn_name, first_sep + 2, name_len)
-}
-
-fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
-    let mut ki = 0
-    while ki < key_count {
-        let key = get_unchecked(type_keys, ki)
-        if !is_valid_mono_type_key(key) {
-            return false
-        }
-        ki = ki + 1
-    }
-    true
-}
-
-fn is_valid_mono_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
-        return true
-    }
-    if len(key) > 0 {
-        let first = char_at(key, 0)
-        if first >= 65 && first <= 90 {
-            return true
-        }
-    }
-    false
 }

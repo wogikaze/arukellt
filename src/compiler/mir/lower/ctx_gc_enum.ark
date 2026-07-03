@@ -1,8 +1,7 @@
 // Arukellt Selfhost - MIR lowering GC enum variant registration.
 
-use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum_sig
 use mir::module_gc_enum
-use mir::value_types
 use wasm::emit_target
 use std::text
 
@@ -75,31 +74,10 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     ctx_gc_enum_lookup_slot(ctx, clone(variant_name))
 }
 
-fn gc_enum_field_sig_for_vt(vt: i32) -> String {
-    if vt == value_types::VT_F64() {
-        return String_from("_f1_f64")
-    }
-    if vt == value_types::VT_I64() {
-        return String_from("_f1_i64")
-    }
-    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
-        return String_from("_f1_ref0")
-    }
-    String_from("_f1_i32")
-}
-
-fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
-    let mut sig = String_new()
-    for i in 0..len(payload_vts) {
-        sig = text::builder_append(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
-    }
-    sig
-}
-
 fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
-    let want_sig = gc_enum_payload_variant_sig(0, field_sigs)
+    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+    let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, field_sigs)
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
     while i < count {
@@ -134,14 +112,14 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
     let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
         let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-        let want_field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
-        if gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
+        let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+        if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
             return name_slot
         }
     }
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let field_sigs = ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
-    let sig = gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
+    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
+    let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
     ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
     len(ctx.gc_enum_variant_names) - 1
 }
@@ -150,11 +128,12 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
 // the correct field sig when the payload VT is VT_GC_REF.  This is critical
 // for distinguishing between different GC ref payload types (e.g. String
 // vs Vec<i32>) that both have VT_GC_REF but need different WASM ref types.
+
 fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
     // Build field sigs using the type name when available.
-    let field_sigs = ctx_gc_enum_payload_field_sigs_typed(payload_vts, clone(type_name))
+    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(payload_vts, clone(type_name))
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let want_sig = gc_enum_payload_variant_sig(0, clone(field_sigs))
+    let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, clone(field_sigs))
     // Try payload-specific lookup with the typed sig.
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
@@ -171,12 +150,12 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
     let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
         let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-        if gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
+        if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
             return name_slot
         }
     }
     // Create new variant with the typed sig.
-    let sig = gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
+    let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
     ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
     len(ctx.gc_enum_variant_names) - 1
 }
@@ -184,70 +163,6 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
 // Generate payload field sigs from VTs, using a type name for the first
 // field when its VT is VT_GC_REF.  This allows distinguishing String
 // (ref0) from Vec (ref10) from enum types (ref14).
-fn ctx_gc_enum_payload_field_sigs_typed(payload_vts: Vec<i32>, type_name: String) -> String {
-    let mut sig = String_new()
-    for i in 0..len(payload_vts) {
-        let vt = get_unchecked(payload_vts, i)
-        if i == 0 && len(type_name) > 0 && (vt == value_types::VT_GC_REF() || vt == value_types::VT_REF()) {
-            sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(type_name)))
-        } else {
-            sig = text::builder_append(sig, gc_enum_field_sig_for_vt(vt))
-        }
-    }
-    sig
-}
-
-// Check if an existing variant sig is compatible with the expected payload
-// field sigs.  Two sigs are compatible if, for each payload field, both are
-// ref types or both are non-ref types (i32/i64/f64).  This allows reusing a
-// variant registered with a type-name-based ref sig (e.g. _f1_ref14) for a
-// value-type-based ref payload (e.g. _f1_ref0), but prevents reusing a ref
-// variant for an i32 payload.
-fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
-    // Extract the payload field sigs from the existing sig (everything after
-    // the base "SubF+14_S_f0_i32" prefix).
-    let base = String_from("SubF+14_S_f0_i32")
-    let existing_payload = substring_after(existing_sig, base)
-    // For single-field payloads (the common case), check if both are ref or
-    // both are non-ref.  A field sig is a ref type if it contains "ref".
-    let want_has_ref = contains(clone(want_field_sigs), String_from("ref"))
-    let existing_has_ref = contains(clone(existing_payload), String_from("ref"))
-    if want_has_ref && !existing_has_ref {
-        return false
-    }
-    if existing_has_ref && !want_has_ref {
-        return false
-    }
-    // For zero-payload (unit) variants, existing_payload is empty.
-    // If want has payload fields but existing has none, incompatible.
-    let want_len = len(want_field_sigs)
-    let existing_len = len(existing_payload)
-    if want_len > 0 && existing_len == 0 {
-        return false
-    }
-    if existing_len > 0 && want_len == 0 {
-        return false
-    }
-    true
-}
-
-// Extract the substring after the first occurrence of a prefix.
-fn substring_after(s: String, prefix: String) -> String {
-    let prefix_len = len(prefix)
-    let s_len = len(s)
-    if s_len < prefix_len {
-        return String_new()
-    }
-    // Check if s starts with prefix
-    let mut i = 0
-    while i < prefix_len {
-        if char_at(s, i) != char_at(prefix, i) {
-            return String_new()
-        }
-        i = i + 1
-    }
-    substring(s, prefix_len, s_len)
-}
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
     let m = ctx.module
@@ -257,50 +172,6 @@ fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
         module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(get_unchecked(ctx.gc_enum_variant_sigs, i)))
         i = i + 1
     }
-}
-
-fn gc_enum_unit_variant_sig(slot: i32) -> String {
-    String_from("SubF+14_S_f0_i32")
-}
-
-fn gc_enum_payload_variant_sig(slot: i32, field_sigs: String) -> String {
-    concat(String_from("SubF+14_S_f0_i32"), field_sigs)
-}
-
-fn gc_enum_field_sig_for_type(type_name: String) -> String {
-    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
-        return String_from("_f1_f64")
-    }
-    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
-        return String_from("_f1_i64")
-    }
-    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
-        return String_from("_f1_ref0")
-    }
-    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
-        return String_from("_f1_i32")
-    }
-    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
-        return String_from("_f1_i32")
-    }
-    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") || eq(clone(type_name), "i64") {
-        return String_from("_f1_i32")
-    }
-    // Vec types map to the Vec struct type (gc type offset 10).
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec_")) {
-        return String_from("_f1_ref10")
-    }
-    // HashMap types map to specific hashmap struct types.
-    if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap_")) {
-        return String_from("_f1_ref16")
-    }
-    if starts_with(clone(type_name), String_from("enum:")) {
-        return String_from("_f1_ref14")
-    }
-    if eq(clone(type_name), String_from("Ordering")) {
-        return String_from("_f1_ref14")
-    }
-    String_from("_f1_ref14")
 }
 
 fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
@@ -320,7 +191,7 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 }
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
-                sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(ft)))
+                sig = text::builder_append(sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type(clone(ft)))
                 fi = fi + 1
             }
             return sig

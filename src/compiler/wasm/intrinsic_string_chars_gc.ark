@@ -11,7 +11,6 @@ use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 
@@ -31,27 +30,27 @@ fn emit_text_chars_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
 
     // Step 1: Save source char
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_src)
+    writer_core::emit_leb128_u(w, s_src)
 
     // Step 2: Create backing array of size 1
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_gc::emit_gc_array_new(w, i32_array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_leb128_u(w, arr_tmp)
 
     // Step 3: Store char at data[0]
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_src)
+    writer_core::emit_leb128_u(w, s_src)
     writer_gc::emit_gc_array_set(w, i32_array_type)
 
     // Step 4: Create Vec struct (data_array, len=1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_leb128_u(w, arr_tmp)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_gc::emit_gc_struct_new(w, vec_type)
 
     return true

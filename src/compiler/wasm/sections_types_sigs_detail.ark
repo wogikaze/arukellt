@@ -9,6 +9,8 @@ use wasm::emit_target
 use wasm::sections_type_plan
 use wasm::sections_types_gc
 use wasm::sections_types_gc_override
+use wasm::sections_types_sigs_mono
+
 fn build_function_type_sig(uf: MirFunction, target: String, mir: MirModule) -> String {
     let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
@@ -66,32 +68,42 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("string")) || eq(clone(p_type_name), String_from("String"))) {
         return sections_types_gc::gc_string_type_sig()
     }
+    let generic_sig = build_generic_type_var_sig(clone(uf.name), clone(p_type_name), pi, clone(target), mir)
+    if len(generic_sig) > 0 {
+        return generic_sig
+    }
+    sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
+}
+
+// Type-variable ("?...") signature resolution shared by params and returns.
+// Returns empty when the type name is not a type variable on a GC target.
+fn build_generic_type_var_sig(fn_name: String, type_name: String, pi: i32, target: String, mir: MirModule) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
     // Composite generic type with type variable (e.g. "?Option:T") — emit
     // as enum open type ref on GC targets.
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("?Option:")) {
-        return sections_types_gc::gc_enum_open_type_sig()
-    }
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("?Result:")) {
+    if starts_with(clone(type_name), String_from("?Option:")) || starts_with(clone(type_name), String_from("?Result:")) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     // Generic type variable (e.g. "?T") — emit as anyref on GC targets.
     // For specialized mono functions (name contains "__"), try to extract
     // the concrete type from the function name suffix.
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("?")) {
-        let mono_type = resolve_mono_param_type_from_fn_name(clone(uf.name), clone(p_type_name), pi)
+    if starts_with(clone(type_name), String_from("?")) {
+        let mono_type = sections_types_sigs_mono::resolve_mono_param_type_from_fn_name(clone(fn_name), clone(type_name), pi)
         if len(mono_type) > 0 {
             return mono_type
         }
         // Fallback: check if the mono type key from the function name is a
         // registered gc_struct (e.g. "Point" in "show__Point").  This handles
         // struct types that mono_type_key_to_sig doesn't know about.
-        let gc_struct_sig = try_mono_gc_struct_param_sig(clone(uf.name), clone(p_type_name), pi, mir)
+        let gc_struct_sig = sections_types_sigs_mono::try_mono_gc_struct_param_sig(clone(fn_name), clone(type_name), pi, mir)
         if len(gc_struct_sig) > 0 {
             return gc_struct_sig
         }
         return String_from("gcref")
     }
-    sections_type_plan::val_type_to_target_sig(local_access::MirLocal_val_type(p), emit_target::is_gc_target(clone(target)))
+    String_new()
 }
 
 // Extract the mono type suffix from a function name.
@@ -99,69 +111,6 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
 // (from "::" → "__"). We try all "__" positions from right to left and
 // check if all suffix parts are valid type keys. The rightmost valid
 // position is the correct separator.
-fn extract_mono_suffix(fn_name: String) -> String {
-    let name_len = len(fn_name)
-    // Collect all "__" positions
-    let sep_positions = Vec_new_i32()
-    let mut i = 0
-    while i < name_len - 1 {
-        if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
-            push(sep_positions, i)
-        }
-        i = i + 1
-    }
-    let sep_count = len(sep_positions)
-    if sep_count == 0 {
-        return String_new()
-    }
-    // Try positions from left to right: the first position where all suffix
-    // parts are valid type keys is the correct separator. This handles both
-    // method names (e.g. "Picker__echo__i32" → "echo" is invalid, "i32" is valid)
-    // and multi-param generics (e.g. "pair_first__i32__String" → "i32__String" all valid).
-    let mut si = 0
-    while si < sep_count {
-        let sep_pos = get_unchecked(sep_positions, si)
-        let suffix = substring(fn_name, sep_pos + 2, name_len)
-        let type_keys = split_by_double_underscore(suffix)
-        let key_count = len(type_keys)
-        if key_count > 0 && all_valid_type_keys(type_keys, key_count) {
-            return suffix
-        }
-        si = si + 1
-    }
-    // Fallback: use the first "__" separator (original behavior)
-    let first_sep = get_unchecked(sep_positions, 0)
-    substring(fn_name, first_sep + 2, name_len)
-}
-
-// Check if all type keys in a list are valid mono type keys.
-// Valid keys: known primitives (i32, i64, f64, f32, bool, char),
-// "String", or identifiers starting with an uppercase letter (struct/enum names).
-fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
-    let mut ki = 0
-    while ki < key_count {
-        let key = get_unchecked(type_keys, ki)
-        if !is_valid_type_key(key) {
-            return false
-        }
-        ki = ki + 1
-    }
-    true
-}
-
-fn is_valid_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
-        return true
-    }
-    // User-defined type names start with uppercase letter (A-Z = 65-90)
-    if len(key) > 0 {
-        let first = char_at(key, 0)
-        if first >= 65 && first <= 90 {
-            return true
-        }
-    }
-    false
-}
 
 fn try_collection_param_sig(p_type_name: String, target: String) -> String {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
@@ -186,153 +135,11 @@ fn try_collection_param_sig(p_type_name: String, target: String) -> String {
     String_new()
 }
 
-fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, param_ordinal: i32) -> String {
-    // For specialized mono functions (name contains "__"), extract the
-    // concrete type from the function name suffix and map it to a wasm type sig.
-    // The suffix may contain multiple type parameters separated by "__"
-    // (e.g. "i32__String" for ok_or_default<i32, String>).
-    //
-    // For method names like "Picker__echo__i32", the base name itself contains
-    // "__" (from "::" → "__"). We must find the correct "__" that separates the
-    // base name from the mono suffix by trying positions from right to left and
-    // checking if all suffix parts are valid type keys.
-    let full_suffix = extract_mono_suffix(fn_name)
-    if len(full_suffix) == 0 {
-        return String_new()
-    }
-    // Split the suffix by "__" to get individual type parameter concrete types.
-    let type_keys = split_by_double_underscore(full_suffix)
-    let key_count = len(type_keys)
-    if key_count == 0 {
-        return String_new()
-    }
-    // Determine which type parameter index to use based on the type variable name.
-    // Common conventions: T→0, E→1, U→2, V→3, K→0, W→4, etc.
-    let type_idx = type_var_name_to_index(type_var_name, key_count)
-    if type_idx < 0 || type_idx >= key_count {
-        return mono_type_key_to_sig(get_unchecked(type_keys, 0))
-    }
-    mono_type_key_to_sig(get_unchecked(type_keys, type_idx))
-}
-
-// Try to resolve a mono type variable parameter to a gc_struct type sig.
-// Extracts the concrete type key from the function name suffix and checks
-// if it's a registered gc_struct in the module.  Returns "gcsref<slot>" if
-// found, empty otherwise.
-fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_ordinal: i32, mir: MirModule) -> String {
-    let full_suffix = extract_mono_suffix(fn_name)
-    if len(full_suffix) == 0 {
-        return String_new()
-    }
-    let type_keys = split_by_double_underscore(full_suffix)
-    let key_count = len(type_keys)
-    if key_count == 0 {
-        return String_new()
-    }
-    let type_idx = type_var_name_to_index(type_var_name, key_count)
-    if type_idx < 0 || type_idx >= key_count {
-        return String_new()
-    }
-    let key = get_unchecked(type_keys, type_idx)
-    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(key))
-    if slot >= 0 {
-        return concat(String_from("gcsref"), i32_to_string(slot))
-    }
-    String_new()
-}
-
-// Split a string by "__" separator into a Vec<String>.
-fn split_by_double_underscore(s: String) -> Vec<String> {
-    let result = Vec_new_String()
-    let slen = len(s)
-    let mut start = 0
-    let mut i = 0
-    while i < slen - 1 {
-        if char_at(s, i) == 95 && char_at(s, i + 1) == 95 {
-            push(result, substring(s, start, i))
-            start = i + 2
-            i = i + 2
-        } else {
-            i = i + 1
-        }
-    }
-    if start <= slen {
-        push(result, substring(s, start, slen))
-    }
-    result
-}
-
-// Map a type variable name (e.g. "T", "E") to a type parameter index.
-// Uses common naming conventions for generic type parameters.
-fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
-    // Strip leading "?" if present.
-    let name = if starts_with(clone(type_var_name), String_from("?")) {
-        substring(clone(type_var_name), 1, len(type_var_name))
-    } else {
-        clone(type_var_name)
-    }
-    // Common single-letter type variable conventions:
-    // T→0, E→1, U→2, V→3, W→4, K→0, A→0, B→1, C→2, D→3
-    if eq(clone(name), String_from("T")) { return 0 }
-    if eq(clone(name), String_from("E")) { return 1 }
-    if eq(clone(name), String_from("U")) { return 2 }
-    if eq(clone(name), String_from("V")) { return 3 }
-    if eq(clone(name), String_from("W")) { return 4 }
-    if eq(clone(name), String_from("K")) { return 0 }
-    if eq(clone(name), String_from("A")) { return 0 }
-    if eq(clone(name), String_from("B")) { return 1 }
-    if eq(clone(name), String_from("C")) { return 2 }
-    if eq(clone(name), String_from("D")) { return 3 }
-    0
-}
-
-// Map a mono type key string to a wasm type signature.
-fn mono_type_key_to_sig(key: String) -> String {
-    if eq(clone(key), String_from("i32")) {
-        return String_from("i32")
-    }
-    if eq(clone(key), String_from("i64")) {
-        return String_from("i64")
-    }
-    if eq(clone(key), String_from("f64")) {
-        return String_from("f64")
-    }
-    if eq(clone(key), String_from("f32")) {
-        return String_from("f32")
-    }
-    if eq(clone(key), String_from("bool")) {
-        return String_from("i32")
-    }
-    if eq(clone(key), String_from("String")) {
-        return sections_types_gc::gc_string_type_sig()
-    }
-    if eq(clone(key), String_from("char")) {
-        return String_from("i32")
-    }
-    String_new()
-}
-
 fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String, mir: MirModule) -> String {
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("vec:")) {
-        if eq(clone(return_type_name), String_from("vec:String")) {
-            return sections_types_gc::gc_vec_string_type_sig()
-        }
-        if eq(clone(return_type_name), String_from("vec:v128")) || eq(clone(return_type_name), String_from("vec:V128")) {
-            return sections_types_gc::gc_vec_v128_type_sig()
-        }
-        return sections_types_gc::gc_vec_type_sig()
-    }
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("hashmap:")) {
-        if starts_with(clone(return_type_name), String_from("hashmap:i32str")) {
-            return sections_types_gc::gc_hashmap_i32_str_type_sig()
-        }
-        if starts_with(clone(return_type_name), String_from("hashmap:strstr")) {
-            return sections_types_gc::gc_hashmap_str_str_type_sig()
-        }
-        if starts_with(clone(return_type_name), String_from("hashmap:i32i32")) {
-            return sections_types_gc::gc_vec_type_sig()
-        }
-        return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    // vec:/hashmap: return types use the same mapping as params.
+    let coll_sig = try_collection_param_sig(clone(return_type_name), clone(target))
+    if len(coll_sig) > 0 {
+        return coll_sig
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(return_type_name), mir)
@@ -355,32 +162,13 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if len(gc_ret_sig) > 0 {
         return gc_ret_sig
     }
-    // Composite generic type with type variable (e.g. "?Option:T") — emit
-    // as enum open type ref on GC targets.
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("?Option:")) {
-        return sections_types_gc::gc_enum_open_type_sig()
-    }
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("?Result:")) {
-        return sections_types_gc::gc_enum_open_type_sig()
-    }
-    // Generic type variable (e.g. "?T") — emit as anyref on GC targets.
-    // For specialized mono functions (name contains "__"), try to extract
-    // the concrete type from the function name suffix.
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("?")) {
-        let mono_ret_type = resolve_mono_param_type_from_fn_name(clone(uf.name), clone(return_type_name), 0 - 1)
-        if len(mono_ret_type) > 0 {
-            return mono_ret_type
-        }
-        // Fallback: check if the mono type key from the function name is a
-        // registered gc_struct (e.g. "Point" in "show__Point").
-        let gc_struct_sig = try_mono_gc_struct_param_sig(clone(uf.name), clone(return_type_name), 0, mir)
-        if len(gc_struct_sig) > 0 {
-            return gc_struct_sig
-        }
-        return String_from("gcref")
+    let generic_ret_sig = build_generic_type_var_sig(clone(uf.name), clone(return_type_name), 0 - 1, clone(target), mir)
+    if len(generic_ret_sig) > 0 {
+        return generic_ret_sig
     }
     sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target)))
 }
+
 fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
     // Format: "struct:TypeName:byte_size"
     // Extract TypeName (between first and last colon).

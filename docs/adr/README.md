@@ -54,4 +54,4 @@
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Explicit SIMD Library API | Archive | ステータス: PROPOSED — 明示的 SIMD ライブラリ API と v128 第一級型の導入を決定 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: Operator Overload Trait Surface | Archive | ステータス: DRAFT — #688 完了後に実装される演算子オーバーロードの設計 ADR |
 | [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: Question Mark Operator (?) and Error Conversion | Archive | ステータス: DRAFT — #688/#692 完了後に実装される ? 演算子の設計 ADR |
-| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | Archive | ステータス: Accepted; implementation started (PR-1 型 spine 骨格 + PR-2 MIR verifier warning-only 導入済み。MonoInstanceTable / emit 切替は未着手) |
+| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | Archive | ステータス: Accepted; implementation in progress (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic は未着手) |

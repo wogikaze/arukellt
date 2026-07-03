@@ -2,7 +2,6 @@
 
 use resolver::wit_import_bind
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_string
 
 fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
@@ -14,6 +13,6 @@ fn emit_wit_import_entries(import_sec: WasmWriter, bindings: Vec<wit_import_bind
         writer_string::emit_string(import_sec, iface)
         writer_string::emit_string(import_sec, func)
         writer_core::emit_byte(import_sec, 0)
-        writer_leb::emit_leb128_u(import_sec, type_idx)
+        writer_core::emit_leb128_u(import_sec, type_idx)
     }
 }

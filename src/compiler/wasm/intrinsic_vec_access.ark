@@ -10,23 +10,21 @@ use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::intrinsic_vec_type
-use wasm::intrinsics::helpers_core_heap
-use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsic_vec_access_lm
+use wasm::intrinsics::helpers_core
 use mir::inst_accessors_literals
 
-// Handler for: vec_get_unchecked, get_unchecked
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_get_unchecked_gc(w, ctx, inst)
     }
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    emit_vec_access_setup(w, s_idx, s_vec2)
-    emit_vec_i32_element_addr(w, s_vec2, s_idx)
+    intrinsic_vec_access_lm::emit_vec_access_setup(w, s_idx, s_vec2)
+    intrinsic_vec_access_lm::emit_vec_i32_element_addr(w, s_vec2, s_idx)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
@@ -34,6 +32,7 @@ fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 // Handler for: vec_get
+
 fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_vec_get_gc(w, ctx, inst)
@@ -41,11 +40,11 @@ fn emit_vec_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_idx2 = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_res = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    emit_vec_access_setup(w, s_idx2, s_vec3)
-    emit_vec_get_if_in_bounds(w, s_idx2, s_vec3)
-    emit_vec_get_some_i32(w, s_idx2, s_vec3, s_res)
+    intrinsic_vec_access_lm::emit_vec_access_setup(w, s_idx2, s_vec3)
+    intrinsic_vec_access_lm::emit_vec_get_if_in_bounds(w, s_idx2, s_vec3)
+    intrinsic_vec_access_lm::emit_vec_get_some_i32(w, s_idx2, s_vec3, s_res)
     writer_core::emit_byte(w, 5)
-    emit_vec_get_none(w, s_res)
+    intrinsic_vec_access_lm::emit_vec_get_none(w, s_res)
     writer_core::emit_byte(w, 11)
     return true
 }
@@ -61,13 +60,13 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
 
     // Save idx, vec_ref stays on stack
-    helpers_core_locals::emit_local_set(w, s_idx)
+    helpers_core::emit_local_set(w, s_idx)
 
     // Get data array: struct.get vec_type 0  → [arr_ref]
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
 
     // Push idx
-    helpers_core_locals::emit_local_get(w, s_idx)
+    helpers_core::emit_local_get(w, s_idx)
 
     // Get element: array.get array_type  → [value]
     writer_gc::emit_gc_array_get(w, array_type)
@@ -90,12 +89,13 @@ fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
 
     // Save idx and vec_ref
-    helpers_core_locals::emit_local_set(w, s_idx)
-    helpers_core_locals::emit_local_set(w, s_vec)
+    helpers_core::emit_local_set(w, s_idx)
+    helpers_core::emit_local_set(w, s_vec)
 
     // Bounds check: idx < vec.len?
-    helpers_core_locals::emit_local_get(w, s_idx)
-    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_core::emit_local_get(w, s_idx)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)  // vec.len
     writer_core::emit_byte(w, 73)  // I32_LT_U
     writer_core::emit_byte(w, 4)   // IF (void)
@@ -110,7 +110,7 @@ fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     writer_core::emit_byte(w, 11)  // END
 
     // Load result from GC enum scratch local
-    helpers_core_locals::emit_local_get(w, s_opt)
+    helpers_core::emit_local_get(w, s_opt)
     return true
 }
 
@@ -118,34 +118,36 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
     if is_vec_string {
         // Vec<String>: element is a String ref. For now, drop it and use
         // a null enum ref as placeholder (same approach as emit_vec_pop_gc).
-        helpers_core_locals::emit_local_get(w, s_vec)
+        helpers_core::emit_local_get(w, s_vec)
+        writer_gc::emit_gc_ref_cast(w, vec_type)
         writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
-        helpers_core_locals::emit_local_get(w, s_idx)
+        helpers_core::emit_local_get(w, s_idx)
         writer_gc::emit_gc_array_get(w, array_type)  // String ref on stack
         writer_core::emit_byte(w, opcodes::OP_DROP())
         writer_core::emit_byte(w, opcodes::OP_REF_NULL())
-        writer_leb::emit_leb128_s(w, enum_type)
-        helpers_core_locals::emit_local_set(w, s_opt)
+        writer_core::emit_leb128_s(w, enum_type)
+        helpers_core::emit_local_set(w, s_opt)
         return
     }
     // Vec<i32>: element is an i32 value
     // Read element via GC array access
-    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
-    helpers_core_locals::emit_local_get(w, s_idx)
+    helpers_core::emit_local_get(w, s_idx)
     writer_gc::emit_gc_array_get(w, array_type)  // element value (i32)
 
     // Save value to i32 scratch (reuse s_idx since we're done with it)
-    helpers_core_locals::emit_local_set(w, s_idx)
+    helpers_core::emit_local_set(w, s_idx)
 
     // Allocate Option::Some as GC struct
     let some_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::Some"))
     let some_type_idx = if some_type >= 0 { some_type } else { enum_type }
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
-    helpers_core_locals::emit_local_get(w, s_idx)
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, s_idx)
     writer_gc::emit_gc_struct_new(w, some_type_idx)
-    helpers_core_locals::emit_local_set(w, s_opt)
+    helpers_core::emit_local_set(w, s_opt)
 }
 
 fn emit_vec_get_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, enum_type: i32) {
@@ -153,110 +155,7 @@ fn emit_vec_get_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, enum_type: 
     let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
     let none_type_idx = if none_type >= 0 { none_type } else { enum_type }
     writer_gc::emit_gc_struct_new_default(w, none_type_idx)
-    helpers_core_locals::emit_local_set(w, s_opt)
+    helpers_core::emit_local_set(w, s_opt)
 }
 
 // ── Linear-memory helpers (unchanged) ──────────────────────
-
-fn emit_vec_access_setup(w: WasmWriter, idx_local: i32, vec_local: i32) {
-    helpers_core_locals::emit_local_set(w, idx_local)
-    helpers_core_locals::emit_local_set(w, vec_local)
-}
-
-fn emit_vec_i32_element_addr(w: WasmWriter, vec_local: i32, idx_local: i32) {
-    helpers_core_locals::emit_local_get(w, vec_local)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    helpers_core_locals::emit_local_get(w, idx_local)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-}
-
-fn emit_vec_get_if_in_bounds(w: WasmWriter, s_idx: i32, s_vec: i32) {
-    helpers_core_locals::emit_local_get(w, s_idx)
-    helpers_core_locals::emit_local_get(w, s_vec)
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, 73)
-    writer_core::emit_byte(w, 4)
-    writer_core::emit_byte(w, 127)
-}
-
-fn emit_vec_get_some_i32(w: WasmWriter, s_idx: i32, s_vec: i32, s_res: i32) {
-    emit_vec_get_some_i32_begin_payload(w, s_res)
-    emit_vec_get_some_i32_store_payload(w, s_idx, s_vec)
-    emit_vec_get_some_i32_finish(w, s_res)
-}
-
-fn emit_vec_get_some_i32_begin_payload(w: WasmWriter, s_res: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    helpers_core_locals::emit_local_set(w, s_res)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-}
-
-fn emit_vec_get_some_i32_store_payload(w: WasmWriter, s_idx: i32, s_vec: i32) {
-    emit_vec_i32_element_addr(w, s_vec, s_idx)
-    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-}
-
-fn emit_vec_get_some_i32_finish(w: WasmWriter, s_res: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_heap::emit_heap_set(w)
-    helpers_core_locals::emit_local_get(w, s_res)
-}
-
-fn emit_vec_get_none(w: WasmWriter, s_res: i32) {
-    emit_vec_get_none_alloc(w, s_res)
-    emit_vec_get_none_finish(w, s_res)
-}
-
-fn emit_vec_get_none_alloc(w: WasmWriter, s_res: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    helpers_core_locals::emit_local_set(w, s_res)
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-}
-
-fn emit_vec_get_none_finish(w: WasmWriter, s_res: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_heap::emit_heap_set(w)
-    helpers_core_locals::emit_local_get(w, s_res)
-}

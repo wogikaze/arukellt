@@ -1,7 +1,7 @@
 // Arukellt Selfhost - ADR-040 interned semantic type table (INV-TT-1 canonical intern).
 
 use corehir::type_id
-use corehir::type_kind
+use corehir::kinds
 
 fn type_id_is_valid(id: TypeId) -> bool {
     type_id::type_id_is_valid(id)
@@ -110,5 +110,5 @@ fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
     if raw >= 0 && raw < len(table.entries) {
         return get_unchecked(table.entries, raw)
     }
-    TypeEntry { id: TYPE_ID_INVALID(), kind: type_kind::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec_new_TypeId() }
+    TypeEntry { id: TYPE_ID_INVALID(), kind: kinds::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec_new_TypeId() }
 }

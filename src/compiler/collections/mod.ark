@@ -34,6 +34,3 @@ pub fn Vec_extend_AstNode(dst: Vec<AstNode>, src: Vec<AstNode>) {
     vec_extend::Vec_extend_AstNode(dst, src)
 }
 
-pub fn Vec_extend_MonoCallSite(dst: Vec<MonoCallSite>, src: Vec<MonoCallSite>) {
-    vec_extend::Vec_extend_MonoCallSite(dst, src)
-}

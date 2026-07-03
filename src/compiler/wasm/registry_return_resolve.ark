@@ -1,18 +1,28 @@
-// Arukellt Selfhost - PR-4a registry legacy return VT resolution via compat table.
+// Arukellt Selfhost - PR-4a/PR-4b registry legacy return VT resolution via compat table.
 
 use corehir::function_id
-use corehir::legacy_vt_compat
 use corehir::signature_entry
 use corehir::signature_registry
 use mir::inst_record
+use mir::legacy_vt_compat
+use mir::lower::mono_instance_table
 use mir::value_types
 use wasm::ctx_record
 use wasm::registry_return_guard
 
 fn registry_resolve_legacy_return_vt(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
-    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let table = ctx_record::SelfEmitCtx_type_table(ctx)
-    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
+    let entry = registry_guard_signature_entry(ctx, inst)
+    let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
+    if mono_id >= 0 {
+        let mono_table = ctx_record::SelfEmitCtx_mono_instance_table(ctx)
+        if mono_id < mono_instance_table::mono_instance_table_entry_count(mono_table) {
+            let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+            if mono_instance_table::mono_instance_entry_return_count(mono_entry) > 0 {
+                return legacy_vt_compat::legacy_vt_from_mir_value_type(table, mono_instance_table::mono_instance_entry_return_at(mono_entry, 0))
+            }
+        }
+    }
     if signature_entry::signature_entry_return_count(entry) <= 0 {
         return value_types::VT_VOID()
     }
@@ -24,9 +34,14 @@ fn registry_resolve_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst) -> boo
 }
 
 fn registry_should_use_matched_path(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
-    if !registry_return_guard::registry_guard_is_normal_call(ctx, inst, callee) {
+    if !registry_return_guard::registry_guard_is_registry_call(ctx, inst, callee) {
         return false
     }
     let reg_vt = registry_resolve_legacy_return_vt(ctx, inst)
     legacy_vt_compat::legacy_vt_values_equal(reg_vt, fn_legacy_vt)
+}
+
+fn registry_guard_signature_entry(ctx: SelfEmitCtx, inst: MirInst) -> SignatureEntry {
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
 }

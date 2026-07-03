@@ -3,9 +3,7 @@
 use mir::inst_accessors_literals
 use wasm::intrinsics::helpers_numeric_f64
 use wasm::intrinsics::helpers_numeric_sign_extend
-use wasm::intrinsics::helpers_numeric_i32_bitwise
-use wasm::intrinsics::helpers_numeric_i32_const
-use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_convert
 
 // Handler for: i32_to_i64
@@ -16,7 +14,7 @@ fn emit_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: i64_to_i32
 fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    helpers_numeric_i32_convert::emit_i32_wrap_i64(w)
+    helpers_numeric_i32::emit_i32_wrap_i64(w)
     return true
 }
 
@@ -32,8 +30,8 @@ fn emit_i8_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, callee: String
 
 // Handler for: i32_to_u8, i32_to_i8
 fn emit_i32_to_u8(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    helpers_numeric_i32_const::emit_i32_const(w, 255)
-    helpers_numeric_i32_bitwise::emit_i32_and(w)
+    helpers_numeric_i32::emit_i32_const(w, 255)
+    helpers_numeric_i32::emit_i32_and(w)
     return true
 }
 

@@ -12,21 +12,20 @@ use wasm::emit_target
 use wasm::opcodes
 use wasm::string_gc_helpers
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_numbers
 
 fn emit_const_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+    writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
 }
 
 fn emit_const_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
     if len(inst_accessors_literals::MirInst_str_val(inst)) > 0 {
         let val64 = writer_numbers::parse_decimal_as_i64_emitter(clone(inst_accessors_literals::MirInst_str_val(inst)))
-        writer_leb::emit_leb128_s_i64(w, val64)
+        writer_core::emit_leb128_s_i64(w, val64)
     } else {
-        writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+        writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
     }
 }
 
@@ -109,9 +108,9 @@ fn emit_const_string_linear(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if str_idx >= 0 && str_idx < ctx_string_view::SelfEmitCtx_string_offset_count(ctx) {
         let offset = ctx_string_view::SelfEmitCtx_string_offset_at(ctx, str_idx)
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, offset)
+        writer_core::emit_leb128_s(w, offset)
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, 0)
+        writer_core::emit_leb128_s(w, 0)
     }
 }

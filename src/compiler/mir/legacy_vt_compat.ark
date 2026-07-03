@@ -2,9 +2,8 @@
 
 use corehir::mir_value_type
 use corehir::type_id
-use corehir::type_kind
+use corehir::kinds
 use corehir::type_table
-use corehir::value_repr
 use mir::value_types
 
 fn legacy_vt_from_mir_value_type(table: TypeTable, mvt: MirValueType) -> i32 {
@@ -16,41 +15,44 @@ fn legacy_vt_from_mir_value_type(table: TypeTable, mvt: MirValueType) -> i32 {
     let entry = type_table::TypeTable_lookup(table, tid)
     let kind = type_table::type_entry_kind(entry)
     let name = type_table::type_entry_name(entry)
-    if kind == type_kind::TYPE_KIND_PRIMITIVE() {
+    if kind == kinds::TYPE_KIND_PRIMITIVE() {
         return legacy_vt_from_primitive_name(name)
     }
-    if kind == type_kind::TYPE_KIND_STRING() {
-        if repr == value_repr::VALUE_REPR_GC_REF() {
+    if kind == kinds::TYPE_KIND_STRING() {
+        if repr == kinds::VALUE_REPR_GC_REF() {
             return value_types::VT_GC_REF()
         }
         return value_types::VT_REF()
     }
-    if kind == type_kind::TYPE_KIND_TUPLE() || kind == type_kind::TYPE_KIND_STRUCT() || kind == type_kind::TYPE_KIND_ENUM() {
-        if repr == value_repr::VALUE_REPR_GC_REF() {
+    if kind == kinds::TYPE_KIND_VEC() {
+        return value_types::VT_I32()
+    }
+    if kind == kinds::TYPE_KIND_TUPLE() || kind == kinds::TYPE_KIND_STRUCT() || kind == kinds::TYPE_KIND_ENUM() {
+        if repr == kinds::VALUE_REPR_GC_REF() {
             return value_types::VT_GC_REF()
         }
         return value_types::VT_REF()
     }
-    if kind == type_kind::TYPE_KIND_VEC() || kind == type_kind::TYPE_KIND_OPTION() || kind == type_kind::TYPE_KIND_RESULT() || kind == type_kind::TYPE_KIND_HASHMAP() || kind == type_kind::TYPE_KIND_HASHSET() {
-        if repr == value_repr::VALUE_REPR_GC_REF() {
+    if kind == kinds::TYPE_KIND_OPTION() || kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_HASHMAP() || kind == kinds::TYPE_KIND_HASHSET() {
+        if repr == kinds::VALUE_REPR_GC_REF() {
             return value_types::VT_GC_REF()
         }
         return value_types::VT_REF()
     }
-    if repr == value_repr::VALUE_REPR_GC_REF() {
+    if repr == kinds::VALUE_REPR_GC_REF() {
         return value_types::VT_GC_REF()
     }
-    if repr == value_repr::VALUE_REPR_LINEAR_PTR() {
+    if repr == kinds::VALUE_REPR_LINEAR_PTR() {
         return value_types::VT_REF()
     }
     value_types::VT_I32()
 }
 
 fn legacy_vt_from_repr_only(repr: i32) -> i32 {
-    if repr == value_repr::VALUE_REPR_GC_REF() {
+    if repr == kinds::VALUE_REPR_GC_REF() {
         return value_types::VT_GC_REF()
     }
-    if repr == value_repr::VALUE_REPR_LINEAR_PTR() {
+    if repr == kinds::VALUE_REPR_LINEAR_PTR() {
         return value_types::VT_REF()
     }
     value_types::VT_VOID()
@@ -80,11 +82,5 @@ fn legacy_vt_is_void(vt: i32) -> bool {
 }
 
 fn legacy_vt_values_equal(a: i32, b: i32) -> bool {
-    if a == b {
-        return true
-    }
-    if (a == value_types::VT_REF() && b == value_types::VT_GC_REF()) || (a == value_types::VT_GC_REF() && b == value_types::VT_REF()) {
-        return true
-    }
-    false
+    a == b
 }

@@ -1,5 +1,0 @@
-// Arukellt Selfhost - ADR-040 MirValueType nullability.
-
-fn NULLABILITY_NULLABLE() -> i32 { 1 }
-fn NULLABILITY_NON_NULL() -> i32 { 2 }
-fn NULLABILITY_NOT_REF() -> i32 { 3 }

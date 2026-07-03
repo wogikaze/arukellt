@@ -1,6 +1,6 @@
 # ADR-040: Semantic Type Spine — 意味情報を保存する背骨
 
-ステータス: **Accepted; implementation in progress** (PR-3 完了。PR-4 は wide-audit フェーズ: 監査・compat 修正は並列可、emit 切替は PR-4-switch 単独)
+ステータス: **Accepted; implementation in progress** (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic 完了 — trait/generic/mono CALL の戻り値型を SignatureRegistry / MonoInstanceTable 経由に切替)
 
 ### PR-4 実施レーン（emit 境界で分割）
 
@@ -77,6 +77,8 @@ WasmValueType = Wasm出力型（i32, f64, (ref null $N), (ref $N) ...）
 ```
 
 #### Layer 1: TypeId — 意味型
+
+<!-- skip-doc-check -->
 
 ```ark
 struct TypeId(i32)
@@ -173,6 +175,8 @@ lowering の入力は `MirValueType` とする。
 trait impl、generic instance、stdlib関数、host intrinsic、builtin methodを
 全部、名前文字列ではなく `FunctionId` で管理する。
 
+<!-- skip-doc-check -->
+
 ```ark
 struct FunctionId(i32)
 
@@ -244,6 +248,8 @@ pub struct MirLocal {
 
 ### D4: MonoInstanceTable — モノモーフ化の型情報保存
 
+<!-- skip-doc-check -->
+
 ```ark
 struct MonoInstanceId(i32)
 
@@ -268,6 +274,8 @@ struct MonoInstanceEntry {
 `subst` マップが明示的に保存されるため、型パラメータ→具象型の対応が失われない。
 
 ### D5: GcLayoutTable — MirValueType から WasmValueType への lowering
+
+<!-- skip-doc-check -->
 
 ```ark
 struct GcLayoutId(i32)

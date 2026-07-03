@@ -29,7 +29,7 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_context::emit_wasm_context_set_gc_struct_type_map(ctx, wasm_sections_facade::type_plan_gc_struct_type_map(type_plan))
     wasm_context::emit_wasm_context_set_gc_struct_names(ctx, module_gc_struct::MirModule_gc_struct_names(mir))
     wasm_context::emit_wasm_context_set_fn_type_map(ctx, wasm_sections_facade::type_plan_fn_type_map(type_plan))
-    wasm_context::emit_wasm_context_set_signature_spine(ctx, module_spine::MirModule_signature_registry(mir), module_spine::MirModule_type_table(mir), module_spine::MirModule_signature_spine_populated(mir))
+    wasm_context::emit_wasm_context_set_signature_spine(ctx, module_spine::MirModule_signature_registry(mir), module_spine::MirModule_type_table(mir), module_spine::MirModule_mono_instance_table(mir), module_spine::MirModule_signature_spine_populated(mir))
     wasm_sections_facade::emit_import_section(out, wasm_sections_facade::type_plan_host_type_map(type_plan), clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings, wasm_sections_facade::type_plan_wit_type_map(type_plan))
     wasm_sections_facade::emit_function_section(out, fn_count, wasm_sections_facade::type_plan_fn_type_map(type_plan), needs_wrapper, wasm_sections_facade::type_plan_wrapper_type_idx(type_plan))
     wasm_sections_facade::emit_table_section(out, mir)

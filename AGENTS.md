@@ -90,6 +90,18 @@ Project Rules（Cursor Settings → Rules に表示される `git-commits` / `AG
 - Quick pass: `python scripts/manager.py verify quick`
 - Full pass: `python scripts/manager.py verify --full`
 
+### T3 WASM Validation Cache & Parallelism
+
+The T3 fixture WASM validation gate (`scripts/check/check-t3-wasm-validate.py`)
+supports content-hash-based caching and parallel compilation:
+
+- **Cache**: Results are cached in `.build/t3-cache/` keyed by SHA-256 of
+  the compiler wasm + fixture source.  Repeat runs complete in <1s when
+  nothing has changed.  Use `--no-cache` to bypass.
+- **Parallel**: Uncached fixtures are compiled in parallel using
+  `ProcessPoolExecutor`.  Use `-j N` to set the number of workers
+  (default: half of CPU cores).  Example: `python3 scripts/check/check-t3-wasm-validate.py -j 6`
+
 ## Tooling Notes
 
 - Prefer `ig` for code search.

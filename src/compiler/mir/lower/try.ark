@@ -37,31 +37,11 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
     // Determine the Ok payload VT from the scrutinee type so that
     // non-i32 payloads (e.g. String refs) are extracted correctly.
-    let ok_vt = value_types::VT_I32()
     let mut ok_type_name = String_new()
     if is_gc {
-        let scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
-        ok_type_name = try_extract_ok_payload_type(scrut_type)
-        if len(ok_type_name) > 0 {
-            if eq(clone(ok_type_name), "String") || eq(clone(ok_type_name), "string") {
-                ok_vt = value_types::VT_GC_REF()
-            } else {
-                if eq(clone(ok_type_name), "f64") || eq(clone(ok_type_name), "F64") {
-                    ok_vt = value_types::VT_F64()
-                } else {
-                    if eq(clone(ok_type_name), "i64") || eq(clone(ok_type_name), "I64") {
-                        ok_vt = value_types::VT_I64()
-                    } else {
-                        // Non-scalar types (Vec, HashMap, Option, Result, etc.)
-                        // are GC refs on GC targets.
-                        if starts_with(clone(ok_type_name), String_from("vec:")) || starts_with(clone(ok_type_name), String_from("Vec_")) || starts_with(clone(ok_type_name), String_from("hashmap:")) || starts_with(clone(ok_type_name), String_from("HashMap_")) || starts_with(clone(ok_type_name), String_from("Option_")) || starts_with(clone(ok_type_name), String_from("option:")) || starts_with(clone(ok_type_name), String_from("Result_")) || starts_with(clone(ok_type_name), String_from("result:")) || starts_with(clone(ok_type_name), String_from("enum:")) {
-                            ok_vt = value_types::VT_GC_REF()
-                        }
-                    }
-                }
-            }
-        }
+        ok_type_name = try_extract_ok_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))
     }
+    let ok_vt = try_ok_payload_vt(clone(ok_type_name))
     let result = ctx_api_local_alloc::ctx_fresh_local(ctx, ok_vt)
     if len(ok_type_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, result, ok_type_name)
@@ -89,6 +69,27 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(result))
     result
+}
+
+// Map the Ok payload type name to its value type. Defaults to i32 when the
+// name is empty or an i32-like scalar; non-scalar types are GC refs.
+fn try_ok_payload_vt(ok_type_name: String) -> i32 {
+    if len(ok_type_name) == 0 {
+        return value_types::VT_I32()
+    }
+    if eq(clone(ok_type_name), "String") || eq(clone(ok_type_name), "string") {
+        return value_types::VT_GC_REF()
+    }
+    if eq(clone(ok_type_name), "f64") || eq(clone(ok_type_name), "F64") {
+        return value_types::VT_F64()
+    }
+    if eq(clone(ok_type_name), "i64") || eq(clone(ok_type_name), "I64") {
+        return value_types::VT_I64()
+    }
+    if starts_with(clone(ok_type_name), String_from("vec:")) || starts_with(clone(ok_type_name), String_from("Vec_")) || starts_with(clone(ok_type_name), String_from("hashmap:")) || starts_with(clone(ok_type_name), String_from("HashMap_")) || starts_with(clone(ok_type_name), String_from("Option_")) || starts_with(clone(ok_type_name), String_from("option:")) || starts_with(clone(ok_type_name), String_from("Result_")) || starts_with(clone(ok_type_name), String_from("result:")) || starts_with(clone(ok_type_name), String_from("enum:")) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_I32()
 }
 
 // Extract the Ok/Some payload type name from a scrutinee type string.

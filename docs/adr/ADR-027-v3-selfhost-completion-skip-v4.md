@@ -96,8 +96,8 @@
 
 ## References
 
-- [roadmap-v3.md](../process/roadmap-v3.md) — stdlib整備完了
-- [roadmap-v4.md](../process/roadmap-v4.md) — 最適化（スキップ）
-- [roadmap-v5.md](../process/roadmap-v5.md) — セルフホスト（v3完了時点で達成）
+- roadmap-v3 — stdlib整備完了（原本は docs 整理で削除済み）
+- roadmap-v4 — 最適化（スキップ）（原本は docs 整理で削除済み）
+- roadmap-v5 — セルフホスト（v3完了時点で達成）（原本は docs 整理で削除済み）
 - [docs/compiler/bootstrap.md](../compiler/bootstrap.md) — セルフホスト手順
 - [docs/release-criteria.md](../release-criteria.md) — リリース基準

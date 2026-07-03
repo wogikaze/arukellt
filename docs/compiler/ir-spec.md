@@ -72,9 +72,9 @@ The selfhost-native compiler exposes a single lowering path:
 - **CoreHIR path** (default and only user-visible route): lowers from typed HIR /
     CoreHIR via `lower_check_output_to_mir` in selfhost `src/compiler/mir.ark`.
 
-Historical notes on the retired Rust-era dual-path lowering are archived in
-[../spec/archive/legacy-path-status.md](../spec/archive/legacy-path-status.md) and
-[../spec/archive/legacy-path-migration.md](../spec/archive/legacy-path-migration.md).
+Historical notes on the retired Rust-era dual-path lowering
+(`legacy-path-status.md` / `legacy-path-migration.md`) were removed in the
+stale-document purge; see git history for details.
 
 ---
 

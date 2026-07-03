@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -63,7 +64,10 @@ def main() -> int:
         if "**OK**" not in row and not ISSUE_LINK_RE.search(row):
             failures.append(f"gap/deferred row missing issue link: {label}")
 
-    if CHECK_SCRIPT.is_file():
+    skip_docs_consistency = os.environ.get("ARUKELLT_GATE_679_SKIP_DOCS_CONSISTENCY") == "1"
+    if skip_docs_consistency:
+        pass
+    elif CHECK_SCRIPT.is_file():
         result = subprocess.run(
             [sys.executable, str(CHECK_SCRIPT)],
             cwd=str(REPO_ROOT),

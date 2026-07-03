@@ -9,19 +9,17 @@ use wasm::intrinsic_sockets_vec
 use wasm::intrinsic_stdio_gc
 use wasm::emit_target
 use wasm::ctx_record
-use wasm::intrinsics::helpers_core_calls
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_layout
-use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_memory
 
 fn emit_sockets_connect(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_host = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_sockets_connect_save_args_gc(w, inst, ctx, s_host, s_port)
-        helpers_core_stack::emit_unreachable(w)
+        helpers_core::emit_unreachable(w)
         return true
     } else {
         emit_sockets_connect_save_args(w, s_host, s_port)
@@ -36,9 +34,9 @@ fn emit_sockets_read(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_fd = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_max = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core_stack::emit_drop(w)
-        helpers_core_stack::emit_drop(w)
-        helpers_core_stack::emit_unreachable(w)
+        helpers_core::emit_drop(w)
+        helpers_core::emit_drop(w)
+        helpers_core::emit_unreachable(w)
         return true
     }
     emit_sockets_read_save_args(w, s_fd, s_max)
@@ -52,9 +50,9 @@ fn emit_sockets_write(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_fd = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_bytes = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core_stack::emit_drop(w)
-        helpers_core_stack::emit_drop(w)
-        helpers_core_stack::emit_unreachable(w)
+        helpers_core::emit_drop(w)
+        helpers_core::emit_drop(w)
+        helpers_core::emit_unreachable(w)
         return true
     }
     emit_sockets_write_save_args(w, ctx, s_fd, s_bytes)
@@ -69,7 +67,7 @@ fn emit_sockets_listen(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_sockets_connect_save_args_gc(w, inst, ctx, s_host, s_port)
-        helpers_core_stack::emit_unreachable(w)
+        helpers_core::emit_unreachable(w)
         return true
     } else {
         emit_sockets_connect_save_args(w, s_host, s_port)
@@ -83,8 +81,8 @@ fn emit_sockets_listen(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_sockets_accept(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_fd = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core_stack::emit_drop(w)
-        helpers_core_stack::emit_unreachable(w)
+        helpers_core::emit_drop(w)
+        helpers_core::emit_unreachable(w)
         return true
     }
     emit_sockets_accept_save_args(w, s_fd)
@@ -95,86 +93,86 @@ fn emit_sockets_accept(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_sockets_connect_save_args(w: WasmWriter, host_local: i32, port_local: i32) {
-    helpers_core_locals::emit_local_set(w, port_local)
-    helpers_core_locals::emit_local_set(w, host_local)
+    helpers_core::emit_local_set(w, port_local)
+    helpers_core::emit_local_set(w, host_local)
     helpers_io::emit_store_string_local_to_scratch(w, host_local, constants::SCRATCH_SOCK_HOSTPTR(), constants::SCRATCH_SOCK_HOSTLEN())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
-    helpers_core_locals::emit_local_get(w, port_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, port_local)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_sockets_connect_save_args_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, host_local: i32, port_local: i32) {
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     // Stack order (top to bottom): port, host
-    helpers_core_locals::emit_local_set(w, port_local)
+    helpers_core::emit_local_set(w, port_local)
     intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
-    helpers_core_locals::emit_local_get(w, s_tmp)
-    helpers_core_locals::emit_local_set(w, host_local)
+    helpers_core::emit_local_get(w, s_tmp)
+    helpers_core::emit_local_set(w, host_local)
     helpers_io::emit_store_string_local_to_scratch(w, host_local, constants::SCRATCH_SOCK_HOSTPTR(), constants::SCRATCH_SOCK_HOSTLEN())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
-    helpers_core_locals::emit_local_get(w, port_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, port_local)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_sockets_read_save_args(w: WasmWriter, fd_local: i32, max_local: i32) {
-    helpers_core_locals::emit_local_set(w, max_local)
-    helpers_core_locals::emit_local_set(w, fd_local)
+    helpers_core::emit_local_set(w, max_local)
+    helpers_core::emit_local_set(w, fd_local)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
-    helpers_core_locals::emit_local_get(w, fd_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, fd_local)
+    helpers_memory::emit_i32_store_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
-    helpers_core_locals::emit_local_get(w, max_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, max_local)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_sockets_write_save_args(w: WasmWriter, ctx: SelfEmitCtx, fd_local: i32, bytes_local: i32) {
-    helpers_core_locals::emit_local_set(w, bytes_local)
-    helpers_core_locals::emit_local_set(w, fd_local)
+    helpers_core::emit_local_set(w, bytes_local)
+    helpers_core::emit_local_set(w, fd_local)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
-    helpers_core_locals::emit_local_get(w, fd_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, fd_local)
+    helpers_memory::emit_i32_store_default(w)
     intrinsic_sockets_vec::emit_sockets_store_vec_bytes(w, ctx, bytes_local, constants::SCRATCH_SOCK_HOSTLEN(), constants::SCRATCH_SOCK_PORT())
 }
 
 fn emit_sockets_host_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_PORT())
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_core_calls::emit_call(w, import_idx)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_call(w, import_idx)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_sockets_rw_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTLEN())
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_core_calls::emit_call(w, import_idx)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_call(w, import_idx)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_sockets_accept_save_args(w: WasmWriter, fd_local: i32) {
-    helpers_core_locals::emit_local_set(w, fd_local)
+    helpers_core::emit_local_set(w, fd_local)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
-    helpers_core_locals::emit_local_get(w, fd_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, fd_local)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_sockets_accept_host_call(w: WasmWriter, ctx: SelfEmitCtx, import_idx: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RET())
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_HOSTPTR())
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_SOCK_RESPPTR())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_core_calls::emit_call(w, import_idx)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_call(w, import_idx)
+    helpers_memory::emit_i32_store_default(w)
 }

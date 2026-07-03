@@ -3,8 +3,6 @@
 use mir::lower::ast_node
 use mir::inst_const_string
 use mir::inst_local_get
-use mir::lower::ctx_api_emit
-use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types

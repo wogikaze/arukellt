@@ -80,6 +80,14 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
     ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
 }
 
+// TEMP DEBUG
+fn debug_vec_type_resolution(ctx: SelfEmitCtx, callee: String, inst: MirInst, resolved: i32) {
+    let src_local = find_call_source_local(ctx, clone(callee), inst)
+    let tname = local_type_name(ctx, src_local)
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    eprintln(concat(concat(concat(concat(concat(concat(concat(String_from("[vecdbg] fn="), to_string(func_idx)), String_from(" callee=")), clone(callee)), concat(String_from(" src="), to_string(src_local))), concat(String_from(" tname="), tname)), String_from(" resolved=")), to_string(resolved)))
+}
+
 // Get the type_name of a local by index, or empty string if invalid.
 fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     if local_idx < 0 {

@@ -6,7 +6,6 @@ use mir::local_access
 // Arukellt Selfhost - Wasm export section builder.
 
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_sections
 use wasm::writer_string
 use wasm::function_indices
@@ -36,7 +35,7 @@ fn emit_export_section(out: WasmWriter, mir: MirModule, fn_count: i32, needs_wra
     let plan = build_export_section_plan(mir, fn_count)
     let export_count = ExportSectionPlan_export_count(plan)
     let main_idx = ExportSectionPlan_main_idx(plan)
-    writer_leb::emit_leb128_u(export_sec, export_count)
+    writer_core::emit_leb128_u(export_sec, export_count)
     emit_memory_export_entry(export_sec)
     emit_start_export_entry(export_sec, main_idx, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
     emit_function_export_entries(export_sec, mir, fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
@@ -83,7 +82,7 @@ fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan
 fn emit_memory_export_entry(export_sec: WasmWriter) {
     writer_string::emit_string(export_sec, String_from("memory"))
     writer_core::emit_byte(export_sec, 2)
-    writer_leb::emit_leb128_u(export_sec, 0)
+    writer_core::emit_leb128_u(export_sec, 0)
 }
 
 fn emit_start_export_entry(export_sec: WasmWriter, main_idx: i32, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
@@ -91,9 +90,9 @@ fn emit_start_export_entry(export_sec: WasmWriter, main_idx: i32, fn_count: i32,
         writer_string::emit_string(export_sec, String_from("_start"))
         writer_core::emit_byte(export_sec, 0)
         if needs_wrapper == 1 {
-            writer_leb::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+            writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
         } else {
-            writer_leb::emit_leb128_u(export_sec, wasm_function_export_index(main_idx, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+            writer_core::emit_leb128_u(export_sec, wasm_function_export_index(main_idx, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
         }
     }
 }
@@ -114,7 +113,7 @@ fn emit_function_export_entries(export_sec: WasmWriter, mir: MirModule, fn_count
                     push(seen_short_names, clone(ef_name))
                     writer_string::emit_string(export_sec, export_name)
                     writer_core::emit_byte(export_sec, 0)
-                    writer_leb::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+                    writer_core::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
                 }
             }
         }

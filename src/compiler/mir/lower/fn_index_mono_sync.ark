@@ -1,0 +1,28 @@
+// Arukellt Selfhost - sync fn_index mono return VTs from MonoInstanceTable (ADR-040 PR-4).
+
+use mir::legacy_vt_compat
+use mir::lower::mono_instance_table
+
+fn fn_index_sync_mono_returns_from_spine(fn_names: Vec<String>, fn_return_vts: Vec<i32>, mono_table: MonoInstanceTable, type_table: TypeTable) -> Vec<i32> {
+    let result = Vec_new_i32()
+    let count = len(fn_names)
+    let mut i = 0
+    while i < count {
+        let name = get_unchecked(fn_names, i)
+        let old_vt = get_unchecked(fn_return_vts, i)
+        push(result, mono_return_vt_for_mono_id(mono_table, type_table, mono_instance_table::mono_instance_table_find_by_mangled(mono_table, clone(name)), old_vt))
+        i = i + 1
+    }
+    result
+}
+
+fn mono_return_vt_for_mono_id(mono_table: MonoInstanceTable, type_table: TypeTable, mono_id: i32, fallback_vt: i32) -> i32 {
+    if mono_id < 0 {
+        return fallback_vt
+    }
+    let entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+    if mono_instance_table::mono_instance_entry_return_count(entry) <= 0 {
+        return fallback_vt
+    }
+    legacy_vt_compat::legacy_vt_from_mir_value_type(type_table, mono_instance_table::mono_instance_entry_return_at(entry, 0))
+}

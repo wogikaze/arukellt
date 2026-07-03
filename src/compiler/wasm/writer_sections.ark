@@ -1,10 +1,9 @@
 // Arukellt Selfhost - Wasm section writer helpers.
 
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_section(out: writer_core::WasmWriter, section_id: i32, contents: writer_core::WasmWriter) {
     writer_core::emit_byte(out, section_id)
-    writer_leb::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_leb128_u(out, writer_core::writer_size(contents))
     writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
 }

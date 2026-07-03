@@ -13,7 +13,7 @@ fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         return intrinsic_vec_empty_gc::emit_is_empty_gc(w, inst, ctx)
     }
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)

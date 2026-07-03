@@ -1,20 +1,19 @@
 // Arukellt Selfhost - P2 wall-clock datetime to epoch-ms conversion.
 
 use wasm::ctx_scratch
-use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i64_arith
 use wasm::intrinsics::helpers_numeric_i64_convert
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
     let nsec_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
-    helpers_core_locals::emit_local_set(w, nsec_local)
+    helpers_core::emit_local_set(w, nsec_local)
     let thousand: i64 = 1000
     emit_i64_const(w, thousand)
     helpers_numeric_i64_arith::emit_i64_mul(w)
-    helpers_core_locals::emit_local_get(w, nsec_local)
+    helpers_core::emit_local_get(w, nsec_local)
     helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
     let million: i64 = 1000000
     emit_i64_const(w, million)
@@ -24,5 +23,5 @@ fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
 
 fn emit_i64_const(w: WasmWriter, value: i64) {
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
-    writer_leb::emit_leb128_s_i64(w, value)
+    writer_core::emit_leb128_s_i64(w, value)
 }

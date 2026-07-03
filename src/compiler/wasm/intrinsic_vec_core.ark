@@ -11,7 +11,6 @@ use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_vec_type
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_record
@@ -32,6 +31,7 @@ fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         // Determine the correct vec type from the source local when possible.
         let callee = inst_accessors_literals::MirInst_str_val(inst)
         let vec_gc_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+        intrinsic_vec_type::debug_vec_type_resolution(ctx, clone(callee), inst, vec_gc_type)
         writer_gc::emit_gc_struct_get(w, vec_gc_type, 1)
     } else {
         // Linear-memory Vec: i32.load at offset 0 (len field)

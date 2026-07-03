@@ -1,13 +1,10 @@
 // Arukellt Selfhost - register host intrinsic stubs into signature registry (diff observation).
 
-use corehir::abi_kind
+use corehir::kinds
 use corehir::function_id
-use corehir::nullability
 use corehir::signature_entry
 use corehir::signature_registry
-use corehir::type_kind
 use corehir::type_table
-use corehir::value_repr
 use mir::host_intrinsic_stub_names
 
 fn sig_reg_register_host_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
@@ -39,13 +36,13 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
 }
 
 fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, name: String) {
-    let ret_id = type_table::TypeTable_intern(table, type_kind::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
-    let ret_mv = mir_value_type::MirValueType_new(ret_id, value_repr::VALUE_REPR_GC_REF(), nullability::NULLABILITY_NULLABLE())
+    let ret_id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
+    let ret_mv = mir_value_type::MirValueType_new(ret_id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     let returns = Vec_new_MirValueType()
     push(returns, ret_mv)
     let params = Vec_new_MirValueType()
-    let receiver = mir_value_type::MirValueType_new(type_table::TypeTable_intern(table, type_kind::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()), value_repr::VALUE_REPR_SCALAR(), nullability::NULLABILITY_NOT_REF())
-    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(name), params, returns, false, receiver, 0 - 1, 0 - 1, 0 - 1, abi_kind::ABI_KIND_HOST_INTRINSIC())
+    let receiver = mir_value_type::MirValueType_new(type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
+    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(name), params, returns, false, receiver, 0 - 1, 0 - 1, 0 - 1, kinds::ABI_KIND_HOST_INTRINSIC())
     signature_registry::signature_registry_register(registry, entry, name)
 }
 

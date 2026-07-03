@@ -4,12 +4,11 @@ use mir::inst_accessors_operands
 use wasm::inst_store
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 
 // Emit a SIMD prefix byte + sub-opcode (LEB128-encoded)
 fn emit_simd_prefix(w: WasmWriter, sub_opcode: i32) {
     writer_core::emit_byte(w, opcodes::SIMD_PREFIX())
-    writer_leb::emit_leb128_u(w, sub_opcode)
+    writer_core::emit_leb128_u(w, sub_opcode)
 }
 
 // Binary SIMD op: two v128 operands on stack, result v128 on stack

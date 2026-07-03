@@ -1,27 +1,25 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target
-use wasm::intrinsics::helpers_core_calls
-use wasm::intrinsics::helpers_core_stack
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_numeric_i32_const
-use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_random_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core_stack::emit_unreachable(w)
+        helpers_core::emit_unreachable(w)
         return true
     }
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_core_calls::emit_call(w, constants::P2_IMPORT_RANDOM_U64())
-        helpers_numeric_i32_convert::emit_i32_wrap_i64(w)
+        helpers_core::emit_call(w, constants::P2_IMPORT_RANDOM_U64())
+        helpers_numeric_i32::emit_i32_wrap_i64(w)
         return true
     }
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_I32BUF())
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_core_calls::emit_call(w, constants::WASI_IMPORT_RANDOM_GET())
-    helpers_core_stack::emit_drop(w)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_I32BUF())
-    helpers_memory_access::emit_i32_load(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_I32BUF())
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_core::emit_call(w, constants::WASI_IMPORT_RANDOM_GET())
+    helpers_core::emit_drop(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_I32BUF())
+    helpers_memory::emit_i32_load(w, 0)
     return true
 }

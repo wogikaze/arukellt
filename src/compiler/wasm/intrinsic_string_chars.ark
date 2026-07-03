@@ -6,11 +6,9 @@ use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_string_chars_gc
-use wasm::intrinsics::helpers_core_heap
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: text::chars
 fn emit_text_chars(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -23,47 +21,47 @@ fn emit_text_chars(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_chars_header(w, s_ch_vec)
     emit_chars_element(w, s_ch_vec, s_ch_src)
     emit_chars_heap_update(w, s_ch_vec)
-    helpers_core_locals::emit_local_get(w, s_ch_vec)
+    helpers_core::emit_local_get(w, s_ch_vec)
     return true
 }
 
 fn emit_chars_setup(w: WasmWriter, src_local: i32, vec_local: i32) {
-    helpers_core_locals::emit_local_set(w, src_local)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_core_locals::emit_local_set(w, vec_local)
+    helpers_core::emit_local_set(w, src_local)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, vec_local)
 }
 
 fn emit_chars_header(w: WasmWriter, vec_local: i32) {
-    helpers_core_locals::emit_local_get(w, vec_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, vec_local)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_memory::emit_i32_store_default(w)
 
-    helpers_core_locals::emit_local_get(w, vec_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, vec_local)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_memory::emit_i32_store_default(w)
 
-    helpers_core_locals::emit_local_get(w, vec_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 8)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, vec_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 12)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, vec_local)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, vec_local)
+    helpers_numeric_i32::emit_i32_const(w, 12)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_chars_element(w: WasmWriter, vec_local: i32, src_local: i32) {
-    helpers_core_locals::emit_local_get(w, vec_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 12)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, src_local)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_local_get(w, vec_local)
+    helpers_numeric_i32::emit_i32_const(w, 12)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, src_local)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn emit_chars_heap_update(w: WasmWriter, vec_local: i32) {
-    helpers_core_locals::emit_local_get(w, vec_local)
-    helpers_numeric_i32_const::emit_i32_const(w, 16)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_local_get(w, vec_local)
+    helpers_numeric_i32::emit_i32_const(w, 16)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
 }

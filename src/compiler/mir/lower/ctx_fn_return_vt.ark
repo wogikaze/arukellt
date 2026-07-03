@@ -44,7 +44,11 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     if bare_found >= 0 {
         return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, bare_found)
     }
-    if ctx_is_void_builtin(bare_name) {
+    ctx_fn_return_vt_builtin(ctx, bare_name)
+}
+
+fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
+    if ctx_is_void_builtin(clone(bare_name)) {
         return value_types::VT_VOID()
     }
     if eq(clone(bare_name), "to_string") || eq(clone(bare_name), "i32_to_string") || eq(clone(bare_name), "i64_to_string") || eq(clone(bare_name), "f64_to_string") || eq(clone(bare_name), "bool_to_string") || eq(clone(bare_name), "char_to_string") || eq(clone(bare_name), "f32_to_string") {

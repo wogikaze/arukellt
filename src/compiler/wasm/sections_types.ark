@@ -10,7 +10,6 @@ use wasm::sections_types_gc
 use wasm::sections_types_emit
 use wasm::sections_types_sigs
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_sections
 
 
@@ -44,7 +43,7 @@ fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction
     }
     let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, enum_variant_count, gc_struct_count)
     let type_sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(type_sec, len(canon_types))
+    writer_core::emit_leb128_u(type_sec, len(canon_types))
     sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
     sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map, gc_struct_base, gc_struct_type_map)

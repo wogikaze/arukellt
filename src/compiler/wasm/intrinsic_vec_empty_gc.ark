@@ -5,12 +5,8 @@
 
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
-use wasm::ctx_gc_type
 use wasm::ctx_record
-use wasm::ctx_scratch
-use wasm::emit_target
 use wasm::intrinsic_vec_type
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape

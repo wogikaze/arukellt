@@ -3,7 +3,6 @@ use wasm::constants
 // Arukellt Selfhost - Wasm import section builder.
 
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_sections
 use wasm::writer_string
 use wasm::emit_target
@@ -13,7 +12,7 @@ use mir::module_wit_imports
 fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
     let import_sec = writer_core::WasmWriter_new()
     let wit_count = module_wit_imports::wit_import_count(bindings)
-    writer_leb::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_count))
+    writer_core::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_count))
     if emit_target::is_freestanding_target(clone(target)) {
         emit_t2_import_entries(import_sec, host_type_map)
     } else {
@@ -130,5 +129,5 @@ fn emit_host_func_import(import_sec: WasmWriter, host_module: String, import_nam
     writer_string::emit_string(import_sec, host_module)
     writer_string::emit_string(import_sec, import_name)
     writer_core::emit_byte(import_sec, 0)
-    writer_leb::emit_leb128_u(import_sec, type_idx)
+    writer_core::emit_leb128_u(import_sec, type_idx)
 }

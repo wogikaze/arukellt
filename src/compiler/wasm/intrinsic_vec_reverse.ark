@@ -5,8 +5,9 @@ use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
-use wasm::writer_leb
-use wasm::intrinsics::helpers_core_locals
+use wasm::writer_gc
+use wasm::ctx_gc_type
+use wasm::intrinsics::helpers_core
 
 // Handler for: reverse_i32
 fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -21,45 +22,46 @@ fn emit_reverse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_reverse_prepare(w, s_vec_rv, s_rv_lo, s_rv_hi, s_rv_data)
     emit_reverse_loop(w, s_rv_lo, s_rv_hi, s_rv_data, s_rv_tmp)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_vec_rv)
+    writer_core::emit_leb128_u(w, s_vec_rv)
     return true
 }
 
 // GC target fallback: pop vec ref, push it back (no-op reverse).
 fn emit_reverse_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    helpers_core_locals::emit_local_set(w, s_vec)
-    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_core::emit_local_set(w, s_vec)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
     return true
 }
 
 fn emit_reverse_prepare(w: WasmWriter, vec_local: i32, lo_local: i32, hi_local: i32, data_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_leb128_u(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_leb128_u(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_leb128_s(w, 8)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_leb128_u(w, data_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, lo_local)
+    writer_core::emit_leb128_u(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, vec_local)
+    writer_core::emit_leb128_u(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, hi_local)
+    writer_core::emit_leb128_u(w, hi_local)
 }
 
 fn emit_reverse_loop(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32, tmp_local: i32) {
@@ -68,29 +70,29 @@ fn emit_reverse_loop(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i3
     writer_core::emit_byte(w, opcodes::OP_LOOP())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, lo_local)
+    writer_core::emit_leb128_u(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, hi_local)
+    writer_core::emit_leb128_u(w, hi_local)
     writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
-    writer_leb::emit_leb128_u(w, 1)
+    writer_core::emit_leb128_u(w, 1)
     emit_reverse_swap(w, lo_local, hi_local, data_local, tmp_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, lo_local)
+    writer_core::emit_leb128_u(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, lo_local)
+    writer_core::emit_leb128_u(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, hi_local)
+    writer_core::emit_leb128_u(w, hi_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, hi_local)
+    writer_core::emit_leb128_u(w, hi_local)
     writer_core::emit_byte(w, opcodes::OP_BR())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, 11)
     writer_core::emit_byte(w, 11)
 }
@@ -103,35 +105,35 @@ fn emit_reverse_swap(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i3
 
 fn emit_reverse_load_lo(w: WasmWriter, lo_local: i32, data_local: i32, tmp_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_leb128_u(w, data_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, lo_local)
+    writer_core::emit_leb128_u(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, tmp_local)
+    writer_core::emit_leb128_u(w, tmp_local)
 }
 
 fn emit_reverse_store_hi_into_lo(w: WasmWriter, lo_local: i32, hi_local: i32, data_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_leb128_u(w, data_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, lo_local)
+    writer_core::emit_leb128_u(w, lo_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_leb128_u(w, data_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, hi_local)
+    writer_core::emit_leb128_u(w, hi_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
@@ -144,15 +146,15 @@ fn emit_reverse_store_hi_into_lo(w: WasmWriter, lo_local: i32, hi_local: i32, da
 
 fn emit_reverse_store_tmp_into_hi(w: WasmWriter, hi_local: i32, data_local: i32, tmp_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, data_local)
+    writer_core::emit_leb128_u(w, data_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, hi_local)
+    writer_core::emit_leb128_u(w, hi_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, tmp_local)
+    writer_core::emit_leb128_u(w, tmp_local)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)

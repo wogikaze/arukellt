@@ -7,8 +7,6 @@ use typechecker::contract_type_mutation
 use typechecker::ast_stmt_predicates
 use typechecker::ast_expr_predicates
 use typechecker::call
-use typechecker::contract_type_constructors
-use typechecker::contract_type_access
 use typechecker::infer_binary
 use typechecker::infer_block
 use typechecker::infer_closure

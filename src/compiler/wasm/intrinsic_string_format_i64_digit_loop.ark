@@ -1,36 +1,32 @@
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_const
-use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_arith
 use wasm::intrinsics::helpers_numeric_i64_compare
 use wasm::intrinsics::helpers_numeric_i64_const
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_control_branch
-use wasm::intrinsics::helpers_control_loop
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
 
 fn emit_i64_digit_loop(w: WasmWriter, s_val64: i32, s_wpos64: i32) {
-    helpers_control_loop::emit_block_loop_header(w)
-    helpers_core_locals::emit_local_get(w, s_val64)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_val64)
     helpers_numeric_i64_compare::emit_i64_eqz(w)
-    helpers_control_branch::emit_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_wpos64)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_core_locals::emit_local_tee(w, s_wpos64)
-    helpers_core_locals::emit_local_get(w, s_val64)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_wpos64)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_tee(w, s_wpos64)
+    helpers_core::emit_local_get(w, s_val64)
     helpers_numeric_i64_const::emit_i64_const(w, 10)
     helpers_numeric_i64_arith::emit_i64_rem_u(w)
-    helpers_numeric_i32_convert::emit_i32_wrap_i64(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 48)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_store8_default(w)
-    helpers_core_locals::emit_local_get(w, s_val64)
+    helpers_numeric_i32::emit_i32_wrap_i64(w)
+    helpers_numeric_i32::emit_i32_const(w, 48)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store8_default(w)
+    helpers_core::emit_local_get(w, s_val64)
     helpers_numeric_i64_const::emit_i64_const(w, 10)
     helpers_numeric_i64_arith::emit_i64_div_u(w)
-    helpers_core_locals::emit_local_set(w, s_val64)
-    helpers_control_branch::emit_br(w, 0)
-    helpers_control_structured::emit_end(w)
-    helpers_control_structured::emit_end(w)
+    helpers_core::emit_local_set(w, s_val64)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
 }

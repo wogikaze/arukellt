@@ -2,7 +2,7 @@
 
 use corehir::type_contracts
 use corehir::type_info_kind
-use corehir::type_kind
+use corehir::kinds
 use corehir::type_table
 
 fn TYPE_INFO_TO_TYPE_ID_MAX_DEPTH() -> i32 {
@@ -16,7 +16,7 @@ fn type_info_to_type_id(table: TypeTable, ty: TypeInfo) -> TypeId {
 fn type_info_to_type_id_depth(table: TypeTable, ty: TypeInfo, depth: i32) -> TypeId {
     let tag = type_contracts::TypeInfo_tag(ty)
     if tag == 0 {
-        return type_table::TypeTable_intern(table, type_kind::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId())
+        return type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId())
     }
     if depth > TYPE_INFO_TO_TYPE_ID_MAX_DEPTH() {
         let kind = type_info_kind::type_info_tag_to_kind(tag)

@@ -1,7 +1,6 @@
 // Arukellt Selfhost - ADR-040 central function signature registry.
 
-use corehir::abi_kind
-use corehir::function_id
+use corehir::kinds
 use corehir::mir_value_type
 use corehir::signature_entry
 use corehir::type_id
@@ -53,7 +52,7 @@ fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) 
     if raw >= 0 && raw < len(registry.entries) {
         return get_unchecked(registry.entries, raw)
     }
-    signature_entry::SignatureEntry_new(FUNCTION_ID_INVALID(), String_new(), Vec_new_MirValueType(), Vec_new_MirValueType(), false, mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0), 0 - 1, 0 - 1, 0 - 1, abi_kind::ABI_KIND_NORMAL())
+    signature_entry::SignatureEntry_new(FUNCTION_ID_INVALID(), String_new(), Vec_new_MirValueType(), Vec_new_MirValueType(), false, mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0), 0 - 1, 0 - 1, 0 - 1, kinds::ABI_KIND_NORMAL())
 }
 
 fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {
@@ -62,7 +61,7 @@ fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {
     let mut i = 0
     while i < count {
         let entry = get_unchecked(registry.entries, i)
-        if signature_entry::signature_entry_abi_kind(entry) == abi_kind::ABI_KIND_HOST_INTRINSIC() {
+        if signature_entry::signature_entry_abi_kind(entry) == kinds::ABI_KIND_HOST_INTRINSIC() {
             total = total + 1
         }
         i = i + 1

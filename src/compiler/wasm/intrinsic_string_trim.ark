@@ -3,10 +3,9 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_string_trim_gc
 use wasm::intrinsic_string_trim_helpers
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_memory_stack
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: trim_start, text::trim_start
 fn emit_trim_start(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -19,17 +18,17 @@ fn emit_trim_start(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    helpers_core_locals::emit_local_set(w, s0)
-    helpers_core_locals::emit_local_get(w, s0)
-    helpers_memory_stack::emit_string_len_from_stack(w)
-    helpers_core_locals::emit_local_set(w, s1)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s2)
+    helpers_core::emit_local_set(w, s0)
+    helpers_core::emit_local_get(w, s0)
+    helpers_memory::emit_string_len_from_stack(w)
+    helpers_core::emit_local_set(w, s1)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s2)
     intrinsic_string_trim_helpers::emit_trim_start_scan(w, s0, s1, s2, s3)
-    helpers_core_locals::emit_local_get(w, s1)
-    helpers_core_locals::emit_local_get(w, s2)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_core_locals::emit_local_set(w, s3)
+    helpers_core::emit_local_get(w, s1)
+    helpers_core::emit_local_get(w, s2)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s3)
     intrinsic_string_trim_helpers::emit_trim_copy_result(w, s0, s2, s3, s4)
     return true
 }
@@ -45,15 +44,15 @@ fn emit_trim_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    helpers_core_locals::emit_local_set(w, s0)
-    helpers_core_locals::emit_local_get(w, s0)
-    helpers_memory_stack::emit_string_len_from_stack(w)
-    helpers_core_locals::emit_local_set(w, s1)
-    helpers_core_locals::emit_local_get(w, s1)
-    helpers_core_locals::emit_local_set(w, s2)
+    helpers_core::emit_local_set(w, s0)
+    helpers_core::emit_local_get(w, s0)
+    helpers_memory::emit_string_len_from_stack(w)
+    helpers_core::emit_local_set(w, s1)
+    helpers_core::emit_local_get(w, s1)
+    helpers_core::emit_local_set(w, s2)
     intrinsic_string_trim_helpers::emit_trim_end_scan(w, s0, s2, s3)
-    helpers_core_locals::emit_local_get(w, s2)
-    helpers_core_locals::emit_local_set(w, s3)
+    helpers_core::emit_local_get(w, s2)
+    helpers_core::emit_local_set(w, s3)
     intrinsic_string_trim_helpers::emit_trim_copy_result(w, s0, 0, s3, s4)
     return true
 }

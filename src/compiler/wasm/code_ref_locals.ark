@@ -7,6 +7,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_type
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_infer
+use wasm::code_ref_locals_scan
 
 fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     let storage = infer_local_storage_gc_type(f, local_idx, ctx)
@@ -51,15 +52,15 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
     if code_ref_locals_types::is_option_type_name(clone(type_name)) {
         let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         let raw = code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
-        if raw >= 0 && raw != open && code_ref_locals_infer::local_is_direct_gc_struct_new_dest(f, local_idx) {
+        if raw >= 0 && raw != open && code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx) {
             return raw
         }
         return open
     }
-    if mir_function_returns_option(f) && code_ref_locals_infer::local_feeds_return(f, local_idx) {
+    if mir_function_returns_option(f) && code_ref_locals_scan::local_feeds_return(f, local_idx) {
         let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         let raw = code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
-        if raw >= 0 && raw != open && code_ref_locals_infer::local_is_direct_gc_struct_new_dest(f, local_idx) {
+        if raw >= 0 && raw != open && code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx) {
             return raw
         }
         return open
@@ -72,7 +73,7 @@ fn infer_ref_local_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> 
 }
 
 fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
-    code_ref_locals_infer::local_has_any_ref_assignment(f, local_idx)
+    code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx)
 }
 
 fn mir_function_returns_option(f: MirFunction) -> bool {

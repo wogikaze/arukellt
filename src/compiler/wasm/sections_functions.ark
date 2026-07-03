@@ -2,12 +2,11 @@ use wasm::opcodes
 // Arukellt Selfhost - Wasm function section builder.
 
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_sections
 
 fn emit_function_section(out: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>, needs_wrapper: i32, wrapper_type_idx: i32) {
     let func_sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(func_sec, fn_count + needs_wrapper)
+    writer_core::emit_leb128_u(func_sec, fn_count + needs_wrapper)
     emit_function_type_entries(func_sec, fn_count, fn_type_map)
     emit_wrapper_function_type_entry(func_sec, needs_wrapper, wrapper_type_idx)
     writer_sections::emit_section(out, opcodes::SEC_FUNCTION(), func_sec)
@@ -17,13 +16,13 @@ fn emit_function_type_entries(func_sec: WasmWriter, fn_count: i32, fn_type_map: 
     let mut fi = 0
     while fi < fn_count {
         let mapped_type = get_unchecked(fn_type_map, fi)
-        writer_leb::emit_leb128_u(func_sec, mapped_type)
+        writer_core::emit_leb128_u(func_sec, mapped_type)
         fi = fi + 1
     }
 }
 
 fn emit_wrapper_function_type_entry(func_sec: WasmWriter, needs_wrapper: i32, wrapper_type_idx: i32) {
     if needs_wrapper == 1 {
-        writer_leb::emit_leb128_u(func_sec, wrapper_type_idx)
+        writer_core::emit_leb128_u(func_sec, wrapper_type_idx)
     }
 }

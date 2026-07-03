@@ -4,7 +4,6 @@
 
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_gc_block_loop(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
@@ -20,12 +19,12 @@ fn emit_gc_block_loop_end(w: WasmWriter) {
 
 fn emit_gc_br_if(w: WasmWriter, depth: i32) {
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
-    writer_leb::emit_leb128_u(w, depth)
+    writer_core::emit_leb128_u(w, depth)
 }
 
 fn emit_gc_br(w: WasmWriter, depth: i32) {
     writer_core::emit_byte(w, opcodes::OP_BR())
-    writer_leb::emit_leb128_u(w, depth)
+    writer_core::emit_leb128_u(w, depth)
 }
 
 fn emit_gc_i32_ge_s(w: WasmWriter) {
@@ -54,45 +53,45 @@ fn emit_gc_i32_sub(w: WasmWriter) {
 
 fn emit_gc_i32_const(w: WasmWriter, value: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, value)
+    writer_core::emit_leb128_s(w, value)
 }
 
 fn emit_gc_local_set(w: WasmWriter, local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, local)
+    writer_core::emit_leb128_u(w, local)
 }
 
 fn emit_gc_local_get(w: WasmWriter, local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, local)
+    writer_core::emit_leb128_u(w, local)
 }
 
 fn emit_gc_array_len(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
-    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_LEN())
+    writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_LEN())
 }
 
 fn emit_gc_array_new(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
-    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
-    writer_leb::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
+    writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_array_get_u(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
-    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_GET_U())
-    writer_leb::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_GET_U())
+    writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
-    writer_leb::emit_leb128_u(w, opcodes::GC_ARRAY_SET())
-    writer_leb::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_SET())
+    writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_REF_NULL())
-    writer_leb::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_if_void(w: WasmWriter) {
@@ -110,13 +109,13 @@ fn emit_gc_end(w: WasmWriter) {
 
 fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_GC_PREFIX())
-    writer_leb::emit_leb128_u(w, opcodes::GC_REF_CAST())
-    writer_leb::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
+    writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_GC_PREFIX())
-    writer_leb::emit_leb128_u(w, opcodes::GC_STRUCT_GET())
-    writer_leb::emit_leb128_u(w, type_idx)
-    writer_leb::emit_leb128_u(w, field_idx)
+    writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_GET())
+    writer_core::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_u(w, field_idx)
 }

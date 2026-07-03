@@ -1,6 +1,6 @@
-// Arukellt Selfhost - PR-4a registry return guard (normal CALL only).
+// Arukellt Selfhost - PR-4a/PR-4b registry return guard.
 
-use corehir::abi_kind
+use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
@@ -9,6 +9,41 @@ use mir::inst_record
 use wasm::ctx_record
 
 fn registry_guard_is_normal_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) -> bool {
+    if !registry_guard_is_registry_candidate(ctx, inst, callee) {
+        return false
+    }
+    let entry = registry_guard_signature_entry(ctx, inst)
+    if signature_entry::signature_entry_abi_kind(entry) != kinds::ABI_KIND_NORMAL() {
+        return false
+    }
+    if signature_entry::signature_entry_mono_instance_id(entry) >= 0 {
+        return false
+    }
+    true
+}
+
+fn registry_guard_is_registry_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) -> bool {
+    if !registry_guard_is_registry_candidate(ctx, inst, callee) {
+        return false
+    }
+    let entry = registry_guard_signature_entry(ctx, inst)
+    let abi = signature_entry::signature_entry_abi_kind(entry)
+    if abi == kinds::ABI_KIND_HOST_INTRINSIC() || abi == kinds::ABI_KIND_BUILTIN() {
+        return false
+    }
+    if abi == kinds::ABI_KIND_TRAIT_DISPATCH() {
+        return true
+    }
+    if abi == kinds::ABI_KIND_NORMAL() && signature_entry::signature_entry_mono_instance_id(entry) >= 0 {
+        return true
+    }
+    if abi == kinds::ABI_KIND_NORMAL() {
+        return true
+    }
+    false
+}
+
+fn registry_guard_is_registry_candidate(ctx: SelfEmitCtx, inst: MirInst, callee: String) -> bool {
     if !ctx_record::SelfEmitCtx_spine_populated(ctx) {
         return false
     }
@@ -18,15 +53,12 @@ fn registry_guard_is_normal_call(ctx: SelfEmitCtx, inst: MirInst, callee: String
     if registry_guard_is_excluded_callee(callee) {
         return false
     }
-    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
-    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
-    if signature_entry::signature_entry_abi_kind(entry) != abi_kind::ABI_KIND_NORMAL() {
-        return false
-    }
-    if signature_entry::signature_entry_mono_instance_id(entry) >= 0 {
-        return false
-    }
     true
+}
+
+fn registry_guard_signature_entry(ctx: SelfEmitCtx, inst: MirInst) -> SignatureEntry {
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
 }
 
 fn registry_guard_is_excluded_callee(callee: String) -> bool {

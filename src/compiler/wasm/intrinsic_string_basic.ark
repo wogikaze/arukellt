@@ -6,13 +6,10 @@ use wasm::ctx_string_view
 use wasm::ctx_record
 use wasm::string_gc_helpers
 use wasm::writer_core
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_heap
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_memory_stack
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: String_from, clone
 fn emit_clone(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -25,7 +22,7 @@ fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         string_gc_helpers::emit_gc_array_len(w)
     } else {
-        helpers_memory_stack::emit_string_len_from_stack(w)
+        helpers_memory::emit_string_len_from_stack(w)
     }
     return true
     }
@@ -37,15 +34,15 @@ fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         return inst_accessors_operands::MirInst_dest(inst) < 0
     }
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    helpers_core_locals::emit_local_set(w, s_tmp)
-    helpers_core_locals::emit_local_get(w, s_tmp)
-    helpers_control_structured::emit_if_i32(w)
+    helpers_core::emit_local_set(w, s_tmp)
+    helpers_core::emit_local_get(w, s_tmp)
+    helpers_control::emit_if_i32(w)
     let true_offset = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
-    helpers_numeric_i32_const::emit_i32_const(w, true_offset)
-    helpers_control_structured::emit_else(w)
+    helpers_numeric_i32::emit_i32_const(w, true_offset)
+    helpers_control::emit_else(w)
     let false_offset = ctx_string_view::SelfEmitCtx_false_string_offset(ctx)
-    helpers_numeric_i32_const::emit_i32_const(w, false_offset)
-    helpers_control_structured::emit_end(w)
+    helpers_numeric_i32::emit_i32_const(w, false_offset)
+    helpers_control::emit_end(w)
     return true
 }
 
@@ -54,13 +51,13 @@ fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    helpers_core_locals::emit_local_set(w, s_tmp)
-    helpers_core_locals::emit_local_get(w, s_tmp)
-    helpers_control_structured::emit_if_empty(w)
+    helpers_core::emit_local_set(w, s_tmp)
+    helpers_core::emit_local_get(w, s_tmp)
+    helpers_control::emit_if_empty(w)
     emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_true_string_offset(ctx), 4, dest, string_type, s_i)
-    helpers_control_structured::emit_else(w)
+    helpers_control::emit_else(w)
     emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_false_string_offset(ctx), 5, dest, string_type, s_i)
-    helpers_control_structured::emit_end(w)
+    helpers_control::emit_end(w)
 }
 
 fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32, string_type: i32, s_i: i32) {
@@ -112,7 +109,7 @@ fn emit_concat(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         emit_concat_setup(w, s_a, s_b, s_la, total_len)
         emit_concat_alloc(w, s_rp, total_len)
         emit_concat_copy(w, s_a, s_b, s_la, s_rp, total_len)
-        helpers_core_locals::emit_local_get(w, s_rp)
+        helpers_core::emit_local_get(w, s_rp)
     }
     return true
 }
@@ -127,8 +124,8 @@ fn emit_concat_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_len_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
 
     // Save GC refs from stack to GC scratch locals
-    helpers_core_locals::emit_local_set(w, s_gc1)
-    helpers_core_locals::emit_local_set(w, s_gc0)
+    helpers_core::emit_local_set(w, s_gc1)
+    helpers_core::emit_local_set(w, s_gc0)
 
     // Compute lengths and allocate result array
     emit_concat_gc_alloc(w, s_gc0, s_gc1, dest, string_type, s_len_a, s_len_b)
@@ -140,110 +137,110 @@ fn emit_concat_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_gc_copy_loop_offset(w, s_i, s_len_b, dest, s_gc1, s_len_a, string_type)
 
     // Push result on stack
-    helpers_core_locals::emit_local_get(w, dest)
+    helpers_core::emit_local_get(w, dest)
 }
 
 fn emit_concat_gc_alloc(w: WasmWriter, arg0: i32, arg1: i32, dest: i32, string_type: i32, s_len_a: i32, s_len_b: i32) {
-    helpers_core_locals::emit_local_get(w, arg0)
+    helpers_core::emit_local_get(w, arg0)
     string_gc_helpers::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_set(w, s_len_a)
+    helpers_core::emit_local_set(w, s_len_a)
 
-    helpers_core_locals::emit_local_get(w, arg1)
+    helpers_core::emit_local_get(w, arg1)
     string_gc_helpers::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_set(w, s_len_b)
+    helpers_core::emit_local_set(w, s_len_b)
 
-    helpers_core_locals::emit_local_get(w, s_len_a)
-    helpers_core_locals::emit_local_get(w, s_len_b)
-    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_len_a)
+    helpers_core::emit_local_get(w, s_len_b)
+    helpers_numeric_i32::emit_i32_add(w)
     string_gc_helpers::emit_gc_array_new(w, string_type)
-    helpers_core_locals::emit_local_set(w, dest)
+    helpers_core::emit_local_set(w, dest)
 }
 
 fn emit_gc_copy_loop(w: WasmWriter, s_i: i32, s_len: i32, dest: i32, src: i32, string_type: i32) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_i)
+    helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core_locals::emit_local_get(w, s_i)
-    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, dest)
-    helpers_core_locals::emit_local_get(w, s_i)
-    helpers_core_locals::emit_local_get(w, src)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, dest)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, src)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
     string_gc_helpers::emit_gc_array_set(w, string_type)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
 fn emit_gc_copy_loop_offset(w: WasmWriter, s_i: i32, s_len: i32, dest: i32, src: i32, offset: i32, string_type: i32) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_i)
+    helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core_locals::emit_local_get(w, s_i)
-    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, dest)
-    helpers_core_locals::emit_local_get(w, offset)
-    helpers_core_locals::emit_local_get(w, s_i)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, src)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, dest)
+    helpers_core::emit_local_get(w, offset)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, src)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
     string_gc_helpers::emit_gc_array_set(w, string_type)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
 fn emit_concat_setup(w: WasmWriter, a_local: i32, b_local: i32, len_a_local: i32, total_len_local: i32) {
-    helpers_core_locals::emit_local_set(w, b_local)
-    helpers_core_locals::emit_local_set(w, a_local)
-    helpers_memory_stack::emit_load_string_len_to_local(w, a_local, len_a_local)
-    helpers_core_locals::emit_local_get(w, b_local)
-    helpers_memory_stack::emit_string_len_from_stack(w)
-    helpers_core_locals::emit_local_get(w, len_a_local)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, total_len_local)
+    helpers_core::emit_local_set(w, b_local)
+    helpers_core::emit_local_set(w, a_local)
+    helpers_memory::emit_load_string_len_to_local(w, a_local, len_a_local)
+    helpers_core::emit_local_get(w, b_local)
+    helpers_memory::emit_string_len_from_stack(w)
+    helpers_core::emit_local_get(w, len_a_local)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, total_len_local)
 }
 
 fn emit_concat_alloc(w: WasmWriter, result_ptr_local: i32, total_len_local: i32) {
-    helpers_core_heap::emit_heap_get(w)
-    helpers_core_locals::emit_local_get(w, total_len_local)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, result_ptr_local)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, total_len_local)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, total_len_local)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, result_ptr_local)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, total_len_local)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
 }
 
 fn emit_concat_copy(w: WasmWriter, a_local: i32, b_local: i32, len_a_local: i32, result_ptr_local: i32, total_len_local: i32) {
-    helpers_core_locals::emit_local_get(w, result_ptr_local)
-    helpers_core_locals::emit_local_get(w, a_local)
-    helpers_core_locals::emit_local_get(w, len_a_local)
-    helpers_memory_access::emit_memory_copy(w)
+    helpers_core::emit_local_get(w, result_ptr_local)
+    helpers_core::emit_local_get(w, a_local)
+    helpers_core::emit_local_get(w, len_a_local)
+    helpers_memory::emit_memory_copy(w)
 
-    helpers_core_locals::emit_local_get(w, result_ptr_local)
-    helpers_core_locals::emit_local_get(w, len_a_local)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_get(w, b_local)
-    helpers_core_locals::emit_local_get(w, total_len_local)
-    helpers_core_locals::emit_local_get(w, len_a_local)
-    helpers_numeric_i32_arith::emit_i32_sub(w)
-    helpers_memory_access::emit_memory_copy(w)
+    helpers_core::emit_local_get(w, result_ptr_local)
+    helpers_core::emit_local_get(w, len_a_local)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, b_local)
+    helpers_core::emit_local_get(w, total_len_local)
+    helpers_core::emit_local_get(w, len_a_local)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_memory::emit_memory_copy(w)
 }

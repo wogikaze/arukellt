@@ -11,18 +11,17 @@ use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
     let body_local_count = local_count - param_count
     // The header is the NUMBER OF LOCAL GROUPS (each group = count + type),
     // not the total number of locals.
     let sgc = code_scratch_locals::scratch_group_count(ctx)
-    writer_leb::emit_leb128_u(body, body_local_count + sgc)
+    writer_core::emit_leb128_u(body, body_local_count + sgc)
     let mut li = param_count
     while li < local_count {
         let loc = function_locals_view::MirFunction_local_at(f, li)
-        writer_leb::emit_leb128_u(body, 1)
+        writer_core::emit_leb128_u(body, 1)
         emit_local_val_type(body, f, li, local_access::MirLocal_val_type(loc), ctx)
         li = li + 1
     }
@@ -44,7 +43,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     let type_name = local_access::MirLocal_type_name(loc)
     if starts_with(clone(type_name), String_from("enum:")) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
         return true
     }
     if starts_with(clone(type_name), String_from("vec:")) {
@@ -54,21 +53,21 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
                 // Type inference found no vec assignment — local is reused for i32.
             } else {
                 writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                writer_leb::emit_leb128_s(body, gc_type)
+                writer_core::emit_leb128_s(body, gc_type)
                 return true
             }
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            if eq(clone(type_name), String_from("vec:String")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
+            if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
             } else if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
             } else if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
             } else if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
             } else {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
             }
             return true
         }
@@ -87,13 +86,13 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             if starts_with(clone(type_name), String_from("hashmap:i32str")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
             } else if starts_with(clone(type_name), String_from("hashmap:strstr")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
             } else if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
             } else {
-                writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
             }
             return true
         }
@@ -103,7 +102,7 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
             return true
         }
     }
@@ -112,15 +111,20 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+            writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
             return true
         }
     }
+    emit_gc_local_struct_type(body, type_name, vt, f, local_idx, ctx)
+}
+
+// GC-target local val type for struct:/raw struct names, with inference fallback.
+fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if starts_with(clone(type_name), String_from("struct:")) {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
+            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
             return true
         }
         // Fallback for structs without ref fields: extract byte_size
@@ -128,14 +132,14 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
         let byte_size = extract_struct_byte_size(clone(type_name))
         if byte_size > 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
+            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
             return true
         }
     }
     // Check raw struct name (without "struct:" prefix) as gc_struct.
     if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name)))
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name)))
         return true
     }
     emit_gc_local_inferred_type(body, f, local_idx, vt, ctx)
@@ -195,12 +199,12 @@ fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32,
     let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
     if gc_type >= 0 {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, gc_type)
+        writer_core::emit_leb128_s(body, gc_type)
         return true
     }
     if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx))
+        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx))
         return true
     }
     false

@@ -1,76 +1,73 @@
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_numeric_i32_const
-use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::constants
 // Arukellt Selfhost - fs write shared Result emission.
 
-use wasm::intrinsics::helpers_core_calls
-use wasm::intrinsics::helpers_core_heap
-use wasm::intrinsics::helpers_core_stack
+use wasm::intrinsics::helpers_core
 
 fn emit_fs_write_success_writev_and_close(w: WasmWriter) {
-    helpers_core_calls::emit_call(w, 0)
-    helpers_core_stack::emit_drop(w)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_FD())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_core_calls::emit_call(w, 5)
-    helpers_core_stack::emit_drop(w)
+    helpers_core::emit_call(w, 0)
+    helpers_core::emit_drop(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_call(w, 5)
+    helpers_core::emit_drop(w)
 }
 
 fn emit_fs_write_success_unit_result(w: WasmWriter) {
-    helpers_core_heap::emit_heap_get(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 0)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 8)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
 }
 
 fn emit_fs_write_error_message(w: WasmWriter) {
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 16)
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 16)
+    helpers_memory::emit_i32_store_default(w)
     let err_msg_fw = "file write error"
     let mut ebi2 = 0
     while ebi2 < 16 {
-        helpers_core_heap::emit_heap_get(w)
-        helpers_numeric_i32_const::emit_i32_const(w, 4 + ebi2)
-        helpers_numeric_i32_arith::emit_i32_add(w)
-        helpers_numeric_i32_const::emit_i32_const(w, char_at(err_msg_fw, ebi2))
-        helpers_memory_access::emit_i32_store8_default(w)
+        helpers_core::emit_heap_get(w)
+        helpers_numeric_i32::emit_i32_const(w, 4 + ebi2)
+        helpers_numeric_i32::emit_i32_add(w)
+        helpers_numeric_i32::emit_i32_const(w, char_at(err_msg_fw, ebi2))
+        helpers_memory::emit_i32_store8_default(w)
         ebi2 = ebi2 + 1
     }
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 20)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_heap::emit_heap_set(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 20)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
 }
 
 fn emit_fs_write_error_result(w: WasmWriter) {
-    helpers_core_heap::emit_heap_get(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 1)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 4)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_numeric_i32_const::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
-    helpers_memory_access::emit_i32_load_default(w)
-    helpers_memory_access::emit_i32_store_default(w)
-    helpers_core_heap::emit_heap_get(w)
-    helpers_numeric_i32_const::emit_i32_const(w, 8)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
 }

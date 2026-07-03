@@ -70,6 +70,11 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
     if is_option_type_name(clone(ret_name)) || starts_with(clone(ret_name), String_from("Result_")) || starts_with(clone(ret_name), String_from("result:")) || starts_with(clone(ret_name), String_from("enum:")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
+    infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
+}
+
+// Struct/enum-oriented tail of infer_call_result_gc_type_from_fn.
+fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> i32 {
     // Struct return type with "struct:TypeName:byte_size" format:
     // extract byte size and map to the correct GC struct type index.
     if starts_with(clone(ret_name), String_from("struct:")) {

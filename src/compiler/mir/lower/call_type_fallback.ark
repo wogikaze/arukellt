@@ -12,33 +12,8 @@ use mir::value_types
 
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     let return_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
-    // find_i64/find_f64/find_String return Option<T> — set the local type
-    // so match expressions can determine the Some variant's payload type.
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
-        let cn = mir_strip_module_prefix(clone(callee_name))
-        if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:Ordering"))
-            if ctx_gc_enum::ctx_is_gc_target(ctx) {
-                ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
-            } else {
-                ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
-            }
-        }
-    }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
-        let cn = mir_strip_module_prefix(clone(callee_name))
-        if eq(clone(cn), "find_i64") {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i64"))
-        }
-        if eq(clone(cn), "find_f64") {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_f64"))
-        }
-        if eq(clone(cn), "find_String") {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
-        }
-        if eq(clone(cn), "find_i32") {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
-        }
+        mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_struct_constructor_result_type(ctx, callee_name, dest)
@@ -70,6 +45,34 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
     let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest))
     ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+}
+
+// cmp returns enum:Ordering; find_i64/find_f64/find_String return Option<T> —
+// set the local type so match expressions can determine the Some variant's
+// payload type.
+fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let cn = mir_strip_module_prefix(clone(callee_name))
+    if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:Ordering"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+        }
+        return
+    }
+    if eq(clone(cn), "find_i64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i64"))
+    }
+    if eq(clone(cn), "find_f64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_f64"))
+    }
+    if eq(clone(cn), "find_String") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
+    }
+    if eq(clone(cn), "find_i32") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+    }
 }
 
 fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {

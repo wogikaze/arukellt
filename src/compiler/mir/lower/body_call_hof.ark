@@ -24,7 +24,13 @@ fn try_lower_hof_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count
         return hof::mir_lower_map_option_i32(ctx, hof_fn_name, hof_vec_local)
     }
     ctx_emit(ctx, inst_local_set::MirInst_local_set(hof_vec_local))
-    ctx_set_local_type(ctx, hof_vec_local, hof_call_plan::mir_hof_call_plan_vec_type_name(hof_plan))
+    // Don't clobber a more specific existing vec element type (e.g.
+    // map_String_String is classified under the i32 HOF plan, but the source
+    // vec may be vec:String).
+    let existing_vec_type = ctx_get_local_type(ctx, hof_vec_local)
+    if !starts_with(clone(existing_vec_type), "vec:") {
+        ctx_set_local_type(ctx, hof_vec_local, hof_call_plan::mir_hof_call_plan_vec_type_name(hof_plan))
+    }
     let mut hof_init_idx = 0 - 1
     if hof_call_plan::mir_hof_call_plan_is_fold(hof_plan) {
         let hof_init_child = ast_node::node_child_at(node, 2)

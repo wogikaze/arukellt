@@ -7,13 +7,12 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_scratch
 use wasm::emit_target
-use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core
 use mir::function_locals_view
 use mir::local_access
 
@@ -21,21 +20,21 @@ fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+        writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
         writer_gc::emit_gc_array_new(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
     } else {
         writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-        writer_leb::emit_leb128_u(w, 0)
+        writer_core::emit_leb128_u(w, 0)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
         writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-        writer_leb::emit_leb128_u(w, 0)
+        writer_core::emit_leb128_u(w, 0)
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst) * 4)
+        writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst) * 4)
         writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-        helpers_core_heap::emit_heap_set(w)
+        helpers_core::emit_heap_set(w)
     }
 }
 
@@ -44,11 +43,11 @@ fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if array_base_is_vec_v128(inst, ctx) {
             let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-            writer_leb::emit_leb128_u(w, s_idx)
+            writer_core::emit_leb128_u(w, s_idx)
             writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
             writer_gc::emit_gc_struct_get(w, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx), 0)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_leb::emit_leb128_u(w, s_idx)
+            writer_core::emit_leb128_u(w, s_idx)
             writer_gc::emit_gc_array_get(w, ctx_gc_type::SelfEmitCtx_v128_array_type(ctx))
             return
         }
@@ -56,7 +55,7 @@ fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_gc::emit_gc_array_get(w, gc_type_idx)
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, 4)
+        writer_core::emit_leb128_s(w, 4)
         writer_core::emit_byte(w, opcodes::OP_I32_MUL())
         writer_core::emit_byte(w, opcodes::OP_I32_ADD())
         writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
@@ -87,27 +86,27 @@ fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
         let val_tmp = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, val_tmp)
+        writer_core::emit_leb128_u(w, val_tmp)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+        writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, val_tmp)
+        writer_core::emit_leb128_u(w, val_tmp)
         writer_gc::emit_gc_array_set(w, gc_type_idx)
     } else {
         let arr_val = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_leb::emit_leb128_u(w, arr_val)
+        writer_core::emit_leb128_u(w, arr_val)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         if inst_accessors_literals::MirInst_int_val(inst) > 0 {
             writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-            writer_leb::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst) * 4)
+            writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst) * 4)
             writer_core::emit_byte(w, opcodes::OP_I32_ADD())
         }
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, arr_val)
+        writer_core::emit_leb128_u(w, arr_val)
         writer_core::emit_byte(w, opcodes::OP_I32_STORE())
         writer_core::emit_byte(w, 2)
         writer_core::emit_byte(w, 0)

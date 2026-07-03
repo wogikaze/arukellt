@@ -8,7 +8,6 @@ use mir::value_types
 use wasm::constants
 use wasm::wasi_p1_component_stub
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_string
 use std::text
 
@@ -43,7 +42,7 @@ fn lib_comp_new_component_writer() -> writer_core::WasmWriter {
 
 fn lib_comp_emit_section(out: writer_core::WasmWriter, section_id: i32, contents: writer_core::WasmWriter) {
     writer_core::emit_byte(out, section_id)
-    writer_leb::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_leb128_u(out, writer_core::writer_size(contents))
     writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
 }
 
@@ -63,21 +62,21 @@ fn lib_comp_emit_core_module(out: writer_core::WasmWriter, module_wasm: Vec<i32>
 
 fn lib_comp_emit_wasi_core_instance_section(out: writer_core::WasmWriter) {
     let sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(sec, 2)
+    writer_core::emit_leb128_u(sec, 2)
     lib_comp_emit_core_instance_ref(sec, 0, 0)
     writer_core::emit_byte(sec, 0x00)
-    writer_leb::emit_leb128_u(sec, 1)
-    writer_leb::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, 1)
     writer_string::emit_string(sec, String_from("wasi_snapshot_preview1"))
     writer_core::emit_byte(sec, 0x12)
-    writer_leb::emit_leb128_u(sec, 0)
+    writer_core::emit_leb128_u(sec, 0)
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_INSTANCE(), sec)
 }
 
 fn lib_comp_emit_core_instance_ref(sec: writer_core::WasmWriter, module_index: i32, instance_index: i32) {
     writer_core::emit_byte(sec, 0x00)
-    writer_leb::emit_leb128_u(sec, module_index)
-    writer_leb::emit_leb128_u(sec, instance_index)
+    writer_core::emit_leb128_u(sec, module_index)
+    writer_core::emit_leb128_u(sec, instance_index)
 }
 
 fn lib_comp_should_export(name: String) -> bool {
@@ -161,14 +160,14 @@ fn lib_comp_export_fn_at(mir: MirModule, export_index: i32) -> MirFunction {
 
 fn lib_comp_emit_alias_section(out: writer_core::WasmWriter, mir: MirModule, export_count: i32) {
     let sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(sec, export_count)
+    writer_core::emit_leb128_u(sec, export_count)
     let mut ei = 0
     while ei < export_count {
         let f = lib_comp_export_fn_at(mir, ei)
         let core_name = function_identity::MirFunction_name(f)
         writer_core::emit_byte(sec, 0x00)
         writer_core::emit_byte(sec, 0x00)
-        writer_leb::emit_leb128_u(sec, constants::LIB_COMP_USER_INSTANCE_IDX())
+        writer_core::emit_leb128_u(sec, constants::LIB_COMP_USER_INSTANCE_IDX())
         writer_core::emit_byte(sec, 0x01)
         writer_string::emit_string(sec, core_name)
         ei = ei + 1
@@ -180,7 +179,7 @@ fn lib_comp_emit_func_type_bytes(f: MirFunction) -> Vec<i32> {
     let w = writer_core::WasmWriter_new()
     writer_core::emit_byte(w, constants::LIB_COMP_SORT_FUNC())
     let param_count = function_param_view::MirFunction_param_count(f)
-    writer_leb::emit_leb128_u(w, param_count)
+    writer_core::emit_leb128_u(w, param_count)
     let mut pi = 0
     while pi < param_count {
         writer_string::emit_string(w, concat(String_from("arg"), to_string(pi)))
@@ -194,14 +193,14 @@ fn lib_comp_emit_func_type_bytes(f: MirFunction) -> Vec<i32> {
         writer_core::emit_byte(w, lib_comp_val_type_to_wit(ret_type))
     } else {
         writer_core::emit_byte(w, 0x01)
-        writer_leb::emit_leb128_u(w, 0)
+        writer_core::emit_leb128_u(w, 0)
     }
     writer_core::writer_bytes(w)
 }
 
 fn lib_comp_emit_type_section(out: writer_core::WasmWriter, mir: MirModule, export_count: i32) {
     let sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(sec, export_count)
+    writer_core::emit_leb128_u(sec, export_count)
     let mut ei = 0
     while ei < export_count {
         let f = lib_comp_export_fn_at(mir, ei)
@@ -214,14 +213,14 @@ fn lib_comp_emit_type_section(out: writer_core::WasmWriter, mir: MirModule, expo
 
 fn lib_comp_emit_canon_section(out: writer_core::WasmWriter, export_count: i32) {
     let sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(sec, export_count)
+    writer_core::emit_leb128_u(sec, export_count)
     let mut ci = 0
     while ci < export_count {
         writer_core::emit_byte(sec, 0x00)
         writer_core::emit_byte(sec, 0x00)
-        writer_leb::emit_leb128_u(sec, ci)
-        writer_leb::emit_leb128_u(sec, 0)
-        writer_leb::emit_leb128_u(sec, ci)
+        writer_core::emit_leb128_u(sec, ci)
+        writer_core::emit_leb128_u(sec, 0)
+        writer_core::emit_leb128_u(sec, ci)
         ci = ci + 1
     }
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CANON(), sec)
@@ -229,7 +228,7 @@ fn lib_comp_emit_canon_section(out: writer_core::WasmWriter, export_count: i32) 
 
 fn lib_comp_emit_export_section(out: writer_core::WasmWriter, mir: MirModule, export_count: i32) {
     let sec = writer_core::WasmWriter_new()
-    writer_leb::emit_leb128_u(sec, export_count)
+    writer_core::emit_leb128_u(sec, export_count)
     let mut ei = 0
     while ei < export_count {
         let f = lib_comp_export_fn_at(mir, ei)
@@ -238,10 +237,10 @@ fn lib_comp_emit_export_section(out: writer_core::WasmWriter, mir: MirModule, ex
         writer_core::emit_byte(sec, 0x00)
         writer_string::emit_string(sec, export_name)
         writer_core::emit_byte(sec, constants::LIB_COMP_EXI_SORT_FUNC())
-        writer_leb::emit_leb128_u(sec, ei)
+        writer_core::emit_leb128_u(sec, ei)
         writer_core::emit_byte(sec, 0x01)
         writer_core::emit_byte(sec, constants::LIB_COMP_EXI_SORT_FUNC())
-        writer_leb::emit_leb128_u(sec, ei)
+        writer_core::emit_leb128_u(sec, ei)
         ei = ei + 1
     }
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_EXPORT(), sec)

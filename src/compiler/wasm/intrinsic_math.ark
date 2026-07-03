@@ -6,12 +6,8 @@ use wasm::emit_target
 use wasm::opcodes
 use wasm::string_gc_helpers
 use wasm::writer_core
-use wasm::writer_leb
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_compare
-use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_string_eq_intrinsic(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -29,28 +25,28 @@ fn emit_string_eq_intrinsic(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> b
 
 fn emit_string_eq_setup(w: WasmWriter, s_a: i32, s_b: i32, s_la: i32, s_i: i32, s_result: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_b)
+    writer_core::emit_leb128_u(w, s_b)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_a)
+    writer_core::emit_leb128_u(w, s_a)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_result)
+    writer_core::emit_leb128_u(w, s_result)
     emit_length_eq_test(w, s_a, s_b, s_la)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_result)
+    writer_core::emit_leb128_u(w, s_result)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_i)
+    writer_core::emit_leb128_u(w, s_i)
     emit_byte_compare_loop(w, s_a, s_b, s_la, s_i, s_result)
     writer_core::emit_byte(w, opcodes::OP_END())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_result)
+    writer_core::emit_leb128_u(w, s_result)
 }
 
 fn emit_string_eq_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -62,34 +58,34 @@ fn emit_string_eq_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
 
     // Save GC refs from stack to GC scratch locals
-    helpers_core_locals::emit_local_set(w, s_gc1)
-    helpers_core_locals::emit_local_set(w, s_gc0)
+    helpers_core::emit_local_set(w, s_gc1)
+    helpers_core::emit_local_set(w, s_gc0)
 
     // result = 0 (default: not equal)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_result)
+    helpers_core::emit_local_set(w, s_result)
 
     // len_a = array.len(A)
-    helpers_core_locals::emit_local_get(w, s_gc0)
+    helpers_core::emit_local_get(w, s_gc0)
     string_gc_helpers::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_set(w, s_la)
+    helpers_core::emit_local_set(w, s_la)
 
     // if len(A) == len(B):
     emit_eq_gc_len_check(w, s_gc1, s_la, s_result, s_i, s_gc0, s_gc1, string_type)
 
     // Push result
-    helpers_core_locals::emit_local_get(w, s_result)
+    helpers_core::emit_local_get(w, s_result)
 }
 
 fn emit_eq_gc_len_check(w: WasmWriter, s_gc1: i32, s_la: i32, s_result: i32, s_i: i32, s_gc0: i32, s_gc1b: i32, string_type: i32) {
-    helpers_core_locals::emit_local_get(w, s_gc1)
+    helpers_core::emit_local_get(w, s_gc1)
     string_gc_helpers::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_get(w, s_la)
-    helpers_numeric_i32_compare::emit_i32_eq(w)
+    helpers_core::emit_local_get(w, s_la)
+    helpers_numeric_i32::emit_i32_eq(w)
     string_gc_helpers::emit_gc_if_void(w)
 
     string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_core_locals::emit_local_set(w, s_result)
+    helpers_core::emit_local_set(w, s_result)
 
     emit_eq_gc_loop(w, s_i, s_la, s_gc0, s_gc1b, s_result, string_type)
 
@@ -98,32 +94,32 @@ fn emit_eq_gc_len_check(w: WasmWriter, s_gc1: i32, s_la: i32, s_result: i32, s_i
 
 fn emit_eq_gc_loop(w: WasmWriter, s_i: i32, s_la: i32, s_gc0: i32, s_gc1: i32, s_result: i32, string_type: i32) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_i)
+    helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core_locals::emit_local_get(w, s_i)
-    helpers_core_locals::emit_local_get(w, s_la)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_la)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    helpers_core_locals::emit_local_get(w, s_gc0)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_gc0)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
-    helpers_core_locals::emit_local_get(w, s_gc1)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_gc1)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
     emit_eq_gc_mismatch_check(w, s_result)
-    helpers_core_locals::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32_arith::emit_i32_add(w)
-    helpers_core_locals::emit_local_set(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
 fn emit_eq_gc_mismatch_check(w: WasmWriter, s_result: i32) {
-    helpers_numeric_i32_compare::emit_i32_ne(w)
+    helpers_numeric_i32::emit_i32_ne(w)
     string_gc_helpers::emit_gc_if_void(w)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    helpers_core_locals::emit_local_set(w, s_result)
+    helpers_core::emit_local_set(w, s_result)
     string_gc_helpers::emit_gc_br(w, 2)
     string_gc_helpers::emit_gc_end(w)
 }
@@ -135,25 +131,25 @@ fn emit_sqrt(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_length_eq_test(w: WasmWriter, s_a: i32, s_b: i32, s_la: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_a)
+    writer_core::emit_leb128_u(w, s_a)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_la)
+    writer_core::emit_leb128_u(w, s_la)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_b)
+    writer_core::emit_leb128_u(w, s_b)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_la)
+    writer_core::emit_leb128_u(w, s_la)
     writer_core::emit_byte(w, opcodes::OP_I32_EQ())
 }
 
@@ -163,24 +159,24 @@ fn emit_byte_compare_loop(w: WasmWriter, s_a: i32, s_b: i32, s_la: i32, s_i: i32
     writer_core::emit_byte(w, opcodes::OP_LOOP())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_i)
+    writer_core::emit_leb128_u(w, s_i)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_la)
+    writer_core::emit_leb128_u(w, s_la)
     writer_core::emit_byte(w, 78)
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
-    writer_leb::emit_leb128_u(w, 1)
+    writer_core::emit_leb128_u(w, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_a)
+    writer_core::emit_leb128_u(w, s_a)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_i)
+    writer_core::emit_leb128_u(w, s_i)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, 45)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_b)
+    writer_core::emit_leb128_u(w, s_b)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_i)
+    writer_core::emit_leb128_u(w, s_i)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, 45)
     writer_core::emit_byte(w, 0)
@@ -189,21 +185,21 @@ fn emit_byte_compare_loop(w: WasmWriter, s_a: i32, s_b: i32, s_la: i32, s_i: i32
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_result)
+    writer_core::emit_leb128_u(w, s_result)
     writer_core::emit_byte(w, opcodes::OP_BR())
-    writer_leb::emit_leb128_u(w, 2)
+    writer_core::emit_leb128_u(w, 2)
     writer_core::emit_byte(w, opcodes::OP_END())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_i)
+    writer_core::emit_leb128_u(w, s_i)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_i)
+    writer_core::emit_leb128_u(w, s_i)
     writer_core::emit_byte(w, opcodes::OP_BR())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_END())
     writer_core::emit_byte(w, opcodes::OP_END())
 }

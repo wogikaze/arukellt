@@ -4,11 +4,11 @@ use mir::function_factory
 use mir::lower::ctx_types
 use wasm::emit_target
 
-fn LowerCtx_new(m: MirModule) -> ctx_types::LowerCtx {
+fn LowerCtx_new(m: MirModule) -> LowerCtx {
     LowerCtx_new_for_target(m, String_new())
 }
 
-fn LowerCtx_new_for_target(m: MirModule, target: String) -> ctx_types::LowerCtx {
+fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
     let mut effective_target = clone(target)
     if len(effective_target) == 0 {
         effective_target = String_from("wasm32-wasi-p2")
@@ -17,55 +17,29 @@ fn LowerCtx_new_for_target(m: MirModule, target: String) -> ctx_types::LowerCtx 
         module: m,
         func: function_factory::MirFunction_new(String_from("")),
         cur_block: 0,
-        local_names: Vec_new_String(),
-        local_indices: Vec_new_i32(),
-        fn_names: Vec_new_String(),
-        fn_name_lengths: Vec_new_i32(),
-        fn_indices: Vec_new_i32(),
-        fn_return_vts: Vec_new_i32(),
-        fn_return_type_names: Vec_new_String(),
-        loop_exit_block: 0 - 1,
-        loop_cond_block: 0 - 1,
-        nesting_depth: 0,
-        loop_break_depth: 0 - 1,
-        loop_continue_depth: 0 - 1,
-        loop_break_local: 0 - 1,
-        struct_names: Vec_new_String(),
-        struct_field_counts: Vec_new_i32(),
-        struct_all_fields: Vec_new_String(),
-        struct_field_types: Vec_new_String(),
-        local_types: Vec_new_String(),
-        local_type_indices: Vec_new_i32(),
-        variant_names: Vec_new_String(),
-        variant_tags: Vec_new_i32(),
-        payload_variants: Vec_new_String(),
-        closure_counter: 0,
-        closure_last_synth: String_new(),
-        closure_last_caps: String_new(),
-        closure_last_extra: 0,
-        closure_bind_names: Vec_new_String(),
-        closure_bind_synth: Vec_new_String(),
-        closure_bind_caps: Vec_new_String(),
-        closure_bind_extra: Vec_new_i32(),
+        local_names: Vec_new_String(), local_indices: Vec_new_i32(),
+        fn_names: Vec_new_String(), fn_name_lengths: Vec_new_i32(), fn_indices: Vec_new_i32(),
+        fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(),
+        loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0,
+        loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1,
+        struct_names: Vec_new_String(), struct_field_counts: Vec_new_i32(),
+        struct_all_fields: Vec_new_String(), struct_field_types: Vec_new_String(),
+        local_types: Vec_new_String(), local_type_indices: Vec_new_i32(),
+        variant_names: Vec_new_String(), variant_tags: Vec_new_i32(), payload_variants: Vec_new_String(),
+        closure_counter: 0, closure_last_synth: String_new(), closure_last_caps: String_new(), closure_last_extra: 0,
+        closure_bind_names: Vec_new_String(), closure_bind_synth: Vec_new_String(),
+        closure_bind_caps: Vec_new_String(), closure_bind_extra: Vec_new_i32(),
         local_type_start: 0,
-        mono_call_starts: Vec_new_i32(),
-        mono_call_targets: Vec_new_String(),
-        mono_call_sources: Vec_new_String(),
-        mono_call_used: Vec_new_i32(),
-        wit_call_names: Vec_new_String(),
-        wit_call_iface_ids: Vec_new_String(),
-        wit_call_func_names: Vec_new_String(),
+        mono_call_starts: Vec_new_i32(), mono_call_targets: Vec_new_String(),
+        mono_call_sources: Vec_new_String(), mono_call_used: Vec_new_i32(),
+        wit_call_names: Vec_new_String(), wit_call_iface_ids: Vec_new_String(), wit_call_func_names: Vec_new_String(),
         is_gc_target: emit_target::is_gc_target(clone(effective_target)),
         lower_target: effective_target,
         gc_type_base: 0,
-        gc_enum_variant_names: Vec_new_String(),
-        gc_enum_variant_sigs: Vec_new_String(),
-        gc_enum_variant_alias_names: Vec_new_String(),
-        gc_enum_variant_alias_slots: Vec_new_i32(),
-        gc_struct_names: Vec_new_String(),
-        gc_struct_sigs: Vec_new_String(),
-        mono_type_param_names: Vec_new_String(),
-        mono_type_param_types: Vec_new_String(),
+        gc_enum_variant_names: Vec_new_String(), gc_enum_variant_sigs: Vec_new_String(),
+        gc_enum_variant_alias_names: Vec_new_String(), gc_enum_variant_alias_slots: Vec_new_i32(),
+        gc_struct_names: Vec_new_String(), gc_struct_sigs: Vec_new_String(),
+        mono_type_param_names: Vec_new_String(), mono_type_param_types: Vec_new_String(),
         mono_instances: Vec_new_MonoInstance(),
     }
 }

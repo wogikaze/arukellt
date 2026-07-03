@@ -1,7 +1,6 @@
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_sections
 use wasm::emit_target
 
@@ -22,12 +21,12 @@ fn emit_global_section(out: WasmWriter, data_offset: i32) {
 }
 
 fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32) {
-    writer_leb::emit_leb128_u(global_sec, 1)
+    writer_core::emit_leb128_u(global_sec, 1)
     writer_core::emit_byte(global_sec, constants::WASM_I32())
     writer_core::emit_byte(global_sec, 1)
     writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
     let heap_start = heap_start_from_data_offset(data_offset)
-    writer_leb::emit_leb128_s(global_sec, heap_start)
+    writer_core::emit_leb128_s(global_sec, heap_start)
     writer_core::emit_byte(global_sec, opcodes::OP_END())
 }
 
@@ -36,9 +35,9 @@ fn heap_start_from_data_offset(data_offset: i32) -> i32 {
 }
 
 fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32) {
-    writer_leb::emit_leb128_u(mem_sec, 1)
+    writer_core::emit_leb128_u(mem_sec, 1)
     writer_core::emit_byte(mem_sec, 0)
-    writer_leb::emit_leb128_u(mem_sec, initial_pages)
+    writer_core::emit_leb128_u(mem_sec, initial_pages)
 }
 
 fn initial_memory_pages() -> i32 { 8192 }

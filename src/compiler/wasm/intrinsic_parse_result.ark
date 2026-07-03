@@ -2,7 +2,7 @@
 
 use wasm::intrinsic_parse_result_errors
 use wasm::opcodes
-use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core
 
 fn emit_invalid_float_error_result(w: WasmWriter) {
     intrinsic_parse_result_errors::emit_invalid_float_error_result(w)
@@ -14,21 +14,21 @@ fn emit_invalid_integer_error_result(w: WasmWriter, ctx: SelfEmitCtx, base_local
 
 fn emit_f64_ok_result(w: WasmWriter, value_addr: i32) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, value_addr)
+    writer_core::emit_leb128_s(w, value_addr)
     writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
     writer_core::emit_byte(w, 3)
     writer_core::emit_byte(w, 0)
@@ -36,22 +36,22 @@ fn emit_f64_ok_result(w: WasmWriter, value_addr: i32) {
     writer_core::emit_byte(w, 3)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 12)
+    writer_core::emit_leb128_s(w, 12)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_set(w)
 }
 
 fn emit_i32_ok_result(w: WasmWriter, ok_local: i32, value_addr: i32) {
     emit_integer_ok_header(w, ok_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, ok_local)
+    writer_core::emit_leb128_u(w, ok_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, value_addr)
+    writer_core::emit_leb128_s(w, value_addr)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
@@ -64,12 +64,12 @@ fn emit_i32_ok_result(w: WasmWriter, ok_local: i32, value_addr: i32) {
 fn emit_i64_ok_result(w: WasmWriter, ok_local: i32, value_addr: i32) {
     emit_integer_ok_header(w, ok_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, ok_local)
+    writer_core::emit_leb128_u(w, ok_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, value_addr)
+    writer_core::emit_leb128_s(w, value_addr)
     writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
     writer_core::emit_byte(w, 3)
     writer_core::emit_byte(w, 0)
@@ -81,13 +81,13 @@ fn emit_i64_ok_result(w: WasmWriter, ok_local: i32, value_addr: i32) {
 
 fn emit_integer_ok_header(w: WasmWriter, ok_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, ok_local)
+    writer_core::emit_leb128_u(w, ok_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, ok_local)
+    writer_core::emit_leb128_u(w, ok_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
@@ -95,11 +95,11 @@ fn emit_integer_ok_header(w: WasmWriter, ok_local: i32) {
 
 fn emit_integer_ok_finish(w: WasmWriter, ok_local: i32, alloc_size: i32) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, alloc_size)
+    writer_core::emit_leb128_s(w, alloc_size)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_set(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, ok_local)
+    writer_core::emit_leb128_u(w, ok_local)
 }

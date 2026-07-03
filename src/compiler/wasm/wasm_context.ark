@@ -40,8 +40,9 @@ fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
 }
 
-fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRegistry, table: TypeTable, spine_populated: bool) {
+fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRegistry, table: TypeTable, mono_table: MonoInstanceTable, spine_populated: bool) {
     ctx_record::SelfEmitCtx_set_signature_registry(ctx, registry)
     ctx_record::SelfEmitCtx_set_type_table(ctx, table)
+    ctx_record::SelfEmitCtx_set_mono_instance_table(ctx, mono_table)
     ctx_record::SelfEmitCtx_set_spine_populated(ctx, spine_populated)
 }

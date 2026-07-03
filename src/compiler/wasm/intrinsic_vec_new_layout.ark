@@ -7,16 +7,13 @@
 
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_locals
 use wasm::emit_target
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::intrinsics::helpers_core_heap
-use mir::function_identity
-use mir::function_locals_view
-use mir::local_access
+use wasm::intrinsics::helpers_core
 use mir::inst_accessors_operands
 use wasm::intrinsic_vec_type
 
@@ -51,83 +48,64 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
     // Step 1-2: Create backing array with initial capacity 8, save ref
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_leb128_s(w, 8)
     writer_gc::emit_gc_array_new(w, array_type)
     writer_gc::emit_gc_ref_cast(w, array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_leb128_u(w, arr_tmp)
 
     // Step 3: Create Vec struct with field 0 = array, field 1 = 0 (len)
     // struct.new takes all field values on the stack in order.
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_leb128_u(w, arr_tmp)
     writer_gc::emit_gc_ref_cast(w, array_type)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_gc::emit_gc_struct_new(w, vec_type)
     writer_gc::emit_gc_ref_cast(w, vec_type)
 }
 
 fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
-    // Check function name patterns first (fast path).
-    if ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) {
+    if ctx_gc_type_locals::SelfEmitCtx_is_vec_string_context(ctx) {
         return true
     }
-    // Also check if the function name ends with __String (monomorphized).
-    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    let name = function_identity::MirFunction_name(f)
-    if ends_with(clone(name), String_from("__String")) {
-        return true
-    }
-    // Scan function locals for vec:String type.
-    let nlocals = function_locals_view::MirFunction_local_count(f)
-    let mut li = 0
-    while li < nlocals {
-        let loc = function_locals_view::MirFunction_local_at(f, li)
-        let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("vec:String")) {
-            return true
-        }
-        li = li + 1
-    }
-    false
+    ctx_gc_type_locals::ctx_has_vec_string_local(ctx)
 }
 
 fn emit_vec_new_write_header(w: WasmWriter) {
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_leb128_s(w, 8)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 12)
+    writer_core::emit_leb128_s(w, 12)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_set(w)
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 12)
+    writer_core::emit_leb128_s(w, 12)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_leb128_s(w, 8)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
@@ -135,14 +113,14 @@ fn emit_vec_new_write_header(w: WasmWriter) {
 
 fn emit_vec_new_finish_allocation(w: WasmWriter, heap_bump: i32, result_back_delta: i32) {
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, heap_bump)
+    writer_core::emit_leb128_s(w, heap_bump)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_set(w)
     writer_core::emit_byte(w, 35)
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, result_back_delta)
+    writer_core::emit_leb128_s(w, result_back_delta)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
 }

@@ -1,11 +1,10 @@
 // Arukellt Selfhost - Wasm string writer helpers.
 
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_string(w: writer_core::WasmWriter, s: String) {
     let slen = len(s)
-    writer_leb::emit_leb128_u(w, slen)
+    writer_core::emit_leb128_u(w, slen)
     let mut i = 0
     while i < slen {
         writer_core::emit_byte(w, char_at(s, i))

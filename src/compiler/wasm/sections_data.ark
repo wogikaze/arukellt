@@ -3,17 +3,16 @@ use wasm::opcodes
 
 use wasm::constants
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_sections
 
 fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
     let final_str_count = len(strings)
     if final_str_count > 0 {
         let data_sec = writer_core::WasmWriter_new()
-        writer_leb::emit_leb128_u(data_sec, 1)
+        writer_core::emit_leb128_u(data_sec, 1)
         emit_active_data_offset_expr(data_sec)
         let total_data = total_string_data_size(strings)
-        writer_leb::emit_leb128_u(data_sec, total_data)
+        writer_core::emit_leb128_u(data_sec, total_data)
         emit_string_data_payload(data_sec, strings)
         writer_sections::emit_section(out, opcodes::SEC_DATA(), data_sec)
     }
@@ -22,7 +21,7 @@ fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
 fn emit_active_data_offset_expr(data_sec: WasmWriter) {
     writer_core::emit_byte(data_sec, 0)
     writer_core::emit_byte(data_sec, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(data_sec, constants::DATA_START())
+    writer_core::emit_leb128_s(data_sec, constants::DATA_START())
     writer_core::emit_byte(data_sec, opcodes::OP_END())
 }
 

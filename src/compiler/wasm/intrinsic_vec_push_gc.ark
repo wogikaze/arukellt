@@ -8,16 +8,13 @@ use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_locals
 use wasm::intrinsic_vec_type
-use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core
 use mir::opcodes as mir_opcodes
 use mir::inst_accessors_literals
-use mir::function_identity
-use mir::function_locals_view
-use mir::local_access
 
 fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -33,53 +30,16 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
 
-    // For Vec<String>, value is a String ref → use GC ref scratch local.
-    // For Vec<i64>, value is i64 → use i64 scratch local (offset 15).
-    // For Vec<f64>, value is f64 → use f64 scratch local (offset 12).
-    // For Vec<i32>, value is i32 → use i32 scratch local.
-    let s_val = if is_vec_string {
-        ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    } else if is_vec_v128 {
-        ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
-    } else if is_vec_i64 {
-        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
-    } else if is_vec_f64 {
-        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
-    } else {
-        ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-    }
-    // For Vec<String>, array scratch locals must be String ref array type.
-    // For Vec<i64>, array scratch locals must be i64 array type.
-    // For Vec<f64>, array scratch locals must be f64 array type.
-    let arr_tmp = if is_vec_string {
-        ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
-    } else if is_vec_v128 {
-        ctx_scratch::SelfEmitCtx_scratch_gc_v128_array_local(ctx, 0)
-    } else if is_vec_i64 {
-        ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 0)
-    } else if is_vec_f64 {
-        ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 0)
-    } else {
-        arr_tmp_i32
-    }
-    let arr_old = if is_vec_string {
-        ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 1)
-    } else if is_vec_v128 {
-        ctx_scratch::SelfEmitCtx_scratch_gc_v128_array_local(ctx, 1)
-    } else if is_vec_i64 {
-        ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 1)
-    } else if is_vec_f64 {
-        ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 1)
-    } else {
-        arr_old_i32
-    }
+    let s_val = push_gc_val_scratch(ctx, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
+    let arr_tmp = push_gc_array_scratch(ctx, 0, arr_tmp_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
+    let arr_old = push_gc_array_scratch(ctx, 1, arr_old_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
 
     emit_gc_push_setup(w, s_val, s_vec, vec_type, arr_tmp)
 
-    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)
-    helpers_core_locals::emit_local_set(w, s_len)
+    helpers_core::emit_local_set(w, s_len)
 
     emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, array_type, vec_type, s_vec)
 
@@ -87,77 +47,112 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     return !is_void_push
 }
 
+// Value scratch: Vec<String>→GC ref, Vec<v128>→v128, Vec<i64>→i64 (offset 15),
+// Vec<f64>→f64 (offset 12), Vec<i32>→i32 base scratch.
+fn push_gc_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool) -> i32 {
+    if is_vec_string {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    }
+    if is_vec_v128 {
+        return ctx_scratch::SelfEmitCtx_scratch_v128_local(ctx, 0)
+    }
+    if is_vec_i64 {
+        return ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+    }
+    if is_vec_f64 {
+        return ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    }
+    ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+}
+
+// Array scratch locals must match the vec's element array type.
+fn push_gc_array_scratch(ctx: SelfEmitCtx, slot: i32, i32_fallback: i32, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool) -> i32 {
+    if is_vec_string {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, slot)
+    }
+    if is_vec_v128 {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_v128_array_local(ctx, slot)
+    }
+    if is_vec_i64 {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, slot)
+    }
+    if is_vec_f64 {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, slot)
+    }
+    i32_fallback
+}
+
 fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_tmp: i32) {
-    helpers_core_locals::emit_local_set(w, s_val)
-    helpers_core_locals::emit_local_set(w, s_vec)
-    helpers_core_locals::emit_local_get(w, s_vec)
+    helpers_core::emit_local_set(w, s_val)
+    helpers_core::emit_local_set(w, s_vec)
+    helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
-    helpers_core_locals::emit_local_set(w, arr_tmp)
+    helpers_core::emit_local_set(w, arr_tmp)
 }
 
 fn emit_gc_push_store_finish(w: WasmWriter, ctx: SelfEmitCtx, arr_tmp: i32, s_len: i32, s_val: i32, i32_array_type: i32, vec_local: i32, vec_type: i32, is_void_push: bool, next_op: i32) {
-    helpers_core_locals::emit_local_get(w, arr_tmp)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_core_locals::emit_local_get(w, s_val)
+    helpers_core::emit_local_get(w, arr_tmp)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_core::emit_local_get(w, s_val)
     if i32_array_type == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) {
         writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
     writer_gc::emit_gc_array_set(w, i32_array_type)
 
-    helpers_core_locals::emit_local_get(w, vec_local)
+    helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    helpers_core_locals::emit_local_get(w, s_len)
+    helpers_core::emit_local_get(w, s_len)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_gc::emit_gc_struct_set(w, vec_type, 1)
 
     if !is_void_push {
-        helpers_core_locals::emit_local_get(w, vec_local)
+        helpers_core::emit_local_get(w, vec_local)
         return
     }
     if next_op == mir_opcodes::MIR_DROP() {
-        helpers_core_locals::emit_local_get(w, vec_local)
+        helpers_core::emit_local_get(w, vec_local)
         return
     }
-    helpers_core_locals::emit_local_get(w, vec_local)
+    helpers_core::emit_local_get(w, vec_local)
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
 fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s_cap: i32, i32_array_type: i32, vec_type: i32, vec_local: i32) {
-    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core::emit_local_get(w, arr_tmp)
     writer_gc::emit_gc_array_len(w)
-    helpers_core_locals::emit_local_set(w, s_cap)
-    helpers_core_locals::emit_local_get(w, s_len)
-    helpers_core_locals::emit_local_get(w, s_cap)
+    helpers_core::emit_local_set(w, s_cap)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_core::emit_local_get(w, s_cap)
     writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
 
-    helpers_core_locals::emit_local_get(w, arr_tmp)
-    helpers_core_locals::emit_local_set(w, arr_old)
+    helpers_core::emit_local_get(w, arr_tmp)
+    helpers_core::emit_local_set(w, arr_old)
 
-    helpers_core_locals::emit_local_get(w, s_cap)
+    helpers_core::emit_local_get(w, s_cap)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 2)
+    writer_core::emit_leb128_s(w, 2)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_gc::emit_gc_array_new(w, i32_array_type)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
-    helpers_core_locals::emit_local_set(w, arr_tmp)
+    helpers_core::emit_local_set(w, arr_tmp)
 
-    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core::emit_local_get(w, arr_tmp)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
-    helpers_core_locals::emit_local_get(w, arr_old)
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, arr_old)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
-    helpers_core_locals::emit_local_get(w, s_len)
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, s_len)
     writer_gc::emit_gc_array_copy(w, i32_array_type, i32_array_type)
 
-    helpers_core_locals::emit_local_get(w, vec_local)
+    helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    helpers_core_locals::emit_local_get(w, arr_tmp)
+    helpers_core::emit_local_get(w, arr_tmp)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
     writer_gc::emit_gc_struct_set(w, vec_type, 0)
 
@@ -165,27 +160,8 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s
 }
 
 fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
-    // Check function name patterns first (fast path).
-    if ctx_gc_type::SelfEmitCtx_is_vec_string_context(ctx) {
+    if ctx_gc_type_locals::SelfEmitCtx_is_vec_string_context(ctx) {
         return true
     }
-    // Also check if the function name ends with __String (monomorphized).
-    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    let name = function_identity::MirFunction_name(f)
-    if ends_with(clone(name), String_from("__String")) {
-        return true
-    }
-    // Scan function locals for vec:String type.
-    let nlocals = function_locals_view::MirFunction_local_count(f)
-    let mut li = 0
-    while li < nlocals {
-        let loc = function_locals_view::MirFunction_local_at(f, li)
-        let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("vec:String")) {
-            return true
-        }
-        li = li + 1
-    }
-    false
+    ctx_gc_type_locals::ctx_has_vec_string_local(ctx)
 }

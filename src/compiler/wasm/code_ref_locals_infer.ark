@@ -8,179 +8,9 @@ use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
 use mir::opcodes
-use mir::value_types
-use wasm::ctx_record
-use wasm::ctx_gc_type
-use wasm::emit_target
-use wasm::code_ref_locals_types
-use wasm::code_ref_locals_infer_callee
-
-fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
-                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
-                if ret_local == local_idx {
-                    return true
-                }
-                if ret_local < 0 && ii > 0 {
-                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
-                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_arg0(prev) == local_idx {
-                        return true
-                    }
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    false
-}
-
-fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
-                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                    return true
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    false
-}
-
-// Check if a type_name string indicates a GC reference type.
-fn type_name_is_ref(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("hashmap:")) {
-        return true
-    }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("vec:")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("enum:")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("struct:")) {
-        return true
-    }
-    false
-}
-
-// Check if a local has a type_name that indicates a GC reference type.
-fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
-    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(f) {
-        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-        let type_name = local_access::MirLocal_type_name(loc)
-        if len(type_name) > 0 {
-            return type_name_is_ref(type_name)
-        }
-    }
-    false
-}
-
-// Check if a local has ANY assignment that produces a reference value.
-// This guards against sticky type_names on reused locals that only receive
-// i32 values in the current MIR. Returns true if there is evidence the local
-// holds a ref value (direct ref-producing op, LOCAL_SET/LOCAL_GET from a ref
-// source, or a function parameter with a ref type_name).
-fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
-    local_has_any_ref_assignment_depth(f, local_idx, 0)
-}
-
-fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32) -> bool {
-    if depth > 3 {
-        return false
-    }
-    // If the local is a function parameter with a ref type_name, it holds a ref.
-    let param_count = function_param_view::MirFunction_param_count(f)
-    if local_idx >= 0 && local_idx < param_count {
-        let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
-        if len(param_type_name) > 0 {
-            if type_name_is_ref(param_type_name) {
-                return true
-            }
-        }
-    }
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-            // Check dest == local_idx for ref-producing ops
-            if dest == local_idx {
-                if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_ARRAY_NEW() || op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_CALL() {
-                    return true
-                }
-                // gc_struct_get extracts a field from a GC struct.  When the
-                // destination local has a ref type name (e.g. "string"), the
-                // extracted field is a GC reference.  Without this check, the
-                // local would be declared as i32, causing validation errors
-                // when the ref value is used in ref-expecting instructions.
-                if op == opcodes::MIR_GC_STRUCT_GET() {
-                    if local_has_ref_type_name(f, local_idx) {
-                        return true
-                    }
-                }
-                if op == opcodes::MIR_LOCAL_GET() {
-                    let src = inst_accessors_operands::MirInst_arg0(inst)
-                    if src >= 0 {
-                        if local_has_ref_type_name(f, src) {
-                            return true
-                        }
-                        if local_has_any_ref_assignment_depth(f, src, depth + 1) {
-                            return true
-                        }
-                    }
-                }
-            }
-            // Check LOCAL_SET where arg0 == local_idx (arg1 is the source local)
-            if op == opcodes::MIR_LOCAL_SET() && arg0 == local_idx {
-                let source = inst_accessors_operands::MirInst_arg1(inst)
-                if source >= 0 {
-                    if local_has_ref_type_name(f, source) {
-                        return true
-                    }
-                    if local_has_any_ref_assignment_depth(f, source, depth + 1) {
-                        return true
-                    }
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    false
-}
+use wasm::code_ref_locals_scan
+use wasm::code_ref_locals_typename
+use wasm::code_ref_locals_infer_dest
 
 fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
     if depth > 3 {
@@ -194,14 +24,14 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let type_name = local_access::MirLocal_type_name(loc)
         if len(type_name) > 0 {
-            let gc_type = infer_gc_type_from_type_name(clone(type_name), ctx)
+            let gc_type = code_ref_locals_typename::infer_gc_type_from_type_name(clone(type_name), ctx)
             if gc_type >= 0 {
                 // Only use type_name if the local is actually assigned a ref
                 // value. Locals can be reused for i32 in other code paths, and
                 // the type_name may be sticky from a prior usage. At depth 0
                 // (the initial inference call), verify there is evidence of a
                 // ref assignment before trusting the type_name.
-                if depth == 0 && !local_has_any_ref_assignment(f, local_idx) {
+                if depth == 0 && !code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx) {
                     // Skip type_name — try assignment tracing instead
                 } else {
                     return gc_type
@@ -213,7 +43,7 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     let param_count = function_param_view::MirFunction_param_count(f)
     if local_idx >= 0 && local_idx < param_count {
         let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
-        let param_gc_type = infer_gc_type_from_type_name(param_type_name, ctx)
+        let param_gc_type = code_ref_locals_typename::infer_gc_type_from_type_name(param_type_name, ctx)
         if param_gc_type >= 0 {
             return param_gc_type
         }
@@ -230,6 +60,18 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
         bi = bi + 1
     }
     0 - 1
+}
+
+// Infer the GC type of an instruction that assigns to a destination local.
+// Traces LOCAL_GET sources recursively, then delegates producer inspection.
+fn infer_ref_local_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    if op == opcodes::MIR_LOCAL_GET() {
+        let src = inst_accessors_operands::MirInst_arg0(inst)
+        if src >= 0 {
+            return infer_ref_local_gc_type_depth(f, src, ctx, depth + 1)
+        }
+    }
+    code_ref_locals_infer_dest::infer_ref_local_from_producer(f, inst, op, ctx)
 }
 
 fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
@@ -256,58 +98,66 @@ fn infer_ref_local_from_block(f: MirFunction, block: MirBlock, inst_count: i32, 
                     return inferred
                 }
             }
-            // Stack-based LOCAL_SET (arg1 < 0): the value was pushed by a
-            // previous instruction.  First check the immediately preceding
-            // instruction (fast path for the common LOCAL_GET + LOCAL_SET
-            // and producer + LOCAL_SET patterns).
-            if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
-                let inferred = infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
-                if inferred >= 0 {
-                    return inferred
-                }
-            }
-            if prev_dest >= 0 {
-                let inferred = infer_ref_local_gc_type_depth(f, prev_dest, ctx, depth + 1)
-                if inferred >= 0 {
-                    return inferred
-                }
-            }
-            // If the fast path failed (e.g. the previous instruction was
-            // another stack-based LOCAL_SET), scan backwards to find the
-            // instruction that actually produced the value on top of the
-            // stack.  This handles consecutive stack-based LOCAL_SETs:
-            //   local.get 2   (push ref)
-            //   local.get 4   (push i32)
-            //   local.set 16  (pop i32)
-            //   local.set 17  (pop ref)  ← needs to skip local.set 16
-            let src_ii = find_stack_value_source(block, inst_count, ii)
-            if src_ii >= 0 {
-                let src_inst = block_inst_access::MirBlock_inst_at(block, src_ii)
-                let src_op = inst_accessors_shape::MirInst_op(src_inst)
-                let src_arg0 = inst_accessors_operands::MirInst_arg0(src_inst)
-                let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
-                if src_op == opcodes::MIR_LOCAL_GET() && src_arg0 >= 0 {
-                    let inferred = infer_ref_local_gc_type_depth(f, src_arg0, ctx, depth + 1)
-                    if inferred >= 0 {
-                        return inferred
-                    }
-                }
-                if src_dest >= 0 {
-                    let inferred = infer_ref_local_gc_type_depth(f, src_dest, ctx, depth + 1)
-                    if inferred >= 0 {
-                        return inferred
-                    }
-                }
-                let inferred = infer_ref_local_from_dest_match(f, src_inst, src_op, ctx, depth)
-                if inferred >= 0 {
-                    return inferred
-                }
+            let stacked = infer_ref_local_from_stack_set(f, block, inst_count, ii, prev_op, prev_arg0, prev_dest, ctx, depth)
+            if stacked >= 0 {
+                return stacked
             }
         }
         prev_op = op
         prev_arg0 = arg0
         prev_dest = dest
         ii = ii + 1
+    }
+    0 - 1
+}
+
+// Stack-based LOCAL_SET (arg1 < 0): the value was pushed by a previous
+// instruction.  First check the immediately preceding instruction (fast path
+// for the common LOCAL_GET + LOCAL_SET and producer + LOCAL_SET patterns),
+// then scan backwards for the actual stack value producer.
+fn infer_ref_local_from_stack_set(f: MirFunction, block: MirBlock, inst_count: i32, ii: i32, prev_op: i32, prev_arg0: i32, prev_dest: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
+        let inferred = infer_ref_local_gc_type_depth(f, prev_arg0, ctx, depth + 1)
+        if inferred >= 0 {
+            return inferred
+        }
+    }
+    if prev_dest >= 0 {
+        let inferred = infer_ref_local_gc_type_depth(f, prev_dest, ctx, depth + 1)
+        if inferred >= 0 {
+            return inferred
+        }
+    }
+    // If the fast path failed (e.g. the previous instruction was
+    // another stack-based LOCAL_SET), scan backwards to find the
+    // instruction that actually produced the value on top of the
+    // stack.  This handles consecutive stack-based LOCAL_SETs:
+    //   local.get 2   (push ref)
+    //   local.get 4   (push i32)
+    //   local.set 16  (pop i32)
+    //   local.set 17  (pop ref)  ← needs to skip local.set 16
+    let src_ii = find_stack_value_source(block, inst_count, ii)
+    if src_ii >= 0 {
+        let src_inst = block_inst_access::MirBlock_inst_at(block, src_ii)
+        let src_op = inst_accessors_shape::MirInst_op(src_inst)
+        let src_arg0 = inst_accessors_operands::MirInst_arg0(src_inst)
+        let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
+        if src_op == opcodes::MIR_LOCAL_GET() && src_arg0 >= 0 {
+            let inferred = infer_ref_local_gc_type_depth(f, src_arg0, ctx, depth + 1)
+            if inferred >= 0 {
+                return inferred
+            }
+        }
+        if src_dest >= 0 {
+            let inferred = infer_ref_local_gc_type_depth(f, src_dest, ctx, depth + 1)
+            if inferred >= 0 {
+                return inferred
+            }
+        }
+        let inferred = infer_ref_local_from_dest_match(f, src_inst, src_op, ctx, depth)
+        if inferred >= 0 {
+            return inferred
+        }
     }
     0 - 1
 }
@@ -374,275 +224,4 @@ fn is_stack_value_producing_op(op: i32) -> bool {
         return true
     }
     false
-}
-
-// Check if a local is the destination of multiple MIR_GC_STRUCT_NEW instructions
-// with different variant type slots. If so, the local holds different enum variant
-// types in different code paths and must be typed as the enum open type (the common
-// supertype) rather than any single variant type.
-fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
-    let mut first_variant_slot = 0 - 1
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
-                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                    let slot = inst_accessors_operands::MirInst_arg0(inst)
-                    if first_variant_slot < 0 {
-                        first_variant_slot = slot
-                    } else if slot != first_variant_slot {
-                        return true
-                    }
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    false
-}
-
-fn infer_ref_local_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
-    if op == opcodes::MIR_LOCAL_GET() {
-        let src = inst_accessors_operands::MirInst_arg0(inst)
-        if src >= 0 {
-            return infer_ref_local_gc_type_depth(f, src, ctx, depth + 1)
-        }
-    }
-    if op == opcodes::MIR_ARRAY_NEW() {
-        return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    }
-    if op == opcodes::MIR_GC_STRUCT_NEW() {
-        let dest_local = inst_accessors_shape::MirInst_dest(inst)
-        if dest_local >= 0 && local_has_multiple_enum_variant_types(f, dest_local) {
-            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-        }
-        return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
-    }
-    if op == opcodes::MIR_STRUCT_NEW() {
-        let struct_name = inst_record::mir_inst_str_val(inst)
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-        }
-        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
-    }
-    if op == opcodes::MIR_CALL() {
-        let call_type = infer_call_result_gc_type(ctx, inst_record::mir_inst_str_val(inst))
-        if call_type >= 0 {
-            return call_type
-        }
-    }
-    if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    0 - 1
-}
-
-fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
-    let string_type = code_ref_locals_infer_callee::infer_string_callee_gc_type(ctx, callee)
-    if string_type >= 0 {
-        return string_type
-    }
-    let hm_type = code_ref_locals_infer_callee::infer_hashmap_callee_gc_type(ctx, callee)
-    if hm_type >= 0 {
-        return hm_type
-    }
-    // Vec_new returns (ref null S_f0_ref1_f1_i32) = vec_type
-    if starts_with(clone(callee), String_from("Vec_new_")) {
-        if eq(clone(callee), String_from("Vec_new_String")) {
-            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-        }
-        if eq(clone(callee), String_from("Vec_new_i64")) {
-            return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
-        }
-        if eq(clone(callee), String_from("Vec_new_f64")) {
-            return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
-        }
-        if eq(clone(callee), String_from("Vec_new_v128")) {
-            return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
-        }
-        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    }
-    // vec_pop returns Option<T> → enum open type on GC targets
-    if eq(clone(callee), "vec_pop") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    // vec_get returns Option<T> → enum open type on GC targets
-    if eq(clone(callee), "vec_get") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    // find_i32/find_i64/find_f64/find_String return Option<T> → enum open
-    // type on GC targets.  These are prelude wrappers around __intrinsic_find
-    // that are not included in the MIR module (prelude is skipped), so
-    // resolve_fn_index cannot find them.  Without this, the local storing the
-    // result is typed as i32, causing validation errors when the match code
-    // uses struct.get on it.
-    if eq(clone(callee), "find_i32") || eq(clone(callee), "find_i64") || eq(clone(callee), "find_f64") || eq(clone(callee), "find_String") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    // vec_push returns Vec<T> but the result is often discarded (void push).
-    // Return -1 so type inference doesn't override i32-typed reused locals.
-    if eq(clone(callee), "vec_push") {
-        return 0 - 1
-    }
-    // vec_set returns the vec_ref (same vec passed in) on GC targets.
-    if eq(clone(callee), "vec_set") {
-        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
-    }
-    // stdlib filter/map return Vec<T> on GC targets.
-    if eq(clone(callee), "filter_String") || eq(clone(callee), "__intrinsic_filter_String") {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    }
-    if eq(clone(callee), "map_String_String") || eq(clone(callee), "__intrinsic_map_String_String") {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    }
-    if eq(clone(callee), "filter_i32") || eq(clone(callee), "__intrinsic_filter_i32") {
-        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    }
-    if eq(clone(callee), "map_i32_i32") || eq(clone(callee), "__intrinsic_map_i32_i32") {
-        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    }
-    // Parse functions return Result<T, E> → enum open type on GC targets.
-    // These are intrinsics that may not be resolvable via resolve_fn_index.
-    if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") || eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") || eq(clone(callee), "parse_f64") || eq(clone(callee), "convert::parse_f64") || eq(clone(callee), "parse_u64") || eq(clone(callee), "convert::parse_u64") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    // split returns Vec<String> on GC targets.
-    if eq(clone(callee), "split") || eq(clone(callee), "text::split") || eq(clone(callee), "string::split") {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    }
-    // join returns String on GC targets.
-    if eq(clone(callee), "join") || eq(clone(callee), "text::join") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    // String intrinsics that return String on GC targets.
-    if eq(clone(callee), "trim") || eq(clone(callee), "trim_start") || eq(clone(callee), "trim_end") || eq(clone(callee), "to_uppercase") || eq(clone(callee), "to_lowercase") || eq(clone(callee), "replace") || eq(clone(callee), "replace_all") || eq(clone(callee), "repeat") || eq(clone(callee), "slice") || eq(clone(callee), "substring") || eq(clone(callee), "reverse") || eq(clone(callee), "pad_left") || eq(clone(callee), "pad_right") || eq(clone(callee), "pad_start") || eq(clone(callee), "pad_end") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    // Vec intrinsics that return the same vec type on GC targets.
-    if eq(clone(callee), "vec_reverse") || eq(clone(callee), "vec_remove") {
-        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
-    }
-    code_ref_locals_infer_callee::infer_call_result_gc_type_from_fn(ctx, callee)
-}
-
-// Infer GC type from a local/parameter type name string.
-// Returns -1 if the type name doesn't map to a known GC ref type.
-fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
-    if starts_with(clone(type_name), String_from("hashmap:")) {
-        if starts_with(clone(type_name), String_from("hashmap:i32str")) {
-            return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
-        }
-        if starts_with(clone(type_name), String_from("hashmap:si32")) {
-            return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
-        }
-        if starts_with(clone(type_name), String_from("hashmap:strstr")) {
-            return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
-        }
-        if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
-            return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-        }
-        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
-    }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    if starts_with(clone(type_name), String_from("vec:")) {
-        if eq(clone(type_name), String_from("vec:String")) {
-            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-        }
-        if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
-            return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
-        }
-        if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
-            return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
-        }
-        if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
-            return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
-        }
-        if starts_with(clone(type_name), String_from("vec:Vec")) {
-            return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-        }
-        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    if starts_with(clone(type_name), String_from("enum:")) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    }
-    // Struct type with "struct:TypeName:byte_size" format: extract byte size
-    // and map to the correct GC struct type index.
-    if starts_with(clone(type_name), String_from("struct:")) {
-        let struct_name = extract_struct_name_from_type_name(clone(type_name))
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-        }
-        let byte_size = parse_struct_byte_size(clone(type_name))
-        if byte_size > 0 {
-            return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
-        }
-    }
-    // Struct type names: look up the specific GC struct type by name.
-    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
-    }
-    0 - 1
-}
-
-// Extract struct name from "struct:TypeName:byte_size" format.
-fn extract_struct_name_from_type_name(type_name: String) -> String {
-    let mut first_colon = 0 - 1
-    let mut last_colon = 0 - 1
-    let n = len(type_name)
-    let mut i = 0
-    while i < n {
-        if char_at(type_name, i) == 58 {
-            if first_colon < 0 {
-                first_colon = i
-            }
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
-        return String_new()
-    }
-    substring(type_name, first_colon + 1, last_colon)
-}
-
-// Extract byte_size from "struct:TypeName:byte_size" format.
-fn parse_struct_byte_size(type_name: String) -> i32 {
-    let n = len(type_name)
-    let mut last_colon = 0 - 1
-    let mut i = 0
-    while i < n {
-        if char_at(type_name, i) == 58 {
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if last_colon < 0 {
-        return 0
-    }
-    let mut byte_size = 0
-    let mut j = last_colon + 1
-    while j < n {
-        let d = char_at(type_name, j)
-        if d >= 48 && d <= 57 {
-            byte_size = byte_size * 10 + (d - 48)
-        } else {
-            j = n
-        }
-        j = j + 1
-    }
-    byte_size
 }

@@ -2,9 +2,8 @@
 
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_i64_const(w: WasmWriter, value: i32) {
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
-    writer_leb::emit_leb128_s(w, value)
+    writer_core::emit_leb128_s(w, value)
 }

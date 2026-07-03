@@ -6,26 +6,39 @@
 
 use mir::lower::return_typeinfo
 use mir::lower::mono_return_vt_table
-use mir::lower::ctx_fn_return_type
-use corehir::legacy_vt_compat
+use mir::lower::mono_return_lookup
+use mir::lower::ctx_current_storage
 use mir::lower_kinds
-use mir::mono_names
+use mir::module_spine
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
 use mir::type_contracts
-use mir::value_types
 
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
-    let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, clone(name))
+    let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
+    let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)
     if table_vt >= 0 {
-        if table_vt != fallback_vt && !legacy_vt_compat::legacy_vt_values_equal(table_vt, fallback_vt) {
-            mono_return_vt_table::mono_return_vt_audit_log_mismatch(name, table_vt, fallback_vt)
-        }
-        return fallback_vt
+        return table_vt
     }
     mono_return_vt_legacy_path(ctx, clone(name), fallback_vt)
 }
 
+fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return 0 - 1
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let fid = signature_registry::signature_registry_lookup_by_mangled(registry, callee_name)
+    if !function_id::function_id_is_valid(fid) {
+        return 0 - 1
+    }
+    signature_entry::signature_entry_mono_instance_id(signature_registry::signature_registry_lookup_by_id(registry, fid))
+}
+
 fn mono_return_vt_legacy_path(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
-    let inst_idx = mono_find_instance(ctx.mono_instances, clone(name))
+    let inst_idx = mono_return_lookup::mono_find_instance(ctx.mono_instances, clone(name))
     if inst_idx < 0 {
         return fallback_vt
     }
@@ -34,7 +47,7 @@ fn mono_return_vt_legacy_path(ctx: LowerCtx, name: String, fallback_vt: i32) -> 
     if arg_count == 0 {
         return fallback_vt
     }
-    let type_idx = mono_return_type_arg_index(ctx, clone(name), arg_count)
+    let type_idx = mono_return_lookup::mono_return_type_arg_index(ctx, clone(name), arg_count)
     let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, type_idx)
     let mono_tag = type_contracts::TypeInfo_tag(mono_ty)
     if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
@@ -47,7 +60,7 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     if is_concrete_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
     }
-    let inst_idx = mono_find_instance(ctx.mono_instances, clone(name))
+    let inst_idx = mono_return_lookup::mono_find_instance(ctx.mono_instances, clone(name))
     if inst_idx < 0 {
         return fallback_name
     }
@@ -56,7 +69,7 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     if arg_count == 0 {
         return fallback_name
     }
-    let type_idx = mono_return_type_arg_index(ctx, clone(name), arg_count)
+    let type_idx = mono_return_lookup::mono_return_type_arg_index(ctx, clone(name), arg_count)
     let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, type_idx)
     let mono_tag = type_contracts::TypeInfo_tag(mono_ty)
     if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
@@ -136,164 +149,4 @@ fn type_name_has_type_var_suffix(type_name: String) -> bool {
         return true
     }
     false
-}
-
-fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> i32 {
-    let safe = mono_names::mono_safe_name(mangled)
-    let count = len(mono_instances)
-    let mut i = 0
-    while i < count {
-        let inst = get_unchecked(mono_instances, i)
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        let inst_safe = mono_names::mono_safe_name(inst_mangled)
-        if eq(clone(inst_safe), clone(safe)) {
-            return i
-        }
-        i = i + 1
-    }
-    0 - 1
-}
-
-// Determine which type argument index corresponds to the function's return type.
-// For a generic function `fn foo<A, B>(...) -> B`, the return type is `B` which
-// maps to type argument index 1.  This function looks up the return type name
-// from the fn_index and maps the type variable to the correct index.
-fn mono_return_type_arg_index(ctx: LowerCtx, name: String, arg_count: i32) -> i32 {
-    // The fn_index stores base names (e.g. "pair_second"), not mangled names
-    // (e.g. "pair_second__i32__String").  Strip the mono suffix before lookup.
-    let base_name = extract_mono_base_name(clone(name))
-    let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, base_name)
-    if len(rtn) == 0 {
-        return 0
-    }
-    // Extract the type variable name from the return type name.
-    // Handles plain type vars ("?T", "?B") and composite types ("?Option:T").
-    let var_name = extract_return_type_var(rtn)
-    if len(var_name) == 0 {
-        return 0
-    }
-    let idx = type_var_to_index(var_name)
-    if idx >= 0 && idx < arg_count {
-        return idx
-    }
-    0
-}
-
-// Extract the type variable name from a return type name string.
-// "?T" → "T", "?Option:T" → "T", "?Result:T" → "T"
-fn extract_return_type_var(rtn: String) -> String {
-    if !starts_with(clone(rtn), String_from("?")) {
-        return String_new()
-    }
-    // Composite types: "?Option:T" → "T"
-    if starts_with(clone(rtn), String_from("?Option:")) {
-        return substring(clone(rtn), 8, len(rtn))
-    }
-    if starts_with(clone(rtn), String_from("?Result:")) {
-        let rest = substring(clone(rtn), 8, len(rtn))
-        let rlen = len(rest)
-        let mut ci = 0
-        while ci < rlen {
-            if char_at(rest, ci) == 58 {
-                return substring(rest, 0, ci)
-            }
-            ci = ci + 1
-        }
-        return rest
-    }
-    // Plain type variable: "?T" → "T"
-    substring(clone(rtn), 1, len(rtn))
-}
-
-// Map a type variable name to a type parameter index.
-fn type_var_to_index(var_name: String) -> i32 {
-    if eq(clone(var_name), String_from("T")) { return 0 }
-    if eq(clone(var_name), String_from("E")) { return 1 }
-    if eq(clone(var_name), String_from("U")) { return 2 }
-    if eq(clone(var_name), String_from("V")) { return 3 }
-    if eq(clone(var_name), String_from("W")) { return 4 }
-    if eq(clone(var_name), String_from("K")) { return 0 }
-    if eq(clone(var_name), String_from("A")) { return 0 }
-    if eq(clone(var_name), String_from("B")) { return 1 }
-    if eq(clone(var_name), String_from("C")) { return 2 }
-    if eq(clone(var_name), String_from("D")) { return 3 }
-    0
-}
-
-// Extract the base function name from a mangled name by removing the mono
-// type suffix.  For "pair_second__i32__String" → "pair_second".
-// For method names like "Picker__echo__i32" → "Picker__echo".
-fn extract_mono_base_name(name: String) -> String {
-    let name_len = len(name)
-    let sep_positions = Vec_new_i32()
-    let mut i = 0
-    while i < name_len - 1 {
-        if char_at(name, i) == 95 && char_at(name, i + 1) == 95 {
-            push(sep_positions, i)
-        }
-        i = i + 1
-    }
-    let sep_count = len(sep_positions)
-    if sep_count == 0 {
-        return name
-    }
-    let mut si = 0
-    while si < sep_count {
-        let sep_pos = get_unchecked(sep_positions, si)
-        let suffix = substring(name, sep_pos + 2, name_len)
-        let type_keys = split_mono_suffix_local(suffix)
-        let key_count = len(type_keys)
-        if key_count > 0 && all_valid_mono_type_keys(type_keys, key_count) {
-            return substring(name, 0, sep_pos)
-        }
-        si = si + 1
-    }
-    let first_sep = get_unchecked(sep_positions, 0)
-    substring(name, 0, first_sep)
-}
-
-fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
-    let mut ki = 0
-    while ki < key_count {
-        let key = get_unchecked(type_keys, ki)
-        if !is_valid_mono_type_key(key) {
-            return false
-        }
-        ki = ki + 1
-    }
-    true
-}
-
-fn is_valid_mono_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
-        return true
-    }
-    if len(key) > 0 {
-        let first = char_at(key, 0)
-        if first >= 65 && first <= 90 {
-            return true
-        }
-    }
-    false
-}
-
-// Split a mono suffix string by "__" into individual type keys.
-fn split_mono_suffix_local(suffix: String) -> Vec<String> {
-    let result = Vec_new_String()
-    let slen = len(suffix)
-    let mut start = 0
-    let mut i = 0
-    while i < slen - 1 {
-        if char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
-            push(result, substring(suffix, start, i))
-            start = i + 2
-            i = i + 2
-        } else {
-            i = i + 1
-        }
-    }
-    if start <= slen {
-        push(result, substring(suffix, start, slen))
-    }
-    result
 }

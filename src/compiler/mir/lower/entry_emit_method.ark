@@ -10,7 +10,6 @@ use mir::function_factory
 
 use mir::lower::entry_body_result
 use mir::lower::entry_params
-use mir::lower::entry_view
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_struct_layout

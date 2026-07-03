@@ -1,7 +1,7 @@
 // Arukellt Selfhost - MIR return type helpers backed by TypeInfo
 
 use mir::typeinfo_shape
-use mir::type_contracts
+use mir::lower::return_typeinfo_names
 use mir::value_types
 
 fn mir_return_tag_from_type_info(ty: TypeInfo) -> i32 {
@@ -37,176 +37,17 @@ fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
     mir_return_vt_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))
 }
 
-fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
-        return String_from("")
-    }
-    let vec_elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-    let elem_tag = mir_return_tag_from_type_info(vec_elem)
-    match elem_tag {
-        1 => String_from("vec:i32"),
-        2 => String_from("vec:i64"),
-        3 => String_from("vec:f64"),
-        5 => String_from("vec:String"),
-        _ => String_from("vec:i32"),
-    }
-}
-
-fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    if typeinfo_shape::mir_type_info_type_arg_count(ty) < 2 {
-        return String_from("hashmap:si32")
-    }
-    let key = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-    let val = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
-    let key_tag = mir_return_tag_from_type_info(key)
-    let val_tag = mir_return_tag_from_type_info(val)
-    if key_tag == 5 && val_tag == 1 {
-        return String_from("hashmap:si32")
-    }
-    if key_tag == 1 && val_tag == 5 {
-        return String_from("hashmap:i32str")
-    }
-    if key_tag == 5 && val_tag == 5 {
-        return String_from("hashmap:strstr")
-    }
-    if key_tag == 1 && val_tag == 1 {
-        return String_from("hashmap:i32i32")
-    }
-    String_from("hashmap:si32")
-}
-
-fn mir_tuple_elem_byte_size(ty: TypeInfo) -> i32 {
-    let tag = mir_return_tag_from_type_info(ty)
-    if tag == 3 {
-        return 8
-    }
-    4
-}
-
-fn mir_tuple_byte_size_from_type_info(ty: TypeInfo) -> i32 {
-    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    let mut total = 0
-    let mut i = 0
-    while i < arg_count {
-        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
-        total = total + mir_tuple_elem_byte_size(elem)
-        i = i + 1
-    }
-    total
-}
-
-fn mir_tuple_has_gc_ref_elem(ty: TypeInfo) -> bool {
-    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    let mut i = 0
-    while i < arg_count {
-        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
-        let tag = mir_return_tag_from_type_info(elem)
-        if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
-fn mir_tuple_inner_name_from_type_info(ty: TypeInfo) -> String {
-    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    if arg_count <= 0 {
-        return String_new()
-    }
-    let mut name = String_from("tuple:")
-    let mut i = 0
-    while i < arg_count {
-        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
-        if i > 0 {
-            name = concat(name, String_from(","))
-        }
-        name = concat(name, mir_type_info_to_mono_key(elem))
-        i = i + 1
-    }
-    name
-}
-
-fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    if arg_count <= 0 {
-        return String_from("struct:tuple:0")
-    }
-    let mut has_type_var = false
-    let mut i = 0
-    while i < arg_count {
-        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
-        if typeinfo_shape::mir_type_info_tag(elem) == 30 {
-            has_type_var = true
-            i = arg_count
-        }
-        i = i + 1
-    }
-    let byte_size = mir_tuple_byte_size_from_type_info(ty)
-    if has_type_var {
-        let mut name = String_from("struct:tuple:v:")
-        i = 0
-        while i < arg_count {
-            let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
-            if i > 0 {
-                name = concat(name, String_from(","))
-            }
-            if typeinfo_shape::mir_type_info_tag(elem) == 30 {
-                name = concat(name, typeinfo_shape::mir_type_info_name(elem))
-            } else {
-                name = concat(name, mir_type_info_to_mono_key(elem))
-            }
-            i = i + 1
-        }
-        return name
-    }
-    if mir_tuple_has_gc_ref_elem(ty) {
-        let inner = mir_tuple_inner_name_from_type_info(ty)
-        return concat(String_from("struct:"), concat(inner, concat(String_from(":"), i32_to_string(byte_size))))
-    }
-    concat(String_from("struct:tuple:"), i32_to_string(byte_size))
-}
-
-fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
-        return String_from("option:")
-    }
-    let inner = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-    let inner_key = mir_type_info_to_mono_key(inner)
-    concat(String_from("option:"), inner_key)
-}
-
-// Build a return type name for Result types.  Produces "Result_<ok>_<err>"
-// (e.g. "Result_i32_String") so that match payload type inference can
-// extract the Ok/Err payload types.
-fn mir_result_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    if arg_count >= 2 {
-        let ok_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-        let err_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
-        let ok_key = mir_type_info_to_mono_key(ok_arg)
-        let err_key = mir_type_info_to_mono_key(err_arg)
-        return concat(String_from("Result_"), concat(ok_key, concat(String_from("_"), err_key)))
-    }
-    if arg_count == 1 {
-        let ok_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-        let ok_key = mir_type_info_to_mono_key(ok_arg)
-        return concat(String_from("Result_"), ok_key)
-    }
-    String_from("Result")
-}
-
 fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let tag = mir_return_tag_from_type_info(ty)
     match tag {
         5 => typeinfo_shape::mir_type_info_name(ty),
-        10 => mir_vec_return_type_name_from_type_info(ty),
-        11 => mir_option_return_type_name_from_type_info(ty),
-        12 => mir_result_return_type_name_from_type_info(ty),
-        13 => mir_hashmap_return_type_name_from_type_info(ty),
+        10 => return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty),
+        11 => return_typeinfo_names::mir_option_return_type_name_from_type_info(ty),
+        12 => return_typeinfo_names::mir_result_return_type_name_from_type_info(ty),
+        13 => return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty),
         21 => typeinfo_shape::mir_type_info_name(ty),
-        22 => mir_enum_return_type_name_from_type_info(ty),
-        23 => mir_tuple_return_type_name_from_type_info(ty),
+        22 => return_typeinfo_names::mir_enum_return_type_name_from_type_info(ty),
+        23 => return_typeinfo_names::mir_tuple_return_type_name_from_type_info(ty),
         _ => String_from(""),
     }
 }
@@ -215,48 +56,6 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
 // parameters (e.g. "Result_i32_String") so that match payload type
 // inference can extract the Ok/Err payload types.  For other enums,
 // fall back to "enum:Name".
-fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
-    let name = typeinfo_shape::mir_type_info_name(ty)
-    if eq(clone(name), String_from("Result")) {
-        return mir_result_return_type_name_from_type_info(ty)
-    }
-    concat(String_from("enum:"), name)
-}
-
-// Convert a TypeInfo to a mono type key string (for Result type params).
-fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
-    let tag = mir_return_tag_from_type_info(ty)
-    if tag == 1 { return String_from("i32") }
-    if tag == 2 { return String_from("i64") }
-    if tag == 3 { return String_from("f64") }
-    if tag == 9 { return String_from("f32") }
-    if tag == 5 { return String_from("String") }
-    if tag == 4 { return String_from("bool") }
-    if tag == 6 { return String_from("char") }
-    // Vec types (tag 10) are GC refs on GC targets.  Use the same
-    // "vec:<elem>" naming as mir_vec_return_type_name_from_type_info so
-    // that Result<Vec<i32>, ...> mangles to "Result_vec:i32_..." instead
-    // of "Result_i32_...".  Without this, the match payload type inference
-    // incorrectly treats the Ok payload as scalar i32 and overrides
-    // VT_GC_REF with VT_I32, causing the GC enum variant to be registered
-    // with an i32 field instead of a ref field.
-    if tag == 10 {
-        return mir_vec_return_type_name_from_type_info(ty)
-    }
-    // Option types (tag 11) are also GC refs on GC targets.
-    if tag == 11 {
-        return mir_option_return_type_name_from_type_info(ty)
-    }
-    // HashMap types (tag 13) are GC refs on GC targets.
-    if tag == 13 {
-        return mir_hashmap_return_type_name_from_type_info(ty)
-    }
-    let name = typeinfo_shape::mir_type_info_name(ty)
-    if len(name) > 0 {
-        return name
-    }
-    String_from("i32")
-}
 
 fn mir_return_type_name_from_typed_fn(tf: TypedFn) -> String {
     mir_return_type_name_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))

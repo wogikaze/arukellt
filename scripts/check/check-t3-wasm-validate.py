@@ -16,11 +16,15 @@ Exit codes:
 
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -31,6 +35,8 @@ T3_TARGET = "wasm32-wasi-p2"
 VALIDATE_FEATURES = "gc"
 COMPILE_TIMEOUT = 60  # seconds per fixture
 VALIDATE_TIMEOUT = 30  # seconds per fixture
+T3_CACHE_DIR = REPO_ROOT / ".build" / "t3-cache"
+DEFAULT_JOBS = max(1, (os.cpu_count() or 4) // 2)
 
 # Fixtures that are known to require special flags / WIT imports and are
 # expected to fail compilation in the plain ``compile`` path.  These are
@@ -127,6 +133,7 @@ def compile_fixture(
     src: str,
     out: Path,
     root: Path,
+    tmp_rel: str = ".ark-t3-validate-tmp",
 ) -> tuple[bool, str]:
     """Compile a fixture with the selfhost compiler. Returns (ok, stderr).
 
@@ -135,7 +142,6 @@ def compile_fixture(
     *inside* the repo to satisfy that constraint.
     """
     # Use a temp directory inside the repo so wasmtime --dir can write to it.
-    tmp_rel = ".ark-t3-validate-tmp"
     tmp_inside = root / tmp_rel
     tmp_inside.mkdir(parents=True, exist_ok=True)
     guest_out = f"{tmp_rel}/{out.name}"
@@ -178,9 +184,142 @@ def validate_wasm(wasm_tools: str, wasm_path: Path) -> tuple[bool, str]:
     return False, (result.stderr or result.stdout).strip()
 
 
+def _process_fixture_worker(args: tuple) -> tuple[str, str, str, str]:
+    """Worker function for parallel execution.
+
+    Args: (fixture, compiler_wasm_str, wasmtime_str, wasm_tools_str, root_str)
+    Returns: (fixture, status, detail, key) where status is
+    "pass", "validate-fail", or "compile-fail".
+    """
+    fixture, compiler_wasm_str, wasmtime_str, wasm_tools_str, root_str, key = args
+    root = Path(root_str)
+    compiler_wasm = Path(compiler_wasm_str)
+    wasmtime = wasmtime_str
+    wasm_tools = wasm_tools_str
+
+    src = str(Path("tests") / "fixtures" / fixture)
+    name = fixture.replace("/", "_").replace(".ark", "")
+    # Each worker uses its own temp dir to avoid conflicts
+    worker_tmp = f".ark-t3-validate-tmp-{os.getpid()}"
+    worker_out = root / worker_tmp / f"{name}.wasm"
+
+    ok, stderr = compile_fixture(wasmtime, compiler_wasm, src, worker_out, root, tmp_rel=worker_tmp)
+    if not ok:
+        detail = f"  COMPILE FAIL: {fixture}"
+        if "timed out" in stderr.lower():
+            return fixture, "timeout", f"  COMPILE TIMEOUT: {fixture}", key
+        return fixture, "compile-fail", detail, key
+
+    ok, err = validate_wasm(wasm_tools, worker_out)
+    # Clean up the temp wasm
+    try:
+        worker_out.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+    if ok:
+        return fixture, "pass", "", key
+    else:
+        err_line = err.split("\n")[0] if err else "unknown"
+        detail = f"  VALIDATE FAIL: {fixture} — {err_line}"
+        return fixture, "validate-fail", detail, key
+
+
+# ── Cache ────────────────────────────────────────────────────────────────────
+
+def _file_hash(path: Path) -> str:
+    """Return SHA-256 hex digest of a file's contents."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _tool_fingerprint(tool: str) -> str:
+    result = subprocess.run(
+        [tool, "--version"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    if result.returncode != 0:
+        return tool
+    return (result.stdout or result.stderr).strip()
+
+
+def _cache_key(compiler_wasm: Path, fixture_path: Path, wasm_tools: str) -> str:
+    """Compute a cache key from compiler, validator, and fixture source."""
+    return hashlib.sha256(
+        (
+            _file_hash(compiler_wasm)
+            + ":"
+            + _tool_fingerprint(wasm_tools)
+            + ":"
+            + VALIDATE_FEATURES
+            + ":"
+            + str(fixture_path)
+            + ":"
+            + _file_hash(fixture_path)
+        ).encode()
+    ).hexdigest()
+
+
+def _cache_lookup(fixture: str, key: str) -> tuple[str, str] | None:
+    """Return (status, detail) from cache, or None on miss.
+
+    status is "pass", "validate-fail", or "compile-fail".
+    """
+    cache_file = T3_CACHE_DIR / f"{fixture.replace('/', '__')}.json"
+    if not cache_file.is_file():
+        return None
+    try:
+        entry = json.loads(cache_file.read_text())
+        if entry.get("key") == key:
+            return entry.get("status", ""), entry.get("detail", "")
+    except (json.JSONDecodeError, KeyError):
+        pass
+    return None
+
+
+def _cache_store(fixture: str, key: str, status: str, detail: str) -> None:
+    """Store a compilation result in the cache."""
+    T3_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_file = T3_CACHE_DIR / f"{fixture.replace('/', '__')}.json"
+    try:
+        cache_file.write_text(json.dumps({
+            "key": key, "status": status, "detail": detail,
+        }))
+    except OSError:
+        pass
+
+
+def _cache_invalidate_all() -> None:
+    """Remove all cache entries (e.g. when --no-cache is used)."""
+    if T3_CACHE_DIR.is_dir():
+        shutil.rmtree(str(T3_CACHE_DIR), ignore_errors=True)
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="disable and clear the T3 validation cache for this run",
+    )
+    parser.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=DEFAULT_JOBS,
+        help=f"parallel compile/validate workers (default: {DEFAULT_JOBS})",
+    )
+    args = parser.parse_args()
+    use_cache = not args.no_cache
+    jobs = max(1, args.jobs)
+
     wasmtime = find_wasmtime()
     if not wasmtime:
         print("error: wasmtime not found", file=sys.stderr)
@@ -205,6 +344,9 @@ def main() -> int:
         print("error: no t3-compile/t3-run fixtures in manifest", file=sys.stderr)
         return 2
 
+    if not use_cache:
+        _cache_invalidate_all()
+
     # Deduplicate (t3-compile and t3-run may list the same fixture)
     seen: set[str] = set()
     unique: list[str] = []
@@ -214,73 +356,103 @@ def main() -> int:
             unique.append(f)
     fixtures = unique
 
-    tmpdir = Path(tempfile.mkdtemp(prefix="ark-t3-validate-"))
-    try:
-        # Clean up the repo-internal temp dir from any prior run
-        repo_tmp = REPO_ROOT / ".ark-t3-validate-tmp"
-        if repo_tmp.exists():
-            shutil.rmtree(str(repo_tmp), ignore_errors=True)
-        pass_count = 0
-        fail_validate = 0
-        fail_compile = 0
-        skip_count = 0
-        fail_details: list[str] = []
+    # Clean up any stale per-worker temp dirs from prior runs
+    for stale in REPO_ROOT.glob(".ark-t3-validate-tmp*"):
+        shutil.rmtree(str(stale), ignore_errors=True)
 
-        for fixture in fixtures:
-            if fixture in T3_COMPILE_SKIP:
-                skip_count += 1
+    pass_count = 0
+    fail_validate = 0
+    fail_compile = 0
+    skip_count = 0
+    cache_hits = 0
+    fail_details: list[str] = []
+
+    # Phase 1: Check cache for all fixtures
+    uncached: list[tuple[str, str]] = []  # (fixture, key)
+    for fixture in fixtures:
+        if fixture in T3_COMPILE_SKIP:
+            skip_count += 1
+            continue
+
+        src_abs = REPO_ROOT / "tests" / "fixtures" / fixture
+        if not src_abs.is_file():
+            skip_count += 1
+            continue
+
+        if use_cache:
+            key = _cache_key(compiler_wasm, src_abs, wasm_tools)
+            cached = _cache_lookup(fixture, key)
+            if cached is not None:
+                status, detail = cached
+                cache_hits += 1
+                if status == "pass":
+                    pass_count += 1
+                elif status == "validate-fail":
+                    fail_validate += 1
+                    fail_details.append(detail)
+                elif status == "compile-fail":
+                    fail_compile += 1
+                    fail_details.append(detail)
                 continue
+            uncached.append((fixture, key))
+        else:
+            uncached.append((fixture, ""))
 
-            src_abs = REPO_ROOT / "tests" / "fixtures" / fixture
-            if not src_abs.is_file():
-                skip_count += 1
-                continue
+    # Phase 2: Compile + validate uncached fixtures in parallel
+    if uncached:
+        worker_args = [
+            (fixture, str(compiler_wasm), wasmtime, wasm_tools, str(REPO_ROOT), key)
+            for fixture, key in uncached
+        ]
 
-            # selfhost expects a path relative to the repo root
-            src = str(Path("tests") / "fixtures" / fixture)
-            name = fixture.replace("/", "_").replace(".ark", "")
-            out = tmpdir / f"{name}.wasm"
+        if jobs <= 1:
+            # Sequential fallback
+            results = [_process_fixture_worker(a) for a in worker_args]
+        else:
+            results = []
+            with ProcessPoolExecutor(max_workers=jobs) as pool:
+                futures = {pool.submit(_process_fixture_worker, a): a for a in worker_args}
+                for future in as_completed(futures):
+                    results.append(future.result())
 
-            ok, stderr = compile_fixture(wasmtime, compiler_wasm, src, out, REPO_ROOT)
-            if not ok:
-                fail_compile += 1
-                if "timed out" in stderr.lower():
-                    skip_count += 1
-                    fail_compile -= 1
-                    fail_details.append(f"  COMPILE TIMEOUT: {fixture}")
-                else:
-                    fail_details.append(f"  COMPILE FAIL: {fixture}")
-                continue
-
-            ok, err = validate_wasm(wasm_tools, out)
-            if ok:
+        for fixture, status, detail, key in results:
+            if status == "pass":
                 pass_count += 1
-            else:
+                if use_cache:
+                    _cache_store(fixture, key, "pass", "")
+            elif status == "validate-fail":
                 fail_validate += 1
-                # Extract the key error line
-                err_line = err.split("\n")[0] if err else "unknown"
-                fail_details.append(f"  VALIDATE FAIL: {fixture} — {err_line}")
+                fail_details.append(detail)
+                if use_cache:
+                    _cache_store(fixture, key, "validate-fail", detail)
+            elif status == "compile-fail":
+                fail_compile += 1
+                fail_details.append(detail)
+                if use_cache:
+                    _cache_store(fixture, key, "compile-fail", detail)
+            elif status == "timeout":
+                skip_count += 1
+                fail_details.append(detail)
 
-        total = pass_count + fail_validate + fail_compile + skip_count
-        print(f"T3 WASM validation: {pass_count} pass, {fail_validate} validate-fail, "
-              f"{fail_compile} compile-fail, {skip_count} skip (total {total})")
+    # Clean up per-worker temp dirs
+    for stale in REPO_ROOT.glob(".ark-t3-validate-tmp*"):
+        shutil.rmtree(str(stale), ignore_errors=True)
 
-        if fail_details:
-            print()
-            for line in fail_details[:50]:
-                print(line)
-            if len(fail_details) > 50:
-                print(f"  ... and {len(fail_details) - 50} more")
+    total = pass_count + fail_validate + fail_compile + skip_count
+    cache_info = f" [{cache_hits} cache hits]" if cache_hits > 0 else ""
+    print(f"T3 WASM validation: {pass_count} pass, {fail_validate} validate-fail, "
+          f"{fail_compile} compile-fail, {skip_count} skip (total {total}){cache_info}")
 
-        if fail_validate > 0 or fail_compile > 0:
-            return 1
-        return 0
+    if fail_details:
+        print()
+        for line in fail_details[:50]:
+            print(line)
+        if len(fail_details) > 50:
+            print(f"  ... and {len(fail_details) - 50} more")
 
-    finally:
-        shutil.rmtree(str(tmpdir), ignore_errors=True)
-        repo_tmp = REPO_ROOT / ".ark-t3-validate-tmp"
-        if repo_tmp.exists():
-            shutil.rmtree(str(repo_tmp), ignore_errors=True)
+    if fail_validate > 0 or fail_compile > 0:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

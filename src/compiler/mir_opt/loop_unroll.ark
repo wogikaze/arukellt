@@ -10,7 +10,6 @@ use mir::inst_accessors_shape
 use mir::inst_const_i32
 use mir::inst_record
 use mir::opcodes
-use mir::types
 use mir_opt::const_fold
 use mir_opt::loop_regions
 use mir_opt::summary_record

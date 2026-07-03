@@ -1,105 +1,98 @@
 // Arukellt Selfhost - Common env intrinsic helpers facade.
 
-use wasm::intrinsics::helpers_control_branch
-use wasm::intrinsics::helpers_control_loop
-use wasm::intrinsics::helpers_control_structured
-use wasm::intrinsics::helpers_core_calls
-use wasm::intrinsics::helpers_core_heap
-use wasm::intrinsics::helpers_core_locals
-use wasm::intrinsics::helpers_core_stack
-use wasm::intrinsics::helpers_memory_access
-use wasm::intrinsics::helpers_numeric_i32_arith
-use wasm::intrinsics::helpers_numeric_i32_compare
-use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 
 fn env_emit_br_if(w: WasmWriter, depth: i32) {
-    helpers_control_branch::emit_br_if(w, depth)
+    helpers_control::emit_br_if(w, depth)
 }
 
 fn env_emit_br(w: WasmWriter, depth: i32) {
-    helpers_control_branch::emit_br(w, depth)
+    helpers_control::emit_br(w, depth)
 }
 
 fn env_emit_block_loop_header(w: WasmWriter) {
-    helpers_control_loop::emit_block_loop_header(w)
+    helpers_control::emit_block_loop_header(w)
 }
 
 fn env_emit_if_empty(w: WasmWriter) {
-    helpers_control_structured::emit_if_empty(w)
+    helpers_control::emit_if_empty(w)
 }
 
 fn env_emit_else(w: WasmWriter) {
-    helpers_control_structured::emit_else(w)
+    helpers_control::emit_else(w)
 }
 
 fn env_emit_end(w: WasmWriter) {
-    helpers_control_structured::emit_end(w)
+    helpers_control::emit_end(w)
 }
 
 fn env_emit_call(w: WasmWriter, idx: i32) {
-    helpers_core_calls::emit_call(w, idx)
+    helpers_core::emit_call(w, idx)
 }
 
 fn env_emit_heap_get(w: WasmWriter) {
-    helpers_core_heap::emit_heap_get(w)
+    helpers_core::emit_heap_get(w)
 }
 
 fn env_emit_heap_set(w: WasmWriter) {
-    helpers_core_heap::emit_heap_set(w)
+    helpers_core::emit_heap_set(w)
 }
 
 fn env_emit_local_get(w: WasmWriter, idx: i32) {
-    helpers_core_locals::emit_local_get(w, idx)
+    helpers_core::emit_local_get(w, idx)
 }
 
 fn env_emit_local_set(w: WasmWriter, idx: i32) {
-    helpers_core_locals::emit_local_set(w, idx)
+    helpers_core::emit_local_set(w, idx)
 }
 
 fn env_emit_local_tee(w: WasmWriter, idx: i32) {
-    helpers_core_locals::emit_local_tee(w, idx)
+    helpers_core::emit_local_tee(w, idx)
 }
 
 fn env_emit_stack_drop(w: WasmWriter) {
-    helpers_core_stack::emit_stack_drop(w)
+    helpers_core::emit_stack_drop(w)
 }
 
 fn env_emit_i32_load8_u_default(w: WasmWriter) {
-    helpers_memory_access::emit_i32_load8_u_default(w)
+    helpers_memory::emit_i32_load8_u_default(w)
 }
 
 fn env_emit_i32_store8_default(w: WasmWriter) {
-    helpers_memory_access::emit_i32_store8_default(w)
+    helpers_memory::emit_i32_store8_default(w)
 }
 
 fn env_emit_i32_load_default(w: WasmWriter) {
-    helpers_memory_access::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
 }
 
 fn env_emit_i32_store_default(w: WasmWriter) {
-    helpers_memory_access::emit_i32_store_default(w)
+    helpers_memory::emit_i32_store_default(w)
 }
 
 fn env_emit_i32_add(w: WasmWriter) {
-    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_add(w)
 }
 
 fn env_emit_i32_sub(w: WasmWriter) {
-    helpers_numeric_i32_arith::emit_i32_sub(w)
+    helpers_numeric_i32::emit_i32_sub(w)
 }
 
 fn env_emit_i32_eq(w: WasmWriter) {
-    helpers_numeric_i32_compare::emit_i32_eq(w)
+    helpers_numeric_i32::emit_i32_eq(w)
 }
 
 fn env_emit_i32_ge_s(w: WasmWriter) {
-    helpers_numeric_i32_compare::emit_i32_ge_s(w)
+    helpers_numeric_i32::emit_i32_ge_s(w)
 }
 
 fn env_emit_i32_lt_s(w: WasmWriter) {
-    helpers_numeric_i32_compare::emit_i32_lt_s(w)
+    helpers_numeric_i32::emit_i32_lt_s(w)
 }
 
 fn env_emit_i32_const(w: WasmWriter, val: i32) {
-    helpers_numeric_i32_const::emit_i32_const(w, val)
+    helpers_numeric_i32::emit_i32_const(w, val)
 }

@@ -28,6 +28,10 @@ fn MONO_INSTANCE_ID_INVALID() -> MonoInstanceId {
     MonoInstanceId { raw: 0 - 1 }
 }
 
+fn MonoInstanceId_raw(id: MonoInstanceId) -> i32 {
+    id.raw
+}
+
 fn MonoInstanceTable_new() -> MonoInstanceTable {
     MonoInstanceTable { entries: Vec_new_MonoInstanceEntry(), next_id: 0 }
 }

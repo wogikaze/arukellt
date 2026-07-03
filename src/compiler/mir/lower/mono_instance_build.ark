@@ -8,10 +8,10 @@ use mir::lower::mono_instance_table
 use mir::mono_names
 use mir::type_contracts
 
-fn mono_instance_table_register_from_instances(table: MonoInstanceTable, type_table: TypeTable, mono_instances: Vec<MonoInstance>, mangled: String, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>) {
+fn mono_instance_table_register_from_instances(table: MonoInstanceTable, type_table: TypeTable, mono_instances: Vec<MonoInstance>, mangled: String, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>) -> i32 {
     let inst = mono_find_instance(mono_instances, clone(mangled))
     if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
-        return
+        return 0 - 1
     }
     let subst_names = Vec_new_String()
     let subst_ids = Vec_new_TypeId()
@@ -23,7 +23,8 @@ fn mono_instance_table_register_from_instances(table: MonoInstanceTable, type_ta
         ai = ai + 1
     }
     let entry = mono_instance_table::MonoInstanceEntry_new(clone(mangled), subst_names, subst_ids, param_types, return_types, function_id::FUNCTION_ID_INVALID(), function_id::FUNCTION_ID_INVALID())
-    mono_instance_table::mono_instance_table_register(table, entry)
+    let mono_id = mono_instance_table::mono_instance_table_register(table, entry)
+    mono_instance_table::MonoInstanceId_raw(mono_id)
 }
 
 fn mono_type_var_name_at(index: i32) -> String {

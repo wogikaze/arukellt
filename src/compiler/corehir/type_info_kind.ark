@@ -1,19 +1,19 @@
 // Arukellt Selfhost - TypeInfo tag to TypeKind (ADR-040 PR-1 conservative approximation).
 
 use corehir::type_contracts
-use corehir::type_kind
+use corehir::kinds
 
 fn type_info_tag_to_kind(tag: i32) -> i32 {
-    if tag == 5 { return type_kind::TYPE_KIND_STRING() }
-    if tag == 10 { return type_kind::TYPE_KIND_VEC() }
-    if tag == 11 { return type_kind::TYPE_KIND_OPTION() }
-    if tag == 12 { return type_kind::TYPE_KIND_RESULT() }
-    if tag == 13 { return type_kind::TYPE_KIND_HASHMAP() }
-    if tag == 21 { return type_kind::TYPE_KIND_STRUCT() }
-    if tag == 22 { return type_kind::TYPE_KIND_ENUM() }
-    if tag == 23 { return type_kind::TYPE_KIND_TUPLE() }
-    if tag == 30 { return type_kind::TYPE_KIND_TYPE_VAR() }
-    type_kind::TYPE_KIND_PRIMITIVE()
+    if tag == 5 { return kinds::TYPE_KIND_STRING() }
+    if tag == 10 { return kinds::TYPE_KIND_VEC() }
+    if tag == 11 { return kinds::TYPE_KIND_OPTION() }
+    if tag == 12 { return kinds::TYPE_KIND_RESULT() }
+    if tag == 13 { return kinds::TYPE_KIND_HASHMAP() }
+    if tag == 21 { return kinds::TYPE_KIND_STRUCT() }
+    if tag == 22 { return kinds::TYPE_KIND_ENUM() }
+    if tag == 23 { return kinds::TYPE_KIND_TUPLE() }
+    if tag == 30 { return kinds::TYPE_KIND_TYPE_VAR() }
+    kinds::TYPE_KIND_PRIMITIVE()
 }
 
 fn type_info_display_name(ty: TypeInfo) -> String {

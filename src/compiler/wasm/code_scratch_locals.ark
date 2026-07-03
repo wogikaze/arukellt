@@ -5,7 +5,6 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::writer_core
-use wasm::writer_leb
 
 fn scratch_i32_local_count() -> i32 { 12 }
 
@@ -75,7 +74,7 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_gc_scratch_local_decls(body, scratch_gc_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_i32_array_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1)
-        emit_gc_scratch_local_decls(body, scratch_gc_vec_local_count(), ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
+        emit_structref_scratch_local_decls(body, scratch_gc_vec_local_count())
         emit_gc_scratch_local_decls(body, scratch_gc_string_ref_array_local_count(), ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_hashmap_str_local_count(), ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_enum_local_count(), ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
@@ -88,45 +87,56 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
 
 fn emit_i32_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
-        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_I32())
     }
 }
 
 fn emit_f64_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
-        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_F64())
     }
 }
 
 fn emit_f32_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
-        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_F32())
     }
 }
 
 fn emit_i64_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
-        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_I64())
     }
 }
 
 fn emit_v128_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
-        writer_leb::emit_leb128_u(body, count)
+        writer_core::emit_leb128_u(body, count)
         writer_core::emit_byte(body, constants::WASM_V128())
+    }
+}
+
+// The shared GC vec scratch local is declared as structref so it can hold a
+// vec of any element type; consumers must ref.cast before struct access.
+fn emit_structref_scratch_local_decls(body: WasmWriter, count: i32) {
+    let mut i = 0
+    while i < count {
+        writer_core::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, constants::WASM_STRUCTREF())
+        i = i + 1
     }
 }
 
 fn emit_gc_scratch_local_decls(body: WasmWriter, count: i32, gc_type_base: i32) {
     let mut i = 0
     while i < count {
-        writer_leb::emit_leb128_u(body, 1)
+        writer_core::emit_leb128_u(body, 1)
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(body, gc_type_base)
+        writer_core::emit_leb128_s(body, gc_type_base)
         i = i + 1
     }
 }

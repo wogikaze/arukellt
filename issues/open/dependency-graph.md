@@ -25,9 +25,7 @@ graph LR
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I686["686 Wasm GC Selfhost Implementation"]
   I687["687 687 — HashMap / HashSet Rust parity gap audit and closure"]
-  I689["689 689 — Operator overload trait surface (Add / Index / Deref / ...)"]
   I690["690 690 — `?` operator and `From<E>` error conversion"]
-  I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I696["696 696 — `Debug` trait and `format!` / `write!` formatting ecosystem"]
@@ -35,17 +33,20 @@ graph LR
   I704["704 std::json Full JSON RFC 8259 Compliance"]
   I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
-  I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
+  I707["707 707 — `Self` return type support for trait method dispatch"]
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
-  I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
-  I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
+  I689["689 689 — Operator overload trait surface (Add / Index / Deref / ...)"]
+  I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
+  I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I668["668 668 — P2 native component polish (post-#074)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
+  I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
+  I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
@@ -57,18 +58,22 @@ graph LR
   I667 --> I673
   I680 --> I682
   I690 --> I694
+  I707 --> I689
+  I707 --> I691
+  I707 --> I708
+  I714 --> I668
+  I682 --> I683
   I691 --> I697
   I695 --> I697
   I691 --> I703
   I695 --> I703
-  I714 --> I668
-  I682 --> I683
   I691 --> I709
   I695 --> I709
   I697 --> I709
   I703 --> I709
   I691 --> I710
   I697 --> I710
+  I707 --> I710
   I709 --> I710
   I681 --> I711
   I709 --> I711
@@ -102,9 +107,7 @@ graph LR
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: none
 - **687** depends on: 495; blocks: none
-- **689** depends on: 688, 707; blocks: none
 - **690** depends on: 688; blocks: 694
-- **691** depends on: 688, 707; blocks: 697, 703, 709, 710
 - **693** depends on: 688, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
 - **696** depends on: 688, 692; blocks: none
@@ -112,17 +115,20 @@ graph LR
 - **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
-- **708** depends on: 692, 707; blocks: none
+- **707** depends on: 688; blocks: 689, 691, 708, 710
 - **714** depends on: 074, 510; blocks: 668
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **694** depends on: 690, 692; blocks: none
-- **697** depends on: 691, 695; blocks: 709, 710
-- **703** depends on: 700, 701, 691, 695; blocks: 709
+- **689** depends on: 688, 707; blocks: none
+- **691** depends on: 688, 707; blocks: 697, 703, 709, 710
+- **708** depends on: 692, 707; blocks: none
 - **668** depends on: 074, 510, 714; blocks: none
 - **683** depends on: 679, 682; blocks: none
+- **697** depends on: 691, 695; blocks: 709, 710
+- **703** depends on: 700, 701, 691, 695; blocks: 709
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713

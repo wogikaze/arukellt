@@ -5,7 +5,6 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use mir::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 
@@ -15,7 +14,7 @@ fn emit_gc_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     writer_gc::emit_gc_struct_new_default(w, gc_type_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, dest)
+    writer_core::emit_leb128_u(w, dest)
 }
 
 fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -25,13 +24,13 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let field_idx = inst_accessors_literals::MirInst_int_val(inst)
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, base_local)
+    writer_core::emit_leb128_u(w, base_local)
     if type_slot >= 0 {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     }
     writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, dest)
+    writer_core::emit_leb128_u(w, dest)
 }
 
 fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -41,11 +40,11 @@ fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let field_idx = inst_accessors_literals::MirInst_int_val(inst)
     let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, base_local)
+    writer_core::emit_leb128_u(w, base_local)
     if type_slot >= 0 {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, value_local)
+    writer_core::emit_leb128_u(w, value_local)
     writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)
 }

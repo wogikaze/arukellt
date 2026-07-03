@@ -2,7 +2,6 @@
 
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 
@@ -28,7 +27,7 @@ fn emit_hm_slot_get_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: 
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_leb128_u(w, s_idx)
     writer_gc::emit_gc_array_get(w, array_type)
 }
 
@@ -36,9 +35,9 @@ fn emit_hm_slot_set_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: 
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_idx)
+    writer_core::emit_leb128_u(w, s_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_val)
+    writer_core::emit_leb128_u(w, s_val)
     writer_gc::emit_gc_array_set(w, array_type)
 }
 

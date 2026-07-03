@@ -6,8 +6,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
-use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core
 
 // Handler for: contains_i32, seq::seq_contains
 fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -21,13 +20,13 @@ fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_ci_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     let s_ci_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_needle)
+    writer_core::emit_leb128_u(w, s_needle)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_vec_ci)
+    writer_core::emit_leb128_u(w, s_vec_ci)
     emit_contains_i32_setup(w, s_vec_ci, s_ci_i, s_ci_len, s_ci_data, s_ci_found)
     emit_contains_i32_loop(w, s_needle, s_ci_i, s_ci_len, s_ci_data, s_ci_found)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_ci_found)
+    writer_core::emit_leb128_u(w, s_ci_found)
     return true
 }
 
@@ -35,39 +34,39 @@ fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_needle = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    helpers_core_locals::emit_local_set(w, s_needle)
-    helpers_core_locals::emit_local_set(w, s_vec)
+    helpers_core::emit_local_set(w, s_needle)
+    helpers_core::emit_local_set(w, s_vec)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     return true
 }
 
 fn emit_contains_i32_setup(w: WasmWriter, s_vec_ci: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_ci_found)
+    writer_core::emit_leb128_u(w, s_ci_found)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_vec_ci)
+    writer_core::emit_leb128_u(w, s_vec_ci)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_ci_len)
+    writer_core::emit_leb128_u(w, s_ci_len)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_vec_ci)
+    writer_core::emit_leb128_u(w, s_vec_ci)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_leb128_s(w, 8)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_ci_data)
+    writer_core::emit_leb128_u(w, s_ci_data)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 0)
+    writer_core::emit_leb128_s(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_ci_i)
+    writer_core::emit_leb128_u(w, s_ci_i)
 }
 
 fn emit_contains_i32_loop(w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {
@@ -88,48 +87,48 @@ fn emit_contains_i32_loop_header(w: WasmWriter) {
 
 fn emit_contains_i32_loop_bounds(w: WasmWriter, s_ci_i: i32, s_ci_len: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_ci_i)
+    writer_core::emit_leb128_u(w, s_ci_i)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_ci_len)
+    writer_core::emit_leb128_u(w, s_ci_len)
     writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
-    writer_leb::emit_leb128_u(w, 1)
+    writer_core::emit_leb128_u(w, 1)
 }
 
 fn emit_contains_i32_loop_match(w: WasmWriter, s_needle: i32, s_ci_i: i32, s_ci_data: i32, s_ci_found: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_ci_data)
+    writer_core::emit_leb128_u(w, s_ci_data)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_ci_i)
+    writer_core::emit_leb128_u(w, s_ci_i)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_needle)
+    writer_core::emit_leb128_u(w, s_needle)
     writer_core::emit_byte(w, opcodes::OP_I32_EQ())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_ci_found)
+    writer_core::emit_leb128_u(w, s_ci_found)
     writer_core::emit_byte(w, opcodes::OP_BR())
-    writer_leb::emit_leb128_u(w, 2)
+    writer_core::emit_leb128_u(w, 2)
     writer_core::emit_byte(w, 11)
 }
 
 fn emit_contains_i32_loop_advance(w: WasmWriter, s_ci_i: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, s_ci_i)
+    writer_core::emit_leb128_u(w, s_ci_i)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_leb::emit_leb128_s(w, 1)
+    writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, s_ci_i)
+    writer_core::emit_leb128_u(w, s_ci_i)
     writer_core::emit_byte(w, opcodes::OP_BR())
-    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_leb128_u(w, 0)
 }

@@ -7,7 +7,6 @@ use mir::local_access
 
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::emit_target
@@ -17,17 +16,17 @@ use mir::value_types
 
 fn emit_local_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
 }
 
 fn emit_local_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_operands::MirInst_arg1(inst) >= 0 {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
     }
     emit_gc_ref_cast_to_local(w, inst, ctx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
 }
 
 fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {

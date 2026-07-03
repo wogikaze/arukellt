@@ -11,14 +11,13 @@ use mir::module_gc_struct
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 use wasm::sections_type_plan
 
 
 fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
-    writer_leb::emit_leb128_u(type_sec, len(field_sigs))
+    writer_core::emit_leb128_u(type_sec, len(field_sigs))
     for fi in 0..len(field_sigs) {
         emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
     }
@@ -32,7 +31,7 @@ fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
         // Without gc_struct_type_map, we cannot resolve the slot.
         // Use ref14 as fallback (should not happen in practice).
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(type_sec, gc_type_base + 14)
+        writer_core::emit_leb128_s(type_sec, gc_type_base + 14)
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
         return
     }
@@ -40,7 +39,7 @@ fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
         let offset_str = substring(ft, 3, len(ft))
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(type_sec, gc_type_base + offset)
+        writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
         return
     }
@@ -73,7 +72,7 @@ fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i
         let offset_str = substring(elem_type, 3, len(elem_type))
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_leb::emit_leb128_s(type_sec, gc_type_base + offset)
+        writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
         return
     }
     writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(elem_type))

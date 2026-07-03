@@ -5,7 +5,6 @@ use wasm::inst_store_policy
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) {
     if !result_on_stack {
@@ -21,11 +20,11 @@ fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_
 fn emit_store_action(w: WasmWriter, dest: i32, action: i32) {
     if action == constants::STORE_ACTION_TEE() {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
-        writer_leb::emit_leb128_u(w, dest)
+        writer_core::emit_leb128_u(w, dest)
         return
     }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_leb::emit_leb128_u(w, dest)
+    writer_core::emit_leb128_u(w, dest)
 }
 
 // On GC targets, const_string stores to dest directly. If the next instruction
@@ -45,7 +44,7 @@ fn emit_gc_const_string_repush_if_needed(w: WasmWriter, inst: MirInst, next_op: 
         return
     }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, dest)
+    writer_core::emit_leb128_u(w, dest)
 }
 
 fn is_gc_const_string_consumer(next_op: i32) -> bool {

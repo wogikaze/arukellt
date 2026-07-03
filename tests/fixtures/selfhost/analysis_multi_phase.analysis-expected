@@ -1,5 +1,5 @@
 analysis tests/fixtures/selfhost/analysis_multi_phase.ark
-decls=3 symbols=264 typed=2 diagnostics=6
+decls=3 symbols=266 typed=2 diagnostics=6
 parse: unexpected token in expression: 71
 typecheck: type mismatch: String vs i32
 typecheck: type mismatch: String vs i32

@@ -1,17 +1,14 @@
-use mir::lower::ast_node
-use mir::lower::ctx_api_local_types
-use mir::lower::ctx_api_local_alloc
-use mir::lower::ctx_api_emit
-use mir::lower::ctx_types
 // Arukellt Selfhost - MIR match payload field binding emission.
 
+use mir::lower::ast_node
+use mir::lower::ctx_api_local_types
 use mir::inst_struct_get
 use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::ctx_gc_enum
-use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
+use mir::lower::match_payload_bind_types
 use mir::lower::match_payload_field_type
 use mir::value_types
 
@@ -26,120 +23,91 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
             ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
-        set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
-        set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, scrut_ok_is_i32)
+        match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
+        match_payload_bind_types::set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, scrut_ok_is_i32)
         // Infer concrete payload type from scrutinee type for Option/Result.
         if bi == 0 {
-            let is_some_or_ok = match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name))
-            let is_err = match_payload_field_type::mir_match_variant_is_err(clone(variant_name))
-            if is_some_or_ok || is_err {
-                let current_type = ctx_get_local_type(ctx, bind_local)
-                // Override when type is empty, "enum:open", or contains an
-                // unresolved type variable (e.g. "enum:T" where T is a generic
-                // type parameter name, not a concrete type).
-                // Also override the "string" fallback set by
-                // set_gc_payload_bind_type_if_needed for Err variants, so that
-                // non-String Err payloads (e.g. AppError) get the correct type.
-                if len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) || (is_err && eq(current_type, String_from("string"))) {
-                    let scrut_type = ctx_get_local_type(ctx, scrut_idx)
-                    let mut elem_ty = String_new()
-                    if is_some_or_ok {
-                        // Ok/Some payload is the first type parameter.
-                        if starts_with(clone(scrut_type), String_from("option:")) {
-                            elem_ty = substring(scrut_type, 7, len(scrut_type))
-                        } else {
-                            if starts_with(clone(scrut_type), String_from("Option_")) {
-                                elem_ty = substring(scrut_type, 7, len(scrut_type))
-                            } else {
-                                if starts_with(clone(scrut_type), String_from("Result_")) {
-                                    elem_ty = extract_first_result_type_param(scrut_type)
-                                } else {
-                                    if starts_with(clone(scrut_type), String_from("result:")) {
-                                        elem_ty = extract_first_result_type_param(scrut_type)
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Err payload is the second type parameter.
-                        if starts_with(clone(scrut_type), String_from("Result_")) {
-                            elem_ty = extract_second_result_type_param(scrut_type)
-                        } else {
-                            if starts_with(clone(scrut_type), String_from("result:")) {
-                                elem_ty = extract_second_result_type_param(scrut_type)
-                            }
-                        }
-                    }
-                    if len(elem_ty) > 0 {
-                        // For non-scalar, non-String types (e.g. AppError),
-                        // prefix with "enum:" so the emitter's ref local type
-                        // inference maps it to the enum open type.
-                        // However, types that already have a recognised ref
-                        // prefix (vec:, hashmap:, Option_, Result_, option:,
-                        // result:) should NOT be prefixed with "enum:" because
-                        // the emitter has dedicated GC type mappings for them.
-                        let mut set_type = elem_ty
-                        if !match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
-                            if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
-                                if !starts_with(clone(elem_ty), String_from("vec:")) && !starts_with(clone(elem_ty), String_from("hashmap:")) && !starts_with(clone(elem_ty), String_from("Option_")) && !starts_with(clone(elem_ty), String_from("option:")) && !starts_with(clone(elem_ty), String_from("Result_")) && !starts_with(clone(elem_ty), String_from("result:")) {
-                                    set_type = concat(String_from("enum:"), elem_ty)
-                                }
-                            }
-                        }
-                        ctx_set_local_type(ctx, bind_local, set_type)
-                        // Fix vt: if the element type is scalar, override
-                        // VT_GC_REF with VT_I32 to match the actual payload.
-                        if match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
-                            if bind_vt == value_types::VT_GC_REF() {
-                                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
-                            }
-                        } else {
-                            // Non-scalar types (String, Vec, etc.) are GC refs
-                            // on GC targets.  Override VT_I32 to VT_GC_REF so
-                            // that the local is declared as a ref and the enum
-                            // variant is created with a ref field.
-                            if ctx_gc_enum::ctx_is_gc_target(ctx) {
-                                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-                            }
-                        }
-                    }
-                }
-            }
+            mir_infer_payload_bind_type(ctx, clone(variant_name), bind_local, bind_vt, scrut_idx)
         }
         emit_payload_field_bind(ctx, clone(variant_name), scrut_idx, bind_local, bind_vt, bi)
         bi = bi + 1
     }
 }
 
-fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
-    if bind_vt != value_types::VT_GC_REF() {
-        return
+// Extract the concrete payload element type from the scrutinee type name.
+fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> String {
+    if is_some_or_ok {
+        // Ok/Some payload is the first type parameter.
+        if starts_with(clone(scrut_type), String_from("option:")) {
+            return substring(scrut_type, 7, len(scrut_type))
+        }
+        if starts_with(clone(scrut_type), String_from("Option_")) {
+            return substring(scrut_type, 7, len(scrut_type))
+        }
+        if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
+            return match_payload_bind_types::extract_first_result_type_param(scrut_type)
+        }
+        return String_new()
     }
-    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
-    if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
-        ctx_set_local_type(ctx, bind_local, String_from("string"))
-        return
+    // Err payload is the second type parameter.
+    if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
+        return match_payload_bind_types::extract_second_result_type_param(scrut_type)
     }
-    if len(field_type) > 0 && ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(field_type)) {
-        ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
-        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-        return
-    }
-    if len(field_type) > 0 && !match_payload_field_type::mir_payload_scalar_type_name(clone(field_type)) {
-        ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
-        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-        return
-    }
-    if match_payload_field_type::mir_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
-        ctx_set_local_type(ctx, bind_local, String_from("string"))
-    }
+    String_new()
 }
 
-fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, scrut_ok_is_i32: bool) {
-    if bind_vt == value_types::VT_I32() && scrut_ok_is_i32 && field_idx == 0 {
-        if match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
-            ctx_set_local_type(ctx, bind_local, String_from("i32"))
+// Infer the concrete payload type for the first bind of Some/Ok/Err patterns
+// from the scrutinee's type name, then fix up the local's type and vt.
+fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, scrut_idx: i32) {
+    let is_some_or_ok = match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name))
+    let is_err = match_payload_field_type::mir_match_variant_is_err(clone(variant_name))
+    if !is_some_or_ok && !is_err {
+        return
+    }
+    let current_type = ctx_get_local_type(ctx, bind_local)
+    // Override when type is empty, "enum:open", or contains an
+    // unresolved type variable (e.g. "enum:T" where T is a generic
+    // type parameter name, not a concrete type).
+    // Also override the "string" fallback set by
+    // set_gc_payload_bind_type_if_needed for Err variants, so that
+    // non-String Err payloads (e.g. AppError) get the correct type.
+    if !(len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) || (is_err && eq(current_type, String_from("string")))) {
+        return
+    }
+    let scrut_type = ctx_get_local_type(ctx, scrut_idx)
+    let elem_ty = mir_payload_elem_type_from_scrut(scrut_type, is_some_or_ok)
+    if len(elem_ty) == 0 {
+        return
+    }
+    // For non-scalar, non-String types (e.g. AppError),
+    // prefix with "enum:" so the emitter's ref local type
+    // inference maps it to the enum open type.
+    // However, types that already have a recognised ref
+    // prefix (vec:, hashmap:, Option_, Result_, option:,
+    // result:) should NOT be prefixed with "enum:" because
+    // the emitter has dedicated GC type mappings for them.
+    let mut set_type = clone(elem_ty)
+    if !match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
+        if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
+            if !starts_with(clone(elem_ty), String_from("vec:")) && !starts_with(clone(elem_ty), String_from("hashmap:")) && !starts_with(clone(elem_ty), String_from("Option_")) && !starts_with(clone(elem_ty), String_from("option:")) && !starts_with(clone(elem_ty), String_from("Result_")) && !starts_with(clone(elem_ty), String_from("result:")) {
+                set_type = concat(String_from("enum:"), clone(elem_ty))
+            }
+        }
+    }
+    ctx_set_local_type(ctx, bind_local, set_type)
+    // Fix vt: if the element type is scalar, override
+    // VT_GC_REF with VT_I32 to match the actual payload.
+    if match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
+        if bind_vt == value_types::VT_GC_REF() {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
+        }
+    } else {
+        // Non-scalar types (String, Vec, etc.) are GC refs
+        // on GC targets.  Override VT_I32 to VT_GC_REF so
+        // that the local is declared as a ref and the enum
+        // variant is created with a ref field.
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
     }
 }
@@ -156,11 +124,11 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
         if match_payload_field_type::mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
             effective_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-            set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, effective_vt, field_idx)
+            match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, effective_vt, field_idx)
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
                 ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }
-        } else if payload_type_name_is_gc_ref(ctx, bind_local) {
+        } else if match_payload_bind_types::payload_type_name_is_gc_ref(ctx, bind_local) {
             // The local type name indicates a GC ref type (String, Vec, etc.)
             // but core_payload_gc_field_is_ref could not detect it because
             // the variant was previously registered with an i32 payload.
@@ -197,89 +165,4 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
     ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(variant_name), ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), field_idx + 1), field_idx + 1, ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name)), field_vt, bind_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
-}
-
-// Extract the first type parameter from a Result type string like
-// "Result_i32_String" or "result:i32:String".
-fn extract_first_result_type_param(scrut_type: String) -> String {
-    // Skip the prefix ("Result_" or "result:")
-    let prefix_len = 7
-    let rest = substring(scrut_type, prefix_len, len(scrut_type))
-    // Determine the separator: "Result_" uses '_', "result:" uses ':'.
-    // Type names like "vec:i32" contain ':' so we must not treat ':' as a
-    // separator when the prefix is "Result_".
-    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
-    let mut sep = 0 - 1
-    let mut i = 0
-    let rlen = len(rest)
-    while i < rlen {
-        let ch = char_at(rest, i)
-        if ch == sep_char {
-            sep = i
-            i = rlen
-        }
-        i = i + 1
-    }
-    if sep < 0 {
-        return rest
-    }
-    substring(rest, 0, sep)
-}
-
-// Extract the second type parameter from a Result type string like
-// "Result_i32_String" or "result:i32:String".
-fn extract_second_result_type_param(scrut_type: String) -> String {
-    let prefix_len = 7
-    let rest = substring(scrut_type, prefix_len, len(scrut_type))
-    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
-    // Find the first separator to skip the first type parameter.
-    let mut first_sep = 0 - 1
-    let mut i = 0
-    let rlen = len(rest)
-    while i < rlen {
-        let ch = char_at(rest, i)
-        if ch == sep_char {
-            first_sep = i
-            i = rlen
-        }
-        i = i + 1
-    }
-    if first_sep < 0 {
-        return String_new()
-    }
-    // Return everything after the first separator.
-    substring(rest, first_sep + 1, rlen)
-}
-
-// Check if the bind local's type name indicates a GC ref type on GC targets.
-// This is used as a fallback when core_payload_gc_field_is_ref could not
-// detect the ref type from the variant sig (e.g. when the variant was
-// previously registered with an i32 payload).
-fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
-    let type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if len(type_name) == 0 {
-        return false
-    }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("vec:")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("hashmap:")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("enum:")) {
-        return true
-    }
-    if starts_with(clone(type_name), String_from("struct:")) {
-        return true
-    }
-    false
 }

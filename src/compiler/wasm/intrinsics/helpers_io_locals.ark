@@ -2,9 +2,8 @@ use wasm::opcodes
 // Arukellt Selfhost - Wasm intrinsic I/O local primitive recipes.
 
 use wasm::writer_core
-use wasm::writer_leb
 
 fn emit_local_get(w: WasmWriter, local: i32) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_leb::emit_leb128_u(w, local)
+    writer_core::emit_leb128_u(w, local)
 }

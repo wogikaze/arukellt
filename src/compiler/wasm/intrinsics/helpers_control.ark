@@ -1,29 +1,71 @@
-// Arukellt Selfhost - Control flow helpers facade (branch, loop, structured).
+// Arukellt Selfhost - Control flow helper recipes (branch, loop, structured).
 
-use wasm::intrinsics::helpers_control_branch
-use wasm::intrinsics::helpers_control_loop
-use wasm::intrinsics::helpers_control_structured
+use wasm::opcodes
+use wasm::writer_core
+use wasm::constants
+
+// ---- helpers_control_branch ----
+fn emit_br(w: WasmWriter, depth: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_core::emit_leb128_u(w, depth)
+}
 
 fn emit_br_if(w: WasmWriter, depth: i32) {
-    helpers_control_branch::emit_br_if(w, depth)
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_core::emit_leb128_u(w, depth)
 }
 
-fn emit_br(w: WasmWriter, depth: i32) {
-    helpers_control_branch::emit_br(w, depth)
-}
-
+// ---- helpers_control_loop ----
 fn emit_block_loop_header(w: WasmWriter) {
-    helpers_control_loop::emit_block_loop_header(w)
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_block_loop_footer(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_void_block(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_void_loop(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_void_end(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+// ---- helpers_control_structured ----
+fn emit_if(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_IF())
+}
+
+fn emit_if_i32(w: WasmWriter) {
+    emit_if(w)
+    writer_core::emit_byte(w, constants::WASM_I32())
 }
 
 fn emit_if_empty(w: WasmWriter) {
-    helpers_control_structured::emit_if_empty(w)
+    emit_if(w)
+    writer_core::emit_byte(w, 64)
 }
 
 fn emit_else(w: WasmWriter) {
-    helpers_control_structured::emit_else(w)
+    writer_core::emit_byte(w, opcodes::OP_ELSE())
 }
 
 fn emit_end(w: WasmWriter) {
-    helpers_control_structured::emit_end(w)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_block_i32(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, constants::WASM_I32())
 }
