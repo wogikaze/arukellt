@@ -7,15 +7,21 @@
 use mir::lower::return_typeinfo
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_fn_return_type
+use corehir::legacy_vt_compat
 use mir::lower_kinds
 use mir::mono_names
 use mir::type_contracts
 use mir::value_types
 
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
-    let legacy_vt = mono_return_vt_legacy_path(ctx, clone(name), fallback_vt)
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, clone(name))
-    mono_return_vt_table::mono_return_vt_apply_table_when_matched(table_vt, legacy_vt, name)
+    if table_vt >= 0 {
+        if table_vt != fallback_vt && !legacy_vt_compat::legacy_vt_values_equal(table_vt, fallback_vt) {
+            mono_return_vt_table::mono_return_vt_audit_log_mismatch(name, table_vt, fallback_vt)
+        }
+        return fallback_vt
+    }
+    mono_return_vt_legacy_path(ctx, clone(name), fallback_vt)
 }
 
 fn mono_return_vt_legacy_path(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {

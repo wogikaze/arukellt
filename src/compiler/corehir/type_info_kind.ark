@@ -25,6 +25,8 @@ fn type_info_display_name(ty: TypeInfo) -> String {
     if tag == 4 { return String_from("bool") }
     if tag == 6 { return String_from("char") }
     if tag == 5 { return String_from("String") }
+    if tag == 7 { return String_from("()") }
+    if tag == 0 { return String_from("void") }
     if tag == 10 { return String_from("Vec") }
     if tag == 11 { return String_from("Option") }
     if tag == 12 { return String_from("Result") }

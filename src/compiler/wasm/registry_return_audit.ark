@@ -1,5 +1,6 @@
 // Arukellt Selfhost - PR-4-wide-audit: registry vs legacy VT observation (emit unchanged).
 
+use corehir::legacy_vt_compat
 use wasm::ctx_record
 use wasm::registry_return_guard
 use wasm::registry_return_resolve
@@ -11,6 +12,10 @@ fn registry_audit_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String, 
     ctx_record::SelfEmitCtx_registry_audit_inc_candidates(ctx)
     let reg_vt = registry_return_resolve::registry_resolve_legacy_return_vt(ctx, inst)
     if reg_vt == fn_legacy_vt {
+        ctx_record::SelfEmitCtx_registry_audit_inc_matched(ctx)
+        return
+    }
+    if legacy_vt_compat::legacy_vt_values_equal(reg_vt, fn_legacy_vt) {
         ctx_record::SelfEmitCtx_registry_audit_inc_matched(ctx)
         return
     }

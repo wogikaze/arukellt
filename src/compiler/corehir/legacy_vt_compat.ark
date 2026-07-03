@@ -25,6 +25,18 @@ fn legacy_vt_from_mir_value_type(table: TypeTable, mvt: MirValueType) -> i32 {
         }
         return value_types::VT_REF()
     }
+    if kind == type_kind::TYPE_KIND_TUPLE() || kind == type_kind::TYPE_KIND_STRUCT() || kind == type_kind::TYPE_KIND_ENUM() {
+        if repr == value_repr::VALUE_REPR_GC_REF() {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
+    if kind == type_kind::TYPE_KIND_VEC() || kind == type_kind::TYPE_KIND_OPTION() || kind == type_kind::TYPE_KIND_RESULT() || kind == type_kind::TYPE_KIND_HASHMAP() || kind == type_kind::TYPE_KIND_HASHSET() {
+        if repr == value_repr::VALUE_REPR_GC_REF() {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
     if repr == value_repr::VALUE_REPR_GC_REF() {
         return value_types::VT_GC_REF()
     }
@@ -48,6 +60,9 @@ fn legacy_vt_from_primitive_name(name: String) -> i32 {
     if eq(clone(name), String_from("void")) {
         return value_types::VT_VOID()
     }
+    if eq(clone(name), String_from("()")) {
+        return value_types::VT_VOID()
+    }
     if eq(clone(name), String_from("i64")) {
         return value_types::VT_I64()
     }
@@ -65,5 +80,11 @@ fn legacy_vt_is_void(vt: i32) -> bool {
 }
 
 fn legacy_vt_values_equal(a: i32, b: i32) -> bool {
-    a == b
+    if a == b {
+        return true
+    }
+    if (a == value_types::VT_REF() && b == value_types::VT_GC_REF()) || (a == value_types::VT_GC_REF() && b == value_types::VT_REF()) {
+        return true
+    }
+    false
 }
