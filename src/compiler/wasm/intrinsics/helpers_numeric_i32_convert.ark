@@ -1,0 +1,7 @@
+// Arukellt Selfhost - Wasm i32 conversion helper recipes.
+
+use wasm::opcodes
+use wasm::writer_core
+
+fn emit_i32_wrap_i64(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64()) }
+fn emit_i32_trunc_f64_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_TRUNC_F64_S()) }

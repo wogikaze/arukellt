@@ -264,7 +264,39 @@ pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
     String_from("")
 }
 
+fn bootstrap_decl_is_command_entry(decl: AstNode) -> bool {
+    if !component_ast_node__node_is_fn_decl(decl) {
+        return false
+    }
+    let name = component_ast_node__node_text(decl)
+    eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start"))
+}
+
+fn bootstrap_world_command_has_run(decls: Vec<AstNode>, export_roots: Vec<String>) -> bool {
+    let mut ri = 0
+    while ri < len(export_roots) {
+        if eq(clone(get_unchecked(export_roots, ri)), String_from("run")) {
+            return true
+        }
+        ri = ri + 1
+    }
+    let mut di = 0
+    while di < len(decls) {
+        if bootstrap_decl_is_command_entry(get_unchecked(decls, di)) {
+            return true
+        }
+        di = di + 1
+    }
+    false
+}
+
 pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
+    if eq(clone(world), String_from("wasi:cli/command")) {
+        let export_roots = bootstrap_collect_wit_export_roots(decls)
+        if !bootstrap_world_command_has_run(decls, export_roots) {
+            return concat(String_from("world `"), concat(clone(world), String_from("` requires export `wasi:cli/run/run`, but no matching function found")))
+        }
+    }
     String_from("")
 }
 """
@@ -518,6 +550,42 @@ def _wasm_needs_host_linker(wasm_path: Path) -> bool:
         return b"arukellt_host" in wasm_path.read_bytes()
     except OSError:
         return False
+
+
+def _ensure_aot_cwasm(wasm_path: Path) -> Path:
+    """Return a precompiled .cwasm for ``wasm_path``, creating it if needed.
+
+    AOT compilation via ``wasmtime compile`` takes ~0.6s but saves ~5s of JIT
+    on each subsequent run.  The .cwasm is cached next to the .wasm and
+    invalidated by mtime.
+    """
+    cwasm = wasm_path.with_suffix(".cwasm")
+    if cwasm.is_file() and cwasm.stat().st_mtime >= wasm_path.stat().st_mtime:
+        return cwasm
+    wasmtime = _find_wasmtime()
+    if not wasmtime:
+        return wasm_path
+    r = subprocess.run(
+        [wasmtime, "compile", "--wasm", "gc", "--wasm", "function-references",
+         "-o", str(cwasm), str(wasm_path)],
+        capture_output=True, text=True,
+    )
+    if r.returncode != 0 or not cwasm.is_file():
+        return wasm_path
+    return cwasm
+
+
+def _wasm_run_cmd(
+    wasmtime: str, compiler_wasm: Path, root: Path, args: list[str]
+) -> list[str]:
+    """Build a wasmtime run command, using AOT .cwasm when available."""
+    cwasm = _ensure_aot_cwasm(compiler_wasm)
+    if cwasm.suffix == ".cwasm":
+        return [wasmtime, "run", "--allow-precompiled",
+                "--wasm", "gc", "--wasm", "function-references",
+                "--dir", str(root), str(cwasm), "--", *args]
+    return [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
+            "--dir", str(root), str(compiler_wasm), "--", *args]
 
 
 def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
@@ -2158,22 +2226,21 @@ def _flatten_compiler_imports(text: str) -> str:
 
 
 _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
+_FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 1
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
     """Return workspace root for flattened selfhost overlay.
 
-    Large overlay trees are prone to WSL9 directory races under the repo
-    ``.build/`` tree; prefer ``/tmp`` unless overridden.  Include PID so
-    concurrent bootstrap jobs do not delete each other's trees.
+    Uses a stable path under ``.build/selfhost/flat-src`` so the overlay can
+    be reused across processes via the disk cache.  Concurrent bootstrap jobs
+    are serialized via ``runtime_lock`` in ``run_fixpoint``, so directory
+    races are not a concern.  Set ``ARUKELLT_SELFHOST_OVERLAY_ROOT`` to override.
     """
     env = os.environ.get("ARUKELLT_SELFHOST_OVERLAY_ROOT", "").strip()
     if env:
         return Path(env)
-    release = os.uname().release.lower()
-    if "microsoft" in release or "wsl" in release:
-        digest = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:10]
-        return Path("/tmp") / f"arukellt-selfhost-flat-{digest}-{os.getpid()}"
     return root / ".build" / "selfhost" / "flat-src"
 
 
@@ -2347,8 +2414,95 @@ pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: St
         sess_path.write_text(text, encoding="utf-8")
 
 
+def _compiler_source_content_hash(root: Path) -> str:
+    """Content-hash of all selfhost compiler source files + checks.py.
+
+    Uses git blob OIDs for tracked files (fast, no file I/O) and falls back
+    to SHA-256 for untracked files.
+    """
+    import subprocess as _sp
+    digest = hashlib.sha256()
+    digest.update(b"v1\n")
+    # Hash checks.py itself (overlay logic depends on it)
+    try:
+        with open(__file__, "rb") as f:
+            digest.update(f.read())
+    except OSError:
+        digest.update(b"<missing>")
+    # Hash all src/compiler/*.ark via git blob OIDs
+    r = _sp.run(
+        ["git", "ls-files", "-s", "-z", "--", "src/compiler/"],
+        cwd=str(root), capture_output=True, check=False,
+    )
+    if r.returncode == 0:
+        for raw in r.stdout.split(b"\0"):
+            if not raw:
+                continue
+            try:
+                meta, rel = raw.split(b"\t", 1)
+            except ValueError:
+                continue
+            parts = meta.split(b" ")
+            if len(parts) >= 2:
+                digest.update(rel)
+                digest.update(b"\0")
+                digest.update(parts[1])
+                digest.update(b"\0")
+    # Also hash std files that the overlay copies (prelude, toml, json, text)
+    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark"):
+        std_path = root / std_rel
+        if std_path.is_file():
+            h = hashlib.sha256()
+            try:
+                with std_path.open("rb") as f:
+                    for chunk in iter(lambda: f.read(65536), b""):
+                        h.update(chunk)
+            except OSError:
+                h.update(b"<missing>")
+            digest.update(std_rel.encode())
+            digest.update(b"\0")
+            digest.update(h.hexdigest().encode())
+            digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _flat_overlay_disk_cache_read(root: Path) -> dict | None:
+    """Read disk cache for flat overlay."""
+    p = root / _FLAT_OVERLAY_DISK_CACHE_REL
+    if not p.is_file():
+        return None
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if data.get("version") != _FLAT_OVERLAY_DISK_CACHE_VERSION:
+            return None
+        return data
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _flat_overlay_disk_cache_write(root: Path, source_hash: str, overlay_path: str) -> None:
+    """Write disk cache for flat overlay."""
+    p = root / _FLAT_OVERLAY_DISK_CACHE_REL
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(
+            json.dumps({
+                "version": _FLAT_OVERLAY_DISK_CACHE_VERSION,
+                "source_hash": source_hash,
+                "overlay_path": overlay_path,
+            }),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+
+
 def _prepare_flattened_selfhost_source(root: Path) -> Path:
-    """Generate a flat-module overlay for bootstrapping with the pinned wasm."""
+    """Generate a flat-module overlay for bootstrapping with the pinned wasm.
+
+    Uses a disk cache keyed by source content hash to skip the ~18s overlay
+    regeneration when the source hasn't changed across process invocations.
+    """
     global _FLAT_OVERLAY_CACHE
     source_mtime = _compiler_source_mtime(root)
     if _FLAT_OVERLAY_CACHE is not None:
@@ -2356,6 +2510,15 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         compiler_dir = cached_root / "src" / "compiler"
         if cached_mtime >= source_mtime and compiler_dir.is_dir():
             return cached_root
+
+    # Disk cache: skip overlay regeneration if source content hash matches.
+    source_hash = _compiler_source_content_hash(root)
+    disk_cache = _flat_overlay_disk_cache_read(root)
+    if disk_cache is not None and disk_cache.get("source_hash") == source_hash:
+        cached_overlay = Path(disk_cache.get("overlay_path", ""))
+        if cached_overlay.is_dir() and (cached_overlay / "src" / "compiler").is_dir():
+            _FLAT_OVERLAY_CACHE = (source_mtime, cached_overlay)
+            return cached_overlay
 
     source_root = root / "src" / "compiler"
     overlay_root = _bootstrap_overlay_root(root)
@@ -2434,6 +2597,8 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
     if text_mod.is_file():
         shutil.copyfile(text_mod, std_dst / "text.ark")
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
+    # Write disk cache so subsequent processes can skip overlay regeneration.
+    _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
     return overlay_root
 
 
@@ -2584,8 +2749,7 @@ def _wasm_fmt(
     timeout: int | None = None,
 ) -> subprocess.CompletedProcess:
     return _run(
-        [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", str(root), str(compiler_wasm), "--",
-         "fmt", src],
+        _wasm_run_cmd(wasmtime, compiler_wasm, root, ["fmt", src]),
         root,
         timeout=timeout,
     )
@@ -2599,13 +2763,12 @@ def _wasm_check(
     timeout: int | None = None,
     extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
-    cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", str(root), str(compiler_wasm), "--"]
-    cmd.extend(["check"])
+    check_args = ["check"]
     if extra_args:
-        cmd.extend(extra_args)
-    cmd.append(src)
+        check_args.extend(extra_args)
+    check_args.append(src)
     return _run(
-        cmd,
+        _wasm_run_cmd(wasmtime, compiler_wasm, root, check_args),
         root,
         timeout=timeout,
     )
@@ -2699,6 +2862,7 @@ def _run_fixpoint_locked(
     # ── Content-hash cache: skip rebuild when source is unchanged ───────────
     no_cache = os.environ.get("ARUKELLT_FIXPOINT_NO_CACHE", "") == "1"
     fingerprint: str | None = None
+    cached: dict | None = None
     if build and not no_cache:
         fingerprint = _selfhost_source_fingerprint(root)
         cached = _fixpoint_cache_read(root)
@@ -2738,7 +2902,29 @@ def _run_fixpoint_locked(
         return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
 
     # Stage 2: bootstrap wasm compiles current selfhost source → s2.wasm
-    if build or not s2.is_file():
+    # Skip stage2 if s2.wasm exists and its hash matches the last successful
+    # build's s2 hash (from fixpoint cache or s2-hash sidecar).  This avoids
+    # the ~22s wasmtime recompile when the source hasn't changed since the
+    # last fixpoint run but the fixpoint cache key changed.
+    skip_stage2 = False
+    if s2.is_file() and fingerprint is not None:
+        # Try fixpoint cache first
+        cached_s2_sha = None
+        if cached is not None:
+            cached_s2_sha = cached.get("s2_sha")
+        # Fall back to s2-hash sidecar (written after every successful stage2)
+        if not cached_s2_sha:
+            s2_hash_file = build_dir / "s2-hash.txt"
+            if s2_hash_file.is_file():
+                try:
+                    cached_s2_sha = s2_hash_file.read_text(encoding="utf-8").strip()
+                except OSError:
+                    pass
+        if cached_s2_sha and _sha256(s2) == cached_s2_sha:
+            skip_stage2 = True
+            emit(f"{GREEN}✓ s2.wasm unchanged from last build — skipping stage 2{NC}")
+
+    if (build or not s2.is_file()) and not skip_stage2:
         emit(f"{YELLOW}[selfhost] Building stage 2 (bootstrap wasm → s2.wasm)...{NC}")
         try:
             r = _compile_selfhost_bootstrap_chain(wasmtime, root, s2_rel, bootstrap)
@@ -2752,6 +2938,11 @@ def _run_fixpoint_locked(
                 emit(r.stderr[:500])
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         emit(f"{GREEN}✓ s2.wasm built{NC}")
+        # Write s2-hash sidecar for stage2 skip on next run
+        try:
+            (build_dir / "s2-hash.txt").write_text(_sha256(s2), encoding="utf-8")
+        except OSError:
+            pass
 
     if not s2.is_file():
         emit(f"{RED}error: s2.wasm not found at {s2} (run without --no-build first){NC}")

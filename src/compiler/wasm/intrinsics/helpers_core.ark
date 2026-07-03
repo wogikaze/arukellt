@@ -1,0 +1,18 @@
+// Facade
+use wasm::intrinsics::helpers_core_calls
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_core_locals
+use wasm::intrinsics::helpers_core_stack
+fn emit_call(w: WasmWriter, index: i32) { helpers_core_calls::emit_call(w, index) }
+fn emit_call_drop(w: WasmWriter, index: i32) { helpers_core_calls::emit_call_drop(w, index) }
+fn emit_drop(w: WasmWriter) { helpers_core_stack::emit_drop(w) }
+fn emit_stack_drop(w: WasmWriter) { helpers_core_stack::emit_drop(w) }
+fn emit_unreachable(w: WasmWriter) { helpers_core_stack::emit_unreachable(w) }
+fn emit_heap_get(w: WasmWriter) { helpers_core_heap::emit_heap_get(w) }
+fn emit_heap_set(w: WasmWriter) { helpers_core_heap::emit_heap_set(w) }
+fn emit_heap_ensure_grown(w: WasmWriter) { helpers_core_heap::emit_heap_ensure_grown(w) }
+fn emit_heap_grow_pages(w: WasmWriter) { helpers_core_heap::emit_heap_grow_pages(w) }
+fn emit_heap_pre_grow_headroom(w: WasmWriter, headroom: i32) { helpers_core_heap::emit_heap_pre_grow_headroom(w, headroom) }
+fn emit_local_get(w: WasmWriter, local: i32) { helpers_core_locals::emit_local_get(w, local) }
+fn emit_local_set(w: WasmWriter, local: i32) { helpers_core_locals::emit_local_set(w, local) }
+fn emit_local_tee(w: WasmWriter, local: i32) { helpers_core_locals::emit_local_tee(w, local) }

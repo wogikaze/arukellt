@@ -1,0 +1,32 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm intrinsic structured control helper recipes.
+
+use wasm::constants
+use wasm::writer_core
+
+fn emit_if(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_IF())
+}
+
+fn emit_if_i32(w: WasmWriter) {
+    emit_if(w)
+    writer_core::emit_byte(w, constants::WASM_I32())
+}
+
+fn emit_if_empty(w: WasmWriter) {
+    emit_if(w)
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_else(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_ELSE())
+}
+
+fn emit_end(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_block_i32(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, constants::WASM_I32())
+}

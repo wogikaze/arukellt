@@ -1,0 +1,13 @@
+// Facade
+use wasm::intrinsics::helpers_memory_access
+use wasm::intrinsics::helpers_memory_stack
+fn emit_i32_load(w: WasmWriter, offset: i32) { helpers_memory_access::emit_i32_load(w, offset) }
+fn emit_i32_store(w: WasmWriter, offset: i32) { helpers_memory_access::emit_i32_store(w, offset) }
+fn emit_i32_load_default(w: WasmWriter) { helpers_memory_access::emit_i32_load_default(w) }
+fn emit_i32_store_default(w: WasmWriter) { helpers_memory_access::emit_i32_store_default(w) }
+fn emit_i32_load8_u_default(w: WasmWriter) { helpers_memory_access::emit_i32_load8_u_default(w) }
+fn emit_i32_store8_default(w: WasmWriter) { helpers_memory_access::emit_i32_store8_default(w) }
+fn emit_memory_copy(w: WasmWriter) { helpers_memory_access::emit_memory_copy(w) }
+fn emit_string_len_from_stack(w: WasmWriter) { helpers_memory_stack::emit_string_len_from_stack(w) }
+fn emit_load_string_len_to_local(w: WasmWriter, string_local: i32, len_local: i32) { helpers_memory_stack::emit_load_string_len_to_local(w, string_local, len_local) }
+fn emit_scratch_addr(w: WasmWriter, offset: i32) { helpers_memory_stack::emit_scratch_addr(w, offset) }

@@ -1,0 +1,137 @@
+// GC enum variant signature helpers.
+use mir::lower::ctx_struct_field_type
+use mir::value_types
+use std::text
+
+fn gc_enum_field_sig_for_vt(vt: i32) -> String {
+    if vt == value_types::VT_F64() {
+        return String_from("_f1_f64")
+    }
+    if vt == value_types::VT_I64() {
+        return String_from("_f1_i64")
+    }
+    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        return String_from("_f1_ref0")
+    }
+    String_from("_f1_i32")
+}
+
+fn ctx_gc_enum_payload_field_sigs_from_vts(payload_vts: Vec<i32>) -> String {
+    let mut sig = String_new()
+    for i in 0..len(payload_vts) {
+        sig = text::builder_append(sig, gc_enum_field_sig_for_vt(get_unchecked(payload_vts, i)))
+    }
+    sig
+}
+
+fn ctx_gc_enum_payload_field_sigs_typed(payload_vts: Vec<i32>, type_name: String) -> String {
+    let mut sig = String_new()
+    for i in 0..len(payload_vts) {
+        let vt = get_unchecked(payload_vts, i)
+        if i == 0 && len(type_name) > 0 && (vt == value_types::VT_GC_REF() || vt == value_types::VT_REF()) {
+            sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(type_name)))
+        } else {
+            sig = text::builder_append(sig, gc_enum_field_sig_for_vt(vt))
+        }
+    }
+    sig
+}
+
+fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
+    // Extract the payload field sigs from the existing sig (everything after
+    // the base "SubF+14_S_f0_i32" prefix).
+    let base = String_from("SubF+14_S_f0_i32")
+    let existing_payload = substring_after(existing_sig, base)
+    // For single-field payloads (the common case), check if both are ref or
+    // both are non-ref.  A field sig is a ref type if it contains "ref".
+    let want_has_ref = contains(clone(want_field_sigs), String_from("ref"))
+    let existing_has_ref = contains(clone(existing_payload), String_from("ref"))
+    if want_has_ref && !existing_has_ref {
+        return false
+    }
+    if existing_has_ref && !want_has_ref {
+        return false
+    }
+    // For zero-payload (unit) variants, existing_payload is empty.
+    // If want has payload fields but existing has none, incompatible.
+    let want_len = len(want_field_sigs)
+    let existing_len = len(existing_payload)
+    if want_len > 0 && existing_len == 0 {
+        return false
+    }
+    if existing_len > 0 && want_len == 0 {
+        return false
+    }
+    true
+}
+
+fn gc_enum_unit_variant_sig(slot: i32) -> String {
+    String_from("SubF+14_S_f0_i32")
+}
+
+fn gc_enum_payload_variant_sig(slot: i32, field_sigs: String) -> String {
+    concat(String_from("SubF+14_S_f0_i32"), field_sigs)
+}
+
+fn gc_enum_field_sig_for_type(type_name: String) -> String {
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+        return String_from("_f1_f64")
+    }
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+        return String_from("_f1_i64")
+    }
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+        return String_from("_f1_ref0")
+    }
+    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+        return String_from("_f1_i32")
+    }
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+        return String_from("_f1_i32")
+    }
+    if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") || eq(clone(type_name), "i64") {
+        return String_from("_f1_i32")
+    }
+    // Vec types map to the Vec struct type (gc type offset 10).
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec_")) {
+        return String_from("_f1_ref10")
+    }
+    // HashMap types map to specific hashmap struct types.
+    if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap_")) {
+        return String_from("_f1_ref16")
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return String_from("_f1_ref14")
+    }
+    if eq(clone(type_name), String_from("Ordering")) {
+        return String_from("_f1_ref14")
+    }
+    String_from("_f1_ref14")
+}
+
+fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
+    let mut sig = String_new()
+    let layout_count = len(ctx.struct_names)
+    let mut li = 0
+    while li < layout_count {
+        if eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
+            let field_count = get_unchecked(ctx.struct_field_counts, li)
+            let mut fi = 1
+            while fi < field_count {
+                let mut off = 0
+                let mut si = 0
+                while si < li {
+                    off = off + get_unchecked(ctx.struct_field_counts, si)
+                    si = si + 1
+                }
+                off = off + fi
+                let ft = get_unchecked(ctx.struct_field_types, off)
+                sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(ft)))
+                fi = fi + 1
+            }
+            return sig
+        }
+        li = li + 1
+    }
+    sig
+}

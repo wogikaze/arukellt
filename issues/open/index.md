@@ -174,7 +174,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 704 | [std::json Full JSON RFC 8259 Compliance](704-std-json-full-compliance.md) | stdlib | none | 606 | none | 0 checked / 6 open | — | — | |
 | 705 | [std::toml Full TOML 1.0 Compliance](705-std-toml-full-compliance.md) | stdlib | none | 606 | none | 0 checked / 5 open | — | — | |
 | 706 | [std::wit Full WIT 1.0 Compliance](706-std-wit-full-compliance.md) | stdlib | none | 606 | none | 0 checked / 5 open | — | — | |
-| 707 | [707 — `Self` return type support for trait method dispatch](707-trait-self-return-type-support.md) | language-design | none | 688 | 689, 691, 708, 710 | 14 checked / 4 open | design-required | None | |
+| 707 | [707 — `Self` return type support for trait method dispatch](707-trait-self-return-type-support.md) | language-design | none | 688 | 689, 691, 708, 710 | 2 checked / 1 open | design-required | None | |
 | 714 | [714 — Emitter-native WASI P2 component output without wrapper](714-wasi-p2-emitter-native-component-output.md) | component-model | none | 074, 510 | 668 | 0 checked / 9 open | architecture-implementation | None | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | none | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 699 | [699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md) | native-feature | none | 649, 698 | none | 0 checked / 9 open | design-ready | None | |

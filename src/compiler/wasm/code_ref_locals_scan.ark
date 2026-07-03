@@ -1,0 +1,161 @@
+// GC ref local scan helpers.
+use mir::block_inst_access
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::function_param_view
+use mir::function_locals_view
+use mir::local_access
+use mir::opcodes
+
+fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
+                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+                if ret_local == local_idx {
+                    return true
+                }
+                if ret_local < 0 && ii > 0 {
+                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() && inst_accessors_operands::MirInst_arg0(prev) == local_idx {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                    return true
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+// Check if a type_name string indicates a GC reference type.
+fn type_name_is_ref(type_name: String) -> bool {
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    false
+}
+
+// Check if a local has a type_name that indicates a GC reference type.
+fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
+    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(f) {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let type_name = local_access::MirLocal_type_name(loc)
+        if len(type_name) > 0 {
+            return type_name_is_ref(type_name)
+        }
+    }
+    false
+}
+
+// Check if a local has ANY assignment that produces a reference value.
+// This guards against sticky type_names on reused locals that only receive
+// i32 values in the current MIR. Returns true if there is evidence the local
+// holds a ref value (direct ref-producing op, LOCAL_SET/LOCAL_GET from a ref
+// source, or a function parameter with a ref type_name).
+fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
+    local_has_any_ref_assignment_depth(f, local_idx, 0)
+}
+
+fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32) -> bool {
+    if depth > 3 {
+        return false
+    }
+    let param_count = function_param_view::MirFunction_param_count(f)
+    if local_idx >= 0 && local_idx < param_count {
+        let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
+        if len(param_type_name) > 0 && type_name_is_ref(param_type_name) {
+            return true
+        }
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if local_inst_assigns_ref(f, inst, local_idx, depth) {
+                return true
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn local_inst_assigns_ref(f: MirFunction, inst: MirInst, local_idx: i32, depth: i32) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if dest == local_idx {
+        if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_ARRAY_NEW() || op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_CALL() {
+            return true
+        }
+        if op == opcodes::MIR_GC_STRUCT_GET() && local_has_ref_type_name(f, local_idx) {
+            return true
+        }
+        if op == opcodes::MIR_LOCAL_GET() {
+            let src = inst_accessors_operands::MirInst_arg0(inst)
+            if src >= 0 && (local_has_ref_type_name(f, src) || local_has_any_ref_assignment_depth(f, src, depth + 1)) {
+                return true
+            }
+        }
+    }
+    if op == opcodes::MIR_LOCAL_SET() && arg0 == local_idx {
+        let source = inst_accessors_operands::MirInst_arg1(inst)
+        if source >= 0 && (local_has_ref_type_name(f, source) || local_has_any_ref_assignment_depth(f, source, depth + 1)) {
+            return true
+        }
+    }
+    false
+}
+

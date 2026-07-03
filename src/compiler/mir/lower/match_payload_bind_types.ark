@@ -1,0 +1,40 @@
+// MIR match payload bind types.
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_struct_field_type
+use mir::lower::match_payload_field_type
+use mir::value_types
+
+fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+    if bind_vt != value_types::VT_GC_REF() {
+        return
+    }
+    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
+        ctx_set_local_type(ctx, bind_local, String_from("string"))
+        return
+    }
+    if len(field_type) > 0 && ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(field_type)) {
+        ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        return
+    }
+    if len(field_type) > 0 && !match_payload_field_type::mir_payload_scalar_type_name(clone(field_type)) {
+        ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        return
+    }
+    if match_payload_field_type::mir_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
+        ctx_set_local_type(ctx, bind_local, String_from("string"))
+    }
+}
+
+fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, scrut_ok_is_i32: bool) {
+    if bind_vt == value_types::VT_I32() && scrut_ok_is_i32 && field_idx == 0 {
+        if match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name)) {
+            ctx_set_local_type(ctx, bind_local, String_from("i32"))
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
+        }
+    }
+}
+

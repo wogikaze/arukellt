@@ -1,0 +1,15 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm intrinsic branch helper recipes.
+
+use wasm::writer_core
+use wasm::writer_leb
+
+fn emit_br(w: WasmWriter, depth: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BR())
+    writer_leb::emit_leb128_u(w, depth)
+}
+
+fn emit_br_if(w: WasmWriter, depth: i32) {
+    writer_core::emit_byte(w, opcodes::OP_BR_IF())
+    writer_leb::emit_leb128_u(w, depth)
+}

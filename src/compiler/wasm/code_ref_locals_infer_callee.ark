@@ -157,3 +157,72 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
     }
     byte_size
 }
+
+fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    let string_type = infer_string_callee_gc_type(ctx, callee)
+    if string_type >= 0 {
+        return string_type
+    }
+    let hm_type = infer_hashmap_callee_gc_type(ctx, callee)
+    if hm_type >= 0 {
+        return hm_type
+    }
+    let builtin = infer_builtin_callee_gc_type(ctx, callee)
+    if builtin >= 0 {
+        return builtin
+    }
+    infer_call_result_gc_type_from_fn(ctx, callee)
+}
+
+fn infer_builtin_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        return infer_vec_new_callee_gc_type(ctx, callee)
+    }
+    if eq(clone(callee), "vec_pop") || eq(clone(callee), "vec_get") {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    if eq(clone(callee), "find_i32") || eq(clone(callee), "find_i64") || eq(clone(callee), "find_f64") || eq(clone(callee), "find_String") {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    if eq(clone(callee), "vec_push") {
+        return 0 - 1
+    }
+    if eq(clone(callee), "vec_set") || eq(clone(callee), "vec_reverse") || eq(clone(callee), "vec_remove") {
+        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    }
+    if eq(clone(callee), "filter_String") || eq(clone(callee), "__intrinsic_filter_String") || eq(clone(callee), "map_String_String") || eq(clone(callee), "__intrinsic_map_String_String") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(callee), "filter_i32") || eq(clone(callee), "__intrinsic_filter_i32") || eq(clone(callee), "map_i32_i32") || eq(clone(callee), "__intrinsic_map_i32_i32") {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") || eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") || eq(clone(callee), "parse_f64") || eq(clone(callee), "convert::parse_f64") || eq(clone(callee), "parse_u64") || eq(clone(callee), "convert::parse_u64") {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    if eq(clone(callee), "split") || eq(clone(callee), "text::split") || eq(clone(callee), "string::split") {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(callee), "join") || eq(clone(callee), "text::join") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if eq(clone(callee), "trim") || eq(clone(callee), "trim_start") || eq(clone(callee), "trim_end") || eq(clone(callee), "to_uppercase") || eq(clone(callee), "to_lowercase") || eq(clone(callee), "replace") || eq(clone(callee), "replace_all") || eq(clone(callee), "repeat") || eq(clone(callee), "slice") || eq(clone(callee), "substring") || eq(clone(callee), "reverse") || eq(clone(callee), "pad_left") || eq(clone(callee), "pad_right") || eq(clone(callee), "pad_start") || eq(clone(callee), "pad_end") {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    0 - 1
+}
+
+fn infer_vec_new_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+    if eq(clone(callee), String_from("Vec_new_String")) {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(callee), String_from("Vec_new_i64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if eq(clone(callee), String_from("Vec_new_f64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    }
+    if eq(clone(callee), String_from("Vec_new_v128")) {
+        return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    }
+    ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+}

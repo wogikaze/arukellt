@@ -11,7 +11,7 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 707 | 707 — `Self` return type support for trait method dispatch | language-design | 4 | 0 | 4 | 5 | 4 | 17 |
+| 1 | 707 | 707 — `Self` return type support for trait method dispatch | language-design | 4 | 0 | 3 | 5 | 4 | 16 |
 | 2 | 686 | Wasm GC Selfhost Implementation | main | 0 | 0 | 4 | 5 | 4 | 13 |
 | 3 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
 | 4 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |

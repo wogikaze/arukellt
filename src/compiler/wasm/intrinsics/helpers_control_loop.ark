@@ -1,0 +1,30 @@
+use wasm::opcodes
+// Arukellt Selfhost - Wasm intrinsic block/loop helper recipes.
+
+use wasm::writer_core
+
+fn emit_block_loop_header(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_block_loop_footer(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_void_block(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_BLOCK())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_void_loop(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_LOOP())
+    writer_core::emit_byte(w, 64)
+}
+
+fn emit_void_end(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
