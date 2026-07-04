@@ -27,7 +27,7 @@ Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-
 
 Legacy micro-benchmarks (`fib.ark`, `vec_push_pop.ark`, etc.) live under
 `benchmarks/legacy/`. Orchestration moved to `scripts/util/benchmark_runner.py` and
-`mise bench*` tasks (#140, #535). Original `scripts/run/run-benchmarks.sh` path is
+`python3 scripts/util/benchmark_runner.py --mode full*` tasks (#140, #535). Original `scripts/run/run-benchmarks.sh` path is
 retired per #537; do not bulk-reopen for script rename alone.
 
 **Evidence:** `benchmarks/legacy/fib.ark`, `mise.toml` `[tasks.bench]`,

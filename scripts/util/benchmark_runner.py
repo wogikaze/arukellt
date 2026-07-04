@@ -292,7 +292,7 @@ def resolve_compiler(explicit: str | None) -> Path:
         if candidate.exists() and os.access(candidate, os.X_OK):
             return candidate
     raise SystemExit(
-        "arukellt entrypoint not found. Set ARUKELLT_BIN, use scripts/run/arukellt-selfhost.sh, or use `mise bench`."
+        "arukellt entrypoint not found. Set ARUKELLT_BIN, use scripts/run/arukellt-selfhost.sh, or use `python3 scripts/util/benchmark_runner.py --mode full`."
     )
 
 
@@ -1551,11 +1551,11 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("## Quick Start")
     lines.append("")
     lines.append("```bash")
-    lines.append("mise bench                  # full local benchmark (release build, all metrics)")
-    lines.append("mise bench:quick            # single-sample smoke run")
-    lines.append("mise bench:compare          # measure + compare against baseline")
-    lines.append("mise bench:update-baseline  # replace baseline with current measurements")
-    lines.append("mise bench:ci               # regression gate (fail on threshold breach)")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode full                  # full local benchmark (release build, all metrics)")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode quick            # single-sample smoke run")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode compare          # measure + compare against baseline")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode update-baseline  # replace baseline with current measurements")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode ci               # regression gate (fail on threshold breach)")
     lines.append("```")
     lines.append("")
     lines.append("## Cross-language comparison")

@@ -11,11 +11,11 @@ In scope:
 Out of scope: 
 ---
 
-1. `mise bench` covers at least: fs read/write, json parse, text operations, hash insert/get
+1. `python3 scripts/util/benchmark_runner.py --mode full` covers at least: fs read/write, json parse, text operations, hash insert/get
 
 # Stdlib Baseline: Docs, Verification, and Benchmark Closeout
 
-- Ensure `mise bench` covers: "file I/O (#543 tie-in), parser/text builder hot paths (#520 tie-in),"
+- Ensure `python3 scripts/util/benchmark_runner.py --mode full` covers: "file I/O (#543 tie-in), parser/text builder hot paths (#520 tie-in),"
 
 # Stdlib Baseline: Docs, Verification, and Benchmark Closeout
 
@@ -38,7 +38,7 @@ stale progress surface contradicts `std/manifest.toml`.
 - Verify all targeted modules have real module doc comments (no `_No module doc comment yet_`)
 - Verify availability, stability, and deprecation are visible in generated docs
 - Verify examples match current behavior (example smoke-check fixtures)
-- Ensure `mise bench` covers: file I/O (#543 tie-in), parser/text builder hot paths (#520 tie-in),
+- Ensure `python3 scripts/util/benchmark_runner.py --mode full` covers: file I/O (#543 tie-in), parser/text builder hot paths (#520 tie-in),
   hash-family occupancy / collision / regression measurements
 - Remove or update any hand-maintained progress boards that contradict `std/manifest.toml`
 
@@ -70,7 +70,7 @@ None (this closes the #590 umbrella)
 
 1. `python3 scripts/gen/generate-docs.py` completes with no `_No module doc comment yet_` entries
    for targeted families
-2. `mise bench` covers at least: fs read/write, json parse, text operations, hash insert/get
+2. `python3 scripts/util/benchmark_runner.py --mode full` covers at least: fs read/write, json parse, text operations, hash insert/get
 3. No hand-maintained progress board contradicts `std/manifest.toml` stability labels
 
 ---
@@ -80,7 +80,7 @@ None (this closes the #590 umbrella)
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 python3 scripts/gen/generate-docs.py
 python scripts/manager.py docs check
 ```

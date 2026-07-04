@@ -13,7 +13,7 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 # 540 — Benchmark: "enum dispatch (pattern matching)"
 
 - [x] Tags: `cpu-bound`, `match-heavy`, `allocation-heavy`, `iteration`
-- [x] `mise bench: update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` includes the new benchmark
 - `74d253df` feat(bench): "add enum dispatch benchmark (#540)"
 - `8cc1fe0c` close #540: move issue to done
 
@@ -40,14 +40,14 @@ docs/benchmarks/feature-matrix.md identifies **enum / pattern matching** as a hi
 - [x] `benchmarks/bench_cpu_enum_dispatch.expected` created with correct stdout
 - [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
 - [x] Tags: `cpu-bound`, `match-heavy`, `allocation-heavy`, `iteration`
-- [x] `mise bench` passes for the new benchmark
-- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes the new benchmark
 - [x] docs/benchmarks/feature-matrix.md updated to mark enum/pattern matching as covered
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
 
 ## Close gate
 

@@ -21,12 +21,12 @@ This matters because:
 
 ## Running a Scaling Sweep
 
-Use `mise bench` (full mode) to capture timing data across multiple iterations,
+Use `python3 scripts/util/benchmark_runner.py --mode full` (full mode) to capture timing data across multiple iterations,
 then compare results across runs stored in `benchmarks/results/` to observe
 scaling behaviour.
 
 ```bash
-mise bench   # full mode (10 iterations)
+python3 scripts/util/benchmark_runner.py --mode full   # full mode (10 iterations)
 ```
 
 Output conforms to `arukellt-bench-v1` schema. Per-size analysis can be done
@@ -124,7 +124,7 @@ adjacent size points. Common causes:
 When a cliff is detected, investigate by:
 
 1. Narrowing the sweep range around the cliff point
-2. Checking memory metrics (`mise bench` — memory fields in JSON results)
+2. Checking memory metrics (`python3 scripts/util/benchmark_runner.py --mode full` — memory fields in JSON results)
 3. Reviewing recent code changes for algorithmic regressions
 
 ## Integration with CI

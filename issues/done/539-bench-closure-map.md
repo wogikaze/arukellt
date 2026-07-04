@@ -14,7 +14,7 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 # 539 — Benchmark: "closure map (higher-order functions)"
 
 - [x] Tags: `cpu-bound`, `closure-heavy`, `allocation-heavy`, `iteration`
-- [x] `mise bench: update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` includes the new benchmark
 deterministic output `6017000` (map: "`x * 3 + 7` over 2000 elements, reduce: sum). Closures"
 
 # 539 — Benchmark: closure map (higher-order functions)
@@ -40,14 +40,14 @@ docs/benchmarks/feature-matrix.md identifies **closures / higher-order functions
 - [x] `benchmarks/bench_cpu_closure_map.expected` created with correct stdout
 - [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
 - [x] Tags: `cpu-bound`, `closure-heavy`, `allocation-heavy`, `iteration`
-- [x] `mise bench` passes for the new benchmark
-- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes the new benchmark
 - [x] docs/benchmarks/feature-matrix.md updated to mark closures as covered
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
 
 ## Close gate
 

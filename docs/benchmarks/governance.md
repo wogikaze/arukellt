@@ -102,15 +102,15 @@ The authoritative JSON Schema is [`benchmarks/schema.json`](../../benchmarks/sch
 
 ## 3. Execution Modes
 
-All modes are invoked through `mise` tasks backed by `scripts/util/benchmark_runner.py`.
+All modes are invoked through `scripts/util/benchmark_runner.py`.
 
 | Mode               | Command                    | Compile iters | Runtime iters | Warmups | Purpose                                           |
 |--------------------|----------------------------|:---:|:---:|:---:|---------------------------------------------------|
-| **quick**          | `mise bench:quick`         | 1   | 1   | 0   | Single-sample smoke test during local development  |
-| **full**           | `mise bench`               | 5   | 5   | 1   | Default local benchmark with statistical sampling  |
-| **compare**        | `mise bench:compare`       | 5   | 5   | 1   | Measure and compare against stored baseline        |
-| **ci**             | `mise bench:ci`            | 5   | 5   | 1   | Compare + fail on threshold regression (CI gate)   |
-| **update-baseline**| `mise bench:update-baseline` | 5 | 5   | 1   | Replace baseline with current measurements         |
+| **quick**          | `python3 scripts/util/benchmark_runner.py --mode quick`         | 1   | 1   | 0   | Single-sample smoke test during local development  |
+| **full**           | `python3 scripts/util/benchmark_runner.py --mode full`               | 5   | 5   | 1   | Default local benchmark with statistical sampling  |
+| **compare**        | `python3 scripts/util/benchmark_runner.py --mode compare`       | 5   | 5   | 1   | Measure and compare against stored baseline        |
+| **ci**             | `python3 scripts/util/benchmark_runner.py --mode ci`            | 5   | 5   | 1   | Compare + fail on threshold regression (CI gate)   |
+| **update-baseline**| `python3 scripts/util/benchmark_runner.py --mode update-baseline` | 5 | 5   | 1   | Replace baseline with current measurements         |
 
 ### Threshold policy (CI gate)
 
@@ -146,7 +146,7 @@ benchmarks/
 └── baselines/              # (gitignored) Local baseline snapshots
 
 tests/baselines/perf/
-├── baselines.json          # Committed baseline (update via mise bench:update-baseline)
+├── baselines.json          # Committed baseline (update via python3 scripts/util/benchmark_runner.py --mode update-baseline)
 ├── current.json            # Latest run output (overwritten each run)
 └── hello-wasm-size.json    # Standalone size check
 
@@ -166,8 +166,8 @@ scripts/
 
 ### Across commits
 
-1. Check out the **base** commit and run `mise bench:update-baseline`.
-2. Check out the **head** commit and run `mise bench:compare`.
+1. Check out the **base** commit and run `python3 scripts/util/benchmark_runner.py --mode update-baseline`.
+2. Check out the **head** commit and run `python3 scripts/util/benchmark_runner.py --mode compare`.
 3. The runner loads `tests/baselines/perf/baselines.json`, measures current
    performance, and prints a per-benchmark delta table.
 
@@ -184,7 +184,7 @@ A regression is flagged when `delta_pct` exceeds the threshold for that metric
 
 ### Best practices
 
-- Always build with `--release` before benchmarking (the `mise bench*` tasks
+- Always build with `--release` before benchmarking (the `python3 scripts/util/benchmark_runner.py --mode full*` tasks
   handle this automatically).
 - Close CPU-intensive programs during local runs to reduce noise.
 - Use `full` mode (5 iterations + 1 warmup) for any numbers you intend to
@@ -200,7 +200,7 @@ A regression is flagged when `delta_pct` exceeds the threshold for that metric
 3. If the benchmark reads checked-in files at runtime, add the required wasmtime args (for example `run --dir=.`) in its `BenchmarkCase` entry.
 4. Register the benchmark in `scripts/util/benchmark_runner.py` by adding a
    `BenchmarkCase` entry to the `BENCHMARKS` tuple.
-5. Run `mise bench` to verify it compiles, runs, and produces correct output.
-6. Run `mise bench:update-baseline` to include the new benchmark in the
+5. Run `python3 scripts/util/benchmark_runner.py --mode full` to verify it compiles, runs, and produces correct output.
+6. Run `python3 scripts/util/benchmark_runner.py --mode update-baseline` to include the new benchmark in the
    baseline.
 7. Commit the fixture, expected file, any checked-in input files, and updated baseline together.

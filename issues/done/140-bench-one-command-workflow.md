@@ -11,11 +11,11 @@ Reason: "This issue has `Status: open` in its frontmatter but was filed under `i
 Action: "Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03)."
 ---
 
-# ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理
+# ベンチ統合: `python3 scripts/util/benchmark_runner.py --mode full` 1コマンド導線と subcommand 整理
 
-- [x] `mise bench: "quick`、`mise bench:compare`、`mise bench:update-baseline`、`mise bench:ci` を用意する"
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: "quick`、`python3 scripts/util/benchmark_runner.py --mode compare`、`python3 scripts/util/benchmark_runner.py --mode update-baseline`、`python3 scripts/util/benchmark_runner.py --mode ci` を用意する"
 
-# ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理
+# ベンチ統合: `python3 scripts/util/benchmark_runner.py --mode full` 1コマンド導線と subcommand 整理
 
 ---
 
@@ -46,13 +46,13 @@ FD-01 Slice A review: frontmatter `Action` records a 2026-04 false-done move to 
 ## Summary
 
 既存の `benchmarks/run_benchmarks.sh`、`scripts/compare-benchmarks.sh`、`scripts/check/perf-gate.sh` が分散しているため、
-ローカル計測・比較・ベースライン更新を `mise bench` 系の 1 コマンド導線に統合する。
+ローカル計測・比較・ベースライン更新を `python3 scripts/util/benchmark_runner.py --mode full` 系の 1 コマンド導線に統合する。
 「まず何を叩けばよいか」を固定し、ベンチ運用の心理的コストを下げる。
 
 ## 受け入れ条件
 
-- [x] `mise bench` で release build + compile/runtime/size/memory の標準計測が走る
-- [x] `mise bench:quick`、`mise bench:compare`、`mise bench:update-baseline`、`mise bench:ci` を用意する
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` で release build + compile/runtime/size/memory の標準計測が走る
+- [x] `python3 scripts/util/benchmark_runner.py --mode quick`、`python3 scripts/util/benchmark_runner.py --mode compare`、`python3 scripts/util/benchmark_runner.py --mode update-baseline`、`python3 scripts/util/benchmark_runner.py --mode ci` を用意する
 - [x] `hyperfine` / `wasmtime` など任意依存が欠ける場合に、何が skip されたか明示する
 - [x] `benchmarks/README.md` と `docs/process/benchmark-results.md` に新しい導線を反映する
 

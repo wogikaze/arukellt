@@ -15,7 +15,7 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 # 541 — Benchmark: "struct graph (nested structs / recursive types)"
 
 - [x] Tags: `allocation-heavy`, `struct-heavy`, `recursion-heavy`, `container`
-- [x] `mise bench: update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` includes the new benchmark
 
 # 541 — Benchmark: struct graph (nested structs / recursive types)
 
@@ -40,14 +40,14 @@ docs/benchmarks/feature-matrix.md identifies **struct-heavy allocation** and **n
 - [x] `benchmarks/bench_memory_struct_graph.expected` created with correct stdout
 - [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
 - [x] Tags: `allocation-heavy`, `struct-heavy`, `recursion-heavy`, `container`
-- [x] `mise bench` passes for the new benchmark
-- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes the new benchmark
 - [x] docs/benchmarks/feature-matrix.md updated to mark struct-heavy as covered
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
 
 ## Close gate
 

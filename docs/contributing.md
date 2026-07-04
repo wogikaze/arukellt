@@ -112,7 +112,7 @@ python scripts/manager.py verify --full
 Heavy checks also belong in CI. The pre-commit hook can be installed via:
 
 ```bash
-mise run hooks:install
+bash scripts/gate/install-git-hooks.sh
 ```
 
 No pre-push hook script exists today; run `python scripts/manager.py verify --full` manually before pushing.

@@ -358,7 +358,7 @@ Orchestrator: subplanner `audit-slice-f` (57 done issues in batch; cloud worker
 spawn unavailable — planner executed audit directly per `unsupported-in-this-run`).
 
 Cross-check anchors: `scripts/manager.py verify quick`, `docs/release-criteria.md`,
-`benchmarks/` (read-only), `mise.toml` bench tasks, hygiene scripts under
+`benchmarks/` (read-only), `benchmark_runner.py` modes, hygiene scripts under
 `scripts/check/`.
 
 ### 1. Audit summary
@@ -407,7 +407,7 @@ None. Missing orphan inventory reimplementation tracked by reopened #418/#422.
 | 225 | Release criteria doc | `docs/release-criteria.md` + checklist cross-links |
 | 531 | Scripts consolidation epic | #532–537 done; manager.py domains; status corrected |
 | 546–556 | Release verification slices | 2026-05-17 recheck notes + CI integration job |
-| 140 | mise bench workflow | `mise.toml` bench tasks + `benchmark_runner.py` |
+| 140 | python3 scripts/util/benchmark_runner.py --mode full workflow | `benchmark_runner.py` modes + `benchmark_runner.py` |
 | 109 | Benchmark suite | `benchmarks/legacy/*` + runner supersession (#537) |
 | 373, 417, 421, 427 | Hygiene gates | `check-generated-files.sh`, `check-asset-naming.sh`, `check-links.sh` in verify quick |
 | 465 | Playground false-done audit table | Meta governance issue; no product claim |
@@ -429,7 +429,7 @@ None. Missing orphan inventory reimplementation tracked by reopened #418/#422.
 | 422 | orphan script + admission gate | FAIL — reopen |
 | 531 | #533–537 done + manager.py | PASS — keep done (status fix) |
 | 555 | release recheck 2026-05-17 | PASS — keep done |
-| 140 | `mise.toml` bench tasks | PASS — keep done |
+| 140 | `benchmark_runner.py` modes | PASS — keep done |
 
 ### 7. Dependency updates
 

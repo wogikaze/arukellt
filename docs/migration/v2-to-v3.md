@@ -82,7 +82,7 @@ continue to work during the transition.
 3. **Prefer trait-based method syntax** for new code where trait impls already
    exist (`std/core/*.ark`). Full trait method dispatch requires #688.
 
-4. **Update toolchain** — `mise install` to get the v3 compiler.
+4. **Update toolchain** — install wasmtime (see `.tool-versions`) to get the v3 compiler.
 
 5. **Verify** — `arukellt check` should pass with no errors and only expected warnings.
 

@@ -40,7 +40,7 @@ GC 版と linear memory 版を比較する。
 ## Acceptance
 
 - [x] 6 ケース全てのベンチマーク実装が `benchmarks/` に存在する
-- [x] `mise bench` で GC 版と linear memory 版の比較が実行できる
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` で GC 版と linear memory 版の比較が実行できる
 - [x] 計測結果が `benchmarks/results/` に保存されている
 - [x] ADR-002 の判定基準に照らして決定が下せる状態になっている
 

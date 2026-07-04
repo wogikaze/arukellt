@@ -109,8 +109,8 @@ Full results and history are tracked in [`docs/process/benchmark-results.md`](pr
 Run benchmarks locally with:
 
 ```bash
-mise bench            # full measurement (release build)
-mise bench:compare    # compare against stored baseline
+python3 scripts/util/benchmark_runner.py --mode full            # full measurement (release build)
+python3 scripts/util/benchmark_runner.py --mode compare    # compare against stored baseline
 ```
 
 ### Benchmark Suite (bench_<suite>_<name>.ark)

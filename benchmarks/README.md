@@ -13,19 +13,19 @@ Benchmark suite for Arukellt language performance measurement.
 
 ```bash
 # Default local workflow: build release compiler + compile/runtime/size/memory metrics
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 
 # Quick smoke benchmark: single-sample run
-mise bench:quick
+python3 scripts/util/benchmark_runner.py --mode quick
 
 # Compare current results against baseline
-mise bench:compare
+python3 scripts/util/benchmark_runner.py --mode compare
 
 # Update baseline from current measurements
-mise bench:update-baseline
+python3 scripts/util/benchmark_runner.py --mode update-baseline
 
 # CI regression gate
-mise bench:ci
+python3 scripts/util/benchmark_runner.py --mode ci
 ```
 
 `bash benchmarks/run_benchmarks.sh` remains as a thin wrapper around the same Python runner.
@@ -34,11 +34,11 @@ mise bench:ci
 
 | Mode | Command | Compile iters | Runtime iters | Latency iters | Warmups | Purpose |
 |------|---------|:---:|:---:|:---:|:---:|---------|
-| `quick` | `mise bench:quick` | 1 | 1 | 5 | 0 | Single-sample smoke run for local edits |
-| `full` | `mise bench` | 5 | 5 | 20 | 1 | Default local benchmark with statistical sampling |
-| `compare` | `mise bench:compare` | 5 | 5 | 20 | 1 | Measure and compare against stored baseline |
-| `ci` | `mise bench:ci` | 5 | 5 | 20 | 1 | Compare + fail on threshold regression (CI gate) |
-| `update-baseline` | `mise bench:update-baseline` | 5 | 5 | 20 | 1 | Replace baseline with current measurements |
+| `quick` | `python3 scripts/util/benchmark_runner.py --mode quick` | 1 | 1 | 5 | 0 | Single-sample smoke run for local edits |
+| `full` | `python3 scripts/util/benchmark_runner.py --mode full` | 5 | 5 | 20 | 1 | Default local benchmark with statistical sampling |
+| `compare` | `python3 scripts/util/benchmark_runner.py --mode compare` | 5 | 5 | 20 | 1 | Measure and compare against stored baseline |
+| `ci` | `python3 scripts/util/benchmark_runner.py --mode ci` | 5 | 5 | 20 | 1 | Compare + fail on threshold regression (CI gate) |
+| `update-baseline` | `python3 scripts/util/benchmark_runner.py --mode update-baseline` | 5 | 5 | 20 | 1 | Replace baseline with current measurements |
 | `reproducibility` | `--mode reproducibility` | 5 | 5 | 20 | 1 | Run benchmarks twice and compare the two passes for reproducibility |
 | `scaling` | `--mode scaling` | 3 | 1 | 5 | 0 | Measure latency at 3 input-size points (10 %, 50 %, 100 %) against `bench_parse_tree_distance` to detect O(n²) cliffs |
 
@@ -201,7 +201,7 @@ external tools are required.
 | `custom_total`                  | `compile.wasm_sections.custom_total` | Sum of all custom sections in bytes                 |
 | `symbol_attribution`            | `compile.wasm_sections.symbol_attribution` | Always `"unavailable"` — no name section emitted |
 
-**Section diff in compare reports**: when running `mise bench:compare` or `mise bench:ci`,
+**Section diff in compare reports**: when running `python3 scripts/util/benchmark_runner.py --mode compare` or `python3 scripts/util/benchmark_runner.py --mode ci`,
 the runner computes a per-section delta vs baseline and surfaces it in both the text
 output (`sections: code=+1234(+2.1%) ...`) and the markdown report
 (`### Wasm Section Δ vs Baseline` table).
@@ -369,7 +369,7 @@ the *expected* performance floor for CI regression checks.
 **Procedure**:
 
 ```bash
-mise bench:update-baseline  # runs full benchmark pass, then writes new baseline
+python3 scripts/util/benchmark_runner.py --mode update-baseline  # runs full benchmark pass, then writes new baseline
 git add tests/baselines/perf/baselines.json
 git commit -m "bench: update baseline — <reason>"
 ```
@@ -392,7 +392,7 @@ The JSON output lands in `benchmarks/results/`.
 | vec_push_pop | — | — | N/A | N/A | — | — |
 | json_parse | — | — | N/A | N/A | — | — |
 
-*Populated by running `mise bench` or `python scripts/manager.py perf benchmarks --no-quick`.  
+*Populated by running `python3 scripts/util/benchmark_runner.py --mode full` or `python scripts/manager.py perf benchmarks --no-quick`.  
 Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 ### Legacy Fixtures
@@ -404,7 +404,7 @@ Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 ## Tooling Notes
 
-- **`scripts/util/benchmark_runner.py`** — canonical runner used by `mise bench`, compare, baseline update, and CI gate.
+- **`scripts/util/benchmark_runner.py`** — canonical runner used by `python3 scripts/util/benchmark_runner.py --mode full`, compare, baseline update, and CI gate.
 - **`benchmarks/run_benchmarks.sh`** — wrapper for the canonical runner.
 - **`python scripts/manager.py perf gate`** — CI-oriented perf gate (`--update` to update baseline).
 - **`scripts/compare-benchmarks.sh`** — cross-language reference timing wrapper (prints the table to stdout).
@@ -420,7 +420,7 @@ Baseline stored in `tests/baselines/perf/baselines.json`.*
 
 ## Threshold Policy
 
-`mise bench:ci` and `python scripts/manager.py perf gate` enforce these baseline regressions:
+`python3 scripts/util/benchmark_runner.py --mode ci` and `python scripts/manager.py perf gate` enforce these baseline regressions:
 
 | Metric       | Max allowed regression |
 |--------------|:----------------------:|
@@ -499,11 +499,11 @@ percent due to system scheduling, not a real regression.
 ```bash
 # 1. On the base commit, capture the baseline
 git checkout <base>
-mise bench:update-baseline
+python3 scripts/util/benchmark_runner.py --mode update-baseline
 
 # 2. On the head commit, compare
 git checkout <head>
-mise bench:compare
+python3 scripts/util/benchmark_runner.py --mode compare
 ```
 
 The runner loads `tests/baselines/perf/baselines.json`, measures current
@@ -534,11 +534,11 @@ Benchmarks that read checked-in files may declare extra wasmtime args in `script
 1. Create `benchmarks/bench_<category>_<name>.ark` (see [naming conventions](../docs/benchmarks/governance.md#1-naming-conventions)).
 2. Create a matching `.expected` file with correct stdout.
 3. Register the benchmark in `scripts/util/benchmark_runner.py` (`BENCHMARKS` tuple).
-4. Run `mise bench` to verify, then `mise bench:update-baseline`.
+4. Run `python3 scripts/util/benchmark_runner.py --mode full` to verify, then `python3 scripts/util/benchmark_runner.py --mode update-baseline`.
 5. Commit the fixture, expected file, and updated baseline.
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ARUKELLT` | `target/release/arukellt` | Legacy variable. Prefer `mise bench`, or pass `--arukellt` to `scripts/util/benchmark_runner.py`. |
+| `ARUKELLT` | `target/release/arukellt` | Legacy variable. Prefer `python3 scripts/util/benchmark_runner.py --mode full`, or pass `--arukellt` to `scripts/util/benchmark_runner.py`. |

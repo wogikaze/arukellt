@@ -53,7 +53,7 @@ For trustworthy numbers:
 
   ```bash
   # Pin to core 0
-  taskset -c 0 mise bench
+  taskset -c 0 python3 scripts/util/benchmark_runner.py --mode full
 
   # Set CPU governor (requires root)
   echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
@@ -93,7 +93,7 @@ When a benchmark exceeds its CV threshold:
 - The measurement is flagged **unstable** in reports.
 - CI treats unstable benchmarks as informational (no gate failure) unless the
   regression also exceeds the [regression threshold](governance.md#threshold-policy-ci-gate).
-- To diagnose noise, run the benchmark with more iterations via `mise bench` and compare variance across runs (see §5).
+- To diagnose noise, run the benchmark with more iterations via `python3 scripts/util/benchmark_runner.py --mode full` and compare variance across runs (see §5).
 
 ## 5. Detecting Noisy Measurements
 
@@ -101,7 +101,7 @@ To detect instability, run the benchmark multiple times and observe variance:
 
 ```bash
 # Run with 10 iterations
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 ```
 
 Compare runs by looking at the CV (coefficient of variation) in the JSON results

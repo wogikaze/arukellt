@@ -37,9 +37,9 @@ compile time.
 **Workflow:**
 
 1. Make the code change.
-2. Run `python3 scripts/util/collect-baseline.py` (or `mise bench:update-baseline`).
+2. Run `python3 scripts/util/collect-baseline.py` (or `python3 scripts/util/benchmark_runner.py --mode update-baseline`).
 3. Compare results against the previous baseline using
-   `mise bench:compare`.
+   `python3 scripts/util/benchmark_runner.py --mode compare`.
 4. Commit updated baselines only after confirming the regression (if any)
    is acceptable per the thresholds in `docs/process/benchmark-plan.md`.
 

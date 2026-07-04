@@ -56,7 +56,7 @@ This surface is `provisional` and may change in v5. Avoid relying on method synt
 
 ## Migration Steps
 
-1. **Update toolchain** — `mise install` to get the v4 compiler.
+1. **Update toolchain** — install wasmtime (see `.tool-versions`) to get the v4 compiler.
 
 2. **Verify output correctness** — if your code relies on a specific Wasm binary layout or size, re-test after upgrading, as optimization may change the binary.
 

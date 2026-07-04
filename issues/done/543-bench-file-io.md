@@ -14,7 +14,7 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 # 543 — Benchmark: "file I/O (I/O-heavy workloads)"
 
 - [x] Tags: `io-bound`, `string-heavy`, `allocation-heavy`
-- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes the new benchmark
 
 # 543 — Benchmark: file I/O (I/O-heavy workloads)
 
@@ -39,14 +39,14 @@ docs/benchmarks/feature-matrix.md identifies **I/O-heavy workloads** as a medium
 - [x] `benchmarks/bench_io_file_io.expected` created with correct stdout
 - [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
 - [x] Tags: `io-bound`, `string-heavy`, `allocation-heavy`
-- [x] `mise bench` passes for the new benchmark
-- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes the new benchmark
 - [x] docs/benchmarks/feature-matrix.md updated to mark I/O-heavy as covered
 
 ## Required verification
 
-- `mise bench` exited 0 on 2026-05-14; the new `file_io` benchmark compiled, ran, and passed stdout correctness. Existing benchmark failures were still reported as measured suite results.
-- `mise bench:update-baseline` exited 0 on 2026-05-14 and updated `tests/baselines/perf/baselines.json` with `file_io`.
+- `python3 scripts/util/benchmark_runner.py --mode full` exited 0 on 2026-05-14; the new `file_io` benchmark compiled, ran, and passed stdout correctness. Existing benchmark failures were still reported as measured suite results.
+- `python3 scripts/util/benchmark_runner.py --mode update-baseline` exited 0 on 2026-05-14 and updated `tests/baselines/perf/baselines.json` with `file_io`.
 - `python scripts/manager.py verify quick` passes after the issue move and index regeneration.
 
 ## Close gate

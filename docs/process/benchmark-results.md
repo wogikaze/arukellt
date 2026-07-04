@@ -6,11 +6,11 @@ See [`benchmarks/README.md`](../../benchmarks/README.md) for the full workflow g
 ## Quick Start
 
 ```bash
-mise bench                  # full local benchmark (release build, all metrics)
-mise bench:quick            # single-sample smoke run
-mise bench:compare          # measure + compare against baseline
-mise bench:update-baseline  # replace baseline with current measurements
-mise bench:ci               # regression gate (fail on threshold breach)
+python3 scripts/util/benchmark_runner.py --mode full                  # full local benchmark (release build, all metrics)
+python3 scripts/util/benchmark_runner.py --mode quick            # single-sample smoke run
+python3 scripts/util/benchmark_runner.py --mode compare          # measure + compare against baseline
+python3 scripts/util/benchmark_runner.py --mode update-baseline  # replace baseline with current measurements
+python3 scripts/util/benchmark_runner.py --mode ci               # regression gate (fail on threshold breach)
 ```
 
 ## Cross-language comparison
@@ -58,7 +58,7 @@ Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced 
 
 | Tool | Status | Path |
 |------|--------|------|
-| wasmtime | available | /home/wogikaze/.local/share/mise/installs/wasmtime/46.0.1/wasmtime-v46.0.1-x86_64-linux/wasmtime |
+| wasmtime | available | /home/linuxbrew/.linuxbrew/bin/wasmtime |
 | hyperfine | missing | n/a |
 | /usr/bin/time | available | /usr/bin/time |
 

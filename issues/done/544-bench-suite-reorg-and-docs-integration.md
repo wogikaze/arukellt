@@ -11,8 +11,8 @@ Source: benchmarks/ directory cleanup request
 ---
 
 - Organize benchmarks by category: `benchmarks/cpu/`, `benchmarks/memory/`, `benchmarks/io/`, `benchmarks/parse/`
-- [x] `mise bench: update-baseline` works with new structure
-- `mise bench: compare` runs without errors
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` works with new structure
+- `python3 scripts/util/benchmark_runner.py --mode full: compare` runs without errors
 - Status: done
 - Date: 2026-04-22
 - Commit: b531b7eb
@@ -56,14 +56,14 @@ The `benchmarks/` directory needs better organization and clearer result present
 - [x] `scripts/util/benchmark_runner.py` updated to handle new structure
 - [x] `docs/process/benchmark-results.md` improved with better presentation
 - [x] `docs/current-state.md` includes performance snapshot section
-- [x] `mise bench` works with new structure
-- [x] `mise bench:update-baseline` works with new structure
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` works with new structure
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` works with new structure
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
-- `mise bench:compare` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode compare` runs without errors
 
 ## Close gate
 

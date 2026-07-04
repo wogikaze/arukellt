@@ -31,7 +31,7 @@ This is the "minimum viable harness" from `harness/blueprint.md`.
 - **Clarity**: Short pointer docs and explicit queues make status obvious
 - **Reproducibility**: Generated artifacts are committed with regeneration tasks
 - **Scalability**: Foundation supports adding semantic tools, hooks, and skills later
-- **Low ceremony**: Doesn't require full adoption of `mise` or `dprint` initially
+- **Low ceremony**: Doesn't require full adoption of a task runner or `dprint` initially
 
 ## Implementation
 
@@ -45,7 +45,7 @@ The minimum viable harness includes:
 
 Subsequent ADRs will address:
 
-- Task runner selection (`mise` vs `just`)
+- Task runner selection (`just` vs direct `manager.py` commands)
 - Formatter and lint stack
 - CI pipeline structure
 - Optional agent extension layers

@@ -13,7 +13,7 @@ Source: request for comprehensive real-world benchmarks
 # 545 — Benchmark: real-world workloads
 
 - Tags: `string-heavy`, `container`, `recursion-heavy`, `gc-pressure`
-- [x] `mise bench: update-baseline` includes new benchmarks
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` includes new benchmarks
 
 # 545 — Benchmark: real-world workloads
 
@@ -65,14 +65,14 @@ The current benchmark suite consists of microbenchmarks (fib, vec_ops, string_co
 - [x] Each benchmark has `.expected` file
 - [x] Benchmarks registered in `scripts/util/benchmark_runner.py`
 - [x] Appropriate tags assigned to each benchmark
-- [x] `mise bench` passes for all new benchmarks
-- [x] `mise bench:update-baseline` includes new benchmarks
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for all new benchmarks
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes new benchmarks
 - [x] docs/benchmarks/feature-matrix.md updated with new benchmarks
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
 
 ## Close gate
 

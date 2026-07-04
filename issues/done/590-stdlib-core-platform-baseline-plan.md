@@ -216,7 +216,7 @@ python scripts/manager.py verify fixtures
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 python3 scripts/gen/generate-docs.py
 ```
 
@@ -274,7 +274,7 @@ python3 scripts/gen/generate-docs.py
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 python3 scripts/gen/generate-docs.py
 ```
 
@@ -323,7 +323,7 @@ That remains blocked by upstream compiler work.
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 ```
 
 **Phase 4 Exit Condition:** The monomorphic hash family may still be temporary, but it is no longer silently lossy or contract-ambiguous in its primary facade.
@@ -362,7 +362,7 @@ mise bench
 ```bash
 python scripts/manager.py verify quick
 python scripts/manager.py verify fixtures
-mise bench
+python3 scripts/util/benchmark_runner.py --mode full
 python3 scripts/gen/generate-docs.py
 ```
 
@@ -502,7 +502,7 @@ All 5 child issues are now closed. Final acceptance status:
 - `python scripts/manager.py verify quick`: 23/23 pass, 0 failures (clean)
 - `python scripts/manager.py verify fixtures`: PASS=323 FAIL=0 SKIP=69 (clean)
 - `python3 scripts/gen/generate-docs.py`: up to date, exit 0
-- `mise bench`: covers fs read/write, json parse, text operations, hash insert/get, TOML, time
+- `python3 scripts/util/benchmark_runner.py --mode full`: covers fs read/write, json parse, text operations, hash insert/get, TOML, time
 
 ### Child Issue Progress (Final)
 

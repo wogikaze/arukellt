@@ -39,7 +39,7 @@ The fixpoint `s2 == s3` proves the selfhost is deterministic and self-consistent
 
 | Tool | Purpose | Install |
 |------|---------|---------|
-| wasmtime | Execute `.wasm` artifacts | `mise` installs automatically |
+| wasmtime | Execute `.wasm` artifacts | Install via `.tool-versions` (asdf/mise) or system package |
 | sha256sum | Compare fixpoint checksums | coreutils (pre-installed on Linux) |
 
 ## Quick Start

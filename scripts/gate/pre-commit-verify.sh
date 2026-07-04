@@ -161,7 +161,7 @@ if command -v npx >/dev/null 2>&1; then
     if npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc "${MD_FILES[@]}"; then
       step "OK"
     else
-      echo "FAIL: markdownlint found issues in staged markdown files. Run 'mise run fmt:docs' or fix them manually." >&2
+      echo "FAIL: markdownlint found issues in staged markdown files. Run 'npx markdownlint-cli2 "**/*.md" --fix' or fix them manually." >&2
       FAIL=1
     fi
   fi

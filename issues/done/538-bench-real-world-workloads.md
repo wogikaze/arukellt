@@ -13,7 +13,7 @@ Source: request for comprehensive real-world benchmarks
 # 538 — Benchmark: real-world workloads
 
 - Tags: `string-heavy`, `container`, `recursion-heavy`, `gc-pressure`
-- [x] `mise bench: update-baseline` includes new benchmarks
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` includes new benchmarks
 
 ## Summary
 
@@ -64,14 +64,14 @@ _concat). This issue adds comprehensive real-world workloads that better represe
 - [x] Each benchmark has `.expected` file
 - [x] Benchmarks registered in `scripts/util/benchmark_runner.py`
 - [x] Appropriate tags assigned to each benchmark
-- [x] `mise bench` passes for all new benchmarks
-- [x] `mise bench:update-baseline` includes new benchmarks
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for all new benchmarks
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes new benchmarks
 - [x] docs/benchmarks/feature-matrix.md updated with new benchmarks
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
 
 ## Close gate
 
@@ -91,7 +91,7 @@ At least 3 real-world workload benchmarks exist, are registered, and baseline
 - [x] Each has `.expected` file
 - [x] Registered in `scripts/util/benchmark_runner.py`
 - [x] Appropriate tags assigned (application, closure-heavy, allocation-heavy, iteration, container, string-heavy, recursion-heavy, gc-pressure)
-- [x] `mise bench` discovers and compiles all benchmarks (runtime execution has pre-existing wasmtime environment issue)
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` discovers and compiles all benchmarks (runtime execution has pre-existing wasmtime environment issue)
 - [x] `docs/benchmarks/feature-matrix.md` updated
 
 **Gates:**

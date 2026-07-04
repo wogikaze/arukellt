@@ -186,7 +186,7 @@ T5 (wasm32-wasi-p3): Wasm GC + WASI P3 imports — 将来
 | GC 全フィクスチャ通過 | `python3 scripts/manager.py verify --full 2>&1 \| tail -5` | ⏳ 未達 |
 | T1 パス維持 (定期) | `python3 scripts/manager.py verify quick 2>&1 \| tail -5` | 🟡 定期確認 |
 | gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-wasi-p2 -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ⏳ 未着手 |
-| Benchmark 比較 | `mise bench && mise bench:compare` | ⏳ 未着手 |
+| Benchmark 比較 | `python3 scripts/util/benchmark_runner.py --mode full && python3 scripts/util/benchmark_runner.py --mode compare` | ⏳ 未着手 |
 
 ## 主要な修正点
 

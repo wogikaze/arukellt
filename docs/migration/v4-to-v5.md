@@ -86,7 +86,7 @@ Some stdlib functions now require explicit `use` imports. Run `arukellt check` t
 ## Migration Steps
 
 1. Remove `ARUKELLT_USE_RUST=1` from scripts and environment
-2. Ensure `wasmtime` is installed: `mise install`
+2. Ensure `wasmtime` is installed (see `.tool-versions` for pinned version)
 3. Update `fs::` error handlers (Breaking Change 4)
 4. Update `json::parse` error handlers (Breaking Change 5)
 5. Add explicit `use` imports where needed (`arukellt check`)

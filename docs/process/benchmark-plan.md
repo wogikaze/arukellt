@@ -14,17 +14,17 @@ that all benchmark-related issues must follow.
 
 ## 1. Run Modes
 
-All five modes are invoked through `mise` tasks backed by
+All five modes are invoked through `scripts/util/benchmark_runner.py` backed by
 `scripts/util/benchmark_runner.py`.  The table below is the normative
 definition; downstream tooling **must** honour these semantics.
 
 | Mode               | Command                      | Compile iters | Runtime iters | Warmups | Wall-clock target | Purpose |
 |--------------------|------------------------------|:---:|:---:|:---:|:-----------:|---------|
-| `quick`            | `mise bench:quick`           | 1   | 1   | 0   | < 30 s      | Single-sample smoke test.  Fast feedback during local edits.  Numbers are **not** suitable for regression decisions. |
-| `full`             | `mise bench`                 | 5   | 5   | 1   | 2–5 min     | Complete suite with statistical sampling.  Default for local performance work. |
-| `compare`          | `mise bench:compare`         | 5   | 5   | 1   | 2–5 min     | Measure then diff against the committed baseline (`tests/baselines/perf/baselines.json`).  Prints per-benchmark delta table. Does **not** fail on regression. |
-| `ci`               | `mise bench:ci`              | 5   | 5   | 1   | 2–5 min     | Like `compare`, but exits non-zero if any metric exceeds its regression threshold.  Used as the PR gate. |
-| `update-baseline`  | `mise bench:update-baseline` | 5   | 5   | 1   | 2–5 min     | Overwrites `tests/baselines/perf/baselines.json` with current measurements.  Must be committed intentionally (see §3). |
+| `quick`            | `python3 scripts/util/benchmark_runner.py --mode quick`           | 1   | 1   | 0   | < 30 s      | Single-sample smoke test.  Fast feedback during local edits.  Numbers are **not** suitable for regression decisions. |
+| `full`             | `python3 scripts/util/benchmark_runner.py --mode full`                 | 5   | 5   | 1   | 2–5 min     | Complete suite with statistical sampling.  Default for local performance work. |
+| `compare`          | `python3 scripts/util/benchmark_runner.py --mode compare`         | 5   | 5   | 1   | 2–5 min     | Measure then diff against the committed baseline (`tests/baselines/perf/baselines.json`).  Prints per-benchmark delta table. Does **not** fail on regression. |
+| `ci`               | `python3 scripts/util/benchmark_runner.py --mode ci`              | 5   | 5   | 1   | 2–5 min     | Like `compare`, but exits non-zero if any metric exceeds its regression threshold.  Used as the PR gate. |
+| `update-baseline`  | `python3 scripts/util/benchmark_runner.py --mode update-baseline` | 5   | 5   | 1   | 2–5 min     | Overwrites `tests/baselines/perf/baselines.json` with current measurements.  Must be committed intentionally (see §3). |
 
 ### Mode invariants
 
@@ -89,9 +89,9 @@ A baseline update is legitimate in exactly these cases:
 
 ### How to record a baseline update
 
-1. Run `mise bench:update-baseline` on the target commit (release build).
+1. Run `python3 scripts/util/benchmark_runner.py --mode update-baseline` on the target commit (release build).
 2. Verify `tests/baselines/perf/baselines.json` changed as expected.
-3. Run `mise bench:compare` to confirm the delta is as intended.
+3. Run `python3 scripts/util/benchmark_runner.py --mode compare` to confirm the delta is as intended.
 4. Commit `baselines.json` together with the triggering code change (or as an
    immediate follow-up if the PR is already merged).
 5. Add an entry to the PR description or commit message stating _why_ the
@@ -105,7 +105,7 @@ tests/baselines/perf/baselines.json   ← committed, source of truth
 tests/baselines/perf/current.json     ← generated each run, not committed
 ```
 
-`baselines.json` is the only file that `mise bench:ci` gates against.
+`baselines.json` is the only file that `python3 scripts/util/benchmark_runner.py --mode ci` gates against.
 `current.json` is ephemeral output and should be `.gitignore`d.
 
 ---
@@ -122,12 +122,12 @@ Workflow:
 # 1. On the base commit, record the baseline
 git checkout <base-sha>
 cargo build --release
-mise bench:update-baseline
+python3 scripts/util/benchmark_runner.py --mode update-baseline
 
 # 2. On the head commit, compare
 git checkout <head-sha>
 cargo build --release
-mise bench:compare
+python3 scripts/util/benchmark_runner.py --mode compare
 ```
 
 The runner prints a per-benchmark delta table showing `Δ compile_time_ms`,
@@ -159,8 +159,8 @@ Conceptual field aliases (from the README field reference):
    [`governance.md`](../benchmarks/governance.md)).
 2. Create `benchmarks/bench_<suite>_<name>.expected` with correct stdout.
 3. Register in `scripts/util/benchmark_runner.py` (`BENCHMARKS` tuple).
-4. Run `mise bench` to verify compilation, execution, and correctness.
-5. Run `mise bench:update-baseline` to include the new fixture.
+4. Run `python3 scripts/util/benchmark_runner.py --mode full` to verify compilation, execution, and correctness.
+5. Run `python3 scripts/util/benchmark_runner.py --mode update-baseline` to include the new fixture.
 6. Commit fixture, expected file, and updated `baselines.json` together.
 
 ---

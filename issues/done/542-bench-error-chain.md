@@ -16,7 +16,7 @@ Source: docs/benchmarks/feature-matrix.md coverage gap
 # 542 — Benchmark: "error chain (Result / error propagation)"
 
 - [x] Tags: `cpu-bound`, `error-heavy`, `match-heavy`, `iteration`
-- [x] `mise bench: update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full: update-baseline` includes the new benchmark
 
 # 542 — Benchmark: error chain (Result / error propagation)
 
@@ -41,14 +41,14 @@ docs/benchmarks/feature-matrix.md identifies **error paths / Result handling** a
 - [x] `benchmarks/bench_compute_error_chain.expected` created with correct stdout
 - [x] Benchmark registered in `scripts/util/benchmark_runner.py` `BENCHMARKS` tuple
 - [x] Tags: `cpu-bound`, `error-heavy`, `match-heavy`, `iteration`
-- [x] `mise bench` passes for the new benchmark
-- [x] `mise bench:update-baseline` includes the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` passes for the new benchmark
+- [x] `python3 scripts/util/benchmark_runner.py --mode update-baseline` includes the new benchmark
 - [x] docs/benchmarks/feature-matrix.md updated to mark error paths as covered
 
 ## Required verification
 
 - `python scripts/manager.py verify quick` passes
-- `mise bench` runs without errors
+- `python3 scripts/util/benchmark_runner.py --mode full` runs without errors
 
 ## Close gate
 

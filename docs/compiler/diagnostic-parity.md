@@ -49,7 +49,7 @@ Legacy phase-count summary lines (`file: error: N resolve error(s)`) are no long
 ## Test Method
 
 1. Used existing `.ark` fixtures from `tests/fixtures/diagnostics/`
-2. Ran Rust compiler: `mise x -- ./target/debug/arukellt run <file> 2>&1`
+2. Ran Rust compiler: `./target/debug/arukellt run <file> 2>&1`
 3. Ran selfhost compiler: `wasmtime run --dir=. src/compiler/arukellt-s1.wasm -- compile <file> 2>&1`
 4. Compared output for error code, line number, and severity
 

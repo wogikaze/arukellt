@@ -209,8 +209,8 @@ ADR-035's phased plan.
 - [ ] Benchmark 比較 (T1 linear vs T3 GC)
   - **Verify:**
     ```
-    mise bench
-    mise bench:compare
+    python3 scripts/util/benchmark_runner.py --mode full
+    python3 scripts/util/benchmark_runner.py --mode compare
     ```
   - 期待: T1 (linear memory) と T3 (GC) の benchmark 結果が記録・比較可能であること
   - 補完: `docs/process/benchmark-results.md` に T3 GC の計測値が追記されている

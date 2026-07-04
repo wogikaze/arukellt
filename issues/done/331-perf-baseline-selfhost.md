@@ -13,7 +13,7 @@ Priority: 24
 
 - `--compare`: runs both Rust and selfhost compilers, shows side-by-side comparison table
 - `--selfhost`: runs benchmarks using selfhost compiler only
-- Added `mise bench: "compare` and `mise bench:selfhost` tasks"
+- Added `python3 scripts/util/benchmark_runner.py --mode full: "compare` and `python3 scripts/util/benchmark_runner.py --mode full:selfhost` tasks"
 Verification: `bash scripts/run/run-benchmarks.sh --quick --compare` — runs successfully, shows fib/binary_tree/string_concat at 1.1-1.7x compile overhead with 0.48-0.54x binary size.
 
 # Perf baseline を selfhost binary 対応にする
@@ -29,14 +29,14 @@ Implemented `--compare` and `--selfhost` flags in `scripts/run/run-benchmarks.sh
 - `--selfhost`: runs benchmarks using selfhost compiler only
 - Compile time ratio and binary size ratio displayed in summary
 - Warning emitted when selfhost is >200% slower
-- Added `mise bench:compare` and `mise bench:selfhost` tasks
+- Added `python3 scripts/util/benchmark_runner.py --mode compare` and `python3 scripts/util/benchmark_runner.py --mode full:selfhost` tasks
 - Fixed median() to return integer (bash arithmetic compatibility)
 
 Verification: `bash scripts/run/run-benchmarks.sh --quick --compare` — runs successfully, shows fib/binary_tree/string_concat at 1.1-1.7x compile overhead with 0.48-0.54x binary size.
 
 ## Acceptance
 
-- [x] `mise bench` が compiler binary を引数で受け付ける
+- [x] `python3 scripts/util/benchmark_runner.py --mode full` が compiler binary を引数で受け付ける
 - [x] selfhost binary の compile time / output size がベースラインに記録される
 - [x] Rust binary との性能差が summary に表示される
 - [x] 性能劣化が一定閾値を超えた場合に warning を出す
