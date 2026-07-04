@@ -2,11 +2,11 @@ use std::core::math
 use std::host::stdio
 
 fn main() {
-    stdio::println(i32_to_string(math::abs_i32(-42)))
-    stdio::println(i32_to_string(math::min_i32(10, 3)))
-    stdio::println(i32_to_string(math::max_i32(10, 3)))
-    stdio::println(i32_to_string(math::clamp(15, 0, 10)))
-    stdio::println(i32_to_string(math::clamp(-5, 0, 10)))
-    stdio::println(i32_to_string(math::pow_i32(2, 10)))
-    stdio::println(i32_to_string(math::gcd(12, 8)))
+    stdio::println((-42).abs().to_string())
+    stdio::println(10.min(3).to_string())
+    stdio::println(10.max(3).to_string())
+    stdio::println(15.clamp(0, 10).to_string())
+    stdio::println((-5).clamp(0, 10).to_string())
+    stdio::println(2.pow(10).to_string())
+    stdio::println(math::gcd(12, 8).to_string())
 }

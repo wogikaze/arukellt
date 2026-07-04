@@ -160,18 +160,22 @@ impl Debug for String {
     }
 }
 
+// @deprecated: use `x.to_string()` (inherent method on i32) instead. See ADR-036.
 pub fn i32_to_string(x: i32) -> String {
     __intrinsic_i32_to_string(x)
 }
 
+// @deprecated: use `x.to_string()` (inherent method on i64) instead. See ADR-036.
 pub fn i64_to_string(x: i64) -> String {
     __intrinsic_i64_to_string(x)
 }
 
+// @deprecated: use `x.to_string()` (inherent method on f64) instead. See ADR-036.
 pub fn f64_to_string(x: f64) -> String {
     __intrinsic_f64_to_string(x)
 }
 
+// @deprecated: use `x.to_string()` (inherent method on bool) instead. See ADR-036.
 pub fn bool_to_string(x: bool) -> String {
     __intrinsic_bool_to_string(x)
 }
@@ -228,6 +232,30 @@ impl i32 {
             other
         }
     }
+
+    /// Clamps `self` to the range `[lo, hi]`.
+    fn clamp(self: i32, lo: i32, hi: i32) -> i32 {
+        if self < lo {
+            lo
+        } else {
+            if self > hi {
+                hi
+            } else {
+                self
+            }
+        }
+    }
+
+    /// Returns `self` raised to the power `exp`.
+    fn pow(self: i32, exp: i32) -> i32 {
+        let mut result = 1
+        let mut i = 0
+        while i < exp {
+            result = result * self
+            i = i + 1
+        }
+        result
+    }
 }
 
 /// Inherent methods on `i64`.
@@ -236,6 +264,46 @@ impl i64 {
     fn to_string(self: i64) -> String {
         __intrinsic_i64_to_string(self)
     }
+
+    /// Returns the absolute value.
+    fn abs(self: i64) -> i64 {
+        if self < 0i64 {
+            0i64 - self
+        } else {
+            self
+        }
+    }
+
+    /// Returns the smaller of `self` and `other`.
+    fn min(self: i64, other: i64) -> i64 {
+        if self < other {
+            self
+        } else {
+            other
+        }
+    }
+
+    /// Returns the larger of `self` and `other`.
+    fn max(self: i64, other: i64) -> i64 {
+        if self > other {
+            self
+        } else {
+            other
+        }
+    }
+
+    /// Clamps `self` to the range `[lo, hi]`.
+    fn clamp(self: i64, lo: i64, hi: i64) -> i64 {
+        if self < lo {
+            lo
+        } else {
+            if self > hi {
+                hi
+            } else {
+                self
+            }
+        }
+    }
 }
 
 /// Inherent methods on `f64`.
@@ -243,6 +311,33 @@ impl f64 {
     /// Returns the string representation of this float.
     fn to_string(self: f64) -> String {
         __intrinsic_f64_to_string(self)
+    }
+
+    /// Returns the square root of `self`.
+    fn sqrt(self: f64) -> f64 {
+        __intrinsic_sqrt(self)
+    }
+
+    /// Clamps `self` to the range `[lo, hi]`.
+    fn clamp(self: f64, lo: f64, hi: f64) -> f64 {
+        if self < lo {
+            lo
+        } else {
+            if self > hi {
+                hi
+            } else {
+                self
+            }
+        }
+    }
+
+    /// Returns the absolute value.
+    fn abs(self: f64) -> f64 {
+        if self < 0.0 {
+            0.0 - self
+        } else {
+            self
+        }
     }
 }
 

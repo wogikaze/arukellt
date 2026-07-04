@@ -306,7 +306,8 @@ intrinsic = "__intrinsic_i32_to_string"
 params = ["i32"]
 returns = "String"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.to_string()"
 doc_category = "conversion"
 doc = "Convert an i32 integer to its decimal string representation."
 availability = { t1 = true, t3 = true }
@@ -319,7 +320,8 @@ intrinsic = "__intrinsic_i64_to_string"
 params = ["i64"]
 returns = "String"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i64.to_string()"
 doc_category = "conversion"
 
 [[functions]]
@@ -490,7 +492,8 @@ intrinsic = "__intrinsic_f64_to_string"
 params = ["f64"]
 returns = "String"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f64.to_string()"
 doc_category = "conversion"
 
 [[functions]]
@@ -500,7 +503,8 @@ intrinsic = "__intrinsic_bool_to_string"
 params = ["bool"]
 returns = "String"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "bool.to_string()"
 doc_category = "conversion"
 
 [[functions]]
@@ -578,7 +582,8 @@ intrinsic = "__intrinsic_sqrt"
 params = ["f64"]
 returns = "f64"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f64.sqrt()"
 doc_category = "math"
 
 [[functions]]
@@ -588,7 +593,8 @@ intrinsic = "__intrinsic_abs"
 params = ["i32"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.abs()"
 doc_category = "math"
 
 [[functions]]
@@ -598,7 +604,8 @@ intrinsic = "__intrinsic_min"
 params = ["i32", "i32"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.min()"
 doc_category = "math"
 
 [[functions]]
@@ -608,7 +615,8 @@ intrinsic = "__intrinsic_max"
 params = ["i32", "i32"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.max()"
 doc_category = "math"
 
 [[functions]]
@@ -1601,7 +1609,8 @@ returns = "String"
 name = "cmp"
 module = "std::core::cmp"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Ord::cmp"
 params = ["i32", "i32"]
 returns = "Ordering"
 
@@ -1609,7 +1618,8 @@ returns = "Ordering"
 name = "min"
 module = "std::core::cmp"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.min()"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -1617,7 +1627,8 @@ returns = "i32"
 name = "max"
 module = "std::core::cmp"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.max()"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -1625,7 +1636,8 @@ returns = "i32"
 name = "clamp"
 module = "std::core::cmp"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.clamp()"
 params = ["i32", "i32", "i32"]
 returns = "i32"
 
@@ -1633,7 +1645,8 @@ returns = "i32"
 name = "abs"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.abs()"
 params = ["i32"]
 returns = "i32"
 
@@ -1641,7 +1654,8 @@ returns = "i32"
 name = "min"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.min()"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -1649,7 +1663,8 @@ returns = "i32"
 name = "max"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.max()"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -1657,7 +1672,8 @@ returns = "i32"
 name = "sqrt"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "f64.sqrt()"
 params = ["f64"]
 returns = "f64"
 
@@ -1665,7 +1681,8 @@ returns = "f64"
 name = "abs_i32"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.abs()"
 params = ["i32"]
 returns = "i32"
 
@@ -1673,7 +1690,8 @@ returns = "i32"
 name = "min_i32"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.min()"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -1681,7 +1699,8 @@ returns = "i32"
 name = "max_i32"
 module = "std::core::math"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.max()"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -1689,7 +1708,8 @@ returns = "i32"
 name = "hash_i32"
 module = "std::core::hash"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Hash::hash"
 params = ["i32"]
 returns = "i32"
 
@@ -1697,7 +1717,8 @@ returns = "i32"
 name = "hash_string"
 module = "std::core::hash"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "Hash::hash"
 params = ["String"]
 returns = "i32"
 
@@ -1713,7 +1734,8 @@ returns = "i32"
 name = "hash_combine"
 module = "std::core::hash"
 doc_category = "core"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "combine"
 params = ["i32", "i32"]
 returns = "i32"
 
@@ -7509,7 +7531,8 @@ intrinsic = "__intrinsic_pow_i32"
 params = ["i32", "i32"]
 returns = "i32"
 prelude = true
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "i32.pow()"
 doc_category = "math"
 
 

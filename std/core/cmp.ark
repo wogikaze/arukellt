@@ -71,6 +71,7 @@ impl Eq for f64 {
 }
 
 /// Returns the ordering relationship between two `i32` values.
+// @deprecated: use `a.cmp(b)` (Ord trait method) instead. See ADR-036.
 pub fn cmp(a: i32, b: i32) -> Ordering {
     if a < b {
         Ordering::Less
@@ -84,6 +85,7 @@ pub fn cmp(a: i32, b: i32) -> Ordering {
 }
 
 /// Returns the smaller of two `i32` values.
+// @deprecated: use `a.min(b)` (inherent method on i32) instead. See ADR-036.
 pub fn min(a: i32, b: i32) -> i32 {
     if a <= b {
         a
@@ -93,6 +95,7 @@ pub fn min(a: i32, b: i32) -> i32 {
 }
 
 /// Returns the larger of two `i32` values.
+// @deprecated: use `a.max(b)` (inherent method on i32) instead. See ADR-036.
 pub fn max(a: i32, b: i32) -> i32 {
     if a >= b {
         a
@@ -102,6 +105,7 @@ pub fn max(a: i32, b: i32) -> i32 {
 }
 
 /// Clamps `x` into the inclusive range `[lo, hi]`.
+// @deprecated: use `x.clamp(lo, hi)` (inherent method on i32) instead. See ADR-036.
 pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
     if x < lo {
         lo

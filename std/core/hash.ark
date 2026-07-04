@@ -162,6 +162,7 @@ impl Hash for f64 {
 /// Uses the same FNV-1 parameters (offset_basis=216613626, prime=16777619)
 /// as `hash_string`, providing a consistent canonical hash policy across all
 /// key types.
+// @deprecated: use `value.hash()` (Hash trait method) instead. See ADR-036.
 pub fn hash_i32(value: i32) -> i32 {
     let mut h = 216613626
     let mut v = value
@@ -186,6 +187,7 @@ pub fn hash_i32(value: i32) -> i32 {
 }
 
 /// Hashes a string into a stable non-negative integer.
+// @deprecated: use `value.hash()` (Hash trait method) instead. See ADR-036.
 pub fn hash_string(value: String) -> i32 {
     let mut h = 216613626
     let n = len(value)
@@ -210,6 +212,7 @@ pub fn combine(h1: i32, h2: i32) -> i32 {
     h
 }
 
+// @deprecated: use `combine(h1, h2)` instead. See ADR-036.
 pub fn hash_combine(h1: i32, h2: i32) -> i32 {
     combine(h1, h2)
 }

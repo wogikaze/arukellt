@@ -2,12 +2,12 @@ use std::core::convert
 use std::host::stdio
 
 fn main() {
-    stdio::println(convert::i32_to_string(42))
-    stdio::println(convert::f64_to_string(3.14))
-    stdio::println(convert::bool_to_string(true))
+    stdio::println(42.to_string())
+    stdio::println(3.14.to_string())
+    stdio::println(true.to_string())
     let parsed = convert::parse_i32("123")
     match parsed {
-        Option::Some(v) => stdio::println(i32_to_string(v)),
+        Option::Some(v) => stdio::println(v.to_string()),
         None => stdio::println("parse failed"),
     }
 }

@@ -1,34 +1,42 @@
 // std::core::math — mathematical functions
 //
 // Wrappers around compiler intrinsics for math operations.
+// @deprecated: use `x.abs()` (inherent method on i32) instead. See ADR-036.
 pub fn abs(x: i32) -> i32 {
     __intrinsic_abs(x)
 }
 
+// @deprecated: use `x.abs()` (inherent method on i32) instead. See ADR-036.
 pub fn abs_i32(x: i32) -> i32 {
     abs(x)
 }
 
+// @deprecated: use `a.min(b)` (inherent method on i32) instead. See ADR-036.
 pub fn min(a: i32, b: i32) -> i32 {
     __intrinsic_min(a, b)
 }
 
+// @deprecated: use `a.min(b)` (inherent method on i32) instead. See ADR-036.
 pub fn min_i32(a: i32, b: i32) -> i32 {
     min(a, b)
 }
 
+// @deprecated: use `a.max(b)` (inherent method on i32) instead. See ADR-036.
 pub fn max(a: i32, b: i32) -> i32 {
     __intrinsic_max(a, b)
 }
 
+// @deprecated: use `a.max(b)` (inherent method on i32) instead. See ADR-036.
 pub fn max_i32(a: i32, b: i32) -> i32 {
     max(a, b)
 }
 
+// @deprecated: use `x.sqrt()` (inherent method on f64) instead. See ADR-036.
 pub fn sqrt(x: f64) -> f64 {
     __intrinsic_sqrt(x)
 }
 
+// @deprecated: use `x.clamp(lo, hi)` (inherent method on i32) instead. See ADR-036.
 pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
     if x < lo {
         lo
@@ -41,6 +49,7 @@ pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
     }
 }
 
+// @deprecated: use `base.pow(exp)` (inherent method on i32) instead. See ADR-036.
 pub fn pow_i32(base: i32, exp: i32) -> i32 {
     let mut result = 1
     let mut i = 0
@@ -88,11 +97,13 @@ pub fn lcm(a: i32, b: i32) -> i32 {
 }
 
 /// Returns true if `n` is a power of two (1, 2, 4, 8, ...).
+// @deprecated: use `n.is_power_of_two()` (inherent method on i32) instead. See ADR-036.
 pub fn is_power_of_two(n: i32) -> bool {
     n > 0 && (n & (n - 1)) == 0
 }
 
 /// Returns the smallest power of two >= n. Returns 1 for n <= 1.
+// @deprecated: use `n.next_power_of_two()` (inherent method on i32) instead. See ADR-036.
 pub fn next_power_of_two(n: i32) -> i32 {
     if n <= 1 {
         return 1
@@ -114,6 +125,7 @@ pub fn next_power_of_two(n: i32) -> i32 {
 // ── bit operations ──────────────────────────────────────────────────────────
 
 /// Count leading zero bits. Returns 32 for n == 0.
+// @deprecated: use `n.leading_zeros()` (inherent method on i32) instead. See ADR-036.
 pub fn leading_zeros(n: i32) -> i32 {
     if n == 0 {
         return 32
@@ -146,6 +158,7 @@ pub fn leading_zeros(n: i32) -> i32 {
 }
 
 /// Count trailing zero bits. Returns 32 for n == 0.
+// @deprecated: use `n.trailing_zeros()` (inherent method on i32) instead. See ADR-036.
 pub fn trailing_zeros(n: i32) -> i32 {
     if n == 0 {
         return 32
@@ -160,6 +173,7 @@ pub fn trailing_zeros(n: i32) -> i32 {
 }
 
 /// Count the number of set bits (population count) in `n`.
+// @deprecated: use `n.popcount()` (inherent method on i32) instead. See ADR-036.
 pub fn popcount(n: i32) -> i32 {
     let mut count = 0
     let mut x = n

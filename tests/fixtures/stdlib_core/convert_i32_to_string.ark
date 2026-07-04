@@ -2,7 +2,7 @@ use std::core::convert
 use std::test
 
 fn main() {
-    test::assert_eq_string(convert::i32_to_string(42), "42")
-    test::assert_eq_string(convert::i32_to_string(0), "0")
-    test::assert_eq_string(convert::i32_to_string(100), "100")
+    test::assert_eq_string(42.to_string(), "42")
+    test::assert_eq_string(0.to_string(), "0")
+    test::assert_eq_string(100.to_string(), "100")
 }

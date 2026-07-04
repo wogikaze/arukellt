@@ -2,8 +2,8 @@ use std::core::hash
 use std::test
 
 fn main() {
-    let h1 = hash::hash_i32(42)
-    let h2 = hash::hash_string("hello")
+    let h1 = 42.hash()
+    let h2 = "hello".hash()
     let combined = hash::combine(h1, h2)
     test::assert_true(combined >= 0)
     // combine is deterministic

@@ -6,7 +6,7 @@ fn main() {
     let mut i = 0
     while i < 5 {
         let s = get_unchecked(strings, i)
-        test::assert_eq_i32(hash::hash_string(s), hash::hash_string(s))
+        test::assert_eq_i32(s.hash(), s.hash())
         i = i + 1
     }
 }
