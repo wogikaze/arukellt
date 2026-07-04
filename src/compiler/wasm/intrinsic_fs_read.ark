@@ -51,5 +51,5 @@ fn emit_fs_read_open_call(w: WasmWriter) {
 fn emit_fs_read_open_error_branch(w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_ne(w)
-    helpers_control::emit_if_empty(w)
+    helpers_control::emit_if_i32(w)
 }
