@@ -622,15 +622,25 @@ def _wasm_compile(
     timeout: int | None = None,
     workspace_root: Path | None = None,
 ) -> subprocess.CompletedProcess:
-    """Run ``compiler_wasm compile <src> --target <T> -o <out_rel>`` under wasmtime."""
+    """Run ``compiler_wasm compile <src> --target <T> -o <out_rel>`` under wasmtime.
+
+    Uses AOT precompiled .cwasm when available to skip ~5s of JIT overhead.
+    """
     dirs: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
         dirs.extend(["--dir", str(workspace_root)])
         guest_out = "bootstrap-out.wasm"
     dirs.extend(["--dir", str(root)])
+    # Use AOT precompiled .cwasm when available for faster startup
+    run_wasm = _ensure_aot_cwasm(compiler_wasm)
+    run_flags: list[str]
+    if run_wasm.suffix == ".cwasm":
+        run_flags = ["--allow-precompiled", "--wasm", "gc", "--wasm", "function-references"]
+    else:
+        run_flags = ["--wasm", "gc", "--wasm", "function-references"]
     result = _run(
-        [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", *dirs, str(compiler_wasm), "--",
+        [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
          "compile", src, "--target", SELFHOST_TARGET, "-o", guest_out],
         root,
         timeout=timeout,
