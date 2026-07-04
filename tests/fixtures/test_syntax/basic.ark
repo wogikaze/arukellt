@@ -1,0 +1,27 @@
+// ADR-041 in-file test syntax — basic compilation fixture.
+// Covers: standalone test, function-targeted test, test mod with nested tests.
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+pub fn normalize(s: String) -> String {
+    s
+}
+
+test "sanity" {
+    assert(1 + 1 == 2)
+}
+
+test add "adds_two_numbers" {
+    assert(add(2, 3) == 5)
+}
+
+test mod "normalize suite" {
+    test "idempotent" {
+        assert(normalize(normalize("abc")) == normalize("abc"))
+    }
+    test "empty" {
+        assert(normalize("") == "")
+    }
+}

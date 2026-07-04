@@ -1,0 +1,10 @@
+// ADR-041 — test body type error must be caught by the typechecker.
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+test "type_mismatch_in_body" {
+    let result: i32 = "not_a_number"
+    assert(add(2, 3) == result)
+}

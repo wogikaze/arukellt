@@ -1,0 +1,145 @@
+use lexer::tokens
+use parser::core_ast_factory
+use parser::core_ast_children
+use parser::core_ast_text_fields
+use parser::core_ast_span_fields
+use parser::core_ast_literal_fields
+// Arukellt Parser - `test` declarations (ADR-041).
+//
+// `test` is a contextual keyword (lexer keeps it as TK_IDENT). Three forms:
+//   test "name" { ... }              -- standalone test (file scope)
+//   test <fn> "name" { ... }         -- function-bound test (white-box)
+//   test mod "name" { test ... ; ... } -- test module group (1-level nesting)
+
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::kinds
+use parser::state_record
+use parser::stmt
+use parser::token_state
+
+// Returns true if the current token is a contextual `test` keyword starting a
+// test declaration. Looks ahead past newlines to disambiguate from `test` used
+// as a regular identifier (e.g. `test::assert_*`, `test()`).
+fn is_test_decl_start(p: Parser) -> bool {
+    if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
+        return false
+    }
+    if !eq(core_api_cursor::peek_text(p), String_from("test")) {
+        return false
+    }
+    // Peek ahead past newlines to the token after `test`.
+    let mut idx = state_record::parser_position(p) + 1
+    while idx < state_record::parser_token_count(p) {
+        let k = core_api_cursor::peek_kind_at_index(p, idx)
+        if k != tokens::TK_NEWLINE() && k != tokens::TK_SEMI() {
+            break
+        }
+        idx = idx + 1
+    }
+    let k1 = core_api_cursor::peek_kind_at_index(p, idx)
+    // test "name" { ... }
+    if k1 == tokens::TK_STRING() {
+        return true
+    }
+    if k1 == tokens::TK_IDENT() {
+        let t1 = core_api_cursor::peek_text_at_index(p, idx)
+        // test mod "name" { ... }
+        if eq(clone(t1), String_from("mod")) {
+            let mut idx2 = idx + 1
+            while idx2 < state_record::parser_token_count(p) {
+                let k2 = core_api_cursor::peek_kind_at_index(p, idx2)
+                if k2 != tokens::TK_NEWLINE() && k2 != tokens::TK_SEMI() {
+                    break
+                }
+                idx2 = idx2 + 1
+            }
+            return core_api_cursor::peek_kind_at_index(p, idx2) == tokens::TK_STRING()
+        }
+        // test <fn> "name" { ... }
+        let mut idx3 = idx + 1
+        while idx3 < state_record::parser_token_count(p) {
+            let k3 = core_api_cursor::peek_kind_at_index(p, idx3)
+            if k3 != tokens::TK_NEWLINE() && k3 != tokens::TK_SEMI() {
+                break
+            }
+            idx3 = idx3 + 1
+        }
+        return core_api_cursor::peek_kind_at_index(p, idx3) == tokens::TK_STRING()
+    }
+    false
+}
+
+// Parse a `test` declaration. Dispatches to the mod or unit form.
+pub fn parse_test_decl(p: Parser) -> AstNode {
+    // consume the contextual `test` keyword (TK_IDENT)
+    let t = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let span = core_api_expect::tok_span(t)
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() && eq(core_api_cursor::peek_text(p), String_from("mod")) {
+        return parse_test_mod(p, span)
+    }
+    parse_test_unit(p, span)
+}
+
+// Parse `test mod "name" { test "..." {} ; ... }`.
+fn parse_test_mod(p: Parser, span: Span) -> AstNode {
+    core_api_expect::expect_token(p, tokens::TK_IDENT()) // consume `mod`
+    core_api_cursor::skip_newlines(p)
+    let name_tok = core_api_expect::expect_token(p, tokens::TK_STRING())
+    let node = core_ast_factory::AstNode_new(kinds::NK_TEST_MOD(), span)
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name_tok))
+    core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name_tok))
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_RBRACE()) {
+            break
+        }
+        // Inside test mod, only `test "..." {}` and `test <fn> "..." {}` allowed.
+        if is_test_decl_start(p) {
+            let inner = parse_test_unit_decl(p)
+            core_ast_children::AstNode_push_child(node, inner)
+        } else {
+            core_api_expect::error(p, String_from("expected `test` declaration inside test mod"))
+            state_record::parser_advance(p)
+        }
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+    node
+}
+
+// Parse a unit test decl (form 1 or 2) without re-consuming the leading `test`.
+fn parse_test_unit_decl(p: Parser) -> AstNode {
+    let t = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let span = core_api_expect::tok_span(t)
+    parse_test_unit(p, span)
+}
+
+// Parse `test "name" { ... }` or `test <fn> "name" { ... }`.
+// `test` keyword already consumed; `span` is its span.
+fn parse_test_unit(p: Parser, span: Span) -> AstNode {
+    let mut has_target = false
+    if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() {
+        // function-bound form: test <fn> "name" { ... }
+        has_target = true
+    }
+    let node = core_ast_factory::AstNode_new(kinds::NK_TEST_DECL(), span)
+    if has_target {
+        let target_tok = core_api_expect::expect_token(p, tokens::TK_IDENT())
+        let target_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), token_state::Token_text(target_tok), core_api_expect::tok_span(target_tok))
+        core_ast_children::AstNode_push_child(node, target_node)
+        core_api_cursor::skip_newlines(p)
+    }
+    let name_tok = core_api_expect::expect_token(p, tokens::TK_STRING())
+    core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(name_tok))
+    core_ast_span_fields::AstNode_set_name_span(node, core_api_expect::tok_span(name_tok))
+    core_ast_literal_fields::AstNode_set_int_val(node, if has_target { 1 } else { 0 })
+    core_api_cursor::skip_newlines(p)
+    let body = stmt::parse_block(p)
+    core_ast_children::AstNode_push_child(node, body)
+    node
+}

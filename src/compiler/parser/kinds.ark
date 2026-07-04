@@ -12,6 +12,8 @@ fn NK_TRAIT_DECL() -> i32 { 55 }
 fn NK_IMPL_DECL() -> i32 { 56 }
 fn NK_RESOURCE_DECL() -> i32 { 57 }
 fn NK_CONST_DECL() -> i32 { 58 }
+fn NK_TEST_DECL() -> i32 { 59 }
+fn NK_TEST_MOD() -> i32 { 60 }
 
 // Atom expression AST node kinds.
 fn NK_INT_LIT() -> i32 { 1 }

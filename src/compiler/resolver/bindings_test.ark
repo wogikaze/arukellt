@@ -1,0 +1,35 @@
+// Arukellt Resolver - `test` declaration binding rules (ADR-041).
+//
+// Test declarations resolve their body block in a fresh child scope that
+// inherits the enclosing file scope (non-pub items visible). Test names are
+// not registered as module symbols — they are not callable from production
+// code.
+
+use resolver::ast_access
+use resolver::kinds
+use resolver::scope_stack_lifecycle
+
+fn resolve_test(ctx: ResolveCtx, node: AstNode) {
+    if ast_access::node_kind_is(node, kinds::NK_TEST_MOD()) {
+        resolve_test_mod(ctx, node)
+        return
+    }
+    // NK_TEST_DECL: body is the last child (a BLOCK).
+    scope_stack_lifecycle::push_scope(ctx)
+    let cc = ast_access::node_child_count(node)
+    if cc > 0 {
+        let body = ast_access::node_child_at(node, cc - 1)
+        resolve_node(ctx, body)
+    }
+    scope_stack_lifecycle::pop_scope(ctx)
+}
+
+fn resolve_test_mod(ctx: ResolveCtx, node: AstNode) {
+    let cc = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < cc {
+        let inner = ast_access::node_child_at(node, i)
+        resolve_test(ctx, inner)
+        i = i + 1
+    }
+}

@@ -9,6 +9,9 @@ use driver::config_record
 use main::args_record
 use driver::result_record
 use main::output
+use compiler::session_parse
+use parser::ast
+use parser::kinds as parser_kinds
 
 // Arukellt Selfhost - CLI run command implementation
 
@@ -81,7 +84,15 @@ pub fn cmd_run(opts: CliOptions) {
 fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
     config_record::config_set_target(config, args_record::cli_target(opts))
+    if args_record::cli_has_wasi_version(opts) {
+        config_record::config_set_wasi_version(config, args_record::cli_wasi_version(opts))
+    }
+    config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
+    config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
+    config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))
     config_record::config_set_check_only(config, true)
+    config_record::config_set_lint_allow(config, args_record::cli_lint_allow(opts))
+    config_record::config_set_lint_deny(config, args_record::cli_lint_deny(opts))
     config
 }
 
@@ -99,8 +110,8 @@ fn print_test_start(input_file: String) {
     stdio::eprintln(concat(String_from("testing "), input_file))
 }
 
-fn print_test_pass(input_file: String) {
-    stdio::println(concat(String_from("  PASS  "), input_file))
+fn print_test_pass(input_file: String, test_count: i32) {
+    stdio::println(concat(String_from("  PASS  "), concat(input_file, concat(String_from("  ("), concat(to_string(test_count), String_from(" tests)"))))))
 }
 
 fn print_test_fail(input_file: String, result: CompileResult) {
@@ -118,10 +129,11 @@ pub fn cmd_test(opts: CliOptions) {
 	if args_record::cli_has_input_file(opts) {
 		let input_file = args_record::cli_input_file(opts)
 		print_test_start(clone(input_file))
+		let test_count = discover_and_print_tests(clone(input_file))
 		let config = build_test_driver_config(opts)
 		let result = file::compile_file(clone(input_file), config)
 		if result_record::compile_result_success(result) {
-			print_test_pass(input_file)
+			print_test_pass(input_file, test_count)
 		} else {
 			print_test_fail(input_file, result)
 			exit_test_failure()
@@ -129,6 +141,73 @@ pub fn cmd_test(opts: CliOptions) {
 	} else {
 		exit_missing_test_input()
 	}
+}
+
+// Arukellt Selfhost - test declaration discovery (ADR-041).
+// Parses the source file and prints discovered `test` declarations.
+// Returns the number of discovered tests.
+
+fn discover_and_print_tests(input_file: String) -> i32 {
+	let read_result = fs::read_to_string(clone(input_file))
+	let mut count = 0
+	match read_result {
+		Result::Ok(source) => {
+			let decls = session_parse::session_parse_decls(source)
+			count = collect_test_names(decls, String_new())
+		},
+		Result::Err(_) => {
+		},
+	}
+	count
+}
+
+fn collect_test_names(decls: Vec<AstNode>, prefix: String) -> i32 {
+	let n = len(decls)
+	let mut count = 0
+	let mut i = 0
+	while i < n {
+		let d = get_unchecked(decls, i)
+		count = count + collect_test_name_node(d, clone(prefix))
+		i = i + 1
+	}
+	count
+}
+
+fn collect_test_name_node(node: AstNode, prefix: String) -> i32 {
+	let kind = ast::ast_node_kind(node)
+	if kind == parser_kinds::NK_TEST_DECL() {
+		print_test_entry(prefix, ast::ast_node_text(node))
+		return 1
+	}
+	if kind == parser_kinds::NK_TEST_MOD() {
+		let mod_name = ast::ast_node_text(node)
+		let new_prefix = make_test_prefix(clone(prefix), clone(mod_name))
+		let cc = ast::ast_node_child_count(node)
+		let mut count = 0
+		let mut i = 0
+		while i < cc {
+			let inner = ast::ast_node_child_at(node, i)
+			count = count + collect_test_name_node(inner, clone(new_prefix))
+			i = i + 1
+		}
+		return count
+	}
+	0
+}
+
+fn make_test_prefix(prefix: String, name: String) -> String {
+	if len(clone(prefix)) == 0 {
+		return name
+	}
+	concat(prefix, concat(String_from("::"), name))
+}
+
+fn print_test_entry(prefix: String, name: String) {
+	if len(clone(prefix)) == 0 {
+		stdio::eprintln(concat(String_from("  test  "), name))
+		return
+	}
+	stdio::eprintln(concat(String_from("  test  "), concat(prefix, concat(String_from("::"), name))))
 }
 
 // Arukellt Selfhost - minimal TOML value extraction for CLI project metadata

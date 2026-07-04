@@ -3,10 +3,12 @@
 use lexer::tokens
 use parser::core_api_cursor
 use parser::decl_dispatch
+use parser::decl_test
 use parser::state_record
 
-// Returns true if `kind` can start a top-level declaration (#566 recovery).
-fn is_decl_start(kind: i32) -> bool {
+// Returns true if the current cursor can start a top-level declaration (#566 recovery).
+fn is_decl_start(p: Parser) -> bool {
+    let kind = core_api_cursor::peek_kind(p)
     if kind == tokens::TK_FN() {
         return true
     }
@@ -34,14 +36,17 @@ fn is_decl_start(kind: i32) -> bool {
     if kind == tokens::TK_IMPORT() {
         return true
     }
+    // Contextual `test` keyword (ADR-041).
+    if decl_test::is_test_decl_start(p) {
+        return true
+    }
     false
 }
 
 // Synchronise to the next plausible top-level declaration start (#566).
 fn sync_to_decl_start(p: Parser) {
     while !core_api_cursor::at_eof(p) {
-        let k = core_api_cursor::peek_kind(p)
-        if is_decl_start(k) {
+        if is_decl_start(p) {
             return
         }
         state_record::parser_advance(p)

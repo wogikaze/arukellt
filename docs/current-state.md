@@ -191,7 +191,7 @@ The `arukellt` binary exposes the following subcommands:
 | `arukellt check <file>` | Type-check without compiling |
 | `arukellt build` | Build the project in the current directory (requires `ark.toml`) |
 | `arukellt fmt [file]` | Format `.ark` source files |
-| `arukellt test <file>` | Run test functions in an `.ark` file |
+| `arukellt test <file>` | Discover and type-check in-file `test` declarations (ADR-041) |
 | `arukellt lint <file>` | Run static analysis lints |
 | `arukellt targets` | List supported compilation targets |
 | `arukellt analyze` | Wasm binary analysis utilities |
@@ -233,6 +233,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - **Current open queue shifted** — active work now focuses on WASI / `std::host::*` rollout rather than the completed v3 stdlib track
 - **`std::host::process::exit` and `abort` available (issue 445)** — `__intrinsic_process_exit(i32)` and `__intrinsic_process_abort()` are wired into the T1 and T3 WASI emitters via `wasi_snapshot_preview1/proc_exit`. Both are noreturn; the emitter emits `unreachable` after every call site. `abort()` uses `proc_exit(134)` (SIGABRT convention). `std::host::process` is no longer a stub.
 - **Associated function syntax for builtin types (issue 701)** — `Vec::new<i32>()`, `String::from("hello")`, and `i32::from("42")` now compile and execute correctly. The parser desugars these to the corresponding intrinsic names (`Vec_new_i32`, `String_from`, `parse_i32`) at AST construction time, so the resolver, typechecker, and MIR lowering require no changes. Existing monomorphic constructors (`Vec_new_i32()`, `String_from()`) continue to work unchanged.
+- **In-file test syntax (ADR-041)** — `test` is a contextual keyword (lexer keeps `TK_IDENT`) introducing three declaration forms: `test "name" { ... }` (standalone), `test <fn> "name" { ... }` (function-bound white-box), and `test mod "name" { test ... ; ... }` (1-level nested test module). Test bodies are resolved and type-checked in the enclosing file scope. `arukellt test <file>` discovers and lists tests, then type-checks the file. Test names are not registered as module symbols (not callable from production code). See `docs/adr/ADR-041-in-file-test-syntax.md`.
 
 ## V1 Exit Status: **COMPLETE**
 

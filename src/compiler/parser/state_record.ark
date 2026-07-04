@@ -23,6 +23,14 @@ fn parser_current_token(p: Parser) -> Token {
     get_unchecked(p.tokens, p.pos)
 }
 
+fn parser_token_count(p: Parser) -> i32 {
+    p.token_count
+}
+
+fn parser_token_at(p: Parser, idx: i32) -> Token {
+    get_unchecked(p.tokens, idx)
+}
+
 fn parser_advance(p: Parser) {
     p.pos = p.pos + 1
 }

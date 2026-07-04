@@ -36,6 +36,9 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
         if ast_decl_predicates::node_is_impl_decl(node) {
             check_impl_methods(env, fn_sigs, enum_defs, node)
         }
+        if ast_decl_predicates::node_is_test_decl(node) || ast_decl_predicates::node_is_test_mod(node) {
+            body::check_test_body(env, fn_sigs, enum_defs, node)
+        }
         i = i + 1
     }
     module::append_env_errors(result, env)

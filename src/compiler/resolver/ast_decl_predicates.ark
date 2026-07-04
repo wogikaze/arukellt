@@ -42,3 +42,11 @@ fn node_is_wit_import(node: AstNode) -> bool {
     }
     ast::ast_node_int_val(node) == kinds::IMPORT_KIND_WIT()
 }
+
+fn node_is_test_decl(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_TEST_DECL())
+}
+
+fn node_is_test_mod(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_TEST_MOD())
+}

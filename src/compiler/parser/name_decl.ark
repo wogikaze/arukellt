@@ -27,5 +27,11 @@ fn decl_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_IMPL_DECL() {
         return String_from("ImplDecl")
     }
+    if kind == kinds::NK_TEST_DECL() {
+        return String_from("TestDecl")
+    }
+    if kind == kinds::NK_TEST_MOD() {
+        return String_from("TestMod")
+    }
     String_new()
 }
