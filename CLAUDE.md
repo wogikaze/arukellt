@@ -77,6 +77,27 @@ For tracked issue work, that normally means:
 - Prefer `ig` for code search.
 - Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained.
 
+## API Design Principles
+
+The stdlib is migrating from function-centric free functions to
+**trait-first, type-first method syntax** (ADR-036, issue #709).
+
+- **Prefer method syntax** `s.split(sep)`, `v.push(x)`, `n.to_string()`
+  over free-function syntax `split(s, sep)`, `push(v, x)`, `i32_to_string(n)`.
+- **Prefer `impl Type` blocks** for new public APIs. Define methods on
+  the type they operate on, not as standalone functions in a module.
+- **Prefer associated functions** `Vec::new()`, `String::from("x")` over
+  monomorphic constructors `Vec_new_i32()`, `String_from("x")`.
+- Free functions (`split(s, sep)`) remain valid for internal helpers,
+  compiler/runtime bridges, and prelude thin wrappers, but should not
+  be the primary user-facing API surface.
+- Monomorphic helpers (`*_i32`, `*_i64`, `*_f64`) are implementation
+  details or temporary bridges — not user-facing API.
+
+References: ADR-036 (trait-stdlib-redesign), ADR-004-P4 (method-syntax
+evaluation), issue #709 (trait-first API policy), issue #703
+(monomorphic API bold cutover).
+
 ## Markdown Navigation
 
 - When reading large Markdown files such as `README.md`, docs, ADRs, or issue indexes, prefer `markdive` over loading the whole file at once.
