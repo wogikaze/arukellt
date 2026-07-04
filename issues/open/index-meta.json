@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-04T15:22:12Z",
+  "generated_at": "2026-07-04T17:54:35Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -447,7 +447,9 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "716"
+      ],
       "acceptance": {
         "checked": 12,
         "unchecked": 4
@@ -839,6 +841,30 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "wasm-tools (CI install policy)"
+      }
+    },
+    {
+      "id": "716",
+      "path": "716-gc-intrinsic-stub-completion.md",
+      "title": "GC target intrinsic stub completion (silent-wrong-result backfill)",
+      "track": "gc-native",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "686"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 17
+      },
+      "orchestration": {
+        "class": "implementation-backfill",
+        "upstream_notes": "#686 Wasm GC Selfhost Implementation"
       }
     },
     {

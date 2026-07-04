@@ -39,6 +39,7 @@ graph LR
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
+  I716["716 GC target intrinsic stub completion (silent-wrong-result backfill)"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I689["689 689 — Operator overload trait surface (Add / Index / Deref / ...)"]
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
@@ -57,6 +58,7 @@ graph LR
   I649 --> I699
   I667 --> I673
   I680 --> I682
+  I686 --> I716
   I690 --> I694
   I707 --> I689
   I707 --> I691
@@ -105,7 +107,7 @@ graph LR
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: none
+- **686** depends on: none; blocks: 716
 - **687** depends on: 495; blocks: none
 - **690** depends on: 688; blocks: 694
 - **693** depends on: 688, 692; blocks: none
@@ -121,6 +123,7 @@ graph LR
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
+- **716** depends on: 686; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **689** depends on: 688, 707; blocks: none
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710

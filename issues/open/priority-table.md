@@ -12,7 +12,7 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 707 | 707 — `Self` return type support for trait method dispatch | language-design | 4 | 0 | 3 | 5 | 4 | 16 |
-| 2 | 686 | Wasm GC Selfhost Implementation | main | 0 | 0 | 4 | 5 | 4 | 13 |
+| 2 | 686 | Wasm GC Selfhost Implementation | main | 1 | 0 | 4 | 5 | 4 | 14 |
 | 3 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
 | 4 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
 | 5 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
@@ -57,3 +57,4 @@ Scoring criteria (0-5 each, total 25):
 | 44 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
 | 45 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
 | 46 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 47 | 716 | GC target intrinsic stub completion (silent-wrong-result ba... | gc-native | 0 | 0 | 1 | 1 | 3 | 5 |
