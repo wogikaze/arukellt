@@ -12,5 +12,5 @@ fn main() {
     let msg = vismod::greet(String_from("Ark"))
     let sq = vismod::square(7)
     stdio::println(msg)
-    stdio::println(i32_to_string(sq))
+    stdio::println((sq).to_string())
 }

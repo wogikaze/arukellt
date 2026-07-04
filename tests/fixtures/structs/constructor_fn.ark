@@ -11,6 +11,6 @@ fn point_new(x: f64, y: f64) -> Point {
 
 fn main() {
     let p: Point = point_new(3.0, 4.0)
-    stdio::println(f64_to_string(p.x))
-    stdio::println(f64_to_string(p.y))
+    stdio::println((p.x).to_string())
+    stdio::println((p.y).to_string())
 }

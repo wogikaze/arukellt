@@ -17,13 +17,13 @@ fn main() {
     push(v, 4)
     push(v, 5)
     let doubled: Vec<i32> = seq::map_i32_i32(v, double)
-    stdio::println(i32_to_string(len(doubled)))
-    stdio::println(i32_to_string(get_unchecked(doubled, 0)))
-    stdio::println(i32_to_string(get_unchecked(doubled, 4)))
+    stdio::println((len(doubled)).to_string())
+    stdio::println((get_unchecked(doubled, 0)).to_string())
+    stdio::println((get_unchecked(doubled, 4)).to_string())
     let evens: Vec<i32> = seq::filter_i32(v, is_even)
-    stdio::println(i32_to_string(len(evens)))
-    stdio::println(i32_to_string(get_unchecked(evens, 0)))
-    stdio::println(i32_to_string(get_unchecked(evens, 1)))
+    stdio::println((len(evens)).to_string())
+    stdio::println((get_unchecked(evens, 0)).to_string())
+    stdio::println((get_unchecked(evens, 1)).to_string())
 }
 // map: double each element
 // filter: keep even numbers

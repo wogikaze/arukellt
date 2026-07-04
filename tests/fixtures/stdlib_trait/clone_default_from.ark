@@ -18,7 +18,7 @@ fn main() {
     // Direct call to Clone::clone for i32 (via impl method dispatch).
     let n: i32 = 42
     let m: i32 = n.clone()
-    stdio::println(i32_to_string(m))
+    stdio::println((m).to_string())
 
     // Direct call to Clone::clone for String (via impl method dispatch).
     let s: String = String_from("hello")
@@ -27,5 +27,5 @@ fn main() {
 
     // Direct call to Into<i64> for i32 (via impl method dispatch).
     let wide: i64 = 456.into()
-    stdio::println(i64_to_string(wide))
+    stdio::println((wide).to_string())
 }

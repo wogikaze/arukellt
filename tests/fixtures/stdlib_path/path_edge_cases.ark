@@ -21,10 +21,10 @@ fn main() {
     stdio::println(path::with_extension("main.rs", "ark"))
     stdio::println(path::with_extension("Makefile", "bak"))
     stdio::println(path::with_extension("file.txt", ""))
-    stdio::println(bool_to_string(path::is_absolute("/")))
-    stdio::println(bool_to_string(path::is_absolute("/usr/bin")))
-    stdio::println(bool_to_string(path::is_absolute("relative/path")))
-    stdio::println(bool_to_string(path::is_absolute("")))
+    stdio::println((path::is_absolute("/")).to_string())
+    stdio::println((path::is_absolute("/usr/bin")).to_string())
+    stdio::println((path::is_absolute("relative/path")).to_string())
+    stdio::println((path::is_absolute("")).to_string())
 }
 // === join edge cases ===
 // join with empty base

@@ -9,13 +9,13 @@ fn main() {
     push(v, 1)
     push(v, 2)
     sort_i32(v)
-    stdio::println(i32_to_string(get_unchecked(v, 0)))
-    stdio::println(i32_to_string(get_unchecked(v, 1)))
-    stdio::println(i32_to_string(get_unchecked(v, 2)))
+    stdio::println((get_unchecked(v, 0)).to_string())
+    stdio::println((get_unchecked(v, 1)).to_string())
+    stdio::println((get_unchecked(v, 2)).to_string())
     let doubled: Vec<i32> = map_i32_i32(v, |x: i32| -> i32 {
         x * 2
     })
-    stdio::println(i32_to_string(sum_i32(doubled)))
+    stdio::println((sum_i32(doubled)).to_string())
     let s: String = concat(String_from("hello"), String_from(" world"))
     stdio::println(s)
 }

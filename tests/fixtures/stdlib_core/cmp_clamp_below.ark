@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     // Value below range is clamped to lo
-    test::assert_eq_i32(cmp::clamp(-5, 0, 10), 0)
-    test::assert_eq_i32(cmp::clamp(-100, 0, 10), 0)
-    test::assert_eq_i32(cmp::clamp(-1, 0, 10), 0)
+    test::assert_eq_i32(-5.clamp(0, 10), 0)
+    test::assert_eq_i32(-100.clamp(0, 10), 0)
+    test::assert_eq_i32(-1.clamp(0, 10), 0)
 }

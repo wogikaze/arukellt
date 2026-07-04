@@ -29,7 +29,7 @@ fn main() {
     let vf: Vec<f64> = Vec_new_f64()
     push(vf, 1.5)
     push(vf, 2.5)
-    let expected_f = concat("[", concat(f64_to_string(1.5), concat(", ", concat(f64_to_string(2.5), "]"))))
+    let expected_f = concat("[", concat((1.5).to_string(), concat(", ", concat((2.5).to_string(), "]"))))
     assert(eq(fmt::debug_format_vec_f64(vf), expected_f))
 
     // Vec<String> -> ["a", "b"] (elements quoted via Debug for String)

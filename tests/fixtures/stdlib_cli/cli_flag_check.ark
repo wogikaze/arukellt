@@ -2,8 +2,8 @@ use std::cli
 use std::host::stdio
 
 fn main() {
-    stdio::println(i32_to_string(cli::arg_count()))
-    stdio::println(bool_to_string(cli::has_flag("--verbose")))
+    stdio::println((cli::arg_count()).to_string())
+    stdio::println((cli::has_flag("--verbose")).to_string())
     match cli::arg_at(0) {
         Option::Some(s) => stdio::println(s),
         None => stdio::println("no arg"),
@@ -12,8 +12,8 @@ fn main() {
     push(args, "--debug")
     push(args, "--output")
     push(args, "out.txt")
-    stdio::println(bool_to_string(cli::flag(args, "--debug")))
-    stdio::println(bool_to_string(cli::flag(args, "--verbose")))
+    stdio::println((cli::flag(args, "--debug")).to_string())
+    stdio::println((cli::flag(args, "--verbose")).to_string())
     match cli::option(args, "--output") {
         Option::Some(v) => stdio::println(v),
         None => stdio::println("not found"),

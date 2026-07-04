@@ -16,7 +16,7 @@ fn main() {
     // Clone dispatch on i32 (copy semantics, Self = i32).
     let n: i32 = 42
     let m: i32 = dup(n)
-    stdio::println(i32_to_string(m))
+    stdio::println((m).to_string())
 
     // Clone dispatch on String (deep clone, Self = String).
     let s: String = String_from("hello")

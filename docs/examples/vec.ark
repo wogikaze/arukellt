@@ -5,17 +5,17 @@ fn main() {
     push(v, 10)
     push(v, 20)
     push(v, 30)
-    stdio::println(i32_to_string(len(v)))
+    stdio::println((len(v)).to_string())
     match get(v, 0) {
-        Option::Some(val) => stdio::println(i32_to_string(val)),
+        Option::Some(val) => stdio::println((val).to_string()),
         None => stdio::println("out of bounds"),
     }
     match get(v, 1) {
-        Option::Some(val) => stdio::println(i32_to_string(val)),
+        Option::Some(val) => stdio::println((val).to_string()),
         None => stdio::println("out of bounds"),
     }
     match get(v, 2) {
-        Option::Some(val) => stdio::println(i32_to_string(val)),
+        Option::Some(val) => stdio::println((val).to_string()),
         None => stdio::println("out of bounds"),
     }
 }

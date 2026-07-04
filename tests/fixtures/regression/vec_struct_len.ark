@@ -10,11 +10,11 @@ struct Token {
 
 fn main() {
     let mut tokens: Vec<Token> = Vec_new_Token()
-    stdio::println(i32_to_string(len(tokens)))
+    stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 0, value: String_from("eof") })
-    stdio::println(i32_to_string(len(tokens)))
+    stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 1, value: String_from("ident") })
-    stdio::println(i32_to_string(len(tokens)))
+    stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 2, value: String_from("number") })
-    stdio::println(i32_to_string(len(tokens)))
+    stdio::println((len(tokens)).to_string())
 }

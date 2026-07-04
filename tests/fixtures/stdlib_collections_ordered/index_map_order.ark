@@ -6,17 +6,17 @@ fn main() {
     ordered::index_map_insert(m, 30, 300)
     ordered::index_map_insert(m, 10, 100)
     ordered::index_map_insert(m, 20, 200)
-    stdio::println(i32_to_string(ordered::index_map_len(m)))
-    stdio::println(i32_to_string(ordered::index_map_get(m, 30)))
-    stdio::println(i32_to_string(ordered::index_map_get(m, 10)))
-    stdio::println(i32_to_string(ordered::index_map_get(m, 99)))
+    stdio::println((ordered::index_map_len(m)).to_string())
+    stdio::println((ordered::index_map_get(m, 30)).to_string())
+    stdio::println((ordered::index_map_get(m, 10)).to_string())
+    stdio::println((ordered::index_map_get(m, 99)).to_string())
     let keys: Vec<i32> = ordered::index_map_keys(m)
     let mut i: i32 = 0
     while i < len(keys) {
-        stdio::println(i32_to_string(get_unchecked(keys, i)))
+        stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }
     ordered::index_map_insert(m, 10, 999)
-    stdio::println(i32_to_string(ordered::index_map_get(m, 10)))
-    stdio::println(i32_to_string(ordered::index_map_len(m)))
+    stdio::println((ordered::index_map_get(m, 10)).to_string())
+    stdio::println((ordered::index_map_len(m)).to_string())
 }

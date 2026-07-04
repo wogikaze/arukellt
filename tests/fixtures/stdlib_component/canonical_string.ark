@@ -6,8 +6,8 @@ fn main() {
     let scratch = canonical::canonical_scratch_new()
     match canonical::canonical_lower_string(scratch, String_from("hi")) {
         Result::Ok(slice) => {
-            stdio::println(i32_to_string(slice.ptr))
-            stdio::println(i32_to_string(slice.len))
+            stdio::println((slice.ptr).to_string())
+            stdio::println((slice.len).to_string())
             match canonical::canonical_lift_string(scratch, slice) {
                 Result::Ok(s) => stdio::println(s),
                 Result::Err(e) => stdio::println(error::error_message(e)),

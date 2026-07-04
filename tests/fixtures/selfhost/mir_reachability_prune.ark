@@ -41,5 +41,5 @@ fn main() {
     push(nums, 10)
     push(nums, 20)
     push(nums, 30)
-    stdio::println(i32_to_string(tally(nums)))
+    stdio::println((tally(nums)).to_string())
 }

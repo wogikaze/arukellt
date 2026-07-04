@@ -14,7 +14,7 @@ fn describe(o: Outer) -> String {
     match o {
         Outer::Wrap(inner) => match inner {
             Inner::A => String_from("wrap-a"),
-            Inner::B(n) => concat(String_from("wrap-b:"), i32_to_string(n)),
+            Inner::B(n) => concat(String_from("wrap-b:"), (n).to_string()),
         },
         Outer::Empty => String_from("empty"),
     }

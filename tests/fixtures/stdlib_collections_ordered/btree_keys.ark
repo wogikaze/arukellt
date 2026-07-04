@@ -11,14 +11,14 @@ fn main() {
     let keys: Vec<i32> = ordered::btree_keys(m)
     let mut i: i32 = 0
     while i < len(keys) {
-        stdio::println(i32_to_string(get_unchecked(keys, i)))
+        stdio::println((get_unchecked(keys, i)).to_string())
         i = i + 1
     }
     let range: Vec<i32> = ordered::btree_range(m, 20, 45)
-    stdio::println(i32_to_string(len(range)))
+    stdio::println((len(range)).to_string())
     let mut j: i32 = 0
     while j < len(range) {
-        stdio::println(i32_to_string(get_unchecked(range, j)))
+        stdio::println((get_unchecked(range, j)).to_string())
         j = j + 1
     }
 }

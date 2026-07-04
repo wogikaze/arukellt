@@ -3,9 +3,9 @@ use std::text::rope
 
 fn main() {
     let r = rope::rope_new()
-    stdio::println(i32_to_string(rope::rope_len(r)))
+    stdio::println((rope::rope_len(r)).to_string())
     let r2 = rope::rope_from_string("hello")
-    stdio::println(i32_to_string(rope::rope_len(r2)))
+    stdio::println((rope::rope_len(r2)).to_string())
     stdio::println(rope::rope_to_string(r2))
     let r3 = rope::rope_insert(r2, 5, " world")
     stdio::println(rope::rope_to_string(r3))
@@ -14,5 +14,5 @@ fn main() {
     let r5 = rope::rope_slice(r3, 6, 11)
     stdio::println(r5)
     let r6 = rope::rope_from_string("line1\nline2\nline3")
-    stdio::println(i32_to_string(rope::rope_line_count(r6)))
+    stdio::println((rope::rope_line_count(r6)).to_string())
 }

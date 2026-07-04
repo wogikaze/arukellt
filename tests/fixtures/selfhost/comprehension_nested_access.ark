@@ -16,5 +16,5 @@ fn main() {
     for v in values(x_coords) {
         sum = sum + v
     }
-    stdio::println(i32_to_string(sum))
+    stdio::println((sum).to_string())
 }

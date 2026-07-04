@@ -13,5 +13,5 @@ fn main() {
     for v in values(evens_doubled) {
         sum = sum + v
     }
-    stdio::println(i32_to_string(sum))
+    stdio::println((sum).to_string())
 }

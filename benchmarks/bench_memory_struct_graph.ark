@@ -56,6 +56,6 @@ fn main() {
         total = total + graph_sum(10, i + 1)
         i = i + 1
     }
-    stdio::println(i32_to_string(total))
+    stdio::println((total).to_string())
     stdio::println("done")
 }

@@ -4,15 +4,15 @@ fn main() {
     let m = HashMap_i32_i32_new()
     HashMap_i32_i32_insert(m, 1, 100)
     match HashMap_i32_i32_get(m, 2) {
-        Option::Some(v) => stdio::println(i32_to_string(v)),
-        None => stdio::println(i32_to_string(-1)),
+        Option::Some(v) => stdio::println((v).to_string()),
+        None => stdio::println((-1).to_string()),
     }
-    stdio::println(i32_to_string(HashMap_i32_i32_len(m)))
+    stdio::println((HashMap_i32_i32_len(m)).to_string())
     if HashMap_i32_i32_contains_key(m, 1) {
         stdio::println(String_from("found"))
     }
     match HashMap_i32_i32_get(m, 99) {
-        Option::Some(v) => stdio::println(i32_to_string(v)),
+        Option::Some(v) => stdio::println((v).to_string()),
         None => stdio::println(String_from("not found")),
     }
 }

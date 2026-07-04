@@ -14,5 +14,5 @@ fn main() {
     let c1: Config = Config { width: 800, height: 600, title: String_from("old") }
     let c2: Config = with_title(c1, String_from("new"))
     stdio::println(c2.title)
-    stdio::println(i32_to_string(c2.width))
+    stdio::println((c2.width).to_string())
 }

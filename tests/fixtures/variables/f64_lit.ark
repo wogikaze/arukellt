@@ -2,5 +2,5 @@ use std::host::stdio
 
 fn main() {
     let x: f64 = 3.14
-    stdio::println(f64_to_string(x))
+    stdio::println((x).to_string())
 }

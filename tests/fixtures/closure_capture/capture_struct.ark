@@ -10,10 +10,10 @@ fn main() {
     let f = |n: i32| -> i32 {
         p.x + p.y + n
     }
-    stdio::println(i32_to_string(f(5)))
+    stdio::println((f(5)).to_string())
     let s = String_from("hello ")
     let g = |x: i32| -> String {
-        concat(s, i32_to_string(x))
+        concat(s, (x).to_string())
     }
     stdio::println(g(42))
 }

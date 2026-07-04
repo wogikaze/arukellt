@@ -2,5 +2,5 @@ use std::host::stdio
 
 fn main() {
     let x: i64 = 1000000000000
-    stdio::println(i64_to_string(x))
+    stdio::println((x).to_string())
 }

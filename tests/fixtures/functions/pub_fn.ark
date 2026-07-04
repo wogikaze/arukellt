@@ -5,5 +5,5 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(add(3, 4)))
+    stdio::println((add(3, 4)).to_string())
 }

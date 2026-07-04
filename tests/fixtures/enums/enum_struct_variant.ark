@@ -20,6 +20,6 @@ fn area(s: Shape) -> i32 {
 fn main() {
     let c = Shape::Circle { radius: 5 }
     let r = Shape::Rect { width: 4, height: 6 }
-    stdio::println(i32_to_string(area(c)))
-    stdio::println(i32_to_string(area(r)))
+    stdio::println((area(c)).to_string())
+    stdio::println((area(r)).to_string())
 }

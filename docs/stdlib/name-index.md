@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 769
+- **Canonical names:** 746
 - **Historical/deprecated names:** 26
-- **Total entries:** 795
+- **Total entries:** 772
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -23,15 +23,12 @@ Current public API names, sorted alphabetically.
 |------|--------|-----------|----------|
 | `abort` | `std::host::process` | `stable` | Host Process |
 | `abort` | `std::process` | `stable` | Process |
-| `abs` | `prelude` | `stable` | Math |
-| `abs` | `std::core::math` | `stable` | Core |
 | `abs` | `std::simd::f32x4` | `experimental` | Simd |
 | `abs` | `std::simd::i32x4` | `experimental` | Simd |
 | `abs` | `std::simd::f64x2` | `experimental` | Simd |
 | `abs` | `std::simd::i64x2` | `experimental` | Simd |
 | `abs` | `std::simd::i8x16` | `experimental` | Simd |
 | `abs` | `std::simd::i16x8` | `experimental` | Simd |
-| `abs_i32` | `std::core::math` | `stable` | Core |
 | `accept` | `std::host::sockets` | `provisional` | Host Sockets |
 | `add` | `std::simd::f32x4` | `experimental` | Simd |
 | `add` | `std::simd::i32x4` | `experimental` | Simd |
@@ -102,7 +99,6 @@ Current public API names, sorted alphabetically.
 | `bitset_union` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_unmark` | `std::collections::ordered` | `stable` | Collections |
 | `bitset_with_capacity` | `std::collections::ordered` | `experimental` | Collections |
-| `bool_to_string` | `prelude` | `stable` | Conversion |
 | `Box_new` | `prelude` | `stable` | Box |
 | `btree_contains_key` | `std::collections::ordered` | `experimental` | Collections |
 | `btree_get` | `std::collections::ordered` | `experimental` | Collections |
@@ -156,12 +152,10 @@ Current public API names, sorted alphabetically.
 | `char_at` | `prelude` | `stable` | String |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `chars` | `std::text` | `stable` | Text |
-| `clamp` | `std::core::cmp` | `stable` | Core |
 | `clamp_i32` | `prelude` | `stable` | Math |
 | `clear` | `prelude` | `stable` | Collections |
 | `clone` | `prelude` | `stable` | String |
 | `clone_f64` | `std::signal` | `stable` | Signal |
-| `cmp` | `std::core::cmp` | `stable` | Core |
 | `cmp_i32` | `std::core` | `stable` | Core |
 | `combine` | `std::core::hash` | `stable` | Core |
 | `component_model_version` | `std::component` | `experimental` | Component |
@@ -241,7 +235,6 @@ Current public API names, sorted alphabetically.
 | `f64_bits_hi` | `prelude` | `stable` | Numeric |
 | `f64_bits_lo` | `prelude` | `stable` | Numeric |
 | `f64_to_f32` | `prelude` | `stable` | Scalar Conversion |
-| `f64_to_string` | `prelude` | `stable` | Conversion |
 | `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
 | `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
@@ -291,9 +284,6 @@ Current public API names, sorted alphabetically.
 | `handle_table_new` | `std::component::handle` | `experimental` | Component |
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `has_flag` | `std::cli` | `stable` | Cli |
-| `hash_combine` | `std::core::hash` | `stable` | Core |
-| `hash_i32` | `std::core::hash` | `stable` | Core |
-| `hash_string` | `std::core::hash` | `stable` | Core |
 | `hashmap_capacity` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_clear` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
@@ -342,12 +332,10 @@ Current public API names, sorted alphabetically.
 | `i32_to_i16` | `prelude` | `stable` | Scalar Conversion |
 | `i32_to_i64` | `prelude` | `stable` | Scalar Conversion |
 | `i32_to_i8` | `prelude` | `stable` | Scalar Conversion |
-| `i32_to_string` | `prelude` | `stable` | Conversion |
 | `i32_to_u16` | `prelude` | `stable` | Scalar Conversion |
 | `i32_to_u32` | `prelude` | `stable` | Convert |
 | `i32_to_u8` | `prelude` | `stable` | Scalar Conversion |
 | `i64_to_i32` | `prelude` | `stable` | Scalar Conversion |
-| `i64_to_string` | `prelude` | `stable` | Conversion |
 | `i8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_map_get` | `std::collections::ordered` | `experimental` | Collections |
@@ -430,23 +418,15 @@ Current public API names, sorted alphabetically.
 | `map_option_String_String` | `prelude` | `stable` | Option Result |
 | `map_result_i32_i32` | `prelude` | `stable` | Option Result |
 | `map_String_String` | `prelude` | `stable` | Collections |
-| `max` | `prelude` | `stable` | Math |
-| `max` | `std::core::cmp` | `stable` | Core |
-| `max` | `std::core::math` | `stable` | Core |
 | `max` | `std::simd::f32x4` | `experimental` | Simd |
 | `max` | `std::simd::f64x2` | `experimental` | Simd |
-| `max_i32` | `std::core::math` | `stable` | Core |
 | `max_i32` | `std::seq` | `stable` | Seq |
 | `memory_copy` | `std::wasm` | `experimental` | Wasm |
 | `memory_fill` | `std::wasm` | `experimental` | Wasm |
 | `metadata` | `std::fs` | `provisional` | Fs |
 | `metadata` | `std::host::fs` | `provisional` | Host Fs |
-| `min` | `prelude` | `stable` | Math |
-| `min` | `std::core::cmp` | `stable` | Core |
-| `min` | `std::core::math` | `stable` | Core |
 | `min` | `std::simd::f32x4` | `experimental` | Simd |
 | `min` | `std::simd::f64x2` | `experimental` | Simd |
-| `min_i32` | `std::core::math` | `stable` | Core |
 | `min_i32` | `std::seq` | `stable` | Seq |
 | `module_add_export_func` | `std::wasm` | `experimental` | Wasm |
 | `module_add_func` | `std::wasm` | `experimental` | Wasm |
@@ -514,7 +494,6 @@ Current public API names, sorted alphabetically.
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
 | `position` | `std::io` | `stable` | Io |
-| `pow_i32` | `prelude` | `stable` | Math |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
@@ -644,8 +623,6 @@ Current public API names, sorted alphabetically.
 | `splat` | `std::simd::u64x2` | `experimental` | Simd |
 | `split` | `prelude` | `stable` | String |
 | `split` | `std::text` | `stable` | Text |
-| `sqrt` | `prelude` | `stable` | Math |
-| `sqrt` | `std::core::math` | `stable` | Core |
 | `sqrt` | `std::simd::f32x4` | `experimental` | Simd |
 | `sqrt` | `std::simd::f64x2` | `experimental` | Simd |
 | `starts_with` | `prelude` | `stable` | String |
@@ -836,15 +813,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 |------|--------|--------|---------------------|
 | `abort` | ✅ `stable` | `std::host::process` | Host Process |
 | `abort` | ✅ `stable` | `std::process` | Process |
-| `abs` | ✅ `stable` | `prelude` | Math |
-| `abs` | ✅ `stable` | `std::core::math` | Core |
 | `abs` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i32x4` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| `abs_i32` | ✅ `stable` | `std::core::math` | Core |
 | `accept` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `add` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `add` | ✅ `experimental` | `std::simd::i32x4` | Simd |
@@ -915,7 +889,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bitset_union` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_unmark` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `bitset_with_capacity` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| `bool_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
 | `btree_contains_key` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `btree_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -969,12 +942,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `char_at` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `chars` | ✅ `stable` | `std::text` | Text |
-| `clamp` | ✅ `stable` | `std::core::cmp` | Core |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clear` | ✅ `stable` | `prelude` | Collections |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
-| `cmp` | ✅ `stable` | `std::core::cmp` | Core |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
@@ -1055,7 +1026,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `f64_bits_hi` | ✅ `stable` | `prelude` | Numeric |
 | `f64_bits_lo` | ✅ `stable` | `prelude` | Numeric |
 | `f64_to_f32` | ✅ `stable` | `prelude` | Scalar Conversion |
-| `f64_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `fd_fdstat_errno` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
@@ -1107,9 +1077,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `handle_table_new` | ✅ `experimental` | `std::component::handle` | Component |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
-| `hash_combine` | ✅ `stable` | `std::core::hash` | Core |
-| `hash_i32` | ✅ `stable` | `std::core::hash` | Core |
-| `hash_string` | ✅ `stable` | `std::core::hash` | Core |
 | `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -1178,12 +1145,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `i32_to_i16` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_i64` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_i8` | ✅ `stable` | `prelude` | Scalar Conversion |
-| `i32_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `i32_to_u16` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_u32` | ✅ `stable` | `prelude` | Convert |
 | `i32_to_u8` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i64_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
-| `i64_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `i8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_map_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -1266,23 +1231,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `map_option_String_String` | ✅ `stable` | `prelude` | Option Result |
 | `map_result_i32_i32` | ✅ `stable` | `prelude` | Option Result |
 | `map_String_String` | ✅ `stable` | `prelude` | Collections |
-| `max` | ✅ `stable` | `prelude` | Math |
-| `max` | ✅ `stable` | `std::core::cmp` | Core |
-| `max` | ✅ `stable` | `std::core::math` | Core |
 | `max` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `max` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `max_i32` | ✅ `stable` | `std::core::math` | Core |
 | `max_i32` | ✅ `stable` | `std::seq` | Seq |
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
 | `metadata` | ✅ `provisional` | `std::host::fs` | Host Fs |
-| `min` | ✅ `stable` | `prelude` | Math |
-| `min` | ✅ `stable` | `std::core::cmp` | Core |
-| `min` | ✅ `stable` | `std::core::math` | Core |
 | `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| `min_i32` | ✅ `stable` | `std::core::math` | Core |
 | `min_i32` | ✅ `stable` | `std::seq` | Seq |
 | `module_add_export_func` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_add_func` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1350,7 +1307,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
 | `position` | ✅ `stable` | `std::io` | Io |
-| `pow_i32` | ✅ `stable` | `prelude` | Math |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -1480,8 +1436,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `splat` | ✅ `experimental` | `std::simd::u64x2` | Simd |
 | `split` | ✅ `stable` | `prelude` | String |
 | `split` | ✅ `stable` | `std::text` | Text |
-| `sqrt` | ✅ `stable` | `prelude` | Math |
-| `sqrt` | ✅ `stable` | `std::core::math` | Core |
 | `sqrt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `sqrt` | ✅ `experimental` | `std::simd::f64x2` | Simd |
 | `starts_with` | ✅ `stable` | `prelude` | String |

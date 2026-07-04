@@ -16,7 +16,7 @@ fn main() {
     let mut parts: Vec<String> = Vec_new_String()
     let mut i: i32 = 0
     while i < len(v) {
-        push(parts, i32_to_string(get_unchecked(v, i)))
+        push(parts, (get_unchecked(v, i)).to_string())
         i = i + 1
     }
     stdio::println(join(parts, String_from(" ")))

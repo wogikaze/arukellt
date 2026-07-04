@@ -10,7 +10,7 @@ fn main() {
         Result::Err(e) => stdio::println(e),
     }
     let b: Vec<i32> = io::writer_to_bytes(w)
-    stdio::println(i32_to_string(bytes::bytes_len(b)))
+    stdio::println((bytes::bytes_len(b)).to_string())
     let w2: Vec<i32> = io::writer_new()
     let r2: Result<(), io::IoError> = io::write_string(w2, "buffered")
     match r2 {

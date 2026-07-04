@@ -57,6 +57,6 @@ fn main() {
         l = l + 1
     }
 
-    stdio::println(i32_to_string(len(mapped)))
-    stdio::println(i32_to_string(sum))
+    stdio::println((len(mapped)).to_string())
+    stdio::println((sum).to_string())
 }

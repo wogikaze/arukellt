@@ -42,9 +42,9 @@ fn main() {
     let total_len: i32 = len(s)
     let objects: i32 = count_chars(s, 123)
     let strings: i32 = count_json_strings(s)
-    stdio::println(i32_to_string(total_len))
-    stdio::println(i32_to_string(objects))
-    stdio::println(i32_to_string(strings))
+    stdio::println((total_len).to_string())
+    stdio::println((objects).to_string())
+    stdio::println((strings).to_string())
 }
 // Count occurrences of a character in a string.
 // Build a ~10 KB JSON array: 400 objects of the form

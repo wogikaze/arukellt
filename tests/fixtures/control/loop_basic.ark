@@ -6,7 +6,7 @@ fn main() {
         if i >= 3 {
             break
         }
-        stdio::println(i32_to_string(i))
+        stdio::println((i).to_string())
         i = i + 1
     }
 }

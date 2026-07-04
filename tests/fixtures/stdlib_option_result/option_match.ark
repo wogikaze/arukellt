@@ -2,7 +2,7 @@ use std::host::stdio
 
 fn describe(opt: Option<i32>) -> String {
     match opt {
-        Option::Some(val) => concat(String_from("got "), i32_to_string(val)),
+        Option::Some(val) => concat(String_from("got "), (val).to_string()),
         None => String_from("nothing"),
     }
 }

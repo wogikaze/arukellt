@@ -5,5 +5,5 @@ use std::host::stdio
 
 fn main() {
     let ok = fs::is_readable_file("tests/fixtures/stdlib_fs/present.txt")
-    stdio::println(bool_to_string(ok))
+    stdio::println((ok).to_string())
 }

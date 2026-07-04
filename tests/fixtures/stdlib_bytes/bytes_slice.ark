@@ -9,15 +9,15 @@ fn main() {
     bytes::bytes_push(b, 40)
     bytes::bytes_push(b, 50)
     let sub: Vec<i32> = bytes::bytes_slice(b, 1, 4)
-    stdio::println(i32_to_string(bytes::bytes_len(sub)))
-    stdio::println(i32_to_string(bytes::bytes_get(sub, 0)))
-    stdio::println(i32_to_string(bytes::bytes_get(sub, 1)))
-    stdio::println(i32_to_string(bytes::bytes_get(sub, 2)))
+    stdio::println((bytes::bytes_len(sub)).to_string())
+    stdio::println((bytes::bytes_get(sub, 0)).to_string())
+    stdio::println((bytes::bytes_get(sub, 1)).to_string())
+    stdio::println((bytes::bytes_get(sub, 2)).to_string())
     let empty: Vec<i32> = bytes::bytes_slice(b, 2, 2)
-    stdio::println(i32_to_string(bytes::bytes_len(empty)))
+    stdio::println((bytes::bytes_len(empty)).to_string())
     let full: Vec<i32> = bytes::bytes_slice(b, 0, 5)
-    stdio::println(i32_to_string(bytes::bytes_len(full)))
-    stdio::println(bool_to_string(bytes::bytes_eq(b, full)))
+    stdio::println((bytes::bytes_len(full)).to_string())
+    stdio::println((bytes::bytes_eq(b, full)).to_string())
 }
 // bytes_slice: extract sub-range
 // Empty slice

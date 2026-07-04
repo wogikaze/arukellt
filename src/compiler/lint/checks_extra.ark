@@ -40,6 +40,16 @@ fn check_deprecated_api_in_node(node: AstNode, warnings: Vec<Diagnostic>) {
         }
         return
     }
+    // Check qualified path calls (e.g., math::abs_i32, cmp::min, hash::hash_i32)
+    if ast_expr_predicates::node_is_path(node) {
+        let path = ast_access::node_text(node)
+        let dep_msg = deprecated_table::deprecated_qualified_call_message(clone(path))
+        if len(clone(dep_msg)) > 0 {
+            let span = record::DiagnosticSpan_from_raw(ast_access::node_span_start(node), ast_access::node_span_end(node))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_DEPRECATED_API(), diag_mod::SEV_WARNING(), span, dep_msg))
+        }
+        return
+    }
     let child_count = ast_access::node_child_count(node)
     let mut ci = 0
     while ci < child_count {

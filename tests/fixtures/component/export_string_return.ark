@@ -1,4 +1,4 @@
 // Export with String result maps to WIT string.
 pub fn number_label(n: i32) -> String {
-    concat(String_from("n="), i32_to_string(n))
+    concat(String_from("n="), (n).to_string())
 }

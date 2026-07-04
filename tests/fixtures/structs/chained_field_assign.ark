@@ -19,11 +19,11 @@ struct Outer {
 fn main() {
     let o = Outer { middle: Middle { inner: Inner { count: 0, name: String_from("a") }, label: String_from("mid") }, id: 1 }
     o.id = 99
-    stdio::println(i32_to_string(o.id))
+    stdio::println((o.id).to_string())
     o.middle.label = String_from("updated")
     stdio::println(o.middle.label)
     o.middle.inner.count = 42
-    stdio::println(i32_to_string(o.middle.inner.count))
+    stdio::println((o.middle.inner.count).to_string())
     o.middle.inner.name = String_from("deep")
     stdio::println(o.middle.inner.name)
 }

@@ -15,5 +15,5 @@ fn main() {
     push(xs, 2)
     push(xs, 3)
     let result = sum_vec([x * 10 for x in xs])
-    stdio::println(i32_to_string(result))
+    stdio::println((result).to_string())
 }

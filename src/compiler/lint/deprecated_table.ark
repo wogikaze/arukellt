@@ -41,6 +41,91 @@ pub fn deprecated_call_message(name: String) -> String {
     if eq(clone(name), String_from("read_to_string")) {
         return String_from("import `use std::host::stdio` and call `stdio::read_stdin()`")
     }
+    // Deprecated prelude free functions (issue #718, ADR-036)
+    if eq(clone(name), String_from("i32_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on i32) instead")
+    }
+    if eq(clone(name), String_from("i64_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on i64) instead")
+    }
+    if eq(clone(name), String_from("f64_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on f64) instead")
+    }
+    if eq(clone(name), String_from("bool_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on bool) instead")
+    }
+    String_new()
+}
+
+// ── Deprecated qualified path calls (math::abs_i32 → x.abs()) ──────────
+
+// Returns a non-empty replacement message if the qualified path call is deprecated.
+// `path` is the full qualified path, e.g. "math::abs_i32" or "cmp::min".
+pub fn deprecated_qualified_call_message(path: String) -> String {
+    // std::core::math functions
+    if eq(clone(path), String_from("math::abs")) {
+        return String_from("use `x.abs()` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::abs_i32")) {
+        return String_from("use `x.abs()` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::min")) {
+        return String_from("use `a.min(b)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::min_i32")) {
+        return String_from("use `a.min(b)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::max")) {
+        return String_from("use `a.max(b)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::max_i32")) {
+        return String_from("use `a.max(b)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::sqrt")) {
+        return String_from("use `x.sqrt()` (inherent method on f64) instead")
+    }
+    if eq(clone(path), String_from("math::clamp")) {
+        return String_from("use `x.clamp(lo, hi)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("math::pow_i32")) {
+        return String_from("use `base.pow(exp)` (inherent method on i32) instead")
+    }
+    // std::core::cmp functions
+    if eq(clone(path), String_from("cmp::cmp")) {
+        return String_from("use `a.cmp(b)` (Ord trait method) instead")
+    }
+    if eq(clone(path), String_from("cmp::min")) {
+        return String_from("use `a.min(b)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("cmp::max")) {
+        return String_from("use `a.max(b)` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("cmp::clamp")) {
+        return String_from("use `x.clamp(lo, hi)` (inherent method on i32) instead")
+    }
+    // std::core::convert functions
+    if eq(clone(path), String_from("convert::i32_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on i32) instead")
+    }
+    if eq(clone(path), String_from("convert::i64_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on i64) instead")
+    }
+    if eq(clone(path), String_from("convert::f64_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on f64) instead")
+    }
+    if eq(clone(path), String_from("convert::bool_to_string")) {
+        return String_from("use `x.to_string()` (inherent method on bool) instead")
+    }
+    // std::core::hash functions
+    if eq(clone(path), String_from("hash::hash_i32")) {
+        return String_from("use `value.hash()` (Hash trait method) instead")
+    }
+    if eq(clone(path), String_from("hash::hash_string")) {
+        return String_from("use `value.hash()` (Hash trait method) instead")
+    }
+    if eq(clone(path), String_from("hash::hash_combine")) {
+        return String_from("use `combine(h1, h2)` instead")
+    }
     String_new()
 }
 
@@ -72,4 +157,9 @@ test mod "deprecated" {
     test "io" { assert(len(deprecated_use_message("std::io")) > 0) }
     test "fs" { assert(len(deprecated_use_message("std::fs")) > 0) }
     test "println" { assert(len(deprecated_call_message("println")) > 0) }
+    test "i32_to_string" { assert(len(deprecated_call_message("i32_to_string")) > 0) }
+    test "math_abs_i32" { assert(len(deprecated_qualified_call_message("math::abs_i32")) > 0) }
+    test "cmp_cmp" { assert(len(deprecated_qualified_call_message("cmp::cmp")) > 0) }
+    test "hash_i32" { assert(len(deprecated_qualified_call_message("hash::hash_i32")) > 0) }
+    test "non_deprecated" { assert(len(deprecated_qualified_call_message("math::gcd")) == 0) }
 }

@@ -54,4 +54,4 @@ fn helper_047(x: i32) -> i32 { x + 47 }
 fn helper_048(x: i32) -> i32 { x + 48 }
 fn helper_049(x: i32) -> i32 { x + 49 }
 fn helper_050(x: i32) -> i32 { x + 50 }
-fn main() { stdio::println(i32_to_string(helper_001(1))) }
+fn main() { stdio::println((helper_001(1)).to_string()) }

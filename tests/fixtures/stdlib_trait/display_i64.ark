@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let big: i64 = 1000000000000
-    test::assert_eq_string(to_string(big), i64_to_string(big))
+    test::assert_eq_string(to_string(big), (big).to_string())
 
     let neg: i64 = -42
     test::assert_eq_string(to_string(neg), "-42")

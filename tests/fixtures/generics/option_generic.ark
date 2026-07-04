@@ -10,6 +10,6 @@ fn unwrap_or_default<T>(opt: Option<T>, default: T) -> T {
 fn main() {
     let a: Option<i32> = Some(42)
     let b: Option<i32> = None
-    stdio::println(i32_to_string(unwrap_or_default(a, 0)))
-    stdio::println(i32_to_string(unwrap_or_default(b, 0)))
+    stdio::println((unwrap_or_default(a, 0)).to_string())
+    stdio::println((unwrap_or_default(b, 0)).to_string())
 }

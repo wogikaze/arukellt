@@ -29,16 +29,16 @@ fn main() {
     let p3 = Point { x: 3, y: 4 }
 
     // Direct trait method call via fn_sig lookup
-    stdio::println(bool_to_string(eq(p1, p2)))
-    stdio::println(bool_to_string(eq(p1, p3)))
+    stdio::println((eq(p1, p2)).to_string())
+    stdio::println((eq(p1, p3)).to_string())
 
     // Generic function with Eq trait bound
     let p = check_eq(p1, p2)
-    stdio::println(bool_to_string(eq(p, p2)))
-    stdio::println(bool_to_string(eq(p, p3)))
+    stdio::println((eq(p, p2)).to_string())
+    stdio::println((eq(p, p3)).to_string())
 
     // Re-use stdlib ordering function alongside the trait
-    match cmp::cmp(1, 2) {
+    match 1.cmp(2) {
         Ordering::Less => stdio::println("less"),
         Ordering::Equal => stdio::println("equal"),
         Ordering::Greater => stdio::println("greater"),

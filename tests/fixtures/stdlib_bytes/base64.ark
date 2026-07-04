@@ -9,8 +9,8 @@ fn main() {
     let enc: String = bytes::base64_encode(b)
     stdio::println(enc)
     let dec: Vec<i32> = bytes::base64_decode(enc)
-    stdio::println(i32_to_string(bytes::bytes_len(dec)))
-    stdio::println(bool_to_string(bytes::bytes_eq(b, dec)))
+    stdio::println((bytes::bytes_len(dec)).to_string())
+    stdio::println((bytes::bytes_eq(b, dec)).to_string())
     let one: Vec<i32> = bytes::bytes_new()
     bytes::bytes_push(one, 77)
     let enc1: String = bytes::base64_encode(one)
@@ -21,10 +21,10 @@ fn main() {
     let enc2: String = bytes::base64_encode(two)
     stdio::println(enc2)
     let empty_enc: String = bytes::base64_encode(bytes::bytes_new())
-    stdio::println(bool_to_string(eq(empty_enc, "")))
+    stdio::println((eq(empty_enc, "")).to_string())
     let back: Vec<i32> = bytes::base64_decode("TQ==")
-    stdio::println(i32_to_string(bytes::bytes_len(back)))
-    stdio::println(i32_to_string(bytes::bytes_get(back, 0)))
+    stdio::println((bytes::bytes_len(back)).to_string())
+    stdio::println((bytes::bytes_get(back, 0)).to_string())
 }
 // base64_encode
 // base64_decode roundtrip

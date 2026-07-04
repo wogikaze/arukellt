@@ -2,8 +2,8 @@ use std::core::hash
 use std::test
 
 fn main() {
-    let h = hash::hash_i32(0)
+    let h = 0.hash()
     test::assert_true(h >= 0)
     // hash of 0 should be deterministic
-    test::assert_eq_i32(h, hash::hash_i32(0))
+    test::assert_eq_i32(h, 0.hash())
 }

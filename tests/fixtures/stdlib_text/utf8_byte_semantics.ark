@@ -3,11 +3,11 @@ use std::text
 
 fn main() {
     let ascii = "hello"
-    stdio::println(i32_to_string(len(ascii)))
-    stdio::println(i32_to_string(len("")))
-    stdio::println(i32_to_string(len(" ")))
-    stdio::println(i32_to_string(len("\n")))
-    stdio::println(i32_to_string(len("\t")))
+    stdio::println((len(ascii)).to_string())
+    stdio::println((len("")).to_string())
+    stdio::println((len(" ")).to_string())
+    stdio::println((len("\n")).to_string())
+    stdio::println((len("\t")).to_string())
     let world = slice(ascii, 0, 3)
     stdio::println(world)
     let mid = slice(ascii, 1, 4)
@@ -15,10 +15,10 @@ fn main() {
     let full = slice(ascii, 0, 5)
     stdio::println(full)
     let empty = slice(ascii, 2, 2)
-    stdio::println(i32_to_string(len(empty)))
-    stdio::println(i32_to_string(text::len_bytes("abc")))
-    stdio::println(bool_to_string(text::is_empty("")))
-    stdio::println(bool_to_string(text::is_empty("a")))
+    stdio::println((len(empty)).to_string())
+    stdio::println((text::len_bytes("abc")).to_string())
+    stdio::println((text::is_empty("")).to_string())
+    stdio::println((text::is_empty("a")).to_string())
 }
 // UTF-8 byte length vs perceived character count
 // Arukellt len() measures BYTES, not Unicode scalars.

@@ -20,7 +20,7 @@ fn main() {
                     match json::json_get(person, "age") {
                         Option::Some(av) => {
                             match json::json_as_i32(av) {
-                                Option::Some(n) => stdio::println(i32_to_string(n)),
+                                Option::Some(n) => stdio::println((n).to_string()),
                                 None => stdio::println("not number"),
                             }
                         },
@@ -32,7 +32,7 @@ fn main() {
             match json::json_get(top, "active") {
                 Option::Some(bv) => {
                     match json::json_as_bool(bv) {
-                        Option::Some(b) => stdio::println(bool_to_string(b)),
+                        Option::Some(b) => stdio::println((b).to_string()),
                         None => stdio::println("not bool"),
                     }
                 },
@@ -47,7 +47,7 @@ fn main() {
                             match json::json_get(p2, "age") {
                                 Option::Some(av2) => {
                                     match json::json_as_i32(av2) {
-                                        Option::Some(n2) => stdio::println(i32_to_string(n2)),
+                                        Option::Some(n2) => stdio::println((n2).to_string()),
                                         None => stdio::println("not number"),
                                     }
                                 },

@@ -113,7 +113,7 @@ pub fn byte_length(s: String) -> i32 {
 // --- Hex encoding ---
 pub fn hex_char(nibble: i32) -> String {
     if nibble < 10 {
-        i32_to_string(nibble)
+        (nibble).to_string()
     } else {
         if nibble == 10 {
             "a"

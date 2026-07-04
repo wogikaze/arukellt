@@ -300,29 +300,6 @@ doc_category = "string"
 # ── Conversion: to string ────────────────────
 
 [[functions]]
-name = "i32_to_string"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_i32_to_string"
-params = ["i32"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-doc = "Convert an i32 integer to its decimal string representation."
-availability = { t1 = true, t3 = true }
-examples = [{code = "println(i32_to_string(42))", description = "Print integer as string", output = "42"}]
-
-[[functions]]
-name = "i64_to_string"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_i64_to_string"
-params = ["i64"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-[[functions]]
 name = "f64_bits_lo"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_f64_bits_lo"
@@ -484,26 +461,6 @@ stability = "stable"
 doc_category = "scalar_conversion"
 
 [[functions]]
-name = "f64_to_string"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_f64_to_string"
-params = ["f64"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-[[functions]]
-name = "bool_to_string"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_bool_to_string"
-params = ["bool"]
-returns = "String"
-prelude = true
-stability = "stable"
-doc_category = "conversion"
-
-[[functions]]
 name = "char_to_string"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_char_to_string"
@@ -570,46 +527,6 @@ stability = "stable"
 doc_category = "conversion"
 
 # ── Math ─────────────────────────────────────
-
-[[functions]]
-name = "sqrt"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_sqrt"
-params = ["f64"]
-returns = "f64"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "abs"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_abs"
-params = ["i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "min"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_min"
-params = ["i32", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-[[functions]]
-name = "max"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_max"
-params = ["i32", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
 
 [[functions]]
 name = "clamp_i32"
@@ -1598,126 +1515,12 @@ params = ["Error"]
 returns = "String"
 
 [[functions]]
-name = "cmp"
-module = "std::core::cmp"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "Ordering"
-
-[[functions]]
-name = "min"
-module = "std::core::cmp"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "max"
-module = "std::core::cmp"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "clamp"
-module = "std::core::cmp"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "abs"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["i32"]
-returns = "i32"
-
-[[functions]]
-name = "min"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "max"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "sqrt"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["f64"]
-returns = "f64"
-
-[[functions]]
-name = "abs_i32"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["i32"]
-returns = "i32"
-
-[[functions]]
-name = "min_i32"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "max_i32"
-module = "std::core::math"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "hash_i32"
-module = "std::core::hash"
-doc_category = "core"
-stability = "stable"
-params = ["i32"]
-returns = "i32"
-
-[[functions]]
-name = "hash_string"
-module = "std::core::hash"
-doc_category = "core"
-stability = "stable"
-params = ["String"]
-returns = "i32"
-
-[[functions]]
 name = "combine"
 module = "std::core::hash"
 doc_category = "core"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "i32"
-
-[[functions]]
-name = "hash_combine"
-module = "std::core::hash"
-doc_category = "core"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-# === std::time ===
 
 [[functions]]
 name = "duration_ms"
@@ -7495,17 +7298,6 @@ doc_category = "string"
 name = "gcd"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_gcd"
-params = ["i32", "i32"]
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "math"
-
-
-[[functions]]
-name = "pow_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_pow_i32"
 params = ["i32", "i32"]
 returns = "i32"
 prelude = true

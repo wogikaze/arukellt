@@ -7,11 +7,11 @@ fn parse_and_double(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_and_double(String_from("21")) {
-        Result::Ok(val) => stdio::println(i32_to_string(val)),
+        Result::Ok(val) => stdio::println((val).to_string()),
         Result::Err(e) => stdio::println(e),
     }
     match parse_and_double(String_from("abc")) {
-        Result::Ok(val) => stdio::println(i32_to_string(val)),
+        Result::Ok(val) => stdio::println((val).to_string()),
         Result::Err(e) => stdio::println(e),
     }
 }

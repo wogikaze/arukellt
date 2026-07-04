@@ -4,6 +4,6 @@ fn main() {
     let a: String = String_from("hello")
     let b: String = String_from("hello")
     let c: String = String_from("world")
-    stdio::println(bool_to_string(eq(a, b)))
-    stdio::println(bool_to_string(eq(a, c)))
+    stdio::println((eq(a, b)).to_string())
+    stdio::println((eq(a, c)).to_string())
 }

@@ -12,6 +12,6 @@ fn main() {
     let w = world::world_new(String_from("example"))
     world::world_export(w, iface)
     stdio::println(world::world_name(w))
-    stdio::println(i32_to_string(world::world_exports_len(w)))
+    stdio::println((world::world_exports_len(w)).to_string())
 }
 // World build with export interface

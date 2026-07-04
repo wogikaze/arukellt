@@ -3,7 +3,7 @@ use std::host::stdio
 
 fn main() {
     let abi = component::canonical_abi_version()
-    stdio::println(i32_to_string(abi))
+    stdio::println((abi).to_string())
     let ver = component::component_model_version()
     stdio::println(ver)
 }

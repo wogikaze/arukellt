@@ -9,11 +9,11 @@ fn print_error(msg: String) { println(concat("error: ", msg)) }
 
 fn print_stack_count_error(count: i32) {
     print("error: stack has ")
-    print(i32_to_string(count))
+    print((count).to_string())
     println(" values")
 }
 
-fn print_result(val: i32) { println(concat("ok: result = ", i32_to_string(val))) }
+fn print_result(val: i32) { println(concat("ok: result = ", (val).to_string())) }
 
 fn operator_from_token(tok: String) -> RpnOp {
     if eq(tok, "+") { RpnOp::Add }
@@ -59,7 +59,7 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
     let sp: i32 = len(stack)
     if sp == 1 {
         let val: i32 = get_unchecked(stack, 0)
-        println(i32_to_string(val))
+        println((val).to_string())
         print_result(val)
     } else { if sp > 1 { println(input_trimmed); print_stack_count_error(sp) } }
 }

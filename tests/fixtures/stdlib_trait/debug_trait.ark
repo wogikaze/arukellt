@@ -16,11 +16,11 @@ fn main() {
 
     // Debug for i64 — mirrors Display.
     let big: i64 = 1000000000000
-    assert(eq(fmt::format_debug(big), i64_to_string(big)))
+    assert(eq(fmt::format_debug(big), (big).to_string()))
 
     // Debug for f64 — mirrors Display (compare against the same intrinsic).
-    assert(eq(fmt::format_debug(3.14), f64_to_string(3.14)))
-    assert(eq(fmt::format_debug(0.0), f64_to_string(0.0)))
+    assert(eq(fmt::format_debug(3.14), (3.14).to_string()))
+    assert(eq(fmt::format_debug(0.0), (0.0).to_string()))
 
     // Debug for bool.
     assert(eq(fmt::format_debug(true), String_from("true")))

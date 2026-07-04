@@ -4,7 +4,7 @@ use std::wit::types
 fn main() {
     let list_ty = types::wit_type_list(types::wit_type_string())
     stdio::println(types::wit_type_name(list_ty))
-    stdio::println(i32_to_string(types::wit_type_id(list_ty)))
+    stdio::println((types::wit_type_id(list_ty)).to_string())
     let opt_ty = types::wit_type_option(types::wit_type_u32())
     stdio::println(types::wit_type_name(opt_ty))
 }

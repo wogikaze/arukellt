@@ -19,12 +19,12 @@ fn main() {
     let dst: Vec<i32> = io::writer_new()
     let res: Result<i32, io::IoError> = io::copy_bytes(src, dst)
     match res {
-        Result::Ok(n) => stdio::println(i32_to_string(n)),
+        Result::Ok(n) => stdio::println((n).to_string()),
         Result::Err(e) => stdio::println(e),
     }
     let out: Vec<i32> = io::writer_to_bytes(dst)
     stdio::println(bytes::string_from_bytes(out))
-    stdio::println(bool_to_string(io::reader_eof(src)))
+    stdio::println((io::reader_eof(src)).to_string())
 }
 // Source reader with "hello world"
 // h

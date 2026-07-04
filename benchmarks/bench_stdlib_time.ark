@@ -47,5 +47,5 @@ pub fn main() {
         bench_measurement_pattern()
         iter = iter + 1
     }
-    stdio::println(i64_to_string(checksum))
+    stdio::println((checksum).to_string())
 }

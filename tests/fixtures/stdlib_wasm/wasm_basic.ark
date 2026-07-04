@@ -3,8 +3,8 @@ use std::wasm
 
 fn main() {
     let magic: Vec<i32> = wasm::wasm_magic()
-    stdio::println(i32_to_string(get_unchecked(magic, 0)))
-    stdio::println(i32_to_string(get_unchecked(magic, 1)))
-    stdio::println(i32_to_string(wasm::section_type()))
-    stdio::println(i32_to_string(wasm::valtype_i32()))
+    stdio::println((get_unchecked(magic, 0)).to_string())
+    stdio::println((get_unchecked(magic, 1)).to_string())
+    stdio::println((wasm::section_type()).to_string())
+    stdio::println((wasm::valtype_i32()).to_string())
 }

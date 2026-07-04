@@ -5,8 +5,8 @@ fn main() {
     test::assert_eq_string(fmt::format_debug(0), "0")
 
     let big: i64 = 1000000000000
-    test::assert_eq_string(fmt::format_debug(big), i64_to_string(big))
+    test::assert_eq_string(fmt::format_debug(big), (big).to_string())
 
     let neg: i64 = -99999999999
-    test::assert_eq_string(fmt::format_debug(neg), i64_to_string(neg))
+    test::assert_eq_string(fmt::format_debug(neg), (neg).to_string())
 }

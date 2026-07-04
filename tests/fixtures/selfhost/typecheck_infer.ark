@@ -23,7 +23,7 @@ fn main() {
         stdio::println(String_from("flag is false"))
     }
     let f = 1.5 + 2.5
-    stdio::println(f64_to_string(f))
+    stdio::println((f).to_string())
     let z: i32 = 5 + 6
     stdio::println(to_string(z))
     let sum = add(x, z)

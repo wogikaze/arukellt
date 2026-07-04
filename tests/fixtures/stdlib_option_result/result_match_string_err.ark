@@ -3,7 +3,7 @@ use std::test
 fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
-        Result::Ok(v) => stdio::println(i32_to_string(v)),
+        Result::Ok(v) => stdio::println((v).to_string()),
         Result::Err(e) => test::assert_eq_string(e, String_from("bad input")),
     }
     stdio::println("ok")

@@ -71,5 +71,5 @@ fn main() {
         }
         i = i + 1
     }
-    stdio::println(i32_to_string(sum))
+    stdio::println((sum).to_string())
 }

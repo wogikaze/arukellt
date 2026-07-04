@@ -9,7 +9,7 @@ fn main() {
         total = total + step
         i = i + 1
     }
-    stdio::println(i32_to_string(total))
+    stdio::println((total).to_string())
 }
 // base + 1 is loop-invariant; LICM should hoist it before the loop.
 // 3 iterations * 6 = 18

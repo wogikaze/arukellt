@@ -8,7 +8,7 @@ fn main() {
             json::JsonParseError::EmptyInput => stdio::println("empty-input"),
             json::JsonParseError::InvalidLiteral(kind) => stdio::println(concat("invalid-literal:", kind)),
             json::JsonParseError::TrailingCharacters => stdio::println("trailing-characters"),
-            json::JsonParseError::UnexpectedCharacter(ch) => stdio::println(concat("unexpected-char:", i32_to_string(ch))),
+            json::JsonParseError::UnexpectedCharacter(ch) => stdio::println(concat("unexpected-char:", (ch).to_string())),
         },
     }
 }

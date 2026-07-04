@@ -6,5 +6,5 @@ fn identity<T>(x: T) -> T {
 
 fn main() {
     let result: i32 = identity(42)
-    stdio::println(i32_to_string(result))
+    stdio::println((result).to_string())
 }

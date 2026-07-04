@@ -9,5 +9,5 @@ fn main() {
     let v = i32x4::splat(42)
     let s = Vec4 { x: v }
     let lane0 = i32x4::extract_lane(s.x, 0)
-    stdio::println(i32_to_string(lane0))
+    stdio::println((lane0).to_string())
 }

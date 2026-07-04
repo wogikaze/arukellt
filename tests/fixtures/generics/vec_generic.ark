@@ -12,7 +12,7 @@ fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
     push(v, 99)
     match first(v) {
-        Option::Some(val) => stdio::println(i32_to_string(val)),
+        Option::Some(val) => stdio::println((val).to_string()),
         None => stdio::println("empty"),
     }
 }

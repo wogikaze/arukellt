@@ -1,6 +1,6 @@
 use std::test
 
 fn main() {
-    test::assert_eq_string(bool_to_string(true), "true")
-    test::assert_eq_string(bool_to_string(false), "false")
+    test::assert_eq_string((true).to_string(), "true")
+    test::assert_eq_string((false).to_string(), "false")
 }

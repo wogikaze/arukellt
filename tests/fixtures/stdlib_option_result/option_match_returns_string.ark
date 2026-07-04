@@ -2,7 +2,7 @@ use std::host::stdio
 use std::test
 fn describe(o: Option<i32>) -> String {
     match o {
-        Option::Some(v) => concat(String_from("value="), i32_to_string(v)),
+        Option::Some(v) => concat(String_from("value="), (v).to_string()),
         None => String_from("empty"),
     }
 }

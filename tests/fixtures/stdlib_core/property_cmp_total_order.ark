@@ -4,7 +4,7 @@ use std::core::cmp
 use std::test
 
 fn check_pair(a: i32, b: i32) {
-    let result = cmp::cmp(a, b)
+    let result = a.cmp(b)
     // Exactly one variant
     let mut count = 0
     match result {

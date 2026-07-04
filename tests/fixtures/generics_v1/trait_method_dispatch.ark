@@ -17,7 +17,7 @@ struct Point {
 
 impl Greet for Point {
     fn greet(self: Point) -> String {
-        concat(String_from("Point("), concat(i32_to_string(self.x), concat(String_from(", "), concat(i32_to_string(self.y), String_from(")")))))
+        concat(String_from("Point("), concat((self.x).to_string(), concat(String_from(", "), concat((self.y).to_string(), String_from(")")))))
     }
 }
 
@@ -28,7 +28,7 @@ struct Vec2 {
 
 impl Greet for Vec2 {
     fn greet(self: Vec2) -> String {
-        concat(String_from("Vec2("), concat(i32_to_string(self.dx), concat(String_from(", "), concat(i32_to_string(self.dy), String_from(")")))))
+        concat(String_from("Vec2("), concat((self.dx).to_string(), concat(String_from(", "), concat((self.dy).to_string(), String_from(")")))))
     }
 }
 

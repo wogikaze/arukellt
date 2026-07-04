@@ -3,9 +3,9 @@ use std::text
 
 fn main() {
     let cs = text::chars("abc")
-    stdio::println(i32_to_string(len(cs)))
+    stdio::println((len(cs)).to_string())
     let empty_cs = text::chars("")
-    stdio::println(i32_to_string(len(empty_cs)))
+    stdio::println((len(empty_cs)).to_string())
 }
 // chars returns individual characters (best-effort via split)
 // empty string chars

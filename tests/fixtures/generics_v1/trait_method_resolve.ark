@@ -36,7 +36,7 @@ fn main() {
     // apply_identity_impl calls Doubler::id (from Identity trait impl)
     // This produces 10 * 2 = 20
     let r1: i32 = apply_identity_impl(10)
-    stdio::println(i32_to_string(r1))
+    stdio::println((r1).to_string())
     stdio::println(String_from("trait method resolve OK."))
 }
 // apply_identity_impl → Doubler::id (via Identity trait impl) → x*2

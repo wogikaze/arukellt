@@ -19,7 +19,7 @@ fn main() {
     stdio::println(s)
     // Empty rope
     let empty = rope::rope_new()
-    stdio::println(i32_to_string(rope::rope_len(empty)))
+    stdio::println((rope::rope_len(empty)).to_string())
     // Insert into empty rope
     let e2 = rope::rope_insert(empty, 0, "hello")
     stdio::println(rope::rope_to_string(e2))

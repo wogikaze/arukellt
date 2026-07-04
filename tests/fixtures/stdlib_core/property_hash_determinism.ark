@@ -5,7 +5,7 @@ use std::test
 fn main() {
     let mut i: i32 = 0
     while i < 100 {
-        test::assert_eq_i32(hash::hash_i32(i), hash::hash_i32(i))
+        test::assert_eq_i32(i.hash(), i.hash())
         i = i + 1
     }
     // String determinism
@@ -13,7 +13,7 @@ fn main() {
     let mut j = 0
     while j < 5 {
         let s = get_unchecked(strings, j)
-        test::assert_eq_i32(hash::hash_string(s), hash::hash_string(s))
+        test::assert_eq_i32(s.hash(), s.hash())
         j = j + 1
     }
 }

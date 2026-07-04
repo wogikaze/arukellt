@@ -3,9 +3,9 @@ use std::test
 
 fn main() {
     // 1 to any power is 1
-    test::assert_eq_i32(math::pow_i32(1, 100), 1)
-    test::assert_eq_i32(math::pow_i32(1, 0), 1)
-    test::assert_eq_i32(math::pow_i32(1, 5), 1)
+    test::assert_eq_i32(1.pow(100), 1)
+    test::assert_eq_i32(1.pow(0), 1)
+    test::assert_eq_i32(1.pow(5), 1)
     // base to power 1 is base
-    test::assert_eq_i32(math::pow_i32(7, 1), 7)
+    test::assert_eq_i32(7.pow(1), 7)
 }

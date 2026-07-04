@@ -10,6 +10,6 @@ fn main() {
         if i > 7 {
             break
         }
-        stdio::println(i32_to_string(i))
+        stdio::println((i).to_string())
     }
 }

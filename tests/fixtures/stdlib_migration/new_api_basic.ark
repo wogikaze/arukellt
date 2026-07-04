@@ -7,7 +7,7 @@ fn main() {
     let s: String = text::concat("Hello", ", Arukellt!")
     stdio::println(s)
     let parts: Vec<String> = text::split("one,two,three", ",")
-    stdio::println(i32_to_string(len(parts)))
+    stdio::println((len(parts)).to_string())
     let rejoined: String = text::join(parts, " | ")
     stdio::println(rejoined)
 }

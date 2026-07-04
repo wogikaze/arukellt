@@ -16,7 +16,7 @@ fn main() {
     push(flat, 10)
     push(flat, 20)
     push(flat, 30)
-    stdio::println(i32_to_string(count(flat)))
+    stdio::println((count(flat)).to_string())
 
     // count<Vec<i32>>: nested type arg — exercises recursive
     // instantiate_type and recursive mono_type_key so the resulting
@@ -24,5 +24,5 @@ fn main() {
     let mut outer: Vec<Vec<i32>> = Vec_new_i32()
     let inner: Vec<i32> = Vec_new_i32()
     push(outer, inner)
-    stdio::println(i32_to_string(count(outer)))
+    stdio::println((count(outer)).to_string())
 }

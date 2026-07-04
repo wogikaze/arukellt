@@ -1,7 +1,7 @@
 // Component interop smoke test: string result canonical ABI is name-independent.
 
 pub fn describe_count(n: i32) -> String {
-    concat(String_from("count="), i32_to_string(n))
+    concat(String_from("count="), (n).to_string())
 }
 
 fn main() {

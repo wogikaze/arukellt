@@ -9,5 +9,5 @@ fn fib(n: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(fib(10)))
+    stdio::println((fib(10)).to_string())
 }

@@ -402,5 +402,5 @@ fn main() {
     let v198 = helper_198(198)
     let v199 = helper_199(199)
     let v200 = helper_200(200)
-    stdio::println(i32_to_string(v001))
+    stdio::println((v001).to_string())
 }

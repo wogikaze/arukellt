@@ -109,9 +109,9 @@ fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
     let mut out = String_from("{\"file\":\"")
     out = concat(out, diag_json_escape(clone(span.file)))
     out = concat(out, String_from("\",\"line\":"))
-    out = concat(out, i32_to_string(span.line))
+    out = concat(out, (span.line).to_string())
     out = concat(out, String_from(",\"col\":"))
-    out = concat(out, i32_to_string(span.column))
+    out = concat(out, (span.column).to_string())
     out = concat(out, String_from("}"))
     out
 }

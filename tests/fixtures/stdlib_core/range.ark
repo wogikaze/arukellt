@@ -6,7 +6,7 @@ fn main() {
     let inside = core::range_contains(r, 3)
     let outside = core::range_contains(r, 5)
     let length = core::range_len(r)
-    stdio::println(bool_to_string(inside))
-    stdio::println(bool_to_string(outside))
-    stdio::println(i32_to_string(length))
+    stdio::println((inside).to_string())
+    stdio::println((outside).to_string())
+    stdio::println((length).to_string())
 }

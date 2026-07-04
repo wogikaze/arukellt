@@ -10,5 +10,5 @@ fn main() {
     for v in values(filtered) {
         sum = sum + v
     }
-    __intrinsic_print(concat(i32_to_string(sum), "\n"))
+    __intrinsic_print(concat((sum).to_string(), "\n"))
 }
