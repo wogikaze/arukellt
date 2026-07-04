@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-04T18:50:19Z",
+  "generated_at": "2026-07-04T22:45:02Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -742,6 +742,55 @@
       }
     },
     {
+      "id": "718",
+      "path": "718-stdlib-free-function-method-migration.md",
+      "title": "718 — Stdlib free-function → method/trait migration inventory",
+      "track": "stdlib-api",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "700",
+        "701"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 18
+      },
+      "orchestration": {
+        "class": "incremental",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "719",
+      "path": "719-test-execution-harness.md",
+      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
+      "track": "tooling",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "715"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "646",
       "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
@@ -859,8 +908,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 8,
-        "unchecked": 9
+        "checked": 10,
+        "unchecked": 7
       },
       "orchestration": {
         "class": "implementation-backfill",

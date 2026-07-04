@@ -35,6 +35,8 @@ graph LR
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I707["707 707 — `Self` return type support for trait method dispatch"]
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
+  I718["718 718 — Stdlib free-function → method/trait migration inventory"]
+  I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
@@ -119,6 +121,8 @@ graph LR
 - **706** depends on: 606; blocks: none
 - **707** depends on: 688; blocks: 689, 691, 708, 710
 - **714** depends on: 074, 510; blocks: 668
+- **718** depends on: 700, 701; blocks: none
+- **719** depends on: 715; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
