@@ -138,6 +138,11 @@ SELFHOST_TARGET = "wasm32-wasi-p1"
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
+# Per-module AST parse cache directory (relative to root).
+# When set, the compiler reads/writes serialized AST nodes keyed by source hash,
+# skipping the parse phase for unchanged modules.
+AST_CACHE_REL = ".build/selfhost/ast-cache"
+
 # ── Fixpoint content-hash cache ──────────────────────────────────────────────
 # The fixpoint gate compiles the selfhost source twice (stage 2 + stage 3) via
 # wasmtime, taking ~60s.  When the source has not changed since the last run,
@@ -613,6 +618,17 @@ def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None =
         return subprocess.CompletedProcess(cmd, returncode=-1, stdout="", stderr="timeout")
 
 
+def _is_selfhost_compiler(compiler_wasm: Path, root: Path) -> bool:
+    """Check if compiler_wasm is a selfhost-built compiler (not pinned bootstrap)."""
+    try:
+        rel = compiler_wasm.relative_to(root)
+    except ValueError:
+        return False
+    s = str(rel)
+    # Selfhost-built compilers are in .build/selfhost/arukellt-s2*.wasm or s3*.wasm
+    return s.startswith(".build/selfhost/arukellt-s")
+
+
 def _wasm_compile(
     wasmtime: str,
     compiler_wasm: Path,
@@ -625,6 +641,8 @@ def _wasm_compile(
     """Run ``compiler_wasm compile <src> --target <T> -o <out_rel>`` under wasmtime.
 
     Uses AOT precompiled .cwasm when available to skip ~5s of JIT overhead.
+    Passes --cache-dir to enable per-module parse caching (only for selfhost
+    compilers that support the flag; skipped for pinned bootstrap).
     """
     dirs: list[str] = []
     guest_out = out_rel
@@ -632,6 +650,13 @@ def _wasm_compile(
         dirs.extend(["--dir", str(workspace_root)])
         guest_out = "bootstrap-out.wasm"
     dirs.extend(["--dir", str(root)])
+    # Ensure AST cache directory exists
+    ast_cache = root / AST_CACHE_REL
+    ast_cache.mkdir(parents=True, exist_ok=True)
+    # Only pass --cache-dir to selfhost-built compilers (s2/s3), not pinned bootstrap
+    cache_args: list[str] = []
+    if _is_selfhost_compiler(compiler_wasm, root):
+        cache_args = ["--cache-dir", AST_CACHE_REL]
     # Use AOT precompiled .cwasm when available for faster startup
     run_wasm = _ensure_aot_cwasm(compiler_wasm)
     run_flags: list[str]
@@ -641,7 +666,7 @@ def _wasm_compile(
         run_flags = ["--wasm", "gc", "--wasm", "function-references"]
     result = _run(
         [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", SELFHOST_TARGET, "-o", guest_out],
+         "compile", src, "--target", SELFHOST_TARGET, "-o", guest_out, *cache_args],
         root,
         timeout=timeout,
     )

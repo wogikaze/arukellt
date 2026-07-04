@@ -13,6 +13,7 @@ pub fn load_prelude_modules() -> Vec<ModuleDecls> {
 
 fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverConfig) -> LoadState {
     let load_state = module_state::LoadState_new()
+    module_state::LoadState_set_cache_dir(load_state, config_record::config_cache_dir(config))
     module_graph::load_stdlib_module(String_from("std::prelude"), load_state)
     module_graph::load_imported_modules(decls, config_record::config_source_dir(config), load_state)
     if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {

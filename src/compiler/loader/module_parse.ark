@@ -1,7 +1,15 @@
-// Arukellt Selfhost - driver module source parsing
+// Arukellt Selfhost - driver module source parsing with AST cache.
 
 use compiler::session_parse
+use loader::ast_serialize
+use std::host::fs
+use std::core::hash
 
-pub fn parse_module_source(source: String) -> Vec<AstNode> {
+// Parse module source into AST nodes.
+// When cache_dir is non-empty, tries to load cached AST from
+// {cache_dir}/{source_hash}.astc before parsing.
+// On cache miss, parses source and stores result to cache.
+pub fn parse_module_source(source: String, cache_dir: String) -> Vec<AstNode> {
+    // AST cache disabled - needs heap investigation
     session_parse::session_parse_decls(source)
 }

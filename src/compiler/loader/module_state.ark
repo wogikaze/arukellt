@@ -5,8 +5,17 @@ struct LoadState {
     loading_stack: Vec<String>,
     modules: Vec<ModuleDecls>,
     errors: Vec<String>,
+    cache_dir: String,
 }
 
 pub fn LoadState_new() -> LoadState {
-    LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String() }
+    LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String(), cache_dir: String_new() }
+}
+
+pub fn LoadState_cache_dir(state: LoadState) -> String {
+    clone(state.cache_dir)
+}
+
+pub fn LoadState_set_cache_dir(state: LoadState, cache_dir: String) {
+    state.cache_dir = cache_dir
 }

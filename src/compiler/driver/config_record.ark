@@ -19,6 +19,7 @@ struct DriverConfig {
     world: String,
     lint_allow: Vec<String>,
     lint_deny: Vec<String>,
+    cache_dir: String,
 }
 
 fn DriverConfig_default() -> DriverConfig {
@@ -41,6 +42,7 @@ fn DriverConfig_default() -> DriverConfig {
         world: String_new(),
         lint_allow: Vec_new_String(),
         lint_deny: Vec_new_String(),
+        cache_dir: String_new(),
     }
 }
 
@@ -80,3 +82,5 @@ fn config_lint_allow(config: DriverConfig) -> Vec<String> { clone(config.lint_al
 fn config_lint_deny(config: DriverConfig) -> Vec<String> { clone(config.lint_deny) }
 fn config_set_lint_allow(config: DriverConfig, lint_allow: Vec<String>) { config.lint_allow = lint_allow }
 fn config_set_lint_deny(config: DriverConfig, lint_deny: Vec<String>) { config.lint_deny = lint_deny }
+fn config_cache_dir(config: DriverConfig) -> String { clone(config.cache_dir) }
+fn config_set_cache_dir(config: DriverConfig, cache_dir: String) { config.cache_dir = cache_dir }

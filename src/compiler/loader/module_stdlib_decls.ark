@@ -27,7 +27,7 @@ pub fn load_stdlib_module_decls(stdlib_path: String, state: LoadState) -> Vec<As
 
 fn register_stdlib_source(stdlib_path: String, short_name: String, source: String, state: LoadState) -> Vec<AstNode> {
     module_state_loading::LoadState_push_loading(state, clone(stdlib_path))
-    let mod_decls = module_parse::parse_module_source(source)
+    let mod_decls = module_parse::parse_module_source(source, module_state::LoadState_cache_dir(state))
     module_state_loading::LoadState_push_loaded(state, clone(stdlib_path))
     module_state_modules::LoadState_add_module(state, clone(short_name), mod_decls)
     mod_decls

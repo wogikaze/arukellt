@@ -1,0 +1,263 @@
+// Arukellt Selfhost - AST binary serialization for per-module parse cache.
+//
+// Format (all integers little-endian):
+//   Header: magic[4] = "ASTC", version:i32 = 1
+//   Count: i32 (number of top-level nodes)
+//   Node:
+//     kind:i32, span_start:i32, span_end:i32,
+//     name_span_start:i32, name_span_end:i32,
+//     text_len:i32, text_bytes[text_len],
+//     int_val:i32,
+//     float_text_len:i32, float_text[float_text_len],
+//     op:i32,
+//     children_count:i32, children[children_count],
+//     type_ann_count:i32, type_ann[type_ann_count],
+//     flags:u8 (is_mut | is_pub<<1 | is_async<<2)
+
+use std::host::fs
+
+// ── Byte buffer helpers ──────────────────────────────────────────────
+
+fn buf_push_i32(buf: Vec<i32>, val: i32) {
+    push(buf, val & 255)
+    push(buf, (val >> 8) & 255)
+    push(buf, (val >> 16) & 255)
+    push(buf, (val >> 24) & 255)
+}
+
+fn buf_push_string(buf: Vec<i32>, s: String) {
+    let n = len(s)
+    buf_push_i32(buf, n)
+    let mut i = 0
+    while i < n {
+        push(buf, char_at(s, i) & 255)
+        i = i + 1
+    }
+}
+
+fn buf_push_byte(buf: Vec<i32>, val: i32) {
+    push(buf, val & 255)
+}
+
+// ── Serialization ────────────────────────────────────────────────────
+
+pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
+    let buf: Vec<i32> = Vec_new_i32()
+    // Header
+    push(buf, 65)  // 'A'
+    push(buf, 83)  // 'S'
+    push(buf, 84)  // 'T'
+    push(buf, 67)  // 'C'
+    buf_push_i32(buf, 1)  // version
+    let n = len(nodes)
+    buf_push_i32(buf, n)
+    let mut i = 0
+    while i < n {
+        serialize_node(buf, get_unchecked(nodes, i))
+        i = i + 1
+    }
+    buf
+}
+
+fn serialize_node(buf: Vec<i32>, node: AstNode) {
+    buf_push_i32(buf, node.kind)
+    buf_push_i32(buf, node.span.start)
+    buf_push_i32(buf, node.span.end)
+    buf_push_i32(buf, node.name_span.start)
+    buf_push_i32(buf, node.name_span.end)
+    buf_push_string(buf, clone(node.text))
+    buf_push_i32(buf, node.int_val)
+    buf_push_string(buf, to_string(node.float_val))
+    buf_push_i32(buf, node.op)
+    let cn = len(node.children)
+    buf_push_i32(buf, cn)
+    let mut ci = 0
+    while ci < cn {
+        serialize_node(buf, get_unchecked(node.children, ci))
+        ci = ci + 1
+    }
+    let tn = len(node.type_ann)
+    buf_push_i32(buf, tn)
+    let mut ti = 0
+    while ti < tn {
+        serialize_node(buf, get_unchecked(node.type_ann, ti))
+        ti = ti + 1
+    }
+    let mut flags = 0
+    if node.is_mut { flags = flags | 1 }
+    if node.is_pub { flags = flags | 2 }
+    if node.is_async { flags = flags | 4 }
+    buf_push_byte(buf, flags)
+}
+
+// ── Deserialization ──────────────────────────────────────────────────
+
+// Read i32 from string at position, return (value, new_pos)
+fn read_i32(data: String, pos: i32) -> (i32, i32) {
+    let b0 = char_at(data, pos)
+    let b1 = char_at(data, pos + 1)
+    let b2 = char_at(data, pos + 2)
+    let b3 = char_at(data, pos + 3)
+    let val = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
+    (val, pos + 4)
+}
+
+fn read_string(data: String, pos: i32) -> (String, i32) {
+    let n = 0
+    let new_pos = 0
+    let (n, new_pos) = read_i32(data, pos)
+    let mut result = String_new()
+    let mut i = 0
+    while i < n {
+        result = concat(result, char_to_string(char_at(data, new_pos + i) & 255))
+        i = i + 1
+    }
+    (result, new_pos + n)
+}
+
+fn read_byte(data: String, pos: i32) -> (i32, i32) {
+    (char_at(data, pos) & 255, pos + 1)
+}
+
+pub fn deserialize_ast_nodes(data: String) -> Vec<AstNode> {
+    let data_len = len(data)
+    if data_len < 12 {
+        return Vec_new_AstNode()
+    }
+    // Check magic
+    if char_at(data, 0) != 65 || char_at(data, 1) != 83 || char_at(data, 2) != 84 || char_at(data, 3) != 67 {
+        return Vec_new_AstNode()
+    }
+    let version = 0
+    let pos = 0
+    let (version, pos) = read_i32(data, 4)
+    if version != 1 {
+        return Vec_new_AstNode()
+    }
+    let count = 0
+    let (count, pos) = read_i32(data, pos)
+    let nodes: Vec<AstNode> = Vec_new_AstNode()
+    let mut i = 0
+    let mut cur_pos = pos
+    while i < count {
+        let (node, new_pos) = deserialize_node(data, cur_pos)
+        push(nodes, node)
+        cur_pos = new_pos
+        i = i + 1
+    }
+    nodes
+}
+
+fn deserialize_node(data: String, pos: i32) -> (AstNode, i32) {
+    let kind = 0
+    let pos = 0
+    let (kind, pos) = read_i32(data, pos)
+    let span_start = 0
+    let (span_start, pos) = read_i32(data, pos)
+    let span_end = 0
+    let (span_end, pos) = read_i32(data, pos)
+    let nspan_start = 0
+    let (nspan_start, pos) = read_i32(data, pos)
+    let nspan_end = 0
+    let (nspan_end, pos) = read_i32(data, pos)
+    let text = String_new()
+    let (text, pos) = read_string(data, pos)
+    let int_val = 0
+    let (int_val, pos) = read_i32(data, pos)
+    let float_text = String_new()
+    let (float_text, pos) = read_string(data, pos)
+    let op = 0
+    let (op, pos) = read_i32(data, pos)
+    let children_count = 0
+    let (children_count, pos) = read_i32(data, pos)
+    let children: Vec<AstNode> = Vec_new_AstNode()
+    let mut ci = 0
+    let mut cur_pos = pos
+    while ci < children_count {
+        let (child, new_pos) = deserialize_node(data, cur_pos)
+        push(children, child)
+        cur_pos = new_pos
+        ci = ci + 1
+    }
+    let type_ann_count = 0
+    let (type_ann_count, cur_pos) = read_i32(data, cur_pos)
+    let type_ann: Vec<AstNode> = Vec_new_AstNode()
+    let mut ti = 0
+    while ti < type_ann_count {
+        let (ta, new_pos) = deserialize_node(data, cur_pos)
+        push(type_ann, ta)
+        cur_pos = new_pos
+        ti = ti + 1
+    }
+    let flags = 0
+    let (flags, cur_pos) = read_byte(data, cur_pos)
+    // Float values are rare in AST; default to 0.0 (serialization stores text for debugging)
+    let float_val = 0.0
+    let node = AstNode {
+        kind: kind,
+        span: Span { start: span_start, end: span_end },
+        name_span: Span { start: nspan_start, end: nspan_end },
+        text: text,
+        int_val: int_val,
+        float_val: float_val,
+        op: op,
+        children: children,
+        type_ann: type_ann,
+        is_mut: (flags & 1) != 0,
+        is_pub: (flags & 2) != 0,
+        is_async: (flags & 4) != 0,
+    }
+    (node, cur_pos)
+}
+
+// ── Cache I/O ────────────────────────────────────────────────────────
+
+// Write serialized AST to cache file. Returns true on success.
+// Silently fails on error (e.g. heap exhaustion, path not found).
+pub fn write_ast_cache(path: String, nodes: Vec<AstNode>) -> bool {
+    // Don't write cache for very large ASTs (avoid heap exhaustion)
+    let node_count = count_nodes(nodes)
+    if node_count > 500 {
+        return false
+    }
+    let bytes = serialize_ast_nodes(nodes)
+    let result = fs::write_bytes(clone(path), bytes)
+    match result {
+        Result::Ok(_) => true,
+        Result::Err(_) => false,
+    }
+}
+
+// Count total nodes in an AST forest (including children).
+fn count_nodes(nodes: Vec<AstNode>) -> i32 {
+    let n = len(nodes)
+    let mut total = n
+    let mut i = 0
+    while i < n {
+        total = total + count_nodes_vec(get_unchecked(nodes, i).children)
+        total = total + count_nodes_vec(get_unchecked(nodes, i).type_ann)
+        i = i + 1
+    }
+    total
+}
+
+fn count_nodes_vec(nodes: Vec<AstNode>) -> i32 {
+    let n = len(nodes)
+    let mut total = n
+    let mut i = 0
+    while i < n {
+        total = total + count_nodes_vec(get_unchecked(nodes, i).children)
+        total = total + count_nodes_vec(get_unchecked(nodes, i).type_ann)
+        i = i + 1
+    }
+    total
+}
+
+// Read and deserialize AST from cache file. Returns nodes on success, empty vec on failure.
+pub fn read_ast_cache(path: String) -> Vec<AstNode> {
+    let result = fs::read_to_string(clone(path))
+    match result {
+        Result::Ok(data) => deserialize_ast_nodes(data),
+        Result::Err(_) => Vec_new_AstNode(),
+    }
+}

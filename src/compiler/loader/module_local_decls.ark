@@ -98,7 +98,7 @@ fn register_local_module_source(module_name: String, canonical_path: String, sou
         return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
     }
     module_state_loading::LoadState_push_loading(state, clone(canonical_path))
-    let mod_decls = module_parse::parse_module_source(source)
+    let mod_decls = module_parse::parse_module_source(source, module_state::LoadState_cache_dir(state))
     let module_alias = module_names::module_short_name(clone(module_name))
     module_state_loading::LoadState_push_loaded(state, clone(canonical_path))
     module_state_modules::LoadState_add_module(state, module_alias, mod_decls)
