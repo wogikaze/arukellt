@@ -609,9 +609,8 @@ pub fn exit(code: i32) {
 }
 
 // Math
-pub fn pow_i32(base: i32, exp: i32) -> i32 {
-    __intrinsic_pow_i32(base, exp)
-}
+// Deprecated prelude free function pow_i32 has been removed per ADR-036.
+// Use inherent method `base.pow(exp)` instead.
 
 pub fn gcd(a: i32, b: i32) -> i32 {
     __intrinsic_gcd(a, b)
