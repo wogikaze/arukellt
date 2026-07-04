@@ -11,6 +11,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::writer_gc
+use wasm::string_gc_helpers
 
 // Handler for: split, text::split, string::split
 fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -36,24 +37,387 @@ fn emit_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-// GC target fallback: pop separator and src string, push empty vec.
+// GC target: split src string by separator into Vec<String>.
+// Two-pass: (1) count segments, (2) allocate exact-size vec and fill.
+// For empty separator (seplen == 0), splits into individual characters.
 fn emit_split_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
-    let s_sep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_sep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_slen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_seplen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_pos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let s_match = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s_seglen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s_k = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    let s_segidx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+
     // Stack: [src_ref, sep_ref] (sep on top)
     helpers_core::emit_local_set(w, s_sep)
     helpers_core::emit_local_set(w, s_src)
-    // Push empty vec: struct.new vec_type (null array, 0)
-    writer_core::emit_byte(w, opcodes::OP_REF_NULL())
-    writer_core::emit_leb128_s(w, ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx))
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
+
+    // slen = src.len, seplen = sep.len
+    helpers_core::emit_local_get(w, s_src)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_slen)
+
+    helpers_core::emit_local_get(w, s_sep)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_seplen)
+
+    // pos = 0, start = 0, count = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_pos)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_start)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_count)
+
+    // Pass 1: count segments
+    // For seplen == 0: count = max(slen, 1)
+    // For seplen > 0: scan and count matches + 1 for final segment
+    helpers_core::emit_local_get(w, s_seplen)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+    string_gc_helpers::emit_gc_if_void(w)
+    // seplen == 0: count = slen if slen > 0, else 1
+    helpers_core::emit_local_get(w, s_slen)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_core::emit_local_set(w, s_count)
+    string_gc_helpers::emit_gc_else(w)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_count)
+    string_gc_helpers::emit_gc_end(w)
+    string_gc_helpers::emit_gc_else(w)
+    // seplen > 0: scan src for separator matches
+    emit_split_gc_count(w, s_src, s_sep, s_slen, s_seplen, s_pos, s_start, s_count, s_j, s_match, string_type)
+    string_gc_helpers::emit_gc_end(w)
+
+    // Allocate vec data array of count elements
+    helpers_core::emit_local_get(w, s_count)
+    string_gc_helpers::emit_gc_array_new(w, arr_type)
+    helpers_core::emit_local_set(w, s_arr)
+
+    // Create vec struct: struct.new vec_type (data_array, len=0)
+    helpers_core::emit_local_get(w, s_arr)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
     writer_core::emit_leb128_u(w, vec_type)
+    helpers_core::emit_local_set(w, s_vec)
+
+    // Reset for pass 2: pos = 0, start = 0, segidx = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_pos)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_start)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_segidx)
+
+    // Pass 2: fill segments
+    helpers_core::emit_local_get(w, s_seplen)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+    string_gc_helpers::emit_gc_if_void(w)
+    // seplen == 0: split into individual chars
+    emit_split_gc_fill_chars(w, s_src, s_slen, s_arr, s_segidx, s_k, arr_type, string_type)
+    string_gc_helpers::emit_gc_else(w)
+    // seplen > 0: fill segments by scanning
+    emit_split_gc_fill(w, s_src, s_sep, s_slen, s_seplen, s_pos, s_start, s_segidx, s_arr, s_j, s_match, s_seglen, s_k, arr_type, string_type)
+    string_gc_helpers::emit_gc_end(w)
+
+    // Set vec.len = segidx
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    helpers_core::emit_local_get(w, s_segidx)
+    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+
+    // Push result vec (cast to correct vec type)
+    helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     return true
+}
+
+// Pass 1 (seplen > 0): count segments by scanning src for separator matches.
+fn emit_split_gc_count(w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32, s_seplen: i32, s_pos: i32, s_start: i32, s_count: i32, s_j: i32, s_match: i32, string_type: i32) {
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_core::emit_local_get(w, s_seplen)
+    helpers_numeric_i32::emit_i32_sub(w)
+    string_gc_helpers::emit_gc_i32_gt_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // match = 1, j = 0
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_match)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_j)
+
+    // match loop: check if sep matches at pos
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_core::emit_local_get(w, s_seplen)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    helpers_core::emit_local_get(w, s_src)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_numeric_i32::emit_i32_add(w)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    helpers_core::emit_local_get(w, s_sep)
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_i32_ne(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_match)
+    string_gc_helpers::emit_gc_br(w, 2)
+    string_gc_helpers::emit_gc_end(w)
+
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_j)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // if match != 0: count++, pos += seplen, start = pos
+    helpers_core::emit_local_get(w, s_match)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, s_count)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_count)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_seplen)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_set(w, s_start)
+    string_gc_helpers::emit_gc_else(w)
+    // no match: pos++
+    helpers_core::emit_local_get(w, s_pos)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
+    string_gc_helpers::emit_gc_end(w)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // count++ for final segment [start, slen)
+    helpers_core::emit_local_get(w, s_count)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_count)
+}
+
+// Pass 2 (seplen > 0): fill segments.
+fn emit_split_gc_fill(w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32, s_seplen: i32, s_pos: i32, s_start: i32, s_segidx: i32, s_arr: i32, s_j: i32, s_match: i32, s_seglen: i32, s_k: i32, arr_type: i32, string_type: i32) {
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_core::emit_local_get(w, s_seplen)
+    helpers_numeric_i32::emit_i32_sub(w)
+    string_gc_helpers::emit_gc_i32_gt_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // match = 1, j = 0
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_match)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_j)
+
+    // match loop
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_core::emit_local_get(w, s_seplen)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    helpers_core::emit_local_get(w, s_src)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_numeric_i32::emit_i32_add(w)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    helpers_core::emit_local_get(w, s_sep)
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_i32_ne(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_match)
+    string_gc_helpers::emit_gc_br(w, 2)
+    string_gc_helpers::emit_gc_end(w)
+
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_j)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // if match != 0: create substring, store in arr[segidx], copy bytes
+    helpers_core::emit_local_get(w, s_match)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+    string_gc_helpers::emit_gc_if_void(w)
+
+    // seglen = pos - start
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_start)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s_seglen)
+
+    // Allocate string array of seglen and store in arr[segidx]
+    // Stack order for array.set: [arr, segidx, value]
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_segidx)
+    helpers_core::emit_local_get(w, s_seglen)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_set(w, arr_type)
+
+    // Copy bytes: arr[segidx][k] = src[start+k] for k = 0..seglen-1
+    emit_split_gc_copy_bytes(w, s_arr, s_segidx, s_src, s_start, s_seglen, s_k, arr_type, string_type)
+
+    // segidx++, pos += seplen, start = pos
+    helpers_core::emit_local_get(w, s_segidx)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_segidx)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_seplen)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_set(w, s_start)
+    string_gc_helpers::emit_gc_else(w)
+    // no match: pos++
+    helpers_core::emit_local_get(w, s_pos)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
+    string_gc_helpers::emit_gc_end(w)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // Final segment [start, slen)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_core::emit_local_get(w, s_start)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s_seglen)
+
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_segidx)
+    helpers_core::emit_local_get(w, s_seglen)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_set(w, arr_type)
+
+    emit_split_gc_copy_bytes(w, s_arr, s_segidx, s_src, s_start, s_seglen, s_k, arr_type, string_type)
+
+    helpers_core::emit_local_get(w, s_segidx)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_segidx)
+}
+
+// Fill individual characters for empty separator case.
+fn emit_split_gc_fill_chars(w: WasmWriter, s_src: i32, s_slen: i32, s_arr: i32, s_segidx: i32, s_k: i32, arr_type: i32, string_type: i32) {
+    // if slen > 0: split into chars, else: push one empty string
+    helpers_core::emit_local_get(w, s_slen)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    string_gc_helpers::emit_gc_if_void(w)
+
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_core::emit_local_get(w, s_slen)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // Allocate 1-byte string and store in arr[k]
+    // Stack order: [arr, k, value]
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_set(w, arr_type)
+
+    // arr[k][0] = src[k]
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_k)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_get(w, s_src)
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_core::emit_local_set(w, s_segidx)
+
+    string_gc_helpers::emit_gc_else(w)
+    // slen == 0: push one empty string
+    helpers_core::emit_local_get(w, s_arr)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_set(w, arr_type)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_segidx)
+    string_gc_helpers::emit_gc_end(w)
+}
+
+// Copy bytes from src[start..start+seglen] to arr[segidx] (accessed through vec data array).
+fn emit_split_gc_copy_bytes(w: WasmWriter, s_arr: i32, s_segidx: i32, s_src: i32, s_start: i32, s_seglen: i32, s_k: i32, arr_type: i32, string_type: i32) {
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_core::emit_local_get(w, s_seglen)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // arr[segidx][k] = src[start + k]
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_segidx)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_core::emit_local_get(w, s_src)
+    helpers_core::emit_local_get(w, s_start)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_add(w)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
 fn emit_split_setup(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: i32, s_sp_seplen: i32, s_sp_vec: i32, s_sp_pos: i32, s_sp_start: i32) {
