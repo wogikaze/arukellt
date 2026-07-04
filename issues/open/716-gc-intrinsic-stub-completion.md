@@ -3,6 +3,7 @@ Status: open
 Created: 2026-07-05
 Updated: 2026-07-05
 ID: 716
+Progress: 9/10 stubs completed (split remains)
 Track: gc-native
 Depends on: "686"
 Orchestration class: implementation-backfill
@@ -66,33 +67,47 @@ the existing GC primitives (`array.new`, `array.get`, `array.set`,
 `array.copy`, `array.len`, `struct.get`, `struct.set`) already proven in
 `emit_vec_push_gc`, `emit_concat_gc`, `emit_split` (T1 path), etc.
 
-- [ ] **Stub 1 — `emit_join_gc`**: allocate result array of total length, copy
-      each `Vec<String>` element's bytes followed by `sep` (mirror T1
-      `emit_join_setup` / `emit_join_loop` / `emit_join_finish` using
-      `array.copy`).
-- [ ] **Stub 2 — `emit_split_gc`**: scan source, push substring slices into a
-      GC `Vec<String>` (mirror T1 `emit_split_scan_loop`).
-- [ ] **Stub 3 — `emit_contains_String_gc`**: byte-scan haystack for needle,
-      push `i32 1` / `i32 0` (mirror T1 `emit_contains_scan_loop`).
-- [ ] **Stub 4 — `emit_reverse_String_gc`**: allocate new array, copy bytes
-      end-to-start (mirror T1 `emit_reverse_swap_loop` as a copy-into-new
-      since GC arrays are fixed-size).
-- [ ] **Stub 5 — `emit_push_char_gc`**: the current code builds a new array
-      but drops it. Either (a) change `push_char` to return the new String
-      (API change, affects prelude signature) or (b) document that
+- [x] **Stub 1 — `emit_join_gc`**: DONE — two-pass implementation: (1) compute
+      total length by scanning `Vec<String>` data array, (2) allocate result
+      `array.new` and copy each element's bytes + separator bytes via
+      `array.get_u`/`array.set`. Uses `ref.cast` on `s_dst` before `array.set`
+      because scratch gc_local is typed as nullable ref. Validates and passes
+      `stdlib_string/string_join` fixture.
+- [ ] **Stub 2 — `emit_split_gc`**: NOT YET DONE — still returns empty
+      `Vec<String>`. Requires substring allocation via `array.new` + partial
+      copy; left for next session.
+- [x] **Stub 3 — `emit_contains_String_gc`**: DONE — scans `Vec<String>` data
+      array, for each candidate with matching length, compares bytes via
+      `array.get_u` (packed i8). Uses `ref.cast` on `s_cand`/`s_needle` before
+      byte access. Validates and passes `stdlib_vec_ops/contains_string` and
+      `stdlib_vec/vec_contains_string` fixtures.
+- [x] **Stub 4 — `emit_reverse_String_gc`**: DONE — in-place reverse of
+      `Vec<String>` data array via swap lo/hi moving inward. Validates and
+      passes `stdlib_vec_ops/reverse_string` fixture.
+- [ ] **Stub 5 — `emit_push_char_gc`**: DEFERRED — the current code builds a
+      new array but drops it. Either (a) change `push_char` to return the new
+      String (API change, affects prelude signature) or (b) document that
       `push_char` is unsupported on GC and route callers through
       `concat(s, char_to_string(c))` in std. Decide which before implementing.
-- [ ] **Stub 6 — `emit_reverse_gc` (Vec)**: allocate new array, copy elements
-      end-to-start, swap into vec struct (mirror T1 `emit_reverse_loop`).
-- [ ] **Stub 7 — `emit_remove_gc`**: shift elements down via `array.copy`,
-      decrement len, shrink array (or allocate smaller and swap).
-- [ ] **Stub 8 — `emit_contains_i32_gc`**: scan vec, push `i32 1` / `i32 0`
-      (mirror T1 `emit_contains_i32_loop`).
-- [ ] **Stub 9 — `emit_seq_i32_reduce_gc`**: scan vec accumulating via
-      `i32.add` / `i32.mul` (mirror T1 `emit_seq_i32_reduce`).
-- [ ] **Stub 10 — `emit_sort_gc`**: in-place insertion sort via `array.get` /
-      `array.set` (mirror T1 `emit_sort_insertion`). Note: GC arrays are
-      fixed-size, so in-place element swap is fine; no resize needed.
+- [x] **Stub 6 — `emit_reverse_gc` (Vec)**: DONE — in-place reverse of
+      `Vec<i32>` data array via swap lo/hi moving inward. Uses
+      `emit_gc_array_get`/`emit_gc_array_set` (non-packed). Validates and
+      passes `stdlib_vec_ops/reverse_i32` fixture.
+- [x] **Stub 7 — `emit_remove_gc`**: DONE — shifts elements down from idx to
+      len-1 via `array.get`/`array.set`, then decrements `vec.len` via
+      `struct.set`. Validates and passes `stdlib_vec_ops/remove_i32` fixture.
+- [x] **Stub 8 — `emit_contains_i32_gc`**: DONE — scans `Vec<i32>` data array,
+      compares each element via `i32.eq`, pushes `i32 1`/`i32 0`. Validates and
+      passes `stdlib_vec_ops/contains_i32` and `stdlib_vec/vec_contains_*`
+      fixtures.
+- [x] **Stub 9 — `emit_seq_i32_reduce_gc`**: DONE — scans `Vec<i32>` data
+      array accumulating via `i32.add` (sum) or `i32.mul` (product). Validates
+      and passes `stdlib_vec_ops/sum_i32` and `stdlib_vec_ops/product_i32`
+      fixtures.
+- [x] **Stub 10 — `emit_sort_gc`**: DONE — in-place insertion sort on
+      `Vec<i32>`/`Vec<i64>`/`Vec<f64>` data arrays via `array.get`/`array.set`.
+      Three type-specialized outer-loop functions. Validates and passes
+      `stdlib_sort/sort_i32`, `sort_i64`, `sort_f64` fixtures.
 - [ ] For each completed stub, add a T3 fixture if one does not already exist
       under `tests/fixtures/t3/` and wire it into `tests/fixtures/manifest.txt`.
 - [ ] After all stubs close, verify #686 Phase 4 "all fixtures pass on

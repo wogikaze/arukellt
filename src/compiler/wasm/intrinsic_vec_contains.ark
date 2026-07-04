@@ -1,12 +1,17 @@
 // Arukellt Selfhost - Vec contains intrinsic handlers
 // Extracted from emit_intrinsic_vec_collection.ark
+// GC target: full scan implementation (issue #716)
 
 use wasm::ctx_scratch
 use wasm::ctx_record
+use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::opcodes
 use wasm::writer_core
+use wasm::writer_gc
+use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: contains_i32, seq::seq_contains
 fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -30,14 +35,68 @@ fn emit_contains_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-// GC target fallback: pop needle and vec ref, push dummy i32 (false).
+// GC target: scan vec data array, push i32 1 if needle found, else 0.
 fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_needle = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+
+    // Stack: [vec_ref, needle] — pop needle, then vec
     helpers_core::emit_local_set(w, s_needle)
     helpers_core::emit_local_set(w, s_vec)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
+
+    // found = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_found)
+
+    // arr = vec.data (struct.get field 0), len = vec.len (struct.get field 1)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, s_arr)
+
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_len)
+
+    // i = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+
+    // loop: while i < len
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // if arr[i] == needle: found = 1; break
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_core::emit_local_get(w, s_needle)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_found)
+    string_gc_helpers::emit_gc_br(w, 2)
+    string_gc_helpers::emit_gc_end(w)
+
+    // i = i + 1
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    helpers_core::emit_local_get(w, s_found)
     return true
 }
 

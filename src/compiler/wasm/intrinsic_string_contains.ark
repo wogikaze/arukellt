@@ -2,7 +2,12 @@
 
 use wasm::ctx_scratch
 use wasm::ctx_record
+use wasm::ctx_gc_type
 use wasm::emit_target
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
@@ -30,11 +35,124 @@ fn emit_contains_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool 
     return true
 }
 
-// GC target fallback: drop needle ref and vec ref, push i32 0 (false).
+// GC target: scan Vec<String> data array, compare each element byte-by-byte with needle.
 fn emit_contains_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
-    helpers_core::emit_drop(w)
-    helpers_core::emit_drop(w)
-    helpers_numeric_i32::emit_i32_const(w, 0)
+    let s_needle = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_cand = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_nlen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_clen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+
+    // Stack: [vec_ref, needle_ref] — pop needle, then vec
+    helpers_core::emit_local_set(w, s_needle)
+    helpers_core::emit_local_set(w, s_vec)
+
+    // found = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_found)
+
+    // arr = vec.data, len = vec.len
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, s_arr)
+
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_len)
+
+    // nlen = needle.len
+    helpers_core::emit_local_get(w, s_needle)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_nlen)
+
+    // i = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+
+    // outer loop: while i < len and !found
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_found)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_i32_ne(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // cand = arr[i], clen = cand.len
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_set(w, s_cand)
+
+    helpers_core::emit_local_get(w, s_cand)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_clen)
+
+    // if clen == nlen: compare bytes
+    helpers_core::emit_local_get(w, s_clen)
+    helpers_core::emit_local_get(w, s_nlen)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+
+    // j = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_j)
+
+    // inner loop: compare byte-by-byte
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_core::emit_local_get(w, s_nlen)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // if cand[j] != needle[j]: break (mismatch)
+    helpers_core::emit_local_get(w, s_cand)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    helpers_core::emit_local_get(w, s_needle)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_i32_ne(w)
+    string_gc_helpers::emit_gc_br_if(w, 2)
+
+    // j = j + 1
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_j)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // All bytes matched: found = 1, break outer
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_found)
+    string_gc_helpers::emit_gc_br(w, 2)
+    string_gc_helpers::emit_gc_end(w)
+
+    // i = i + 1
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    helpers_core::emit_local_get(w, s_found)
     return true
 }
 
