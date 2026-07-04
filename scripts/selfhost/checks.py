@@ -2685,28 +2685,15 @@ def _compute_compiler_fingerprint(
     root: Path,
     workspace_root: Path | None = None,
 ) -> str | None:
-    """Run compiler with --fingerprint-only to get the program fingerprint.
+    """Compute the program fingerprint for s3 cache key.
 
-    Returns the fingerprint string (e.g. "12345") or None on failure.
-    This skips resolve/typecheck/lower/emit, running only frontend + module load.
+    Uses Python-side content hashing of all source files (src/compiler/**/*.ark
+    and std/**/*.ark) plus the compiler wasm hash and target.  This avoids
+    needing --fingerprint-only support in the compiler wasm itself.
     """
-    dirs: list[str] = []
-    if workspace_root is not None:
-        dirs.extend(["--dir", str(workspace_root)])
-    dirs.extend(["--dir", str(root)])
-    cmd = [
-        wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
-        *dirs, str(compiler_wasm), "--",
-        "compile", SELFHOST_SOURCE_REL, "--target", SELFHOST_TARGET,
-        "--fingerprint-only",
-    ]
-    result = _run(cmd, root, timeout=SELFHOST_COMPILE_TIMEOUT)
-    if result.returncode != 0:
-        return None
-    for line in (result.stdout or "").splitlines():
-        if line.startswith("FINGERPRINT:"):
-            return line[len("FINGERPRINT:"):].strip()
-    return None
+    fp = _selfhost_source_fingerprint(root)
+    compiler_hash = _sha256(compiler_wasm)
+    return f"{compiler_hash[:16]}_{SELFHOST_TARGET}_{fp[:24]}"
 
 
 def _s3_cache_dir(root: Path) -> Path:
@@ -2731,9 +2718,7 @@ def _try_s3_cache(
     if fp is None:
         return False
     cache_dir = _s3_cache_dir(root)
-    # Include compiler wasm hash in cache key for correctness
-    compiler_hash = _sha256(compiler_wasm)[:16]
-    cache_file = cache_dir / f"{compiler_hash}_{fp}.wasm"
+    cache_file = cache_dir / f"{fp}.wasm"
     if not cache_file.is_file():
         return False
     final = root / out_rel
@@ -2758,8 +2743,7 @@ def _store_s3_cache(
     if fp is None:
         return
     cache_dir = _s3_cache_dir(root)
-    compiler_hash = _sha256(compiler_wasm)[:16]
-    cache_file = cache_dir / f"{compiler_hash}_{fp}.wasm"
+    cache_file = cache_dir / f"{fp}.wasm"
     final = root / out_rel
     if final.is_file():
         shutil.copyfile(final, cache_file)
