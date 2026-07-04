@@ -54,4 +54,5 @@
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Explicit SIMD Library API | Archive | ステータス: PROPOSED — 明示的 SIMD ライブラリ API と v128 第一級型の導入を決定 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: Operator Overload Trait Surface | Archive | ステータス: DRAFT — #688 完了後に実装される演算子オーバーロードの設計 ADR |
 | [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: Question Mark Operator (?) and Error Conversion | Archive | ステータス: DRAFT — #688/#692 完了後に実装される ? 演算子の設計 ADR |
-| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | Archive | ステータス: Accepted; implementation in progress (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic は未着手) |
+| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | Archive | ステータス: Accepted; implementation in progress (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic 完了 — trait/generic/mono CALL の戻り値型を SignatureRegistry / MonoInstanceTable 経由に切替) |
+| [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | Archive | ステータス: PROPOSED — Phase 1 (構文〜型チェック・ディスカバリ) 実装済み、Phase 2 (実行モデル) 未実装 |

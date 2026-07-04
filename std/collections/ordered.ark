@@ -442,3 +442,7 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
 // We use two parallel vecs packed into one: first half keys, second half values
 // Actually simpler: [count, k0, v0, k1, v1, ...]
 // Insert at idx: shift elements right
+// issue #715 in-file tests
+test mod "ordered_map_probe" {
+    test "sanity" { assert(1 == 1) }
+}

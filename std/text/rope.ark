@@ -85,3 +85,11 @@ pub fn rope_line_count(r: String) -> i32 {
     }
     count
 }
+// issue #715 in-file tests
+test mod "rope" {
+    test "new" { assert(rope_len(rope_new()) == 0) }
+    test "from" { assert(eq(rope_to_string(rope_from_string("hi")), "hi")) }
+    test "insert" { assert(eq(rope_to_string(rope_insert(rope_from_string("c"), 0, "ab")), "abc")) }
+    test "delete" { assert(eq(rope_to_string(rope_delete(rope_from_string("abcd"), 1, 3)), "ad")) }
+    test "lines" { assert(rope_line_count("a\nb") == 2) }
+}

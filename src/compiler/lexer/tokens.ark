@@ -111,3 +111,11 @@ pub fn TK_SHR() -> i32 { 60 }
 pub fn TK_EOF() -> i32 { 0 }
 pub fn TK_NEWLINE() -> i32 { 6 }
 pub fn TK_ERROR() -> i32 { 7 }
+// issue #715 in-file tests
+test mod "tokens" {
+    test "ident" { assert(TK_IDENT() == 1) }
+    test "eof" { assert(TK_EOF() == 0) }
+    test "fn" { assert(TK_FN() == 10) }
+    test "eqeq" { assert(TK_EQEQ() == 46) }
+    test "plus" { assert(TK_PLUS() == 40) }
+}

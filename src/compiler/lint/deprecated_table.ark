@@ -67,3 +67,9 @@ pub fn deprecated_target_message(target: String) -> String {
     }
     String_new()
 }
+// issue #715 in-file tests
+test mod "deprecated" {
+    test "io" { assert(len(deprecated_use_message("std::io")) > 0) }
+    test "fs" { assert(len(deprecated_use_message("std::fs")) > 0) }
+    test "println" { assert(len(deprecated_call_message("println")) > 0) }
+}

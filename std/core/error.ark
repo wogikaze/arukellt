@@ -60,3 +60,11 @@ pub fn error_message(e: Error) -> String {
         Error::ComponentError(msg) => __intrinsic_concat("ComponentError: ", msg),
     }
 }
+
+// issue #715 in-file tests
+test mod "error_message" {
+    test "invalid" { assert(len(error_message(Error::InvalidArgument("x"))) > 0) }
+    test "not_found" { assert(len(error_message(Error::NotFound("m"))) > 0) }
+    test "timeout" { assert(len(error_message(Error::Timeout)) > 0) }
+    test "utf8" { assert(len(error_message(Error::Utf8Error)) > 0) }
+}

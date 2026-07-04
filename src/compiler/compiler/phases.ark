@@ -27,3 +27,11 @@ pub fn PHASE_EMIT() -> i32 {
 pub fn PHASE_LINT() -> i32 {
     7
 }
+// issue #715 in-file tests
+test mod "phases" {
+    test "lex_parse" { assert(PHASE_LEX() < PHASE_PARSE()) }
+    test "parse_resolve" { assert(PHASE_PARSE() < PHASE_RESOLVE()) }
+    test "resolve_tc" { assert(PHASE_RESOLVE() < PHASE_TYPECHECK()) }
+    test "tc_lower" { assert(PHASE_TYPECHECK() < PHASE_LOWER()) }
+    test "lower_emit" { assert(PHASE_LOWER() < PHASE_EMIT()) }
+}

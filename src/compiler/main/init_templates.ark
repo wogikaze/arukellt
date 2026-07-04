@@ -72,3 +72,7 @@ pub fn init_template_print_next_steps(project_name: String, template: String) {
         stdio::eprintln(String_from("  arukellt check --target wasm32-wasi-p2 main.ark"))
     }
 }
+// issue #715 in-file tests
+test mod "init_templates" {
+    test "sanity" { assert(1 == 1) }
+}

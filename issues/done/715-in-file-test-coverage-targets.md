@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-04
 Updated: 2026-07-04
 ID: 715
@@ -59,25 +59,25 @@ harnesses.
 
 Priority modules where in-file tests add the most value:
 
-- [ ] `std/core/` (clone, cmp, convert, ops, iter, math) — 80 pub fn,
+- [x] `std/core/` (clone, cmp, convert, ops, iter, math) — 80 pub fn,
       target 50–60 tests (boundary values, typeclass laws)
-- [ ] `std/collections/` (vec, hash_map, sort, string, linked_list, trie)
+- [x] `std/collections/` (vec, hash_map, sort, string, linked_list, trie)
       — 240 pub fn, target 80–100 tests (data structure invariants,
       edge cases: empty, single-element, overflow)
-- [ ] `std/text/` (builder, fmt, rope, string) — 86 pub fn, target 30–40
+- [x] `std/text/` (builder, fmt, rope, string) — 86 pub fn, target 30–40
       tests (string edge cases, formatting)
-- [ ] `std/bytes/` — 53 pub fn, target 20–25 tests (boundary values)
+- [x] `std/bytes/` — 53 pub fn, target 20–25 tests (boundary values)
 
 ### Phase 2: compiler transformation passes (~60–90 functions, ~1% of fn)
 
-- [ ] `lexer/` — 5–8 tests (tokenization edge cases, character classification)
-- [ ] `parser/` — 10–15 tests (`is_*_start` dispatch predicates, AST shape
+- [x] `lexer/` — 5–8 tests (tokenization edge cases, character classification)
+- [x] `parser/` — 10–15 tests (`is_*_start` dispatch predicates, AST shape
       assertions)
-- [ ] `resolver/` — 8–12 tests (scope resolution invariants)
-- [ ] `typechecker/` — 10–15 tests (unify edge cases, type inference)
-- [ ] `mir/` — 15–20 tests (lowering shape verification, complementing
+- [x] `resolver/` — 8–12 tests (scope resolution invariants)
+- [x] `typechecker/` — 10–15 tests (unify edge cases, type inference)
+- [x] `mir/` — 15–20 tests (lowering shape verification, complementing
       t3-compile fixtures)
-- [ ] `diagnostics/` — 5–8 tests (error code → message mapping)
+- [x] `diagnostics/` — 5–8 tests (error code → message mapping)
 
 ### Phase 3 (not recommended / deferred)
 
@@ -91,24 +91,24 @@ Priority modules where in-file tests add the most value:
 
 ### Documentation
 
-- [ ] Add coverage target section to ADR-041 or `docs/current-state.md`.
-- [ ] Document the decision: in-file tests for pure functions / white-box
+- [x] Add coverage target section to ADR-041 or `docs/current-state.md`.
+- [x] Document the decision: in-file tests for pure functions / white-box
       invariants; fixtures for integration / side-effectful behavior.
-- [ ] Add a `verify` gate that counts in-file `test` declarations and
+- [x] Add a `verify` gate that counts in-file `test` declarations and
       reports adoption progress (advisory, non-blocking).
 
 ## Acceptance
 
-- [ ] Phase 1: ≥180 in-file `test` declarations in `std/` covering pure
+- [x] Phase 1: ≥180 in-file `test` declarations in `std/` covering pure
       functions in core, collections, text, bytes
-- [ ] Phase 2: ≥60 in-file `test` declarations in `src/compiler/` covering
+- [x] Phase 2: ≥60 in-file `test` declarations in `src/compiler/` covering
       lexer, parser, resolver, typechecker, mir, diagnostics
-- [ ] No in-file tests added to side-effectful modules (host, component,
+- [x] No in-file tests added to side-effectful modules (host, component,
       lsp, dap, wasm emitter body) — those stay fixture-only
-- [ ] Coverage target documented in ADR-041 or `docs/current-state.md`
-- [ ] `arukellt test` discovery works on all modified files without
+- [x] Coverage target documented in ADR-041 or `docs/current-state.md`
+- [x] `arukellt test` discovery works on all modified files without
       typecheck errors
-- [ ] `python3 scripts/manager.py verify quick` passes after each phase
+- [x] `python3 scripts/manager.py verify quick` passes after each phase
 
 ## Dependencies
 

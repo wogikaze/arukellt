@@ -20,3 +20,11 @@ pub fn infix_bp_right(kind: i32) -> i32 {
         _ => 0,
     }
 }
+// issue #715 in-file tests
+test mod "infix_bp" {
+    test "plus" { assert(infix_bp_right(40) == 20) }
+    test "star" { assert(infix_bp_right(42) == 22) }
+    test "eqeq" { assert(infix_bp_right(46) == 14) }
+    test "pipepipe" { assert(infix_bp_right(53) == 4) }
+    test "unknown" { assert(infix_bp_right(999) == 0) }
+}

@@ -30,3 +30,12 @@ pub fn ident_span_start(span: IdentSpan) -> i32 {
 pub fn ident_span_end(span: IdentSpan) -> i32 {
     span.end
 }
+// issue #715 in-file tests
+test mod "ident_span" {
+    test "none" { assert(ident_span_found(IdentSpan_none()) == false) }
+    test "found" {
+        let s = IdentSpan_found("foo", 1, 4)
+        assert(ident_span_found(s))
+        assert(eq(ident_span_name(s), "foo"))
+    }
+}

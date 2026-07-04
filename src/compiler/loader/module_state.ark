@@ -19,3 +19,12 @@ pub fn LoadState_cache_dir(state: LoadState) -> String {
 pub fn LoadState_set_cache_dir(state: LoadState, cache_dir: String) {
     state.cache_dir = cache_dir
 }
+// issue #715 in-file tests
+test mod "load_state" {
+    test "cache_dir_default" { assert(eq(LoadState_cache_dir(LoadState_new()), "")) }
+    test "cache_dir_set" {
+        let st = LoadState_new()
+        LoadState_set_cache_dir(st, "cache")
+        assert(eq(LoadState_cache_dir(st), "cache"))
+    }
+}

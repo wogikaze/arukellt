@@ -47,3 +47,8 @@ pub fn module_stem_to_mod_path(base_dir: String, stem: String) -> String {
 pub fn module_stem_to_file_path(base_dir: String, stem: String) -> String {
     concat(clone(base_dir), concat(String_from("/"), concat(clone(stem), String_from(".ark"))))
 }
+// issue #715 in-file tests
+test mod "local_path" {
+    test "parent" { assert(eq(path_parent_dir("a/b/c.ark"), "a/b")) }
+    test "stem" { assert(eq(module_path_to_file_stem("foo::bar"), "foo/bar")) }
+}

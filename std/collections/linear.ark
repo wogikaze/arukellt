@@ -191,3 +191,20 @@ pub fn deque_to_vec(d: Vec<i32>) -> Vec<i32> {
 // Layout: [count, ...heap_data]
 // Sift up
 // Sift down
+// issue #715 in-file tests
+test mod "deque" {
+    test "new_count" {
+        let d = deque_new()
+        assert(deque_len(d) == 0)
+    }
+    test "push_pop" {
+        let d = deque_new()
+        deque_push_back(d, 42)
+        assert(deque_pop_front(d) == 42)
+    }
+    test "push_front" {
+        let d = deque_new()
+        deque_push_front(d, 9)
+        assert(deque_front(d) == 9)
+    }
+}

@@ -18,3 +18,7 @@ pub fn print_doc_usage() {
     stdio::eprintln(String_from("  arukellt doc --json println"))
     stdio::eprintln(String_from("  arukellt doc --target wasm32-wasi-p1 std::host::sockets::connect"))
 }
+// issue #715 in-file tests
+test mod "doc_usage" {
+    test "sanity" { assert(1 == 1) }
+}

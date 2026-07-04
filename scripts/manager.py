@@ -4802,6 +4802,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "bash scripts/check/check-orphan-inventory.sh",
         ),
         (
+            "in-file test adoption report (advisory, #715)",
+            "python3 scripts/check/check-infile-test-adoption.py",
+        ),
+        (
             "artifact size budget report (advisory, #422)",
             "bash scripts/check/check-artifact-size-budget.sh",
         ),

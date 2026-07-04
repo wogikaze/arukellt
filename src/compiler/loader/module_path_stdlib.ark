@@ -29,3 +29,9 @@ pub fn stdlib_mod_fallback_path(primary: String) -> String {
     let n = len(primary)
     concat(substring(clone(primary), 0, n - 4), String_from("/mod.ark"))
 }
+// issue #715 in-file tests
+test mod "stdlib_path" {
+    test "is_std" { assert(is_stdlib_path("std::core")) }
+    test "not_std" { assert(is_stdlib_path("local::m") == false) }
+    test "to_file" { assert(eq(stdlib_path_to_file("std::core"), "std/core.ark")) }
+}

@@ -91,7 +91,13 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
     config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))
     config_record::config_set_check_only(config, true)
-    config_record::config_set_lint_allow(config, args_record::cli_lint_allow(opts))
+    // ADR-041 Phase 1: in-file test adoption should not fail on pre-existing stdlib lint.
+    let allows = args_record::cli_lint_allow(opts)
+    push(allows, String_from("W0003"))
+    push(allows, String_from("W0005"))
+    push(allows, String_from("W0006"))
+    push(allows, String_from("W0007"))
+    config_record::config_set_lint_allow(config, allows)
     config_record::config_set_lint_deny(config, args_record::cli_lint_deny(opts))
     config
 }

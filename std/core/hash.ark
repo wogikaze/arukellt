@@ -214,3 +214,12 @@ pub fn hash_combine(h1: i32, h2: i32) -> i32 {
     combine(h1, h2)
 }
 // Simple multiplicative hash (Knuth variant)
+// issue #715 in-file tests
+test mod "hash" {
+    test "i32_zero" { assert(hash_i32(0) >= 0) }
+    test "i32_neg" { assert(hash_i32(-1) >= 0) }
+    test "str_empty" { assert(hash_string("") >= 0) }
+    test "str_abc" { assert(hash_string("abc") >= 0) }
+    test "combine" { assert(combine(1, 2) >= 0) }
+    test "combine_comm" { assert(combine(3, 5) == combine(5, 3)) }
+}
