@@ -1,5 +1,5 @@
 use std::host::stdio
 
 fn main() {
-    stdio::println(i32_to_string(i31_box(42)))
+    stdio::println((i31_box(42)).to_string())
 }

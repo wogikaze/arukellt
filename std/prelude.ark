@@ -13,7 +13,7 @@
 //   Functions provided by THIS file (the canonical tiny set):
 //     panic, assert
 //     String_from, String_new
-//     i32_to_string, bool_to_string  (essential conversions)
+//     char_to_string  (essential conversion)
 //     plus len, push, pop, get, set, get_unchecked (compiler intrinsics)
 //
 // ## Legacy / Compat Section (deprecated — bold cutover per ADR-036)
@@ -33,7 +33,7 @@
 //   | `filter_i32(v, f)`            | `v.filter(f)` (Iterator trait, #691) |
 //   | `sort_i32(v)`                 | `v.sort()` (Vec method, #697)        |
 //   | `concat(a, b)`                | `a.concat(b)` (String method)        |
-//   | `i32_to_string(n)`            | `n.to_string()` (Display trait, #702)|
+//   | `(n).to_string()`            | `n.to_string()` (Display trait, #702)|
 //   | `clone(s)`                    | `s.clone()` (Clone trait, #692)       |
 //   | `eq(a, b)`                    | `a.eq(b)` (Eq trait, #695)            |
 //
@@ -114,21 +114,9 @@ pub fn replace(s: String, from: String, to: String) -> String {
 }
 
 // Conversion: to string
-pub fn i32_to_string(n: i32) -> String {
-    __intrinsic_i32_to_string(n)
-}
-
-pub fn i64_to_string(n: i64) -> String {
-    __intrinsic_i64_to_string(n)
-}
-
-pub fn f64_to_string(n: f64) -> String {
-    __intrinsic_f64_to_string(n)
-}
-
-pub fn bool_to_string(b: bool) -> String {
-    __intrinsic_bool_to_string(b)
-}
+// Deprecated prelude free functions (i32_to_string, i64_to_string,
+// f64_to_string, bool_to_string) have been removed per ADR-036.
+// Use inherent method `x.to_string()` instead.
 
 pub fn char_to_string(c: char) -> String {
     __intrinsic_char_to_string(c)

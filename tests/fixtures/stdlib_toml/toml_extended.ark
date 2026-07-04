@@ -17,7 +17,7 @@ fn main() {
             match toml::toml_get(table, "enabled") {
                 Option::Some(v) => {
                     match toml::toml_as_bool(v) {
-                        Option::Some(b) => stdio::println(bool_to_string(b)),
+                        Option::Some(b) => stdio::println((b).to_string()),
                         None => stdio::println("not bool"),
                     }
                 },
@@ -26,14 +26,14 @@ fn main() {
             match toml::toml_get(table, "count") {
                 Option::Some(v) => {
                     match toml::toml_as_int(v) {
-                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not int"),
                     }
                 },
                 None => stdio::println("key not found"),
             }
             let keys = toml::toml_table_keys(table)
-            stdio::println(i32_to_string(len(keys)))
+            stdio::println((len(keys)).to_string())
         },
         Result::Err(e) => stdio::println(concat("error:", e)),
     }

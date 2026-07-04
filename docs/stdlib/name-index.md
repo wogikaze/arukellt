@@ -6,8 +6,8 @@
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
 - **Canonical names:** 746
-- **Historical/deprecated names:** 49
-- **Total entries:** 795
+- **Historical/deprecated names:** 26
+- **Total entries:** 772
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -776,19 +776,9 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
-| ~~`abs`~~ | `i32.abs()` | Math | [migration-guidance.md](migration-guidance.md) |
-| ~~`abs`~~ | `i32.abs()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`abs_i32`~~ | `i32.abs()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`bool_to_string`~~ | `bool.to_string()` | Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`clamp`~~ | `i32.clamp()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`cmp`~~ | `Ord::cmp` | Core | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
-| ~~`f64_to_string`~~ | `f64.to_string()` | Conversion | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `filter<i32>` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
-| ~~`hash_combine`~~ | `combine` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`hash_i32`~~ | `Hash::hash` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`hash_string`~~ | `Hash::hash` | Core | [migration-guidance.md](migration-guidance.md) |
 | ~~`HashMap_i32_i32_contains_key`~~ | `std::collections::hash_map` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`HashMap_i32_i32_get`~~ | `std::collections::hash_map` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`HashMap_i32_i32_insert`~~ | `hashmap_i32_i32_insert` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -809,19 +799,6 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | ~~`HashMap_String_String_get`~~ | `hashmap_str_str_get` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`HashMap_String_String_insert`~~ | `hashmap_str_str_insert` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`HashMap_String_String_len`~~ | `hashmap_str_str_len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_string`~~ | `i32.to_string()` | Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`i64_to_string`~~ | `i64.to_string()` | Conversion | [migration-guidance.md](migration-guidance.md) |
-| ~~`max`~~ | `i32.max()` | Math | [migration-guidance.md](migration-guidance.md) |
-| ~~`max`~~ | `i32.max()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`max`~~ | `i32.max()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`max_i32`~~ | `i32.max()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`min`~~ | `i32.min()` | Math | [migration-guidance.md](migration-guidance.md) |
-| ~~`min`~~ | `i32.min()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`min`~~ | `i32.min()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`min_i32`~~ | `i32.min()` | Core | [migration-guidance.md](migration-guidance.md) |
-| ~~`pow_i32`~~ | `i32.pow()` | Math | [migration-guidance.md](migration-guidance.md) |
-| ~~`sqrt`~~ | `f64.sqrt()` | Math | [migration-guidance.md](migration-guidance.md) |
-| ~~`sqrt`~~ | `f64.sqrt()` | Core | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i32`~~ | `Vec::new<i32>` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i64`~~ | `Vec::new<i64>` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_v128`~~ | `Vec::new<v128>` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -842,9 +819,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abs` | ✅ `experimental` | `std::simd::i64x2` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i8x16` | Simd |
 | `abs` | ✅ `experimental` | `std::simd::i16x8` | Simd |
-| ~~`abs`~~ | ⚠️ deprecated | `prelude` | → `i32.abs()` · [migration guide](migration-guidance.md) |
-| ~~`abs`~~ | ⚠️ deprecated | `std::core::math` | → `i32.abs()` · [migration guide](migration-guidance.md) |
-| ~~`abs_i32`~~ | ⚠️ deprecated | `std::core::math` | → `i32.abs()` · [migration guide](migration-guidance.md) |
 | `accept` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `add` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `add` | ✅ `experimental` | `std::simd::i32x4` | Simd |
@@ -915,7 +889,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bitset_union` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_unmark` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `bitset_with_capacity` | ✅ `experimental` | `std::collections::ordered` | Collections |
-| ~~`bool_to_string`~~ | ⚠️ deprecated | `prelude` | → `bool.to_string()` · [migration guide](migration-guidance.md) |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
 | `btree_contains_key` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `btree_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -969,12 +942,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `char_at` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `chars` | ✅ `stable` | `std::text` | Text |
-| ~~`clamp`~~ | ⚠️ deprecated | `std::core::cmp` | → `i32.clamp()` · [migration guide](migration-guidance.md) |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clear` | ✅ `stable` | `prelude` | Collections |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
-| ~~`cmp`~~ | ⚠️ deprecated | `std::core::cmp` | → `Ord::cmp` · [migration guide](migration-guidance.md) |
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
@@ -1055,7 +1026,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `f64_bits_hi` | ✅ `stable` | `prelude` | Numeric |
 | `f64_bits_lo` | ✅ `stable` | `prelude` | Numeric |
 | `f64_to_f32` | ✅ `stable` | `prelude` | Scalar Conversion |
-| ~~`f64_to_string`~~ | ⚠️ deprecated | `prelude` | → `f64.to_string()` · [migration guide](migration-guidance.md) |
 | `fd_fdstat_errno` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
@@ -1107,9 +1077,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `handle_table_new` | ✅ `experimental` | `std::component::handle` | Component |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `has_flag` | ✅ `stable` | `std::cli` | Cli |
-| ~~`hash_combine`~~ | ⚠️ deprecated | `std::core::hash` | → `combine` · [migration guide](migration-guidance.md) |
-| ~~`hash_i32`~~ | ⚠️ deprecated | `std::core::hash` | → `Hash::hash` · [migration guide](migration-guidance.md) |
-| ~~`hash_string`~~ | ⚠️ deprecated | `std::core::hash` | → `Hash::hash` · [migration guide](migration-guidance.md) |
 | `hashmap_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -1178,12 +1145,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `i32_to_i16` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_i64` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_i8` | ✅ `stable` | `prelude` | Scalar Conversion |
-| ~~`i32_to_string`~~ | ⚠️ deprecated | `prelude` | → `i32.to_string()` · [migration guide](migration-guidance.md) |
 | `i32_to_u16` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_u32` | ✅ `stable` | `prelude` | Convert |
 | `i32_to_u8` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i64_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
-| ~~`i64_to_string`~~ | ⚠️ deprecated | `prelude` | → `i64.to_string()` · [migration guide](migration-guidance.md) |
 | `i8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_map_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -1268,22 +1233,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `map_String_String` | ✅ `stable` | `prelude` | Collections |
 | `max` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `max` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| ~~`max`~~ | ⚠️ deprecated | `prelude` | → `i32.max()` · [migration guide](migration-guidance.md) |
-| ~~`max`~~ | ⚠️ deprecated | `std::core::cmp` | → `i32.max()` · [migration guide](migration-guidance.md) |
-| ~~`max`~~ | ⚠️ deprecated | `std::core::math` | → `i32.max()` · [migration guide](migration-guidance.md) |
 | `max_i32` | ✅ `stable` | `std::seq` | Seq |
-| ~~`max_i32`~~ | ⚠️ deprecated | `std::core::math` | → `i32.max()` · [migration guide](migration-guidance.md) |
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
 | `metadata` | ✅ `provisional` | `std::fs` | Fs |
 | `metadata` | ✅ `provisional` | `std::host::fs` | Host Fs |
 | `min` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `min` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| ~~`min`~~ | ⚠️ deprecated | `prelude` | → `i32.min()` · [migration guide](migration-guidance.md) |
-| ~~`min`~~ | ⚠️ deprecated | `std::core::cmp` | → `i32.min()` · [migration guide](migration-guidance.md) |
-| ~~`min`~~ | ⚠️ deprecated | `std::core::math` | → `i32.min()` · [migration guide](migration-guidance.md) |
 | `min_i32` | ✅ `stable` | `std::seq` | Seq |
-| ~~`min_i32`~~ | ⚠️ deprecated | `std::core::math` | → `i32.min()` · [migration guide](migration-guidance.md) |
 | `module_add_export_func` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_add_func` | ✅ `experimental` | `std::wasm` | Wasm |
 | `module_add_memory` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -1350,7 +1307,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
 | `position` | ✅ `stable` | `std::io` | Io |
-| ~~`pow_i32`~~ | ⚠️ deprecated | `prelude` | → `i32.pow()` · [migration guide](migration-guidance.md) |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -1482,8 +1438,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `split` | ✅ `stable` | `std::text` | Text |
 | `sqrt` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `sqrt` | ✅ `experimental` | `std::simd::f64x2` | Simd |
-| ~~`sqrt`~~ | ⚠️ deprecated | `prelude` | → `f64.sqrt()` · [migration guide](migration-guidance.md) |
-| ~~`sqrt`~~ | ⚠️ deprecated | `std::core::math` | → `f64.sqrt()` · [migration guide](migration-guidance.md) |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `starts_with` | ✅ `stable` | `std::text` | Text |
 | `stderr` | ✅ `stable` | `std::io` | Io |

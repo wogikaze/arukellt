@@ -2,9 +2,9 @@ use std::host::stdio
 
 fn main() {
     let mut x: i32 = 1
-    stdio::println(i32_to_string(x))
+    stdio::println((x).to_string())
     x = 2
-    stdio::println(i32_to_string(x))
+    stdio::println((x).to_string())
     x = 3
-    stdio::println(i32_to_string(x))
+    stdio::println((x).to_string())
 }

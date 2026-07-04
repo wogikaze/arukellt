@@ -107,8 +107,8 @@ variant and document the legacy form as deprecated.
 ## `std::core::hash`
 
 - Source: [`../../../std/core/hash.ark`](../../../std/core/hash.ark)
-- Manifest-backed functions: 4
-- Stability: deprecated 3, stable 1
+- Manifest-backed functions: 1
+- Stability: stable 1
 
 Small hashing helpers used by the current collection implementations.
 
@@ -127,9 +127,4 @@ and provides reasonable distribution for hash table operations.
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| ~~`hash_i32`~~ ⚠️ Deprecated → `Hash::hash` | `(i32) -> i32` | `deprecated` | Hashes an i32 into a stable non-negative integer using FNV-1 over the |
-| ~~`hash_string`~~ ⚠️ Deprecated → `Hash::hash` | `(String) -> i32` | `deprecated` | Hashes a string into a stable non-negative integer. |
 | `combine` | `(i32, i32) -> i32` | `stable` | - |
-| ~~`hash_combine`~~ ⚠️ Deprecated → `combine` | `(i32, i32) -> i32` | `deprecated` | - |
-
-> ⚠️ **3 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.

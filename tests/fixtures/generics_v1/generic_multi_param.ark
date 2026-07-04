@@ -15,7 +15,7 @@ fn pair_second<A, B>(a: A, b: B) -> B {
 fn main() {
     // pair_first<i32, String> returns the i32
     let n: i32 = pair_first(42, String_from("hello"))
-    stdio::println(i32_to_string(n))
+    stdio::println((n).to_string())
 
     // pair_first<String, bool> returns the String
     let s: String = pair_first(String_from("world"), true)
@@ -27,7 +27,7 @@ fn main() {
 
     // pair_second<bool, i32> returns the i32
     let m: i32 = pair_second(true, 7)
-    stdio::println(i32_to_string(m))
+    stdio::println((m).to_string())
 
     stdio::println(String_from("multi-param generic lowering OK."))
 }

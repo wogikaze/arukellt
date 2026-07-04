@@ -19,7 +19,7 @@ fn main() {
             match json::json_as_string(v) {
                 Option::Some(s) => {
                     // decoded string has 11 chars (hello + \n + world)
-                    stdio::println(i32_to_string(len(s)))
+                    stdio::println((len(s)).to_string())
                 },
                 None => stdio::println("not string"),
             }
@@ -28,6 +28,6 @@ fn main() {
     }
     // Differential golden: encode then verify exact JSON token
     let golden = "\"a\\tb\""
-    stdio::println(bool_to_string(eq(tab, golden)))
+    stdio::println((eq(tab, golden)).to_string())
 }
 // string escape round-trip and differential golden check

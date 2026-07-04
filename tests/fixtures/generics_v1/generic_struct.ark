@@ -7,6 +7,6 @@ struct Pair<T> {
 
 fn main() {
     let p: Pair<i32> = Pair { first: 10, second: 20 }
-    stdio::println(i32_to_string(p.first))
-    stdio::println(i32_to_string(p.second))
+    stdio::println((p.first).to_string())
+    stdio::println((p.second).to_string())
 }

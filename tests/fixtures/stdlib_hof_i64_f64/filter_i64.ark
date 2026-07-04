@@ -13,7 +13,7 @@ fn main() {
     let pos: Vec<i64> = filter_i64(v, is_positive)
     let mut i: i32 = 0
     while i < len(pos) {
-        stdio::println(i64_to_string(get_unchecked(pos, i)))
+        stdio::println((get_unchecked(pos, i)).to_string())
         i = i + 1
     }
 }

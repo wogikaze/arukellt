@@ -10,19 +10,19 @@ fn main() {
     // ── is_readable_file (probe, same as old exists) ──
     // present.txt exists in the fixture dir
     let probe_present = fs::is_readable_file("tests/fixtures/stdlib_fs/present.txt")
-    stdio::println(bool_to_string(probe_present))
+    stdio::println((probe_present).to_string())
 
     // missing.txt does not exist
     let probe_missing = fs::is_readable_file("tests/fixtures/stdlib_fs/missing.txt")
-    stdio::println(bool_to_string(probe_missing))
+    stdio::println((probe_missing).to_string())
 
     // ── is_file / is_dir (probe based) ──
     // is_file is equivalent to is_readable_file on current targets
     let f = fs::is_file("tests/fixtures/stdlib_fs/present.txt")
-    stdio::println(bool_to_string(f))
+    stdio::println((f).to_string())
     // is_dir always false on current targets
     let d = fs::is_dir("tests/fixtures/stdlib_fs")
-    stdio::println(bool_to_string(d))
+    stdio::println((d).to_string())
 
     // ── read_dir returns unsupported error ──
     match fs::read_dir("tests/fixtures/stdlib_fs") {

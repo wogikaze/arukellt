@@ -10,7 +10,7 @@
 | [stable](#stable-apis) | 409 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 28 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 309 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 49 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 26 | Superseded — see migration guidance. |
 
 ## Prelude Types
 
@@ -366,26 +366,12 @@ push(v, 2)
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| ~~`bool_to_string`~~ ⚠️ Deprecated → `bool.to_string()` | `(bool) -> String` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` | - |
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
 | `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
-| ~~`f64_to_string`~~ ⚠️ Deprecated → `f64.to_string()` | `(f64) -> String` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` | - |
-| ~~`i32_to_string`~~ ⚠️ Deprecated → `i32.to_string()` | `(i32) -> String` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` | Convert an i32 integer to its decimal string representation. |
-| ~~`i64_to_string`~~ ⚠️ Deprecated → `i64.to_string()` | `(i64) -> String` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` | - |
 | `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
 | `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
 | `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
-
-### `i32_to_string` — `prelude`
-
-_Example — Print integer as string:_
-
-```ark
-println(i32_to_string(42))
-```
-
-Expected output: `42`
 
 ### `parse_i32` — `prelude`
 
@@ -409,28 +395,14 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| ~~`abs`~~ ⚠️ Deprecated → `i32.abs()` | `(i32) -> i32` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
-| ~~`abs_i32`~~ ⚠️ Deprecated → `i32.abs()` | `(i32) -> i32` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
-| ~~`clamp`~~ ⚠️ Deprecated → `i32.clamp()` | `(i32, i32, i32) -> i32` | `std::core::cmp` | `deprecated` | `builtin` | no | - | - |
-| ~~`cmp`~~ ⚠️ Deprecated → `Ord::cmp` | `(i32, i32) -> Ordering` | `std::core::cmp` | `deprecated` | `builtin` | no | - | - |
 | `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `builtin` | no | - | - |
 | `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
-| ~~`hash_combine`~~ ⚠️ Deprecated → `combine` | `(i32, i32) -> i32` | `std::core::hash` | `deprecated` | `builtin` | no | - | - |
-| ~~`hash_i32`~~ ⚠️ Deprecated → `Hash::hash` | `(i32) -> i32` | `std::core::hash` | `deprecated` | `builtin` | no | - | - |
-| ~~`hash_string`~~ ⚠️ Deprecated → `Hash::hash` | `(String) -> i32` | `std::core::hash` | `deprecated` | `builtin` | no | - | - |
-| ~~`max`~~ ⚠️ Deprecated → `i32.max()` | `(i32, i32) -> i32` | `std::core::cmp` | `deprecated` | `builtin` | no | - | - |
-| ~~`max`~~ ⚠️ Deprecated → `i32.max()` | `(i32, i32) -> i32` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
-| ~~`max_i32`~~ ⚠️ Deprecated → `i32.max()` | `(i32, i32) -> i32` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
-| ~~`min`~~ ⚠️ Deprecated → `i32.min()` | `(i32, i32) -> i32` | `std::core::cmp` | `deprecated` | `builtin` | no | - | - |
-| ~~`min`~~ ⚠️ Deprecated → `i32.min()` | `(i32, i32) -> i32` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
-| ~~`min_i32`~~ ⚠️ Deprecated → `i32.min()` | `(i32, i32) -> i32` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
 | `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
-| ~~`sqrt`~~ ⚠️ Deprecated → `f64.sqrt()` | `(f64) -> f64` | `std::core::math` | `deprecated` | `builtin` | no | - | - |
 
 ## Csv
 
@@ -808,13 +780,8 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| ~~`abs`~~ ⚠️ Deprecated → `i32.abs()` | `(i32) -> i32` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
 | `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `gcd` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_gcd` | - |
-| ~~`max`~~ ⚠️ Deprecated → `i32.max()` | `(i32, i32) -> i32` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_max` | - |
-| ~~`min`~~ ⚠️ Deprecated → `i32.min()` | `(i32, i32) -> i32` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
-| ~~`pow_i32`~~ ⚠️ Deprecated → `i32.pow()` | `(i32, i32) -> i32` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_pow_i32` | - |
-| ~~`sqrt`~~ ⚠️ Deprecated → `f64.sqrt()` | `(f64) -> f64` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
 
 ## Numeric
 
@@ -2048,7 +2015,7 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **49 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **26 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -2075,29 +2042,6 @@ Expected output: `hello world`
 | ~~`Vec_new_i32`~~ | `Vec::new<i32>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_i64`~~ | `Vec::new<i64>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_v128`~~ | `Vec::new<v128>` | [migration-guidance.md](migration-guidance.md) |
-| ~~`abs`~~ | `i32.abs()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`abs`~~ | `i32.abs()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`abs_i32`~~ | `i32.abs()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`bool_to_string`~~ | `bool.to_string()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`clamp`~~ | `i32.clamp()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`cmp`~~ | `Ord::cmp` | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
-| ~~`f64_to_string`~~ | `f64.to_string()` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `filter<i32>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hash_combine`~~ | `combine` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hash_i32`~~ | `Hash::hash` | [migration-guidance.md](migration-guidance.md) |
-| ~~`hash_string`~~ | `Hash::hash` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i32_to_string`~~ | `i32.to_string()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`i64_to_string`~~ | `i64.to_string()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`max`~~ | `i32.max()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`max`~~ | `i32.max()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`max`~~ | `i32.max()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`max_i32`~~ | `i32.max()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`min`~~ | `i32.min()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`min`~~ | `i32.min()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`min`~~ | `i32.min()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`min_i32`~~ | `i32.min()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`pow_i32`~~ | `i32.pow()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sqrt`~~ | `f64.sqrt()` | [migration-guidance.md](migration-guidance.md) |
-| ~~`sqrt`~~ | `f64.sqrt()` | [migration-guidance.md](migration-guidance.md) |

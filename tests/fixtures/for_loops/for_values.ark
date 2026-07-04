@@ -6,6 +6,6 @@ fn main() {
     push(v, 20)
     push(v, 30)
     for x in v {
-        stdio::println(i32_to_string(x))
+        stdio::println((x).to_string())
     }
 }

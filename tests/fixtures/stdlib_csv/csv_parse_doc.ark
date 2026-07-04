@@ -3,7 +3,7 @@ use std::host::stdio
 
 fn main() {
     match csv::csv_parse("a,b\n1,2") {
-        Result::Ok(rows) => stdio::println(i32_to_string(len(rows))),
+        Result::Ok(rows) => stdio::println((len(rows)).to_string()),
         Result::Err(e) => stdio::println(e),
     }
     let rows = Vec_new_Vec_String()

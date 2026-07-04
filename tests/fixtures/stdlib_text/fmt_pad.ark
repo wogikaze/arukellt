@@ -8,7 +8,7 @@ fn main() {
     stdio::println(text::format_i32(42))
     stdio::println(text::format_bool(true))
     let a = text::index_of("hello world", "world")
-    stdio::println(i32_to_string(a))
+    stdio::println((a).to_string())
     let b = text::index_of("hello", "xyz")
-    stdio::println(i32_to_string(b))
+    stdio::println((b).to_string())
 }

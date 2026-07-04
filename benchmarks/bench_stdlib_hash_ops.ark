@@ -11,7 +11,7 @@ fn main() {
 
     // Insert 100 entries (String key, i32 value)
     while i < 100 {
-        let key = concat("key_", i32_to_string(i))
+        let key = concat("key_", (i).to_string())
         let prev = hash::hashmap_str_set(m, key, i * 7)
         if prev {
             checksum = checksum + 1000
@@ -23,7 +23,7 @@ fn main() {
     // Get each entry
     i = 0
     while i < 100 {
-        let key = concat("key_", i32_to_string(i))
+        let key = concat("key_", (i).to_string())
         match hash::hashmap_str_get(m, key) {
             Option::Some(v) => checksum = checksum + v,
             None => checksum = checksum + 10000,
@@ -34,7 +34,7 @@ fn main() {
     // Containment check
     i = 0
     while i < 100 {
-        let key = concat("key_", i32_to_string(i))
+        let key = concat("key_", (i).to_string())
         if hash::hashmap_str_contains(m, key) {
             checksum = checksum + 1
         }
@@ -44,7 +44,7 @@ fn main() {
     // Remove every other entry
     i = 0
     while i < 100 {
-        let key = concat("key_", i32_to_string(i))
+        let key = concat("key_", (i).to_string())
         match hash::hashmap_str_remove(m, key) {
             Option::Some(_) => checksum = checksum + 2,
             None => checksum = checksum + 20000,
@@ -55,5 +55,5 @@ fn main() {
     // Remaining size
     checksum = checksum + hash::hashmap_size(m)
 
-    stdio::println(i32_to_string(checksum))
+    stdio::println((checksum).to_string())
 }

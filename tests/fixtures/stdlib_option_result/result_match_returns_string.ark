@@ -2,10 +2,10 @@ use std::host::stdio
 use std::test
 fn main() {
     let ok_r: Result<i32, String> = Ok(42)
-    let ok_msg: String = match ok_r { Result::Ok(v) => concat(String_from("ok="), i32_to_string(v)), Result::Err(e) => concat(String_from("err="), e) }
+    let ok_msg: String = match ok_r { Result::Ok(v) => concat(String_from("ok="), (v).to_string()), Result::Err(e) => concat(String_from("err="), e) }
     test::assert_eq_string(ok_msg, String_from("ok=42"))
     let err_r: Result<i32, String> = Err(String_from("fail"))
-    let err_msg: String = match err_r { Result::Ok(v) => concat(String_from("ok="), i32_to_string(v)), Result::Err(e) => concat(String_from("err="), e) }
+    let err_msg: String = match err_r { Result::Ok(v) => concat(String_from("ok="), (v).to_string()), Result::Err(e) => concat(String_from("err="), e) }
     test::assert_eq_string(err_msg, String_from("err=fail"))
     stdio::println("ok")
 }

@@ -7,7 +7,7 @@ fn main() {
         Result::Ok(v) => {
             match json::json_as_string(v) {
                 Option::Some(s) => {
-                    stdio::println(i32_to_string(len(s)))
+                    stdio::println((len(s)).to_string())
                     stdio::println(s)
                 },
                 None => stdio::println("not string"),
@@ -20,7 +20,7 @@ fn main() {
     match json::parse(long) {
         Result::Ok(v) => {
             match json::json_as_string(v) {
-                Option::Some(s) => stdio::println(i32_to_string(len(s))),
+                Option::Some(s) => stdio::println((len(s)).to_string()),
                 None => stdio::println("not string"),
             }
         },

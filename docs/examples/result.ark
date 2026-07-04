@@ -10,11 +10,11 @@ fn divide(a: i32, b: i32) -> Result<i32, String> {
 
 fn main() {
     match divide(10, 2) {
-        Result::Ok(v) => stdio::println(i32_to_string(v)),
+        Result::Ok(v) => stdio::println((v).to_string()),
         Result::Err(e) => stdio::println(e),
     }
     match divide(10, 0) {
-        Result::Ok(v) => stdio::println(i32_to_string(v)),
+        Result::Ok(v) => stdio::println((v).to_string()),
         Result::Err(e) => stdio::println(e),
     }
 }

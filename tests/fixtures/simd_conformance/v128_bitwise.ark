@@ -6,5 +6,5 @@ fn main() {
     let b = v128::zero()
     let c = v128::or(a, b)
     let result = v128::any_true(c)
-    stdio::println(i32_to_string(result))
+    stdio::println((result).to_string())
 }

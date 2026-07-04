@@ -12,6 +12,6 @@ use mymath
 fn main() {
     let sum = mymath::add(10, 32)
     let product = mymath::mul(6, 7)
-    stdio::println(i32_to_string(sum))
-    stdio::println(i32_to_string(product))
+    stdio::println((sum).to_string())
+    stdio::println((product).to_string())
 }

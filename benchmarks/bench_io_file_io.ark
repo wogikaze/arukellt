@@ -5,7 +5,7 @@ use std::host::fs
 use std::host::stdio
 
 fn line_for(i: i32) -> String {
-    concat(concat(concat("record:", i32_to_string(i)), ":payload:abcdefghijklmnopqrstuvwxyz0123456789"), "\n")
+    concat(concat(concat("record:", (i).to_string()), ":payload:abcdefghijklmnopqrstuvwxyz0123456789"), "\n")
 }
 
 fn main() {
@@ -42,6 +42,6 @@ fn main() {
         iter = iter + 1
     }
 
-    stdio::println(i32_to_string(len(data)))
-    stdio::println(i32_to_string(checksum))
+    stdio::println((len(data)).to_string())
+    stdio::println((checksum).to_string())
 }

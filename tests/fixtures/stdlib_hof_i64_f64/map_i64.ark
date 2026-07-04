@@ -12,7 +12,7 @@ fn main() {
     let doubled: Vec<i64> = map_i64_i64(v, double)
     let mut i: i32 = 0
     while i < len(doubled) {
-        stdio::println(i64_to_string(get_unchecked(doubled, i)))
+        stdio::println((get_unchecked(doubled, i)).to_string())
         i = i + 1
     }
 }

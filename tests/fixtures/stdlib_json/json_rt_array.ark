@@ -9,7 +9,7 @@ fn main() {
             match json::json_get_index(arr, 0) {
                 Option::Some(v) => {
                     match json::json_as_i32(v) {
-                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
                 },
@@ -18,7 +18,7 @@ fn main() {
             match json::json_get_index(arr, 3) {
                 Option::Some(v) => {
                     match json::json_as_i32(v) {
-                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
                 },
@@ -31,7 +31,7 @@ fn main() {
                     match json::json_get_index(arr2, 2) {
                         Option::Some(v2) => {
                             match json::json_as_i32(v2) {
-                                Option::Some(n2) => stdio::println(i32_to_string(n2)),
+                                Option::Some(n2) => stdio::println((n2).to_string()),
                                 None => stdio::println("not number"),
                             }
                         },

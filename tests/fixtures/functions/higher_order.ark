@@ -9,5 +9,5 @@ fn double(n: i32) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(apply(double, 21)))
+    stdio::println((apply(double, 21)).to_string())
 }

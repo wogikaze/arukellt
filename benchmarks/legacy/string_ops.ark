@@ -3,5 +3,5 @@ fn main() {
     let t: String = String_from(" world")
     let result: String = concat(s, t)
     println(result)
-    println(i32_to_string(len(result)))
+    println((len(result)).to_string())
 }

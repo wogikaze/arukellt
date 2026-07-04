@@ -4,5 +4,5 @@ import facade
 
 fn main() {
     let v = facade::answer()
-    stdio::println(i32_to_string(v))
+    stdio::println((v).to_string())
 }

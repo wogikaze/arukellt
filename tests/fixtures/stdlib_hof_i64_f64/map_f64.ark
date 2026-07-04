@@ -12,7 +12,7 @@ fn main() {
     let squared: Vec<f64> = map_f64_f64(v, square)
     let mut i: i32 = 0
     while i < len(squared) {
-        stdio::println(f64_to_string(get_unchecked(squared, i)))
+        stdio::println((get_unchecked(squared, i)).to_string())
         i = i + 1
     }
 }

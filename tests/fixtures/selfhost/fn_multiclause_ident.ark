@@ -6,6 +6,6 @@ fn negate(true) -> bool = false
 fn negate(false) -> bool = true
 
 fn main() {
-    stdio::println(bool_to_string(negate(true)))
-    stdio::println(bool_to_string(negate(false)))
+    stdio::println((negate(true)).to_string())
+    stdio::println((negate(false)).to_string())
 }

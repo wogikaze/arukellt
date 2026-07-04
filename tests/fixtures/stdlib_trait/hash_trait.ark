@@ -40,11 +40,11 @@ fn main() {
     let h1 = hash(p1)
     let h2 = hash(p2)
     let h3 = hash(p3)
-    stdio::println(bool_to_string(h1 == h2))
-    stdio::println(bool_to_string(h1 != h3))
+    stdio::println((h1 == h2).to_string())
+    stdio::println((h1 != h3).to_string())
 
     // Generic function with Hash bound
     let p = get_hash(p1)
     let h4 = hash(p)
-    stdio::println(bool_to_string(h1 == h4))
+    stdio::println((h1 == h4).to_string())
 }

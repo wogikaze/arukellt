@@ -8,7 +8,7 @@ fn main() {
     let x = 1 + 2
     stdio::println(to_string(x))
     let f = 1.5 + 2.5
-    stdio::println(f64_to_string(f))
+    stdio::println((f).to_string())
     let b = true
     if b {
         stdio::println(String_from("b is true"))

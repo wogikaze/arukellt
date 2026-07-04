@@ -4,5 +4,5 @@ fn main() {
     let add_one = |x: i32| -> i32 {
         x + 1
     }
-    stdio::println(i32_to_string(add_one(41)))
+    stdio::println((add_one(41)).to_string())
 }

@@ -2,7 +2,7 @@ use std::host::stdio
 
 fn main() {
     let x: f64 = sqrt(9.0)
-    stdio::println(f64_to_string(x))
+    stdio::println((x).to_string())
     let y: f64 = sqrt(16.0)
-    stdio::println(f64_to_string(y))
+    stdio::println((y).to_string())
 }

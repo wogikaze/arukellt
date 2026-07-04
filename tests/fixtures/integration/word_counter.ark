@@ -18,8 +18,8 @@ fn count_words(s: String) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(count_words(String_from("hello world"))))
-    stdio::println(i32_to_string(count_words(String_from("the quick brown fox jumps"))))
-    stdio::println(i32_to_string(count_words(String_from(""))))
-    stdio::println(i32_to_string(count_words(String_from("single"))))
+    stdio::println((count_words(String_from("hello world"))).to_string())
+    stdio::println((count_words(String_from("the quick brown fox jumps"))).to_string())
+    stdio::println((count_words(String_from(""))).to_string())
+    stdio::println((count_words(String_from("single"))).to_string())
 }

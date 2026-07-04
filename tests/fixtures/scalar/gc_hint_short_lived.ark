@@ -13,6 +13,6 @@ fn main() {
         total = total + p.x
         i = i + 1
     }
-    stdio::println(i32_to_string(total))
+    stdio::println((total).to_string())
 }
 // Short-lived Point in loop; GC hint at O2. Sum 0+1+2 = 3.

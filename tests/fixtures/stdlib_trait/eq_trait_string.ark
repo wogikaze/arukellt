@@ -27,11 +27,11 @@ fn main() {
     let bob = Person { name: String_from("Bob"), age: 30 }
 
     // Direct trait method call -- uses String field equality
-    stdio::println(bool_to_string(eq(alice, alice2)))
-    stdio::println(bool_to_string(eq(alice, bob)))
+    stdio::println((eq(alice, alice2)).to_string())
+    stdio::println((eq(alice, bob)).to_string())
 
     // Generic function with Eq trait bound
     let p = check_eq(alice, alice2)
-    stdio::println(bool_to_string(eq(p, alice2)))
-    stdio::println(bool_to_string(eq(p, bob)))
+    stdio::println((eq(p, alice2)).to_string())
+    stdio::println((eq(p, bob)).to_string())
 }

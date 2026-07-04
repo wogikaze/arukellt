@@ -17,11 +17,11 @@ fn main() {
     let a: i32 = 10
     let b: i32 = 32
     let c: i32 = add_any(a, b)
-    stdio::println(i32_to_string(c))
+    stdio::println((c).to_string())
 
     // Add dispatch on f64 (Self = f64).
     let x: f64 = 1.5
     let y: f64 = 2.5
     let z: f64 = add_any(x, y)
-    stdio::println(f64_to_string(z))
+    stdio::println((z).to_string())
 }

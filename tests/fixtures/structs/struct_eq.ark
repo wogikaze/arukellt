@@ -13,6 +13,6 @@ fn main() {
     let p1: Point = Point { x: 1, y: 2 }
     let p2: Point = Point { x: 1, y: 2 }
     let p3: Point = Point { x: 3, y: 4 }
-    stdio::println(bool_to_string(point_eq(p1, p2)))
-    stdio::println(bool_to_string(point_eq(p1, p3)))
+    stdio::println((point_eq(p1, p2)).to_string())
+    stdio::println((point_eq(p1, p3)).to_string())
 }

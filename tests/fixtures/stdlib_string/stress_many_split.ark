@@ -4,7 +4,7 @@ fn main() {
     let mut s = String_from("")
     let mut i = 0
     while i < 10 {
-        s = concat(s, i32_to_string(i))
+        s = concat(s, (i).to_string())
         s = concat(s, String_from(","))
         i = i + 1
     }

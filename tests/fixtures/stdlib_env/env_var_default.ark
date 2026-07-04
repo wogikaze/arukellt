@@ -3,8 +3,8 @@ use std::host::stdio
 
 fn main() {
     let a = env::args()
-    stdio::println(i32_to_string(len(a)))
-    stdio::println(i32_to_string(env::arg_count()))
+    stdio::println((len(a)).to_string())
+    stdio::println((env::arg_count()).to_string())
     let d = match env::var("ARUKELLT_NONEXISTENT_ENV_VAR_XYZ") {
         Option::Some(s) => s,
         None => String_from("default_val"),

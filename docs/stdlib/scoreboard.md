@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Exp | Depr | Fixture Coverage | Host Dep |
 |--------|------|--------|-----|------|------------------|----------|
-| `prelude` | 150 | 115 | 1 | 34 | 92/116 (79%) | no |
+| `prelude` | 141 | 115 | 1 | 25 | 92/116 (79%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 18 | 0 | 18 | 0 | 18/18 (100%) | no |
@@ -15,10 +15,8 @@
 | `std::component` | 2 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::component::handle` | 5 | 0 | 5 | 0 | 5/5 (100%) | no |
 | `std::core` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
-| `std::core::cmp` | 4 | 0 | 0 | 4 | 0/0 (—) | no |
 | `std::core::error` | 1 | 1 | 0 | 0 | 1/1 (100%) | no |
-| `std::core::hash` | 4 | 1 | 0 | 3 | 1/1 (100%) | no |
-| `std::core::math` | 7 | 0 | 0 | 7 | 0/0 (—) | no |
+| `std::core::hash` | 1 | 1 | 0 | 0 | 1/1 (100%) | no |
 | `std::csv` | 7 | 0 | 7 | 0 | 5/7 (71%) | no |
 | `std::env` | 6 | 5 | 0 | 1 | 4/5 (80%) | no |
 | `std::fs` | 8 | 4 | 4 | 0 | 7/8 (88%) | no |
@@ -58,7 +56,7 @@
 | `std::wasm` | 79 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 795 APIs, 409 stable, 337 experimental, 49 deprecated, 626/746 (84%) fixture coverage
+**Total**: 772 APIs, 409 stable, 337 experimental, 26 deprecated, 626/746 (84%) fixture coverage
 
 ## Legend
 

@@ -13,8 +13,8 @@ enum Color {
 
 fn main() {
     let p = Point { x: 10, y: 20 }
-    stdio::println(i32_to_string(p.x))
-    stdio::println(i32_to_string(p.y))
+    stdio::println((p.x).to_string())
+    stdio::println((p.y).to_string())
     let c = Color::Red
     match c {
         Color::Red => stdio::println("red"),

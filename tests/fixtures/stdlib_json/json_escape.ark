@@ -13,7 +13,7 @@ fn main() {
     match json::parse("\"hello\\nworld\"") {
         Result::Ok(v) => {
             match json::json_as_string(v) {
-                Option::Some(s) => stdio::println(i32_to_string(len(s))),
+                Option::Some(s) => stdio::println((len(s)).to_string()),
                 None => stdio::println("not string"),
             }
         },

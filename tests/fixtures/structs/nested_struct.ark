@@ -13,8 +13,8 @@ struct Rect {
 
 fn main() {
     let r: Rect = Rect { origin: Point { x: 1, y: 2 }, width: 10, height: 20 }
-    stdio::println(i32_to_string(r.origin.x))
-    stdio::println(i32_to_string(r.origin.y))
-    stdio::println(i32_to_string(r.width))
-    stdio::println(i32_to_string(r.height))
+    stdio::println((r.origin.x).to_string())
+    stdio::println((r.origin.y).to_string())
+    stdio::println((r.width).to_string())
+    stdio::println((r.height).to_string())
 }

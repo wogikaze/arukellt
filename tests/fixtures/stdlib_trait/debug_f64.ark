@@ -2,7 +2,7 @@ use std::text::fmt
 use std::test
 
 fn main() {
-    test::assert_eq_string(fmt::format_debug(3.14), f64_to_string(3.14))
-    test::assert_eq_string(fmt::format_debug(0.0), f64_to_string(0.0))
-    test::assert_eq_string(fmt::format_debug(-1.5), f64_to_string(-1.5))
+    test::assert_eq_string(fmt::format_debug(3.14), (3.14).to_string())
+    test::assert_eq_string(fmt::format_debug(0.0), (0.0).to_string())
+    test::assert_eq_string(fmt::format_debug(-1.5), (-1.5).to_string())
 }

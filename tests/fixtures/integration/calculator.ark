@@ -17,8 +17,8 @@ fn eval(e: Expr) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(eval(Expr::Num(42))))
-    stdio::println(i32_to_string(eval(Expr::Add(10, 20))))
-    stdio::println(i32_to_string(eval(Expr::Sub(50, 8))))
-    stdio::println(i32_to_string(eval(Expr::Mul(6, 7))))
+    stdio::println((eval(Expr::Num(42))).to_string())
+    stdio::println((eval(Expr::Add(10, 20))).to_string())
+    stdio::println((eval(Expr::Sub(50, 8))).to_string())
+    stdio::println((eval(Expr::Mul(6, 7))).to_string())
 }

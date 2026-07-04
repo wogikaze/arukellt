@@ -3,7 +3,7 @@ use std::signal
 
 fn assert_close(actual: f64, expected: f64) {
     if !signal::approx_eq(actual, expected, 0.001) {
-        panic(concat("expected ", concat(f64_to_string(expected), concat(", got ", f64_to_string(actual)))))
+        panic(concat("expected ", concat((expected).to_string(), concat(", got ", (actual).to_string()))))
     }
 }
 

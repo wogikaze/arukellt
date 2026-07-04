@@ -21,7 +21,7 @@
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
 pub fn json_stringify_i32(val: i32) -> String {
-    i32_to_string(val)
+    (val).to_string()
 }
 
 /// Stringify a bool as a JSON boolean literal.
@@ -387,7 +387,7 @@ pub fn stringify(v: JsonValue) -> String {
         JsonValue::Null => "null",
         JsonValue::Bool(true) => "true",
         JsonValue::Bool(false) => "false",
-        JsonValue::Number(n) => f64_to_string(n),
+        JsonValue::Number(n) => (n).to_string(),
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array(items),
@@ -443,7 +443,7 @@ fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
         JsonValue::Null => "null",
         JsonValue::Bool(true) => "true",
         JsonValue::Bool(false) => "false",
-        JsonValue::Number(n) => f64_to_string(n),
+        JsonValue::Number(n) => (n).to_string(),
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array_pretty(items, indent, depth),
@@ -661,7 +661,7 @@ pub fn json_as_string(v: JsonValue) -> Option<String> {
 pub fn json_as_i32(v: JsonValue) -> Option<i32> {
     match v {
         JsonValue::Number(n) => {
-            match parse_i32(f64_to_string(n)) {
+            match parse_i32((n).to_string()) {
                 Result::Ok(i) => Some(i),
                 Result::Err(_) => None,
             }
@@ -722,7 +722,7 @@ pub fn json_str(s: String) -> JsonValue {
 
 /// Create a JSON integer value (emitted as-is, no `.0` suffix).
 pub fn json_i32(n: i32) -> JsonValue {
-    JsonValue::Raw(i32_to_string(n))
+    JsonValue::Raw((n).to_string())
 }
 
 /// Create a JSON boolean value.

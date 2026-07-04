@@ -12,5 +12,5 @@ fn MyStruct_new(name: String, value: i32) -> MyStruct {
 fn main() {
     let s = MyStruct_new(String_from("hello"), 42)
     stdio::println(s.name)
-    stdio::println(i32_to_string(s.value))
+    stdio::println((s.value).to_string())
 }

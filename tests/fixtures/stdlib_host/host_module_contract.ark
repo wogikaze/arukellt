@@ -27,7 +27,7 @@ fn main() {
     // ── Host env contract ──
     let ac = env::arg_count()
     assert(ac >= 0)
-    stdio::println(concat("env:args:", i32_to_string(ac)))
+    stdio::println(concat("env:args:", (ac).to_string()))
 
     // var may return None on targets without environ support
     match env::var("PATH") {

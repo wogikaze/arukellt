@@ -12,7 +12,7 @@ fn main() {
             match json::json_get(v, "a") {
                 Option::Some(av) => {
                     match json::json_as_i32(av) {
-                        Option::Some(n) => stdio::println(i32_to_string(n)),
+                        Option::Some(n) => stdio::println((n).to_string()),
                         None => stdio::println("not number"),
                     }
                 },
@@ -21,20 +21,20 @@ fn main() {
             match json::json_get(v, "b") {
                 Option::Some(bv) => {
                     match json::json_as_bool(bv) {
-                        Option::Some(b) => stdio::println(bool_to_string(b)),
+                        Option::Some(b) => stdio::println((b).to_string()),
                         None => stdio::println("not bool"),
                     }
                 },
                 None => stdio::println("not found"),
             }
             match json::json_get(v, "c") {
-                Option::Some(cv) => stdio::println(bool_to_string(json::is_null(cv))),
+                Option::Some(cv) => stdio::println((json::is_null(cv)).to_string()),
                 None => stdio::println("not found"),
             }
             // Re-parse the stringified output and verify it still has same structure
             match json::parse(out) {
                 Result::Ok(v2) => {
-                    stdio::println(bool_to_string(json::is_object(v2)))
+                    stdio::println((json::is_object(v2)).to_string())
                 },
                 Result::Err(e) => stdio::println(concat("differential re-parse error:", json::parse_error_message(e))),
             }

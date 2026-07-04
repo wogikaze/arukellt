@@ -15,21 +15,21 @@ fn main() {
     linear::pq_push(pq, 40)
     linear::pq_push(pq, 60)
 
-    stdio::println(i32_to_string(linear::pq_len(pq)))  // 9
+    stdio::println((linear::pq_len(pq)).to_string())  // 9
 
     // Pop all: should come out sorted ascending (min-heap)
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 10
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 20
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 30
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 40
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 50
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 60
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 70
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 80
-    stdio::println(i32_to_string(linear::pq_pop(pq)))  // 90
+    stdio::println((linear::pq_pop(pq)).to_string())  // 10
+    stdio::println((linear::pq_pop(pq)).to_string())  // 20
+    stdio::println((linear::pq_pop(pq)).to_string())  // 30
+    stdio::println((linear::pq_pop(pq)).to_string())  // 40
+    stdio::println((linear::pq_pop(pq)).to_string())  // 50
+    stdio::println((linear::pq_pop(pq)).to_string())  // 60
+    stdio::println((linear::pq_pop(pq)).to_string())  // 70
+    stdio::println((linear::pq_pop(pq)).to_string())  // 80
+    stdio::println((linear::pq_pop(pq)).to_string())  // 90
 
-    stdio::println(bool_to_string(linear::pq_is_empty(pq)))  // true
-    stdio::println(i32_to_string(linear::pq_len(pq)))  // 0
+    stdio::println((linear::pq_is_empty(pq)).to_string())  // true
+    stdio::println((linear::pq_len(pq)).to_string())  // 0
 }
 // pq_len after 9 pushes
 // pq_pop returns sorted ascending (min-heap property)

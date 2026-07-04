@@ -35,6 +35,6 @@ fn sum_let(n: i32, acc: i32) -> i32 {
 fn main() {
     let a = countdown_let(100000)
     let b = sum_let(10000, 0)
-    stdio::println(i32_to_string(a))
-    stdio::println(i32_to_string(b))
+    stdio::println((a).to_string())
+    stdio::println((b).to_string())
 }

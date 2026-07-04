@@ -18,5 +18,5 @@ fn fib(n: i32) -> i32 {
 
 fn main() {
     let result: i32 = fib(35)
-    stdio::println(i32_to_string(result))
+    stdio::println((result).to_string())
 }

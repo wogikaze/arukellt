@@ -18,7 +18,7 @@ fn main() {
     }
     let r4: Result<f64, String> = parse_f64(String_from("0.001"))
     match r4 {
-        Result::Ok(v) => test::assert_eq_string(f64_to_string(v), "0.001"),
+        Result::Ok(v) => test::assert_eq_string((v).to_string(), "0.001"),
         Result::Err(e) => panic("expected Ok, got Err"),
     }
     let r5: Result<f64, String> = parse_f64(String_from("xyz"))

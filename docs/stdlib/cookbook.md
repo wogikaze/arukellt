@@ -173,10 +173,10 @@ fn main() {
     push(v, 30)
     push(v, 40)
 
-    stdio::println(i32_to_string(sum_i32(v)))  // 100
+    stdio::println(sum_i32(v).to_string())  // 100
 
     remove_i32(v, 1)                           // removes element at index 1
-    stdio::println(i32_to_string(len(v)))      // 3
+    stdio::println(len(v).to_string())      // 3
 }
 ```
 
@@ -362,7 +362,7 @@ use std::host::stdio
 fn main() {
     let r: Result<i32, String> = parse_i32(String_from("42"))
     match r {
-        Ok(val) => stdio::println(i32_to_string(val)),
+        Ok(val) => stdio::println(val.to_string()),
         Err(e) => stdio::println(e),
     }
 }
@@ -381,9 +381,9 @@ fn main() {
 use std::host::stdio
 fn main() {
     let x: f64 = sqrt(9.0)
-    stdio::println(f64_to_string(x))   // 3
+    stdio::println(x.to_string())   // 3
     let y: f64 = sqrt(16.0)
-    stdio::println(f64_to_string(y))   // 4
+    stdio::println(y.to_string())   // 4
 }
 ```
 
@@ -410,9 +410,9 @@ fn main() {
 ```ark
 use std::host::stdio
 fn main() {
-    stdio::println(i32_to_string(clamp_i32(5, 0, 10)))   // 5  (in range)
-    stdio::println(i32_to_string(clamp_i32(-3, 0, 10)))  // 0  (clamped to min)
-    stdio::println(i32_to_string(clamp_i32(15, 0, 10)))  // 10 (clamped to max)
+    stdio::println((clamp_i32(5, 0, 10)).to_string())   // 5  (in range)
+    stdio::println((clamp_i32(-3, 0, 10)).to_string())  // 0  (clamped to min)
+    stdio::println((clamp_i32(15, 0, 10)).to_string())  // 10 (clamped to max)
 }
 ```
 
@@ -430,7 +430,7 @@ fn main() {
 use std::host::stdio
 fn describe(opt: Option<i32>) -> String {
     match opt {
-        Some(val) => concat(String_from("got "), i32_to_string(val)),
+        Some(val) => concat(String_from("got "), val.to_string()),
         None => String_from("nothing"),
     }
 }
@@ -452,7 +452,7 @@ fn main() {
         stdio::println(to_string(unwrap(x)))
     }
     let y: Option<i32> = None
-    stdio::println(bool_to_string(is_none(y)))  // true
+    stdio::println(is_none(y).to_string())  // true
 }
 ```
 
@@ -465,7 +465,7 @@ fn main() {
 use std::host::stdio
 fn main() {
     let x: Option<i32> = None
-    stdio::println(i32_to_string(unwrap_or(x, 99)))  // 99
+    stdio::println(unwrap_or(x, 99).to_string())  // 99
 
     let y: i32 = unwrap_or(get(v, 100), 0)   // bounds-safe default
     stdio::println(to_string(y))
@@ -487,11 +487,11 @@ fn main() {
     let mapped_a: Option<i32> = map_option_i32_i32(a, double)
     let mapped_b: Option<i32> = map_option_i32_i32(b, double)
     match mapped_a {
-        Some(val) => stdio::println(i32_to_string(val)),  // 42
+        Some(val) => stdio::println(val.to_string()),  // 42
         None => stdio::println("none"),
     }
     match mapped_b {
-        Some(val) => stdio::println(i32_to_string(val)),
+        Some(val) => stdio::println(val.to_string()),
         None => stdio::println("none"),                    // none
     }
 }
@@ -512,7 +512,7 @@ use std::host::stdio
 fn main() {
     let r: Result<i32, String> = Err(String_from("bad input"))
     match r {
-        Ok(val) => stdio::println(i32_to_string(val)),
+        Ok(val) => stdio::println(val.to_string()),
         Err(e) => stdio::println(concat(String_from("error: "), e)),
     }
 }
@@ -532,11 +532,11 @@ fn parse_and_double(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_and_double(String_from("21")) {
-        Ok(val) => stdio::println(i32_to_string(val)),  // 42
+        Ok(val) => stdio::println(val.to_string()),  // 42
         Err(e) => stdio::println(e),
     }
     match parse_and_double(String_from("abc")) {
-        Ok(val) => stdio::println(i32_to_string(val)),
+        Ok(val) => stdio::println(val.to_string()),
         Err(e) => stdio::println(e),                     // parse error
     }
 }
@@ -559,18 +559,18 @@ fn try_parse(s: String) -> Result<i32, String> {
 
 fn main() {
     let r1 = try_parse("42")
-    stdio::println(bool_to_string(is_ok(r1)))     // true
-    stdio::println(bool_to_string(is_err(r1)))     // false
-    stdio::println(i32_to_string(unwrap(r1)))      // 42
+    stdio::println(is_ok(r1).to_string())     // true
+    stdio::println(is_err(r1).to_string())     // false
+    stdio::println(unwrap(r1).to_string())      // 42
 
     let r2 = try_parse("bad")
-    stdio::println(bool_to_string(is_ok(r2)))      // false
-    stdio::println(i32_to_string(unwrap_or(r2, 99)))  // 99
+    stdio::println(is_ok(r2).to_string())      // false
+    stdio::println(unwrap_or(r2, 99).to_string())  // 99
 
     // match でエラーメッセージを取り出す
     let r3 = try_parse("xyz")
     let msg = match r3 {
-        Ok(v) => concat("got: ", i32_to_string(v)),
+        Ok(v) => concat("got: ", v.to_string()),
         Err(e) => concat("fail: ", e),
     }
     stdio::println(msg)  // fail: parse error: xyz
@@ -659,8 +659,8 @@ use std::host::env
 use std::host::stdio
 fn main() {
     let a = env::args()
-    stdio::println(i32_to_string(len(a)))
-    stdio::println(i32_to_string(env::arg_count()))
+    stdio::println(len(a).to_string())
+    stdio::println(env::arg_count().to_string())
 }
 ```
 
@@ -715,10 +715,10 @@ use std::host::clock
 use std::host::random as host_random
 fn main() {
     let t = clock::monotonic_now()
-    stdio::println(i64_to_string(t))
+    stdio::println(t.to_string())
 
     let r = host_random::random_i32()
-    stdio::println(i32_to_string(r))
+    stdio::println(r.to_string())
 }
 ```
 
@@ -753,9 +753,9 @@ fn count_words(s: String) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(count_words(String_from("hello world"))))           // 2
-    stdio::println(i32_to_string(count_words(String_from("the quick brown fox"))))   // 4
-    stdio::println(i32_to_string(count_words(String_from(""))))                       // 0
+    stdio::println(count_words(String_from("hello world")).to_string())           // 2
+    stdio::println(count_words(String_from("the quick brown fox")).to_string())   // 4
+    stdio::println(count_words(String_from("")).to_string())                       // 0
 }
 ```
 
@@ -777,7 +777,7 @@ fn main() {
     let mut parts: Vec<String> = Vec_new_String()
     let mut i: i32 = 0
     while i < len(v) {
-        push(parts, i32_to_string(get_unchecked(v, i)))
+        push(parts, get_unchecked(v, i).to_string())
         i = i + 1
     }
     stdio::println(join(parts, String_from(" ")))  // 1 3 5 8
@@ -808,9 +808,9 @@ fn eval(e: Expr) -> i32 {
 }
 
 fn main() {
-    stdio::println(i32_to_string(eval(Expr::Num(42))))       // 42
-    stdio::println(i32_to_string(eval(Expr::Add(10, 20))))   // 30
-    stdio::println(i32_to_string(eval(Expr::Mul(6, 7))))     // 42
+    stdio::println(eval(Expr::Num(42)).to_string())       // 42
+    stdio::println(eval(Expr::Add(10, 20)).to_string())   // 30
+    stdio::println(eval(Expr::Mul(6, 7)).to_string())     // 42
 }
 ```
 
@@ -840,7 +840,7 @@ fn fib(n: i32) -> i32 {
 fn main() {
     let mut i: i32 = 0
     while i <= 10 {
-        stdio::println(i32_to_string(fib(i)))
+        stdio::println(fib(i).to_string())
         i = i + 1
     }
 }
@@ -874,7 +874,7 @@ fn main() {
     let list: List = prepend(list, 3)
     let list: List = prepend(list, 2)
     let list: List = prepend(list, 1)
-    stdio::println(i32_to_string(list_sum(list)))  // 6
+    stdio::println(list_sum(list).to_string())  // 6
 }
 ```
 

@@ -11,8 +11,8 @@ fn main() {
     stdio::println(path::extension("main.ark"))
     stdio::println(path::extension("Makefile"))
     stdio::println(path::with_extension("main.rs", "ark"))
-    stdio::println(bool_to_string(path::is_absolute("/usr")))
-    stdio::println(bool_to_string(path::is_absolute("relative")))
+    stdio::println((path::is_absolute("/usr")).to_string())
+    stdio::println((path::is_absolute("relative")).to_string())
 }
 // join
 // parent

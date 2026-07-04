@@ -13,7 +13,7 @@ fn main() {
     let large: Vec<f64> = filter_f64(v, is_large)
     let mut i: i32 = 0
     while i < len(large) {
-        stdio::println(f64_to_string(get_unchecked(large, i)))
+        stdio::println((get_unchecked(large, i)).to_string())
         i = i + 1
     }
 }

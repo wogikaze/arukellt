@@ -53,5 +53,5 @@ fn main() {
 
         iter = iter + 1
     }
-    stdio::println(i32_to_string(checksum))
+    stdio::println((checksum).to_string())
 }

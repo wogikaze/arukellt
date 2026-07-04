@@ -5,5 +5,5 @@ fn main() {
     let add_offset = |x: i32| -> i32 {
         x + offset
     }
-    stdio::println(i32_to_string(add_offset(32)))
+    stdio::println((add_offset(32)).to_string())
 }

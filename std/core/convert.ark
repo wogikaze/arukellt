@@ -160,25 +160,9 @@ impl Debug for String {
     }
 }
 
-// @deprecated: use `x.to_string()` (inherent method on i32) instead. See ADR-036.
-pub fn i32_to_string(x: i32) -> String {
-    __intrinsic_i32_to_string(x)
-}
-
-// @deprecated: use `x.to_string()` (inherent method on i64) instead. See ADR-036.
-pub fn i64_to_string(x: i64) -> String {
-    __intrinsic_i64_to_string(x)
-}
-
-// @deprecated: use `x.to_string()` (inherent method on f64) instead. See ADR-036.
-pub fn f64_to_string(x: f64) -> String {
-    __intrinsic_f64_to_string(x)
-}
-
-// @deprecated: use `x.to_string()` (inherent method on bool) instead. See ADR-036.
-pub fn bool_to_string(x: bool) -> String {
-    __intrinsic_bool_to_string(x)
-}
+// Deprecated free functions (i32_to_string, i64_to_string, f64_to_string,
+// bool_to_string) have been removed per ADR-036. Use inherent method
+// `x.to_string()` instead.
 
 pub fn parse_i32(s: String) -> Option<i32> {
     __intrinsic_parse_i32(s)

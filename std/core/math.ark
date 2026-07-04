@@ -1,64 +1,10 @@
 // std::core::math — mathematical functions
 //
 // Wrappers around compiler intrinsics for math operations.
-// @deprecated: use `x.abs()` (inherent method on i32) instead. See ADR-036.
-pub fn abs(x: i32) -> i32 {
-    __intrinsic_abs(x)
-}
-
-// @deprecated: use `x.abs()` (inherent method on i32) instead. See ADR-036.
-pub fn abs_i32(x: i32) -> i32 {
-    abs(x)
-}
-
-// @deprecated: use `a.min(b)` (inherent method on i32) instead. See ADR-036.
-pub fn min(a: i32, b: i32) -> i32 {
-    __intrinsic_min(a, b)
-}
-
-// @deprecated: use `a.min(b)` (inherent method on i32) instead. See ADR-036.
-pub fn min_i32(a: i32, b: i32) -> i32 {
-    min(a, b)
-}
-
-// @deprecated: use `a.max(b)` (inherent method on i32) instead. See ADR-036.
-pub fn max(a: i32, b: i32) -> i32 {
-    __intrinsic_max(a, b)
-}
-
-// @deprecated: use `a.max(b)` (inherent method on i32) instead. See ADR-036.
-pub fn max_i32(a: i32, b: i32) -> i32 {
-    max(a, b)
-}
-
-// @deprecated: use `x.sqrt()` (inherent method on f64) instead. See ADR-036.
-pub fn sqrt(x: f64) -> f64 {
-    __intrinsic_sqrt(x)
-}
-
-// @deprecated: use `x.clamp(lo, hi)` (inherent method on i32) instead. See ADR-036.
-pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
-    if x < lo {
-        lo
-    } else {
-        if x > hi {
-            hi
-        } else {
-            x
-        }
-    }
-}
-
-// @deprecated: use `base.pow(exp)` (inherent method on i32) instead. See ADR-036.
-pub fn pow_i32(base: i32, exp: i32) -> i32 {
-    let mut result = 1
-    let mut i = 0
-    while i < exp {
-        result = result * base
-        i = i + 1
-    }
-    result
-}
+// Deprecated free functions (abs, abs_i32, min, min_i32, max, max_i32, sqrt,
+// clamp, pow_i32) have been removed per ADR-036. Use inherent methods on
+// i32/i64/f64 instead: x.abs(), a.min(b), a.max(b), x.clamp(lo, hi),
+// x.sqrt(), base.pow(exp).
 
 pub fn gcd(a: i32, b: i32) -> i32 {
     let mut x = a

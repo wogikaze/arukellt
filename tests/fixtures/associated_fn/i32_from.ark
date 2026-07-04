@@ -7,7 +7,7 @@ fn main() {
     match r {
         Result::Ok(v) => {
             assert(v == 42)
-            stdio::println(i32_to_string(v))
+            stdio::println((v).to_string())
         },
         Result::Err(e) => stdio::println(e),
     }

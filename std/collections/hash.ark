@@ -74,7 +74,7 @@ fn hashmap_required_vec_len(cap: i32) -> i32 {
 
 fn hashmap_slot_for_key(m: Vec<i32>, key: i32) -> i32 {
     let cap: i32 = get_unchecked(m, 0)
-    let h: i32 = hash::hash_i32(key)
+    let h: i32 = key.hash()
     let mut idx: i32 = h % cap
     let mut probes: i32 = 0
     let mut result: i32 = 0 - 1

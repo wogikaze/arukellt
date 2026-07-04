@@ -1,4 +1,4 @@
 fn main() {
     let add_pair = |(a, b)| a + b
-    __intrinsic_print(concat(i32_to_string(add_pair((3, 4))), "\n"))
+    __intrinsic_print(concat((add_pair((3, 4))).to_string(), "\n"))
 }

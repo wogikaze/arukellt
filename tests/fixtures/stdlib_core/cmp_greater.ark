@@ -2,12 +2,12 @@ use std::core::cmp
 use std::test
 
 fn main() {
-    match cmp::cmp(10, 3) {
+    match 10.cmp(3) {
         Ordering::Less => panic("expected Greater"),
         Ordering::Equal => panic("expected Greater"),
         Ordering::Greater => test::assert_true(true),
     }
-    match cmp::cmp(0, -1) {
+    match 0.cmp(-1) {
         Ordering::Greater => test::assert_true(true),
         _ => panic("expected Greater"),
     }

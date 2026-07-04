@@ -156,52 +156,9 @@ impl Hash for f64 {
     }
 }
 
-/// Hashes an `i32` into a stable non-negative integer using FNV-1 over the
-/// four base-256 bytes of the absolute value.
-///
-/// Uses the same FNV-1 parameters (offset_basis=216613626, prime=16777619)
-/// as `hash_string`, providing a consistent canonical hash policy across all
-/// key types.
-// @deprecated: use `value.hash()` (Hash trait method) instead. See ADR-036.
-pub fn hash_i32(value: i32) -> i32 {
-    let mut h = 216613626
-    let mut v = value
-    if v < 0 {
-        v = 0 - v
-    }
-    let b0 = v - v / 256 * 256
-    h = h * 16777619 ^ b0
-    v = v / 256
-    let b1 = v - v / 256 * 256
-    h = h * 16777619 ^ b1
-    v = v / 256
-    let b2 = v - v / 256 * 256
-    h = h * 16777619 ^ b2
-    v = v / 256
-    let b3 = v - v / 256 * 256
-    h = h * 16777619 ^ b3
-    if h < 0 {
-        h = 0 - h
-    }
-    h
-}
-
-/// Hashes a string into a stable non-negative integer.
-// @deprecated: use `value.hash()` (Hash trait method) instead. See ADR-036.
-pub fn hash_string(value: String) -> i32 {
-    let mut h = 216613626
-    let n = len(value)
-    let mut i = 0
-    while i < n {
-        let ch = char_at(value, i)
-        h = h * 16777619 ^ ch
-        if h < 0 {
-            h = 0 - h
-        }
-        i = i + 1
-    }
-    h
-}
+// Deprecated free functions (hash_i32, hash_string, hash_combine) have been
+// removed per ADR-036. Use Hash trait method `value.hash()` and `combine()`
+// instead.
 
 pub fn combine(h1: i32, h2: i32) -> i32 {
     let mut h = h1
@@ -212,17 +169,13 @@ pub fn combine(h1: i32, h2: i32) -> i32 {
     h
 }
 
-// @deprecated: use `combine(h1, h2)` instead. See ADR-036.
-pub fn hash_combine(h1: i32, h2: i32) -> i32 {
-    combine(h1, h2)
-}
 // Simple multiplicative hash (Knuth variant)
 // issue #715 in-file tests
 test mod "hash" {
-    test "i32_zero" { assert(hash_i32(0) >= 0) }
-    test "i32_neg" { assert(hash_i32(-1) >= 0) }
-    test "str_empty" { assert(hash_string("") >= 0) }
-    test "str_abc" { assert(hash_string("abc") >= 0) }
+    test "i32_zero" { assert(0.hash() >= 0) }
+    test "i32_neg" { assert((-1).hash() >= 0) }
+    test "str_empty" { assert("".hash() >= 0) }
+    test "str_abc" { assert("abc".hash() >= 0) }
     test "combine" { assert(combine(1, 2) >= 0) }
     test "combine_comm" { assert(combine(3, 5) == combine(5, 3)) }
 }

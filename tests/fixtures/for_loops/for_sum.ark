@@ -5,5 +5,5 @@ fn main() {
     for i in 1..11 {
         sum = sum + i
     }
-    stdio::println(i32_to_string(sum))
+    stdio::println((sum).to_string())
 }

@@ -28,17 +28,17 @@ fn main() {
     }
     match json::parse("42") {
         Result::Ok(v) => {
-            stdio::println(bool_to_string(json::is_number(v)))
-            stdio::println(bool_to_string(json::is_null(v)))
+            stdio::println((json::is_number(v)).to_string())
+            stdio::println((json::is_null(v)).to_string())
         },
         Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("[1,2,3]") {
-        Result::Ok(v) => stdio::println(bool_to_string(json::is_array(v))),
+        Result::Ok(v) => stdio::println((json::is_array(v)).to_string()),
         Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
     match json::parse("{\"k\":1}") {
-        Result::Ok(v) => stdio::println(bool_to_string(json::is_object(v))),
+        Result::Ok(v) => stdio::println((json::is_object(v)).to_string()),
         Result::Err(e) => stdio::println(concat("error:", json::parse_error_message(e))),
     }
 }

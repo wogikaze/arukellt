@@ -70,53 +70,9 @@ impl Eq for f64 {
     }
 }
 
-/// Returns the ordering relationship between two `i32` values.
-// @deprecated: use `a.cmp(b)` (Ord trait method) instead. See ADR-036.
-pub fn cmp(a: i32, b: i32) -> Ordering {
-    if a < b {
-        Ordering::Less
-    } else {
-        if a > b {
-            Ordering::Greater
-        } else {
-            Ordering::Equal
-        }
-    }
-}
-
-/// Returns the smaller of two `i32` values.
-// @deprecated: use `a.min(b)` (inherent method on i32) instead. See ADR-036.
-pub fn min(a: i32, b: i32) -> i32 {
-    if a <= b {
-        a
-    } else {
-        b
-    }
-}
-
-/// Returns the larger of two `i32` values.
-// @deprecated: use `a.max(b)` (inherent method on i32) instead. See ADR-036.
-pub fn max(a: i32, b: i32) -> i32 {
-    if a >= b {
-        a
-    } else {
-        b
-    }
-}
-
-/// Clamps `x` into the inclusive range `[lo, hi]`.
-// @deprecated: use `x.clamp(lo, hi)` (inherent method on i32) instead. See ADR-036.
-pub fn clamp(x: i32, lo: i32, hi: i32) -> i32 {
-    if x < lo {
-        lo
-    } else {
-        if x > hi {
-            hi
-        } else {
-            x
-        }
-    }
-}
+// Deprecated free functions (cmp, min, max, clamp) have been removed per
+// ADR-036. Use Ord trait method `a.cmp(b)` and inherent methods `a.min(b)`,
+// `a.max(b)`, `x.clamp(lo, hi)` instead.
 
 // ---------------------------------------------------------------------------
 // Ord trait — total ordering for sortable types.

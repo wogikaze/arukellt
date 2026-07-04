@@ -5,6 +5,6 @@ fn identity<T>(x: T) -> T {
 }
 
 fn main() {
-    stdio::println(i32_to_string(identity(42)))
+    stdio::println((identity(42)).to_string())
     stdio::println(identity(String_from("hello")))
 }

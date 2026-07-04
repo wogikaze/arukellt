@@ -868,8 +868,8 @@ pub fn toml_parse(s: String) -> Result<TomlValue, String> {
 pub fn toml_stringify(v: TomlValue) -> String {
     match v {
         TomlValue::String(s) => concat("\"", concat(s, "\"")),
-        TomlValue::Integer(i) => i64_to_string(i),
-        TomlValue::Float(f) => f64_to_string(f),
+        TomlValue::Integer(i) => (i).to_string(),
+        TomlValue::Float(f) => (f).to_string(),
         TomlValue::Boolean(b) => if b { "true" } else { "false" },
         TomlValue::Array(items) => toml_stringify_array(items),
         TomlValue::Table(fields) => toml_stringify_table(fields),
