@@ -7,6 +7,7 @@ use loader::module_package_root
 use loader::module_paths
 use loader::module_state
 use loader::module_stdlib_decls
+use loader::wit_manifest
 
 pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
@@ -31,9 +32,12 @@ fn load_imported_modules_at(decls: Vec<AstNode>, current_dir: String, root_dir: 
 fn load_import_path(use_path: String, current_dir: String, root_dir: String, state: LoadState) {
     if module_paths::is_stdlib_path(clone(use_path)) {
         load_stdlib_module(clone(use_path), state)
-    } else {
-        load_single_module(clone(use_path), module_base_dir_for_import(clone(use_path), current_dir, clone(root_dir)), root_dir, state)
+        return
     }
+    if wit_manifest::is_wit_package_id(clone(use_path)) {
+        return
+    }
+    load_single_module(clone(use_path), module_base_dir_for_import(clone(use_path), current_dir, clone(root_dir)), root_dir, state)
 }
 
 fn load_single_module(module_name: String, base_dir: String, root_dir: String, state: LoadState) {

@@ -168,6 +168,67 @@ fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
     0
 }
 
+// For mono method names like "Picker__echo__String", MIR may still carry the
+// receiver struct name ("Picker" / "struct:Picker:…") as return_type_name.
+// When the mono suffix names a different concrete type, use that for wasm return.
+fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: String, mir: MirModule) -> String {
+    let receiver = mono_method_receiver_name(clone(return_type_name), mir)
+    if len(receiver) == 0 {
+        return String_new()
+    }
+    if !starts_with(clone(fn_name), concat(clone(receiver), String_from("__"))) {
+        return String_new()
+    }
+    let full_suffix = extract_mono_suffix(fn_name)
+    if len(full_suffix) == 0 {
+        return String_new()
+    }
+    let type_keys = split_by_double_underscore(full_suffix)
+    let key_count = len(type_keys)
+    if key_count <= 0 {
+        return String_new()
+    }
+    let last_key = get_unchecked(type_keys, key_count - 1)
+    if eq(clone(last_key), clone(receiver)) {
+        return String_new()
+    }
+    let sig = mono_type_key_to_sig(clone(last_key))
+    if len(sig) > 0 {
+        return sig
+    }
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(last_key))
+    if slot >= 0 {
+        return concat(String_from("gcsref"), i32_to_string(slot))
+    }
+    String_new()
+}
+
+fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String {
+    if starts_with(clone(return_type_name), String_from("struct:")) {
+        let mut first_colon = 0 - 1
+        let mut last_colon = 0 - 1
+        let n = len(return_type_name)
+        let mut i = 0
+        while i < n {
+            if char_at(return_type_name, i) == 58 {
+                if first_colon < 0 {
+                    first_colon = i
+                }
+                last_colon = i
+            }
+            i = i + 1
+        }
+        if first_colon >= 0 && last_colon > first_colon {
+            return substring(return_type_name, first_colon + 1, last_colon)
+        }
+        return String_new()
+    }
+    if len(return_type_name) > 0 && module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name)) >= 0 {
+        return return_type_name
+    }
+    String_new()
+}
+
 // Map a mono type key string to a wasm type signature.
 fn mono_type_key_to_sig(key: String) -> String {
     if eq(clone(key), String_from("i32")) {

@@ -30,10 +30,6 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
 	config_record::config_set_show_timing(config, args_record::cli_show_timing(opts))
 	config_record::config_set_lint_allow(config, args_record::cli_lint_allow(opts))
 	config_record::config_set_lint_deny(config, args_record::cli_lint_deny(opts))
-	if args_record::cli_has_cache_dir(opts) {
-		config_record::config_set_cache_dir(config, args_record::cli_cache_dir(opts))
-	}
-	config_record::config_set_fingerprint_only(config, args_record::cli_fingerprint_only(opts))
 	if include_dumps {
 		config_record::config_set_dump_tokens(config, should_dump(opts, String_from("tokens")))
 		config_record::config_set_dump_ast(config, should_dump(opts, String_from("ast")))

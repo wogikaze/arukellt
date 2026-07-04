@@ -2,6 +2,194 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_layout
 use mir::value_types
 
+fn core_match_variant_is_err(variant_name: String) -> bool {
+    eq(clone(variant_name), "Err") || eq(clone(variant_name), "Result::Err")
+}
 
+fn core_match_variant_is_some_or_ok(variant_name: String) -> bool {
+    if eq(clone(variant_name), "Ok") || eq(clone(variant_name), "Result::Ok") {
+        return true
+    }
+    if eq(clone(variant_name), "Some") || eq(clone(variant_name), "Option::Some") {
+        return true
+    }
+    false
+}
+
+fn core_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_ref: bool) -> i32 {
+    if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), field_idx + 1) {
+        return value_types::VT_GC_REF()
+    }
+    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    if len(field_type) > 0 && !core_payload_scalar_type_name(clone(field_type)) {
+        return value_types::VT_GC_REF()
+    }
+    if core_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
+        return value_types::VT_GC_REF()
+    }
+    if scrut_ok_is_ref && field_idx == 0 {
+        if core_match_variant_is_some_or_ok(clone(variant_name)) {
+            return value_types::VT_GC_REF()
+        }
+    }
+    let mut field_is_f64 = ctx_struct_layout::ctx_struct_field_is_f64(ctx, clone(variant_name), field_idx + 1)
+    if !field_is_f64 && scrut_ok_is_f64 && field_idx == 0 {
+        if core_match_variant_is_some_or_ok(clone(variant_name)) {
+            field_is_f64 = true
+        }
+    }
+    if field_is_f64 {
+        return value_types::VT_F64()
+    }
+    let field_is_i64 = ctx_struct_layout::ctx_struct_field_is_i64(ctx, clone(variant_name), field_idx + 1)
+    if field_is_i64 {
+        return value_types::VT_I64()
+    }
+    if scrut_ok_is_i64 && field_idx == 0 {
+        if core_match_variant_is_some_or_ok(clone(variant_name)) {
+            return value_types::VT_I64()
+        }
+    }
+    if ctx_gc_enum::ctx_is_gc_target(ctx) && core_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_I32()
+}
+
+fn core_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
+    let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    if slot < 0 {
+        return false
+    }
+    let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
+    if field_idx == 0 {
+        if contains(clone(sig), String_from("_f1_ref")) {
+            return true
+        }
+    }
+    false
+}
+
+fn core_payload_i32_name_needs_type(variant_name: String) -> bool {
+    core_match_variant_is_some_or_ok(variant_name)
+}
+
+fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+    if bind_vt != value_types::VT_GC_REF() {
+        return
+    }
+    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("string"))
+        return
+    }
+    if len(field_type) > 0 && ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(field_type)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        return
+    }
+    if len(field_type) > 0 && !core_payload_scalar_type_name(clone(field_type)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        return
+    }
+    if core_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("string"))
+    }
+}
+
+fn core_payload_scalar_type_name(type_name: String) -> bool {
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
+        return true
+    }
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
+        return true
+    }
+    if eq(clone(type_name), "u64") || eq(clone(type_name), "U64") {
+        return true
+    }
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
+        return true
+    }
+    if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
+        return true
+    }
+    if eq(clone(type_name), "char") {
+        return true
+    }
+    false
+}
+
+fn core_extract_first_result_type_param(scrut_type: String) -> String {
+    let prefix_len = 7
+    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let mut sep = 0 - 1
+    let mut i = 0
+    let rlen = len(rest)
+    while i < rlen {
+        let ch = char_at(rest, i)
+        if ch == sep_char {
+            sep = i
+            i = rlen
+        }
+        i = i + 1
+    }
+    if sep < 0 {
+        return rest
+    }
+    substring(rest, 0, sep)
+}
+
+fn core_extract_second_result_type_param(scrut_type: String) -> String {
+    let prefix_len = 7
+    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let mut first_sep = 0 - 1
+    let mut i = 0
+    let rlen = len(rest)
+    while i < rlen {
+        let ch = char_at(rest, i)
+        if ch == sep_char {
+            first_sep = i
+            i = rlen
+        }
+        i = i + 1
+    }
+    if first_sep < 0 {
+        return String_new()
+    }
+    substring(rest, first_sep + 1, rlen)
+}
+
+fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
+    let type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
+    if len(type_name) == 0 {
+        return false
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    false
+}

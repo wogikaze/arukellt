@@ -38,3 +38,73 @@ fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind
     }
 }
 
+fn extract_first_result_type_param(scrut_type: String) -> String {
+    let prefix_len = 7
+    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let mut sep = 0 - 1
+    let mut i = 0
+    let rlen = len(rest)
+    while i < rlen {
+        let ch = char_at(rest, i)
+        if ch == sep_char {
+            sep = i
+            i = rlen
+        }
+        i = i + 1
+    }
+    if sep < 0 {
+        return rest
+    }
+    substring(rest, 0, sep)
+}
+
+fn extract_second_result_type_param(scrut_type: String) -> String {
+    let prefix_len = 7
+    let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let mut first_sep = 0 - 1
+    let mut i = 0
+    let rlen = len(rest)
+    while i < rlen {
+        let ch = char_at(rest, i)
+        if ch == sep_char {
+            first_sep = i
+            i = rlen
+        }
+        i = i + 1
+    }
+    if first_sep < 0 {
+        return String_new()
+    }
+    substring(rest, first_sep + 1, rlen)
+}
+
+fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
+    let type_name = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
+    if len(type_name) == 0 {
+        return false
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    false
+}

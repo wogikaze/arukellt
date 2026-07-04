@@ -1,7 +1,9 @@
+use mir::lower::call_type_fallback
 use mir::lower::closure_capture_args
 use mir::lower::closure_registry
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR closure call lowering.
 
@@ -24,7 +26,9 @@ fn lower_core_closure_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         ca = ca + 1
     }
     closure_capture_args::closure_emit_captured_args(ctx, packed)
-    let c_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))
+    let c_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(synth, child_count - 1 + extra, c_dest))
+    call_type_fallback::mark_fallback_call_result_type(ctx, clone(synth), c_dest)
     c_dest
 }

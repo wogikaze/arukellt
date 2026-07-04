@@ -118,8 +118,16 @@ fn is_eq_callee_name(callee: String) -> bool {
     char_at(clone(callee), 0) == 101 && char_at(clone(callee), 1) == 113
 }
 
-fn try_emit_text_compare_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+// normalize_callee_name maps __intrinsic_string_eq -> string_eq; route both to the inline emitter.
+fn is_string_eq_callee_name(callee: String) -> bool {
     if is_eq_callee_name(clone(callee)) {
+        return true
+    }
+    eq(clone(callee), String_from("string_eq"))
+}
+
+fn try_emit_text_compare_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if is_string_eq_callee_name(clone(callee)) {
         let _result_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }

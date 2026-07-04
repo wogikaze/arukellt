@@ -28,7 +28,7 @@ fn ctx_gc_enum_payload_field_sigs_typed(payload_vts: Vec<i32>, type_name: String
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
         let vt = get_unchecked(payload_vts, i)
-        if i == 0 && len(type_name) > 0 && (vt == value_types::VT_GC_REF() || vt == value_types::VT_REF()) {
+        if i == 0 && len(type_name) > 0 && (vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() || starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Option_"))) {
             sig = text::builder_append(sig, gc_enum_field_sig_for_type(clone(type_name)))
         } else {
             sig = text::builder_append(sig, gc_enum_field_sig_for_vt(vt))
@@ -37,11 +37,19 @@ fn ctx_gc_enum_payload_field_sigs_typed(payload_vts: Vec<i32>, type_name: String
     sig
 }
 
+fn gc_enum_payload_suffix_after_prefix(s: String, prefix: String) -> String {
+    if !starts_with(clone(s), clone(prefix)) {
+        return String_new()
+    }
+    let prefix_len = len(clone(prefix))
+    return substring(clone(s), prefix_len, len(clone(s)))
+}
+
 fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
     // Extract the payload field sigs from the existing sig (everything after
     // the base "SubF+14_S_f0_i32" prefix).
     let base = String_from("SubF+14_S_f0_i32")
-    let existing_payload = substring_after(existing_sig, base)
+    let existing_payload = gc_enum_payload_suffix_after_prefix(clone(existing_sig), clone(base))
     // For single-field payloads (the common case), check if both are ref or
     // both are non-ref.  A field sig is a ref type if it contains "ref".
     let want_has_ref = contains(clone(want_field_sigs), String_from("ref"))

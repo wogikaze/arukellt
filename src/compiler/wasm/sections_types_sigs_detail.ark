@@ -141,6 +141,12 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if len(coll_sig) > 0 {
         return coll_sig
     }
+    if emit_target::is_gc_target(clone(target)) {
+        let mono_method_ret = sections_types_sigs_mono::resolve_mono_method_return_value_sig(clone(uf.name), clone(return_type_name), mir)
+        if len(mono_method_ret) > 0 {
+            return mono_method_ret
+        }
+    }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(return_type_name), mir)
     }

@@ -19,6 +19,10 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         let p_idx = lower_expr(ctx, parg)
         let p_vt = ctx_local_vt(ctx, p_idx)
         let save_local = ctx_fresh_local(ctx, p_vt)
+        let src_type = ctx_api_local_types::ctx_get_local_type(ctx, p_idx)
+        if len(src_type) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
+        }
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
         push(payload_locals, save_local)
         push(payload_vts, p_vt)

@@ -33,6 +33,17 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let mut rewritten = clone(callee_name)
     let mut return_local = 0 - 1
     let mut push_i64_needs_extend = false
+    // String identity for x.to_string() must run before impl resolution
+    // rewrites plain "to_string" into "Type::to_string".
+    if eq(clone(callee_name), String_from("to_string")) {
+        let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, callee_name, first_arg_idx)
+        return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
+        rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
+        if return_local >= 0 {
+            rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
+            return MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
+        }
+    }
     if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
     }

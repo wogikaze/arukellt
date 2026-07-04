@@ -27,13 +27,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         // base return type name is empty — the MonoInstance has the
         // concrete type (e.g. T→Point → "struct:Point:8").
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
-        if len(mono_rtn) > 0 && return_vt != value_types::VT_I32() && return_vt != value_types::VT_I64() && return_vt != value_types::VT_F64() {
-            // Use the raw concrete type name (e.g. "Point") for the local
-            // type, not the transformed "struct:Point:8" form.  The local
-            // type name is used by call rewrites (e.g. to_string) which
-            // expect the bare type name to build mangled callees like
-            // "Point::to_string".  The struct: prefix is only needed for
-            // parameter type signatures, not for local type names.
+        if len(mono_rtn) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
         } else if len(rtn) > 1 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
@@ -113,6 +107,9 @@ fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if sep < 0 {
         return
     }
+    if mono_mangled_type_param_count(cn_stripped) > 1 {
+        return
+    }
     let suffix = substring(cn_stripped, sep + 2, n)
     if !mono_suffix_is_single_type_key(suffix) {
         return
@@ -137,6 +134,19 @@ fn mono_suffix_is_single_type_key(suffix: String) -> bool {
         i = i + 1
     }
     true
+}
+
+fn mono_mangled_type_param_count(cn_stripped: String) -> i32 {
+    let n = len(cn_stripped)
+    let mut count = 0
+    let mut i = 0
+    while i < n - 1 {
+        if char_at(cn_stripped, i) == 95 && char_at(cn_stripped, i + 1) == 95 {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {

@@ -88,6 +88,16 @@ fn debug_vec_type_resolution(ctx: SelfEmitCtx, callee: String, inst: MirInst, re
     eprintln(concat(concat(concat(concat(concat(concat(concat(String_from("[vecdbg] fn="), to_string(func_idx)), String_from(" callee=")), clone(callee)), concat(String_from(" src="), to_string(src_local))), concat(String_from(" tname="), tname)), String_from(" resolved=")), to_string(resolved)))
 }
 
+// Element type suffix from "vec:Elem" for a vec intrinsic call (e.g. "Point").
+fn vec_element_type_name_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> String {
+    let src_local = find_call_source_local(ctx, clone(callee), inst)
+    let tname = local_type_name(ctx, src_local)
+    if !starts_with(clone(tname), String_from("vec:")) {
+        return String_new()
+    }
+    substring(clone(tname), 4, len(tname))
+}
+
 // Get the type_name of a local by index, or empty string if invalid.
 fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     if local_idx < 0 {

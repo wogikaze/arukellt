@@ -74,7 +74,23 @@ fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String
         return String_from("")
     }
     // String methods: len, char_at, etc. use bare name — no mapping needed.
-    // Scalar methods: to_string, abs, etc. use bare name — no mapping needed.
+    // Scalar methods: map trait dispatch names to compare intrinsics so
+    // prelude String `eq` is not used for i32/i64/f64/bool/char receivers.
+    if eq(clone(bare_name), String_from("eq")) {
+        if eq(clone(prefix), String_from("i32")) { return String_from("__intrinsic_i32_eq") }
+        if eq(clone(prefix), String_from("i64")) { return String_from("__intrinsic_i64_eq") }
+        if eq(clone(prefix), String_from("f64")) { return String_from("__intrinsic_f64_eq") }
+        if eq(clone(prefix), String_from("bool")) { return String_from("__intrinsic_i32_eq") }
+        if eq(clone(prefix), String_from("char")) { return String_from("__intrinsic_i32_eq") }
+    }
+    if eq(clone(bare_name), String_from("hash")) {
+        if eq(clone(prefix), String_from("i32")) { return String_from("hash_i32") }
+        if eq(clone(prefix), String_from("String")) { return String_from("hash_string") }
+        if eq(clone(prefix), String_from("i64")) { return String_from("hash_i64") }
+        if eq(clone(prefix), String_from("bool")) { return String_from("hash_i32") }
+        if eq(clone(prefix), String_from("char")) { return String_from("hash_i32") }
+        if eq(clone(prefix), String_from("f64")) { return String_from("hash_f64") }
+    }
     String_from("")
 }
 

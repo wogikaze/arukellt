@@ -8,16 +8,11 @@ use driver::checked_program
 use driver::debug
 use driver::emit
 use driver::lower
-use driver::cache
-use driver::result_record
-use compiler::phases
 use loader::mod
 use loader::module_decls
-use loader::module_state_modules
 use mir::mod as mir_api
 use mir_opt::optimize_module
 use std::host::clock
-use std::host::stdio
 
 // Arukellt Selfhost - compilation pipeline orchestration.
 
@@ -35,15 +30,6 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     let resolved = backend_resolve::backend_resolve(source, config, decls)
     if backend_resolve::resolve_result_should_return(resolved) {
         return backend_resolve::resolve_result_result(resolved)
-    }
-    // Fingerprint-only mode: compute program fingerprint and exit early.
-    // This skips resolve/typecheck/lower/emit (~35s) and just outputs the
-    // fingerprint to stdout, allowing the external driver to check cache.
-    if config_record::config_fingerprint_only(config) {
-        let modules = module_state_modules::LoadState_modules(backend_resolve::resolve_result_load_state(resolved))
-        let fingerprint = cache::compute_program_fingerprint(clone(source), modules, config)
-        stdio::println(concat(String_from("FINGERPRINT:"), to_string(fingerprint)))
-        return result_record::CompileResult_ok(phases::PHASE_RESOLVE())
     }
     let all_decls = module_decls::combine_loaded_and_main_decls_skip_prelude(backend_resolve::resolve_result_loaded_modules(resolved), decls)
     let checked = backend_typecheck::backend_typecheck(clone(source), config, all_decls, backend_resolve::resolve_result_ctx(resolved))

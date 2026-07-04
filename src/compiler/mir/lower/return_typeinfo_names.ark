@@ -159,3 +159,10 @@ fn mir_result_return_type_name_from_type_info(ty: TypeInfo) -> String {
     String_from("Result")
 }
 
+fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    let name = typeinfo_shape::mir_type_info_name(ty)
+    if eq(clone(name), String_from("Result")) {
+        return mir_result_return_type_name_from_type_info(ty)
+    }
+    concat(String_from("enum:"), name)
+}

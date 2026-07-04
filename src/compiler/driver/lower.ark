@@ -22,7 +22,7 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirMo
 }
 
 fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
-    if !eq(clone(emit_mode), "wasm") {
+    if !eq(clone(emit_mode), "wasm") && !eq(clone(emit_mode), "core-wasm") {
         return false
     }
     contains(config_record::config_target(config), String_from("-p2"))

@@ -29,11 +29,14 @@ fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i
         }
     }
     if arg_idx >= 0 {
+        let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
+        if arg_vt == value_types::VT_GC_REF() || arg_vt == value_types::VT_REF() {
+            return false
+        }
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
         if mir_print_arg_is_string_type(lt) {
             return false
         }
-        let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
         if arg_vt == value_types::VT_I32() || arg_vt == value_types::VT_I64() || arg_vt == value_types::VT_F64() {
             return true
         }

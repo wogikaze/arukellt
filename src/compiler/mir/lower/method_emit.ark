@@ -1,3 +1,5 @@
+use mir::lower::call_rewrite
+use mir::lower::call_rewrite_string
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
@@ -8,6 +10,21 @@ use mir::inst_call
 use mir::value_types
 
 fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
+    let bare_method = mir_method_bare_name(clone(callee_name))
+    if eq(clone(bare_method), String_from("to_string")) {
+        let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, String_from("to_string"), first_arg_idx)
+        let return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
+        if return_local >= 0 {
+            return return_local
+        }
+        callee_name = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
+    }
+    let call_rewrite = call_rewrite::mir_rewrite_call_target(ctx, clone(callee_name), first_arg_idx, 0 - 1, false, 0)
+    let return_local = call_rewrite::MirCallRewrite_return_local(call_rewrite)
+    if return_local >= 0 {
+        return return_local
+    }
+    callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
     let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
     let dest = ctx_fresh_local(ctx, call_ret_vt)
     // Reuse the same result-type propagation as direct calls so that
@@ -20,4 +37,12 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
         return 0 - 1
     }
     dest
+}
+
+fn mir_method_bare_name(mangled: String) -> String {
+    let pos = index_of(clone(mangled), String_from("::"))
+    if pos < 0 {
+        return clone(mangled)
+    }
+    substring(mangled, pos + 2, len(mangled))
 }

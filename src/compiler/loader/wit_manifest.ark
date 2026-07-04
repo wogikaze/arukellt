@@ -7,6 +7,13 @@ use loader::registry_config
 use main::script_toml
 
 pub fn is_wit_package_id(name: String) -> bool {
+    if starts_with(clone(name), String_from("std::")) {
+        return false
+    }
+    // Rust module paths use `::`; WIT package ids use a single `namespace:package` colon.
+    if contains(clone(name), String_from("::")) {
+        return false
+    }
     index_of(clone(name), String_from(":")) >= 0
 }
 

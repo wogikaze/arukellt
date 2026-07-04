@@ -23,7 +23,7 @@ fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverCon
         return emit_native_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     }
     normalize_wasi_version(config)
-    let emit_mode = config_record::config_emit_mode(config)
+    let emit_mode = normalize_emit_mode(config_record::config_emit_mode(config))
     let world_error = world_target_error(config, clone(emit_mode))
     if len(world_error) > 0 {
         return result_record::CompileResult_err(phases::PHASE_EMIT(), world_error)
@@ -64,6 +64,13 @@ fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config:
 }
 
 // Arukellt Driver - emit target normalization and validation.
+
+fn normalize_emit_mode(emit_mode: String) -> String {
+    if eq(clone(emit_mode), String_from("core-wasm")) {
+        return String_from("wasm")
+    }
+    emit_mode
+}
 
 fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule) -> String {
     if component::mir_has_library_exports(mir_module) {

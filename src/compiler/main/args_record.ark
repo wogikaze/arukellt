@@ -31,8 +31,6 @@ struct CliOptions {
     lint_list: bool,
     lint_allow: Vec<String>,
     lint_deny: Vec<String>,
-    cache_dir: String,
-    fingerprint_only: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
@@ -64,8 +62,6 @@ fn CliOptions_default() -> CliOptions {
         lint_list: false,
         lint_allow: Vec_new_String(),
         lint_deny: Vec_new_String(),
-        cache_dir: String_new(),
-        fingerprint_only: false,
     }
 }
 
@@ -200,10 +196,3 @@ fn cli_add_lint_allow(opts: CliOptions, rule: String) { push(opts.lint_allow, ru
 fn cli_add_lint_deny(opts: CliOptions, rule: String) { push(opts.lint_deny, rule) }
 fn cli_set_lint_allow(opts: CliOptions, rules: Vec<String>) { opts.lint_allow = rules }
 fn cli_set_lint_deny(opts: CliOptions, rules: Vec<String>) { opts.lint_deny = rules }
-
-fn cli_cache_dir(opts: CliOptions) -> String { clone(opts.cache_dir) }
-fn cli_has_cache_dir(opts: CliOptions) -> bool { len(opts.cache_dir) > 0 }
-fn cli_set_cache_dir(opts: CliOptions, cache_dir: String) { opts.cache_dir = cache_dir }
-
-fn cli_fingerprint_only(opts: CliOptions) -> bool { opts.fingerprint_only }
-fn cli_set_fingerprint_only(opts: CliOptions, fingerprint_only: bool) { opts.fingerprint_only = fingerprint_only }

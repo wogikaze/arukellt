@@ -6,7 +6,6 @@ use loader::module_file_load_stdlib
 use loader::module_names
 use loader::module_parse
 use loader::module_state
-use std::core::hash
 pub fn load_stdlib_module_decls(stdlib_path: String, state: LoadState) -> Vec<AstNode> {
     if module_state_loading::LoadState_has_loaded(state, clone(stdlib_path)) {
         return Vec_new_AstNode()
@@ -28,9 +27,8 @@ pub fn load_stdlib_module_decls(stdlib_path: String, state: LoadState) -> Vec<As
 
 fn register_stdlib_source(stdlib_path: String, short_name: String, source: String, state: LoadState) -> Vec<AstNode> {
     module_state_loading::LoadState_push_loading(state, clone(stdlib_path))
-    let src_hash = hash::hash_string(clone(source))
     let mod_decls = module_parse::parse_module_source(source)
     module_state_loading::LoadState_push_loaded(state, clone(stdlib_path))
-    module_state_modules::LoadState_add_module(state, clone(short_name), mod_decls, src_hash)
+    module_state_modules::LoadState_add_module(state, clone(short_name), mod_decls)
     mod_decls
 }
