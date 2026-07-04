@@ -105,7 +105,25 @@ std/
 
 ## Limitations (v3)
 
-- No destructuring imports (`use std::foo::{bar, baz}` — parsed but not yet expanded)
 - No wildcard imports (`use std::foo::*`)
 - No `pub use` re-exports
 - Maximum 4 path segments recommended
+
+## Function-level destructuring (v4 — issue #717)
+
+`use path::module::{fn_a, fn_b}` imports functions directly into scope,
+allowing bare calls without module qualification:
+
+```arukellt
+use std::text::string::{split, join}
+
+fn main() {
+    let parts = split("a,b", ",")    // resolves to string::split
+    let result = join(parts, ",")    // resolves to string::join
+}
+```
+
+The resolver registers a use-alias mapping the short name (`split`) to
+the qualified path (`string::split`). When a bare name is encountered in
+a path expression, the resolver rewrites it to the qualified path before
+typechecking and MIR lowering. Locals and parameters shadow use-aliases.

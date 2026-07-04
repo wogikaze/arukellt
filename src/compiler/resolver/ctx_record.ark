@@ -12,10 +12,12 @@ struct ResolveCtx {
     next_decl_index: i32,
     target: String,
     ref_index: RefIndex,
+    use_alias_shorts: Vec<String>,
+    use_alias_targets: Vec<String>,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
-    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), diagnostics: Vec_new_Diagnostic(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new() }
+    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), diagnostics: Vec_new_Diagnostic(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new(), use_alias_shorts: Vec_new_String(), use_alias_targets: Vec_new_String() }
 }
 
 fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {
@@ -87,4 +89,30 @@ fn resolve_ctx_reported_error_count(ctx: ResolveCtx) -> i32 {
 
 fn resolve_ctx_error_at(ctx: ResolveCtx, index: i32) -> String {
     clone(get_unchecked(ctx.errors, index))
+}
+
+fn resolve_ctx_add_use_alias(ctx: ResolveCtx, short_name: String, target: String) {
+    let count = len(ctx.use_alias_shorts)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(ctx.use_alias_shorts, i)), clone(short_name)) {
+            set(ctx.use_alias_targets, i, target)
+            return
+        }
+        i = i + 1
+    }
+    push(ctx.use_alias_shorts, short_name)
+    push(ctx.use_alias_targets, target)
+}
+
+fn resolve_ctx_lookup_use_alias(ctx: ResolveCtx, short_name: String) -> String {
+    let count = len(ctx.use_alias_shorts)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(ctx.use_alias_shorts, i)), clone(short_name)) {
+            return clone(get_unchecked(ctx.use_alias_targets, i))
+        }
+        i = i + 1
+    }
+    String_new()
 }

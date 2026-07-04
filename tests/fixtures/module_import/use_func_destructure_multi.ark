@@ -1,0 +1,14 @@
+// Fixture: use_func_destructure_multi.ark
+// Issue #717: `use std::text::string::{split, join}` imports both functions
+// directly into scope. Bare calls `split(...)` and `join(...)` resolve to
+// `string::split(...)` and `string::join(...)` via the use-alias mechanism.
+//
+// Expected output: a,b
+use std::text::string::{split, join}
+
+fn main() {
+    let s: String = "a,b,c"
+    let parts = split(s, ",")
+    let result = join(parts, ",")
+    __intrinsic_println(result)
+}

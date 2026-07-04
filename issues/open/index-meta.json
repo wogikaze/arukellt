@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-04T17:54:35Z",
+  "generated_at": "2026-07-04T18:50:19Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -859,8 +859,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 17
+        "checked": 8,
+        "unchecked": 9
       },
       "orchestration": {
         "class": "implementation-backfill",

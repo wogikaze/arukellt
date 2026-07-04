@@ -7,6 +7,7 @@ use resolver::scope_error
 use resolver::kinds
 use resolver::paths
 use resolver::host_stub_gate
+use resolver::ctx_record
 
 fn resolve_path(ctx: ResolveCtx, node: AstNode) {
     let path = ast_access::node_text(node)
@@ -19,9 +20,23 @@ fn resolve_path(ctx: ResolveCtx, node: AstNode) {
     // lookup — the prelude function is already in the scope.
     if eq(clone(module_part), clone(path)) {
         let idx = scope_lookup::lookup(ctx, clone(path))
+        if idx < 0 {
+            let alias_target = ctx_record::resolve_ctx_lookup_use_alias(ctx, clone(path))
+            if len(clone(alias_target)) > 0 {
+                ast_access::set_node_text(node, clone(alias_target))
+                resolve_qualified_path(ctx, node, clone(alias_target))
+                return
+            }
+        }
         ref_sites::record_use(ctx, idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
         return
     }
+    resolve_qualified_path(ctx, node, clone(path))
+}
+
+fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
+    let module_part = paths::path_module_part(clone(path))
+    let symbol_part = paths::path_symbol_part(clone(path))
     // Associated function syntax on builtin types (Vec::new, String::from,
     // i32::from, ...) — the type is not a module, so skip module lookup.
     if is_builtin_type_name(clone(module_part)) {

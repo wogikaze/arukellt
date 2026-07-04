@@ -7,6 +7,7 @@ use resolver::scope_define
 use resolver::kinds
 use resolver::paths
 use resolver::target_gate
+use resolver::ctx_record
 
 fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
     let use_path = ast_access::node_text(d)
@@ -17,6 +18,16 @@ fn register_use_decl(ctx: ResolveCtx, d: AstNode) {
     }
     register_use_module_alias(ctx, d)
     register_use_children(ctx, d)
+    register_use_decl_func_alias(ctx, d)
+}
+
+fn register_use_decl_func_alias(ctx: ResolveCtx, d: AstNode) {
+    let use_path = ast_access::node_text(d)
+    if ast_access::node_child_count(d) == 0 {
+        return
+    }
+    let child_short = paths::use_module_short_name(clone(use_path))
+    register_use_func_alias(ctx, clone(use_path), clone(child_short))
 }
 
 fn register_use_module_alias(ctx: ResolveCtx, d: AstNode) {
@@ -49,7 +60,21 @@ fn register_use_children(ctx: ResolveCtx, d: AstNode) {
             if existing_child_mod < 0 {
                 scope_define::define(ctx, clone(child_short), commands::SYM_MODULE())
             }
+            register_use_func_alias(ctx, clone(child_path), clone(child_short))
         }
         ci = ci + 1
     }
+}
+
+fn register_use_func_alias(ctx: ResolveCtx, child_path: String, child_short: String) {
+    let parent_path = paths::use_module_parent_path(clone(child_path))
+    if len(clone(parent_path)) == 0 {
+        return
+    }
+    let parent_short = paths::use_module_short_name(clone(parent_path))
+    if len(clone(parent_short)) == 0 {
+        return
+    }
+    let alias_target = concat(clone(parent_short), concat(String_from("::"), clone(child_short)))
+    ctx_record::resolve_ctx_add_use_alias(ctx, child_short, alias_target)
 }

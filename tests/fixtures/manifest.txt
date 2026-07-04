@@ -418,6 +418,8 @@ run:match_extensions/struct_field_update.ark
 run:match_extensions/struct_pattern.ark
 run:module_import/use_destructure_multi.ark
 run:module_import/use_destructure_typed.ark
+run:module_import/use_func_destructure.ark
+run:module_import/use_func_destructure_multi.ark
 run:module_import/use_prelude_coexist.ark
 run:module_import/use_qualified_call_typed.ark
 run:module_import/use_std_string.ark

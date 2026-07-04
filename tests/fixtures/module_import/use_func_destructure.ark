@@ -1,0 +1,14 @@
+// Fixture: use_func_destructure.ark
+// Issue #717: `use std::text::string::{split}` imports the function `split`
+// directly into scope. Bare call `split(s, sep)` resolves to
+// `string::split(s, sep)` via the use-alias mechanism.
+//
+// Expected output: 2
+use std::text::string::{split}
+
+fn main() {
+    let s: String = "a,b"
+    let sep: String = ","
+    let parts = split(s, sep)
+    __intrinsic_println(__intrinsic_i32_to_string(len(parts)))
+}

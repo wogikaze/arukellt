@@ -14,6 +14,10 @@ fn node_text(node: AstNode) -> String {
     ast::ast_node_text(node)
 }
 
+fn set_node_text(node: AstNode, text: String) {
+    ast::ast_node_set_text(node, text)
+}
+
 fn node_child_count(node: AstNode) -> i32 {
     ast::ast_node_child_count(node)
 }

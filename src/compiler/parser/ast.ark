@@ -14,6 +14,10 @@ fn ast_node_text(node: AstNode) -> String {
     ast_fields_record::ast_node_text(node)
 }
 
+fn ast_node_set_text(node: AstNode, text: String) {
+    ast_fields_record::ast_node_set_text(node, text)
+}
+
 fn ast_node_is_pub(node: AstNode) -> bool {
     ast_fields_record::ast_node_is_pub(node)
 }
