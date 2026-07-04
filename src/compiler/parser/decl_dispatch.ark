@@ -6,12 +6,18 @@ use parser::decl_const
 use parser::decl_headers
 use parser::decl_fns
 use parser::decl_multiclause
+use parser::decl_test
 use parser::decl_types
 use parser::fn_lookahead
 use parser::imports
 use parser::stmt
 
 fn parse_decl(p: Parser) -> AstNode {
+    // Contextual `test` keyword: must be checked before pub/async prefix since
+    // test declarations are never pub/async. See ADR-041.
+    if decl_test::is_test_decl_start(p) {
+        return decl_test::parse_test_decl(p)
+    }
     let is_pub = decl_headers::parse_pub_prefix(p)
     let is_async = decl_headers::parse_async_prefix(p)
     let k2 = core_api_cursor::peek_kind(p)

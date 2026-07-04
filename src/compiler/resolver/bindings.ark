@@ -4,6 +4,7 @@ use resolver::bindings_enum
 use resolver::bindings_fn
 use resolver::bindings_let
 use resolver::bindings_pattern
+use resolver::bindings_test
 
 fn resolve_fn(ctx: ResolveCtx, node: AstNode) {
     bindings_fn::resolve_fn(ctx, node)
@@ -19,4 +20,8 @@ fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
 
 fn resolve_let(ctx: ResolveCtx, node: AstNode) {
     bindings_let::resolve_let(ctx, node)
+}
+
+fn resolve_test(ctx: ResolveCtx, node: AstNode) {
+    bindings_test::resolve_test(ctx, node)
 }

@@ -25,3 +25,26 @@ fn at(p: Parser, kind: i32) -> bool {
 fn at_eof(p: Parser) -> bool {
     at(p, tokens::TK_EOF())
 }
+
+fn peek_text(p: Parser) -> String {
+    let t = cur(p)
+    token_state::Token_text(t)
+}
+
+// Peek token kind at an absolute token index (no newline skipping).
+fn peek_kind_at_index(p: Parser, idx: i32) -> i32 {
+    if idx >= state_record::parser_token_count(p) {
+        return tokens::TK_EOF()
+    }
+    let t = state_record::parser_token_at(p, idx)
+    token_state::Token_kind(t)
+}
+
+// Peek token text at an absolute token index (no newline skipping).
+fn peek_text_at_index(p: Parser, idx: i32) -> String {
+    if idx >= state_record::parser_token_count(p) {
+        return String_new()
+    }
+    let t = state_record::parser_token_at(p, idx)
+    token_state::Token_text(t)
+}

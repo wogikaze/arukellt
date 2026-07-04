@@ -30,3 +30,26 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn
         }
     }
 }
+
+// Typecheck a `test` declaration body (ADR-041). Test bodies are checked in
+// the module environment with a fresh empty local scope. No params, no
+// return contract. Test mod recurses into child test decls.
+fn check_test_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
+    if ast_access::node_kind_is(node, kinds::NK_TEST_MOD()) {
+        let cc = ast_access::node_child_count(node)
+        let mut i = 0
+        while i < cc {
+            check_test_body(env, fn_sigs, enum_defs, ast_access::node_child_at(node, i))
+            i = i + 1
+        }
+        return
+    }
+    // NK_TEST_DECL
+    let scope = scope::LocalScope_new()
+    let cc = ast_access::node_child_count(node)
+    if cc > 0 {
+        let body = ast_access::node_child_at(node, cc - 1)
+        infer::check_stmt(env, scope, fn_sigs, enum_defs, body)
+        contract_env_record::type_env_finalize_unused_bindings(env)
+    }
+}

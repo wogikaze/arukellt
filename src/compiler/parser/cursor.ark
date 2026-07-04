@@ -30,3 +30,15 @@ fn skip_newlines(p: Parser) {
 fn skip_only_newlines(p: Parser) {
     cursor_advance::skip_only_newlines(p)
 }
+
+fn peek_text(p: Parser) -> String {
+    cursor_read::peek_text(p)
+}
+
+fn peek_kind_at_index(p: Parser, idx: i32) -> i32 {
+    cursor_read::peek_kind_at_index(p, idx)
+}
+
+fn peek_text_at_index(p: Parser, idx: i32) -> String {
+    cursor_read::peek_text_at_index(p, idx)
+}

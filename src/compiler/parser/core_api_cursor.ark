@@ -9,3 +9,6 @@ fn at_eof(p: Parser) -> bool { cursor::at_eof(p) }
 fn bump(p: Parser) -> Token { cursor::bump(p) }
 fn skip_newlines(p: Parser) { cursor::skip_newlines(p) }
 fn skip_only_newlines(p: Parser) { cursor::skip_only_newlines(p) }
+fn peek_text(p: Parser) -> String { cursor::peek_text(p) }
+fn peek_kind_at_index(p: Parser, idx: i32) -> i32 { cursor::peek_kind_at_index(p, idx) }
+fn peek_text_at_index(p: Parser, idx: i32) -> String { cursor::peek_text_at_index(p, idx) }

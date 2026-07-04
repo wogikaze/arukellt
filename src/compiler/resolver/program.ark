@@ -28,6 +28,10 @@ fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wi
             } else {
                 if ast_decl_predicates::node_is_impl_decl(d) {
                     program_impl::resolve_impl(ctx, d)
+                } else {
+                    if ast_decl_predicates::node_is_test_decl(d) || ast_decl_predicates::node_is_test_mod(d) {
+                        bindings::resolve_test(ctx, d)
+                    }
                 }
             }
         }
