@@ -3,18 +3,19 @@
 struct ModuleDecls {
     name: String,
     decls: Vec<AstNode>,
+    source_hash: i32,
 }
 
-fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
-    ModuleDecls { name: name, decls: decls }
+fn ModuleDecls_new(name: String, decls: Vec<AstNode>, source_hash: i32) -> ModuleDecls {
+    ModuleDecls { name: name, decls: decls, source_hash: source_hash }
 }
 
 fn LoadState_modules(state: LoadState) -> Vec<ModuleDecls> {
     state.modules
 }
 
-fn LoadState_add_module(state: LoadState, name: String, decls: Vec<AstNode>) {
-    push(state.modules, ModuleDecls_new(name, decls))
+fn LoadState_add_module(state: LoadState, name: String, decls: Vec<AstNode>, source_hash: i32) {
+    push(state.modules, ModuleDecls_new(name, decls, source_hash))
 }
 
 fn ModuleDecls_decl_count(module: ModuleDecls) -> i32 {
@@ -23,6 +24,14 @@ fn ModuleDecls_decl_count(module: ModuleDecls) -> i32 {
 
 fn ModuleDecls_decl_at(module: ModuleDecls, index: i32) -> AstNode {
     get_unchecked(module.decls, index)
+}
+
+pub fn ModuleDecls_source_hash(module: ModuleDecls) -> i32 {
+    module.source_hash
+}
+
+pub fn ModuleDecls_name(module: ModuleDecls) -> String {
+    clone(module.name)
 }
 
 fn LoadState_release_module_asts(state: LoadState) {

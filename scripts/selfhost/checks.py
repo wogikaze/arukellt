@@ -2679,17 +2679,136 @@ def _write_bootstrap_namespace_facades(compiler_out: Path) -> None:
         mod_path.unlink()
 
 
+def _compute_compiler_fingerprint(
+    wasmtime: str,
+    compiler_wasm: Path,
+    root: Path,
+    workspace_root: Path | None = None,
+) -> str | None:
+    """Run compiler with --fingerprint-only to get the program fingerprint.
+
+    Returns the fingerprint string (e.g. "12345") or None on failure.
+    This skips resolve/typecheck/lower/emit, running only frontend + module load.
+    """
+    dirs: list[str] = []
+    if workspace_root is not None:
+        dirs.extend(["--dir", str(workspace_root)])
+    dirs.extend(["--dir", str(root)])
+    cmd = [
+        wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
+        *dirs, str(compiler_wasm), "--",
+        "compile", SELFHOST_SOURCE_REL, "--target", SELFHOST_TARGET,
+        "--fingerprint-only",
+    ]
+    result = _run(cmd, root, timeout=SELFHOST_COMPILE_TIMEOUT)
+    if result.returncode != 0:
+        return None
+    for line in (result.stdout or "").splitlines():
+        if line.startswith("FINGERPRINT:"):
+            return line[len("FINGERPRINT:"):].strip()
+    return None
+
+
+def _s3_cache_dir(root: Path) -> Path:
+    """Return the s3 compilation cache directory."""
+    d = root / ".build" / "selfhost" / "s3-cache"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _try_s3_cache(
+    wasmtime: str,
+    compiler_wasm: Path,
+    out_rel: str,
+    root: Path,
+    workspace_root: Path | None = None,
+) -> bool:
+    """Try to use a cached s3.wasm for the current source fingerprint.
+
+    Returns True if cache hit (output file written), False on miss.
+    """
+    fp = _compute_compiler_fingerprint(wasmtime, compiler_wasm, root, workspace_root)
+    if fp is None:
+        return False
+    cache_dir = _s3_cache_dir(root)
+    # Include compiler wasm hash in cache key for correctness
+    compiler_hash = _sha256(compiler_wasm)[:16]
+    cache_file = cache_dir / f"{compiler_hash}_{fp}.wasm"
+    if not cache_file.is_file():
+        return False
+    final = root / out_rel
+    final.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(cache_file, final)
+    return True
+
+
+def _store_s3_cache(
+    compiler_wasm: Path,
+    out_rel: str,
+    root: Path,
+    workspace_root: Path | None = None,
+) -> None:
+    """Store the compiled s3.wasm in the cache, keyed by compiler hash + fingerprint.
+
+    This runs AFTER successful compilation.  We compute the fingerprint again
+    (which is fast since it's the same source) and store the output.
+    """
+    wasmtime = _find_wasmtime()
+    fp = _compute_compiler_fingerprint(wasmtime, compiler_wasm, root, workspace_root)
+    if fp is None:
+        return
+    cache_dir = _s3_cache_dir(root)
+    compiler_hash = _sha256(compiler_wasm)[:16]
+    cache_file = cache_dir / f"{compiler_hash}_{fp}.wasm"
+    final = root / out_rel
+    if final.is_file():
+        shutil.copyfile(final, cache_file)
+
+
 def _wasm_compile_selfhost_source(
     wasmtime: str,
     compiler_wasm: Path,
     out_rel: str,
     root: Path,
     timeout: int | None = None,
+    use_s3_cache: bool = False,
 ) -> subprocess.CompletedProcess:
-    """Compile current selfhost source, falling back to a flat bootstrap overlay."""
+    """Compile current selfhost source, falling back to a flat bootstrap overlay.
+
+    When use_s3_cache is True, try the s3 compilation cache first:
+    1. Run compiler with --fingerprint-only (fast, skips backend)
+    2. If cached wasm exists for this fingerprint, copy it and return success
+    3. If cache miss, proceed with full compilation and store result
+    """
     compile_timeout = SELFHOST_COMPILE_TIMEOUT if timeout is None else timeout
-    if _needs_flat_bootstrap_overlay(root):
-        workspace = _prepare_bootstrap_workspace(root)
+    needs_overlay = _needs_flat_bootstrap_overlay(root)
+    workspace = _prepare_bootstrap_workspace(root) if needs_overlay else None
+
+    if use_s3_cache:
+        if _try_s3_cache(wasmtime, compiler_wasm, out_rel, root, workspace):
+            return subprocess.CompletedProcess(
+                [], returncode=0, stdout="", stderr="s3 cache hit",
+            )
+
+    def _do_compile() -> subprocess.CompletedProcess:
+        if needs_overlay:
+            return _wasm_compile(
+                wasmtime,
+                compiler_wasm,
+                SELFHOST_SOURCE_REL,
+                out_rel,
+                root,
+                timeout=compile_timeout,
+                workspace_root=workspace,
+            )
+        result = _wasm_compile(
+            wasmtime, compiler_wasm, SELFHOST_SOURCE_REL, out_rel, root, timeout=compile_timeout,
+        )
+        if result.returncode == 0:
+            return result
+        if not _should_try_flat_overlay(result.stderr or ""):
+            return result
+        ws = _prepare_bootstrap_workspace(root)
         return _wasm_compile(
             wasmtime,
             compiler_wasm,
@@ -2697,25 +2816,13 @@ def _wasm_compile_selfhost_source(
             out_rel,
             root,
             timeout=compile_timeout,
-            workspace_root=workspace,
+            workspace_root=ws,
         )
-    result = _wasm_compile(
-        wasmtime, compiler_wasm, SELFHOST_SOURCE_REL, out_rel, root, timeout=compile_timeout,
-    )
-    if result.returncode == 0:
-        return result
-    if not _should_try_flat_overlay(result.stderr or ""):
-        return result
-    workspace = _prepare_bootstrap_workspace(root)
-    return _wasm_compile(
-        wasmtime,
-        compiler_wasm,
-        SELFHOST_SOURCE_REL,
-        out_rel,
-        root,
-        timeout=compile_timeout,
-        workspace_root=workspace,
-    )
+
+    result = _do_compile()
+    if use_s3_cache and result.returncode == 0:
+        _store_s3_cache(compiler_wasm, out_rel, root, workspace)
+    return result
 
 
 def _compile_selfhost_bootstrap_chain(
@@ -2959,7 +3066,7 @@ def _run_fixpoint_locked(
             )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         try:
-            r = _wasm_compile_selfhost_source(wasmtime, stage3_compiler, s3_rel, root)
+            r = _wasm_compile_selfhost_source(wasmtime, stage3_compiler, s3_rel, root, use_s3_cache=True)
         except BootstrapOverlayError as e:
             emit(f"{RED}✗ bootstrap overlay patch failed during stage 3:{NC}")
             emit(f"  {e}")

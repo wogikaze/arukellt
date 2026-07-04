@@ -11,6 +11,7 @@ use loader::module_state
 use loader::module_package_root
 use loader::registry_config
 use loader::registry_resolve
+use std::core::hash
 struct DriverLocalModuleDecls {
     decls: Vec<AstNode>,
     path: String,
@@ -98,9 +99,10 @@ fn register_local_module_source(module_name: String, canonical_path: String, sou
         return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
     }
     module_state_loading::LoadState_push_loading(state, clone(canonical_path))
+    let src_hash = hash::hash_string(clone(source))
     let mod_decls = module_parse::parse_module_source(source)
     let module_alias = module_names::module_short_name(clone(module_name))
     module_state_loading::LoadState_push_loaded(state, clone(canonical_path))
-    module_state_modules::LoadState_add_module(state, module_alias, mod_decls)
+    module_state_modules::LoadState_add_module(state, module_alias, mod_decls, src_hash)
     DriverLocalModuleDecls_new(mod_decls, canonical_path, true)
 }
