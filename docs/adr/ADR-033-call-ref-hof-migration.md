@@ -23,23 +23,16 @@ callee signature is known at compile time.
 Historical issues (#019, #025, #024) planned a GC-native `call_ref` path; the
 selfhost emitter still uses `call_indirect` for generic HOF dispatch on the
 current T3 path. Issue #069 tracks closing the gap. Issue #722 tracks the
-Phase A emitter audit and Phase C benchmark gate.
+detailed phase plan (emitter audit, nullable refs, benchmark gate).
 
 ## Decision
 
 1. **Baseline (now)**: Keep `call_indirect` for generic closure/HOF dispatch.
    No user-visible regression while migration is incremental.
-2. **Phase A (emitter audit)**: Identify HOF call sites where the callee is a
-   known `ref.func` (direct function values, monomorphic callbacks). Emit
-   `call_ref` only when the type index is statically known and no table slot is
-   required.
-3. **Phase B (nullable refs)**: Use `br_on_null` / `br_on_non_null` for
-   `Option<fn …>` / nullable function-reference guards instead of manual
-   null checks where the GC type system allows.
-4. **Phase C (benchmark gate)**: Adopt `call_ref` as default for audited patterns
-   only after a representative fixture shows ≥5% improvement vs `call_indirect`
-   (issue #069 acceptance benchmark).
-5. **Out of scope here**: `return_call_ref` tail calls (#492), eliminating all
+2. **Phased migration**: Move from `call_indirect` to `call_ref` in phases,
+   gated by benchmark results. The detailed phase plan (emitter audit,
+   nullable refs, benchmark gate) is tracked in **issue #722**.
+3. **Out of scope here**: `return_call_ref` tail calls (#492), eliminating all
    `call_indirect` before v5, Table/Elem removal before escape analysis proves
    table-free coverage.
 

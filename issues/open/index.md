@@ -190,7 +190,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 719 | [719 — `arukellt test` execution harness (ADR-041 Phase 2)](719-test-execution-harness.md) | tooling | none | 715 | none | 0 checked / 0 open | implementation | None | |
 | 720 | [出力ファイル命名規則と native emit 形式の決定](720-output-file-naming-and-native-emit-spec.md) | spec | none | none | none | 0 checked / 4 open | spec | none | |
 | 721 | [Final Types (`sub final`) を全 struct に適用](721-final-types-emit-for-all-structs.md) | wasm-feature | none | none | none | 0 checked / 7 open | implementation-ready | none | |
-| 722 | [Typed Function References (`call_ref`) ベンチマーク計測](722-typed-funcref-call-ref-benchmark.md) | wasm-feature | none | none | none | 0 checked / 7 open | design-ready | none | |
+| 722 | [Typed Function References (`call_ref`) ベンチマーク計測](722-typed-funcref-call-ref-benchmark.md) | wasm-feature | none | none | none | 0 checked / 9 open | design-ready | none | |
 | 723 | [Wasm Exception Handling (`exnref`) 統合の検討](723-exception-handling-exnref-evaluation.md) | language-design | none | none | none | 0 checked / 5 open | design-required | none | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | none | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 699 | [699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md) | native-feature | none | 649, 698 | none | 0 checked / 9 open | design-ready | None | |

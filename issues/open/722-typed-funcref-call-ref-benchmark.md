@@ -23,9 +23,8 @@ wasmtime 46、V8 14.6 でデフォルト有効。
 クロージャ/HOF を実装している（ADR-033 Baseline）。typed function references
 `(ref $func_type)` と `call_ref` 命令は未使用。
 
-本 issue は ADR-033 Phase A（emitter audit）として、静的に型が分かる call site
-で `call_ref` に切り替えた場合の性能改善を**計測**することを目的とする。
-実装移行そのものは計測結果次第で別 issue にする。
+本 issue は ADR-033 の段階的移行計画（Phase A/B/C）をトラッキングする。
+ADR-033 は「段階移行するという決定」のみを記録し、Phase の詳細は本 issue に委譲する。
 
 ## Current state
 
@@ -35,12 +34,18 @@ wasmtime 46、V8 14.6 でデフォルト有効。
 - `src/compiler/wasm/call_indirect.ark:14-22` — `call_indirect` 命令の emit
 - `src/compiler/mir/lower/call_indirect_emit.ark:17-34` — 間接呼び出しの MIR lowering
 
-### ADR-033 の移行計画
+### 移行フェーズ（ADR-033 から委譲）
 
 - **Baseline (now)**: `call_indirect` for all closure/HOF dispatch
-- **Phase A**: 静的に型が分かる call site で `call_ref` を emit
-- **Phase B**: `br_on_null` / `br_on_non_null` for `Option<fn ...>`
-- **Phase C**: ≥5% improvement で `call_ref` を default に
+- **Phase A (emitter audit)**: HOF call site のうち callee が既知の `ref.func`
+  （direct function values, monomorphic callbacks）を特定し、型インデックスが
+  静的に分かって table slot が不要な場合に `call_ref` を emit
+- **Phase B (nullable refs)**: `Option<fn ...>` / nullable function-reference の
+  null チェックを手動比較から `br_on_null` / `br_on_non_null` に切替
+  （GC type system が許す場合）
+- **Phase C (benchmark gate)**: 代表的な fixture で `call_indirect` vs `call_ref`
+  の性能比較を実施し、≥5% improvement で `call_ref` を audited patterns の
+  default に採用（issue #069 acceptance benchmark）
 
 現在は Baseline で止まっている。
 
@@ -76,17 +81,28 @@ HOF / クロージャの call site を以下の3つに分類:
 
 ## Acceptance criteria
 
+### Phase A (emitter audit)
+
 - [ ] HOF / クロージャ call site の分類（A/B/C）が完了する
 - [ ] 分類 A（静的直接）の call site 数が把握できる
 - [ ] `call_ref` を emit するプロトタイプ（実験ブランチ）が作成される
+
+### Phase B (nullable refs)
+
+- [ ] `Option<fn ...>` / nullable function-reference の null チェック箇所を特定
+- [ ] `br_on_null` / `br_on_non_null` への切替可否を評価
+
+### Phase C (benchmark gate)
+
 - [ ] ベンチマークで `call_indirect` vs `call_ref` の性能比較が完了する
 - [ ] バイナリサイズの変化が計測される
-- [ ] ADR-033 Phase C の判断基準（≥5% improvement）に対する評価が記録される
+- [ ] ≥5% improvement の判断基準に対する評価が記録される
 - [ ] 計測結果に基づき、Phase A 移行を進めるか/見送るかの推奨が記載される
 
 ## Note
 
-- 本 issue は**計測・評価**が目的。本格的な emitter 変更は計測結果次第で別 issue にする
+- 本 issue は ADR-033 から委譲された Phase A/B/C の**計測・評価**が目的。
+  本格的な emitter 変更は計測結果次第で別 issue にする。
 - `call_ref` に移行しても `call_indirect` は完全には削除できない（分類 C のため）
 - table section は分類 C が残る限り必要だが、サイズは削減される可能性がある
 
