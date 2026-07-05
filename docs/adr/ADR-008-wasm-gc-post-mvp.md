@@ -1,37 +1,47 @@
 # ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価
 
 ステータス: **SURVEY** (v4 では実装しない; v5 設計判断の参考資料)
+**2026-07 改訂**: Wasm 3.0 リリースに伴い、6 提案中 3 つが本仕様に統合済み。
 
-決定日: 2026-04-15
+決定日: 2026-04-15（2026-07-15 改訂）
 
 ---
 
 ## 文脈
 
-WebAssembly GC MVP (Phase 4) は 2023 年末に主要ランタイムへ統合され、
-Arukellt v4 の主ターゲット T2/T3 はこれを前提としている (ADR-002, ADR-007)。
+WebAssembly GC は Phase 5 に到達し、Wasm 3.0 (2026-05-27 候補勧告) の一部として
+標準化された。主要ランタイム（wasmtime 46、V8 14.6 / Chrome 146 / Node.js 26）
+は全て GC をデフォルト有効でサポートする。
 
-WebAssembly CG は現在、GC MVP を超える複数の "Post-MVP" 拡張提案を進めている。
-これらは v4 のロードマップには含まれないが、v5 以降の言語設計判断
-(型システム拡張・ランタイム統合・メモリ効率改善) に直接影響する。
+本 ADR は 2026-04 時点で 6 つの "Post-MVP" 提案を調査したが、その後:
+- **3 つ（Final Types, Typed Function References, Exception Handling）は Wasm 3.0 に統合**され Phase 5 shipped
+- **3 つ（Static Fields, Weak References, Type Parameters）は Phase 0** のままで、
+  個別の proposal リポジトリすら存在しない（`gc/Post-MVP.md` のアイデアリストに掲載のみ）
 
 本 ADR は各提案の現状・Arukellt としての活用可能性・実装コスト推定を記録し、
-v5 設計フェーズへの入力とする。**実装决定ではない。**
+v5 設計フェーズへの入力とする。**実装決定ではない。**
 
-参照仕様: `docs/spec/spec-3.0.0/proposals/gc/Post-MVP.md` (upstream draft)
+参照仕様:
+- `docs/spec/spec-3.0.0/proposals/gc/Post-MVP.md` (upstream draft)
+- [WebAssembly 3.0 Change History](https://webassembly.github.io/spec/core/appendix/changes.html)
+- [webassembly.org/features/](https://webassembly.org/features/)
 
 ---
 
-## 調査対象の Post-MVP 提案一覧
+## 調査対象の Post-MVP 提案一覧（2026-07 改訂）
 
-| # | 提案 | W3C/CG ステータス | 優先度 (v5 視点) |
-|---|------|-------------------|-----------------|
-| 1 | Static Fields | Phase 1 | 高 |
-| 2 | Weak References & Finalization | Phase 1 | 高 |
-| 3 | Type Parameters (Generics) | Phase 1 | 中 |
-| 4 | Final Types | Phase 1 | 中 |
-| 5 | Typed Function References 改善 | Phase 3+ (v1.0) | 低 (既存機能の整備) |
-| 6 | WasmGC × Exception Handling 統合 | Phase 2 | 中 |
+| # | 提案 | W3C/CG ステータス (2026-07) | wasmtime 46 | V8 14.6 | 優先度 (v5 視点) |
+|---|------|-----------------------------|:-----------:|:-------:|-----------------|
+| 1 | Static Fields | **Phase 0** (提案なし、Post-MVP.md に項目のみ) | ❌ | ❌ | 高 |
+| 2 | Weak References & Finalization | **Phase 0** (同上) | ❌ | ❌ | 高 |
+| 3 | Type Parameters (Generics) | **Phase 0** (同上) | ❌ | ❌ | 中 |
+| 4 | Final Types | **Phase 5 shipped** — GC MVP に `sub final` として含まれる | ✅ デフォルト | ✅ 常時ON | 中 |
+| 5 | Typed Function References | **Phase 5 shipped** — `typedFunctionReferences` として Wasm 3.0 に統合 | ✅ デフォルト | ✅ 常時ON | 低 |
+| 6 | WasmGC × Exception Handling 統合 | **Phase 5 shipped** — `exnref` (`exceptionsFinal`) として Wasm 3.0 に統合 | ✅ デフォルト | ✅ 常時ON | 低〜中 |
+
+> **訂正メモ (2026-07)**: 初版（2026-04）では #4 を Phase 1、#5 を Phase 3+、#6 を Phase 2 と記載していたが、
+> これらは全て Wasm 3.0 標準化プロセスで Phase 5 に到達し、shipped 済み。
+> #1-#3 は「Phase 1」と記載していたが、実際は個別 proposal が存在せず Phase 0 だった。
 
 ---
 
@@ -110,8 +120,9 @@ WasmGC emit: struct.get_s <typeidx> <fieldidx>
 | stdlib 更新 | 中 (既存 workaround の置換) |
 | **合計** | **1–2 週間** |
 
-**ブロッカー**: ランタイム (wasmtime) が `struct.get_s` / `struct.set_s` を実装するまで
-T3 では使用できない。現時点 (2026-04) では Phase 1 のため数年先の見込み。
+**ブロッカー**: **Phase 0**（2026-07 確認）。個別の proposal リポジトリは存在せず、
+`gc/Post-MVP.md` のアイデアリストに掲載されているのみ。仕様策定すら始まっていないため、
+実装には数年以上の見込み。初版で「Phase 1」と記載していたのは誤り。
 
 ---
 
@@ -188,8 +199,11 @@ trait Finalizable {
 | stdlib `std::gc` モジュール実装 | 中 (3 日) |
 | **合計** | **3–4 週間** |
 
-**ブロッカー**: `weakref<t>` 型は WasmGC MVP に含まれない。
-Phase 1 提案であり、標準化は 2027 年以降の見込み。
+**ブロッカー**: **Phase 0**（2026-07 確認）。個別の proposal リポジトリは存在せず、
+`gc/Post-MVP.md` のアイデアリストに掲載されているのみ。
+`Post-MVP.md` では「what a sufficiently simple and efficient set of primitives for
+weak references and finalisation could be. This requires more investigation」とされており、
+設計方針すら固まっていない。初版で「Phase 1」「2027 年以降」と記載していたのは誤り。
 T1 (linear memory) には適用不可。
 
 ---
@@ -231,9 +245,11 @@ ADR-003 (Generics Strategy) を更新対象として記録しておく。
 | stdlib `Vec<T>` 等の移行 | 大 (1 週間) |
 | **合計** | **6–9 週間** |
 
-**ブロッカー**: Phase 1 の中でも最も設計議論が多い提案。
-実装は 2028 年以降が現実的。v5 では「調査・設計のみ」とし、
-ADR-003 の将来検討項目として管理する。
+**ブロッカー**: **Phase 0**（2026-07 確認）。個別の proposal リポジトリは存在せず、
+`gc/Post-MVP.md` のアイデアリストに掲載されているのみ。
+Post-MVP の中でも最も設計議論が多いとされ、実現には最も時間がかかると見込まれる。
+初版で「Phase 1」「2028 年以降」と記載していたのは誤り。
+v5 では「調査・設計のみ」とし、ADR-003 の将来検討項目として管理する。
 
 ---
 
@@ -277,9 +293,11 @@ subtyping (サブ型付け) を禁止する。
 | stdlib の `final` 候補の特定・適用 | 中 (3 日) |
 | **合計** | **4–6 日** |
 
-**特記**: Phase 3+ で標準化が進んでいる。wasmtime は
-`(sub final ...)` を既にサポートしている箇所があり、
-早期に部分適用できる可能性がある (v4 後半の軽微改善候補)。
+**特記 (2026-07 改訂)**: **Phase 5 shipped**。`sub final` 構文は GC MVP 仕様に含まれ、
+Wasm 3.0 の一部として標準化済み。wasmtime 46、V8 14.6 (Chrome 146 / Node.js 26) で
+デフォルト有効。Post-MVP ではなく MVP 機能。
+初版で「Phase 3+」「早期適用候補」と記載していたが、既に全ランタイムで利用可能。
+Arukellt は任何時に emitter で `(sub final ...)` を出力するよう対応できる。
 
 ---
 
@@ -301,6 +319,10 @@ typed funcref の精度が上がるとキャストコストが削減される。
 ### 実装コスト推定
 
 既存の funcref 使用箇所のみ整理。**小 (2–3 日)**。
+
+**特記 (2026-07 改訂)**: **Phase 5 shipped**。`typedFunctionReferences` として
+Wasm 3.0 に統合済み。wasmtime 46、V8 14.6 でデフォルト有効。
+初版で「Phase 3+ (v1.0)」と記載していたが、既に標準化完了。
 
 ---
 
@@ -339,38 +361,50 @@ GC integration により:
 | `std::ffi::Exception` wrapperの設計 | 大 (2 週間) |
 | **合計** | **3–4 週間** |
 
----
-
-## まとめ表
-
-| 提案 | 活用可能性 | 実装コスト | v5 優先度 | 早期適用可能か |
-|------|-----------|-----------|-----------|----------------|
-| Static Fields | 高 | 低〜中 | 高 | Phase 1完了後 |
-| Weak References | 中〜高 | 中〜大 | 高 | 2027 年以降 |
-| Type Parameters | 中 | 大 | 中 | 2028 年以降 |
-| Final Types | 中 | 低 | 中 | 部分的に今すぐ |
-| Typed FuncRef 改善 | 低〜中 | 低 | 低 | 順次適用 |
-| Exceptions 統合 | 中 | 中〜大 | 低〜中 | 相互運用時のみ |
+**特記 (2026-07 改訂)**: **Phase 5 shipped**。`exnref` (`exceptionsFinal`) として
+Wasm 3.0 に統合済み。wasmtime 46 でデフォルト有効、V8 14.6 でも `FOREACH_WASM_NON_FLAG_FEATURE`
+に `exnref` が含まれ常時ON。初版で「Phase 2」と記載していたが、既に標準化完了。
+Arukellt が `throw` / `catch` を採用するかは別問題（`Result<T, E>` モデルとの整合判断が必要）。
 
 ---
 
-## v5 設計への推奨事項
+## まとめ表（2026-07 改訂）
 
-1. **Static fields** を v5 の最優先 WasmGC 拡張として位置付ける。
-   現在のグローバル変数 workaround を置換できる唯一の直接代替手段。
+| 提案 | Phase | 活用可能性 | 実装コスト | v5 優先度 | 早期適用可能か |
+|------|-------|-----------|-----------|-----------|----------------|
+| Static Fields | 0 | 高 | 低〜中 | 高 | ❌ Phase 0、仕様策定未始動 |
+| Weak References | 0 | 中〜高 | 中〜大 | 高 | ❌ Phase 0、設計方針未固着 |
+| Type Parameters | 0 | 中 | 大 | 中 | ❌ Phase 0、最も時間かかる |
+| **Final Types** | **5 shipped** | 中 | 低 | 中 | ✅ **今すぐ可能**（全ランタイム対応） |
+| **Typed FuncRef** | **5 shipped** | 低〜中 | 低 | 低 | ✅ **今すぐ可能** |
+| **Exceptions (exnref)** | **5 shipped** | 中 | 中〜大 | 低〜中 | ✅ **今すぐ可能**（採用判断は別） |
 
-2. **Final types** は wasmtime 対応次第で v4 後半 (マイナーリリース) に
-   emitter 側のみ先行対応できる。型チェックロジックは最小変更で済む。
+---
 
-3. **Weak references** は `std::gc` モジュールとして v5 初期リリースに含める。
-   ただし `Finalizable` trait は `unsafe` 境界に隔離し、決定論的コードへの
-   漏れを防ぐ設計とする。
+## v5 設計への推奨事項（2026-07 改訂）
+
+1. **Final types** は既に Wasm 3.0 で shipped 済み。wasmtime 46 / V8 14.6 で
+   デフォルト有効のため、任何時に emitter で `(sub final ...)` を出力するよう
+   対応できる。型チェックロジックは最小変更（4-6 日）で、v4 後半または v5 初期に
+   適用すべき。**最優先で対応可能な項目**。
+
+2. **Static fields** は v5 の最優先 WasmGC 拡張として位置付けるのは変わりないが、
+   Phase 0 のため実現時期は不透明。現在のグローバル変数 workaround を維持しつつ、
+   仕様動向を監視する。
+
+3. **Weak references** も Phase 0。`std::gc` モジュール構想は維持するが、
+   仕様策定の目処が立つまで実装計画は据え置き。
 
 4. **Type parameters** は ADR-003 (Generics Strategy) を revisit する際に
-   再評価する。現在のモノモーフ戦略との整合コストが高いため、v5 後半以降。
+   再評価する。Phase 0 のため、v5 後半以降でも早すぎる可能性がある。
 
-5. **Exception handling 統合** は JS 相互運用 (T2) のユースケースが
-   具体化した時点で設計を開始する。それまでは `Result<T, E>` を維持。
+5. **Exception handling 統合** は `exnref` として Wasm 3.0 で shipped 済み。
+   ただし Arukellt の `Result<T, E>` 値渡しモデルは設計に合致しており、
+   移行動機に乏しい。JS 相互運用のユースケースが具体化した時点で設計を開始する。
+   それまでは `Result<T, E>` を維持。
+
+6. **Typed Function References** は Wasm 3.0 で shipped 済み。
+   既存の funcref 使用箇所の整理は低優先で、必要に応じて順次適用する。
 
 ---
 
