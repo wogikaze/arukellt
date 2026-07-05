@@ -39,7 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 DOCS = ROOT / "docs"
 DATA = DOCS / "data"
 PROJECT_STATE = DATA / "project-state.toml"
-TARGET_CONTRACT = DOCS / "target-contract.md"
+TARGET_CONTRACT = DOCS / "adr" / "ADR-007-targets.md"
 SECTIONS_FILE = DATA / "sections.toml"
 STDLIB_MANIFEST = ROOT / "std" / "manifest.toml"
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
@@ -727,7 +727,7 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
     "std::host::http": [
         "Host HTTP client helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
-        "`docs/capability-surface.md` and issues #446 / #077.",
+        "[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #446 / #077.",
         "",
         "When implemented, only plaintext HTTP/1.1 over TCP is in scope;",
         "**HTTPS is not supported**.",
@@ -735,14 +735,14 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
     "std::host::sockets": [
         "Host TCP socket helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
-        "`docs/capability-surface.md` and issues #447 / #139.",
+        "[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #447 / #139.",
         "",
         "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
     ],
     "std::host::udp": [
         "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
-        "`docs/capability-surface.md` and issues #447 / #139.",
+        "[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #447 / #139.",
         "",
         "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
     ],
@@ -1194,7 +1194,7 @@ def load_target_contract_summary() -> list[dict[str, str]]:
     end = "<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->"
     match = re.search(re.escape(start) + r"\n(.*?)\n" + re.escape(end), text, re.DOTALL)
     if not match:
-        raise ValueError("missing current-state target summary source block in docs/target-contract.md")
+        raise ValueError("missing current-state target summary source block in docs/adr/ADR-007-targets.md")
 
     lines = [line.strip() for line in match.group(1).splitlines() if line.strip()]
     if len(lines) < 2:
@@ -2464,7 +2464,7 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
     if _availability_unbacked(funcs):
         return (
             "⚠ **Not user-reachable** on the current selfhost compile/run path. "
-            "See [capability-surface.md](../../capability-surface.md) and issues "
+            "See [ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues "
             "#446 / #447 / #077 / #139."
         )
     if _availability_t3_only(funcs):
