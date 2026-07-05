@@ -1,4 +1,4 @@
-# ADR-006: 公開 ABI の上限
+# ADR-006: 公開 ABI を 3 層に固定
 
 ステータス: **DECIDED** — 公開ABIは3層まで（内部・WASM・native）
 

@@ -19,7 +19,7 @@
 | [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Archive | ステータス: DEFERRED — 評価保留（trigger待ち） |
 | [ADR-004-trait-strategy.md](ADR-004-trait-strategy.md) | ADR-004: trait を v0 に入れるか | Archive | ステータス: DECIDED — v0ではtraitなし（静的ディスパッチのみ）を採用 |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | Archive | ステータス: DECIDED — LLVM IRバックエンドはWasm意味論に従属 |
-| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | Archive | ステータス: DECIDED — 公開ABIは3層まで（内部・WASM・native） |
+| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | Archive | ステータス: DECIDED — 公開ABIは3層まで（内部・WASM・native） |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | Archive | ステータス: DECIDED — ターゲットを3系統に確定（wasm32 / wasm32-gc / native） |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Archive | ステータス: DECIDED — v2ではwasm-tools component newを外部subprocessとして使用 |
 | [ADR-008-wasm-gc-post-mvp.md](ADR-008-wasm-gc-post-mvp.md) | ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価 | Archive | ステータス: SURVEY (v4 では実装しない; v5 設計判断の参考資料) |
