@@ -4686,7 +4686,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         ),
         (
             "Platform specification OK",
-            "test -f docs/platform/wasm-features.md && test -f docs/platform/abi.md "
+            "test -f docs/adr/ADR-007-targets.md && test -f docs/platform/abi.md "
             "&& test -f docs/platform/wasi-resource-model.md",
         ),
         (
