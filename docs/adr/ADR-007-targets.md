@@ -160,6 +160,46 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 
 ---
 
+## 未対応機能を使おうとした際の挙動
+
+ターゲットが対応していない機能をユーザーが使おうとした場合の挙動:
+
+### `wasm32` — WASI P2以降・未対応Wasm機能
+
+- **WASI P2以降の機能**（`environ_get`、HTTP、sockets 等）を使用しようとした場合:
+  **コンパイルエラー**。
+- **Wasm GC、Component Model、relaxed SIMD 等の未対応Wasm機能**を使用しようとした場合:
+  **コンパイルエラー**。
+  ただし、ほとんどの場合 **線形メモリへのフォールバック** を用意する。
+  フォールバックが存在する機能についてはエラーではなくフォールバックコードを生成する。
+  フォールバックが存在しない機能のみコンパイルエラーとする。
+
+### `wasm32-gc` — WASI P1
+
+- **WASI P1 の機能**を使用しようとした場合:
+  **コンパイルエラー**。
+  `wasm32-gc` は WASI P2/P3 を前提としており、P1 向けのコード生成は行わない。
+
+### `native-cpp` / `native-llvm`
+
+- 別途 ADR で決定する。
+
+---
+
+## 出力ファイル
+
+出力ファイル名は入力ファイル名を元に `<input>.*` の形式で生成する（仮置き）。
+
+| ターゲット | 出力 | 備考 |
+|-----------|------|------|
+| `wasm32` | `<input>.wasm`, `<input>.wat` | |
+| `wasm32-gc` | `<input>.wasm`, `<input>.wat`, `<input>.wit`, `<input>.component.wasm`, `<input>.core.wasm`, `<input>.world.wit` | Component化・jco transpile は別途実行 |
+| `native-cpp` / `native-llvm` | 別途ADRで決定 | |
+
+> **注意**: `<input>.*` の命名規則は仮置きである。最終的な命名規則は別途 issue で決定する。
+
+---
+
 ## Emit surface
 
 ターゲットごとの出力形式:

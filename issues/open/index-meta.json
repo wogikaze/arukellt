@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-04T22:45:02Z",
+  "generated_at": "2026-07-05T09:05:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -788,6 +788,28 @@
       "orchestration": {
         "class": "implementation",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "720",
+      "path": "720-output-file-naming-and-native-emit-spec.md",
+      "title": "出力ファイル命名規則と native emit 形式の決定",
+      "track": "spec",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "spec",
+        "upstream_notes": "none"
       }
     },
     {

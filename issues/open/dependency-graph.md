@@ -37,6 +37,7 @@ graph LR
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
   I718["718 718 — Stdlib free-function → method/trait migration inventory"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
+  I720["720 出力ファイル命名規則と native emit 形式の決定"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
@@ -123,6 +124,7 @@ graph LR
 - **714** depends on: 074, 510; blocks: 668
 - **718** depends on: 700, 701; blocks: none
 - **719** depends on: 715; blocks: none
+- **720** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
