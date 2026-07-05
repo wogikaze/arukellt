@@ -1683,18 +1683,17 @@ def render_language_readme(
         for entry in entries:
             lines.append(f"| [{entry.rel_path}]({entry.rel_path}) | {escape_table(entry.title)} | {entry.summary} |")
 
-    # Anchor & Permalink Policy (ADR-019)
+    # Link-Check Coverage Policy (ADR-019)
     lines.extend([
         "",
-        "## Anchor & Permalink Policy (ADR-019)",
+        "## Link-Check Coverage Policy (ADR-019)",
         "",
-        "Heading anchors, redirect policy for doc reorganization, and link-check coverage are governed",
-        "by [ADR-019](../adr/ADR-019-anchor-permalink-policy.md). Key rules:",
+        "Link-check coverage for docs is governed by",
+        "[ADR-019](../adr/ADR-019-anchor-permalink-policy.md). Key rules:",
         "",
-        "- S1 headings (`##`) in normative docs MUST NOT be renamed after merge without a redirect alias.",
-        "- Use `<a id=\"stable-id\"></a>` before headings that are externally linked.",
-        "- When a document is moved, add a Docsify alias to `docs/index.html`.",
-        "- `scripts/check-links.sh` is the v1 canonical link-checker (file references only; anchor fragments are v2).",
+        "- `scripts/check/check-links.sh` validates internal file references (`path/to/file.md`).",
+        "- `scripts/check/check-anchor-fragments.py` validates anchor fragments (`file.md#section-id`, `#section-id`) and runs in `verify quick`.",
+        "- External URLs (`https://...`) are out of scope.",
     ])
 
     # Link to the generated maturity matrix

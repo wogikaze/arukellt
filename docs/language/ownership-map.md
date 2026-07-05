@@ -98,12 +98,12 @@ or published. Items marked **CI** are automated in `check-docs-consistency.py` o
 | 2.1 | Stable spec features covered in guide.md | **CI** | `check_spec_guide_sync` |
 | 2.2 | Per-subsection feature drift within tolerance | **CI** | `check_spec_guide_feature_drift` |
 
-### Gate 3 — Anchor & Permalink Integrity
+### Gate 3 — Link Integrity
 
 | # | Check | Type | Command / Function |
 |---|-------|------|--------------------|
-| 3.1 | No S1 headings renamed without redirect alias (ADR-019) | **Manual** | Review diff for `##` heading changes in normative docs |
-| 3.2 | Internal file links resolve | **CI** | `scripts/check/check-links.sh` (file references; anchor fragments are v2) |
+| 3.1 | Internal file links resolve | **CI** | `scripts/check/check-links.sh` (file references) |
+| 3.2 | Anchor fragments resolve | **CI** | `scripts/check/check-anchor-fragments.py` (`path.md#anchor`, `#anchor`) |
 
 ### Gate 4 — Classification Consistency
 
@@ -153,11 +153,11 @@ bash scripts/manager.py --full        # All checks including heavy ones
 |-------|------------------|---------------|-------|
 | Generated files (`README.md`, `maturity-matrix.md`) | 2 CI checks | — | Fully covered by `generate-docs.py --check` and `check_maturity_matrix_freshness` |
 | Spec ↔ Guide sync | 2 CI checks | — | `check_spec_guide_sync` (top-level) + `check_spec_guide_feature_drift` (subsection) |
-| Anchor/link integrity | 1 CI check (`check-links.sh`) | 1 manual (ADR-019 heading renames) | Anchor fragment checking is v2 |
+| Link integrity | 2 CI checks (`check-links.sh` + `check-anchor-fragments.py`) | — | Both file references and anchor fragments covered |
 | Curated normative docs (`spec.md`, `syntax.md`, `type-system.md`, `error-handling.md`, `memory-model.md`) | — | 5 manual review items | No automated content-accuracy checks beyond spec↔guide sync |
 | Curated explanatory docs (`guide.md`) | — | 1 manual review item | Covered indirectly by spec↔guide sync CI |
 | Transitional docs (`syntax-v1-preview.md`) | — | 2 manual review items | Checked each release for retirement readiness |
-| **Total** | **5 automated** | **9 manual** | |
+| **Total** | **6 automated** | **8 manual** | |
 
 ---
 
@@ -190,18 +190,7 @@ could remain listed as "planned" indefinitely after implementation.
 A future `check_transitional_staleness` function could cross-reference
 `syntax-v1-preview.md` items against spec.md sections.
 
-### Gap 3 — Anchor fragment link checking deferred to v2
-
-**Files affected:** All documents with cross-document `#anchor` links
-
-**Description:** `scripts/check/check-links.sh` validates file-level references but does
-not check that `#heading-anchor` fragments resolve to actual headings in target
-documents. Broken anchor links are invisible to CI.
-
-**Mitigation:** ADR-019 documents this as a v2 check. Until then, heading renames
-in normative docs require manual review (Gate 3.1).
-
-### Gap 4 — Classification banner presence not enforced by CI
+### Gap 3 — Classification banner presence not enforced by CI
 
 **Files affected:** All normative and explanatory documents
 
