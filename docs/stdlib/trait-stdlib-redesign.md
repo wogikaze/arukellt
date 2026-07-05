@@ -57,7 +57,7 @@
 > **設計メモ (PartialOrd)**: Rust では `PartialOrd: PartialEq` で `Ord: Eq + PartialOrd`
 > だが、Arukellt では `Eq` が既存 trait であり `PartialEq` を新設するコストに見合わない。
 > 単純化のため `Ord: Eq` とし、`PartialOrd: Ord` で部分比較可能型 (f64) を表現する。
-> これは Rust とは逆の階層だが、LLM フレンドリ性 (ADR-004) を優先した結果。
+> これは Rust とは逆の階層だが、LLM フレンドリ性を優先した結果。
 
 ### 1.3 組み込み impl マトリクス
 
@@ -463,7 +463,6 @@ python3 scripts/check/check-docs-consistency.py
 ## 8. 参照
 
 - [ADR-036: Trait-based Stdlib Redesign Strategy](../adr/ADR-036-trait-stdlib-redesign.md)
-- [ADR-004: trait を v0 に入れるか](../adr/ADR-004-trait-strategy.md)
 - [ADR-016: Breaking Change Process](../adr/ADR-016-breaking-change-process.md)
 - [ADR-014: Stability Labels](../adr/ADR-014-stability-labels.md)
 - [Stdlib Expansion Policy](expansion-policy.md)

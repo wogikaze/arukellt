@@ -23,7 +23,7 @@ wasmtime 46、V8 14.6 (Chrome 146 / Node.js 26) でデフォルト有効。
 （`ctx_gc_enum_sig.ark:77,81` の `SubF` プレフィックス）。通常の struct は
 `Sub0_`（open subtype）または `GS_f`（plain struct）で、final になっていない。
 
-Arukellt にはユーザー向けの継承機能がない（ADR-004: v0 は trait なし）ため、
+Arukellt にはユーザー向けの継承機能がないため、
 大半の struct はサブタイプされることがない。これらに `(sub final ...)` を適用することで:
 
 1. JIT コンパイラのデバタイラライズ（devirtualization）が促進される
@@ -103,5 +103,4 @@ ADR-008 に基づく推定:
 
 - ADR-008: WasmGC Post-MVP 拡張機能（#4 Final Types）
 - ADR-002: Memory Model (Wasm GC 採用)
-- ADR-004: trait を v0 に入れるか（v0 は trait なし → 継承なし → final 可能）
 - ADR-007: コンパイルターゲット整理（wasm32-gc）

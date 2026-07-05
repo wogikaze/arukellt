@@ -17,7 +17,6 @@
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | Archive | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | Archive | ステータス: DECIDED — 制限付きMonomorphization（型ごとのコード生成）を採用 |
 | [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Archive | ステータス: DEFERRED — 評価保留（trigger待ち） |
-| [ADR-004-trait-strategy.md](ADR-004-trait-strategy.md) | ADR-004: trait を v0 に入れるか | Archive | ステータス: DECIDED — v0ではtraitなし（静的ディスパッチのみ）を採用 |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | Archive | ステータス: DECIDED — LLVM IRバックエンドはWasm意味論に従属 |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | Archive | ステータス: DECIDED — 公開ABIは3層まで（内部・WASM・native） |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | Archive | ステータス: DECIDED — ターゲットを3系統に確定（wasm32 / wasm32-gc / native） |

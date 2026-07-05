@@ -342,7 +342,7 @@ impl Display for Point {
 
 - Traits are **not** available in v0; they are a v1 feature.
 - Static dispatch only (no `dyn`).
-- Built-in traits planned: `Display`, `Eq`, `Hash`, `Into`/`From` (ADR-004).
+- Built-in traits planned: `Display`, `Eq`, `Hash`, `Into`/`From`.
 - Operator overloading via magic method names: `__add`, `__sub`, `__mul`,
   `__div`, `__rem`, `__eq`, `__cmp`. Methods are mangled as
   `StructName__methodname`.
@@ -1614,7 +1614,6 @@ Per ADR-007, Arukellt supports five compilation targets:
 |-----|----------|
 | ADR-002 | Wasm GC adopted as primary memory model |
 | ADR-003 | Limited monomorphisation for generics |
-| ADR-004 | Traits deferred to v1; static dispatch only |
 | ADR-005 | LLVM backend subordinate to Wasm semantics |
 | ADR-006 | 3-layer public ABI (internal / Wasm / native C) |
 | ADR-007 | Five compilation targets (T1–T5) |

@@ -247,7 +247,6 @@ Re-open (change status from `DEFERRED` to `IN REVIEW`) only when:
 
 ### 7.5 References
 
-- `docs/adr/ADR-004-trait-strategy.md` — original trait deferral
 - `docs/process/roadmap-v4.md` §6 item 9, §12 item 1 — mandate for this evaluation
 - `docs/language/spec.md` §2.8, §3.6 — trait/method syntax spec
 - `std/prelude.ark` — current function-centric stdlib

@@ -157,7 +157,6 @@ v0 完成の条件:
 
 - ADR-002: メモリモデル（Wasm GC）
 - ADR-003: ジェネリクス戦略
-- ADR-004: trait 戦略（v0 では trait なし）
 - `docs/stdlib/README.md`: 標準ライブラリ追加順序
 
 ---

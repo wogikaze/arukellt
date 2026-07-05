@@ -4675,7 +4675,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "All required ADRs decided",
             "for f in docs/adr/ADR-002-memory-model.md docs/adr/ADR-003-generics-strategy.md "
-            "docs/adr/ADR-004-trait-strategy.md docs/adr/ADR-005-llvm-scope.md "
+            "docs/adr/ADR-005-llvm-scope.md "
             "docs/adr/ADR-006-abi-policy.md; do "
             'test -f "$f" || exit 1; grep -q \'DECIDED\\|決定\' "$f" || exit 1; done',
         ),

@@ -68,7 +68,7 @@ trait IndexMut<Idx, Output> {
 
 `a[i] = v` は `IndexMut::index_set(a, i, v)` に脱糖する。
 
-**v0 の制約**: ADR-004 により v0 は generic trait（型パラメータ付き trait）を
+**v0 の制約**: v0 は generic trait（型パラメータ付き trait）を
 サポートしないため、v0 の `std::core::ops` では以下の**モノモーフィック**署名を
 提供する:
 
@@ -143,7 +143,7 @@ v0 では以下の trait 定義 + スカラー impl を提供する:
 却下理由:
 - ADR-036 D1 と矛盾（静的ディスパッチがデフォルト）
 - スカラー演算のフォールバックが複雑になる
-- LLM フレンドリ方針（ADR-004）に反する
+- LLM フレンドリ方針に反する
 
 ## 結果
 
@@ -158,7 +158,6 @@ v0 では以下の trait 定義 + スカラー impl を提供する:
 ## 参照
 
 - ADR-036: Trait-based Stdlib Redesign Strategy（D1 静的ディスパッチ）
-- ADR-004: trait を v0 に入れるか（選択肢 A → 688 で trait dispatch 解禁）
 - Issue #688: Trait method dispatch inside generic functions
 - Issue #689: Operator overload trait surface
 - Rust `std::ops`: <https://doc.rust-lang.org/std/ops/index.html>

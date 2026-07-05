@@ -147,5 +147,4 @@ let y = identity[String]("hi") // 明示指定
 ## 関連
 
 - ADR-002: メモリモデル（Wasm GC 採用）
-- ADR-004: trait 戦略（bounds 導入時期）
 - `docs/language/type-system.md`: 型システム詳細

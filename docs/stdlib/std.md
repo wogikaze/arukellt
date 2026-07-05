@@ -652,7 +652,7 @@ pub fn print_wit(world: World) -> String
 
 ## 付録 C. 参考資料
 
-外部調査は原則として公式ドキュメントを参照した。Arukellt 側の現状認識には、同梱された v3-review パッケージの `current-state.md`, `roadmap-v3.md`, `ADR-002`, `ADR-003`, `ADR-004`, `std/manifest.toml`, `std/prelude.ark`, `docs-stdlib/*` を用いた。
+外部調査は原則として公式ドキュメントを参照した。Arukellt 側の現状認識には、同梱された v3-review パッケージの `current-state.md`, `roadmap-v3.md`, `ADR-002`, `ADR-003`, `std/manifest.toml`, `std/prelude.ark`, `docs-stdlib/*` を用いた。
 
 - Python Standard Library: <https://docs.python.org/3/library/index.html>
 - Python collections: <https://docs.python.org/3/library/collections.html>
