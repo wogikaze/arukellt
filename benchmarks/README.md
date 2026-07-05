@@ -255,10 +255,13 @@ drive regression triage.  See the full tag reference in that file.
 | Benchmark | File | Description | Primary tags |
 |-----------|------|-------------|--------------|
 | fib | `fib.ark` | Iterative Fibonacci(35) | `cpu-bound`, `loop`, `scalar` |
+| hello | `hello.ark` | Hello world baseline (ADR-002 fixture) | `io-bound`, `startup` |
 | binary_tree | `binary_tree.ark` | Recursive node counting (depth 20) | `recursion-heavy`, `call-heavy` |
 | vec_ops | `vec_ops.ark` | Vec push/sum/contains (1k elements) | `allocation-heavy`, `container`, `iteration` |
 | string_concat | `string_concat.ark` | String concat in loop (100 iterations) | `string-heavy`, `allocation-heavy`, `gc-pressure` |
 | vec_push_pop | `vec_push_pop.ark` | 100K Vec push then 100K pop | `allocation-heavy`, `container`, `throughput` |
+| result_heavy | `result_heavy.ark` | Result/Option matching (50k iterations, ADR-002 fixture) | `cpu-bound`, `error-heavy`, `match-heavy` |
+| file_read | `file_read.ark` | File write + 50× read (ADR-002 fixture) | `io-bound`, `string-heavy`, `allocation-heavy` |
 | json_parse | `json_parse.ark` | JSON token scan on ~10KB string | `string-heavy`, `parse`, `allocation-heavy` |
 | parse_tree_distance | `bench_parse_tree_distance.ark` | Packed-tree distance validator on a 1200-node star matrix | `parse`, `allocation-heavy`, `container`, `iteration` |
 
@@ -319,6 +322,29 @@ python scripts/manager.py perf benchmarks --no-quick
 The comparison table prints `ark(ms)`, one column per reference language, and a
 `ratio(best)` column showing how many times slower Ark is relative to the
 fastest native reference.
+
+### Linear memory vs Wasm GC cross-runtime comparison
+
+The `scripts/perf/compare-linear-vs-gc.{sh,py}` script compares ADR-002 fixtures
+across two compilation targets (`wasm32-wasi-p1` linear memory, `wasm32-wasi-p2`
+Wasm GC) and three runtimes (wasmtime, Node.js, headless Chrome browser):
+
+```bash
+# Full comparison (compile + run all fixtures in all runtimes)
+bash scripts/perf/compare-linear-vs-gc.sh --iterations 10 --warmups 2
+
+# Reuse pre-compiled wasm (skip compilation)
+bash scripts/perf/compare-linear-vs-gc.sh --no-compile
+
+# Only wasmtime and Node.js (skip browser)
+bash scripts/perf/compare-linear-vs-gc.sh --runtimes wasmtime,node
+```
+
+Results are written to `docs/process/linear-vs-gc-results.json` (machine-readable)
+and `docs/process/linear-vs-gc-report.md` (human-readable comparison table).
+
+Prerequisites: `wasmtime-py`, Node.js v22+, `google-chrome`, and
+`puppeteer-core` (`cd scripts/perf && npm install`).
 
 ## Result Storage and History
 
@@ -408,6 +434,7 @@ Baseline stored in `tests/baselines/perf/baselines.json`.*
 - **`benchmarks/run_benchmarks.sh`** — wrapper for the canonical runner.
 - **`python scripts/manager.py perf gate`** — CI-oriented perf gate (`--update` to update baseline).
 - **`scripts/compare-benchmarks.sh`** — cross-language reference timing wrapper (prints the table to stdout).
+- **`scripts/perf/compare-linear-vs-gc.{sh,py}`** — linear memory vs Wasm GC comparison across wasmtime, Node.js, and headless Chrome (ADR-002 fixtures).
 - **`parity-check.sh`** — Verify T1 vs T3 produce identical output for all `.ark` fixtures.
 - **`size-compare.sh`** — Compare Wasm binary sizes between T1 and T3.
 

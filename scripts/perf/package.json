@@ -1,0 +1,9 @@
+{
+  "name": "arukellt-perf-browser",
+  "private": true,
+  "type": "module",
+  "description": "Browser benchmark adapter deps for linear-vs-GC comparison",
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}

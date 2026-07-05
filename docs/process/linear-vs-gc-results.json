@@ -1,0 +1,848 @@
+{
+  "generated_at": "2026-07-05T12:21:05+0900",
+  "iterations": 5,
+  "warmups": 2,
+  "runtimes": [
+    "wasmtime",
+    "node",
+    "browser"
+  ],
+  "fixtures": [
+    "hello",
+    "string_concat",
+    "vec_pushpop",
+    "binary_tree",
+    "result_heavy",
+    "file_read"
+  ],
+  "targets": {
+    "linear": "wasm32-wasi-p1",
+    "gc": "wasm32-wasi-p2"
+  },
+  "results": {
+    "hello": {
+      "wasmtime": {
+        "linear": {
+          "runtime": "wasmtime",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "Hello, World!",
+          "actual": "Hello, World!",
+          "timings_ms": [
+            0.10082090739160776,
+            0.10748300701379776,
+            0.12429500930011272,
+            0.13490603305399418,
+            0.15033502131700516
+          ],
+          "median_ms": 0.12429500930011272,
+          "p50_ms": 0.12429500930011272,
+          "p95_ms": 0.15033502131700516,
+          "min_ms": 0.10082090739160776,
+          "max_ms": 0.15033502131700516,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "wasmtime",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "Hello, World!",
+          "actual": "Hello, World!",
+          "timings_ms": [
+            0.06604497320950031,
+            0.06748700980097055,
+            0.06934208795428276,
+            0.07211603224277496,
+            0.07428997196257114
+          ],
+          "median_ms": 0.06934208795428276,
+          "p50_ms": 0.06934208795428276,
+          "p95_ms": 0.07428997196257114,
+          "min_ms": 0.06604497320950031,
+          "max_ms": 0.07428997196257114,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "node": {
+        "linear": {
+          "runtime": "node",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "Hello, World!",
+          "actual": "Hello, World!",
+          "timings_ms": [
+            0.005189999999998918,
+            0.02989600000000081,
+            0.05012400000000383,
+            0.05111600000000038,
+            2.743230000000004
+          ],
+          "median_ms": 0.05012400000000383,
+          "p50_ms": 0.05012400000000383,
+          "p95_ms": 2.743230000000004,
+          "min_ms": 0.005189999999998918,
+          "max_ms": 2.743230000000004,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "node",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "Hello, World!",
+          "actual": "Hello, World!",
+          "timings_ms": [
+            0.0067730000000025825,
+            0.011991999999999337,
+            0.03003700000000009,
+            0.09221399999999846,
+            0.10462799999999817
+          ],
+          "median_ms": 0.03003700000000009,
+          "p50_ms": 0.03003700000000009,
+          "p95_ms": 0.10462799999999817,
+          "min_ms": 0.0067730000000025825,
+          "max_ms": 0.10462799999999817,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "browser": {
+        "linear": {
+          "runtime": "browser",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "Hello, World!",
+          "actual": "Hello, World!",
+          "timings_ms": [
+            0,
+            0,
+            0,
+            0,
+            0.10000002384185791
+          ],
+          "median_ms": 0,
+          "p50_ms": 0,
+          "p95_ms": 0.10000002384185791,
+          "min_ms": 0,
+          "max_ms": 0.10000002384185791,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "browser",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "Hello, World!",
+          "actual": "Hello, World!",
+          "timings_ms": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "median_ms": 0,
+          "p50_ms": 0,
+          "p95_ms": 0,
+          "min_ms": 0,
+          "max_ms": 0,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      }
+    },
+    "string_concat": {
+      "wasmtime": {
+        "linear": {
+          "runtime": "wasmtime",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100",
+          "actual": "100",
+          "timings_ms": [
+            0.12305309064686298,
+            0.12712005991488695,
+            0.1289040083065629,
+            0.14093599747866392,
+            0.17286709044128656
+          ],
+          "median_ms": 0.1289040083065629,
+          "p50_ms": 0.1289040083065629,
+          "p95_ms": 0.17286709044128656,
+          "min_ms": 0.12305309064686298,
+          "max_ms": 0.17286709044128656,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "wasmtime",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100",
+          "actual": "100",
+          "timings_ms": [
+            0.12243201490491629,
+            0.12610794510692358,
+            0.14599598944187164,
+            0.14816096518188715,
+            0.31342299189418554
+          ],
+          "median_ms": 0.14599598944187164,
+          "p50_ms": 0.14599598944187164,
+          "p95_ms": 0.31342299189418554,
+          "min_ms": 0.12243201490491629,
+          "max_ms": 0.31342299189418554,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "node": {
+        "linear": {
+          "runtime": "node",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100",
+          "actual": "100",
+          "timings_ms": [
+            0.017894000000005406,
+            0.041347999999999274,
+            0.06362000000000023,
+            0.09032100000000298,
+            0.13935299999999984
+          ],
+          "median_ms": 0.06362000000000023,
+          "p50_ms": 0.06362000000000023,
+          "p95_ms": 0.13935299999999984,
+          "min_ms": 0.017894000000005406,
+          "max_ms": 0.13935299999999984,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "node",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100",
+          "actual": "100",
+          "timings_ms": [
+            0.026481000000003974,
+            0.028793999999997766,
+            0.0415089999999978,
+            0.09650299999999845,
+            0.10243399999999525
+          ],
+          "median_ms": 0.0415089999999978,
+          "p50_ms": 0.0415089999999978,
+          "p95_ms": 0.10243399999999525,
+          "min_ms": 0.026481000000003974,
+          "max_ms": 0.10243399999999525,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "browser": {
+        "linear": {
+          "runtime": "browser",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100",
+          "actual": "100",
+          "timings_ms": [
+            0,
+            0,
+            0,
+            0,
+            0.10000002384185791
+          ],
+          "median_ms": 0,
+          "p50_ms": 0,
+          "p95_ms": 0.10000002384185791,
+          "min_ms": 0,
+          "max_ms": 0.10000002384185791,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "browser",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100",
+          "actual": "100",
+          "timings_ms": [
+            0,
+            0,
+            0,
+            0.10000002384185791,
+            0.10000002384185791
+          ],
+          "median_ms": 0,
+          "p50_ms": 0,
+          "p95_ms": 0.10000002384185791,
+          "min_ms": 0,
+          "max_ms": 0.10000002384185791,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      }
+    },
+    "vec_pushpop": {
+      "wasmtime": {
+        "linear": {
+          "runtime": "wasmtime",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100000\n0",
+          "actual": "100000\n0",
+          "timings_ms": [
+            2.345810062251985,
+            2.4404919240623713,
+            2.472297055646777,
+            2.7493570232763886,
+            3.0589249217882752
+          ],
+          "median_ms": 2.472297055646777,
+          "p50_ms": 2.472297055646777,
+          "p95_ms": 3.0589249217882752,
+          "min_ms": 2.345810062251985,
+          "max_ms": 3.0589249217882752,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "wasmtime",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100000\n0",
+          "actual": "100000\n0",
+          "timings_ms": [
+            39.262659032829106,
+            47.94762108940631,
+            51.579228951595724,
+            55.16505893319845,
+            63.539681024849415
+          ],
+          "median_ms": 51.579228951595724,
+          "p50_ms": 51.579228951595724,
+          "p95_ms": 63.539681024849415,
+          "min_ms": 39.262659032829106,
+          "max_ms": 63.539681024849415,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "node": {
+        "linear": {
+          "runtime": "node",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100000\n0",
+          "actual": "100000\n0",
+          "timings_ms": [
+            2.1538849999999883,
+            2.3529630000000026,
+            2.9094559999999987,
+            3.0541100000000085,
+            4.386241999999996
+          ],
+          "median_ms": 2.9094559999999987,
+          "p50_ms": 2.9094559999999987,
+          "p95_ms": 4.386241999999996,
+          "min_ms": 2.1538849999999883,
+          "max_ms": 4.386241999999996,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "node",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100000\n0",
+          "actual": "100000\n0",
+          "timings_ms": [
+            2.131083000000004,
+            2.3345780000000005,
+            2.777560000000001,
+            3.342084,
+            3.495139000000009
+          ],
+          "median_ms": 2.777560000000001,
+          "p50_ms": 2.777560000000001,
+          "p95_ms": 3.495139000000009,
+          "min_ms": 2.131083000000004,
+          "max_ms": 3.495139000000009,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "browser": {
+        "linear": {
+          "runtime": "browser",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100000\n0",
+          "actual": "100000\n0",
+          "timings_ms": [
+            1.899999976158142,
+            2.100000023841858,
+            2.100000023841858,
+            2.6999999284744263,
+            3.100000023841858
+          ],
+          "median_ms": 2.100000023841858,
+          "p50_ms": 2.100000023841858,
+          "p95_ms": 3.100000023841858,
+          "min_ms": 1.899999976158142,
+          "max_ms": 3.100000023841858,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "browser",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "100000\n0",
+          "actual": "100000\n0",
+          "timings_ms": [
+            0.3999999761581421,
+            0.8000000715255737,
+            0.8999999761581421,
+            0.8999999761581421,
+            1.399999976158142
+          ],
+          "median_ms": 0.8999999761581421,
+          "p50_ms": 0.8999999761581421,
+          "p95_ms": 1.399999976158142,
+          "min_ms": 0.3999999761581421,
+          "max_ms": 1.399999976158142,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      }
+    },
+    "binary_tree": {
+      "wasmtime": {
+        "linear": {
+          "runtime": "wasmtime",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "2097151",
+          "actual": "2097151",
+          "timings_ms": [
+            5.349167971871793,
+            5.771731957793236,
+            5.86488307453692,
+            6.182789918966591,
+            6.506919045932591
+          ],
+          "median_ms": 5.86488307453692,
+          "p50_ms": 5.86488307453692,
+          "p95_ms": 6.506919045932591,
+          "min_ms": 5.349167971871793,
+          "max_ms": 6.506919045932591,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "wasmtime",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "2097151",
+          "actual": "2097151",
+          "timings_ms": [
+            5.003013066016138,
+            5.811337032355368,
+            6.5167120192199945,
+            6.618143990635872,
+            7.189400028437376
+          ],
+          "median_ms": 6.5167120192199945,
+          "p50_ms": 6.5167120192199945,
+          "p95_ms": 7.189400028437376,
+          "min_ms": 5.003013066016138,
+          "max_ms": 7.189400028437376,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "node": {
+        "linear": {
+          "runtime": "node",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "2097151",
+          "actual": "2097151",
+          "timings_ms": [
+            5.4878909999999905,
+            5.666833000000011,
+            5.667484999999999,
+            6.798468,
+            8.355562000000006
+          ],
+          "median_ms": 5.667484999999999,
+          "p50_ms": 5.667484999999999,
+          "p95_ms": 8.355562000000006,
+          "min_ms": 5.4878909999999905,
+          "max_ms": 8.355562000000006,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "node",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "2097151",
+          "actual": "2097151",
+          "timings_ms": [
+            4.835216000000003,
+            4.9681209999999965,
+            5.171295999999998,
+            5.340490000000003,
+            6.045268999999998
+          ],
+          "median_ms": 5.171295999999998,
+          "p50_ms": 5.171295999999998,
+          "p95_ms": 6.045268999999998,
+          "min_ms": 4.835216000000003,
+          "max_ms": 6.045268999999998,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "browser": {
+        "linear": {
+          "runtime": "browser",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "2097151",
+          "actual": "2097151",
+          "timings_ms": [
+            5.199999928474426,
+            5.399999976158142,
+            5.800000071525574,
+            5.899999976158142,
+            7
+          ],
+          "median_ms": 5.800000071525574,
+          "p50_ms": 5.800000071525574,
+          "p95_ms": 7,
+          "min_ms": 5.199999928474426,
+          "max_ms": 7,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "browser",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "2097151",
+          "actual": "2097151",
+          "timings_ms": [
+            5,
+            5.5,
+            5.700000047683716,
+            5.799999952316284,
+            6
+          ],
+          "median_ms": 5.700000047683716,
+          "p50_ms": 5.700000047683716,
+          "p95_ms": 6,
+          "min_ms": 5,
+          "max_ms": 6,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      }
+    },
+    "result_heavy": {
+      "wasmtime": {
+        "linear": {
+          "runtime": "wasmtime",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "28571\n21429\n1428557143",
+          "actual": "28571\n21429\n1428557143",
+          "timings_ms": [
+            0.8465120336040854,
+            0.8874890627339482,
+            0.8885019924491644,
+            1.027554040774703,
+            1.0733309900388122
+          ],
+          "median_ms": 0.8885019924491644,
+          "p50_ms": 0.8885019924491644,
+          "p95_ms": 1.0733309900388122,
+          "min_ms": 0.8465120336040854,
+          "max_ms": 1.0733309900388122,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "wasmtime",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "28571\n21429\n1428557143",
+          "actual": "28571\n21429\n1428557143",
+          "timings_ms": [
+            13.312235940247774,
+            14.675910933874547,
+            15.094681060872972,
+            17.683068057522178,
+            18.434709054417908
+          ],
+          "median_ms": 15.094681060872972,
+          "p50_ms": 15.094681060872972,
+          "p95_ms": 18.434709054417908,
+          "min_ms": 13.312235940247774,
+          "max_ms": 18.434709054417908,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "node": {
+        "linear": {
+          "runtime": "node",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "28571\n21429\n1428557143",
+          "actual": "28571\n21429\n1428557143",
+          "timings_ms": [
+            0.4900170000000017,
+            0.5015190000000018,
+            0.5183109999999971,
+            0.5615120000000005,
+            0.8446280000000002
+          ],
+          "median_ms": 0.5183109999999971,
+          "p50_ms": 0.5183109999999971,
+          "p95_ms": 0.8446280000000002,
+          "min_ms": 0.4900170000000017,
+          "max_ms": 0.8446280000000002,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "node",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "28571\n21429\n1428557143",
+          "actual": "28571\n21429\n1428557143",
+          "timings_ms": [
+            0.4202050000000028,
+            0.4553319999999985,
+            0.4647289999999984,
+            0.6464129999999955,
+            1.0489350000000002
+          ],
+          "median_ms": 0.4647289999999984,
+          "p50_ms": 0.4647289999999984,
+          "p95_ms": 1.0489350000000002,
+          "min_ms": 0.4202050000000028,
+          "max_ms": 1.0489350000000002,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      },
+      "browser": {
+        "linear": {
+          "runtime": "browser",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "28571\n21429\n1428557143",
+          "actual": "28571\n21429\n1428557143",
+          "timings_ms": [
+            0.6000000238418579,
+            0.6000000238418579,
+            0.7999999523162842,
+            0.8999999761581421,
+            0.8999999761581421
+          ],
+          "median_ms": 0.7999999523162842,
+          "p50_ms": 0.7999999523162842,
+          "p95_ms": 0.8999999761581421,
+          "min_ms": 0.6000000238418579,
+          "max_ms": 0.8999999761581421,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "browser",
+          "target": "p2",
+          "status": "ok",
+          "correctness": "pass",
+          "expected": "28571\n21429\n1428557143",
+          "actual": "28571\n21429\n1428557143",
+          "timings_ms": [
+            0.2999999523162842,
+            0.5,
+            0.7000000476837158,
+            0.7999999523162842,
+            0.9000000953674316
+          ],
+          "median_ms": 0.7000000476837158,
+          "p50_ms": 0.7000000476837158,
+          "p95_ms": 0.9000000953674316,
+          "min_ms": 0.2999999523162842,
+          "max_ms": 0.9000000953674316,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        }
+      }
+    },
+    "file_read": {
+      "wasmtime": {
+        "linear": {
+          "runtime": "wasmtime",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "fail",
+          "expected": "470000",
+          "actual": "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ\n0",
+          "timings_ms": [
+            3.991390927694738,
+            4.193530068732798,
+            4.2508440092206,
+            4.374148091301322,
+            4.4071219163015485
+          ],
+          "median_ms": 4.2508440092206,
+          "p50_ms": 4.2508440092206,
+          "p95_ms": 4.4071219163015485,
+          "min_ms": 3.991390927694738,
+          "max_ms": 4.4071219163015485,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "wasmtime",
+          "status": "error",
+          "error": "failed to compile: wasm[0]::function[28]\n\nCaused by:\n    0: WebAssembly translation error\n    1: Invalid input WebAssembly code at offset 6390: type mismatch: expected i32, found (ref null $type)\n"
+        }
+      },
+      "node": {
+        "linear": {
+          "runtime": "node",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "fail",
+          "expected": "470000",
+          "actual": "write error: file write error",
+          "timings_ms": [
+            0.8005149999999972,
+            0.8152030000000039,
+            0.8369600000000048,
+            0.9929190000000006,
+            2.2713000000000036
+          ],
+          "median_ms": 0.8369600000000048,
+          "p50_ms": 0.8369600000000048,
+          "p95_ms": 2.2713000000000036,
+          "min_ms": 0.8005149999999972,
+          "max_ms": 2.2713000000000036,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "node",
+          "target": null,
+          "status": "error",
+          "error": "instantiate: WebAssembly.Module(): Compiling function #28 failed: local.set[0] expected type i32, found local.get of type (ref null 7) @+6388"
+        }
+      },
+      "browser": {
+        "linear": {
+          "runtime": "browser",
+          "target": "p1",
+          "status": "ok",
+          "correctness": "fail",
+          "expected": "470000",
+          "actual": "write error: file write error",
+          "timings_ms": [
+            0.5999999046325684,
+            0.7000000476837158,
+            0.7999999523162842,
+            0.7999999523162842,
+            0.9000000953674316
+          ],
+          "median_ms": 0.7999999523162842,
+          "p50_ms": 0.7999999523162842,
+          "p95_ms": 0.9000000953674316,
+          "min_ms": 0.5999999046325684,
+          "max_ms": 0.9000000953674316,
+          "iterations": 5,
+          "warmups": 2,
+          "error": null
+        },
+        "gc": {
+          "runtime": "browser",
+          "target": null,
+          "status": "error",
+          "error": "WebAssembly.Module(): Compiling function #28 failed: local.set[0] expected type i32, found local.get of type (ref null 7) @+6388"
+        }
+      }
+    }
+  }
+}

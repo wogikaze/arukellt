@@ -1,0 +1,37 @@
+// result_heavy.ark — Result/Option heavy benchmark (ADR-002 fixture).
+// Exercises Result construction, matching, propagation, and error paths
+// to stress the enum representation and error-handling codegen.
+use std::host::stdio
+
+fn process(value: i32) -> Result<i32, String> {
+    if value % 3 == 0 {
+        return Err(String_from("div3"))
+    }
+    if value % 7 == 0 {
+        return Err(String_from("div7"))
+    }
+    Ok(value * 2 + 1)
+}
+
+fn main() {
+    let mut ok_count: i32 = 0
+    let mut err_count: i32 = 0
+    let mut sum: i32 = 0
+    let mut iter: i32 = 0
+    while iter < 50000 {
+        let processed: Result<i32, String> = process(iter)
+        match processed {
+            Result::Ok(pv) => {
+                ok_count = ok_count + 1
+                sum = sum + pv
+            },
+            Result::Err(_) => {
+                err_count = err_count + 1
+            },
+        }
+        iter = iter + 1
+    }
+    stdio::println((ok_count).to_string())
+    stdio::println((err_count).to_string())
+    stdio::println((sum).to_string())
+}
