@@ -1,6 +1,6 @@
 # ADR-040: Semantic Type Spine — 意味情報を保存する背骨
 
-ステータス: **Accepted; implementation in progress** (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic 完了 — trait/generic/mono CALL の戻り値型を SignatureRegistry / MonoInstanceTable 経由に切替)
+ステータス: **Accepted; implementation in progress** (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic 完了 — trait/generic/mono CALL の戻り値型を SignatureRegistry / MonoInstanceTable 経由に切替。Phase 5-7 残作業は #724 で追跡)
 
 ### PR-4 実施レーン（emit 境界で分割）
 

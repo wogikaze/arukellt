@@ -1,8 +1,8 @@
 # ADR-010: Extended Const Expressions (Wasm)
 
-ステータス: **DECIDED** — T3 emitterにextended constのインフラを追加
+ステータス: **SUPERSEDED** — 実装見送り。heap pointer 初期化は単純定数で十分
 
-決定日: 2026-03-28
+決定日: 2026-03-28（2026-07-15 改訂: 実装見送りを反映）
 
 ---
 
@@ -18,11 +18,11 @@ wasmtime 29+ および主要ランタイムは Extended Const をデフォルト
 
 ---
 
-## 決定
+## 決定（当初）
 
 **T3 emitter に extended const のインフラを追加する。**
 
-- selfhost emitter (`src/compiler/emitter.ark`) に extended const のための型安全なビルダーヘルパーを実装（旧 Rust プロトタイプは #562 で削除）
+- selfhost emitter (`src/compiler/emitter.ark`) に extended const のための型安全なビルダーヘルパーを実装
 - `opt_level >= 2` のとき、heap pointer グローバルの初期値を extended const で出力:
   `(i32.add (i32.const DATA_START) (i32.const data_size))`
 - `opt_level < 2` または `data_size == 0` の場合は従来の `(i32.const offset)` を維持
@@ -31,17 +31,30 @@ wasmtime 29+ および主要ランタイムは Extended Const をデフォルト
 
 ---
 
-## 現在のスコープ
+## 改訂（2026-07-15）: 実装見送り
 
-- ユーザー定義グローバル変数は未実装のため、`global.get` を含む extended const
-  式は使用されない
-- 現在の適用箇所は heap pointer グローバルの初期化のみ
-- MIR の `Const + BinOp` から extended const への変換は v5+ で検討
+issue #065 は「done」とマークされていたが、実際には extended const の実装は
+行われなかった。調査の結果、以下の理由から実装を見送る:
+
+1. **heap pointer 初期化は単純定数で十分**: `sections_memory.ark:23-31` の
+   `emit_heap_global_entry` は `OP_I32_CONST` で `heap_start_from_data_offset(data_offset)`
+   の計算結果を直接出力している。コンパイル時に値が確定するため、extended const で
+   実行時に計算する必要がない
+2. **恩恵が限定的**: ユーザー定義グローバル変数が未実装のため、`global.get` を
+   含む extended const 式の使用ケースが存在しない
+3. **Wasm GC への移行**: ADR-035 の Wasm GC 実装が進行中であり、GC target では
+   heap pointer の線形メモリ依存自体が将来的に縮小する可能性がある
+
+**現在の状態**: `sections_memory.ark` は `OP_I32_CONST` のみを使用。
+extended const のビルダーヘルパーは未実装。
+
+将来的にユーザー定義グローバル変数が導入される際、extended const の再評価を
+検討する。その際は本 ADR を supersede する新規 ADR を起こすこと。
 
 ---
 
 ## 参照
 
 - `docs/spec/spec-3.0.0/proposals/extended-const/Overview.md`
-- `issues/open/065-wasm-extended-const.md`
+- `issues/done/065-wasm-extended-const.md` — done マークだが実装は未完了
 - [WebAssembly Extended Const Proposal](https://github.com/WebAssembly/extended-const)

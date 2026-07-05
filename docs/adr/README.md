@@ -19,10 +19,10 @@
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | Archive | ステータス: DECIDED — LLVM IRバックエンドはWasm意味論に従属 |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | Archive | ステータス: DECIDED — 公開ABIは3層まで（内部・WASM・native） |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | Archive | ステータス: DECIDED — ターゲットを3系統に確定（wasm32 / wasm32-gc / native） |
-| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Archive | ステータス: DECIDED — v2/v3 は wasm-tools に一時委譲、v4/v5 で in-tree 化して依存を除去 |
+| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Archive | ステータス: DECIDED — in-tree 実装により wasm-tools への依存を除去（前倒し完了） |
 | [ADR-008-wasm-gc-post-mvp.md](ADR-008-wasm-gc-post-mvp.md) | ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価 | Archive | ステータス: SURVEY (v4 では実装しない; v5 設計判断の参考資料) |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Archive | ステータス: DECIDED — use std::host::stdioの::-separated形式をソースモジュール参照として確定 |
-| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | Archive | ステータス: DECIDED — T3 emitterにextended constのインフラを追加 |
+| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | Archive | ステータス: SUPERSEDED — 実装見送り。heap pointer 初期化は単純定数で十分 |
 | [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | Archive | ステータス: DECIDED — host-boundなstdlib APIはstd::host::に隔離 |
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | Archive | ステータス: DECIDED — T3 (wasm32-wasi-p2)をプライマリターゲットとして選定 |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Archive | ステータス: ACCEPTED — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用 |
