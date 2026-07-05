@@ -33,6 +33,12 @@ jobs:
         run: cargo build --release --quiet
         working-directory: tools/host-linker
 
+      - name: Register arukellt selfhost wrapper in PATH
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          ln -sf "$GITHUB_WORKSPACE/scripts/run/arukellt-selfhost.sh" "$HOME/.local/bin/arukellt"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Run repository verification
         run: python3 scripts/manager.py verify
 

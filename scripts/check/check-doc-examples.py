@@ -61,6 +61,11 @@ def find_arukellt() -> str:
             return str(candidate)
     if found := shutil.which("arukellt"):
         return found
+    # Fall back to the selfhost wrapper script (scripts/run/arukellt-selfhost.sh).
+    # This is the primary execution path after Rust CLI retirement (#583).
+    selfhost_wrapper = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
+    if selfhost_wrapper.is_file() and selfhost_wrapper.stat().st_mode & 0o111:
+        return str(selfhost_wrapper)
     return "arukellt"  # fall back; will produce a clear error
 
 
