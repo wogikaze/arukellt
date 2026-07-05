@@ -36,7 +36,7 @@ pub fn build_completion_response(state: LspState, id: i32, text: String, offset:
     let items_arr = parser::json_arr_new()
     push(items_arr, parser::json_raw(items))
     let result_obj = parser::json_obj_new()
-    push(result_obj, parser::json_field(String_from("isIncomplete"), parser::json_bool(false)))
+    push(result_obj, parser::json_field(String_from("isIncomplete"), parser::json_raw(String_from("false"))))
     push(result_obj, parser::json_field(String_from("items"), JsonValue::Array(items_arr)))
     let fields = parser::json_obj_new()
     push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))

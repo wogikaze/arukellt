@@ -2483,8 +2483,8 @@ def _compiler_source_content_hash(root: Path) -> str:
                 digest.update(b"\0")
                 digest.update(parts[1])
                 digest.update(b"\0")
-    # Also hash std files that the overlay copies (prelude, toml, json, text)
-    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark"):
+    # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)
+    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):
         std_path = root / std_rel
         if std_path.is_file():
             h = hashlib.sha256()
@@ -2616,14 +2616,28 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
         std_dst = overlay_root / "std"
         std_dst.mkdir(exist_ok=True)
         shutil.copyfile(prelude_src, std_dst / "prelude.ark")
-    # Copy std/toml.ark and std/json.ark (top-level scanner files without
-    # pub enum) so the compiler's toml/json helpers are not stubbed.
-    # These files have no `use` statements and no pub enum, so they are
-    # safe for the pinned bootstrap to compile.
-    for std_file in ("toml.ark", "json.ark"):
-        src = root / "std" / std_file
-        if src.is_file():
-            shutil.copyfile(src, std_dst / std_file)
+    # Copy std/toml.ark (top-level scanner file without pub enum) so the
+    # compiler's toml helpers are not stubbed.  This file has no `use`
+    # statements and no pub enum, so it is safe for the pinned bootstrap.
+    toml_src = root / "std" / "toml.ark"
+    if toml_src.is_file():
+        shutil.copyfile(toml_src, std_dst / "toml.ark")
+    # Copy std/json module as a directory structure (std/json/mod.ark +
+    # std/json/parser.ark) so both the scanner utilities and the JsonValue
+    # DOM parser are available to the pinned bootstrap.  Using mod.ark
+    # (instead of flat json.ark) allows the subdirectory to coexist with
+    # parser.ark.  The module loader resolves std::json via fallback to
+    # std/json/mod.ark, and std::json::parser to std/json/parser.ark.
+    # parser.ark has `use std::json` to import skip_ws and other parent
+    # module functions.
+    json_mod_src = root / "std" / "json.ark"
+    json_parser_src = root / "std" / "json" / "parser.ark"
+    if json_mod_src.is_file():
+        json_dst = std_dst / "json"
+        json_dst.mkdir(exist_ok=True)
+        shutil.copyfile(json_mod_src, json_dst / "mod.ark")
+        if json_parser_src.is_file():
+            shutil.copyfile(json_parser_src, json_dst / "parser.ark")
     # Copy std/text module as a flat std/text.ark so text::builder_append
     # and other text functions are available to the pinned bootstrap.
     # mod.ark has no `use` statements and only uses intrinsics/builtins,

@@ -18,6 +18,8 @@
 //! - Full RFC 8259 conformance (surrogate pairs, strict number grammar) is
 //!   tracked under #704.
 
+use std::json
+
 // ─── Legacy primitive helpers ────────────────────────────────────────────────
 /// Stringify an i32 as a JSON number.
 pub fn json_stringify_i32(val: i32) -> String {
@@ -115,7 +117,7 @@ pub fn json_parse_bool(s: String) -> bool {
 pub enum JsonValue {
     Null,
     Bool(bool),
-    Number(f64),
+    Number(String),
     Str(String),
     Raw(String),
     Array(Vec<JsonValue>),
@@ -354,7 +356,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         let end = find_number_end(s, pos)
         let raw = slice(s, pos, end)
         match parse_f64(raw) {
-            Result::Ok(num) => return JsonParseStep_ok(JsonValue::Number(num), end),
+            Result::Ok(_) => return JsonParseStep_ok(JsonValue::Number(raw), end),
             Result::Err(_) => return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos),
         }
     }
@@ -387,7 +389,7 @@ pub fn stringify(v: JsonValue) -> String {
         JsonValue::Null => "null",
         JsonValue::Bool(true) => "true",
         JsonValue::Bool(false) => "false",
-        JsonValue::Number(n) => (n).to_string(),
+        JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array(items),
@@ -443,7 +445,7 @@ fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
         JsonValue::Null => "null",
         JsonValue::Bool(true) => "true",
         JsonValue::Bool(false) => "false",
-        JsonValue::Number(n) => (n).to_string(),
+        JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
         JsonValue::Array(items) => stringify_array_pretty(items, indent, depth),
@@ -661,7 +663,7 @@ pub fn json_as_string(v: JsonValue) -> Option<String> {
 pub fn json_as_i32(v: JsonValue) -> Option<i32> {
     match v {
         JsonValue::Number(n) => {
-            match parse_i32((n).to_string()) {
+            match parse_i32(n) {
                 Result::Ok(i) => Some(i),
                 Result::Err(_) => None,
             }
@@ -672,7 +674,12 @@ pub fn json_as_i32(v: JsonValue) -> Option<i32> {
 
 pub fn json_as_f64(v: JsonValue) -> Option<f64> {
     match v {
-        JsonValue::Number(n) => Some(n),
+        JsonValue::Number(n) => {
+            match parse_f64(n) {
+                Result::Ok(f) => Some(f),
+                Result::Err(_) => None,
+            }
+        },
         _ => None,
     }
 }
