@@ -8,7 +8,7 @@ use lsp::responses
 use lsp::state_record
 use lsp::state_docs
 use lsp::source_text
-use std::text
+use std::json::parser
 
 pub fn handle_selection_range(state: LspState, body: String) {
     let req_id = json_fields::extract_int_field(clone(body), String_from("id"))
@@ -23,16 +23,25 @@ pub fn handle_selection_range(state: LspState, body: String) {
     }
     let line = json_fields::extract_int_field(clone(body), String_from("line"))
     let character = json_fields::extract_int_field(clone(body), String_from("character"))
-    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-    out = text::builder_append(out, to_string(req_id))
-    out = text::builder_append(out, String_from(",\"result\":{\"ranges\":[{\"range\":{\"start\":{\"line\":"))
-    out = text::builder_append(out, to_string(line))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(character))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
-    out = text::builder_append(out, to_string(line))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(character + 1))
-    out = text::builder_append(out, String_from("}}}]}}"))
+    let start_obj = parser::json_obj_new()
+    push(start_obj, parser::json_field(String_from("line"), parser::json_i32(line)))
+    push(start_obj, parser::json_field(String_from("character"), parser::json_i32(character)))
+    let end_obj = parser::json_obj_new()
+    push(end_obj, parser::json_field(String_from("line"), parser::json_i32(line)))
+    push(end_obj, parser::json_field(String_from("character"), parser::json_i32(character + 1)))
+    let range_obj = parser::json_obj_new()
+    push(range_obj, parser::json_field(String_from("start"), JsonValue::Object(start_obj)))
+    push(range_obj, parser::json_field(String_from("end"), JsonValue::Object(end_obj)))
+    let range_item = parser::json_obj_new()
+    push(range_item, parser::json_field(String_from("range"), JsonValue::Object(range_obj)))
+    let ranges_arr = parser::json_arr_new()
+    push(ranges_arr, JsonValue::Object(range_item))
+    let result_obj = parser::json_obj_new()
+    push(result_obj, parser::json_field(String_from("ranges"), JsonValue::Array(ranges_arr)))
+    let fields = parser::json_obj_new()
+    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+    push(fields, parser::json_field(String_from("id"), parser::json_i32(req_id)))
+    push(fields, parser::json_field(String_from("result"), JsonValue::Object(result_obj)))
+    let out = parser::json_obj_string(fields)
     framing::append_framed(state, out)
 }

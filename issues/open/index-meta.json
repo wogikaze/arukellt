@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-05T09:05:16Z",
+  "generated_at": "2026-07-05T19:30:00Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -809,6 +809,72 @@
       },
       "orchestration": {
         "class": "spec",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "721",
+      "path": "721-final-types-emit-for-all-structs.md",
+      "title": "Final Types (`sub final`) を全 struct に適用",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "722",
+      "path": "722-typed-funcref-call-ref-benchmark.md",
+      "title": "Typed Function References (`call_ref`) ベンチマーク計測",
+      "track": "wasm-feature",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "723",
+      "path": "723-exception-handling-exnref-evaluation.md",
+      "title": "Wasm Exception Handling (`exnref`) 統合の検討",
+      "track": "language-design",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-required",
         "upstream_notes": "none"
       }
     },

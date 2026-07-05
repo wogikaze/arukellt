@@ -5,7 +5,7 @@ use lsp::responses_lifecycle
 use lsp::responses_navigation
 use lsp::responses_symbol
 use lsp::symbol_index_record
-use std::text
+use std::json::parser
 
 pub fn build_initialize_response(id: i32) -> String {
 	responses_lifecycle::build_initialize_response(id)
@@ -20,10 +20,11 @@ pub fn build_null_response(id: i32) -> String {
 }
 
 pub fn build_empty_array_response(id: i32) -> String {
-	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
-	body = text::builder_append(body, to_string(id))
-	body = text::builder_append(body, String_from(",\"result\":[]}"))
-	body
+	let fields = parser::json_obj_new()
+	push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
+	push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
+	push(fields, parser::json_field(String_from("result"), JsonValue::Array(parser::json_arr_new())))
+	parser::json_obj_string(fields)
 }
 
 pub fn build_hover_response(id: i32, markdown: String, start: LspPosition, end: LspPosition) -> String {
