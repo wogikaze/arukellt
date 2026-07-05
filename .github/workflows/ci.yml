@@ -29,6 +29,10 @@ jobs:
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
+      - name: Build host-linker
+        run: cargo build --release --quiet
+        working-directory: tools/host-linker
+
       - name: Run repository verification
         run: python3 scripts/manager.py verify
 
@@ -53,6 +57,10 @@ jobs:
       - name: Build wasm-heap-grow-patcher
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
+
+      - name: Build host-linker
+        run: cargo build --release --quiet
+        working-directory: tools/host-linker
 
       - name: Fixpoint
         run: python3 scripts/manager.py selfhost fixpoint
