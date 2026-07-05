@@ -16,9 +16,14 @@ The WebAssembly Typed Function References proposal adds `ref.func`, `call_ref`,
 `br_on_null`, and `br_on_non_null`, enabling table-free typed dispatch when the
 callee signature is known at compile time.
 
+> **2026-07 update**: Typed Function References is now Phase 5 shipped in
+> Wasm 3.0 (`typedFunctionReferences`). wasmtime 46 and V8 14.6 (Chrome 146 /
+> Node.js 26) enable it by default. See ADR-008 #5 for the Post-MVP survey.
+
 Historical issues (#019, #025, #024) planned a GC-native `call_ref` path; the
 selfhost emitter still uses `call_indirect` for generic HOF dispatch on the
-current T3 path. Issue #069 tracks closing the gap.
+current T3 path. Issue #069 tracks closing the gap. Issue #722 tracks the
+Phase A emitter audit and Phase C benchmark gate.
 
 ## Decision
 
