@@ -1,0 +1,54 @@
+// Arukellt Selfhost - ADR-040 Phase 4 MirValueType -> WasmValueType lowering.
+
+use corehir::mir_value_type
+use corehir::kinds
+use corehir::type_id
+use corehir::type_table
+use wasm::gc_layout_table
+
+fn lower_mir_value_type(layout: GcLayoutTable, tt: TypeTable, mvt: MirValueType) -> WasmValueType {
+    let repr = mir_value_type::mir_value_type_repr(mvt)
+    if repr == kinds::VALUE_REPR_LINEAR_PTR() {
+        return gc_layout_table::WasmValueType_i32()
+    }
+    if repr == kinds::VALUE_REPR_GC_REF() {
+        return lower_gc_ref_value_type(layout, mvt)
+    }
+    lower_scalar_value_type(tt, mvt)
+}
+
+fn lower_scalar_value_type(tt: TypeTable, mvt: MirValueType) -> WasmValueType {
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return gc_layout_table::WasmValueType_i32()
+    }
+    let entry = type_table::TypeTable_lookup(tt, tid)
+    if type_table::type_entry_kind(entry) != kinds::TYPE_KIND_PRIMITIVE() {
+        return gc_layout_table::WasmValueType_i32()
+    }
+    let name = type_table::type_entry_name(entry)
+    if eq(clone(name), String_from("i64")) {
+        return gc_layout_table::WasmValueType_i64()
+    }
+    if eq(clone(name), String_from("f64")) {
+        return gc_layout_table::WasmValueType_f64()
+    }
+    gc_layout_table::WasmValueType_i32()
+}
+
+fn lower_gc_ref_value_type(layout: GcLayoutTable, mvt: MirValueType) -> WasmValueType {
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
+    let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
+    let nullable = mir_value_type::mir_value_type_nullability(mvt)
+    let use_nullable = if nullable == kinds::NULLABILITY_NULLABLE() {
+        1
+    } else {
+        if nullable == kinds::NULLABILITY_NON_NULL() {
+            0
+        } else {
+            gc_layout_table::wasm_ref_type_nullable(ref_type)
+        }
+    }
+    gc_layout_table::WasmValueType_ref(gc_layout_table::wasm_ref_type_idx(ref_type), use_nullable)
+}

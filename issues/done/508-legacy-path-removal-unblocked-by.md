@@ -74,7 +74,7 @@ lowerer implementation work (probably a large chunk of the corehir track).
 
 ## Resolution path — 2026-04-22 (ADR-028)
 
-[ADR-028](../../docs/adr/ADR-028-corehir-lowering-resolution.md) で
+ADR-028 (deleted) で
 issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
 
 要点:

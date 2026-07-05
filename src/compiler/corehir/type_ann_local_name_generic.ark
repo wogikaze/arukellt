@@ -1,0 +1,56 @@
+// Arukellt Selfhost - CoreHIR generic annotation local type names.
+
+use corehir::type_ann_node
+
+fn type_ann_generic_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
+    let ann_name = type_ann_node::type_ann_name(ann)
+    if eq(clone(ann_name), String_from("Vec")) {
+        if type_ann_node::type_ann_child_count(ann) >= 2 {
+            let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
+            if type_ann_node::type_ann_is_generic(elem_ty) && eq(clone(type_ann_node::type_ann_name(elem_ty)), String_from("Vec")) {
+                let inner = type_ann_shape_local_type_name(elem_ty, 0)
+                if len(inner) > 0 {
+                    return concat(String_from("vec:"), inner)
+                }
+            }
+            return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
+        }
+        return String_from("vec")
+    }
+    if eq(clone(ann_name), String_from("Result")) {
+        if type_ann_node::type_ann_child_count(ann) >= 2 {
+            let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
+            if type_ann_node::type_ann_is_name(ok_ty, String_from("f64")) {
+                return String_from("Result_f64")
+            }
+            if type_ann_node::type_ann_is_name(ok_ty, String_from("i64")) {
+                return String_from("Result_i64")
+            }
+            let ok_name = type_ann_node::type_ann_name(ok_ty)
+            if len(ok_name) > 0 {
+                return concat(String_from("Result_"), ok_name)
+            }
+        }
+        return String_from("enum:Result")
+    }
+    if eq(clone(ann_name), String_from("Option")) {
+        if type_ann_node::type_ann_child_count(ann) >= 2 {
+            let some_ty = type_ann_node::type_ann_child_at(ann, 1)
+            if type_ann_node::type_ann_is_name(some_ty, String_from("f64")) {
+                return String_from("Option_f64")
+            }
+            if type_ann_node::type_ann_is_name(some_ty, String_from("i64")) {
+                return String_from("Option_i64")
+            }
+            if type_ann_node::type_ann_is_name(some_ty, String_from("i32")) {
+                return String_from("Option_i32")
+            }
+            let some_name = type_ann_node::type_ann_name(some_ty)
+            if len(some_name) > 0 {
+                return concat(String_from("Option_"), some_name)
+            }
+        }
+        return String_from("enum:Option")
+    }
+    String_new()
+}

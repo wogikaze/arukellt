@@ -1,0 +1,35 @@
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_emit
+// Arukellt Selfhost - MIR lowering for CoreHIR let value store/widen.
+
+use mir::inst_convert
+use mir::inst_local_set
+use mir::value_types
+
+fn lower_core_let_store_value(ctx: LowerCtx, local_idx: i32, val_idx: i32, type_name: String) -> i32 {
+    if val_idx < 0 {
+        return val_idx
+    }
+    if ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_F64() && ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I32() {
+        ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_F64())
+    }
+    if ctx_api_local_types::ctx_local_vt(ctx, local_idx) == value_types::VT_I64() && ctx_api_local_types::ctx_local_vt(ctx, val_idx) == value_types::VT_I32() {
+        let ext_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+        ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64(ext_dest, val_idx))
+        val_idx = ext_dest
+    }
+    if val_idx != local_idx {
+        ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, val_idx))
+    }
+    let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
+    if len(init_type) > 1 && len(type_name) == 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        if starts_with(clone(init_type), String_from("vec:")) || len(init_type) == 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(type_name))
+        }
+    }
+    val_idx
+}

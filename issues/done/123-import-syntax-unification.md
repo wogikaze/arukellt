@@ -90,14 +90,14 @@ use wasi: io/poll@0.2.10.{pollable};  // 外部 interface 参照
 - ADR-007: コンパイルターゲット整理（T3 = wasm32-wasi-p2 が main target）
 - issue #074: WASI p2 native component 対応
 - `docs/spec/spec-WASI-0.3.0-rc/`: WIT 構文の一次資料
-- Added: "[`docs/adr/ADR-026-import-vs-wit-package-syntax.md`](../../docs/adr/ADR-026-import-vs-wit-package-syntax.md) (**Status: Proposed (draft)**) — problem statement (`std::` vs `wasi:`), option summary, **recommendation stub** (explicitly not decided here; defers to ADR-009 unless superseded), and **in-repo WIT fixture / spec paths** (`docs/spec/import-system.md`, `tests/fixtures/component/*.wit`, JCO sample)."
+- Added: "[`docs/adr/ADR-031-import-syntax-wit-unification.md`](../../docs/adr/ADR-031-import-syntax-wit-unification.md) (**Status: Proposed (draft)**) — problem statement (`std::` vs `wasi:`), option summary, **recommendation stub** (explicitly not decided here; defers to ADR-009 unless superseded), and **in-repo WIT fixture / spec paths** (`docs/spec/import-system.md`, `tests/fixtures/component/*.wit`, JCO sample)."
 - Linked from canonical ADR: `docs/adr/ADR-009-import-syntax.md` → `../spec/import-system.md`
 - Non-binding Layer C syntax sketch (`import "ns: pkg/interface@ver"`)
 - Cross-links: "`docs/adr/ADR-009-import-syntax.md` (Related), `docs/spec/import-system.md` (§5), `docs/language/spec.md` (Appendix C), `docs/adr/README.md` (index table)"
 1. Compiler/runtime: "`import <single_identifier>` deprecation path (v4) and removal timeline (v5) as **implemented** behavior with diagnostics, not only docs."
 2. Layer C: "`import "…"` (or chosen form) **implemented** and wired to component / WIT pipeline (tracked with issue #124 and related work)."
 - Cross-link: "[`docs/module-resolution.md`](../../docs/module-resolution.md) (one sentence under `import` resolution)."
-- Updated: `docs/adr/ADR-026-import-vs-wit-package-syntax.md`
+- Updated: `docs/adr/ADR-031-import-syntax-wit-unification.md`
 - states that Layer S source imports stay on `use path: ":to::module`"
 - ADR-009 present and `DECIDED`: yes
 - `docs/spec/import-system.md` documents the Layer S / Layer C split: yes
@@ -411,7 +411,7 @@ Verification for this slice (to be recorded by agent):
 
 Documentation-only slice for issue #123:
 
-- Added: [`docs/adr/ADR-026-import-vs-wit-package-syntax.md`](../../docs/adr/ADR-026-import-vs-wit-package-syntax.md) (**Status: Proposed (draft)**) — problem statement (`std::` vs `wasi:`), option summary, **recommendation stub** (explicitly not decided here; defers to ADR-009 unless superseded), and **in-repo WIT fixture / spec paths** (`docs/spec/import-system.md`, `tests/fixtures/component/*.wit`, JCO sample).
+- Added: [`docs/adr/ADR-031-import-syntax-wit-unification.md`](../../docs/adr/ADR-031-import-syntax-wit-unification.md) (**Status: Proposed (draft)**) — problem statement (`std::` vs `wasi:`), option summary, **recommendation stub** (explicitly not decided here; defers to ADR-009 unless superseded), and **in-repo WIT fixture / spec paths** (`docs/spec/import-system.md`, `tests/fixtures/component/*.wit`, JCO sample).
 - Cross-link: [`docs/module-resolution.md`](../../docs/module-resolution.md) (one sentence under `import` resolution).
 - **Note:** ADR-021 is already allocated (`playground-share-url-format`); this work uses the next free ADR number (**026**), not 021.
 
@@ -426,7 +426,7 @@ It does not claim parser or compiler implementation work.
   - states that Layer S source imports stay on `use path::to::module`
   - states that WIT identifiers belong to Layer C and are not source paths
   - lists deferred implementation work separately from the current contract
-- Updated: `docs/adr/ADR-026-import-vs-wit-package-syntax.md`
+- Updated: `docs/adr/ADR-031-import-syntax-wit-unification.md`
   - converted the draft into a decision record
   - records the Layer S / Layer C split and the deferred Layer C syntax work
 - Verification to run for this slice:

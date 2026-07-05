@@ -1,0 +1,40 @@
+// Arukellt Selfhost - MIR function view facade for wasm code body.
+
+use mir::function_param_view
+use mir::function_locals_view
+use mir::function_identity
+use mir::function_block_queries
+use mir::block_inst_access
+use mir::local_access
+
+fn MirFunction_local_count(f: MirFunction) -> i32 {
+    function_locals_view::MirFunction_local_count(f)
+}
+
+fn MirFunction_param_count(f: MirFunction) -> i32 {
+    function_param_view::MirFunction_param_count(f)
+}
+
+fn MirFunction_param_at(f: MirFunction, idx: i32) -> MirLocal {
+    function_param_view::MirFunction_param_at(f, idx)
+}
+
+fn MirFunction_name(f: MirFunction) -> String {
+    function_identity::MirFunction_name(f)
+}
+
+fn MirFunction_block_count(f: MirFunction) -> i32 {
+    function_block_queries::MirFunction_block_count(f)
+}
+
+fn MirFunction_block_at(f: MirFunction, idx: i32) -> MirBlock {
+    function_block_queries::MirFunction_block_at(f, idx)
+}
+
+fn MirBlock_inst_count(block: MirBlock) -> i32 {
+    block_inst_access::MirBlock_inst_count(block)
+}
+
+fn MirLocal_type_name(loc: MirLocal) -> String {
+    local_access::MirLocal_type_name(loc)
+}

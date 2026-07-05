@@ -155,7 +155,7 @@ retirement (#583, #560–#564) is unblocked.
 
 ### Evidence
 
-- **ADR**: [`docs/adr/029-selfhost-native-verification-contract.md`](../../docs/adr/029-selfhost-native-verification-contract.md)
+- **ADR**: [`docs/adr/ADR-029-selfhost-native-verification-contract.md`](../../docs/adr/ADR-029-selfhost-native-verification-contract.md)
 - **Pinned-reference artifact**:
   - path: `bootstrap/arukellt-selfhost.wasm`
   - size: 536 277 bytes (≈ 524 KiB)

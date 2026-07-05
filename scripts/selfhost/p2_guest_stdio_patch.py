@@ -79,7 +79,8 @@ def _add_run_export(core_wasm: bytes) -> bytes:
     type_payload = _section_payload(core_wasm, 1)
     if type_payload is None or start_type_idx is None:
         return core_wasm
-    if _type_at(type_payload, start_type_idx) != VOID_FUNC_TYPE:
+    start_type = _type_at(type_payload, start_type_idx)
+    if start_type is not None and start_type != VOID_FUNC_TYPE:
         run_idx = start_idx
     else:
         core_wasm, i32_type_idx = _ensure_i32_func_type_index(core_wasm)
@@ -174,7 +175,8 @@ def _patch_start_returns_i32(core_wasm: bytes) -> bytes:
     type_payload = _section_payload(core_wasm, 1)
     if type_payload is None:
         return core_wasm
-    if _type_at(type_payload, type_idx) != VOID_FUNC_TYPE:
+    type_at = _type_at(type_payload, type_idx)
+    if type_at is not None and type_at != VOID_FUNC_TYPE:
         return core_wasm
 
     i32_type_idx = _find_type_index(type_payload, I32_FUNC_TYPE)
@@ -322,18 +324,35 @@ def _replace_section(core_wasm: bytes, section_id: int, payload: bytes) -> bytes
 
 
 def _type_at(type_payload: bytes, index: int) -> bytes | None:
+    """Return the raw bytes of the type at *index*, or None if it can't be parsed."""
     count, pos = _leb_read(type_payload, 0)
     if index >= count:
         return None
     for _ in range(index):
         form = type_payload[pos]
         pos += 1
-        if form != 0x60:
+        if form == 0x60:
+            param_count, pos = _leb_read(type_payload, pos)
+            pos += param_count
+            result_count, pos = _leb_read(type_payload, pos)
+            pos += result_count
+        elif form == 0x5e:
+            pos += 1
+            pos = _skip_valtype(type_payload, pos)
+        elif form == 0x5f:
+            field_count, pos = _leb_read(type_payload, pos)
+            for _ in range(field_count):
+                pos += 1
+                pos = _skip_valtype(type_payload, pos)
+        elif form in (0x4e, 0x4f):
+            super_count, pos = _leb_read(type_payload, pos)
+            for _ in range(super_count):
+                _, pos = _leb_read(type_payload, pos)
+            pos = _skip_comptype(type_payload, pos)
+        elif form == 0x50:
+            pos = _skip_comptype(type_payload, pos)
+        else:
             return None
-        param_count, pos = _leb_read(type_payload, pos)
-        pos += param_count
-        result_count, pos = _leb_read(type_payload, pos)
-        pos += result_count
     start = pos
     form = type_payload[pos]
     pos += 1
@@ -347,20 +366,76 @@ def _type_at(type_payload: bytes, index: int) -> bytes | None:
 
 
 def _find_type_index(type_payload: bytes, needle: bytes) -> int | None:
+    """Find a func type by its binary encoding, skipping non-func (GC) types."""
     count, pos = _leb_read(type_payload, 0)
     for idx in range(count):
         start = pos
         form = type_payload[pos]
         pos += 1
-        if form != 0x60:
+        if form == 0x60:  # func type
+            param_count, pos = _leb_read(type_payload, pos)
+            pos += param_count
+            result_count, pos = _leb_read(type_payload, pos)
+            pos += result_count
+            if type_payload[start:pos] == needle:
+                return idx
+        elif form == 0x5e:  # array type: mut (1 byte) + valtype
+            pos += 1  # mut flag
+            pos = _skip_valtype(type_payload, pos)
+        elif form == 0x5f:  # struct type: fieldcount + fieldtypes
+            field_count, pos = _leb_read(type_payload, pos)
+            for _ in range(field_count):
+                pos += 1  # mut flag
+                pos = _skip_valtype(type_payload, pos)
+        elif form in (0x4e, 0x4f):  # sub / sub final
+            super_count, pos = _leb_read(type_payload, pos)
+            for _ in range(super_count):
+                _, pos = _leb_read(type_payload, pos)
+            # Skip the composite type (recursively)
+            pos = _skip_comptype(type_payload, pos)
+        elif form == 0x50:  # sub (no supertypes, deprecated)
+            pos = _skip_comptype(type_payload, pos)
+        else:
+            # Unknown form; can't skip safely
             return None
-        param_count, pos = _leb_read(type_payload, pos)
-        pos += param_count
-        result_count, pos = _leb_read(type_payload, pos)
-        pos += result_count
-        if type_payload[start:pos] == needle:
-            return idx
     return None
+
+
+def _skip_valtype(data: bytes, pos: int) -> int:
+    """Skip a single valtype and return the new position."""
+    byte = data[pos]
+    pos += 1
+    # Basic value types (i32, i64, f32, f64, v128, funcref, externref, etc.)
+    # are single bytes.  Reference types with type indices use s33 encoding.
+    if byte in (0x64, 0x63):  # ref type with heap type
+        # Check if next byte is a basic heap type or a type index
+        if pos < len(data) and data[pos] < 0x40:
+            # Type index (s33 LEB128)
+            _, pos = _leb_read(data, pos)
+        # else: basic heap type is already consumed (single byte)
+    return pos
+
+
+def _skip_comptype(data: bytes, pos: int) -> int:
+    """Skip a composite type (func, array, or struct) and return new position."""
+    form = data[pos]
+    pos += 1
+    if form == 0x60:  # func
+        param_count, pos = _leb_read(data, pos)
+        for _ in range(param_count):
+            pos = _skip_valtype(data, pos)
+        result_count, pos = _leb_read(data, pos)
+        for _ in range(result_count):
+            pos = _skip_valtype(data, pos)
+    elif form == 0x5e:  # array
+        pos += 1  # mut flag
+        pos = _skip_valtype(data, pos)
+    elif form == 0x5f:  # struct
+        field_count, pos = _leb_read(data, pos)
+        for _ in range(field_count):
+            pos += 1  # mut flag
+            pos = _skip_valtype(data, pos)
+    return pos
 
 
 def _patch_code_section(payload: bytes) -> bytes:

@@ -1,0 +1,216 @@
+// Arukellt Selfhost - ADR-040 Phase 4 GcLayoutTable (MirValueType -> WasmValueType lowering spine).
+
+use corehir::type_id
+use corehir::type_table
+use corehir::kinds
+use wasm::constants
+
+struct GcLayoutId {
+    raw: i32,
+}
+
+struct WasmRefType {
+    type_idx: i32,
+    nullable: i32,
+}
+
+struct WasmValueType {
+    kind: i32,
+    ref_type: WasmRefType,
+}
+
+struct FieldLayout {
+    field_name: String,
+    field_type_id: TypeId,
+    wasm_field_type: WasmValueType,
+    byte_offset: i32,
+}
+
+struct GcLayoutEntry {
+    id: GcLayoutId,
+    type_id: TypeId,
+    wasm_ref_type: WasmRefType,
+    struct_type_idx: i32,
+    field_layouts: Vec<FieldLayout>,
+}
+
+struct GcLayoutTable {
+    entries: Vec<GcLayoutEntry>,
+    next_id: i32,
+}
+
+fn GC_LAYOUT_ID_INVALID() -> GcLayoutId {
+    GcLayoutId { raw: 0 - 1 }
+}
+
+fn gc_layout_id_is_valid(id: GcLayoutId) -> bool {
+    id.raw >= 0
+}
+
+fn WasmRefType_new(type_idx: i32, nullable: i32) -> WasmRefType {
+    WasmRefType { type_idx: type_idx, nullable: nullable }
+}
+
+fn wasm_ref_type_idx(rt: WasmRefType) -> i32 {
+    rt.type_idx
+}
+
+fn wasm_ref_type_nullable(rt: WasmRefType) -> i32 {
+    rt.nullable
+}
+
+fn WasmValueType_i32() -> WasmValueType {
+    WasmValueType { kind: constants::WASM_VALUE_TYPE_I32(), ref_type: WasmRefType_new(0, 0) }
+}
+
+fn WasmValueType_i64() -> WasmValueType {
+    WasmValueType { kind: constants::WASM_VALUE_TYPE_I64(), ref_type: WasmRefType_new(0, 0) }
+}
+
+fn WasmValueType_f64() -> WasmValueType {
+    WasmValueType { kind: constants::WASM_VALUE_TYPE_F64(), ref_type: WasmRefType_new(0, 0) }
+}
+
+fn WasmValueType_ref(type_idx: i32, nullable: i32) -> WasmValueType {
+    WasmValueType { kind: constants::WASM_VALUE_TYPE_REF(), ref_type: WasmRefType_new(type_idx, nullable) }
+}
+
+fn wasm_value_type_is_ref(wvt: WasmValueType) -> bool {
+    wvt.kind == constants::WASM_VALUE_TYPE_REF()
+}
+
+fn wasm_value_type_ref_type(wvt: WasmValueType) -> WasmRefType {
+    wvt.ref_type
+}
+
+fn GcLayoutTable_new() -> GcLayoutTable {
+    GcLayoutTable { entries: Vec_new_GcLayoutEntry(), next_id: 0 }
+}
+
+fn gc_layout_table_register(table: GcLayoutTable, type_id: TypeId, wasm_ref_type: WasmRefType, struct_type_idx: i32) -> GcLayoutId {
+    let existing = gc_layout_table_find_by_type_id(table, type_id)
+    if gc_layout_id_is_valid(existing) {
+        return existing
+    }
+    let id = GcLayoutId { raw: table.next_id }
+    table.next_id = table.next_id + 1
+    let entry = GcLayoutEntry { id: id, type_id: type_id, wasm_ref_type: wasm_ref_type, struct_type_idx: struct_type_idx, field_layouts: Vec_new_FieldLayout() }
+    push(table.entries, entry)
+    id
+}
+
+fn gc_layout_table_find_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcLayoutId {
+    let count = len(table.entries)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(table.entries, i)
+        if type_id::type_id_eq(entry.type_id, type_id) {
+            return entry.id
+        }
+        i = i + 1
+    }
+    GC_LAYOUT_ID_INVALID()
+}
+
+fn gc_layout_table_entry_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcLayoutEntry {
+    let count = len(table.entries)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(table.entries, i)
+        if type_id::type_id_eq(entry.type_id, type_id) {
+            return entry
+        }
+        i = i + 1
+    }
+    GcLayoutEntry { id: GC_LAYOUT_ID_INVALID(), type_id: type_id::TYPE_ID_INVALID(), wasm_ref_type: WasmRefType_new(0, 1), struct_type_idx: 0 - 1, field_layouts: Vec_new_FieldLayout() }
+}
+
+fn gc_layout_entry_wasm_ref_type(entry: GcLayoutEntry) -> WasmRefType {
+    entry.wasm_ref_type
+}
+
+fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> i32 {
+    if eq(clone(name), String_from("String")) {
+        return gc_type_base + 0
+    }
+    if starts_with(clone(name), String_from("vec:String")) {
+        return gc_type_base + 19
+    }
+    if starts_with(clone(name), String_from("vec:v128")) || starts_with(clone(name), String_from("vec:V128")) {
+        return gc_type_base + 21
+    }
+    if starts_with(clone(name), String_from("vec:i64")) || starts_with(clone(name), String_from("vec:I64")) {
+        return gc_type_base + 22
+    }
+    if starts_with(clone(name), String_from("vec:f64")) || starts_with(clone(name), String_from("vec:F64")) {
+        return gc_type_base + 23
+    }
+    if starts_with(clone(name), String_from("vec:")) {
+        return gc_type_base + 10
+    }
+    if starts_with(clone(name), String_from("hashmap:i32:String")) {
+        return gc_type_base + 17
+    }
+    if starts_with(clone(name), String_from("hashmap:String:String")) {
+        return gc_type_base + 18
+    }
+    if starts_with(clone(name), String_from("hashmap:")) {
+        return gc_type_base + 16
+    }
+    if starts_with(clone(name), String_from("enum:")) || starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("result:")) {
+        return gc_type_base + 14
+    }
+    gc_type_base + 2
+}
+
+fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, gc_type_base: i32, struct_type_idx: i32) -> GcLayoutId {
+    let tid = type_table::type_entry_id(entry)
+    if !type_id::type_id_is_valid(tid) {
+        return GC_LAYOUT_ID_INVALID()
+    }
+    let kind = type_table::type_entry_kind(entry)
+    if kind != kinds::TYPE_KIND_STRING() && kind != kinds::TYPE_KIND_VEC() && kind != kinds::TYPE_KIND_OPTION() && kind != kinds::TYPE_KIND_RESULT() && kind != kinds::TYPE_KIND_HASHMAP() && kind != kinds::TYPE_KIND_HASHSET() {
+        return GC_LAYOUT_ID_INVALID()
+    }
+    let name = type_table::type_entry_name(entry)
+    let mut type_idx = gc_layout_table_ref_offset_for_type_name(clone(name), gc_type_base)
+    let mut st_idx = 0 - 1
+    if struct_type_idx >= 0 {
+        type_idx = struct_type_idx
+        st_idx = struct_type_idx
+    }
+    gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), st_idx)
+}
+
+fn gc_layout_table_populate_from_type_table(table: GcLayoutTable, tt: TypeTable, gc_type_base: i32) {
+    let count = type_table::TypeTable_entry_count(tt)
+    let mut i = 0
+    while i < count {
+        gc_layout_table_register_type_entry(table, type_table::TypeTable_entry_at(tt, i), gc_type_base, 0 - 1)
+        i = i + 1
+    }
+}
+
+fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, struct_names: Vec<String>, struct_type_map: Vec<i32>) {
+    let count = len(struct_names)
+    let mut i = 0
+    while i < count {
+        let sname = clone(get_unchecked(struct_names, i))
+        let type_idx = get_unchecked(struct_type_map, i)
+        let tid = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
+        gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+        i = i + 1
+    }
+}
+
+fn gc_layout_table_register_enum_variant_names(table: GcLayoutTable, tt: TypeTable, variant_names: Vec<String>, variant_type_map: Vec<i32>) {
+    let count = len(variant_names)
+    let mut i = 0
+    while i < count {
+        let vname = clone(get_unchecked(variant_names, i))
+        let type_idx = get_unchecked(variant_type_map, i)
+        let tid = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
+        gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+        i = i + 1
+    }
+}

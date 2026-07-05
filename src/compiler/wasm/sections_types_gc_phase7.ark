@@ -1,0 +1,32 @@
+// Arukellt Selfhost - Wasm GC type section Phase 7 sig helpers.
+
+fn gc_struct_ref_array_offset() -> i32 {
+    24
+}
+
+fn gc_vec_struct_ref_offset() -> i32 {
+    25
+}
+
+fn gc_vec_struct_ref_type_sig() -> String {
+    String_from("gcref25")
+}
+
+fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
+    if len(elem) == 0 {
+        return false
+    }
+    if eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char")) || eq(clone(elem), String_from("u8")) || eq(clone(elem), String_from("u16")) || eq(clone(elem), String_from("u32")) || eq(clone(elem), String_from("u64")) || eq(clone(elem), String_from("i16")) {
+        return false
+    }
+    if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) || eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) || eq(clone(elem), String_from("f32")) || eq(clone(elem), String_from("F32")) {
+        return false
+    }
+    if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) || eq(clone(elem), String_from("str")) {
+        return false
+    }
+    if eq(clone(elem), String_from("v128")) || eq(clone(elem), String_from("V128")) {
+        return false
+    }
+    true
+}

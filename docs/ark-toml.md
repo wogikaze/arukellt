@@ -53,7 +53,7 @@ output    = "out.wasm" # override default output path
 ### `[dependencies]` *(optional)*
 
 Project dependencies. Path-based local `.ark` packages use simple names; WIT component
-packages use Layer C identifiers (`namespace:package`) per [ADR-026](adr/ADR-026-import-vs-wit-package-syntax.md).
+packages use Layer C identifiers (`namespace:package`) per [ADR-031](adr/ADR-031-import-syntax-wit-unification.md).
 
 ```toml
 [dependencies]

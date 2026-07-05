@@ -523,7 +523,7 @@ def _wasmtime_run(component: Path, expect_stdout: str) -> tuple[int, str]:
     if not wasmtime:
         return 2, "wasmtime not in PATH"
     result = subprocess.run(
-        [wasmtime, "run", str(component)],
+        [wasmtime, "run", "-W", "gc=y", "-W", "gc-support=y", str(component)],
         capture_output=True,
         text=True,
         timeout=60,
@@ -541,7 +541,7 @@ def _wasmtime_run_dir(component: Path, expect_stdout: str) -> tuple[int, str]:
     if not wasmtime:
         return 2, "wasmtime not in PATH"
     result = subprocess.run(
-        [wasmtime, "run", "--dir", str(REPO_ROOT), str(component)],
+        [wasmtime, "run", "-W", "gc=y", "-W", "gc-support=y", "--dir", str(REPO_ROOT), str(component)],
         capture_output=True,
         timeout=60,
         cwd=str(REPO_ROOT),

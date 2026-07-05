@@ -1,0 +1,16 @@
+// Arukellt Selfhost - GC vec ref type index accessors (ADR-040 Phase 7).
+
+use wasm::ctx_record
+use wasm::sections_types_gc_phase7
+
+fn SelfEmitCtx_struct_ref_array_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc_phase7::gc_struct_ref_array_offset()
+}
+
+fn SelfEmitCtx_vec_struct_ref_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc_phase7::gc_vec_struct_ref_offset()
+}
+
+fn gc_vec_elem_is_struct_ref(elem: String) -> bool {
+    sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem)
+}

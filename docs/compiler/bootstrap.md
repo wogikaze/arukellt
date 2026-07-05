@@ -336,7 +336,6 @@ hard-fail when the bootstrap stage has not yet been run.  When wired into
 ## See Also
 
 - [Bootstrap Verification Process](../process/bootstrap-verification.md)
-- [Migration Guide: v4 → v5](../migration/v4-to-v5.md)
 - [Compiler Pipeline](pipeline.md)
 - [IR Specification](ir-spec.md)
 - [ADR-0001: Harness Bootstrap](../adr/ADR-0001-harness-bootstrap.md)

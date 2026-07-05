@@ -94,7 +94,7 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 
 ## Resolution path — 2026-04-22 (ADR-028)
 
-[ADR-028](../../docs/adr/ADR-028-corehir-lowering-resolution.md) で
+ADR-028 (deleted) で
 issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
 
 - Deprecation marker 部分は完了済みのため、本 issue は近日中にクローズ予定。
@@ -106,7 +106,7 @@ issue \#285 ⇄ \#508 の循環ブロッカーを設計判断で解消した。
 ## Canonical review note — 2026-04-22
 
 ADR-028 is the current source of truth for this tracker. Based on the repo evidence in
-`docs/compiler/legacy-path-status.md` and `docs/adr/ADR-028-corehir-lowering-resolution.md`,
+`docs/compiler/legacy-path-status.md` and `ADR-028` (deleted),
 the deprecation-marker slice for #285 is complete and is a close candidate. The legacy
 fallback itself is still present, but its removal is no longer closure criteria for this
 issue; that work was re-scoped under #529. Keep this issue open only as a historical review

@@ -1,0 +1,56 @@
+// Arukellt Selfhost - fs read intrinsic helper facade.
+
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i64_const
+
+fn emit_else(w: WasmWriter) {
+    helpers_control::emit_else(w)
+}
+
+fn emit_end(w: WasmWriter) {
+    helpers_control::emit_end(w)
+}
+
+fn emit_if_i32(w: WasmWriter) {
+    helpers_control::emit_if_i32(w)
+}
+
+fn emit_local_get(w: WasmWriter, local: i32) {
+    helpers_core::emit_local_get(w, local)
+}
+
+fn emit_local_set(w: WasmWriter, local: i32) {
+    helpers_core::emit_local_set(w, local)
+}
+
+fn emit_call(w: WasmWriter, idx: i32) {
+    helpers_core::emit_call(w, idx)
+}
+
+fn emit_store_string_local_to_scratch(w: WasmWriter, path_local: i32, ptr_off: i32, len_off: i32) {
+    helpers_io::emit_store_string_local_to_scratch(w, path_local, ptr_off, len_off)
+}
+
+fn emit_i32_store_default(w: WasmWriter) {
+    helpers_memory::emit_i32_store_default(w)
+}
+
+fn emit_i32_load_default(w: WasmWriter) {
+    helpers_memory::emit_i32_load_default(w)
+}
+
+fn emit_i32_const(w: WasmWriter, val: i32) {
+    helpers_numeric_i32::emit_i32_const(w, val)
+}
+
+fn emit_i32_ne(w: WasmWriter) {
+    helpers_numeric_i32::emit_i32_ne(w)
+}
+
+fn emit_i64_const(w: WasmWriter, val: i64) {
+    helpers_numeric_i64_const::emit_i64_const(w, val)
+}

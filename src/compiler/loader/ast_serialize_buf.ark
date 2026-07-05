@@ -1,0 +1,71 @@
+// Arukellt Selfhost - AST binary serialization (write path).
+
+fn buf_push_i32(buf: Vec<i32>, val: i32) {
+    push(buf, val & 255)
+    push(buf, (val >> 8) & 255)
+    push(buf, (val >> 16) & 255)
+    push(buf, (val >> 24) & 255)
+}
+
+fn buf_push_string(buf: Vec<i32>, s: String) {
+    let n = len(s)
+    buf_push_i32(buf, n)
+    let mut i = 0
+    while i < n {
+        push(buf, char_at(s, i) & 255)
+        i = i + 1
+    }
+}
+
+fn buf_push_byte(buf: Vec<i32>, val: i32) {
+    push(buf, val & 255)
+}
+
+pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
+    let buf: Vec<i32> = Vec_new_i32()
+    // Header
+    push(buf, 65)  // 'A'
+    push(buf, 83)  // 'S'
+    push(buf, 84)  // 'T'
+    push(buf, 67)  // 'C'
+    buf_push_i32(buf, 1)  // version
+    let n = len(nodes)
+    buf_push_i32(buf, n)
+    let mut i = 0
+    while i < n {
+        serialize_node(buf, get_unchecked(nodes, i))
+        i = i + 1
+    }
+    buf
+}
+
+fn serialize_node(buf: Vec<i32>, node: AstNode) {
+    buf_push_i32(buf, node.kind)
+    buf_push_i32(buf, node.span.start)
+    buf_push_i32(buf, node.span.end)
+    buf_push_i32(buf, node.name_span.start)
+    buf_push_i32(buf, node.name_span.end)
+    buf_push_string(buf, clone(node.text))
+    buf_push_i32(buf, node.int_val)
+    buf_push_string(buf, to_string(node.float_val))
+    buf_push_i32(buf, node.op)
+    let cn = len(node.children)
+    buf_push_i32(buf, cn)
+    let mut ci = 0
+    while ci < cn {
+        serialize_node(buf, get_unchecked(node.children, ci))
+        ci = ci + 1
+    }
+    let tn = len(node.type_ann)
+    buf_push_i32(buf, tn)
+    let mut ti = 0
+    while ti < tn {
+        serialize_node(buf, get_unchecked(node.type_ann, ti))
+        ti = ti + 1
+    }
+    let mut flags = 0
+    if node.is_mut { flags = flags | 1 }
+    if node.is_pub { flags = flags | 2 }
+    if node.is_async { flags = flags | 4 }
+    buf_push_byte(buf, flags)
+}

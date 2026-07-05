@@ -1,0 +1,59 @@
+// Arukellt Selfhost - ADR-040 Phase 4 GcLayoutTable lookup helpers for SelfEmitCtx.
+
+use wasm::ctx_record
+use wasm::gc_layout_table
+use wasm::lower_value_type
+use corehir::mir_value_type
+use corehir::type_table
+use corehir::type_info_to_mir_value
+use mir::function_locals_view
+use mir::local_access
+use mir::value_types
+
+fn SelfEmitCtx_gc_layout_id_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> GcLayoutId {
+    gc_layout_table::gc_layout_table_find_by_type_id(ctx_record::SelfEmitCtx_gc_layout_table(ctx), mir_value_type::mir_value_type_type_id(mvt))
+}
+
+fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
+    let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
+    // Only trust the lowering result when the type actually has a layout
+    // entry; the lowering falls back to type index 0 for unknown TypeIds,
+    // which must not leak out as a valid GC type index.
+    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, mir_value_type::mir_value_type_type_id(mvt))
+    if !gc_layout_table::gc_layout_id_is_valid(lid) {
+        return 0 - 1
+    }
+    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
+    let wvt = lower_value_type::lower_mir_value_type(layout, tt, mvt)
+    if gc_layout_table::wasm_value_type_is_ref(wvt) {
+        return gc_layout_table::wasm_ref_type_idx(gc_layout_table::wasm_value_type_ref_type(wvt))
+    }
+    0 - 1
+}
+
+fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    if local_idx < 0 {
+        return 0 - 1
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
+    let mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))
+    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+}
+
+// ADR-040 Phase 5: typed-spine GC type index lookup from a MIR type name.
+// Returns -1 when the GcLayoutTable has no entry for the name, letting the
+// legacy string-prefix matcher act as the compat fallback.
+fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    if len(type_name) == 0 {
+        return 0 - 1
+    }
+    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
+    let mvt = type_info_to_mir_value::vt_to_mir_value(tt, value_types::VT_GC_REF(), type_name)
+    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+}

@@ -95,7 +95,7 @@ fn wit_import_id_matches(package_id: String, doc: wit_parse_text::WitParsedInter
     if slash < 0 {
         return false
     }
-    let want_pkg = wit_parse_text_scan::wit_strip_version(substring(package_id, 0, slash))
+    let want_pkg = wit_parse_text_scan::wit_strip_version_txt(substring(package_id, 0, slash))
     let want_iface = wit_strip_import_iface(substring(package_id, slash + 1, len(package_id)))
     eq(clone(doc.package), clone(want_pkg)) && eq(clone(doc.interface), clone(want_iface))
 }

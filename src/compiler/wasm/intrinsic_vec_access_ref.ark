@@ -1,0 +1,88 @@
+// Arukellt Selfhost - vec access GC ref cast target resolution.
+
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
+use wasm::code_locals_struct_parse
+use wasm::code_ref_locals
+use wasm::intrinsic_vec_type
+use mir::function_locals_view
+use mir::local_access
+use mir::value_types
+use mir::inst_accessors_operands
+
+fn vec_ref_dest_storage_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest < 0 {
+        return 0 - 1
+    }
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    if dest >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    let inferred = code_ref_locals::infer_local_storage_gc_type(f, dest, ctx)
+    if inferred >= 0 {
+        return inferred
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, dest)
+    let vt = local_access::MirLocal_val_type(loc)
+    if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
+        return ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    }
+    0 - 1
+}
+
+fn vec_ref_elem_target_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let tname = intrinsic_vec_type::local_type_name(ctx, dest)
+    vec_ref_target_type_from_name(ctx, tname)
+}
+
+fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
+    if len(tname) == 0 {
+        return 0 - 1
+    }
+    if starts_with(clone(tname), String_from("vec:")) {
+        let elem = substring(clone(tname), 4, len(tname))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        }
+        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
+            return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+        }
+        if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
+            return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+        }
+        if eq(clone(elem), String_from("v128")) || eq(clone(elem), String_from("V128")) {
+            return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    if eq(clone(tname), String_from("string")) || eq(clone(tname), String_from("String")) {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if starts_with(clone(tname), String_from("enum:")) || starts_with(clone(tname), String_from("option:")) || starts_with(clone(tname), String_from("Option_")) || starts_with(clone(tname), String_from("result:")) || starts_with(clone(tname), String_from("Result_")) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    if starts_with(clone(tname), String_from("hashmap:")) {
+        return 0 - 1
+    }
+    if starts_with(clone(tname), String_from("struct:")) {
+        let sname = code_locals_struct_parse::extract_struct_name_from_type_name(clone(tname))
+        if len(sname) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(sname)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(sname))
+        }
+        let byte_size = code_locals_struct_parse::extract_struct_byte_size(clone(tname))
+        if byte_size > 0 {
+            return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
+        }
+        return 0 - 1
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(tname)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(tname))
+    }
+    0 - 1
+}

@@ -1,7 +1,7 @@
 # Arukellt Standard Prelude
 
 > **Status**: stable  
-> **See also**: [ADR-036 (trait-based stdlib redesign)](../adr/ADR-036-trait-stdlib-redesign.md), [migration/v2-to-v3.md](../migration/v2-to-v3.md), [prelude-migration.md](prelude-migration.md)
+> **See also**: [ADR-036 (trait-based stdlib redesign)](../adr/ADR-036-trait-stdlib-redesign.md), [prelude-migration.md](prelude-migration.md)
 
 The Arukellt compiler automatically imports a small set of symbols into every
 module. This page describes the design of that prelude and the ongoing
@@ -114,5 +114,4 @@ during the transition, while new code should prefer method syntax
 
 * [ADR-036: Trait-based Stdlib Redesign](../adr/ADR-036-trait-stdlib-redesign.md) — design decisions
 * [prelude-migration.md](prelude-migration.md) — detailed migration reference
-* [migration/v2-to-v3.md](../migration/v2-to-v3.md) — v2→v3 module system transition
 * [std/prelude.ark](../../std/prelude.ark) — implementation source

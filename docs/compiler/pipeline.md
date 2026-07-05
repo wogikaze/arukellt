@@ -158,6 +158,5 @@ Full documentation: [optimization.md](optimization.md)
 - [ir-spec.md](ir-spec.md) — CoreHIR / MIR の正規仕様
 - [../language/spec.md](../language/spec.md) — 言語仕様 (凍結対象)
 - [ADR-007: Targets](../adr/ADR-007-targets.md)
-- [../migration/t1-to-t3.md](../migration/t1-to-t3.md)
 - [optimization.md](optimization.md) — MIR + backend optimization passes
 - [../contributing.md](../contributing.md)

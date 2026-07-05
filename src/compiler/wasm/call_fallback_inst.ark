@@ -1,0 +1,16 @@
+// Arukellt Selfhost - Wasm call fallback MIR accessor facade.
+
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+
+fn MirInst_dest(inst: MirInst) -> i32 {
+    inst_accessors_operands::MirInst_dest(inst)
+}
+
+fn MirInst_arg0(inst: MirInst) -> i32 {
+    inst_accessors_operands::MirInst_arg0(inst)
+}
+
+fn MirInst_int_val(inst: MirInst) -> i32 {
+    inst_accessors_literals::MirInst_int_val(inst)
+}

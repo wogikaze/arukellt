@@ -1,0 +1,70 @@
+use mir::lower::ctx_fn_exists
+use mir::lower::ctx_api_local_types
+// Arukellt Selfhost - MIR monomorphized call target resolution by arg type.
+
+use mir::mono
+
+fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx: i32) -> String {
+    let mut out = call_mono_by_type_strip_module_prefix(clone(resolved))
+    if first_arg_idx < 0 {
+        return out
+    }
+    let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    let mut mono_type_key = clone(mono_arg_type)
+    if starts_with(clone(mono_arg_type), String_from("vec:")) {
+        mono_type_key = mono_type_key_from_local_type_name(substring(mono_arg_type, 4, len(mono_arg_type)))
+    }
+    if starts_with(clone(mono_type_key), String_from("Option:")) {
+        mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
+    }
+    if starts_with(clone(mono_type_key), String_from("enum:")) {
+        mono_type_key = substring(clone(mono_type_key), 5, len(mono_type_key))
+    }
+    if len(mono_type_key) == 0 {
+        return out
+    }
+    let mono_candidate = mono::mono_safe_name(concat(clone(out), concat(String_from("__"), mono_type_key)))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
+        return mono_candidate
+    }
+    let type_method = concat(clone(mono_type_key), concat(String_from("::"), clone(out)))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
+        return type_method
+    }
+    if eq(clone(mono_type_key), String_from("string")) {
+        let mono_candidate_string = mono::mono_safe_name(concat(clone(out), String_from("__String")))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
+            return mono_candidate_string
+        }
+    }
+    // ADR-040 Phase 5: format_debug<T> defers to T::fmt_debug. When mono
+    // instances were not recorded (flat stdlib overlay / missing generic
+    // params in AST), dispatch directly to the concrete trait impl.
+    if eq(clone(out), String_from("format_debug")) {
+        let trait_method = concat(clone(mono_type_key), String_from("::fmt_debug"))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
+            return trait_method
+        }
+    }
+    out
+}
+
+fn mono_type_key_from_local_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        let inner = mono_type_key_from_local_type_name(substring(clone(type_name), 4, len(type_name)))
+        return concat(String_from("Vec<"), concat(inner, String_from(">")))
+    }
+    type_name
+}
+
+fn call_mono_by_type_strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i > 0 {
+        if char_at(name, i) == 58 && char_at(name, i - 1) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}

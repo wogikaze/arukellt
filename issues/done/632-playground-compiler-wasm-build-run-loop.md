@@ -22,7 +22,7 @@ browser worker and a T2 browser runner. The TypeScript layer must orchestrate
 compiler process execution, virtual files, stdio buffers, and Wasm instantiation;
 it must not reimplement Arukellt language semantics.
 
-Design authority: [ADR-032](../../docs/adr/ADR-032-playground-compiler-wasm-runner.md).
+Design authority: [ADR-017](../../docs/adr/ADR-017-playground-execution-model.md).
 
 ## Problem
 

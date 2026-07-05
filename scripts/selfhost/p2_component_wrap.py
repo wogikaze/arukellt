@@ -22,11 +22,16 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 from p2_guest_stdio_patch import patch_guest_core
 from p2_guest_fs_patch import patch_guest_fs_writes
+from p2_strip_imports import strip_wit_imports
 
 
 def patch_guest_for_wrap(core_wasm: bytes) -> bytes:
-    """Apply filesystem + stdio patches required by gate fixtures."""
-    return patch_guest_core(patch_guest_fs_writes(core_wasm))
+    """Apply filesystem + stdio patches, then strip unused WIT imports."""
+    patched = patch_guest_core(patch_guest_fs_writes(core_wasm))
+    return strip_wit_imports(
+        patched,
+        ("wasi:clocks/", "wasi:random/"),
+    )
 
 _DATA_DIR = Path(__file__).resolve().parent / "data"
 _BRIDGE_WASM = Path(__file__).resolve().parent / "p2_stdout_bridge.wasm"
