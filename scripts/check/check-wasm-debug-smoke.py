@@ -24,7 +24,12 @@ BOOTSTRAP_WASM = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 
 def _compile_smoke() -> Path:
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
-    env = {**os.environ, "ARUKELLT_SELFHOST_WASM": str(BOOTSTRAP_WASM)}
+    env = {**os.environ}
+    s2 = REPO_ROOT / ".build" / "selfhost" / "arukellt-s2-runtime.wasm"
+    if s2.is_file():
+        env["ARUKELLT_SELFHOST_WASM"] = str(s2)
+    elif BOOTSTRAP_WASM.is_file():
+        env["ARUKELLT_SELFHOST_WASM"] = str(BOOTSTRAP_WASM)
     build_wasm_rel = BUILD_WASM.relative_to(REPO_ROOT)
     r = subprocess.run(
         [str(WRAPPER), "compile", str(SMOKE_ARK), "-o", str(build_wasm_rel)],

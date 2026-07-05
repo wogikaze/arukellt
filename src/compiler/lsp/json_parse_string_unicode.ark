@@ -1,9 +1,28 @@
 // Arukellt Selfhost - LSP JSON unicode escape decoding.
-//
-// Delegates to std::json (issue #704).
-
-use std::json
 
 fn json_escape_unicode_ascii(s: String, pos: i32) -> String {
-    json::json_decode_unicode_ascii(s, pos)
+    let n = len(s)
+    if pos + 4 >= n {
+        return String_new()
+    }
+    let hi = hex_value(char_at(s, pos + 1)) * 16 + hex_value(char_at(s, pos + 2))
+    let lo = hex_value(char_at(s, pos + 3)) * 16 + hex_value(char_at(s, pos + 4))
+    let cv = hi * 256 + lo
+    if cv > 0 && cv < 128 {
+        return char_to_string(cv)
+    }
+    String_new()
+}
+
+fn hex_value(c: i32) -> i32 {
+    if c >= 48 && c <= 57 {
+        return c - 48
+    }
+    if c >= 97 && c <= 102 {
+        return c - 87
+    }
+    if c >= 65 && c <= 70 {
+        return c - 55
+    }
+    0
 }

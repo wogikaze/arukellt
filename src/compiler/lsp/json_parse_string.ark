@@ -1,10 +1,6 @@
-// Arukellt Selfhost - LSP JSON string parsing.
-//
-// Delegates to std::json (issue #704). The local JsonStrResult struct is
-// retained for API compatibility with existing callers
-// (json_parse_core, json_fields).
+// Arukellt Selfhost - LSP JSON string parsing
 
-use std::json
+use lsp::json_parse_string_escape
 
 struct JsonStrResult {
     value: String,
@@ -17,12 +13,40 @@ fn JsonStrResult_new(value: String, next: i32, ok: bool) -> JsonStrResult {
 }
 
 fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
-    let r = json::json_parse_string_at(s, pos)
-    JsonStrResult {
-        value: json::json_str_result_value(r),
-        next: json::json_str_result_next(r),
-        ok: json::json_str_result_ok(r),
+    let n = len(s)
+    if pos >= n || char_at(s, pos) != 34 {
+        return JsonStrResult_new(String_new(), pos, false)
     }
+    let mut p = pos + 1
+    let mut out = String_new()
+    let mut span_start = p
+    while p < n {
+        let c = char_at(s, p)
+        if c == 34 {
+            if span_start < p {
+                out = concat(out, substring(clone(s), span_start, p))
+            }
+            return JsonStrResult_new(out, p + 1, true)
+        }
+        if c == 92 {
+            if span_start < p {
+                out = concat(out, substring(clone(s), span_start, p))
+            }
+            p = p + 1
+            if p >= n {
+                return JsonStrResult_new(out, p, false)
+            }
+            out = concat(out, json_parse_string_escape::json_escape_char(clone(s), p))
+            if char_at(s, p) == 117 && p + 4 < n {
+                p = p + 4
+            }
+            p = p + 1
+            span_start = p
+        } else {
+            p = p + 1
+        }
+    }
+    JsonStrResult_new(out, p, false)
 }
 
 fn json_str_result_ok(result: JsonStrResult) -> bool {

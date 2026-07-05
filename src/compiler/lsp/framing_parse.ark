@@ -1,6 +1,5 @@
 // Arukellt LSP - JSON-RPC frame parsing.
 
-use std::json
 use lsp::framing_record
 
 fn parse_frame(input: String, pos: i32) -> FrameResult {
@@ -21,9 +20,27 @@ fn parse_frame(input: String, pos: i32) -> FrameResult {
         return framing_record::FrameResult_new(String_new(), n, false)
     }
     let header_block = substring(clone(input), p, p + header_end_rel)
-    let clen = json::parse_content_length(clone(header_block))
-    if clen < 0 {
+    let cl_idx = index_of(clone(header_block), String_from("Content-Length:"))
+    if cl_idx < 0 {
         return framing_record::FrameResult_new(String_new(), n, false)
+    }
+    let block_len = len(header_block)
+    let mut q = cl_idx + 15
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c != 32 && c != 9 {
+            break
+        }
+        q = q + 1
+    }
+    let mut clen = 0
+    while q < block_len {
+        let c = char_at(header_block, q)
+        if c < 48 || c > 57 {
+            break
+        }
+        clen = clen * 10 + (c - 48)
+        q = q + 1
     }
     let body_start = p + header_end_rel + 4
     if body_start + clen > n {

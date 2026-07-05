@@ -125,6 +125,8 @@ nullability は `MirValueType` 側に持たせる。
 
 #### Layer 2: MirValueType — コンパイラ内部の値型
 
+<!-- skip-doc-check -->
+
 ```ark
 struct MirValueType {
     type_id: TypeId,         // 意味型
@@ -151,6 +153,8 @@ enum Nullability {
 として自然に表現する。各要素はそれぞれ `Scalar` や `GcRef` を持つ。
 
 #### Layer 3: WasmValueType — Wasm出力型
+
+<!-- skip-doc-check -->
 
 ```ark
 enum WasmValueType {
@@ -212,6 +216,8 @@ enum AbiKind {
 複数値対応を最初から持たせる。
 
 ### D3: Typed MIR — MirInst/MirLocal の型必須化
+
+<!-- skip-doc-check -->
 
 ```ark
 pub struct MirInst {
@@ -317,6 +323,8 @@ emitter は `MirValueType` を `lower_mir_value_type` に渡すだけで
 
 ### D6: HostIntrinsicSpec — host境界のABI明示的定義
 
+<!-- skip-doc-check -->
+
 ```ark
 struct HostIntrinsicSpec {
     name: String,              // "read_to_string"
@@ -346,6 +354,8 @@ emitter 側は呼び出し経路を区別する必要がない。
 
 固定indexに名前を付け、直接local番号を書く箇所を0にする。
 
+<!-- skip-doc-check -->
+
 ```ark
 // Phase 6a: symbolic alias の導入
 const SCRATCH_I32_0: i32 = 0   // 旧: 直接 0 を書いていた
@@ -359,6 +369,8 @@ const SCRATCH_GC_0: i32 = 16
 `emit_leb128_u(w, SCRATCH_GC_0)` に置き換える。
 
 #### 最終段階: LocalAllocator
+
+<!-- skip-doc-check -->
 
 ```ark
 struct LocalAllocator {

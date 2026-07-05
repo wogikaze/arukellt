@@ -1,24 +1,23 @@
 use analysis::snapshot_state_record
 // Arukellt Selfhost - LSP diagnostic notification builders
 
+use lsp::json_escape
 use lsp::diag_object
-use std::json::parser
 
 pub fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapshot) -> String {
-	let diags = parser::json_arr_new()
+	let mut body = String_from("{\"jsonrpc\":\"2.0\",\"method\":\"textDocument/publishDiagnostics\",\"params\":{\"uri\":")
+	body = concat(body, json_escape::quote_string(uri))
+	body = concat(body, String_from(",\"diagnostics\":["))
 	let n = snapshot_state_record::snapshot_diagnostic_count(snap)
 	let mut i = 0
 	while i < n {
 		let d = snapshot_state_record::snapshot_diagnostic_at(snap, i)
-		push(diags, parser::json_raw(diag_object::build_diagnostic_object(clone(text), d)))
+		if i > 0 {
+			body = concat(body, String_from(","))
+		}
+		body = concat(body, diag_object::build_diagnostic_object(clone(text), d))
 		i = i + 1
 	}
-	let params = parser::json_obj_new()
-	push(params, parser::json_field(String_from("uri"), parser::json_str(uri)))
-	push(params, parser::json_field(String_from("diagnostics"), JsonValue::Array(diags)))
-	let fields = parser::json_obj_new()
-	push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
-	push(fields, parser::json_field(String_from("method"), parser::json_str(String_from("textDocument/publishDiagnostics"))))
-	push(fields, parser::json_field(String_from("params"), JsonValue::Object(params)))
-	parser::json_obj_string(fields)
+	body = concat(body, String_from("]}}"))
+	body
 }

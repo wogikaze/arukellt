@@ -588,8 +588,10 @@ def _wasm_run_cmd(
     if cwasm.suffix == ".cwasm":
         return [wasmtime, "run", "--allow-precompiled",
                 "--wasm", "gc", "--wasm", "function-references",
+                "--wasm", "max-wasm-stack=16777216",
                 "--dir", str(root), str(cwasm), "--", *args]
     return [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
+            "--wasm", "max-wasm-stack=16777216",
             "--dir", str(root), str(compiler_wasm), "--", *args]
 
 
@@ -600,7 +602,8 @@ def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
         if hosted.is_file():
             return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", "--wasm", "gc", "--wasm", "function-references", f"--dir={root}", str(wasm_path)]
+    return [wasmtime or "wasmtime", "run", "--wasm", "gc", "--wasm", "function-references",
+            "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -1877,17 +1880,12 @@ def _stage3_compiler_wasm(root: Path, pinned: Path, built_s2: Path) -> Path | No
 def resolve_ide_gate_compiler_wasm(root: Path) -> Path | None:
     """Compiler wasm for LSP/DAP/analysis quick gates."""
     s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
-    pinned = _find_pinned_wasm(root)
-    if s2.is_file() and pinned is not None:
-        runtime = _parity_runtime_compiler(root, pinned, s2)
-        if runtime is not None:
-            return runtime
     if s2.is_file():
         return s2
     s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
     if s3.is_file():
         return s3
-    return pinned
+    return _find_pinned_wasm(root)
 
 
 def _parity_runtime_compiler(root: Path, pinned: Path, built_s2: Path) -> Path | None:

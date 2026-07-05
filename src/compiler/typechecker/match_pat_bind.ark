@@ -1,0 +1,109 @@
+use typechecker::kinds
+// Arukellt Typechecker - match pattern variable bindings.
+
+use typechecker::ast_access
+use typechecker::ast_pattern_predicates
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::scope
+
+fn bind_match_pattern(scope: LocalScope, pat: AstNode, scrutinee_ty: TypeInfo) {
+    if ast_pattern_predicates::node_is_pat_wildcard(pat) {
+        return
+    }
+    if ast_pattern_predicates::node_is_pat_literal(pat) {
+        return
+    }
+    if ast_pattern_predicates::node_is_pat_ident(pat) {
+        let name = ast_access::node_text(pat)
+        if !eq(clone(name), "_") {
+            scope::scope_define(scope, name, scrutinee_ty)
+        }
+        return
+    }
+    if ast_pattern_predicates::node_is_pat_variant(pat) {
+        bind_variant_pattern(scope, pat, scrutinee_ty)
+        return
+    }
+    if ast_access::node_kind_is(pat, kinds::NK_PAT_TUPLE()) {
+        bind_tuple_pattern(scope, pat, scrutinee_ty)
+    }
+}
+
+fn bind_variant_pattern(scope: LocalScope, pat: AstNode, scrutinee_ty: TypeInfo) {
+    let variant = variant_base_name(ast_access::node_text(pat))
+    let tag = contract_type_access::TypeInfo_tag(scrutinee_ty)
+    if tag == commands::TY_OPTION() {
+        if eq(clone(variant), String_from("Some")) {
+            bind_variant_children(scope, pat, option_payload_type(scrutinee_ty))
+        }
+        return
+    }
+    if tag == commands::TY_RESULT() {
+        if eq(clone(variant), String_from("Ok")) {
+            bind_variant_children(scope, pat, result_ok_payload_type(scrutinee_ty))
+            return
+        }
+        if eq(clone(variant), String_from("Err")) {
+            bind_variant_children(scope, pat, result_err_payload_type(scrutinee_ty))
+        }
+    }
+}
+
+fn bind_variant_children(scope: LocalScope, pat: AstNode, payload_ty: TypeInfo) {
+    let count = ast_access::node_child_count(pat)
+    let mut i = 0
+    while i < count {
+        bind_match_pattern(scope, ast_access::node_child_at(pat, i), payload_ty)
+        i = i + 1
+    }
+}
+
+fn bind_tuple_pattern(scope: LocalScope, pat: AstNode, tuple_ty: TypeInfo) {
+    let pat_count = ast_access::node_child_count(pat)
+    let mut i = 0
+    while i < pat_count {
+        bind_match_pattern(scope, ast_access::node_child_at(pat, i), tuple_element_type_at(tuple_ty, i))
+        i = i + 1
+    }
+}
+
+fn option_payload_type(ty: TypeInfo) -> TypeInfo {
+    if contract_type_access::TypeInfo_type_arg_count(ty) >= 1 {
+        return contract_type_access::TypeInfo_type_arg_at(ty, 0)
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn result_ok_payload_type(ty: TypeInfo) -> TypeInfo {
+    if contract_type_access::TypeInfo_type_arg_count(ty) >= 1 {
+        return contract_type_access::TypeInfo_type_arg_at(ty, 0)
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn result_err_payload_type(ty: TypeInfo) -> TypeInfo {
+    if contract_type_access::TypeInfo_type_arg_count(ty) >= 2 {
+        return contract_type_access::TypeInfo_type_arg_at(ty, 1)
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn tuple_element_type_at(tuple_ty: TypeInfo, index: i32) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(tuple_ty) != commands::TY_TUPLE() {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(tuple_ty)
+    if index >= 0 && index < arg_count {
+        return contract_type_access::TypeInfo_type_arg_at(tuple_ty, index)
+    }
+    contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn variant_base_name(name: String) -> String {
+    let colon_pos = index_of(clone(name), String_from("::"))
+    if colon_pos >= 0 {
+        return substring(name, colon_pos + 2, len(name))
+    }
+    name
+}

@@ -62,7 +62,8 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "walrus",
+ "wasm-encoder 0.251.0",
+ "wasmparser 0.251.0",
  "wasmtime",
  "wasmtime-wasi",
 ]

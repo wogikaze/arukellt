@@ -29,6 +29,19 @@ def _find_wasmtime() -> str | None:
     return shutil.which("wasmtime")
 
 
+def _wasmtime_run_prefix(wasmtime: str) -> list[str]:
+    return [
+        wasmtime,
+        "run",
+        "--wasm",
+        "gc",
+        "--wasm",
+        "function-references",
+        "--wasm",
+        "max-wasm-stack=16777216",
+    ]
+
+
 def main() -> int:
     root = _repo_root()
     fixtures_dir = root / "tests" / "fixtures" / "selfhost"
@@ -66,7 +79,7 @@ def main() -> int:
             continue
         rel = str(fixture.relative_to(root))
         r = subprocess.run(
-            [wasmtime, "run", "--dir", str(root), str(compiler), "--",
+            [*_wasmtime_run_prefix(wasmtime), "--dir", str(root), str(compiler), "--",
              "ide-analyze", rel],
             cwd=str(root),
             capture_output=True,

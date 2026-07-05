@@ -20,7 +20,22 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return TypeInfo_simple(commands::TY_UNKNOWN())
     }
     let callee_name = ast_access::node_text(callee)
-    let sig = sigs::lookup_fn_sig(fn_sigs, clone(callee_name))
+    let mut mono_fn_name = clone(callee_name)
+    let mut sig = sigs::lookup_fn_sig(fn_sigs, clone(callee_name))
+    if !contract_fn_sig::FnSig_has_name(sig) {
+        let stripped = tc_strip_module_prefix(clone(callee_name))
+        if !eq(clone(stripped), clone(callee_name)) {
+            let bare_sig = sigs::lookup_fn_sig(fn_sigs, clone(stripped))
+            // Module-qualified stdlib generic calls (e.g. fmt::format_debug) register
+            // mono instances under the bare decl name. Only rewrite when the bare sig
+            // is generic so compiler-local qualified calls (fmt::format_source,
+            // diagnostics::Diagnostic_new) keep legacy unknown-call typing.
+            if contract_fn_sig::FnSig_has_name(bare_sig) && contract_fn_sig::FnSig_type_param_count(bare_sig) > 0 {
+                sig = bare_sig
+                mono_fn_name = stripped
+            }
+        }
+    }
     if !contract_fn_sig::FnSig_has_name(sig) {
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
@@ -28,5 +43,17 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
         return contract_fn_sig::FnSig_return_type(sig)
     }
-    call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, callee_name)
+    call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, mono_fn_name)
+}
+
+fn tc_strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
 }

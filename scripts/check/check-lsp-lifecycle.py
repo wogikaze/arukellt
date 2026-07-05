@@ -31,6 +31,19 @@ def _find_wasmtime() -> str | None:
     return shutil.which("wasmtime")
 
 
+def _wasmtime_run_prefix(wasmtime: str) -> list[str]:
+    return [
+        wasmtime,
+        "run",
+        "--wasm",
+        "gc",
+        "--wasm",
+        "function-references",
+        "--wasm",
+        "max-wasm-stack=16777216",
+    ]
+
+
 def _resolve_ide_compiler_wasm(root: Path) -> Path | None:
     """Return selfhost compiler wasm for IDE gates."""
     from scripts.selfhost.checks import resolve_ide_gate_compiler_wasm, run_fixpoint
@@ -78,7 +91,7 @@ def main() -> int:
             continue
         rel = str(script.relative_to(root))
         r = subprocess.run(
-            [wasmtime, "run", "--dir", str(root), str(compiler), "--",
+            [*_wasmtime_run_prefix(wasmtime), "--dir", str(root), str(compiler), "--",
              "lsp", rel],
             cwd=str(root),
             capture_output=True,
@@ -106,7 +119,7 @@ def main() -> int:
             failures += 1
             continue
         r_stdio = subprocess.run(
-            [wasmtime, "run", "--dir", str(root), str(compiler), "--", "lsp"],
+            [*_wasmtime_run_prefix(wasmtime), "--dir", str(root), str(compiler), "--", "lsp"],
             cwd=str(root),
             input=script.read_bytes(),
             capture_output=True,

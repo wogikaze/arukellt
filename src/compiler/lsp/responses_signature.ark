@@ -1,43 +1,45 @@
 // Arukellt LSP - signature help response builders.
 
-use std::json::parser
+use lsp::responses_json
+use std::text
 
-fn build_param_labels(params: Vec<String>) -> Vec<JsonValue> {
+fn append_param_labels(items: String, params: Vec<String>) -> String {
     let n = len(params)
     let mut i = 0
-    let items = parser::json_arr_new()
+    let mut out = items
     while i < n {
-        let param_obj = parser::json_obj_new()
-        push(param_obj, parser::json_field(String_from("label"), parser::json_str(get_unchecked(params, i))))
-        push(items, JsonValue::Object(param_obj))
+        if len(out) > 0 {
+            out = text::builder_append(out, String_from(","))
+        }
+        out = text::builder_append(out, String_from("{\"label\":"))
+        out = text::builder_append(out, responses_json::quote_string(get_unchecked(params, i)))
+        out = text::builder_append(out, String_from("}"))
         i = i + 1
     }
-    items
+    out
 }
 
 fn signature_info_json(label: String, doc: String, params: Vec<String>) -> String {
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("label"), parser::json_str(label)))
+    let mut out = String_from("{\"label\":")
+    out = text::builder_append(out, responses_json::quote_string(label))
     if len(doc) > 0 {
-        let doc_obj = parser::json_obj_new()
-        push(doc_obj, parser::json_field(String_from("kind"), parser::json_str(String_from("markdown"))))
-        push(doc_obj, parser::json_field(String_from("value"), parser::json_str(doc)))
-        push(fields, parser::json_field(String_from("documentation"), JsonValue::Object(doc_obj)))
+        out = text::builder_append(out, String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
+        out = text::builder_append(out, responses_json::quote_string(doc))
+        out = text::builder_append(out, String_from("}"))
     }
-    push(fields, parser::json_field(String_from("parameters"), JsonValue::Array(build_param_labels(params))))
-    parser::json_obj_string(fields)
+    out = text::builder_append(out, String_from(",\"parameters\":["))
+    out = text::builder_append(out, append_param_labels(String_new(), params))
+    out = text::builder_append(out, String_from("]}"))
+    out
 }
 
 pub fn build_signature_help_response(id: i32, label: String, doc: String, params: Vec<String>, active_param: i32) -> String {
-    let sig_arr = parser::json_arr_new()
-    push(sig_arr, parser::json_raw(signature_info_json(label, doc, params)))
-    let result_obj = parser::json_obj_new()
-    push(result_obj, parser::json_field(String_from("signatures"), JsonValue::Array(sig_arr)))
-    push(result_obj, parser::json_field(String_from("activeSignature"), parser::json_i32(0)))
-    push(result_obj, parser::json_field(String_from("activeParameter"), parser::json_i32(active_param)))
-    let fields = parser::json_obj_new()
-    push(fields, parser::json_field(String_from("jsonrpc"), parser::json_str(String_from("2.0"))))
-    push(fields, parser::json_field(String_from("id"), parser::json_i32(id)))
-    push(fields, parser::json_field(String_from("result"), JsonValue::Object(result_obj)))
-    parser::json_obj_string(fields)
+    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    body = text::builder_append(body, to_string(id))
+    body = text::builder_append(body, String_from(",\"result\":{\"signatures\":["))
+    body = text::builder_append(body, signature_info_json(label, doc, params))
+    body = text::builder_append(body, String_from("],\"activeSignature\":0,\"activeParameter\":"))
+    body = text::builder_append(body, to_string(active_param))
+    body = text::builder_append(body, String_from("}}"))
+    body
 }

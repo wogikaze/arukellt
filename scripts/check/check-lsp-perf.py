@@ -35,6 +35,19 @@ def _find_wasmtime() -> str | None:
     return shutil.which("wasmtime")
 
 
+def _wasmtime_run_prefix(wasmtime: str) -> list[str]:
+    return [
+        wasmtime,
+        "run",
+        "--wasm",
+        "gc",
+        "--wasm",
+        "function-references",
+        "--wasm",
+        "max-wasm-stack=16777216",
+    ]
+
+
 def _resolve_compiler(root: Path) -> Path | None:
     sys.path.insert(0, str(root))
     from scripts.selfhost.checks import resolve_ide_gate_compiler_wasm
@@ -116,7 +129,7 @@ def _lifecycle_prefix(uri: str, text: str) -> bytes:
 def _timed_request(script: bytes, wasmtime: str, compiler: Path, root: Path) -> float:
     start = time.perf_counter()
     rc = subprocess.run(
-        [wasmtime, "run", "--dir", str(root), str(compiler), "--", "lsp"],
+        [*_wasmtime_run_prefix(wasmtime), "--dir", str(root), str(compiler), "--", "lsp"],
         cwd=str(root),
         input=script,
         capture_output=True,

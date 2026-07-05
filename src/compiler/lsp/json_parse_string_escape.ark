@@ -1,9 +1,35 @@
 // Arukellt Selfhost - LSP JSON string escape decoding.
-//
-// Delegates to std::json (issue #704).
 
-use std::json
+use lsp::json_parse_string_unicode
 
 fn json_escape_char(s: String, pos: i32) -> String {
-    json::json_decode_escape(s, pos)
+    let esc = char_at(s, pos)
+    if esc == 34 {
+        return String_from("\"")
+    }
+    if esc == 92 {
+        return String_from("\\")
+    }
+    if esc == 47 {
+        return String_from("/")
+    }
+    if esc == 110 {
+        return String_from("\n")
+    }
+    if esc == 114 {
+        return String_from("\r")
+    }
+    if esc == 116 {
+        return String_from("\t")
+    }
+    if esc == 98 {
+        return char_to_string(8)
+    }
+    if esc == 102 {
+        return char_to_string(12)
+    }
+    if esc == 117 {
+        return json_parse_string_unicode::json_escape_unicode_ascii(s, pos)
+    }
+    substring(clone(s), pos, pos + 1)
 }
