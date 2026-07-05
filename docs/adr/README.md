@@ -28,10 +28,9 @@
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | Archive | ステータス: DECIDED — T3 (wasm32-wasi-p2)をプライマリターゲットとして選定 |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Archive | ステータス: ACCEPTED — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用 |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Archive | ステータス: DECIDED — ユーザー到達パスでのpanic禁止 |
-| [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Two-Piece Set | Archive | ステータス: DECIDED — Breaking Change Process（2要素セット）を採用 |
 | [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Archive | ステータス: DECIDED — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし） |
 | [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Archive | ステータス: DECIDED — 3つのドキュメントクラス（normative/explanatory/transitional）を採用 |
-| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Anchor / Permalink Naming Convention and Redirect Policy | Archive | ステータス: DECIDED — Anchor命名規則・リダイレクトポリシーを採用 |
+| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Link-Check Coverage Policy | Archive | ステータス: DECIDED — リンクチェックカバレッジポリシーを採用 |
 | [ADR-020-t2-io-surface.md](ADR-020-t2-io-surface.md) | ADR-020: T2 (wasm32-freestanding) I/O Surface Design — Console/DOM Bridge Contract | Archive | ステータス: DECIDED — Import-based bridge（1ページlinear memory region）を採用 |
 | [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format — Encoding, Versioning, and Round-Trip Contract | Archive | ステータス: DECIDED — fragmentベースのshare URL形式（versioned path structure） |
 | [ADR-022-playground-deployment-and-caching.md](ADR-022-playground-deployment-and-caching.md) | ADR-022: Playground Deployment and Asset Caching Strategy | Archive | ステータス: DECIDED — GitHub Pagesで静的ホスティング（Fastly CDN経由） |

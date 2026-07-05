@@ -295,7 +295,7 @@ use std::core::hash::Hash
 
 ---
 
-## 4. 移行計画 (ADR-016 準拠)
+## 4. 移行計画
 
 ### 4.1 移行フェーズ
 
@@ -346,7 +346,7 @@ B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
 | `std::core::error` の `Error` enum | error 型名 | `AppError` にリネーム |
 | `std::text::fmt` の `format_i32`/`format_f64`/`pad_left`/`pad_right` | フォーマット | `format!` マクロ |
 
-### 4.4 移行ガイド (docs/migration/v0.1-to-v0.2.md)
+### 4.4 移行ガイド
 
 統合移行ガイドの構成 (本 redesign 完了時に作成):
 
@@ -463,7 +463,6 @@ python3 scripts/check/check-docs-consistency.py
 ## 8. 参照
 
 - [ADR-036: Trait-based Stdlib Redesign Strategy](../adr/ADR-036-trait-stdlib-redesign.md)
-- [ADR-016: Breaking Change Process](../adr/ADR-016-breaking-change-process.md)
 - [ADR-014: Stability Labels](../adr/ADR-014-stability-labels.md)
 - [Stdlib Expansion Policy](expansion-policy.md)
 - [Monomorphic Deprecation Table](monomorphic-deprecation.md)

@@ -15,7 +15,6 @@ docs/compiler/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/gen
 docs/design/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/examples/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/language/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
-docs/migration/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/platform/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/process/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/sample/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py

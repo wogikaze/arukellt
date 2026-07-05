@@ -29,7 +29,7 @@ python3 scripts/gen/generate-docs.py
 
 1. Add `deprecated = true` and `deprecated_reason = "..."` fields to the manifest entry.
 2. Update the stdlib reference docs (`python3 scripts/gen/generate-docs.py`).
-3. If the function is `stable`, provide a migration guide entry in `docs/migration/`.
+3. If the function is `stable`, provide a migration guide entry in the issue.
 4. The function remains available for at least one minor release after deprecation.
 5. Removal moves the function to a `removed_functions` section and produces a compile error with guidance.
 

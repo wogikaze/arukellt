@@ -91,7 +91,7 @@ via #700 / #701 / #691 / #695.
       `Iterator` adapters.
 - [ ] **Migration guide**: Update `docs/stdlib/migration-guidance.md`
       with before/after table for each deleted API.
-- [ ] **[breaking]** Create breaking change notice per ADR-016.
+- [ ] **[breaking]** Create breaking change notice with migration guide.
 
 ### Fixtures
 
@@ -117,6 +117,5 @@ via #700 / #701 / #691 / #695.
 - Related: #697 (Vec operation extension — adds new methods that
   replace some monomorphic helpers)
 - ADR-036 D2 (bold cutover decision)
-- ADR-016 (Breaking Change Process)
 - `std/prelude.ark`, `std/seq/mod.ark`, `std/manifest.toml`
 - `docs/stdlib/migration-guidance.md`, `docs/stdlib/trait-stdlib-redesign.md`

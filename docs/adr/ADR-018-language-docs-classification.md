@@ -30,7 +30,7 @@ ADR-014 established stability labels for individual spec *sections* and stdlib *
 
 | Class | Meaning | Fixture backing required? | Change process |
 |-------|---------|--------------------------|----------------|
-| **normative** | Authoritative specification of implemented, verifiable behavior. The document's claims are tested by the fixture harness. | Yes (or explicit exemption) | Changes require spec review; breaking changes follow ADR-016 |
+| **normative** | Authoritative specification of implemented, verifiable behavior. The document's claims are tested by the fixture harness. | Yes (or explicit exemption) | Changes require spec review |
 | **explanatory** | Tutorial, conceptual, or usage-oriented content. Explains but does not define behavior. May reference normative documents. | No | Normal PR process; must not contradict normative docs |
 | **transitional** | Documents a planned or in-progress change that has not fully landed. Will be promoted to normative, merged into an existing normative doc, or retired when the feature lands. | No (until promoted) | Must carry a `DONE_WHEN` condition describing when it retires or graduates |
 
@@ -108,5 +108,4 @@ Rejected: Existing banners are inconsistent (`Current-first`, `Transitional`, `F
 - `docs/language/` — language documentation directory
 - `docs/data/language-doc-classifications.toml` — machine-readable classification data (created in this work order)
 - ADR-014: Stability Labels for Language Spec and Stdlib API
-- ADR-016: Breaking Change Process — Three-Piece Set
 - `scripts/gen/generate-docs.py` — generates `docs/language/README.md` including classification table

@@ -34,7 +34,6 @@
 | `docs/stdlib/scoreboard.md` | generated | `scripts/gen/generate-docs.py` | Module maturity scoreboard |
 | `docs/data/` | generated | `scripts/gen/generate-docs.py` | Project state data |
 | `docs/spec/` | archive | — | Previous version specs |
-| `docs/migration/` | archive | — | Version migration guides |
 | `docs/adr/` | product | — | Architecture Decision Records |
 | `extensions/arukellt-all-in-one/` | product | — | VS Code extension |
 | `harness/` | internal | — | Test harness configuration |

@@ -6,7 +6,7 @@
 
 This policy covers:
 - Completed issues (`issues/done/`)
-- Historical documentation (`docs/spec/`, `docs/migration/`)
+- Historical documentation (`docs/spec/`)
 - Architecture Decision Records (`docs/adr/`)
 - Build artifacts and generated files
 
@@ -34,12 +34,6 @@ This policy covers:
   ```
 
 - **No deletion**: Historical docs remain for reference.
-
-### Migration Documentation (`docs/migration/`)
-
-- **Retained for 2 major versions**: Migration guides from version N are kept until version N+2.
-- **After retention period**: Move to `docs/spec/archive/` with archive banner.
-- **Active guides**: Must link to current `docs/current-state.md`.
 
 ### Generated Files
 
@@ -71,5 +65,4 @@ When moving content to archive:
 ## Review Schedule
 
 - Review `issues/done/` count at each milestone
-- Review `docs/migration/` retention at each major version
 - Manually audit large files (> 500KB) monthly with `find docs issues -type f -size +500k`

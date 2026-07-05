@@ -25,7 +25,7 @@ description: >-
 主な対象パスには通常：
 - `docs/process/bootstrap-verification.md`
 - `docs/process/selfhosting-stdlib-checklist.md`
-- 作業指示によって名前付けられた関連`docs/process/**`、`docs/migration/**`、または問題追跡パス
+- 作業指示によって名前付けられた関連`docs/process/**`または問題追跡パス
 - 引退基準に直接関連付けられた最小限の検証またはハーネスパス
 - 割り当てが明示的にパリティマーカーまたは引退フックを含む場合のみ`src/compiler/*.ark`
 

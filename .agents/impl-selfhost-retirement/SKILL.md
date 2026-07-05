@@ -26,7 +26,7 @@ You specialize in:
 Primary paths usually include:
 - `docs/process/bootstrap-verification.md`
 - `docs/process/selfhosting-stdlib-checklist.md`
-- Related `docs/process/**`, `docs/migration/**`, or issue-tracking paths named by the work order
+- Related `docs/process/**` or issue-tracking paths named by the work order
 - Minimal verification or harness paths directly tied to retirement criteria
 - `src/compiler/*.ark` only when the assignment explicitly includes parity markers or retirement hooks
 

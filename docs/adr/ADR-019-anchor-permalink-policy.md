@@ -1,203 +1,55 @@
-# ADR-019: Anchor / Permalink Naming Convention and Redirect Policy
+# ADR-019: Link-Check Coverage Policy
 
-ステータス: **DECIDED** — Anchor命名規則・リダイレクトポリシーを採用
+ステータス: **DECIDED** — リンクチェックカバレッジポリシーを採用
 **Created**: 2026-04-14
+**Revised**: 2026-07-06 — ポリシーを柱3（リンクチェック）のみに縮小。柱1（アンカー命名規則）・柱2（リダイレクトポリシー）は運用実態に合わないため削除。
 **Scope**: Language documentation (`docs/language/`), all Markdown docs under `docs/`, docs site (`docs/index.html`)
 
 ---
 
 ## Context
 
-As the language documentation grows and reorganization occurs (section splits, renames, hierarchy changes),
-anchor links and document permalinks become unstable. Readers who bookmark URLs or external tools (issue
-trackers, RFCs, external blogs) that link into the docs will encounter broken references. Additionally,
-the existing `scripts/check/check-links.sh` checks internal file references but does not validate anchor
-fragments — this gap should be documented and a policy set for v1 scope.
+As the language documentation grows, internal links (`path.md#anchor`) and file references (`path/to/file.md`) can break when documents are moved, renamed, or reorganized. A link-check harness is needed to catch drift on CI and in `verify quick`.
 
-This ADR covers three related concerns:
+This ADR covers **link-check coverage** — what the harness checks and what is out of scope.
 
-1. **Anchor naming convention** — how in-page section anchors must be formed.
-2. **Redirect / alias policy** — how to handle stable external URLs when docs are moved or split.
-3. **Link-check coverage** — what the existing harness covers and what is deferred.
+> **Historical note:** This ADR originally also specified an anchor naming convention (S1/S2/S3 tiers, explicit `<a id="">` anchors) and a redirect/alias policy (Docsify aliases, stub files, `SPLIT_FROM`/`MERGED_FROM` comments). Those policies were not operationally enforced and have been removed. The GFM auto-anchor rules and explicit `<a id="">` anchors remain valid Markdown/Docsify behavior but are no longer mandated by this ADR.
 
 ---
 
 ## Decision
 
-### 1. Anchor Naming Convention
+### 1. Existing coverage: `scripts/check/check-links.sh`
 
-#### 1.1 Auto-generated anchors (GFM / Docsify)
-
-The docs site uses [Docsify](https://docsify.js.org/) with `routerMode: 'hash'`.
-Docsify auto-generates per-heading anchors from heading text using GitHub Flavored Markdown (GFM) rules:
-
-- Convert heading text to lowercase.
-- Replace spaces with hyphens (`-`).
-- Remove all characters except `[a-z0-9-]` (i.e., strip punctuation, diacritics, non-ASCII).
-- Deduplicate anchors on the same page by appending `-1`, `-2`, … as needed.
-
-These auto-generated anchors are **implicitly stable** only when the heading text does not change.
-Heading renames are therefore **breaking changes** for any external link targeting that anchor.
-
-#### 1.2 Anchor stability tiers
-
-| Tier | Applicability | Requirement |
-|------|--------------|-------------|
-| **S1 — fixed** | Top-level `##` headings in normative docs and ADRs | MUST NOT change after the document is merged; renames require a redirect alias |
-| **S2 — stable** | Sub-section `###` headings in normative docs | SHOULD NOT change without a migration note in the same PR |
-| **S3 — advisory** | `####` and deeper in any doc; all headings in transitional or explanatory docs | MAY change freely |
-
-#### 1.3 Explicit stable anchors for S1 headings
-
-For **S1** headings that are likely to be externally linked (e.g., referenced from issues, from `docs/adr/`,
-or from external documentation), place an explicit anchor element **before** the heading:
-
-```markdown
-<a id="error-result-type"></a>
-## Error Handling: Result Type
-```
-
-The `id` attribute MUST follow the same lowercase-hyphenated form and MUST be unique within the document.
-Explicit anchors take precedence over the auto-generated form; both remain valid in Docsify.
-
-#### 1.4 Anchor naming rules
-
-All `id` values (explicit or auto-generated) MUST conform to:
-
-- Pattern: `[a-z][a-z0-9-]*`
-- No uppercase letters.
-- No underscores — use hyphens instead.
-- No leading hyphens.
-- Maximum 80 characters.
-- Derive the `id` from the canonical English form of the heading (even when the heading text is in another language).
-
-Examples:
-- `##型変換` → explicit anchor: `<a id="type-conversion"></a>`
-- `## Result / Option エラー処理` → explicit anchor: `<a id="result-option-error-handling"></a>`
-- `## Memory Model — GC native` → auto-anchor: `memory-model--gc-native` (two hyphens from ` — `); explicit stable: `<a id="memory-model-gc-native"></a>`
-
-#### 1.5 ADR document anchors
-
-Each ADR section heading (Context, Decision, Consequences, Alternatives, References) is **S1**
-and MUST use the GFM-generated anchor form (no special characters in those headings, so GFM and
-explicit are equivalent). Cross-ADR section links use the pattern:
-
-```markdown
-[ADR-018 § Decision](ADR-018-language-docs-classification.md#decision)
-```
-
----
-
-### 2. Redirect / Alias Policy for Doc Reorganization
-
-#### 2.1 Scope
-
-This policy applies whenever a document in `docs/` is:
-
-- **Moved** to a different directory or filename.
-- **Renamed** (filename change, even within the same directory).
-- **Split** (one doc becomes two or more).
-- **Merged** (two docs become one, eliminating a URL).
-
-#### 2.2 Docsify alias entries
-
-The docs site uses Docsify's `alias` config in `docs/index.html` to provide path-level redirects.
-When a document is moved or renamed, a Docsify alias MUST be added to `window.$docsify.alias`
-before the old URL is removed:
-
-```js
-alias: {
-  // Format: 'old-path': 'new-path'  (relative to docs root, without leading slash)
-  'language/old-name.md': 'language/new-name.md',
-  // Wildcard aliases use regex syntax:
-  '/language/old-section/(.*)': '/language/new-section/$1',
-}
-```
-
-#### 2.3 Retention period
-
-Redirect aliases MUST be kept for a minimum of **two minor releases** after the old path is removed.
-After that period, aliases MAY be removed in a PR that documents the cleanup.
-
-#### 2.4 Stub files for moved normative documents
-
-When a **normative** document is moved, in addition to the Docsify alias, leave a one-paragraph
-stub at the old path for at least **one minor release**:
-
-```markdown
-# <Old Title> (Moved)
-
-> This document has moved to [new-name.md](../new-name....md).
-> Please update your bookmarks. This stub will be removed after vX.Y.
-```
-
-Stub files are exempt from classification requirements (they are not added to
-`docs/data/language-doc-classifications.md`).
-
-#### 2.5 Split policy
-
-When a document is split into two or more files:
-
-1. The original URL MUST redirect (Docsify alias) to the primary/canonical replacement.
-2. The original S1 section anchors MUST be preserved in the target files using explicit `<a id="">` elements.
-3. A `SPLIT_FROM` comment at the top of each new file documents the origin:
-
-```markdown
-<!-- SPLIT_FROM: old-doc.md (split in #NNN, vX.Y) -->
-```
-
-#### 2.6 Merge policy
-
-When two documents are merged:
-
-1. Both old URLs MUST redirect to the merged document.
-2. Section anchors from both source documents MUST be preserved using explicit `<a id="">` elements.
-3. A `MERGED_FROM` comment at the top of the new file documents the origin:
-
-```markdown
-<!-- MERGED_FROM: doc-a.md, doc-b.md (merged in #NNN, vX.Y) -->
-```
-
----
-
-### 3. Link-Check Coverage
-
-#### 3.1 Existing coverage: `scripts/check/check-links.sh`
-
-A link-check script already exists at `scripts/check/check-links.sh`. It:
+A link-check script exists at `scripts/check/check-links.sh`. It:
 
 - Scans all Markdown files under `docs/` and `issues/`.
 - Validates that relative file references in `](path...)` link targets resolve to existing files.
-- **Intentionally skips** pure anchor-only references (`#anchor`) and anchors appended to file paths
-  (`path.md#anchor`) — only the file existence is checked.
+- **Intentionally skips** pure anchor-only references (`#anchor`) and anchors appended to file paths (`path.md#anchor`) — only the file existence is checked.
 - **Does not** check external URLs (`http://`, `https://`).
 
-This script is the **v1 canonical link-checker**. Do not add a second link-checker unless the
-scope of this script is demonstrably insufficient for a specific assigned work order.
+This script is the **v1 canonical link-checker**. Do not add a second link-checker unless the scope of this script is demonstrably insufficient for a specific assigned work order.
 
-#### 3.2 Anchor fragment checking (implemented)
+### 2. Anchor fragment checking (implemented)
 
-Anchor fragment validation is implemented in `scripts/check/check-anchor-fragments.py`
-and wired into `python3 scripts/manager.py verify quick` (static pass, immediately after
-`scripts/check/check-links.sh`).
+Anchor fragment validation is implemented in `scripts/check/check-anchor-fragments.py` and wired into `python3 scripts/manager.py verify quick` (static pass, immediately after `scripts/check/check-links.sh`).
 
 The checker:
 
 - Scans Markdown under `docs/` and `issues/`, plus `README.md` and `AGENTS.md`.
 - Validates relative links of the form `path.md#anchor` and same-file `#anchor` references.
-- Resolves targets using GFM heading slug rules (§1.1) plus explicit `<a id="">` anchors (§1.3).
+- Resolves targets using GFM heading slug rules plus explicit `<a id="">` anchors.
 - Skips external URLs (`http://`, `https://`, `mailto:`) and Docsify router paths (`#/...`).
 - Supports an optional allowlist at `scripts/check/anchor-allowlist.txt` for known exceptions.
 
-Authors adding cross-document anchor links should still verify targets locally; the harness
-catches drift on CI and in `verify quick`.
+Authors adding cross-document anchor links should still verify targets locally; the harness catches drift on CI and in `verify quick`.
 
-#### 3.3 Summary of link-check guarantees
+### 3. Summary of link-check guarantees
 
 | Check | Tool | Status |
 |-------|------|--------|
-| Internal file references (e.g. `path/to/file....md`) | `scripts/check/check-links.sh` | ✅ Covered |
-| Anchor fragments (e.g. `file....md#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
+| Internal file references (e.g. `path/to/file.md`) | `scripts/check/check-links.sh` | ✅ Covered |
+| Anchor fragments (e.g. `file.md#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
 | Pure in-page anchors (e.g. `#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
 | External URLs (`https://...`) | — | ❌ Out of scope |
 
@@ -205,37 +57,30 @@ catches drift on CI and in `verify quick`.
 
 ## Consequences
 
-- Every PR that renames an S1 heading in a normative document MUST either (a) update all inbound
-  anchor links, or (b) add an explicit `<a id="old-anchor">` to preserve the old target.
-- Every PR that moves or removes a document MUST add a Docsify alias entry to `docs/index.html`.
-- `scripts/check/check-links.sh` validates internal file references; `scripts/check/check-anchor-fragments.py`
-  validates anchor fragments — both run in `verify quick`.
+- `scripts/check/check-links.sh` validates internal file references; `scripts/check/check-anchor-fragments.py` validates anchor fragments — both run in `verify quick`.
 - ADR-018 classification banners are orthogonal to this policy; both apply independently.
+- Document moves/renames/splits/merges do not require Docsify aliases, stub files, or `SPLIT_FROM`/`MERGED_FROM` comments (the previously mandated policies have been removed). Authors should update inbound links manually; the link-check harness will catch broken references.
 
 ---
 
 ## Alternatives Considered
 
 **Embed redirect headers in Markdown front matter**
-Rejected: The docs site (Docsify) does not process YAML front matter for redirects. Docsify aliases
-in `docs/index.html` are the appropriate mechanism.
+Rejected: The docs site (Docsify) does not process YAML front matter for redirects.
 
 **Add anchor-fragment checking to `check-links.sh` now**
-Rejected: heading extraction and slug deduplication are easier to maintain in a dedicated
-`check-anchor-fragments.py` script (implemented in issue #644).
+Rejected: heading extraction and slug deduplication are easier to maintain in a dedicated `check-anchor-fragments.py` script (implemented in issue #644).
 
 **Use a separate `_redirects` file (Netlify-style)**
-Rejected: The project is not currently deployed to Netlify or any service that reads `_redirects`.
-Docsify aliases in `docs/index.html` are self-contained and do not require a hosting-specific feature.
+Rejected: The project is not currently deployed to Netlify or any service that reads `_redirects`. Docsify aliases in `docs/index.html` are self-contained and do not require a hosting-specific feature.
 
 ---
 
 ## References
 
-- `docs/index.html` — Docsify configuration including alias entries
-- `scripts/check/check-links.sh` — existing internal file reference checker
+- `docs/index.html` — Docsify configuration
+- `scripts/check/check-links.sh` — internal file reference checker
 - `scripts/check/check-anchor-fragments.py` — anchor fragment checker (GFM slugs + explicit ids)
-- `docs/data/language-doc-classifications.toml` — per-document classification data (ADR-018)
 - ADR-018: Language Docs Classification — Normative / Explanatory / Transitional
-- ADR-016: Breaking Change Process — Three-Piece Set
+- Issue #644: Docs anchor fragment link-check (ADR-019 v2 delivery)
 - Issue #412: Language Docs: 安定した anchor / permalink 体系を整える
