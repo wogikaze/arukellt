@@ -106,13 +106,11 @@ let d = f32x4::replace_lane(c, 3, f32x4::extract_lane(c, 0))
 
 | ターゲット | SIMD 可否 | 挙動 |
 |------------|-----------|------|
-| T1 `wasm32-wasi-p1` | 全 SIMD 命令使用可能 | v128 命令を直接 emit（iwasm 2.4.1 が SIMD 対応） |
-| T2 `wasm32-freestanding` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
-| T3 `wasm32-wasi-p2` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
-| T4 native | 使用可能 (前提) | LLVM native SIMD (`<4 x i32>` 等) を使用 |
-| T5 `wasm32-wasi-p3` | 将来対応 | v128 命令を直接 emit (T3 と同様) |
+| `wasm32` | 全 SIMD 命令使用可能 | v128 命令を直接 emit（iwasm 2.4.1 が SIMD 対応） |
+| `wasm32-gc` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
+| `native-cpp` / `native-llvm` | 使用可能 (前提) | LLVM native SIMD (`<4 x i32>` 等) を使用 |
 
-T1 は iwasm 2.4.1 が SIMD に対応しているため、ネイティブ SIMD 命令を使用する。
+`wasm32` は iwasm 2.4.1 が SIMD に対応しているため、ネイティブ SIMD 命令を使用する。
 スカラー展開（`call_simd_scalar*.ark`）はフォールバックコードとして存在するが、
 現在の `is_simd_target()` は全ターゲットで `true` を返すため、スカラー展開パスは
 使用されない。
@@ -257,8 +255,8 @@ native SIMD vector 型を用いる。
 1. `std::simd` に `v128.load` / `v128.store` を混ぜない (portable と Wasm-specific の境界崩壊)
 2. GC Vec から raw pointer を取り出す API を提供しない (GC 安全性の侵害)
 3. `#[vectorize]` のような compiler hint を導入しない (#107 の代替として明示 API を優先)
-4. T4 (LLVM) で Wasm SIMD セマンティクスを超える native 固有の最適化を入れない (ADR-005)
-5. T1 でスカラー展開をデフォルトとしない（iwasm 2.4.1 が SIMD 対応のためネイティブ SIMD を使用。スカラー展開はフォールバックとして保持）
+4. `native-llvm` で Wasm SIMD セマンティクスを超える native 固有の最適化を入れない (ADR-005)
+5. `wasm32` でスカラー展開をデフォルトとしない（iwasm 2.4.1 が SIMD 対応のためネイティブ SIMD を使用。スカラー展開はフォールバックとして保持）
 
 ---
 
@@ -275,7 +273,7 @@ native SIMD vector 型を用いる。
 ### 負の影響
 
 - v128 第一級型の導入により typechecker / MIR / emitter の全面改修が必要
-- T1 の scalar 展開は性能が出ない (SIMD の恩恵を受けられない)
+- `wasm32` の scalar 展開は性能が出ない (SIMD の恩恵を受けられない)
 - load/store API の分離により、線形メモリ上の SIMD データ操作は明示的 marshal が必要
 
 ---
@@ -283,9 +281,9 @@ native SIMD vector 型を用いる。
 ## 関連
 
 - ADR-002: Wasm GC 前提 (v128 の GC フィールド保持の根拠)
-- ADR-005: LLVM 従属 (T4 での native SIMD 使用の根拠)
+- ADR-005: LLVM 従属 (`native-llvm` での native SIMD 使用の根拠)
 - ADR-006: 公開 ABI 3層 (SIMD 値の ABI 表現)
-- ADR-007: ターゲット T1/T2/T3/T4/T5 (ターゲット別 SIMD 可否)
+- ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` (ターゲット別 SIMD 可否)
 - ADR-014: stability labels (experimental → stable 昇格条件)
 - `issues/reject/107-runtime-loop-vectorization-hint.md` — 本 ADR の代替元
 - `std/wasm/mod.ark` — `valtype_v128` 定数 (本 ADR では移動しない)

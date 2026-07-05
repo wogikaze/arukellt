@@ -18,11 +18,9 @@ ADR-007 (Targets) は以下のメモリモデルを定義している：
 
 | ターゲット | メモリモデル | 現状 |
 |------------|-------------|------|
-| T1 `wasm32-wasi-p1` | Linear memory | ✅ 実装済み、iwasm 互換 |
-| T2 `wasm32-freestanding` | **Wasm GC** | 🟡 Phase 1 部分実装（GC struct/array 命令基盤、compile/validate slice） |
-| T3 `wasm32-wasi-p2` | **Wasm GC** | 🟡 Phase 1 部分実装（GC struct/array 命令基盤、P2 imports） |
-| T4 native | LLVM 依存 | scaffold のみ |
-| T5 `wasm32-wasi-p3` | **Wasm GC** | ❌ 未実装（target ID のみ） |
+| `wasm32` | Linear memory | ✅ 実装済み、wabt/iwasm 互換 |
+| `wasm32-gc` | **Linear memory + Wasm GC** | 🟡 Phase 1 部分実装（GC struct/array 命令基盤、compile/validate slice、P2 imports） |
+| `native-cpp` / `native-llvm` | LLVM/C++ 依存 | scaffold のみ |
 
 selfhost エミッタには GC 命令基盤 (`writer_gc.ark`、`sections_types_gc.ark`、
 `ctx_gc_type.ark`) と struct/array 発行の target dispatch が追加された。
@@ -37,8 +35,8 @@ aggregate ABI、String/Vec/Enum/Option/Result の GC 表現は未完了。
 
 ## 決定
 
-Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は T3 (`wasm32-wasi-p2`)
-で既存フィクスチャスイートが全通過すること。T2/T5 は T3 完了後に個別対応する。
+Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は `wasm32-gc`
+で既存フィクスチャスイートが全通過すること。
 
 ### Phase 0: GC 命令基盤 ✅ (完了, 2026-06-17)
 
@@ -99,19 +97,19 @@ Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は T
 
 ### Phase 4: 最適化・検証・移行
 
-- `--target wasm32-wasi-p2` で既存フィクスチャスイート全通過を確認
-- `--target wasm32-wasi-p1` (T1) は従来の linear memory パスを維持
+- `--target wasm32-gc` で既存フィクスチャスイート全通過を確認
+- `--target wasm32` は従来の linear memory パスを維持
 - 型安全性のための WIT-level GC reference checking (W0004 gate)
 - gc_hint custom section の充実（GC type layout metadata for runtime）
-- T5 (wasm32-wasi-p3 / async-first) の GC 対応は WASI P3 仕様確定後に着手
+- WASI P3 対応は `wasm32-gc` の `--wasi p3` フラグで切り替え（WASI P3 仕様確定後）
 
 ## スコープ外
 
 - Post-MVP GC features (ADR-008 survey): static fields, weak references,
   generics — これらは v5 以降
 - jco/javy interop (#036, #037): jco の Wasm GC サポート待ち
-- LLVM backend (T4): native target は別トラック
-- T5 async-first: WASI P3 仕様未確定のため defer
+- LLVM backend (`native-llvm`): native target は別トラック
+- WASI P3 async-first: WASI P3 仕様未確定のため defer
 
 ## リスク
 
@@ -123,8 +121,8 @@ Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は T
 3. **Migration cost**: `i32-as-pointer` から GC reference への移行で
    MIR lowering の多くの箇所に影響。段階的移行が難しい場合、一度に切り替える
    「flag day」アプローチも検討。
-4. **T1/T3 の二重実装コスト**: ADR-002 で「両対応」は拒否されたが、
-   T1 維持のため linear memory パスは残す。コードベースが複雑になる。
+4. **`wasm32` / `wasm32-gc` の二重実装コスト**: ADR-002 で「両対応」は拒否されたが、
+   `wasm32` 維持のため linear memory パスは残す。コードベースが複雑になる。
 
 ## タイムライン（目標）
 
