@@ -814,9 +814,9 @@ def gate_641() -> tuple[int, str]:
         return 1, "target.ark lacks native registration"
     if "emit_native_scaffold" not in native_text or "T4 native scaffold" not in native_text:
         return 1, "native.ark lacks scaffold emitter"
-    contract = (REPO_ROOT / "docs" / "target-contract.md").read_text(encoding="utf-8")
-    if "T4 — native" not in contract or "scaffold" not in contract:
-        return 1, "target-contract.md T4 section not scaffold"
+    contract = (REPO_ROOT / "docs" / "adr" / "ADR-007-targets.md").read_text(encoding="utf-8")
+    if "native_scaffold" not in contract or "scaffold" not in contract:
+        return 1, "ADR-007-targets.md T4 native section not scaffold"
     return 0, ""
 
 
