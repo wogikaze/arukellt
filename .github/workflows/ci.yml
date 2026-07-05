@@ -19,6 +19,16 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
+      - name: Install wasm-tools
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf \
+            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-tools
+
+      - name: Build wasm-heap-grow-patcher
+        run: cargo build --release --quiet
+        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
+
       - name: Run repository verification
         run: python3 scripts/manager.py verify
 
@@ -33,6 +43,16 @@ jobs:
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Install wasm-tools
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf \
+            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-tools
+
+      - name: Build wasm-heap-grow-patcher
+        run: cargo build --release --quiet
+        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Fixpoint
         run: python3 scripts/manager.py selfhost fixpoint
