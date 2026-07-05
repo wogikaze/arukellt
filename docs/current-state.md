@@ -11,7 +11,7 @@
 The **corehir** path is the only pipeline for all CLI commands (`compile`, `build`, `run`, `check`).
 
 - **corehir** (only path): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
-- Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [target-contract.md](target-contract.md#component-output-separate-guarantee-tier))
+- Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [ADR-007: Targets](adr/ADR-007-targets.md#emit-surface))
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
@@ -46,7 +46,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 selfhost emitter (`src/compiler/emitter.ark`). Regression proof:
 `tests/fixtures/t2/t2_scaffold.ark` exercised through the selfhost gates with
 `wasmparser` validation. Full target
-verification contract and roadmap context: [target-contract.md](target-contract.md)
+verification contract and roadmap context: [ADR-007: Targets](adr/ADR-007-targets.md)
 and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
@@ -225,7 +225,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - **Modular full-compile fixpoint reached (2026-06)** — the pinned bootstrap wasm is now built from the modular `src/compiler/**` tree and reproduces itself byte-for-byte (`sha256(pinned) == sha256(s2) == sha256(s3)`). Collision-aware export naming, CoreHIR i64 widening, shaped generic type annotations, binop operand type peeking, and a conditional `local.tee` peephole landed in the modular pipeline; the legacy monolithic emitter patches in `scripts/selfhost/checks.py` were removed. The bootstrap overlay now includes the `analysis`/`lsp`/`dap` namespaces, so the selfhost wasm serves the IDE gates (`ide-analyze`, `lsp`, `debug-adapter`); the LSP advertises completion, `signatureHelp`, and `codeAction` providers, stdlib definition/hover via manifest index (#334 baseline), AST-inferred hover with doc comments (#336), manifest-driven signature help (#337), and auto-import completion/code actions (#340). The lexer diagnostic position bug from the monolithic era is fixed (goldens updated).
 - **Selfhost Phase 1 fixpoint achieved** — `sha256(s2) == sha256(s3)` passes (`attainment: reached`). The selfhost compiler (`src/compiler/main.ark`) reproducibly compiles itself. Multi-file module loading, qualified call resolution, and cross-module type handling are all working. See [Self-Hosting Bootstrap Status](#self-hosting-bootstrap-status).
 - **`arukellt doc` subcommand added (issue 456)** — stdlib manifest lookup via `arukellt doc <symbol>`. Supports `--json`, `--target`, and fuzzy-match "did you mean?" for unknown symbols.
-- **Host capability honesty (#633)** — `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost execution path (`call_host_io.ark` dispatches env/fs/process/stdio only). Manifest and `docs/capability-surface.md` now cross-link #446/#447/#077/#139. HTTPS is not supported for HTTP.
+- **Host capability honesty (#633)** — `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost execution path (`call_host_io.ark` dispatches env/fs/process/stdio only). Manifest and [ADR-007: Targets](ADR-007-targets.md#capability-surface) now cross-link #446/#447/#077/#139. HTTPS is not supported for HTTP.
 - **GC-native T3 emitter complete** — the v1 GC-native track closed on 2026-03-27
 - **Component / WIT support added in v2** — `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`
 - **Stdlib v3 track completed** — the stdlib roadmap items tracked as issues 039–059 now live in `issues/done/`
@@ -306,7 +306,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
 - T4 (`native`) is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. Full selfhost-native lowering remains #529 Phase 7 follow-up.
 - some historical docs remain archived / historical and should not override current-state
-- **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see `docs/capability-surface.md` and #633). Importing `std::host::sockets` or `std::host::udp` on T1 still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
+- **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [ADR-007: Targets](ADR-007-targets.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on T1 still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
 - **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.
 - **Library vs command component worlds (#666)**: on `wasm32-wasi-p2` with default `--wasi-version p2`, modules that export component-compatible `pub fn` surfaces compile through the **library export** path (generic or specialized canonical ABI adapters). Modules with no exportable `pub fn` and no explicit `--world` use the **P2 command** wrapper (`wasi:cli/run`). When both `pub fn` exports and `fn main` are present, exports take precedence: the artifact is a library component with callable exports; `main` remains in core wasm but is not exported as `wasi:cli/run`. For a command-only program, omit exportable `pub fn` declarations or pass `--world wasi:cli/command`.
 

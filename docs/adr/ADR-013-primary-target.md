@@ -75,6 +75,6 @@ T3 を選ぶ根拠:
 - ADR-007: コンパイルターゲット整理（5 ターゲットの定義）
 - ADR-002: Wasm GC 採用
 - ADR-005: LLVM バックエンドの役割制限（T4 scaffold の根拠）
-- `docs/target-contract.md`: 各ターゲットの詳細検証面
+- [ADR-007: Targets](ADR-007-targets.md): 各ターゲットの詳細検証面
 - `issues/open/241-define-primary-target-and-tier-others.md`
 - `issues/open/242-ci-layer-structure.md`

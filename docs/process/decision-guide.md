@@ -20,5 +20,5 @@
 
 - [../current-state.md](../current-state.md)
 - [../adr/](../adr/)
-- [../platform/wasm-features.md](../platform/wasm-features.md)
+- [ADR-007: Targets](../adr/ADR-007-targets.md)
 - [v0-scope.md](v0-scope.md)

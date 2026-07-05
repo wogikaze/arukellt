@@ -39,7 +39,7 @@
 ## 関連
 
 - [../current-state.md](../current-state.md)
-- [wasm-features.md](wasm-features.md)
+- [ADR-007: Targets](../adr/ADR-007-targets.md)
 - [../language/memory-model.md](../language/memory-model.md)
 
 ## T3 aggregate layout (bridge mode)

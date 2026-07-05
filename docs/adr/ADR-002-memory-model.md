@@ -296,11 +296,11 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 
 - [x] `docs/language/memory-model.md` — メモリモデル詳細仕様
 - [x] `docs/language/type-system.md` — ADR-002 待ちセクション更新
-- [x] `docs/platform/wasm-features.md` — reference types / Wasm GC を Layer 1 に
+- [x] [ADR-007: Targets](ADR-007-targets.md) — reference types / Wasm GC を Layer 1 に
 - [x] `docs/stdlib/core.md` — String / Vec の実装方針を GC 前提で記載
 - [x] `docs/process/benchmark-results.md` — 実測値と判定根拠を記録
 - [x] `docs/process/linear-vs-gc-report.md` — クロスランタイム再計測結果（2026-07-05、wasmtime/Node/browser）
-- [x] `docs/platform/wasm-features.md` — wasm32 ターゲット層を追記
+- [x] [ADR-007: Targets](ADR-007-targets.md) — wasm32 ターゲット層を追記
 - [x] `docs/language/memory-model.md` — wasm32 lowering モデルを追記
 
 ## Implementation Status (2026-03-27)

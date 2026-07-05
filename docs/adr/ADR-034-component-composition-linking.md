@@ -102,5 +102,5 @@ socket = "target/runner.component.wasm"
 ## 関連
 
 - [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md)
-- [../platform/wasm-features.md](../platform/wasm-features.md)
+- [ADR-007: Targets](../adr/ADR-007-targets.md)
 - Issue #443, #476, #124

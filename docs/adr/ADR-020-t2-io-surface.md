@@ -2,7 +2,7 @@
 
 ステータス: **DECIDED** — Import-based bridge（1ページlinear memory region）を採用
 **Created**: 2026-04-20
-**Scope**: T2 codegen target, playground v2 browser execution, selfhost emitter (`src/compiler/emitter.ark`), `docs/target-contract.md`
+**Scope**: T2 codegen target, playground v2 browser execution, selfhost emitter (`src/compiler/emitter.ark`), [ADR-007: Targets](ADR-007-targets.md)
 
 ---
 
@@ -206,14 +206,14 @@ This ADR explicitly scopes T2 as a **v2 playground target**:
 - **Playground v2** adds full compile-and-run in the browser.  T2 is the
   compilation target for v2 execution.  Implementation of the T2 emitter
   is tracked in issue 382 (separate work orders).
-- `docs/target-contract.md` is updated to reflect "ADR written, emitter not
+- [ADR-007: Targets](ADR-007-targets.md) is updated to reflect "ADR written, emitter not
   started" for T2 (see Consequences below).
 
 ---
 
 ## Consequences
 
-1. **`docs/target-contract.md`** T2 row is updated from "not-started" to
+1. **[ADR-007: Targets](ADR-007-targets.md)** T2 row is updated from "not-started" to
    "ADR written, emitter not started."  No other changes to that document.
 
 2. **Selfhost emitter (`src/compiler/emitter.ark`)** — When the T2 emitter work order begins,
@@ -264,7 +264,7 @@ explicitly "no WASI" per ADR-007; adding a WASI shim defeats this constraint.
 - [ADR-013](ADR-013-primary-target.md) — T3 as primary target
 - [ADR-017](ADR-017-playground-execution-model.md) — Playground v1 contract; T2 deferred to v2
 - `src/compiler/driver.ark` — T2: `implemented: false`, `run_supported: false`
-- `docs/target-contract.md` — T2 status (updated by this ADR)
+- [ADR-007: Targets](ADR-007-targets.md) — T2 status (updated by this ADR)
 - `docs/current-state.md` — GC-Native Data Model and T3 1-page linear memory precedent
 - Issue 382 — T2 freestanding implementation (this ADR is the design phase)
 - Issue 378 / ADR-017 — Playground execution model decision

@@ -157,7 +157,7 @@ Full documentation: [optimization.md](optimization.md)
 - [diagnostics.md](diagnostics.md)
 - [ir-spec.md](ir-spec.md) — CoreHIR / MIR の正規仕様
 - [../language/spec.md](../language/spec.md) — 言語仕様 (凍結対象)
-- [../platform/wasm-features.md](../platform/wasm-features.md)
+- [ADR-007: Targets](../adr/ADR-007-targets.md)
 - [../migration/t1-to-t3.md](../migration/t1-to-t3.md)
 - [optimization.md](optimization.md) — MIR + backend optimization passes
 - [../contributing.md](../contributing.md)

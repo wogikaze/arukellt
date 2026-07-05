@@ -106,13 +106,16 @@ let d = f32x4::replace_lane(c, 3, f32x4::extract_lane(c, 0))
 
 | ターゲット | SIMD 可否 | 挙動 |
 |------------|-----------|------|
+| T1 `wasm32-wasi-p1` | 全 SIMD 命令使用可能 | v128 命令を直接 emit（iwasm 2.4.1 が SIMD 対応） |
 | T2 `wasm32-freestanding` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
 | T3 `wasm32-wasi-p2` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
-| T1 `wasm32-wasi-p1` | SIMD 命令不可 | scalar 展開 (GC lower と同様の展開方式) |
 | T4 native | 使用可能 (前提) | LLVM native SIMD (`<4 x i32>` 等) を使用 |
 | T5 `wasm32-wasi-p3` | 将来対応 | v128 命令を直接 emit (T3 と同様) |
 
-T1 の scalar 展開は、GC を lower する時と同じように、v128 命令を scalar 命令列に展開する。
+T1 は iwasm 2.4.1 が SIMD に対応しているため、ネイティブ SIMD 命令を使用する。
+スカラー展開（`call_simd_scalar*.ark`）はフォールバックコードとして存在するが、
+現在の `is_simd_target()` は全ターゲットで `true` を返すため、スカラー展開パスは
+使用されない。
 
 ### 5. 機能検出
 
@@ -255,7 +258,7 @@ native SIMD vector 型を用いる。
 2. GC Vec から raw pointer を取り出す API を提供しない (GC 安全性の侵害)
 3. `#[vectorize]` のような compiler hint を導入しない (#107 の代替として明示 API を優先)
 4. T4 (LLVM) で Wasm SIMD セマンティクスを超える native 固有の最適化を入れない (ADR-005)
-5. T1 で SIMD 命令を emit しない (scalar 展開のみ)
+5. T1 でスカラー展開をデフォルトとしない（iwasm 2.4.1 が SIMD 対応のためネイティブ SIMD を使用。スカラー展開はフォールバックとして保持）
 
 ---
 

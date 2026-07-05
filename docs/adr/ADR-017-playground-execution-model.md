@@ -14,7 +14,7 @@ implementation work begins.  Two constraints drive the decision:
 1. **T2 (`wasm32-freestanding`) is not implemented.**
    `src/compiler/driver.ark` registers the target with
    `implemented: false` and `run_supported: false`.
-   `docs/target-contract.md` states: "identifier is registered but nothing
+   [ADR-007: Targets](ADR-007-targets.md) states: "identifier is registered but nothing
    downstream handles it."  Building a playground that runs user code in the
    browser requires either T2 or an alternative approach.
 
@@ -132,7 +132,7 @@ v1 browser bundle.
    minimal read-only permalink service); it does not require a code-execution
    backend.
 
-5. `docs/target-contract.md` is **not changed** by this ADR — T2 status
+5. [ADR-007: Targets](ADR-007-targets.md) is **not changed** by this ADR — T2 status
    remains "not-started."  That document is updated only when T2 gains
    codegen or test infrastructure.
 
@@ -187,7 +187,7 @@ operational setup.  Complexity is not reduced.  Deferred to v2.
 | Doc / page | Relationship to playground v1 |
 |-----------|-------------------------------|
 | `docs/current-state.md` | Must reflect playground v1 status once each surface ships; the "active work" block is updated per ADR consequence 6. |
-| `docs/target-contract.md` | Read-only reference for T2/T3 status; playground v1 does **not** change it. |
+| [ADR-007: Targets](ADR-007-targets.md) | Read-only reference for T2/T3 status; playground v1 does **not** change it. |
 | `docs/adr/README.md` | This ADR (ADR-017) is listed there; issue 379 / 428 ADRs (if any) must also be listed on merge. |
 | Language reference / stdlib docs | The playground **editor shell** (issue 379) may link to relevant doc pages for each example snippet; no new doc pages are required for v1 launch. |
 
@@ -230,7 +230,7 @@ compiler's actual capabilities without requiring a separate CI pipeline.
 ## References
 
 - `src/compiler/driver.ark` — target registry (T2: `implemented: false`)
-- `docs/target-contract.md` — T2 status: "not-started"
+- [ADR-007: Targets](ADR-007-targets.md) — T2 status: "not-started"
 - `docs/current-state.md` — authoritative implementation status
 - [ADR-007](ADR-007-targets.md) — target taxonomy (T1–T5)
 - [ADR-013](ADR-013-primary-target.md) — T3 as primary target
