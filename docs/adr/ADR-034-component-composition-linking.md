@@ -1,4 +1,4 @@
-# ADR-034: Component Composition Linking Model
+# ADR-034: Component 合成を wac plug に委譲
 
 ステータス: **ACCEPTED** — Phase 3 wac 委譲 landed (#443, 2026-06-15)
 

@@ -1,4 +1,4 @@
-# ADR-033: Typed Function References (`call_ref`) HOF Migration
+# ADR-033: クロージャ呼び出しを call_ref に移行
 
 **Status**: DECIDED — phased migration; `call_indirect` remains baseline until table-free patterns land
 **Date**: 2026-06-14

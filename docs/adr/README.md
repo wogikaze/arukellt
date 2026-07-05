@@ -37,8 +37,8 @@
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration | Archive | ステータス: PROPOSED (draft) |
 | [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029 — Selfhost-native verification contract | Archive | Status: Accepted |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: Import Syntax and WIT Package Identifier Unification | Archive | Status: DECIDED — Two-layer separation confirmed; use reserved for Layer S, import reserved for Layer C |
-| [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: Typed Function References (call_ref) HOF Migration | Archive | Status: DECIDED — phased migration; call_indirect remains baseline until table-free patterns land |
-| [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component Composition Linking Model | Archive | ステータス: ACCEPTED — Phase 3 wac 委譲 landed (#443, 2026-06-15) |
+| [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | Archive | Status: DECIDED — phased migration; call_indirect remains baseline until table-free patterns land |
+| [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | Archive | ステータス: ACCEPTED — Phase 3 wac 委譲 landed (#443, 2026-06-15) |
 | [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC Implementation Plan | Archive | ステータス: DRAFT — 段階実装中（Phase 0 完了、Phase 1-3 部分完了、Phase 4 進行中） |
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | Archive | ステータス: DRAFT — 688-697 完了後に実行される stdlib 再設計の戦略 ADR |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Explicit SIMD Library API | Archive | ステータス: PROPOSED — 明示的 SIMD ライブラリ API と v128 第一級型の導入を決定 |

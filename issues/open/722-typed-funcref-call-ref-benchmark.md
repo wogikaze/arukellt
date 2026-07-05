@@ -109,6 +109,6 @@ HOF / クロージャの call site を以下の3つに分類:
 ## Related
 
 - ADR-008: WasmGC Post-MVP 拡張機能（#5 Typed Function References）
-- ADR-033: Typed Function References (`call_ref`) HOF Migration
+- ADR-033: クロージャ呼び出しを call_ref に移行
 - ADR-002: Memory Model (Wasm GC 採用)
 - ADR-007: コンパイルターゲット整理（wasm32-gc）
