@@ -7,7 +7,6 @@ use wasm::ctx_record
 use wasm::inst_ctx
 use wasm::inst_store
 use wasm::writer_core
-use mir::value_types
 use wasm::function_indices
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands

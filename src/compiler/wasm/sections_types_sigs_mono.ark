@@ -2,6 +2,7 @@
 use mir::module_gc_struct
 use wasm::emit_target
 use wasm::sections_types_gc
+use wasm::sections_types_sigs_mono_helpers
 
 fn extract_mono_suffix(fn_name: String) -> String {
     let name_len = len(fn_name)
@@ -92,9 +93,9 @@ fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, 
     // Common conventions: T→0, E→1, U→2, V→3, K→0, W→4, etc.
     let type_idx = type_var_name_to_index(type_var_name, key_count)
     if type_idx < 0 || type_idx >= key_count {
-        return mono_type_key_to_sig(get_unchecked(type_keys, 0))
+        return sections_types_sigs_mono_helpers::mono_type_key_to_sig(get_unchecked(type_keys, 0))
     }
-    mono_type_key_to_sig(get_unchecked(type_keys, type_idx))
+    sections_types_sigs_mono_helpers::mono_type_key_to_sig(get_unchecked(type_keys, type_idx))
 }
 
 // Try to resolve a mono type variable parameter to a gc_struct type sig.
@@ -172,7 +173,7 @@ fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
 // receiver struct name ("Picker" / "struct:Picker:…") as return_type_name.
 // When the mono suffix names a different concrete type, use that for wasm return.
 fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: String, mir: MirModule) -> String {
-    let receiver = mono_method_receiver_name(clone(return_type_name), mir)
+    let receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(clone(return_type_name), mir)
     if len(receiver) == 0 {
         return String_new()
     }
@@ -192,65 +193,13 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if eq(clone(last_key), clone(receiver)) {
         return String_new()
     }
-    let sig = mono_type_key_to_sig(clone(last_key))
+    let sig = sections_types_sigs_mono_helpers::mono_type_key_to_sig(clone(last_key))
     if len(sig) > 0 {
         return sig
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(last_key))
     if slot >= 0 {
         return concat(String_from("gcsref"), i32_to_string(slot))
-    }
-    String_new()
-}
-
-fn mono_method_receiver_name(return_type_name: String, mir: MirModule) -> String {
-    if starts_with(clone(return_type_name), String_from("struct:")) {
-        let mut first_colon = 0 - 1
-        let mut last_colon = 0 - 1
-        let n = len(return_type_name)
-        let mut i = 0
-        while i < n {
-            if char_at(return_type_name, i) == 58 {
-                if first_colon < 0 {
-                    first_colon = i
-                }
-                last_colon = i
-            }
-            i = i + 1
-        }
-        if first_colon >= 0 && last_colon > first_colon {
-            return substring(return_type_name, first_colon + 1, last_colon)
-        }
-        return String_new()
-    }
-    if len(return_type_name) > 0 && module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name)) >= 0 {
-        return return_type_name
-    }
-    String_new()
-}
-
-// Map a mono type key string to a wasm type signature.
-fn mono_type_key_to_sig(key: String) -> String {
-    if eq(clone(key), String_from("i32")) {
-        return String_from("i32")
-    }
-    if eq(clone(key), String_from("i64")) {
-        return String_from("i64")
-    }
-    if eq(clone(key), String_from("f64")) {
-        return String_from("f64")
-    }
-    if eq(clone(key), String_from("f32")) {
-        return String_from("f32")
-    }
-    if eq(clone(key), String_from("bool")) {
-        return String_from("i32")
-    }
-    if eq(clone(key), String_from("String")) {
-        return sections_types_gc::gc_string_type_sig()
-    }
-    if eq(clone(key), String_from("char")) {
-        return String_from("i32")
     }
     String_new()
 }

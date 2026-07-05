@@ -520,7 +520,7 @@ export async function compileSource(
   return compileWithCompilerWasm(configuredCompilerBytes, source, options);
 }
 
-/** Run compiled T2 Wasm through the ADR-020 `arukellt_io` host bridge. */
+/** Run compiled T2 Wasm through the ADR-017 `arukellt_io` host bridge. */
 export async function runWasm(
   wasmBytes: Uint8Array,
   options: RunOptions = {},

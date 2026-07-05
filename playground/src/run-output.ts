@@ -1,5 +1,5 @@
 /**
- * Build/run stdout panel for the playground shell (ADR-020 DOM surface).
+ * Build/run stdout panel for the playground shell (ADR-017 DOM surface).
  *
  * @module
  */

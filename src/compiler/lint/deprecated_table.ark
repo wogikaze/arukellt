@@ -62,6 +62,22 @@ pub fn deprecated_call_message(name: String) -> String {
 // Returns a non-empty replacement message if the qualified path call is deprecated.
 // `path` is the full qualified path, e.g. "math::abs_i32" or "cmp::min".
 pub fn deprecated_qualified_call_message(path: String) -> String {
+    let msg = deprecated_math_qualified_message(path)
+    if len(msg) > 0 {
+        return msg
+    }
+    let msg2 = deprecated_cmp_qualified_message(path)
+    if len(msg2) > 0 {
+        return msg2
+    }
+    let msg3 = deprecated_convert_qualified_message(path)
+    if len(msg3) > 0 {
+        return msg3
+    }
+    return deprecated_hash_qualified_message(path)
+}
+
+fn deprecated_math_qualified_message(path: String) -> String {
     // std::core::math functions
     if eq(clone(path), String_from("math::abs")) {
         return String_from("use `x.abs()` (inherent method on i32) instead")
@@ -90,6 +106,10 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if eq(clone(path), String_from("math::pow_i32")) {
         return String_from("use `base.pow(exp)` (inherent method on i32) instead")
     }
+    String_new()
+}
+
+fn deprecated_cmp_qualified_message(path: String) -> String {
     // std::core::cmp functions
     if eq(clone(path), String_from("cmp::cmp")) {
         return String_from("use `a.cmp(b)` (Ord trait method) instead")
@@ -103,6 +123,10 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if eq(clone(path), String_from("cmp::clamp")) {
         return String_from("use `x.clamp(lo, hi)` (inherent method on i32) instead")
     }
+    String_new()
+}
+
+fn deprecated_convert_qualified_message(path: String) -> String {
     // std::core::convert functions
     if eq(clone(path), String_from("convert::i32_to_string")) {
         return String_from("use `x.to_string()` (inherent method on i32) instead")
@@ -116,6 +140,10 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
     if eq(clone(path), String_from("convert::bool_to_string")) {
         return String_from("use `x.to_string()` (inherent method on bool) instead")
     }
+    String_new()
+}
+
+fn deprecated_hash_qualified_message(path: String) -> String {
     // std::core::hash functions
     if eq(clone(path), String_from("hash::hash_i32")) {
         return String_from("use `value.hash()` (Hash trait method) instead")

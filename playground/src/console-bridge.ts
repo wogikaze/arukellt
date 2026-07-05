@@ -1,5 +1,5 @@
 /**
- * ADR-020 console bridge — pure transforms from compile/run results to UI sections.
+ * ADR-017 console bridge — pure transforms from compile/run results to UI sections.
  *
  * Maps `arukellt_io` host capture (`RunResult.stdout` / `stderr`) to display sections.
  * This module has no DOM dependency; {@link createRunOutputPanel} renders sections.
@@ -34,7 +34,7 @@ export function sectionsFromCompileResult(
   return sections;
 }
 
-/** Build display sections from a T2 run response (ADR-020 `arukellt_io` capture). */
+/** Build display sections from a T2 run response (ADR-017 `arukellt_io` capture). */
 export function sectionsFromRunResult(result: RunResult): ConsoleOutputSection[] {
   const sections: ConsoleOutputSection[] = [];
   if (result.stdout) {

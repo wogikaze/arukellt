@@ -469,7 +469,6 @@ which produces URL-safe output without separate base64url encoding.
 
 - [ADR-017: Playground Execution Model](ADR-017-playground-execution-model.md) — v1 product contract, share/permalink in scope
 - [ADR-019: Link-Check Coverage Policy](ADR-019-anchor-permalink-policy.md) — link-check harness for docs (orthogonal to this ADR)
-- [ADR-020: T2 I/O Surface](ADR-020-t2-io-surface.md) — v2 execution target (not required for share format)
 - [RFC 1951: DEFLATE Compressed Data Format](https://datatracker.ietf.org/doc/html/rfc1951)
 - [RFC 4648 §5: Base64url Encoding](https://datatracker.ietf.org/doc/html/rfc4648#section-5)
 - [TypeScript Playground — URL sharing implementation](https://www.typescriptlang.org/play) (prior art)

@@ -1,5 +1,5 @@
 /**
- * Dedicated Web Worker for playground compile/run orchestration (ADR-032).
+ * Dedicated Web Worker for playground compile/run orchestration (ADR-017).
  *
  * @module
  */

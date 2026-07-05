@@ -46,8 +46,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 selfhost emitter (`src/compiler/emitter.ark`). Regression proof:
 `tests/fixtures/t2/t2_scaffold.ark` exercised through the selfhost gates with
 `wasmparser` validation. Full target
-verification contract and roadmap context: [ADR-007: Targets](adr/ADR-007-targets.md)
-and [ADR-020 — T2 I/O surface](adr/ADR-020-t2-io-surface.md).
+verification contract and roadmap context: [ADR-007: Targets](adr/ADR-007-targets.md).
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health

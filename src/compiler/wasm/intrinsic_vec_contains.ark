@@ -45,37 +45,40 @@ fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    emit_contains_i32_gc_setup(w, s_needle, s_vec, s_arr, s_len, s_found, s_i, vec_type)
+    emit_contains_i32_gc_loop(w, s_arr, s_i, s_len, s_needle, s_found, arr_type)
+    helpers_core::emit_local_get(w, s_found)
+    return true
+}
 
+fn emit_contains_i32_gc_setup(w: WasmWriter, s_needle: i32, s_vec: i32, s_arr: i32, s_len: i32, s_found: i32, s_i: i32, vec_type: i32) {
     // Stack: [vec_ref, needle] — pop needle, then vec
     helpers_core::emit_local_set(w, s_needle)
     helpers_core::emit_local_set(w, s_vec)
-
     // found = 0
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_found)
-
     // arr = vec.data (struct.get field 0), len = vec.len (struct.get field 1)
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_set(w, s_arr)
-
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
-
     // i = 0
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_i)
+}
 
+fn emit_contains_i32_gc_loop(w: WasmWriter, s_arr: i32, s_i: i32, s_len: i32, s_needle: i32, s_found: i32, arr_type: i32) {
     // loop: while i < len
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_i)
     helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-
     // if arr[i] == needle: found = 1; break
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_i)
@@ -87,7 +90,6 @@ fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_found)
     string_gc_helpers::emit_gc_br(w, 2)
     string_gc_helpers::emit_gc_end(w)
-
     // i = i + 1
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
@@ -95,9 +97,6 @@ fn emit_contains_i32_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
-
-    helpers_core::emit_local_get(w, s_found)
-    return true
 }
 
 fn emit_contains_i32_setup(w: WasmWriter, s_vec_ci: i32, s_ci_i: i32, s_ci_len: i32, s_ci_data: i32, s_ci_found: i32) {

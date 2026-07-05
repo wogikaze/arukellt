@@ -8,6 +8,7 @@ use mir::lower::return_typeinfo
 use mir::lower::mono_return_vt_table
 use mir::lower::mono_return_lookup
 use mir::lower::ctx_current_storage
+use mir::lower::ctx_fn_return_type
 use mir::lower_kinds
 use mir::module_spine
 use corehir::function_id
@@ -94,6 +95,13 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
         return resolved
     }
     return mono_type_info_to_concrete_name(mono_ty)
+}
+
+// Facade: resolve return type name in one step — looks up the base
+// return type from fn_index, then applies mono substitution.
+fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {
+    let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
+    mono_return_type_name(ctx, name, base_rtn)
 }
 
 // Convert a TypeInfo to a concrete type name string for substitution

@@ -78,7 +78,6 @@ the browser-side implementation work and remaining product-proof gaps.
 
 | ADR | Topic |
 |-----|-------|
-| [ADR-017](../adr/ADR-017-playground-execution-model.md) | Execution model and v1 product contract |
+| [ADR-017](../adr/ADR-017-playground-execution-model.md) | Execution model and v1/v2 product contract |
 | [ADR-021](../adr/ADR-021-playground-share-url-format.md) | Share URL format (fragment-based) |
 | [ADR-022](../adr/ADR-022-playground-deployment-and-caching.md) | Deployment strategy and asset caching |
-| [ADR-032](../adr/ADR-032-playground-compiler-wasm-runner.md) | v2 compiler-Wasm build/run model |

@@ -1,7 +1,7 @@
-# ADR-017: Playground Execution Model and v1 Product Contract
+# ADR-017: Playground Execution Model and v1/v2 Product Contract
 
-ステータス: **DECIDED** — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし）
-**Created**: 2026-03-31
+ステータス: **DECIDED** — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし、v2はブラウザでcompile+run）
+**Created**: 2026-03-31（2026-07-15 改訂: ADR-032 を統合）
 **Scope**: Playground (web), target roadmap, docs contract
 
 ---
@@ -227,6 +227,57 @@ compiler's actual capabilities without requiring a separate CI pipeline.
 
 ---
 
+## v2: Browser Compile + Run Model (integrated from ADR-032, 2026-07-15)
+
+Playground v2 はブラウザでコンパイル + 実行を行う。TypeScript インタプリタは使わず、
+selfhost コンパイラ Wasm をブラウザで実行し、コンパイル結果をブラウザで実行する。
+
+### Two-stage browser pipeline
+
+1. **Compile stage** — selfhost compiler Wasm を Web Worker で実行し、
+   in-memory WASI P1 host 経由でコンパイルする
+2. **Run stage** — コンパイル結果の Wasm をブラウザで instantiate して実行
+
+TypeScript 層はプロセスオーケストレーション、仮想ファイル、タイムアウト、
+stdio バッファ、診断トランスポート、UI 状態のみを担当する。
+Arukellt 言語の実行セマンティクスを TypeScript で再実装してはならない。
+
+### Compile stage
+
+```text
+bootstrap/arukellt-selfhost.wasm
+  -> docs/playground/assets/arukellt-selfhost.wasm
+```
+
+ブラウザ Worker はコンパイラアセットをロードし、コマンドプロセスとして実行:
+
+```text
+arukellt compile /work/main.ark --target wasm32-gc -o /work/out.wasm
+```
+
+Worker host は argv, env, stdin/stdout/stderr capture, in-memory filesystem,
+timeout, size limits を提供する。ネットワーク・ホストファイルシステムへの
+アクセスは提供しない。
+
+### Run stage
+
+コンパイル結果の Wasm を instantiate し、stdio import を提供する。
+v2 の stdio import surface は WASI P2 経由（ADR-007 改訂に準拠）。
+
+> **注意**: ADR-032 原本では `arukellt_io` import を使用していたが、
+> ADR-007 改訂（2026-07）で `arukellt_io` は廃止され、全てのホスト関数は
+> WASI P2/P3 imports 経由に統一された。ブラウザ向けは jco transpile が
+> WASI imports を JS glue に変換する。
+
+### Non-goals (v2)
+
+- Arukellt 言語インタプリタの TypeScript 実装
+- 個別構文機能（`match`, `Result`, `?`, generics, traits）の TypeScript サポート
+- Node API, DOM API, fetch, filesystem, network へのユーザープログラムからのアクセス
+- T3 (`wasm32-wasi-p2`) のブラウザ直接実行
+
+---
+
 ## References
 
 - `src/compiler/driver.ark` — target registry (T2: `implemented: false`)
@@ -238,3 +289,4 @@ compiler's actual capabilities without requiring a separate CI pipeline.
 - Issue 379 — Wasm packaging (follows from this ADR)
 - Issue 382 — T2 freestanding (decoupled from playground)
 - Issue 428 — v1 contract follow-on (references this ADR)
+- Issue 632 — playground compiler Wasm build/run loop (v2, originally ADR-032)

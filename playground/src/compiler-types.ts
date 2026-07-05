@@ -1,5 +1,5 @@
 /**
- * Types for the playground compiler worker / process host (ADR-032).
+ * Types for the playground compiler worker / process host (ADR-017).
  *
  * @module
  */

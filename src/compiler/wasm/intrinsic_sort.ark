@@ -3,289 +3,29 @@ use wasm::opcodes
 
 use wasm::ctx_scratch
 use wasm::ctx_record
-use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::writer_core
-use wasm::writer_gc
-use wasm::string_gc_helpers
-use wasm::intrinsics::helpers_core
-use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsic_sort_gc
 
 fn emit_sort_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_sort_gc_i32(w, inst, ctx)
+        return intrinsic_sort_gc::emit_sort_gc_i32(w, inst, ctx)
     }
     emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5), 4, opcodes::OP_I32_LOAD(), opcodes::OP_I32_STORE(), 2, opcodes::OP_I32_LE_S())
 }
 
 fn emit_sort_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_sort_gc_i64(w, inst, ctx)
+        return intrinsic_sort_gc::emit_sort_gc_i64(w, inst, ctx)
     }
     emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15), 8, opcodes::OP_I64_LOAD(), opcodes::OP_I64_STORE(), 3, opcodes::OP_I64_LE_S())
 }
 
 fn emit_sort_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return emit_sort_gc_f64(w, inst, ctx)
+        return intrinsic_sort_gc::emit_sort_gc_f64(w, inst, ctx)
     }
     emit_sort_insertion(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12), 8, opcodes::OP_F64_LOAD(), opcodes::OP_F64_STORE(), 3, opcodes::OP_F64_LE())
-}
-
-// GC target sort: in-place insertion sort on the vec's data array.
-// Void (modifies vec in place). Returns false (no result on stack).
-fn emit_sort_gc_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
-    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s_outer = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s_inner = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    emit_sort_gc_setup(w, s_vec, s_arr, s_len, s_outer, vec_type, arr_type)
-    emit_sort_gc_outer_i32(w, s_arr, s_len, s_outer, s_inner, s_val, arr_type)
-    return false
-}
-
-fn emit_sort_gc_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 0)
-    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s_outer = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s_inner = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
-    let arr_type = ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
-    emit_sort_gc_setup(w, s_vec, s_arr, s_len, s_outer, vec_type, arr_type)
-    emit_sort_gc_outer_i64(w, s_arr, s_len, s_outer, s_inner, s_val, arr_type)
-    return false
-}
-
-fn emit_sort_gc_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 0)
-    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let s_outer = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s_inner = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-    let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
-    let vec_type = ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
-    let arr_type = ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
-    emit_sort_gc_setup(w, s_vec, s_arr, s_len, s_outer, vec_type, arr_type)
-    emit_sort_gc_outer_f64(w, s_arr, s_len, s_outer, s_inner, s_val, arr_type)
-    return false
-}
-
-fn emit_sort_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_outer: i32, vec_type: i32, arr_type: i32) {
-    // Stack: [vec_ref] — pop vec
-    helpers_core::emit_local_set(w, s_vec)
-    // arr = vec.data (struct.get field 0)
-    helpers_core::emit_local_get(w, s_vec)
-    writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 0)
-    helpers_core::emit_local_set(w, s_arr)
-    // len = vec.len (struct.get field 1)
-    helpers_core::emit_local_get(w, s_vec)
-    writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
-    helpers_core::emit_local_set(w, s_len)
-    // outer = 1
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_core::emit_local_set(w, s_outer)
-}
-
-// Insertion sort for i32
-fn emit_sort_gc_outer_i32(w: WasmWriter, s_arr: i32, s_len: i32, s_outer: i32, s_inner: i32, s_val: i32, arr_type: i32) {
-    // outer loop: for outer = 1 to len-1
-    string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core::emit_local_get(w, s_outer)
-    helpers_core::emit_local_get(w, s_len)
-    string_gc_helpers::emit_gc_i32_ge_s(w)
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    // val = arr[outer]
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_outer)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    helpers_core::emit_local_set(w, s_val)
-
-    // inner = outer - 1
-    helpers_core::emit_local_get(w, s_outer)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_sub(w)
-    helpers_core::emit_local_set(w, s_inner)
-
-    // inner shift loop: while inner >= 0 and arr[inner] > val
-    string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    helpers_core::emit_local_get(w, s_val)
-    writer_core::emit_byte(w, opcodes::OP_I32_LE_S())
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    // arr[inner+1] = arr[inner]
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    writer_gc::emit_gc_array_set(w, arr_type)
-
-    // inner = inner - 1
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_sub(w)
-    helpers_core::emit_local_set(w, s_inner)
-    string_gc_helpers::emit_gc_br(w, 0)
-    string_gc_helpers::emit_gc_block_loop_end(w)
-
-    // arr[inner+1] = val
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_val)
-    writer_gc::emit_gc_array_set(w, arr_type)
-
-    // outer = outer + 1
-    helpers_core::emit_local_get(w, s_outer)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_set(w, s_outer)
-    string_gc_helpers::emit_gc_br(w, 0)
-    string_gc_helpers::emit_gc_block_loop_end(w)
-}
-
-// Insertion sort for i64
-fn emit_sort_gc_outer_i64(w: WasmWriter, s_arr: i32, s_len: i32, s_outer: i32, s_inner: i32, s_val: i32, arr_type: i32) {
-    string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core::emit_local_get(w, s_outer)
-    helpers_core::emit_local_get(w, s_len)
-    string_gc_helpers::emit_gc_i32_ge_s(w)
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_outer)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    helpers_core::emit_local_set(w, s_val)
-
-    helpers_core::emit_local_get(w, s_outer)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_sub(w)
-    helpers_core::emit_local_set(w, s_inner)
-
-    string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    helpers_core::emit_local_get(w, s_val)
-    writer_core::emit_byte(w, opcodes::OP_I64_LE_S())
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    writer_gc::emit_gc_array_set(w, arr_type)
-
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_sub(w)
-    helpers_core::emit_local_set(w, s_inner)
-    string_gc_helpers::emit_gc_br(w, 0)
-    string_gc_helpers::emit_gc_block_loop_end(w)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_val)
-    writer_gc::emit_gc_array_set(w, arr_type)
-
-    helpers_core::emit_local_get(w, s_outer)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_set(w, s_outer)
-    string_gc_helpers::emit_gc_br(w, 0)
-    string_gc_helpers::emit_gc_block_loop_end(w)
-}
-
-// Insertion sort for f64
-fn emit_sort_gc_outer_f64(w: WasmWriter, s_arr: i32, s_len: i32, s_outer: i32, s_inner: i32, s_val: i32, arr_type: i32) {
-    string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core::emit_local_get(w, s_outer)
-    helpers_core::emit_local_get(w, s_len)
-    string_gc_helpers::emit_gc_i32_ge_s(w)
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_outer)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    helpers_core::emit_local_set(w, s_val)
-
-    helpers_core::emit_local_get(w, s_outer)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_sub(w)
-    helpers_core::emit_local_set(w, s_inner)
-
-    string_gc_helpers::emit_gc_block_loop(w)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    helpers_core::emit_local_get(w, s_val)
-    writer_core::emit_byte(w, opcodes::OP_F64_LE())
-    string_gc_helpers::emit_gc_br_if(w, 1)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    writer_gc::emit_gc_array_get(w, arr_type)
-    writer_gc::emit_gc_array_set(w, arr_type)
-
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_sub(w)
-    helpers_core::emit_local_set(w, s_inner)
-    string_gc_helpers::emit_gc_br(w, 0)
-    string_gc_helpers::emit_gc_block_loop_end(w)
-
-    helpers_core::emit_local_get(w, s_arr)
-    helpers_core::emit_local_get(w, s_inner)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_val)
-    writer_gc::emit_gc_array_set(w, arr_type)
-
-    helpers_core::emit_local_get(w, s_outer)
-    string_gc_helpers::emit_gc_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_set(w, s_outer)
-    string_gc_helpers::emit_gc_br(w, 0)
-    string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
 fn emit_sort_insertion(w: WasmWriter, ctx: SelfEmitCtx, value_local: i32, elem_size: i32, load_opcode: i32, store_opcode: i32, mem_align: i32, le_opcode: i32) -> bool {
@@ -294,7 +34,6 @@ fn emit_sort_insertion(w: WasmWriter, ctx: SelfEmitCtx, value_local: i32, elem_s
     let inner_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let data_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-
     emit_sort_insertion_setup(w, vec_local, data_local, len_local, outer_local)
     emit_sort_insertion_loop_guard(w, outer_local, len_local)
     emit_sort_insertion_prepare_value(w, data_local, outer_local, inner_local, value_local, elem_size, load_opcode, mem_align)

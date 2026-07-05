@@ -1,0 +1,220 @@
+// Arukellt Selfhost - string join GC target handler
+
+use wasm::ctx_scratch
+use wasm::ctx_gc_type
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+use wasm::string_gc_helpers
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
+
+// GC target: join Vec<String> with separator into a new String.
+// Two passes: (1) compute total length, (2) allocate and copy.
+// Uses only scratch_gc_local(0) for s_sep and scratch_gc_local(1) for s_dst.
+// Avoids s_elem by re-fetching arr[i] inside the copy loop.
+fn emit_join_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_sep = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_dst = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_sep_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_total = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_pos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_k = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let s_elen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    emit_join_gc_setup(w, s_sep, s_vec, s_arr, s_len, s_sep_len, s_total, s_i, vec_type)
+    emit_join_gc_count_pass(w, s_arr, s_len, s_sep_len, s_total, s_i, arr_type)
+    emit_join_gc_alloc_result(w, s_total, s_dst, s_pos, s_i, string_type)
+    emit_join_gc_copy_pass(w, s_dst, s_arr, s_len, s_sep, s_sep_len, s_pos, s_i, s_k, s_elen, arr_type, string_type)
+    // push result
+    helpers_core::emit_local_get(w, s_dst)
+    return true
+}
+
+fn emit_join_gc_setup(w: WasmWriter, s_sep: i32, s_vec: i32, s_arr: i32, s_len: i32, s_sep_len: i32, s_total: i32, s_i: i32, vec_type: i32) {
+    // Stack: [vec_ref, sep_ref] (sep on top)
+    helpers_core::emit_local_set(w, s_sep)
+    helpers_core::emit_local_set(w, s_vec)
+
+    // arr = vec.data, len = vec.len
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, s_arr)
+
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_len)
+
+    // sep_len = sep.len
+    helpers_core::emit_local_get(w, s_sep)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_sep_len)
+
+    // total = 0, i = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_total)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+}
+
+fn emit_join_gc_count_pass(w: WasmWriter, s_arr: i32, s_len: i32, s_sep_len: i32, s_total: i32, s_i: i32, arr_type: i32) {
+    // Pass 1: compute total length
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // total += arr[i].len
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_get(w, s_total)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_total)
+
+    // if i > 0: total += sep_len
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, s_total)
+    helpers_core::emit_local_get(w, s_sep_len)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_total)
+    string_gc_helpers::emit_gc_end(w)
+
+    // i = i + 1
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+}
+
+fn emit_join_gc_alloc_result(w: WasmWriter, s_total: i32, s_dst: i32, s_pos: i32, s_i: i32, string_type: i32) {
+    // Allocate result array of total length
+    helpers_core::emit_local_get(w, s_total)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core::emit_local_set(w, s_dst)
+
+    // pos = 0, i = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_pos)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+}
+
+fn emit_join_gc_copy_pass(w: WasmWriter, s_dst: i32, s_arr: i32, s_len: i32, s_sep: i32, s_sep_len: i32, s_pos: i32, s_i: i32, s_k: i32, s_elen: i32, arr_type: i32, string_type: i32) {
+    // Pass 2: copy each element + separator
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    emit_join_gc_copy_separator(w, s_dst, s_sep, s_sep_len, s_pos, s_i, s_k, string_type)
+    emit_join_gc_copy_element(w, s_dst, s_arr, s_pos, s_i, s_k, s_elen, arr_type, string_type)
+    // i = i + 1
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+}
+
+fn emit_join_gc_copy_separator(w: WasmWriter, s_dst: i32, s_sep: i32, s_sep_len: i32, s_pos: i32, s_i: i32, s_k: i32, string_type: i32) {
+    // if i > 0: copy separator
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    string_gc_helpers::emit_gc_if_void(w)
+
+    // k = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_core::emit_local_get(w, s_sep_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // dst[pos+k] = sep[k]
+    helpers_core::emit_local_get(w, s_dst)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_sep)
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // pos += sep_len
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_sep_len)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
+    string_gc_helpers::emit_gc_end(w)
+}
+
+fn emit_join_gc_copy_element(w: WasmWriter, s_dst: i32, s_arr: i32, s_pos: i32, s_i: i32, s_k: i32, s_elen: i32, arr_type: i32, string_type: i32) {
+    // elen = arr[i].len (re-fetch arr[i] and get its length)
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_elen)
+
+    // k = 0
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_core::emit_local_get(w, s_elen)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+
+    // dst[pos+k] = arr[i][k] (re-fetch arr[i] each iteration)
+    helpers_core::emit_local_get(w, s_dst)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+
+    helpers_core::emit_local_get(w, s_k)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_k)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    // pos += elen
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_core::emit_local_get(w, s_elen)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
+}

@@ -9,7 +9,7 @@ import {
   sectionsFromRunResult,
 } from "../console-bridge.js";
 
-test("sectionsFromRunResult maps ADR-020 stdout capture", () => {
+test("sectionsFromRunResult maps ADR-017 stdout capture", () => {
   const sections = sectionsFromRunResult({
     ok: true,
     stdout: "hello\n",

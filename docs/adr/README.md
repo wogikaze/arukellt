@@ -12,7 +12,6 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
-| [029-selfhost-native-verification-contract.md](029-selfhost-native-verification-contract.md) | ADR-029 — Selfhost-native verification contract | Archive | Status: Accepted |
 | [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Archive | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | Archive | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | Archive | ステータス: DECIDED — 制限付きMonomorphization（型ごとのコード生成）を採用 |
@@ -28,25 +27,19 @@
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | Archive | ステータス: DECIDED — T3 (wasm32-wasi-p2)をプライマリターゲットとして選定 |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Archive | ステータス: ACCEPTED — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用 |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Archive | ステータス: DECIDED — ユーザー到達パスでのpanic禁止 |
-| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Archive | ステータス: DECIDED — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし） |
+| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1/v2 Product Contract | Archive | ステータス: DECIDED — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし、v2はブラウザでcompile+run） |
 | [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Archive | ステータス: DECIDED — 3つのドキュメントクラス（normative/explanatory/transitional）を採用 |
 | [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Link-Check Coverage Policy | Archive | ステータス: DECIDED — リンクチェックカバレッジポリシーを採用 |
-| [ADR-020-t2-io-surface.md](ADR-020-t2-io-surface.md) | ADR-020: T2 (wasm32-freestanding) I/O Surface Design — Console/DOM Bridge Contract | Archive | ステータス: DECIDED — Import-based bridge（1ページlinear memory region）を採用 |
 | [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format — Encoding, Versioning, and Round-Trip Contract | Archive | ステータス: DECIDED — fragmentベースのshare URL形式（versioned path structure） |
 | [ADR-022-playground-deployment-and-caching.md](ADR-022-playground-deployment-and-caching.md) | ADR-022: Playground Deployment and Asset Caching Strategy | Archive | ステータス: DECIDED — GitHub Pagesで静的ホスティング（Fastly CDN経由） |
 | [ADR-023-package-registry-resolution.md](ADR-023-package-registry-resolution.md) | ADR-023: Package Registry Resolution Design | Archive | ステータス: DECIDED — Registry lookupモデル（local > workspace > registry）を採用 |
 | [ADR-024-selfhost-mir-explicit-cfg-before-ssa.md](ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) | ADR-024: Selfhost MIR uses an explicit CFG before SSA formation | Archive | ステータス: DECIDED — Selfhost MIRはSSA形成前に明示的なCFGを採用 |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration | Archive | ステータス: PROPOSED (draft) |
-| [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: Arukellt source imports vs WIT package syntax — decision record | Archive | ステータス: DECIDED — source imports stay Layer S (use + ::); WIT identifiers stay Layer C boundary data |
-| [ADR-027-v3-selfhost-completion-skip-v4.md](ADR-027-v3-selfhost-completion-skip-v4.md) | ADR-027: v3完了時点でのセルフホスト完了とv4スキップ | Archive | ステータス: ACCEPTED (2026-04-19) — v4（最適化）をスキップしv3完了時点でセルフホスト完了 |
-| [ADR-028-corehir-lowering-resolution.md](ADR-028-corehir-lowering-resolution.md) | ADR-028: CoreHIR lowering circular blocker — re-route via #529 selfhost retirement | Archive | ステータス: DECIDED (2026-04-22) — Rust 側 lower_hir_to_mir は実装せず、Rust legacy |
 | [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029 — Selfhost-native verification contract | Archive | Status: Accepted |
-| [ADR-030-incremental-parse.md](ADR-030-incremental-parse.md) | test | Archive | See the document for details. |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: Import Syntax and WIT Package Identifier Unification | Archive | Status: DECIDED — Two-layer separation confirmed; use reserved for Layer S, import reserved for Layer C |
-| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 Compiler Wasm and Browser Runner Model | Archive | Status: DECIDED — ship the selfhost compiler Wasm to the browser and run compiled T2 Wasm in a sandboxed host |
 | [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: Typed Function References (call_ref) HOF Migration | Archive | Status: DECIDED — phased migration; call_indirect remains baseline until table-free patterns land |
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component Composition Linking Model | Archive | ステータス: ACCEPTED — Phase 3 wac 委譲 landed (#443, 2026-06-15) |
-| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC Implementation Plan | Archive | ステータス: DRAFT — 段階実装中 |
+| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC Implementation Plan | Archive | ステータス: DRAFT — 段階実装中（Phase 0 完了、Phase 1-3 部分完了、Phase 4 進行中） |
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | Archive | ステータス: DRAFT — 688-697 完了後に実行される stdlib 再設計の戦略 ADR |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Explicit SIMD Library API | Archive | ステータス: PROPOSED — 明示的 SIMD ライブラリ API と v128 第一級型の導入を決定 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: Operator Overload Trait Surface | Archive | ステータス: DRAFT — #688 完了後に実装される演算子オーバーロードの設計 ADR |

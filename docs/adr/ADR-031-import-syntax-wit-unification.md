@@ -4,7 +4,7 @@
 **Date**: 2026-04-25
 **Track**: language-design
 **Issue**: [#123](../../issues/done/123-import-syntax-unification.md)
-**Supersedes**: none (refines and consolidates ADR-009, ADR-025, ADR-026)
+**Supersedes**: ADR-026 (consolidated into this ADR); refines ADR-009, ADR-025
 
 ---
 
@@ -263,7 +263,6 @@ uses `use` throughout; most `import <single-id>` patterns appear in specific tes
 
 - [ADR-009-import-syntax.md](ADR-009-import-syntax.md) — primary decision record (DECIDED); this ADR consolidates and expands that decision with English prose, a full options table, and explicit migration impact.
 - [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) — collision policy and syntax exploration (draft).
-- [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) — decision record (DECIDED); same layer split.
 - [ADR-006-abi-policy.md](ADR-006-abi-policy.md) — ABI layers; does not require source syntax to mirror WIT text.
 - [ADR-007-targets.md](ADR-007-targets.md) — T3 (wasm32-wasi-p2) as primary target.
 - [../spec/import-system.md](../spec/import-system.md) — normative Layer S / Layer C contract page.

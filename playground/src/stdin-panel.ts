@@ -1,5 +1,5 @@
 /**
- * Virtual stdin panel for playground Run (ADR-020 companion surface).
+ * Virtual stdin panel for playground Run (ADR-017 companion surface).
  *
  * @module
  */

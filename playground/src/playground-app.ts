@@ -121,7 +121,7 @@ export interface PlaygroundAppOptions {
   ) => void;
 
   /**
-   * Browser compiler worker client for T2 build/run (ADR-032 / ADR-020).
+   * Browser compiler worker client for T2 build/run (ADR-017 / ADR-017).
    * When set, the app exposes build/run helpers and a stdout output panel.
    */
   compilerClient?: CompilerClient;

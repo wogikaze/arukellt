@@ -240,8 +240,7 @@ The package provides two execution paths:
 
 - [ADR-017: Playground execution model](../docs/adr/ADR-017-playground-execution-model.md)
   — v1 scope: client-side parse/format/check only, no server execution
-- [ADR-020: T2 I/O surface](../docs/adr/ADR-020-t2-io-surface.md)
-  — Future v2 execution via `arukellt_io` import bridge
+  — v2 scope: browser compile + run (see ADR-017 §v2)
 
 ## v1 scope
 

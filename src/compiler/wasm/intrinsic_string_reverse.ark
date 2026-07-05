@@ -37,21 +37,23 @@ fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    emit_reverse_String_gc_setup(w, s_vec, s_arr, s_len, s_lo, s_hi, vec_type)
+    emit_reverse_String_gc_swap_loop(w, s_arr, s_lo, s_hi, s_tmp, arr_type)
+    return true
+}
 
+fn emit_reverse_String_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_lo: i32, s_hi: i32, vec_type: i32) {
     // Stack: [vec_ref] — pop vec
     helpers_core::emit_local_set(w, s_vec)
-
     // arr = vec.data, len = vec.len
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_set(w, s_arr)
-
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
-
     // lo = 0, hi = len - 1
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_lo)
@@ -59,20 +61,20 @@ fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_core::emit_local_set(w, s_hi)
+}
 
+fn emit_reverse_String_gc_swap_loop(w: WasmWriter, s_arr: i32, s_lo: i32, s_hi: i32, s_tmp: i32, arr_type: i32) {
     // loop: while lo < hi: swap arr[lo], arr[hi]; lo++; hi--
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_lo)
     helpers_core::emit_local_get(w, s_hi)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-
     // tmp = arr[lo] (string ref)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_lo)
     writer_gc::emit_gc_array_get(w, arr_type)
     helpers_core::emit_local_set(w, s_tmp)
-
     // arr[lo] = arr[hi]
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_lo)
@@ -80,13 +82,11 @@ fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_hi)
     writer_gc::emit_gc_array_get(w, arr_type)
     writer_gc::emit_gc_array_set(w, arr_type)
-
     // arr[hi] = tmp
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_hi)
     helpers_core::emit_local_get(w, s_tmp)
     writer_gc::emit_gc_array_set(w, arr_type)
-
     // lo = lo + 1, hi = hi - 1
     helpers_core::emit_local_get(w, s_lo)
     string_gc_helpers::emit_gc_i32_const(w, 1)
@@ -98,8 +98,6 @@ fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_hi)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
-
-    return true
 }
 
 fn emit_reverse_setup(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32) {

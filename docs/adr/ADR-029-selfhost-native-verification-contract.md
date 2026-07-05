@@ -4,7 +4,7 @@
 **Date**: 2026-04-22
 **Issue**: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 **Unblocks**: #583, #560, #561, #562, #563, #564 (Phase 5 Rust retirement)
-**Related**: ADR-024 (selfhost MIR), ADR-027 (v3 selfhost completion)
+**Related**: ADR-024 (selfhost MIR)
 
 ## Context
 

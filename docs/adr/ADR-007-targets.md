@@ -443,7 +443,6 @@ SIMD 機能のターゲット別状況（ADR-037 参照）:
 - ADR-005: LLVM バックエンドの役割制限（`native-llvm`）
 - ADR-006: 公開 ABI 3層構造（`wasm32-gc` / `native`）
 - ADR-013: Primary Target（`wasm32-gc` primary 根拠）
-- ADR-020: T2 I/O surface
 - ADR-035: Wasm GC Implementation Plan
 - ADR-037: std::simd — Explicit SIMD Library API
 - `docs/platform/abi.md`: ABI 詳細
