@@ -1,5 +1,7 @@
-// Arukellt Selfhost - MIR verifier local checks (W001, W005).
+// Arukellt Selfhost - MIR verifier local checks (W001, W005, W006).
 
+use corehir::mir_value_type
+use corehir::type_id
 use mir::function_identity
 use mir::function_locals_view
 use mir::function_param_view
@@ -44,6 +46,29 @@ fn verify_one_local(local: MirLocal, report: MirVerifyReport, verbose: bool, fn_
             mir_verify_report_push_detail(report, concat(String_from("W005 gc-name-i32 "), concat(fn_name, concat(String_from(" "), kind))))
         }
     }
+    if verify_local_missing_value_type(vt, tn, local) {
+        mir_verify_report_add_w006(report)
+        if verbose {
+            mir_verify_report_push_detail(report, concat(String_from("W006 missing-value-type "), concat(fn_name, concat(String_from(" "), kind))))
+        }
+    }
+}
+
+fn verify_local_missing_value_type(vt: i32, type_name: String, local: MirLocal) -> bool {
+    if vt == value_types::VT_VOID() {
+        return false
+    }
+    let mvt = local_access::MirLocal_value_type(local)
+    if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
+        return false
+    }
+    if len(type_name) > 0 {
+        return true
+    }
+    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        return true
+    }
+    false
 }
 
 fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String) -> bool {

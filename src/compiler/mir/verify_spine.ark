@@ -1,0 +1,39 @@
+// Arukellt Selfhost - MIR verifier spine checks (INV-9 warn-only).
+
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::lower::mono_instance_table
+use mir::module_spine
+use mir::verify_report
+
+fn verify_spine_mono_inv9(m: MirModule, report: MirVerifyReport, verbose: bool) {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let mono_table = module_spine::MirModule_mono_instance_table(m)
+    let count = mono_instance_table::mono_instance_table_entry_count(mono_table)
+    let mut i = 0
+    while i < count {
+        verify_one_mono_inv9(registry, mono_table, i, report, verbose)
+        i = i + 1
+    }
+}
+
+fn verify_one_mono_inv9(registry: SignatureRegistry, mono_table: MonoInstanceTable, index: i32, report: MirVerifyReport, verbose: bool) {
+    let entry = mono_instance_table::mono_instance_table_entry_at(mono_table, index)
+    let sig_id = mono_instance_table::mono_instance_entry_signature_id(entry)
+    if !function_id::function_id_is_valid(sig_id) {
+        return
+    }
+    let sig_entry = signature_registry::signature_registry_lookup_by_id(registry, sig_id)
+    let mono_returns = mono_instance_table::mono_instance_entry_return_count(entry)
+    let sig_returns = signature_entry::signature_entry_return_count(sig_entry)
+    if mono_returns != sig_returns {
+        mir_verify_report_add_w007(report)
+        if verbose {
+            mir_verify_report_push_detail(report, String_from("W007 mono-sig-return-count-mismatch"))
+        }
+    }
+}

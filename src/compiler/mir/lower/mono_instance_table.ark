@@ -75,3 +75,7 @@ fn mono_instance_entry_return_at(entry: MonoInstanceEntry, index: i32) -> MirVal
 fn mono_instance_entry_return_count(entry: MonoInstanceEntry) -> i32 {
     len(entry.instantiated_return_types)
 }
+
+fn mono_instance_entry_signature_id(entry: MonoInstanceEntry) -> FunctionId {
+    entry.signature_id
+}
