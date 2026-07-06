@@ -1,0 +1,90 @@
+// Arukellt Selfhost - clock/random stub core modules for P2 component emission.
+
+use wasm::writer_core
+use wasm::component_p2_stubs
+
+fn p2_stub_monotonic_clock_module() -> Vec<i32> {
+    let out = component_p2_stubs::p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(type_sec, 1)
+    let no_params = Vec_new_i32()
+    let r_i64 = Vec_new_i32()
+    push(r_i64, 0x7e)
+    component_p2_stubs::p2_stub_emit_core_func_type(type_sec, no_params, r_i64)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(func_sec, 1)
+    writer_core::emit_leb128_u(func_sec, 0)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_i64_zero_export(out, String_from("now"))
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_wall_clock_module() -> Vec<i32> {
+    let out = component_p2_stubs::p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(type_sec, 1)
+    let no_params = Vec_new_i32()
+    let r_i64_i32 = Vec_new_i32()
+    push(r_i64_i32, 0x7e)
+    push(r_i64_i32, 0x7f)
+    component_p2_stubs::p2_stub_emit_core_func_type(type_sec, no_params, r_i64_i32)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(func_sec, 1)
+    writer_core::emit_leb128_u(func_sec, 0)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_i64_i32_zero_export(out, String_from("now"))
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_random_module() -> Vec<i32> {
+    let out = component_p2_stubs::p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(type_sec, 1)
+    let no_params = Vec_new_i32()
+    let r_i64 = Vec_new_i32()
+    push(r_i64, 0x7e)
+    component_p2_stubs::p2_stub_emit_core_func_type(type_sec, no_params, r_i64)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(func_sec, 1)
+    writer_core::emit_leb128_u(func_sec, 0)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_i64_zero_export(out, String_from("get-random-u64"))
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_emit_i64_zero_export(out: WasmWriter, export_name: String) {
+    let export_names = Vec_new_String()
+    push(export_names, clone(export_name))
+    let func_idxs = Vec_new_i32()
+    push(func_idxs, 0)
+    component_p2_stubs::p2_stub_emit_core_exports_list(out, export_names, func_idxs)
+    let code_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(code_sec, 1)
+    writer_core::emit_leb128_u(code_sec, 4)
+    writer_core::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x42)
+    writer_core::emit_leb128_s(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x0b)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 10, code_sec)
+}
+
+fn p2_stub_emit_i64_i32_zero_export(out: WasmWriter, export_name: String) {
+    let export_names = Vec_new_String()
+    push(export_names, clone(export_name))
+    let func_idxs = Vec_new_i32()
+    push(func_idxs, 0)
+    component_p2_stubs::p2_stub_emit_core_exports_list(out, export_names, func_idxs)
+    let code_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(code_sec, 1)
+    writer_core::emit_leb128_u(code_sec, 6)
+    writer_core::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x42)
+    writer_core::emit_leb128_s(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x41)
+    writer_core::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x0b)
+    component_p2_stubs::p2_stub_emit_wasm_section(out, 10, code_sec)
+}

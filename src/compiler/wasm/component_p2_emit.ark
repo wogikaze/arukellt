@@ -1,6 +1,7 @@
 // Arukellt Selfhost - self-contained WASI P2 command component emitter for bootstrap.
 
 use wasm::component_p2_stubs
+use wasm::component_p2_stubs_clock
 use wasm::writer_core
 use wasm::writer_string
 
@@ -37,9 +38,9 @@ fn p2_comp_emit_p2_stubs_and_core_modules(out: WasmWriter, core_wasm: Vec<i32>) 
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_fs_module())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("read"), 0))
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("exit"), 1))
-    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_monotonic_clock_module())
-    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_wall_clock_module())
-    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_random_module())
+    p2_comp_emit_core_module(out, component_p2_stubs_clock::p2_stub_monotonic_clock_module())
+    p2_comp_emit_core_module(out, component_p2_stubs_clock::p2_stub_wall_clock_module())
+    p2_comp_emit_core_module(out, component_p2_stubs_clock::p2_stub_random_module())
     p2_comp_emit_core_module(out, core_wasm)
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_run_adapter_module())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_guest_start_wrapper_module())
