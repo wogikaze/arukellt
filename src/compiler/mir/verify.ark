@@ -34,6 +34,14 @@ fn verify_mir(m: MirModule) -> i32 {
         stdio::eprintln(String_from("mir-verify: fail on W005"))
         return 1
     }
+    if verify_report::mir_verify_report_w006(report) > 0 {
+        stdio::eprintln(String_from("mir-verify: fail on W006"))
+        return 1
+    }
+    if verify_report::mir_verify_report_w007(report) > 0 {
+        stdio::eprintln(String_from("mir-verify: fail on W007"))
+        return 1
+    }
     0
 }
 
