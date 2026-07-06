@@ -21,3 +21,11 @@ fn MirLocal_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
 fn MirLocal_copy_with_type_name(source: MirLocal, type_name: String) -> MirLocal {
     local_record::mir_local_copy_with_type_name(source, type_name)
 }
+
+fn MirLocal_copy_with_value_type(source: MirLocal, value_type: MirValueType) -> MirLocal {
+    local_record::mir_local_copy_with_value_type(source, value_type)
+}
+
+fn MirLocal_set_value_type(local: MirLocal, value_type: MirValueType) {
+    local_record::mir_local_set_value_type(local, value_type)
+}

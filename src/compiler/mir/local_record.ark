@@ -1,19 +1,28 @@
 // Arukellt Selfhost - MIR local data record.
 
+use corehir::mir_value_type
+use mir::typed_mir_compat
+
 pub struct MirLocal {
     name: String,
     val_type: i32,
+    value_type: MirValueType,
     type_name: String,
     ssa_name: String,
     ssa_version: i32,
 }
 
 fn MirLocal_new(name: String, val_type: i32, type_name: String) -> MirLocal {
-    MirLocal { name: clone(name), val_type: val_type, type_name: type_name, ssa_name: name, ssa_version: 0 - 1 }
+    let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
+    MirLocal { name: clone(name), val_type: val_type, value_type: mvt, type_name: type_name, ssa_name: name, ssa_version: 0 - 1 }
 }
 
 fn mir_local_val_type(local: MirLocal) -> i32 {
     local.val_type
+}
+
+fn mir_local_value_type(local: MirLocal) -> MirValueType {
+    mir_value_type::mir_value_type_copy(local.value_type)
 }
 
 fn mir_local_type_name(local: MirLocal) -> String {
@@ -39,20 +48,32 @@ fn mir_local_set_ssa(local: MirLocal, ssa_name: String, ssa_version: i32) {
 
 fn mir_local_set_val_type(local: MirLocal, val_type: i32) {
     local.val_type = val_type
+    local.value_type = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(local.type_name))
+}
+
+fn mir_local_set_value_type(local: MirLocal, value_type: MirValueType) {
+    local.value_type = mir_value_type::mir_value_type_copy(value_type)
 }
 
 fn mir_local_set_type_name(local: MirLocal, type_name: String) {
     local.type_name = type_name
+    local.value_type = typed_mir_compat::mvt_from_legacy_vt(local.val_type, clone(local.type_name))
 }
 
 fn mir_local_copy_with_ssa(source: MirLocal, ssa_name: String, ssa_version: i32) -> MirLocal {
-    MirLocal { name: clone(source.name), val_type: source.val_type, type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version }
+    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mir_value_type::mir_value_type_copy(source.value_type), type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version }
 }
 
 fn mir_local_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
-    MirLocal { name: clone(source.name), val_type: val_type, type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+    let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(source.type_name))
+    MirLocal { name: clone(source.name), val_type: val_type, value_type: mvt, type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+}
+
+fn mir_local_copy_with_value_type(source: MirLocal, value_type: MirValueType) -> MirLocal {
+    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mir_value_type::mir_value_type_copy(value_type), type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
 }
 
 fn mir_local_copy_with_type_name(source: MirLocal, type_name: String) -> MirLocal {
-    MirLocal { name: clone(source.name), val_type: source.val_type, type_name: clone(type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+    let mvt = typed_mir_compat::mvt_from_legacy_vt(source.val_type, clone(type_name))
+    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mvt, type_name: clone(type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
 }

@@ -41,7 +41,7 @@ graph LR
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I722["722 Typed Function References (`call_ref`) ベンチマーク計測"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
-  I724["724 ADR-040 Phase 5-7: Typed MIR Signature Registry 残作業"]
+  I724["724 ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]

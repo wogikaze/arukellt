@@ -1,0 +1,107 @@
+// Arukellt Selfhost - ADR-040 Typed MIR enrichment during lowering (Phase 3b hub).
+
+use corehir::function_id
+use corehir::mir_value_type
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::type_info_to_mir_value
+use mir::function_locals_view
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::local_access
+use mir::local_mutation
+use mir::lower::ctx_current_storage
+use corehir::type_id
+use mir::function_local_mutation
+use mir::lower::mono_instance_table
+use mir::module_spine
+use mir::opcodes
+use mir::typed_mir_compat
+use mir::value_types
+
+fn ctx_sync_local_value_type(ctx: LowerCtx, local_idx: i32) {
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(func) {
+        return
+    }
+    let loc = function_locals_view::MirFunction_local_at(func, local_idx)
+    let vt = local_access::MirLocal_val_type(loc)
+    let tn = local_access::MirLocal_type_name(loc)
+    let mvt = if module_spine::MirModule_signature_spine_populated(m) {
+        type_info_to_mir_value::vt_to_mir_value(module_spine::MirModule_type_table(m), vt, clone(tn))
+    } else {
+        typed_mir_compat::mvt_from_legacy_vt(vt, clone(tn))
+    }
+    let mut f = func
+    let new_loc = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
+    function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_set_local_mvt(ctx: LowerCtx, local_idx: i32, value_type: MirValueType) {
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(func) {
+        return
+    }
+    let loc = function_locals_view::MirFunction_local_at(func, local_idx)
+    let mut f = func
+    let new_loc = local_mutation::MirLocal_copy_with_value_type(loc, value_type)
+    function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
+    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_local_mvt(ctx: LowerCtx, local_idx: i32) -> MirValueType {
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(func) {
+        return mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0)
+    }
+    let loc = function_locals_view::MirFunction_local_at(func, local_idx)
+    local_access::MirLocal_value_type(loc)
+}
+
+fn ctx_enrich_inst_result_types(ctx: LowerCtx, inst: MirInst) -> MirInst {
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return inst
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+        let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+        if fid_raw >= 0 {
+            let registry = module_spine::MirModule_signature_registry(m)
+            let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
+            let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
+            if mono_id >= 0 {
+                let mono_table = module_spine::MirModule_mono_instance_table(m)
+                if mono_id < mono_instance_table::mono_instance_table_entry_count(mono_table) {
+                    let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+                    if mono_instance_table::mono_instance_entry_return_count(mono_entry) > 0 {
+                        inst_record::mir_inst_set_result_types(inst, ctx_copy_return_types_from_mono(mono_entry))
+                        return inst
+                    }
+                }
+            }
+            if signature_entry::signature_entry_return_count(entry) > 0 {
+                inst_record::mir_inst_set_result_types(inst, signature_entry::signature_entry_return_types(entry))
+                return inst
+            }
+        }
+    }
+    let vt = inst_record::mir_inst_val_type(inst)
+    if vt != value_types::VT_VOID() {
+        inst_record::mir_inst_set_result_types(inst, typed_mir_compat::result_types_from_legacy_vt(vt))
+    }
+    inst
+}
+
+fn ctx_copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
+    let count = mono_instance_table::mono_instance_entry_return_count(entry)
+    let result = Vec_new_MirValueType()
+    let mut i = 0
+    while i < count {
+        push(result, mir_value_type::mir_value_type_copy(mono_instance_table::mono_instance_entry_return_at(entry, i)))
+        i = i + 1
+    }
+    result
+}

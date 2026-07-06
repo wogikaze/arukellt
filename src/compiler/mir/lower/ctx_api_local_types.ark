@@ -1,8 +1,11 @@
 // Arukellt Selfhost - MIR lowering local type API.
 
 use mir::lower::ctx_locals_type
+use mir::lower::ctx_typed_mir_sync
 
 fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) { ctx_locals_type::ctx_set_local_type(ctx, local_idx, type_name) }
 fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String { ctx_locals_type::ctx_get_local_type(ctx, local_idx) }
 fn ctx_local_vt(ctx: LowerCtx, idx: i32) -> i32 { ctx_locals_type::ctx_local_vt(ctx, idx) }
 fn ctx_set_local_vt(ctx: LowerCtx, idx: i32, vt: i32) { ctx_locals_type::ctx_set_local_vt(ctx, idx, vt) }
+fn ctx_set_local_mvt(ctx: LowerCtx, idx: i32, value_type: MirValueType) { ctx_typed_mir_sync::ctx_set_local_mvt(ctx, idx, value_type) }
+fn ctx_local_mvt(ctx: LowerCtx, idx: i32) -> MirValueType { ctx_typed_mir_sync::ctx_local_mvt(ctx, idx) }

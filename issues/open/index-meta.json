@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-05T23:02:02Z",
+  "generated_at": "2026-07-06T23:16:04Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -881,7 +881,7 @@
     {
       "id": "724",
       "path": "724-adr040-phase5-7-remaining-work.md",
-      "title": "ADR-040 Phase 5-7: Typed MIR Signature Registry 残作業",
+      "title": "ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業",
       "track": "compiler-internal",
       "status": "open",
       "blocks_v1": "none",
@@ -893,7 +893,7 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 15
+        "unchecked": 16
       },
       "orchestration": {
         "class": "design-then-implement",

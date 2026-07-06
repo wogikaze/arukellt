@@ -21,3 +21,7 @@ fn MirLocal_ssa_version(local: MirLocal) -> i32 {
 fn MirLocal_name(local: MirLocal) -> String {
     local_record::mir_local_name(local)
 }
+
+fn MirLocal_value_type(local: MirLocal) -> MirValueType {
+    local_record::mir_local_value_type(local)
+}

@@ -6,9 +6,12 @@ use mir::block_factory
 use mir::function_block_mutation
 use mir::lower::ctx_current_storage
 
+use mir::lower::ctx_typed_mir_sync
+
 fn ctx_emit(ctx: LowerCtx, inst: MirInst) {
+    let enriched = ctx_typed_mir_sync::ctx_enrich_inst_result_types(ctx, inst)
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
-    function_inst::emit_inst(f, ctx_current_storage::ctx_current_block_value(ctx), inst)
+    function_inst::emit_inst(f, ctx_current_storage::ctx_current_block_value(ctx), enriched)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }
 

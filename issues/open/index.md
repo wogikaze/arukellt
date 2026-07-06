@@ -135,7 +135,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 33. [721 — Final Types (`sub final`) を全 struct に適用](721-final-types-emit-for-all-structs.md)
 34. [722 — Typed Function References (`call_ref`) ベンチマーク計測](722-typed-funcref-call-ref-benchmark.md)
 35. [723 — Wasm Exception Handling (`exnref`) 統合の検討](723-exception-handling-exnref-evaluation.md)
-36. [724 — ADR-040 Phase 5-7: Typed MIR Signature Registry 残作業](724-adr040-phase5-7-remaining-work.md)
+36. [724 — ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業](724-adr040-phase5-7-remaining-work.md)
 37. [646 — 646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md)
 38. [699 — 699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md)
 39. [673 — 673 — Component export aggregate expansion (Tier 2 blocked shapes)](673-component-export-aggregate-expansion.md)
@@ -194,7 +194,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 721 | [Final Types (`sub final`) を全 struct に適用](721-final-types-emit-for-all-structs.md) | wasm-feature | none | none | none | 0 checked / 7 open | implementation-ready | none | |
 | 722 | [Typed Function References (`call_ref`) ベンチマーク計測](722-typed-funcref-call-ref-benchmark.md) | wasm-feature | none | none | none | 0 checked / 9 open | design-ready | none | |
 | 723 | [Wasm Exception Handling (`exnref`) 統合の検討](723-exception-handling-exnref-evaluation.md) | language-design | none | none | none | 0 checked / 5 open | design-required | none | |
-| 724 | [ADR-040 Phase 5-7: Typed MIR Signature Registry 残作業](724-adr040-phase5-7-remaining-work.md) | compiler-internal | none | none | none | 0 checked / 15 open | design-then-implement | — | |
+| 724 | [ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業](724-adr040-phase5-7-remaining-work.md) | compiler-internal | none | none | none | 0 checked / 16 open | design-then-implement | — | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | none | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 699 | [699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md) | native-feature | none | 649, 698 | none | 0 checked / 9 open | design-ready | None | |
 | 673 | [673 — Component export aggregate expansion (Tier 2 blocked shapes)](673-component-export-aggregate-expansion.md) | component-model | none | 648, 660, 667 | none | 0 checked / 12 open | implementation-ready | None | |

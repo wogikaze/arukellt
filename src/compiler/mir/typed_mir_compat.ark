@@ -1,0 +1,47 @@
+// Arukellt Selfhost - ADR-040 Typed MIR legacy compat (val_type <-> MirValueType).
+
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
+use mir::value_types
+
+fn mvt_from_legacy_vt(val_type: i32, type_name: String) -> MirValueType {
+    mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), legacy_vt_to_repr(val_type, clone(type_name)), legacy_vt_to_nullability(val_type, clone(type_name)))
+}
+
+fn result_types_from_legacy_vt(val_type: i32) -> Vec<MirValueType> {
+    if val_type == value_types::VT_VOID() {
+        return Vec_new_MirValueType()
+    }
+    let result = Vec_new_MirValueType()
+    push(result, mvt_from_legacy_vt(val_type, String_new()))
+    result
+}
+
+fn legacy_vt_to_repr(val_type: i32, type_name: String) -> i32 {
+    if val_type == value_types::VT_GC_REF() || val_type == value_types::VT_REF() {
+        return kinds::VALUE_REPR_GC_REF()
+    }
+    if val_type == value_types::VT_VOID() {
+        return kinds::VALUE_REPR_SCALAR()
+    }
+    if len(type_name) > 0 {
+        if eq(clone(type_name), String_from("String")) {
+            return kinds::VALUE_REPR_GC_REF()
+        }
+        if starts_with(clone(type_name), String_from("struct:")) || starts_with(clone(type_name), String_from("enum:")) {
+            return kinds::VALUE_REPR_GC_REF()
+        }
+    }
+    kinds::VALUE_REPR_SCALAR()
+}
+
+fn legacy_vt_to_nullability(val_type: i32, type_name: String) -> i32 {
+    if val_type == value_types::VT_GC_REF() || val_type == value_types::VT_REF() {
+        return kinds::NULLABILITY_NULLABLE()
+    }
+    if len(type_name) > 0 && eq(clone(type_name), String_from("String")) {
+        return kinds::NULLABILITY_NULLABLE()
+    }
+    kinds::NULLABILITY_NOT_REF()
+}

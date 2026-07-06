@@ -6,6 +6,7 @@ use mir::local_mutation
 
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_type_storage
+use mir::lower::ctx_typed_mir_sync
 use mir::value_types
 
 fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
@@ -18,6 +19,7 @@ fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
         function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
     }
+    ctx_typed_mir_sync::ctx_sync_local_value_type(ctx, local_idx)
 }
 
 fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
@@ -50,4 +52,5 @@ fn ctx_set_local_vt(ctx: LowerCtx, idx: i32, vt: i32) {
         function_local_mutation::MirFunction_set_local(f, idx, new_loc)
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
     }
+    ctx_typed_mir_sync::ctx_sync_local_value_type(ctx, idx)
 }
