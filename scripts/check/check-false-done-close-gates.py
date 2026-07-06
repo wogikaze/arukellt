@@ -370,11 +370,14 @@ def _compiler() -> Path | None:
 
 
 def _selfhost_compile_env() -> dict[str, str]:
-    """Prefer pinned selfhost wasm over stale local bootstrap-build artifacts."""
+    """Prefer s2-runtime selfhost wasm over stale pinned bootstrap."""
     env = dict(os.environ)
     if "ARUKELLT_SELFHOST_WASM" in env:
         return env
     for candidate in (
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2-runtime.wasm",
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2.wasm",
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s3.wasm",
         REPO_ROOT / ".build" / "selfhost" / "arukellt-pinned-bootstrap.wasm",
         REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm",
     ):

@@ -112,6 +112,123 @@ fn p2_stub_fs_module() -> Vec<i32> {
     writer_core::writer_bytes(out)
 }
 
+fn p2_stub_monotonic_clock_module() -> Vec<i32> {
+    let out = p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(type_sec, 1)
+    let no_params = Vec_new_i32()
+    let r_i64 = Vec_new_i32()
+    push(r_i64, 0x7e)
+    p2_stub_emit_core_func_type(type_sec, no_params, r_i64)
+    p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(func_sec, 1)
+    writer_core::emit_leb128_u(func_sec, 0)
+    p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_i64_zero_export(out, String_from("now"))
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_wall_clock_module() -> Vec<i32> {
+    let out = p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(type_sec, 1)
+    let no_params = Vec_new_i32()
+    let r_i64_i32 = Vec_new_i32()
+    push(r_i64_i32, 0x7e)
+    push(r_i64_i32, 0x7f)
+    p2_stub_emit_core_func_type(type_sec, no_params, r_i64_i32)
+    p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(func_sec, 1)
+    writer_core::emit_leb128_u(func_sec, 0)
+    p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_i64_i32_zero_export(out, String_from("now"))
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_random_module() -> Vec<i32> {
+    let out = p2_stub_new_core_module_writer()
+    let type_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(type_sec, 1)
+    let no_params = Vec_new_i32()
+    let r_i64 = Vec_new_i32()
+    push(r_i64, 0x7e)
+    p2_stub_emit_core_func_type(type_sec, no_params, r_i64)
+    p2_stub_emit_wasm_section(out, 1, type_sec)
+    let func_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(func_sec, 1)
+    writer_core::emit_leb128_u(func_sec, 0)
+    p2_stub_emit_wasm_section(out, 3, func_sec)
+    p2_stub_emit_i64_zero_export(out, String_from("get-random-u64"))
+    writer_core::writer_bytes(out)
+}
+
+fn p2_stub_emit_i64_zero_export(out: WasmWriter, export_name: String) {
+    let export_names = Vec_new_String()
+    push(export_names, clone(export_name))
+    let func_idxs = Vec_new_i32()
+    push(func_idxs, 0)
+    p2_stub_emit_core_exports_list(out, export_names, func_idxs)
+    let code_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(code_sec, 1)
+    writer_core::emit_leb128_u(code_sec, 4)
+    writer_core::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x42)
+    writer_core::emit_leb128_s(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x0b)
+    p2_stub_emit_wasm_section(out, 10, code_sec)
+}
+
+fn p2_stub_emit_i64_i32_zero_export(out: WasmWriter, export_name: String) {
+    let export_names = Vec_new_String()
+    push(export_names, clone(export_name))
+    let func_idxs = Vec_new_i32()
+    push(func_idxs, 0)
+    p2_stub_emit_core_exports_list(out, export_names, func_idxs)
+    let code_sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(code_sec, 1)
+    writer_core::emit_leb128_u(code_sec, 6)
+    writer_core::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x42)
+    writer_core::emit_leb128_s(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x41)
+    writer_core::emit_leb128_u(code_sec, 0)
+    writer_core::emit_byte(code_sec, 0x0b)
+    p2_stub_emit_wasm_section(out, 10, code_sec)
+}
+
+fn p2_stub_run_adapter_module() -> Vec<i32> {
+    p2_stub_hex_to_bytes(String_from("0061736d010000000108026000006000017f021001000b67756573745f73746172740000030201010707010372756e00010a08010600100041000b"))
+}
+
+fn p2_stub_guest_start_wrapper_module() -> Vec<i32> {
+    p2_stub_hex_to_bytes(String_from("0061736d0100000001040160000003020100070f010b67756573745f737461727400000a040102000b"))
+}
+
+fn p2_stub_hex_to_bytes(hex: String) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let n = len(hex)
+    let mut i = 0
+    while i + 1 < n {
+        let hi = p2_stub_hex_val(char_at(hex, i))
+        let lo = p2_stub_hex_val(char_at(hex, i + 1))
+        push(out, hi * 16 + lo)
+        i = i + 2
+    }
+    out
+}
+
+fn p2_stub_hex_val(c: i32) -> i32 {
+    if c >= 48 && c <= 57 {
+        return c - 48
+    }
+    if c >= 97 && c <= 102 {
+        return c - 87
+    }
+    0
+}
+
 fn p2_stub_emit_exports(out: WasmWriter, export_name: String, func_idx: i32, void_ret: i32) {
     let export_names = Vec_new_String()
     push(export_names, clone(export_name))

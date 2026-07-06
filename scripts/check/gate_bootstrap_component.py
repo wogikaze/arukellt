@@ -8,6 +8,8 @@ from __future__ import annotations
 # imports in isolation; static+overlay evidence is the acceptance fallback.
 _BOOTSTRAP_INSTANTIATION_GAP_MARKERS: tuple[str, ...] = (
     "missing module instantiation argument named `wasi:clocks/monotonic-clock",
+    "does not export an item named `clock_time_get`",
+    "missing module instantiation argument named `test:host/",
 )
 
 

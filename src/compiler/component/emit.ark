@@ -11,13 +11,13 @@ use component::world_spec
 fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     let out = component_base::comp_new_component_writer()
     let plan = export_plan::collect_component_exports(mir)
+    if world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
+        return wasm::emit_p2_command_component(core_wasm)
+    }
     let specialized = emit_specialized::emit_specialized_component(core_wasm, mir, export_plan::export_plan_names(plan))
     if len(specialized) > 0 { return specialized }
     if export_plan::export_plan_count(plan) > 0 {
         return emit_component_generic_exports(out, core_wasm, plan, mir)
-    }
-    if world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
-        return wasm::emit_p2_command_component(core_wasm)
     }
     emit_component_generic_exports(out, core_wasm, plan, mir)
 }

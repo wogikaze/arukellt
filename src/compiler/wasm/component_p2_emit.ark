@@ -37,7 +37,12 @@ fn p2_comp_emit_p2_stubs_and_core_modules(out: WasmWriter, core_wasm: Vec<i32>) 
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_fs_module())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("read"), 0))
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export(String_from("exit"), 1))
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_monotonic_clock_module())
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_wall_clock_module())
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_random_module())
     p2_comp_emit_core_module(out, core_wasm)
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_run_adapter_module())
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_guest_start_wrapper_module())
 }
 
 fn p2_comp_emit_core_module(out: WasmWriter, module_wasm: Vec<i32>) {
@@ -48,13 +53,17 @@ fn p2_comp_emit_core_module(out: WasmWriter, module_wasm: Vec<i32>) {
 
 fn p2_comp_emit_p2_core_instance_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 6)
+    writer_core::emit_leb128_u(sec, 10)
     p2_comp_emit_core_instance_ref(sec, 0, 0)
     p2_comp_emit_core_instance_ref(sec, 1, 0)
     p2_comp_emit_core_instance_ref(sec, 2, 0)
     p2_comp_emit_core_instance_ref(sec, 3, 0)
     p2_comp_emit_core_instance_ref(sec, 4, 0)
+    p2_comp_emit_core_instance_ref(sec, 5, 0)
+    p2_comp_emit_core_instance_ref(sec, 6, 0)
+    p2_comp_emit_core_instance_ref(sec, 7, 0)
     p2_comp_emit_p2_user_core_instance(sec)
+    p2_comp_emit_core_instance_ref(sec, 10, 0)
     p2_comp_emit_section(out, 2, sec)
 }
 
@@ -66,17 +75,32 @@ fn p2_comp_emit_core_instance_ref(sec: WasmWriter, module_index: i32, instance_i
 
 fn p2_comp_emit_p2_user_core_instance(sec: WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 5)
-    writer_core::emit_leb128_u(sec, 5)
+    writer_core::emit_leb128_u(sec, 8)
+    writer_core::emit_leb128_u(sec, 8)
     p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/stdout@0.2.0"), 0)
     p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/environment@0.2.0"), 1)
     p2_comp_emit_p2_instance_arg(sec, String_from("wasi:filesystem/types@0.2.0"), 2)
     p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/stdin@0.2.0"), 3)
     p2_comp_emit_p2_instance_arg(sec, String_from("wasi:cli/exit@0.2.0"), 4)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:clocks/monotonic-clock@0.2.0"), 5)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:clocks/wall-clock@0.2.0"), 6)
+    p2_comp_emit_p2_instance_arg(sec, String_from("wasi:random/random@0.2.0"), 7)
 }
 
 fn p2_comp_emit_p2_instance_arg(sec: WasmWriter, import_name: String, instance_index: i32) {
     writer_string::emit_string(sec, import_name)
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, instance_index)
+}
+
+fn p2_comp_emit_adapter_core_instance_section(out: WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 9)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_string::emit_string(sec, String_from(""))
+    writer_core::emit_byte(sec, 0x12)
+    writer_core::emit_leb128_u(sec, 9)
+    p2_comp_emit_section(out, 2, sec)
 }

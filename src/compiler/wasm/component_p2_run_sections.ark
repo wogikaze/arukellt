@@ -11,10 +11,11 @@ fn p2_run_emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
 }
 
 fn p2_run_emit_command_world_sections(out: WasmWriter) {
-    p2_run_emit_component_section(out)
+    p2_run_emit_type_section(out)
     p2_run_emit_alias_section(out)
     p2_run_emit_type_section(out)
     p2_run_emit_canon_section(out)
+    p2_run_emit_component_section(out)
     p2_run_emit_instance_section(out)
     p2_run_emit_export_section(out)
 }
@@ -25,22 +26,17 @@ fn p2_run_emit_alias_section(out: WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_leb128_u(sec, 5)
+    writer_core::emit_leb128_u(sec, 8)
     writer_string::emit_string(sec, String_from("_start"))
     p2_run_emit_section(out, 6, sec)
 }
 
 fn p2_run_emit_type_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 2)
-    writer_core::emit_byte(sec, 0x6a)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_byte(sec, 0x40)
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_byte(sec, 0x01)
     writer_core::emit_byte(sec, 0x00)
     p2_run_emit_section(out, 7, sec)
 }
@@ -51,7 +47,7 @@ fn p2_run_emit_canon_section(out: WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 0)
-    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
     p2_run_emit_section(out, 8, sec)
 }
@@ -81,5 +77,6 @@ fn p2_run_emit_export_section(out: WasmWriter) {
     writer_string::emit_string(sec, String_from("wasi:cli/run@0.2.6"))
     writer_core::emit_byte(sec, 0x05)
     writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, 0x00)
     p2_run_emit_section(out, 11, sec)
 }

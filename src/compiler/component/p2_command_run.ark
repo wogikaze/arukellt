@@ -49,7 +49,7 @@ fn comp_p2_run_emit_alias_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x01)
-    writer_core::comp_emit_leb128_u(sec, 5)
+    writer_core::comp_emit_leb128_u(sec, 8)
     writer_core::comp_emit_string(sec, String_from("_start"))
     comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), sec)
 }
@@ -61,8 +61,6 @@ fn comp_p2_run_emit_type_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x40)
-    writer_core::comp_emit_byte(sec, 0x00)
-    writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x00)
@@ -105,5 +103,6 @@ fn comp_p2_run_emit_export_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_string(sec, String_from("wasi:cli/run@0.2.6"))
     writer_core::comp_emit_byte(sec, 0x05)
     writer_core::comp_emit_leb128_u(sec, 0)
+    writer_core::comp_emit_byte(sec, 0x00)
     comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), sec)
 }

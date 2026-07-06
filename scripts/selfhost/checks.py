@@ -203,6 +203,10 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
             mi = mi + 1
             continue
         }
+        if eq(clone(name), String_from("read_stdin")) || eq(clone(name), String_from("read_stdin_line")) {
+            mi = mi + 1
+            continue
+        }
         if contains(clone(name), String_from("::")) {
             mi = mi + 1
             continue
