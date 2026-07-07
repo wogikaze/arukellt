@@ -1,0 +1,154 @@
+// Arukellt Selfhost - ADR-040 spine lookup facade.
+// Centralizes signature-registry / mono-instance-table / type-table lookups
+// so that callers (ctx_typed_mir_sync, verify_call, call_fallback) stay under
+// the direct import fan-out limit (13).
+
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::type_info_to_mir_value
+use mir::inst_accessors_result_types
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::legacy_vt_compat
+use mir::lower::mono_instance_table
+use mir::module_spine
+use mir::opcodes
+use mir::typed_mir_compat
+use mir::value_types
+
+fn spine_populated(m: MirModule) -> bool {
+    module_spine::MirModule_signature_spine_populated(m)
+}
+
+fn mvt_invalid() -> MirValueType {
+    typed_mir_compat::mvt_invalid()
+}
+
+fn legacy_vt_to_mvt(m: MirModule, val_type: i32, type_name: String) -> MirValueType {
+    if module_spine::MirModule_signature_spine_populated(m) {
+        return type_info_to_mir_value::vt_to_mir_value(module_spine::MirModule_type_table(m), val_type, clone(type_name))
+    }
+    typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
+}
+
+fn call_return_mvts(m: MirModule, inst: MirInst) -> Vec<MirValueType> {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return Vec_new_MirValueType()
+    }
+    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_CALL() {
+        return Vec_new_MirValueType()
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return Vec_new_MirValueType()
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
+    let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
+    if mono_id >= 0 {
+        let mono_table = module_spine::MirModule_mono_instance_table(m)
+        if mono_id < mono_instance_table::mono_instance_table_entry_count(mono_table) {
+            let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+            if mono_instance_table::mono_instance_entry_return_count(mono_entry) > 0 {
+                return copy_return_types_from_mono(mono_entry)
+            }
+        }
+    }
+    if signature_entry::signature_entry_return_count(entry) > 0 {
+        return copy_return_types_from_entry(entry)
+    }
+    Vec_new_MirValueType()
+}
+
+fn call_return_legacy_vt(m: MirModule, inst: MirInst) -> i32 {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return value_types::VT_VOID()
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return value_types::VT_VOID()
+    }
+    let table = module_spine::MirModule_type_table(m)
+    let registry = module_spine::MirModule_signature_registry(m)
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
+    let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
+    if mono_id >= 0 {
+        let mono_table = module_spine::MirModule_mono_instance_table(m)
+        if mono_id < mono_instance_table::mono_instance_table_entry_count(mono_table) {
+            let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+            if mono_instance_table::mono_instance_entry_return_count(mono_entry) > 0 {
+                return legacy_vt_compat::legacy_vt_from_mir_value_type(table, mono_instance_table::mono_instance_entry_return_at(mono_entry, 0))
+            }
+        }
+    }
+    if signature_entry::signature_entry_return_count(entry) <= 0 {
+        return value_types::VT_VOID()
+    }
+    legacy_vt_compat::legacy_vt_from_mir_value_type(table, signature_entry::signature_entry_return_at(entry, 0))
+}
+
+// 0 = ok, 1 = missing result types, 2 = vt mismatch
+fn call_result_types_status(m: MirModule, inst: MirInst) -> i32 {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return 0
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return 0
+    }
+    let expected = call_return_legacy_vt(m, inst)
+    let actual_count = inst_accessors_result_types::MirInst_result_type_count(inst)
+    if actual_count <= 0 {
+        if expected != value_types::VT_VOID() {
+            return 1
+        }
+        return 0
+    }
+    if expected == value_types::VT_VOID() {
+        return 0
+    }
+    let table = module_spine::MirModule_type_table(m)
+    let actual_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, inst_accessors_result_types::MirInst_result_type_at(inst, 0))
+    if actual_vt != expected && !legacy_vt_compat::legacy_vt_values_equal(actual_vt, expected) {
+        return 2
+    }
+    0
+}
+
+fn enrich_inst_result_types(m: MirModule, inst: MirInst) -> MirInst {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return inst
+    }
+    let mvts = call_return_mvts(m, inst)
+    if len(mvts) > 0 {
+        return inst_record::mir_inst_set_result_types(inst, mvts)
+    }
+    let vt = inst_record::mir_inst_val_type(inst)
+    if vt != value_types::VT_VOID() {
+        return inst_record::mir_inst_set_result_types(inst, typed_mir_compat::result_types_from_legacy_vt(vt))
+    }
+    inst
+}
+
+fn copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
+    let count = mono_instance_table::mono_instance_entry_return_count(entry)
+    let result = Vec_new_MirValueType()
+    let mut i = 0
+    while i < count {
+        push(result, typed_mir_compat::mvt_copy(mono_instance_table::mono_instance_entry_return_at(entry, i)))
+        i = i + 1
+    }
+    result
+}
+
+fn copy_return_types_from_entry(entry: SignatureEntry) -> Vec<MirValueType> {
+    let count = signature_entry::signature_entry_return_count(entry)
+    let result = Vec_new_MirValueType()
+    let mut i = 0
+    while i < count {
+        push(result, typed_mir_compat::mvt_copy(signature_entry::signature_entry_return_at(entry, i)))
+        i = i + 1
+    }
+    result
+}
