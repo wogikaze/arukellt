@@ -6,7 +6,6 @@
 
 use mir::lower::return_typeinfo
 use mir::lower::mono_return_vt_table
-use mir::lower::mono_return_lookup
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
 use mir::lower_kinds
@@ -22,7 +21,9 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     if table_vt >= 0 {
         return table_vt
     }
-    mono_return_vt_legacy_path(ctx, clone(name), fallback_vt)
+    // Legacy path removed — spine lookup is the primary path.
+    // If spine lookup fails, return fallback_vt.
+    fallback_vt
 }
 
 fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
@@ -38,48 +39,16 @@ fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
     signature_entry::signature_entry_mono_instance_id(signature_registry::signature_registry_lookup_by_id(registry, fid))
 }
 
-fn mono_return_vt_legacy_path(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
-    let inst_idx = mono_return_lookup::mono_find_instance(ctx.mono_instances, clone(name))
-    if inst_idx < 0 {
-        return fallback_vt
-    }
-    let inst = get_unchecked(ctx.mono_instances, inst_idx)
-    let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
-    if arg_count == 0 {
-        return fallback_vt
-    }
-    let type_idx = mono_return_lookup::mono_return_type_arg_index(ctx, clone(name), arg_count)
-    let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, type_idx)
-    let mono_tag = type_contracts::TypeInfo_tag(mono_ty)
-    if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
-        return fallback_vt
-    }
-    return_typeinfo::mir_return_vt_from_type_info(mono_ty)
-}
-
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let spine_name = mono_return_vt_table::mono_return_type_name_from_instance_table(ctx, mono_id, String_new())
     if len(spine_name) > 0 {
         return spine_name
     }
+    // Legacy path removed — spine lookup is the primary path.
+    // If spine lookup fails, return fallback_name.
     if is_concrete_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
-    }
-    let inst_idx = mono_return_lookup::mono_find_instance(ctx.mono_instances, clone(name))
-    if inst_idx < 0 {
-        return fallback_name
-    }
-    let inst = get_unchecked(ctx.mono_instances, inst_idx)
-    let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
-    if arg_count == 0 {
-        return fallback_name
-    }
-    let type_idx = mono_return_lookup::mono_return_type_arg_index(ctx, clone(name), arg_count)
-    let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, type_idx)
-    let resolved = return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
-    if len(resolved) > 0 {
-        return resolved
     }
     fallback_name
 }

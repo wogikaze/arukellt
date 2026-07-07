@@ -38,6 +38,8 @@ fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst,
     let fn_ret_vt = if ctx_record::SelfEmitCtx_spine_populated(ctx) && inst_record::mir_inst_func_id_raw(inst) >= 0 {
         registry_return_resolve::registry_resolve_legacy_return_vt(ctx, inst)
     } else {
+        // Legacy path: use function return type directly.
+        // Spine not populated or func_id_raw < 0 — fallback to function return type.
         function_return_view::MirFunction_return_type(called)
     }
     registry_return_audit::registry_audit_observe_call(ctx, inst, callee, fn_ret_vt)
