@@ -1,5 +1,8 @@
 // Arukellt Selfhost - PR-4b MonoInstanceTable return VT via MonoInstanceId (lowering).
 
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_table
 use mir::legacy_vt_compat
 use mir::lower::ctx_current_storage
 use mir::lower::mono_instance_table
@@ -23,4 +26,29 @@ fn mono_return_vt_from_instance_table(ctx: LowerCtx, mono_id: i32) -> i32 {
         return 0 - 1
     }
     legacy_vt_compat::legacy_vt_from_mir_value_type(type_table, mono_instance_table::mono_instance_entry_return_at(entry, 0))
+}
+
+fn mono_return_type_name_from_instance_table(ctx: LowerCtx, mono_id: i32, fallback_name: String) -> String {
+    if mono_id < 0 {
+        return fallback_name
+    }
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return fallback_name
+    }
+    let mono_table = module_spine::MirModule_mono_instance_table(m)
+    let type_table = module_spine::MirModule_type_table(m)
+    if mono_id >= mono_instance_table::mono_instance_table_entry_count(mono_table) {
+        return fallback_name
+    }
+    let entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+    if mono_instance_table::mono_instance_entry_return_count(entry) <= 0 {
+        return fallback_name
+    }
+    let mvt = mono_instance_table::mono_instance_entry_return_at(entry, 0)
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return fallback_name
+    }
+    type_table::type_entry_name(type_table::TypeTable_lookup(type_table, tid))
 }

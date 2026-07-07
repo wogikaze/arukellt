@@ -30,11 +30,10 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - PR-4b-trait-generic: trait/generic/mono CALL の registry 切替完了
 - **未完了**: local GC 型・全面 return 決定は legacy 推論経路が残存
 
-### Phase 3: 部分完了（Critical Blocker）
+### Phase 3: 部分完了
 
-- **完了**: `MirInst.func_id_raw`、spine 永続化、MIR verifier warn-only
-- **未完了**: `MirLocal.value_type`、`MirInst.result_types` フィールド未追加
-- lowering は `val_type`/`type_name` のみ設定
+- **完了**: `MirLocal.value_type`、`MirInst.result_types`、lowering ハブ (`ctx_typed_mir_sync`)、verifier W006/W007 + INV-8/9 骨格
+- **残**: W006 baseline 未ゼロ（pipeline hard-fail 未切替）
 
 ### Phase 6a: 完了
 
@@ -45,18 +44,25 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 
 ### Phase 3b: Typed MIR フィールド完了（Phase 5 の前提）
 
-**PR-3b-1**: `inst_record.ark` / `local_record.ark` に `result_types` / `value_type` 追加（emit 不変）
-
-**PR-3b-L1〜L4**: lowering 全面配線（カテゴリ分割）
-
-**PR-3c**: verifier 拡張（warn-only、INV-8 骨格）
+**PR-3b-1〜L4 / PR-3c**: 完了（`592d8f3d7` s2 concat fix 含む）
 
 **完了条件**:
-- [ ] 全 MirLocal に `value_type` 設定
-- [ ] 値を返す全 MirInst に `result_types` 設定
-- [ ] T3 pass 数悪化なし
+- [x] 全 MirLocal に `value_type` 設定（lowering ハブ経由、W006 warn-only で残件あり）
+- [x] 値を返す全 MirInst に `result_types` 設定（主要経路）
+- [x] T3 pass 数悪化なし（390/29/1 維持）
 
-### Phase 5: emitter から型推論を削除
+### Phase 5: emitter から型推論を削除（部分完了）
+
+**完了（2026-07-07）**:
+- `ctx_gc_layout_lookup.ark`: `MirLocal.value_type` 優先 lookup API
+- `call_fallback.ark`: spine `registry_resolve_legacy_return_vt` 本線化（`func_id_raw` 時）
+- `mono_return_vt*.ark`: instance table / registry 優先、名前逆引き縮小
+- `mir/mod.ark`: `verify_mir_hard` 公開（driver は warn-only 維持、W006>0 のため）
+
+**未完了（T3 390 維持のため defer）**:
+- `code_locals.ark` / `inst_locals.ark` の spine-only 切替（spine 誤 lookup で compile trap）
+- `code_ref_locals_infer*.ark` 削除（infer フォールバック必要）
+- pipeline `verify_mir_hard` 切替
 
 **削除する関数**:
 - `code_ref_locals_infer.ark::find_stack_value_source`

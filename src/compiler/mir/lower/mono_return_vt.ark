@@ -58,6 +58,11 @@ fn mono_return_vt_legacy_path(ctx: LowerCtx, name: String, fallback_vt: i32) -> 
 }
 
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
+    let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
+    let spine_name = mono_return_vt_table::mono_return_type_name_from_instance_table(ctx, mono_id, String_new())
+    if len(spine_name) > 0 {
+        return spine_name
+    }
     if is_concrete_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
     }
@@ -72,54 +77,16 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     }
     let type_idx = mono_return_lookup::mono_return_type_arg_index(ctx, clone(name), arg_count)
     let mono_ty = type_contracts::MonoInstance_type_arg_at(inst, type_idx)
-    let mono_tag = type_contracts::TypeInfo_tag(mono_ty)
-    if mono_tag == 0 || mono_tag == lower_kinds::TY_TYPE_VAR() {
-        return fallback_name
-    }
-    // If the fallback_name is a composite type with a type variable (e.g.
-    // "option:T"), substitute the type variable with the concrete type.
-    if starts_with(clone(fallback_name), String_from("option:")) {
-        let concrete_name = mono_type_info_to_concrete_name(mono_ty)
-        if len(concrete_name) > 0 {
-            return concat(String_from("option:"), concrete_name)
-        }
-    }
-    if starts_with(clone(fallback_name), String_from("vec:")) {
-        let concrete_name = mono_type_info_to_concrete_name(mono_ty)
-        if len(concrete_name) > 0 {
-            return concat(String_from("vec:"), concrete_name)
-        }
-    }
     let resolved = return_typeinfo::mir_return_type_name_from_type_info(mono_ty)
     if len(resolved) > 0 {
         return resolved
     }
-    return mono_type_info_to_concrete_name(mono_ty)
+    fallback_name
 }
 
-// Facade: resolve return type name in one step — looks up the base
-// return type from fn_index, then applies mono substitution.
 fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {
     let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
     mono_return_type_name(ctx, name, base_rtn)
-}
-
-// Convert a TypeInfo to a concrete type name string for substitution
-// into composite type names (e.g. "option:<name>").
-fn mono_type_info_to_concrete_name(ty: TypeInfo) -> String {
-    let tag = type_contracts::TypeInfo_tag(ty)
-    if tag == lower_kinds::TY_I32() { return String_from("i32") }
-    if tag == lower_kinds::TY_I64() { return String_from("i64") }
-    if tag == lower_kinds::TY_F64() { return String_from("f64") }
-    if tag == lower_kinds::TY_F32() { return String_from("f32") }
-    if tag == lower_kinds::TY_BOOL() { return String_from("bool") }
-    if tag == lower_kinds::TY_STRING() { return String_from("String") }
-    if tag == lower_kinds::TY_CHAR() { return String_from("char") }
-    let name = type_contracts::TypeInfo_name(ty)
-    if len(name) > 0 {
-        return name
-    }
-    String_new()
 }
 
 fn is_concrete_mono_return_type_name(type_name: String) -> bool {

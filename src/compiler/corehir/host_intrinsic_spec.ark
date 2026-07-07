@@ -1,12 +1,19 @@
-// Arukellt Selfhost - ADR-040 host intrinsic spec (type definition only; stub list in mir/).
+// Arukellt Selfhost - ADR-040 host intrinsic spec (type definition).
+
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
 
 struct HostIntrinsicSpec {
     name: String,
     abi_kind: i32,
+    param_types: Vec<MirValueType>,
+    return_types: Vec<MirValueType>,
+    signature_id: i32,
 }
 
-fn HostIntrinsicSpec_new(name: String, abi_kind: i32) -> HostIntrinsicSpec {
-    HostIntrinsicSpec { name: name, abi_kind: abi_kind }
+fn HostIntrinsicSpec_new(name: String, abi_kind: i32, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>, signature_id: i32) -> HostIntrinsicSpec {
+    HostIntrinsicSpec { name: name, abi_kind: abi_kind, param_types: param_types, return_types: return_types, signature_id: signature_id }
 }
 
 fn host_intrinsic_spec_name(spec: HostIntrinsicSpec) -> String {
@@ -15,4 +22,15 @@ fn host_intrinsic_spec_name(spec: HostIntrinsicSpec) -> String {
 
 fn host_intrinsic_spec_abi_kind(spec: HostIntrinsicSpec) -> i32 {
     spec.abi_kind
+}
+
+fn host_intrinsic_spec_return_types(spec: HostIntrinsicSpec) -> Vec<MirValueType> {
+    clone(spec.return_types)
+}
+
+fn host_intrinsic_spec_placeholder(name: String) -> HostIntrinsicSpec {
+    let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    let returns = Vec_new_MirValueType()
+    push(returns, string_mvt)
+    HostIntrinsicSpec_new(name, kinds::ABI_KIND_HOST_INTRINSIC(), Vec_new_MirValueType(), returns, 0 - 1)
 }

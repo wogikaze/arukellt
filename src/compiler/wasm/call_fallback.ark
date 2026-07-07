@@ -11,7 +11,9 @@ use wasm::function_indices
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use wasm::intrinsic_vec_new_layout
+use mir::inst_record
 use wasm::registry_return_audit
+use wasm::registry_return_resolve
 use wasm::inst_locals
 
 fn emit_fallback_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
@@ -33,7 +35,11 @@ fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst,
     writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
-    let fn_ret_vt = function_return_view::MirFunction_return_type(called)
+    let fn_ret_vt = if ctx_record::SelfEmitCtx_spine_populated(ctx) && inst_record::mir_inst_func_id_raw(inst) >= 0 {
+        registry_return_resolve::registry_resolve_legacy_return_vt(ctx, inst)
+    } else {
+        function_return_view::MirFunction_return_type(called)
+    }
     registry_return_audit::registry_audit_observe_call(ctx, inst, callee, fn_ret_vt)
     if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, callee, fn_ret_vt) {
         if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0, next_arg1) {

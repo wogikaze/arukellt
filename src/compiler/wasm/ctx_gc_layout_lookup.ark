@@ -4,6 +4,7 @@ use wasm::ctx_record
 use wasm::gc_layout_table
 use wasm::lower_value_type
 use corehir::mir_value_type
+use corehir::type_id
 use corehir::type_table
 use corehir::type_info_to_mir_value
 use mir::function_locals_view
@@ -41,9 +42,16 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let mvt = local_access::MirLocal_value_type(loc)
+    if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
+        let spine_idx = SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+        if spine_idx >= 0 {
+            return spine_idx
+        }
+    }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))
-    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))
+    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
 }
 
 // ADR-040 Phase 5: typed-spine GC type index lookup from a MIR type name.
