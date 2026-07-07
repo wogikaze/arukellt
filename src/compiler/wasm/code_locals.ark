@@ -5,6 +5,7 @@ use wasm::ctx_record
 use wasm::code_ref_locals
 use wasm::code_scratch_locals
 use wasm::ctx_gc_type
+use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::sections_types_gc
 use mir::function_locals_view
@@ -48,7 +49,10 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     }
     if starts_with(clone(type_name), String_from("vec:")) {
         if vt == value_types::VT_I32() {
-            let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+            let mut gc_type = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
+            if gc_type < 0 {
+                gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+            }
             if gc_type < 0 {
                 // Type inference found no vec assignment — local is reused for i32.
             } else {
@@ -194,9 +198,12 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     byte_size
 }
 
-// Fallback: use type inference to determine the GC ref type.
+// Fallback: spine lookup then type inference for the GC ref type.
 fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
-    let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+    let mut gc_type = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
+    if gc_type < 0 {
+        gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+    }
     if gc_type >= 0 {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, gc_type)
