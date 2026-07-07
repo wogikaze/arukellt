@@ -114,7 +114,15 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - `src/compiler/wasm/call_host.ark` — HostIntrinsicSpec に従ってABI変換
 - `src/compiler/wasm/code_body.ark` — GC target unreachable stub 削除
 
+**完了（2026-07-15 骨格実装）**:
+- `host_intrinsic_adapter.ark` 作成: 24 host intrinsic を ABI sub-kind (Scalar/GcRef/LinearMemoryPtr) で分類
+- `kinds.ark`: HOST_ABI_LINEAR_MEMORY_PTR / HOST_ABI_GC_REF / HOST_ABI_SCALAR 定数追加
+- `code_body.ark`: Scalar host intrinsic (clock_now, exists, is_file, is_dir, is_readable_file) は unreachable stub を回避して実 body を出力
+- LinearMemoryPtr host intrinsic は adapter 未実装のため unreachable stub 維持
+- T3: 386 pass / 33 validate-fail / 1 compile-fail（回帰なし、fs_read_error/fs_read_write の func 番号変化 = Scalar intrinsic の body 出力成功）
+
 **完了条件**:
+- [x] `src/compiler/wasm/host_intrinsic_adapter.ark` が存在する
 - [ ] 全 host intrinsic が SignatureRegistry 経由で呼び出される
 - [ ] adapter 関数が i32 → GC ref 変換を行う
 - [ ] 経路依存（func 12 OK / func 28 NG）0 件
