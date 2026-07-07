@@ -148,19 +148,27 @@ fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> 
     if starts_with(clone(name), String_from("vec:")) {
         return gc_type_base + 10
     }
-    if starts_with(clone(name), String_from("hashmap:i32:String")) {
+    // Hashmap type names use abbreviated format: hashmap:si32, hashmap:i32str, etc.
+    if starts_with(clone(name), String_from("hashmap:i32str")) {
         return gc_type_base + 17
     }
-    if starts_with(clone(name), String_from("hashmap:String:String")) {
+    if starts_with(clone(name), String_from("hashmap:si32")) {
+        return gc_type_base + 16
+    }
+    if starts_with(clone(name), String_from("hashmap:strstr")) {
         return gc_type_base + 18
+    }
+    if starts_with(clone(name), String_from("hashmap:i32i32")) {
+        return gc_type_base + 10
     }
     if starts_with(clone(name), String_from("hashmap:")) {
         return gc_type_base + 16
     }
-    if starts_with(clone(name), String_from("enum:")) || starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("result:")) {
+    if starts_with(clone(name), String_from("enum:")) || starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Option_")) || starts_with(clone(name), String_from("Option:")) || starts_with(clone(name), String_from("Option<")) || starts_with(clone(name), String_from("Result_")) || starts_with(clone(name), String_from("Result:")) || starts_with(clone(name), String_from("Result<")) {
         return gc_type_base + 14
     }
-    gc_type_base + 2
+    // Unknown type — return -1 so caller knows there's no mapping.
+    0 - 1
 }
 
 fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, gc_type_base: i32, struct_type_idx: i32) -> GcLayoutId {
@@ -179,6 +187,10 @@ fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, g
         type_idx = struct_type_idx
         st_idx = struct_type_idx
     }
+    // Skip registration if no valid type index was found.
+    if type_idx < 0 {
+        return GC_LAYOUT_ID_INVALID()
+    }
     gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), st_idx)
 }
 
@@ -193,24 +205,36 @@ fn gc_layout_table_populate_from_type_table(table: GcLayoutTable, tt: TypeTable,
 
 fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, struct_names: Vec<String>, struct_type_map: Vec<i32>) {
     let count = len(struct_names)
+    let map_count = len(struct_type_map)
     let mut i = 0
     while i < count {
+        if i >= map_count {
+            break
+        }
         let sname = clone(get_unchecked(struct_names, i))
         let type_idx = get_unchecked(struct_type_map, i)
-        let tid = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
-        gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
+        if type_id::type_id_is_valid(tid) {
+            gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+        }
         i = i + 1
     }
 }
 
 fn gc_layout_table_register_enum_variant_names(table: GcLayoutTable, tt: TypeTable, variant_names: Vec<String>, variant_type_map: Vec<i32>) {
     let count = len(variant_names)
+    let map_count = len(variant_type_map)
     let mut i = 0
     while i < count {
+        if i >= map_count {
+            break
+        }
         let vname = clone(get_unchecked(variant_names, i))
         let type_idx = get_unchecked(variant_type_map, i)
-        let tid = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
-        gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
+        if type_id::type_id_is_valid(tid) {
+            gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+        }
         i = i + 1
     }
 }

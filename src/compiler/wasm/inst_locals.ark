@@ -47,6 +47,12 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
     }
     if dest_gc >= 0 {
         writer_gc::emit_gc_ref_cast(w, dest_gc)
+    } else {
+        // Spine lookup fallback for types legacy inference can't handle
+        let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, dest)
+        if spine_gc >= 0 {
+            writer_gc::emit_gc_ref_cast(w, spine_gc)
+        }
     }
 }
 

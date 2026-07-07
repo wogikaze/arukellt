@@ -5,6 +5,7 @@ use wasm::wasm_context
 use wasm::wasm_start
 use wasm::strings
 use wasm::wasm_sections_facade
+use wasm::gc_layout_table_build
 use mir::module_functions
 use mir::module_wit_imports
 use mir::module_gc_struct
