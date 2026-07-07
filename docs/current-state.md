@@ -325,6 +325,7 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 - **ADR-040 PR-1/2 (2026-07)**: `TypeTable` / `MirValueType` / `SignatureRegistry` 骨格を `fn_index` からミラー構築（conservative approximation、emit 未使用）。`mir::verify_mir_warn_only` を compile パイプラインに warning-only で挿入（W001–W005 集計ログ）
 - **ADR-040 PR-3 (2026-07)**: `MirModule` へ spine 永続化（`type_table` / `signature_registry` / `mono_instance_table`）、`MonoInstanceTable` + subst、`MIR_CALL.func_id_raw` を lowering で設定。W003 除外強化。代表 fixture の mir-verify baseline を `.build/mir-verify-baseline/` に記録。`mir::verify_mir`（W005 fail）を追加（パイプラインは warn-only 維持）
 - **ADR-040 PR-4-wide-audit / PR-4-switch (2026-07)**: `legacy_vt_compat` で Vec 戻り値を legacy MirFunction ABI（i32 ハンドル）に整合。`fn_index_mono_sync` で MonoInstanceTable から fn_index mono 戻り値 VT を同期。`mono_return_vt` は spine テーブル優先。T3 `reg-vt-audit-t3.py` mismatched=0（417/419 compiled）。`registry_switch_call_has_void_return` を `call_fallback.ark` に配線（一致 registry パスのみ void 判定）。T3 **381 pass**（ベースライン維持）
+- **ADR-040 Phase 3c (2026-07-07)**: post-lowering `value_type` sync で W006=0。spine `type_id` 有効時 W005 スキップ + `val_type` 同期（`mir_local_set_val_type_only`）。`verify_mir_pipeline` を full hard-fail（W005/W006/W007）に切替。420 deduped t3-compile fixture で W005=W006=W007=0。T3 **387 pass** / 32 validate-fail / 1 compile-fail。Phase 5–7 残作業は #724 継続追跡（`code_locals` spine 切替は compile trap のため revert 済み）
 - Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
 
 ### T3 MIR optimization re-enabled (issue #486, 2026-04-15; #650 wasm emit unlock 2026-06)

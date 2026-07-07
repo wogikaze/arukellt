@@ -30,10 +30,11 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - PR-4b-trait-generic: trait/generic/mono CALL の registry 切替完了
 - **未完了**: local GC 型・全面 return 決定は legacy 推論経路が残存
 
-### Phase 3: 部分完了
+### Phase 3: 完了（Phase 3c 2026-07-07）
 
-- **完了**: `MirLocal.value_type`、`MirInst.result_types`、lowering ハブ (`ctx_typed_mir_sync`)、verifier W006/W007 + INV-8/9 骨格、W006 baseline ゼロ化 + pipeline W006 hard-fail
-- **残**: W005/W007 baseline 未ゼロ（完全 hard-fail 未切替）
+- **完了**: `MirLocal.value_type`、`MirInst.result_types`、post-lowering sync、verifier W005/W006/W007 baseline ゼロ化、`verify_mir_pipeline` → `verify_mir`（full hard-fail）
+- **検証**: 420 deduped t3-compile fixture で W005=W006=W007=0（`6a29ec03c`）
+- **T3**: 387 pass / 32 validate-fail / 1 compile-fail（wave 1 hard-verify 後、390/29/1 から -3 pass / +3 validate-fail）
 
 ### Phase 6a: 完了
 
@@ -49,8 +50,8 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 **完了条件**:
 - [x] 全 MirLocal に `value_type` 設定（post-lowering sync、W006=0）
 - [x] 値を返す全 MirInst に `result_types` 設定（主要経路）
-- [x] T3 pass 数悪化なし（390/29/1 維持）
-- [x] pipeline W006 hard-fail（`verify_mir_pipeline`）
+- [x] T3 pass 数大幅悪化なし（387/32/1、wave 1 後）
+- [x] pipeline full hard-fail（`verify_mir_pipeline` → `verify_mir`、W005/W006/W007）
 
 ### Phase 5: emitter から型推論を削除（部分完了）
 
@@ -59,12 +60,12 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - `call_fallback.ark`: spine `registry_resolve_legacy_return_vt` 本線化（`func_id_raw` 時）
 - `mono_return_vt*.ark`: instance table / registry 優先、名前逆引き縮小
 - `typed_mir_sync_module.ark`: post-lowering `value_type` sync（W006 baseline ゼロ化）
-- pipeline `verify_mir_pipeline`: W006 hard-fail（W005/W007 は warn-only 維持）
+- pipeline `verify_mir_pipeline`: full hard-fail（W005/W006/W007、`6a29ec03c`）
 
-**未完了（T3 390 維持のため defer）**:
-- `code_locals.ark` / `inst_locals.ark` の spine-only 切替（spine 誤 lookup で compile trap）
+**未完了（T3 compile trap のため bisect 待ち）**:
+- `code_locals.ark` / `inst_locals.ark` の spine 優先切替 — **試行済み・revert**（`2c5872943` → hello/s2 compile unreachable trap、T3 418 compile-fail）
 - `code_ref_locals_infer*.ark` 削除（infer フォールバック必要）
-- pipeline 完全 `verify_mir_hard` 切替（W005 baseline 未ゼロ）
+- pipeline 完全 `verify_mir_hard` 切替 — **完了**（`6a29ec03c`）
 
 **削除する関数**:
 - `code_ref_locals_infer.ark::find_stack_value_source`
@@ -82,7 +83,7 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - [ ] `infer_ref_local_gc_type_depth` の呼び出し回数 = 0
 - [ ] `mono_return_type_name` の名前逆引き回数 = 0
 - [ ] 旧推論経路が呼ばれないことを確認
-- [ ] MIR verifier が type 未設定を fail にする（INV-5 完全執行）
+- [x] MIR verifier が W005/W006/W007 を fail にする（pipeline hard-fail）
 - [ ] CALL/local/result の型整合が MIR verifier で検査される（INV-8, INV-9）
 
 ### Phase 6b: LocalAllocator
