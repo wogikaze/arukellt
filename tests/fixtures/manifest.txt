@@ -2258,6 +2258,8 @@ t3-compile:stdlib_vec_ops/remove_i32.ark
 t3-compile:stdlib_vec_ops/reverse_i32.ark
 t3-compile:stdlib_vec_ops/reverse_string.ark
 t3-compile:stdlib_vec_ops/sum_i32.ark
+t3-compile:stdlib_sort/sort_f64.ark
+t3-compile:stdlib_sort/sort_i64.ark
 t3-compile:stdlib_wit/wit_ast_parse.ark
 t3-compile:stdlib_wit/wit_names.ark
 t3-compile:string_interp/fstring_basic.ark
@@ -2520,13 +2522,17 @@ t3-run:stdlib_random/random_seed.ark
 t3-run:stdlib_string/clone.ark
 t3-run:stdlib_string/parse_f64.ark
 t3-run:stdlib_string/parse_i64.ark
+t3-run:stdlib_string/push_char.ark
 t3-run:stdlib_string/string_concat.ark
 t3-run:stdlib_string/string_eq.ark
+t3-run:stdlib_string/string_join.ark
 t3-run:stdlib_string/string_len.ark
 t3-run:stdlib_string/string_new.ark
 t3-run:stdlib_string/string_slice.ark
 t3-run:stdlib_string/string_starts_ends.ark
 t3-run:stdlib_string/to_lower_upper.ark
+t3-run:stdlib_sort/sort_f64.ark
+t3-run:stdlib_sort/sort_i64.ark
 t3-run:stdlib_time/monotonic.ark
 t3-run:stdlib_trait/buf_read.ark
 t3-run:stdlib_trait/display_trait.ark
