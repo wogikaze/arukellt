@@ -29,7 +29,7 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
         if eq(clone(arg_type), "char") {
             rewritten = String_from("char_to_string")
         } else {
-            if eq(clone(arg_type), "f64") {
+            if eq(clone(arg_type), "f64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_F64() {
                 rewritten = String_from("f64_to_string")
             } else {
                 if eq(clone(arg_type), "bool") {
