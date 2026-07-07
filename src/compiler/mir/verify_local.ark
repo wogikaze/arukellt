@@ -35,12 +35,14 @@ fn verify_one_local(local: MirLocal, report: MirVerifyReport, verbose: bool, fn_
         }
     }
     if len(tn) == 0 && vt == value_types::VT_I32() {
-        mir_verify_report_add_w005(report)
-        if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W005 i32-default "), concat(fn_name, concat(String_from(" "), kind))))
+        if !verify_local_spine_typed(local) {
+            mir_verify_report_add_w005(report)
+            if verbose {
+                mir_verify_report_push_detail(report, concat(String_from("W005 i32-default "), concat(fn_name, concat(String_from(" "), kind))))
+            }
         }
     }
-    if verify_local_gc_name_i32_mismatch(vt, tn) {
+    if verify_local_gc_name_i32_mismatch(vt, tn, local) {
         mir_verify_report_add_w005(report)
         if verbose {
             mir_verify_report_push_detail(report, concat(String_from("W005 gc-name-i32 "), concat(fn_name, concat(String_from(" "), kind))))
@@ -71,7 +73,15 @@ fn verify_local_missing_value_type(vt: i32, type_name: String, local: MirLocal) 
     false
 }
 
-fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String) -> bool {
+fn verify_local_spine_typed(local: MirLocal) -> bool {
+    let mvt = local_access::MirLocal_value_type(local)
+    type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt))
+}
+
+fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String, local: MirLocal) -> bool {
+    if verify_local_spine_typed(local) {
+        return false
+    }
     if vt != value_types::VT_I32() {
         return false
     }

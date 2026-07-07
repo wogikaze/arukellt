@@ -51,6 +51,10 @@ fn mir_local_set_val_type(local: MirLocal, val_type: i32) {
     local.value_type = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(local.type_name))
 }
 
+fn mir_local_set_val_type_only(local: MirLocal, val_type: i32) {
+    local.val_type = val_type
+}
+
 fn mir_local_set_value_type(local: MirLocal, value_type: MirValueType) {
     local.value_type = mir_value_type::mir_value_type_copy(value_type)
 }

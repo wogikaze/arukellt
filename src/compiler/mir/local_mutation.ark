@@ -10,6 +10,10 @@ fn MirLocal_set_val_type(local: MirLocal, val_type: i32) {
     local_record::mir_local_set_val_type(local, val_type)
 }
 
+fn MirLocal_set_val_type_only(local: MirLocal, val_type: i32) {
+    local_record::mir_local_set_val_type_only(local, val_type)
+}
+
 fn MirLocal_set_type_name(local: MirLocal, type_name: String) {
     local_record::mir_local_set_type_name(local, type_name)
 }

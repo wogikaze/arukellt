@@ -1,9 +1,12 @@
 // Arukellt Selfhost - ADR-040 post-lowering MirLocal.value_type sync (params + locals).
 
+use corehir::mir_value_type
+use corehir::type_id
 use corehir::type_info_to_mir_value
 use corehir::type_table
 use mir::function_locals_view
 use mir::function_param_view
+use mir::legacy_vt_compat
 use mir::local_access
 use mir::local_mutation
 use mir::module_functions
@@ -47,7 +50,11 @@ fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
     let vt = local_access::MirLocal_val_type(loc)
     let tn = local_access::MirLocal_type_name(loc)
     let mvt = type_info_to_mir_value::vt_to_mir_value(table, vt, clone(tn))
-    local_mutation::MirLocal_copy_with_value_type(loc, mvt)
+    let synced = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
+    if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
+        local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, mvt))
+    }
+    synced
 }
 
 fn mir_function_set_param_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
