@@ -8,6 +8,7 @@ use wasm::ctx_vec_locals
 use wasm::ctx_record
 use wasm::emit_target
 use mir::host_intrinsic_stub_names
+use wasm::host_intrinsic_adapter
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
@@ -27,12 +28,15 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
         return body
     }
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && is_host_intrinsic_stub(f) {
-        // Host intrinsic functions on GC targets that are not yet fully
-        // implemented with GC-aware result emission. Emit unreachable to
-        // satisfy validation until proper GC result emission is implemented.
-        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
-        writer_core::emit_byte(body, opcodes::OP_END())
-        return body
+        // Host intrinsic functions on GC targets: Scalar intrinsics can
+        // emit a real body; LinearMemoryPtr intrinsics still need adapter
+        // conversion and emit unreachable until the adapter is implemented.
+        let name = function_identity::MirFunction_name(f)
+        if !host_intrinsic_adapter::host_intrinsic_can_emit_gc_body(clone(name)) {
+            writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
+            writer_core::emit_byte(body, opcodes::OP_END())
+            return body
+        }
     }
     code_body_helpers::emit_function_instructions(body, f, ctx, bindings)
 

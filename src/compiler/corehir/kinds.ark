@@ -87,6 +87,11 @@ fn ABI_KIND_HOST_INTRINSIC() -> i32 { 2 }
 fn ABI_KIND_BUILTIN() -> i32 { 3 }
 fn ABI_KIND_TRAIT_DISPATCH() -> i32 { 4 }
 
+// ADR-040 Phase 7 host intrinsic ABI sub-kinds.
+fn HOST_ABI_LINEAR_MEMORY_PTR() -> i32 { 1 }
+fn HOST_ABI_GC_REF() -> i32 { 2 }
+fn HOST_ABI_SCALAR() -> i32 { 3 }
+
 // ADR-040 MirValueType nullability.
 fn NULLABILITY_NULLABLE() -> i32 { 1 }
 fn NULLABILITY_NON_NULL() -> i32 { 2 }

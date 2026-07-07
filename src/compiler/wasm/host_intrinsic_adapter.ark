@@ -1,0 +1,71 @@
+// Arukellt Selfhost - ADR-040 Phase 7 host intrinsic adapter.
+//
+// Maps host intrinsic names to HostIntrinsicSpec entries and provides
+// ABI-aware result emission for GC targets.  The adapter converts the
+// linear-memory i32 representation used by the runtime into GC ref
+// types expected by the typed MIR signature.
+//
+// Currently this is a registration skeleton: the 24 host intrinsic
+// stubs are classified by ABI sub-kind (LinearMemoryPtr / GcRef /
+// Scalar) so that code_body can decide whether to emit a real body
+// or keep the unreachable stub.  Stubs classified as Scalar (e.g.
+// clock_now, exists, is_file) can emit a real body immediately; the
+// LinearMemoryPtr stubs (e.g. read_to_string, write_string) require
+// adapter functions that are not yet implemented.
+
+use corehir::kinds
+use corehir::host_intrinsic_spec
+use corehir::mir_value_type
+use corehir::type_id
+use mir::host_intrinsic_stub_names
+
+// Classify a host intrinsic name by its ABI sub-kind.
+// Returns HOST_ABI_SCALAR for intrinsics that return plain i32/i64/f64,
+// HOST_ABI_GC_REF for intrinsics that return a GC reference directly,
+// and HOST_ABI_LINEAR_MEMORY_PTR for intrinsics that return an i32
+// pointer into linear memory which must be converted to a GC ref.
+fn host_intrinsic_abi_kind(name: String) -> i32 {
+    // Scalar intrinsics: return plain numeric values, no GC ref needed.
+    if eq(clone(name), String_from("clock_now")) {
+        return kinds::HOST_ABI_SCALAR()
+    }
+    if eq(clone(name), String_from("exists")) {
+        return kinds::HOST_ABI_SCALAR()
+    }
+    if eq(clone(name), String_from("is_file")) {
+        return kinds::HOST_ABI_SCALAR()
+    }
+    if eq(clone(name), String_from("is_dir")) {
+        return kinds::HOST_ABI_SCALAR()
+    }
+    if eq(clone(name), String_from("is_readable_file")) {
+        return kinds::HOST_ABI_SCALAR()
+    }
+    // All other host intrinsics return i32 pointers (string handles,
+    // vec handles, etc.) that need adapter conversion to GC refs.
+    kinds::HOST_ABI_LINEAR_MEMORY_PTR()
+}
+
+// Check whether a host intrinsic can emit a real body on GC targets
+// without an adapter (i.e. it is Scalar or GcRef).
+fn host_intrinsic_can_emit_gc_body(name: String) -> bool {
+    let abi = host_intrinsic_abi_kind(clone(name))
+    abi == kinds::HOST_ABI_SCALAR() || abi == kinds::HOST_ABI_GC_REF()
+}
+
+// Build a HostIntrinsicSpec for the given name.
+// Currently returns a placeholder spec with the correct ABI kind;
+// full param/return type population will be added as adapters are
+// implemented.
+fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
+    let abi = host_intrinsic_abi_kind(clone(name))
+    let returns = Vec_new_MirValueType()
+    if abi == kinds::HOST_ABI_GC_REF() || abi == kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
+        let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+        push(returns, string_mvt)
+    } else {
+        let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
+        push(returns, i32_mvt)
+    }
+    host_intrinsic_spec::HostIntrinsicSpec_new(name, abi, Vec_new_MirValueType(), returns, 0 - 1)
+}
