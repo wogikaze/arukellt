@@ -63,9 +63,16 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - pipeline `verify_mir_pipeline`: full hard-fail（W005/W006/W007、`6a29ec03c`）
 
 **未完了（T3 compile trap のため bisect 待ち）**:
-- `code_locals.ark` / `inst_locals.ark` の spine 優先切替 — **試行済み・revert**（`2c5872943` → hello/s2 compile unreachable trap、T3 418 compile-fail）
-- `code_ref_locals_infer*.ark` 削除（infer フォールバック必要）
+- `code_locals.ark` / `inst_locals.ark` の spine 優先切替 — **inst_locals 完了**（spine lookup + infer フォールバック、T3 386/33/1）、`code_locals` は `ctx_gc_type` が既に正確なため spine 不要
+- `code_ref_locals_infer*.ark` 削除（infer フォールバック必要 — VT_I32 の GC ref 再利用判定に infer 必要）
 - pipeline 完全 `verify_mir_hard` 切替 — **完了**（`6a29ec03c`）
+
+**完了（2026-07-15 GcLayoutTable 配線）**:
+- `ctx_record.ark`: `SelfEmitCtx.gc_layout_table` フィールド + accessor 追加
+- `wasm_sections.ark`: `build_gc_layout_table_for_emit` を emit pipeline に接続
+- `ctx_gc_layout_lookup.ark`: `lower_mir_value_type` の nested-struct return bootstrap バグ回避（直接 GcLayoutEntry から ref type idx 取得）
+- `inst_locals.ark`: `emit_gc_ref_cast_to_dest` に spine lookup 優先 + infer フォールバック追加
+- **根因特定**: Phase 5 compile trap は `SelfEmitCtx_gc_layout_table` 未定義 + `lower_mir_value_type` の nested-struct return bootstrap コンパイルバグ
 
 **削除する関数**:
 - `code_ref_locals_infer.ark::find_stack_value_source`
@@ -84,7 +91,7 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - [ ] `mono_return_type_name` の名前逆引き回数 = 0
 - [ ] 旧推論経路が呼ばれないことを確認
 - [x] MIR verifier が W005/W006/W007 を fail にする（pipeline hard-fail）
-- [ ] CALL/local/result の型整合が MIR verifier で検査される（INV-8, INV-9）
+- [x] CALL/local/result の型整合が MIR verifier で検査される（INV-8, INV-9）
 
 ### Phase 6b: LocalAllocator
 
