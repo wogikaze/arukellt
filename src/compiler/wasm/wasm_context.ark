@@ -46,3 +46,7 @@ fn emit_wasm_context_set_signature_spine(ctx: SelfEmitCtx, registry: SignatureRe
     ctx_record::SelfEmitCtx_set_mono_instance_table(ctx, mono_table)
     ctx_record::SelfEmitCtx_set_spine_populated(ctx, spine_populated)
 }
+
+fn emit_wasm_context_set_gc_layout_table(ctx: SelfEmitCtx, gc_layout_table: GcLayoutTable) {
+    ctx_record::SelfEmitCtx_set_gc_layout_table(ctx, gc_layout_table)
+}

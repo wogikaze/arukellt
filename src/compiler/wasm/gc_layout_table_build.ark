@@ -1,6 +1,7 @@
 // Arukellt Selfhost - ADR-040 Phase 4 GcLayoutTable population during type-section emit.
 
 use corehir::kinds
+use corehir::type_id
 use corehir::type_table
 use mir::module_gc_enum
 use mir::module_gc_struct
@@ -8,26 +9,28 @@ use wasm::gc_layout_table
 
 fn build_gc_layout_table_for_emit(tt: TypeTable, mir: MirModule, gc_type_base: i32, gc_enum_variant_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) -> GcLayoutTable {
     let table = gc_layout_table::GcLayoutTable_new()
-    let string_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, string_id, gc_layout_table::WasmRefType_new(gc_type_base + 0, 1), 0 - 1)
-    let vec_i32_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_VEC(), String_from("vec:i32"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, vec_i32_id, gc_layout_table::WasmRefType_new(gc_type_base + 10, 1), 0 - 1)
-    let vec_string_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_VEC(), String_from("vec:String"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, vec_string_id, gc_layout_table::WasmRefType_new(gc_type_base + 19, 1), 0 - 1)
-    let vec_v128_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_VEC(), String_from("vec:v128"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, vec_v128_id, gc_layout_table::WasmRefType_new(gc_type_base + 21, 1), 0 - 1)
-    let vec_i64_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_VEC(), String_from("vec:i64"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, vec_i64_id, gc_layout_table::WasmRefType_new(gc_type_base + 22, 1), 0 - 1)
-    let vec_f64_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_VEC(), String_from("vec:f64"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, vec_f64_id, gc_layout_table::WasmRefType_new(gc_type_base + 23, 1), 0 - 1)
-    let hm_si_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:i32"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, hm_si_id, gc_layout_table::WasmRefType_new(gc_type_base + 16, 1), 0 - 1)
-    let hm_is_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32:String"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, hm_is_id, gc_layout_table::WasmRefType_new(gc_type_base + 17, 1), 0 - 1)
-    let hm_ss_id = type_table::TypeTable_intern(tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:String"), Vec_new_TypeId())
-    gc_layout_table::gc_layout_table_register(table, hm_ss_id, gc_layout_table::WasmRefType_new(gc_type_base + 18, 1), 0 - 1)
+    // Use find_existing instead of intern to avoid mutating the TypeTable
+    // during emit — interning new entries shifts type IDs and corrupts
+    // downstream emit phases.
+    register_builtin(table, tt, kinds::TYPE_KIND_STRING(), String_from("String"), gc_type_base + 0)
+    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:i32"), gc_type_base + 10)
+    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:String"), gc_type_base + 19)
+    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:v128"), gc_type_base + 21)
+    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:i64"), gc_type_base + 22)
+    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:f64"), gc_type_base + 23)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:i32"), gc_type_base + 16)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32:String"), gc_type_base + 17)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:String"), gc_type_base + 18)
     gc_layout_table::gc_layout_table_populate_from_type_table(table, tt, gc_type_base)
     gc_layout_table::gc_layout_table_register_enum_variant_names(table, tt, module_gc_enum::MirModule_gc_enum_variant_names(mir), gc_enum_variant_type_map)
     gc_layout_table::gc_layout_table_register_struct_names(table, tt, module_gc_struct::MirModule_gc_struct_names(mir), gc_struct_type_map)
     table
+}
+
+fn register_builtin(table: GcLayoutTable, tt: TypeTable, kind: i32, name: String, type_idx: i32) {
+    let tid = type_table::type_table_find_existing(tt, kind, clone(name), Vec_new_TypeId())
+    if !type_id::type_id_is_valid(tid) {
+        return
+    }
+    gc_layout_table::gc_layout_table_register(table, tid, gc_layout_table::WasmRefType_new(type_idx, 1), 0 - 1)
 }
