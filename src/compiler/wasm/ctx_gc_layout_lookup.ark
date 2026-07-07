@@ -2,11 +2,11 @@
 
 use wasm::ctx_record
 use wasm::gc_layout_table
-use wasm::lower_value_type
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_table
 use corehir::type_info_to_mir_value
+use corehir::kinds
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types
@@ -17,19 +17,20 @@ fn SelfEmitCtx_gc_layout_id_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueTy
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
     let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-    // Only trust the lowering result when the type actually has a layout
-    // entry; the lowering falls back to type index 0 for unknown TypeIds,
-    // which must not leak out as a valid GC type index.
-    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, mir_value_type::mir_value_type_type_id(mvt))
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, tid)
     if !gc_layout_table::gc_layout_id_is_valid(lid) {
         return 0 - 1
     }
-    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let wvt = lower_value_type::lower_mir_value_type(layout, tt, mvt)
-    if gc_layout_table::wasm_value_type_is_ref(wvt) {
-        return gc_layout_table::wasm_ref_type_idx(gc_layout_table::wasm_value_type_ref_type(wvt))
+    // Avoid lower_mir_value_type which returns a nested WasmValueType struct;
+    // the bootstrap compiler miscompiles nested-struct return values.
+    // Instead, directly extract the ref type index from the layout entry.
+    if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() {
+        return 0 - 1
     }
-    0 - 1
+    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
+    let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
+    gc_layout_table::wasm_ref_type_idx(ref_type)
 }
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -42,12 +43,8 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let mvt = local_access::MirLocal_value_type(loc)
-    if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
-        let spine_idx = SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
-        if spine_idx >= 0 {
-            return spine_idx
-        }
+    if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
+        return 0 - 1
     }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
     let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))

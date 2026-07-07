@@ -11,6 +11,7 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::ctx_record
+use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals
 use mir::value_types
 
@@ -40,7 +41,10 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
     if !code_ref_locals::should_gc_ref_cast_to_dest(f, dest, ctx) {
         return
     }
-    let dest_gc = code_ref_locals::infer_ref_local_gc_type(f, dest, ctx)
+    let dest_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, dest)
+    if dest_gc < 0 {
+        dest_gc = code_ref_locals::infer_ref_local_gc_type(f, dest, ctx)
+    }
     if dest_gc >= 0 {
         writer_gc::emit_gc_ref_cast(w, dest_gc)
     }
