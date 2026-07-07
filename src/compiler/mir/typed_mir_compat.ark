@@ -9,14 +9,6 @@ fn mvt_from_legacy_vt(val_type: i32, type_name: String) -> MirValueType {
     mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), legacy_vt_to_repr(val_type, clone(type_name)), legacy_vt_to_nullability(val_type, clone(type_name)))
 }
 
-fn mvt_invalid() -> MirValueType {
-    mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0)
-}
-
-fn mvt_copy(vt: MirValueType) -> MirValueType {
-    mir_value_type::mir_value_type_copy(vt)
-}
-
 fn result_types_from_legacy_vt(val_type: i32) -> Vec<MirValueType> {
     if val_type == value_types::VT_VOID() {
         return Vec_new_MirValueType()

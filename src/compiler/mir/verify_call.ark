@@ -1,14 +1,21 @@
 // Arukellt Selfhost - MIR verifier CALL checks (W002, W003, W007 INV-8).
 
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
 use mir::function_identity
 use mir::host_intrinsic_stub_names
 use mir::module_functions
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::inst_accessors_literals
+use mir::inst_accessors_result_types
 use mir::inst_accessors_shape
+use mir::inst_record
+use mir::legacy_vt_compat as mir_legacy_vt_compat
+use mir::lower::mono_instance_table
+use mir::module_spine
 use mir::opcodes
-use mir::spine_lookup
 use mir::verify_report
 
 fn verify_calls_in_module(m: MirModule, report: MirVerifyReport, verbose: bool) {
@@ -59,20 +66,52 @@ fn verify_one_call(inst: MirInst, m: MirModule, report: MirVerifyReport, verbose
 }
 
 fn verify_call_inv8_result_types(inst: MirInst, m: MirModule, report: MirVerifyReport, verbose: bool, caller: String) {
-    let status = spine_lookup::call_result_types_status(m, inst)
-    if status == 1 {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return
+    }
+    let table = module_spine::MirModule_type_table(m)
+    let registry = module_spine::MirModule_signature_registry(m)
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
+    let expected = verify_call_expected_return_vt(entry, m)
+    let actual_count = inst_accessors_result_types::MirInst_result_type_count(inst)
+    if actual_count <= 0 && expected != value_types::VT_VOID() {
         mir_verify_report_add_w007(report)
         if verbose {
             mir_verify_report_push_detail(report, concat(String_from("W007 call-missing-result-types "), caller))
         }
         return
     }
-    if status == 2 {
-        mir_verify_report_add_w007(report)
-        if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W007 call-result-vt-mismatch "), caller))
+    if actual_count > 0 && expected != value_types::VT_VOID() {
+        let actual_vt = mir_legacy_vt_compat::legacy_vt_from_mir_value_type(table, inst_accessors_result_types::MirInst_result_type_at(inst, 0))
+        if actual_vt != expected && !mir_legacy_vt_compat::legacy_vt_values_equal(actual_vt, expected) {
+            mir_verify_report_add_w007(report)
+            if verbose {
+                mir_verify_report_push_detail(report, concat(String_from("W007 call-result-vt-mismatch "), caller))
+            }
         }
     }
+}
+
+fn verify_call_expected_return_vt(entry: SignatureEntry, m: MirModule) -> i32 {
+    let table = module_spine::MirModule_type_table(m)
+    let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
+    if mono_id >= 0 {
+        let mono_table = module_spine::MirModule_mono_instance_table(m)
+        if mono_id < mono_instance_table::mono_instance_table_entry_count(mono_table) {
+            let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+            if mono_instance_table::mono_instance_entry_return_count(mono_entry) > 0 {
+                return mir_legacy_vt_compat::legacy_vt_from_mir_value_type(table, mono_instance_table::mono_instance_entry_return_at(mono_entry, 0))
+            }
+        }
+    }
+    if signature_entry::signature_entry_return_count(entry) <= 0 {
+        return value_types::VT_VOID()
+    }
+    mir_legacy_vt_compat::legacy_vt_from_mir_value_type(table, signature_entry::signature_entry_return_at(entry, 0))
 }
 
 fn verify_call_w003_excluded(callee: String) -> bool {

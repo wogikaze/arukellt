@@ -3,7 +3,6 @@
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
-use mir::function_return_view
 use mir::inst_record
 use mir::legacy_vt_compat
 use mir::lower::mono_instance_table
@@ -45,11 +44,4 @@ fn registry_should_use_matched_path(ctx: SelfEmitCtx, inst: MirInst, callee: Str
 fn registry_guard_signature_entry(ctx: SelfEmitCtx, inst: MirInst) -> SignatureEntry {
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
-}
-
-fn resolve_call_fn_ret_vt(ctx: SelfEmitCtx, inst: MirInst, called: MirFunction) -> i32 {
-    if ctx_record::SelfEmitCtx_spine_populated(ctx) && inst_record::mir_inst_func_id_raw(inst) >= 0 {
-        return registry_resolve_legacy_return_vt(ctx, inst)
-    }
-    function_return_view::MirFunction_return_type(called)
 }
