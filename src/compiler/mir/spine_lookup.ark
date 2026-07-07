@@ -122,11 +122,13 @@ fn enrich_inst_result_types(m: MirModule, inst: MirInst) -> MirInst {
     }
     let mvts = call_return_mvts(m, inst)
     if len(mvts) > 0 {
-        return inst_record::mir_inst_set_result_types(inst, mvts)
+        inst_record::mir_inst_set_result_types(inst, mvts)
+        return inst
     }
     let vt = inst_record::mir_inst_val_type(inst)
     if vt != value_types::VT_VOID() {
-        return inst_record::mir_inst_set_result_types(inst, typed_mir_compat::result_types_from_legacy_vt(vt))
+        inst_record::mir_inst_set_result_types(inst, typed_mir_compat::result_types_from_legacy_vt(vt))
+        return inst
     }
     inst
 }
