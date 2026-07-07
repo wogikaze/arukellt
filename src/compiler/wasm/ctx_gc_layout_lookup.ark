@@ -43,12 +43,33 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    // ADR-040 Phase 5e: variant_slot direct lookup (structured type ID)
+    let variant_slot = local_access::MirLocal_variant_slot(loc)
+    if variant_slot >= 0 {
+        let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            return variant_gc
+        }
+    }
     if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
         return 0 - 1
     }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
     let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))
     SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
+}
+
+// ADR-040 Phase 5e: variant_slot → Wasm ref type index via
+// gc_enum_variant_type_map (structured lookup, no string matching).
+fn SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx: SelfEmitCtx, variant_slot: i32) -> i32 {
+    if variant_slot < 0 {
+        return 0 - 1
+    }
+    let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    if variant_slot < len(map) {
+        return get_unchecked(map, variant_slot)
+    }
+    0 - 1
 }
 
 // ADR-040 Phase 5: typed-spine GC type index lookup from a MIR type name.
