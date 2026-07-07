@@ -82,3 +82,7 @@ pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<D
     result_record::compile_result_set_error_count(result, len(warnings))
     result
 }
+
+pub fn mir_verify_failed_result() -> CompileResult {
+    result_record::CompileResult_err(phases::PHASE_LOWER(), String_from("MIR verify failed"))
+}

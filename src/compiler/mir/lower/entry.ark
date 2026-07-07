@@ -37,6 +37,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> M
     if prune_enabled {
         let _mono_pruned = ctx_api_module::ctx_prune_unreachable(ctx)
     }
+    ctx_api_module::ctx_sync_typed_value_types(ctx)
     ctx_api_module::ctx_current_module(ctx)
 }
 

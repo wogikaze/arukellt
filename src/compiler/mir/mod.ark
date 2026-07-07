@@ -36,10 +36,6 @@ pub fn mir_prune_unreachable_for_t3(m: MirModule, export_names: Vec<String>) -> 
     reachability::mir_prune_unreachable_for_t3(m, export_names)
 }
 
-pub fn verify_mir_warn_only(m: MirModule) -> MirVerifyReport {
-    verify::verify_mir_warn_only(m)
-}
-
-pub fn verify_mir_hard(m: MirModule) -> i32 {
-    verify::verify_mir(m)
+pub fn verify_mir_pipeline(m: MirModule) -> i32 {
+    verify::verify_mir_pipeline(m)
 }

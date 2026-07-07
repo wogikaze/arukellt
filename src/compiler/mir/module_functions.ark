@@ -25,6 +25,21 @@ fn MirModule_set_functions(m: MirModule, functions: Vec<MirFunction>) {
     m.functions = functions
 }
 
+fn MirModule_set_function_at(m: MirModule, idx: i32, f: MirFunction) {
+    let out = Vec_new_MirFunction()
+    let n = len(m.functions)
+    let mut i = 0
+    while i < n {
+        if i == idx {
+            push(out, f)
+        } else {
+            push(out, get_unchecked(m.functions, i))
+        }
+        i = i + 1
+    }
+    m.functions = out
+}
+
 fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
 }

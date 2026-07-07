@@ -32,8 +32,8 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 
 ### Phase 3: 部分完了
 
-- **完了**: `MirLocal.value_type`、`MirInst.result_types`、lowering ハブ (`ctx_typed_mir_sync`)、verifier W006/W007 + INV-8/9 骨格
-- **残**: W006 baseline 未ゼロ（pipeline hard-fail 未切替）
+- **完了**: `MirLocal.value_type`、`MirInst.result_types`、lowering ハブ (`ctx_typed_mir_sync`)、verifier W006/W007 + INV-8/9 骨格、W006 baseline ゼロ化 + pipeline W006 hard-fail
+- **残**: W005/W007 baseline 未ゼロ（完全 hard-fail 未切替）
 
 ### Phase 6a: 完了
 
@@ -47,9 +47,10 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 **PR-3b-1〜L4 / PR-3c**: 完了（`592d8f3d7` s2 concat fix 含む）
 
 **完了条件**:
-- [x] 全 MirLocal に `value_type` 設定（lowering ハブ経由、W006 warn-only で残件あり）
+- [x] 全 MirLocal に `value_type` 設定（post-lowering sync、W006=0）
 - [x] 値を返す全 MirInst に `result_types` 設定（主要経路）
 - [x] T3 pass 数悪化なし（390/29/1 維持）
+- [x] pipeline W006 hard-fail（`verify_mir_pipeline`）
 
 ### Phase 5: emitter から型推論を削除（部分完了）
 
@@ -57,12 +58,13 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - `ctx_gc_layout_lookup.ark`: `MirLocal.value_type` 優先 lookup API
 - `call_fallback.ark`: spine `registry_resolve_legacy_return_vt` 本線化（`func_id_raw` 時）
 - `mono_return_vt*.ark`: instance table / registry 優先、名前逆引き縮小
-- `mir/mod.ark`: `verify_mir_hard` 公開（driver は warn-only 維持、W006>0 のため）
+- `typed_mir_sync_module.ark`: post-lowering `value_type` sync（W006 baseline ゼロ化）
+- pipeline `verify_mir_pipeline`: W006 hard-fail（W005/W007 は warn-only 維持）
 
 **未完了（T3 390 維持のため defer）**:
 - `code_locals.ark` / `inst_locals.ark` の spine-only 切替（spine 誤 lookup で compile trap）
 - `code_ref_locals_infer*.ark` 削除（infer フォールバック必要）
-- pipeline `verify_mir_hard` 切替
+- pipeline 完全 `verify_mir_hard` 切替（W005 baseline 未ゼロ）
 
 **削除する関数**:
 - `code_ref_locals_infer.ark::find_stack_value_source`

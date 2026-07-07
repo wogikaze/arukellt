@@ -45,6 +45,16 @@ fn verify_mir(m: MirModule) -> i32 {
     0
 }
 
+// Pipeline gate: W006 hard-fail only until W005/W007 baseline is zero (ADR-040 Phase 3c).
+fn verify_mir_pipeline(m: MirModule) -> i32 {
+    let report = verify_mir_warn_only_verbose(m, false)
+    if verify_report::mir_verify_report_w006(report) > 0 {
+        stdio::eprintln(String_from("mir-verify: fail on W006"))
+        return 1
+    }
+    0
+}
+
 fn verify_mir_is_representative_fixture(fn_name: String) -> bool {
     if eq(clone(fn_name), String_from("display_trait_vec")) { return true }
     if eq(clone(fn_name), String_from("two_params")) { return true }

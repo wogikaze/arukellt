@@ -1,0 +1,83 @@
+// Arukellt Selfhost - ADR-040 post-lowering MirLocal.value_type sync (params + locals).
+
+use corehir::type_info_to_mir_value
+use corehir::type_table
+use mir::function_locals_view
+use mir::function_param_view
+use mir::local_access
+use mir::local_mutation
+use mir::module_functions
+use mir::module_spine
+
+fn mir_module_sync_all_value_types(m: MirModule) {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return
+    }
+    let table = module_spine::MirModule_type_table(m)
+    let count = module_functions::MirModule_function_count(m)
+    let mut fi = 0
+    while fi < count {
+        let synced = mir_function_sync_all_value_types(module_functions::MirModule_function_at(m, fi), table)
+        module_functions::MirModule_set_function_at(m, fi, synced)
+        fi = fi + 1
+    }
+}
+
+fn mir_function_sync_all_value_types(f: MirFunction, table: TypeTable) -> MirFunction {
+    let pc = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < pc {
+        let loc = function_param_view::MirFunction_param_at(f, pi)
+        let synced = mir_local_sync_value_type(loc, table)
+        f = mir_function_set_param_at(f, pi, synced)
+        pi = pi + 1
+    }
+    let lc = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < lc {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let synced = mir_local_sync_value_type(loc, table)
+        f = mir_function_set_local_at(f, li, synced)
+        li = li + 1
+    }
+    f
+}
+
+fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
+    let vt = local_access::MirLocal_val_type(loc)
+    let tn = local_access::MirLocal_type_name(loc)
+    let mvt = type_info_to_mir_value::vt_to_mir_value(table, vt, clone(tn))
+    local_mutation::MirLocal_copy_with_value_type(loc, mvt)
+}
+
+fn mir_function_set_param_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
+    let out = Vec_new_MirLocal()
+    let n = function_param_view::MirFunction_param_count(f)
+    let mut i = 0
+    while i < n {
+        if i == idx {
+            push(out, local)
+        } else {
+            push(out, function_param_view::MirFunction_param_at(f, i))
+        }
+        i = i + 1
+    }
+    f.params = out
+    f
+}
+
+fn mir_function_set_local_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
+    let out = Vec_new_MirLocal()
+    let n = function_locals_view::MirFunction_local_count(f)
+    let mut i = 0
+    while i < n {
+        if i == idx {
+            push(out, local)
+        } else {
+            push(out, function_locals_view::MirFunction_local_at(f, i))
+        }
+        i = i + 1
+    }
+    f.locals = out
+    f
+}
