@@ -217,15 +217,81 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 
 ## 出力ファイル
 
-出力ファイル名は入力ファイル名を元に `<input>.*` の形式で生成する（仮置き）。
+出力ファイル名は入力ファイル名の stem（拡張子 `.ark` を除去した部分）を元に生成する。
 
-| ターゲット | 出力 | 備考 |
-|-----------|------|------|
-| `wasm32` | `<input>.wasm`, `<input>.wat` | |
-| `wasm32-gc` | `<input>.wasm`, `<input>.wat`, `<input>.wit`, `<input>.component.wasm`, `<input>.core.wasm`, `<input>.world.wit` | Component化・jco transpile は別途実行 |
-| `native-cpp` / `native-llvm` | 別途ADRで決定 | |
+### `<input>` の定義
 
-> **注意**: `<input>.*` の命名規則は仮置きである。最終的な命名規則は別途 issue で決定する。
+- `<input>` = 入力ファイルパスから `.ark` 拡張子を除去した文字列
+  - 例: `src/hello.ark` → `<input>` = `src/hello`
+  - 例: `tests/fixtures/wasi_fs_p2.ark` → `<input>` = `tests/fixtures/wasi_fs_p2`
+- 拡張子が `.ark` でない場合はファイルパス全体を `<input>` とする
+- `--output <path>` で上書き可能:
+  - `--emit core-wasm` 時: `<path>` がそのまま出力ファイル名
+  - `--emit all` 時: `<path>` をベースに `.wasm` / `.component.wasm` を派生
+  - `<path>` が `.wasm` で終わる場合、component 側は `.wasm` を `.component.wasm` に置換
+
+### ターゲット別出力ファイル
+
+| ターゲット | `--emit` | 出力ファイル | 備考 |
+|-----------|----------|-------------|------|
+| `wasm32` | `core-wasm` (default) | `<input>.wasm` | |
+| `wasm32` | `wat` | `<input>.wat` | |
+| `wasm32-gc` | `core-wasm` (default) | `<input>.wasm` | |
+| `wasm32-gc` | `wat` | `<input>.wat` | |
+| `wasm32-gc` | `component` | `<input>.component.wasm` | 要 `wasm-tools` |
+| `wasm32-gc` | `wit` | `<input>.wit` | WIT export surface |
+| `wasm32-gc` | `all` | `<input>.wasm` + `<input>.component.wasm` | core + component |
+| `native-cpp` | `core-wasm` (default) | `<input>.c` | C99 ソース |
+| `native-cpp` | `object` | `<input>.o` | 外部 C コンパイラで `.o` に変換 |
+| `native-llvm` | `core-wasm` (default) | `<input>.ll` | LLVM IR テキスト |
+| `native-llvm` | `object` | `<input>.o` | `llc` で `.o` に変換 |
+
+### `--emit all` 時のファイル衝突
+
+`--emit all` は `wasm32-gc` ターゲットでのみ有効。以下のファイルを生成する:
+
+1. `<input>.wasm` — core Wasm
+2. `<input>.component.wasm` — component Wasm
+
+これらは拡張子が異なるため衝突しない。`<input>.wit` と `<input>.world.wit` は `--emit wit` で別途出力するため、`--emit all` では生成されない。
+
+### native ターゲットの出力形式
+
+#### `native-cpp`
+
+- **デフォルト出力**: `<input>.c` (C99 ソースコード)
+  - C99 を選択する理由: C++ 依存を避け、任意の C コンパイラ (gcc, clang, MSVC) でコンパイル可能
+  - Arukellt の GC 型は C 構造体 + runtime 関数呼び出しで表現
+- **`--emit object`**: `<input>.o` (オブジェクトファイル)
+  - 外部 C コンパイラ (`cc`) を呼び出して `.c` → `.o` に変換
+- **リンク**: `--emit executable` で `<input>.out` (実行可能ファイル) を生成
+  - `cc <input>.c -o <input>.out -larukellt_runtime`
+  - v0 では実行可能ファイル生成は **scaffold tier** (ADR-007 §検証サーフェス)
+
+#### `native-llvm`
+
+- **デフォルト出力**: `<input>.ll` (LLVM IR テキスト)
+  - LLVM IR テキストを選択する理由: デバッグ可能性と `opt` / `llc` での手動最適化
+  - ADR-005「LLVM IR は Wasm 意味論に従属」に従い、Wasm と同じ MIR から生成
+- **`--emit object`**: `<input>.o` (オブジェクトファイル)
+  - `llc <input>.ll -filetype=obj -o <input>.o` で変換
+- **`--emit bitcode`**: `<input>.bc` (LLVM bitcode)
+  - `llvm-as <input>.ll -o <input>.bc` で変換
+- **リンク**: `--emit executable` で `<input>.out` を生成
+  - `clang <input>.ll -o <input>.out -larukellt_runtime`
+  - v0 では **scaffold tier**
+
+### Component化・jco transpile 後の中間ファイル
+
+Component化 (`wasm-tools component new`) と jco transpile は外部ツールのため、
+Arukellt コンパイラ自身は中間ファイルを生成しない。ユーザーが手動で実行する:
+
+```
+wasm-tools component new <input>.core.wasm -o <input>.component.wasm --adapt wasi_snapshot_preview1.reactor.wasm
+jco transpile <input>.component.wasm -o <input>.dist/
+```
+
+`<input>.dist/` ディレクトリ内に ESM + JS glue が生成される。
 
 ---
 
@@ -233,13 +299,18 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 
 ターゲットごとの出力形式:
 
-| Emit kind | `wasm32` | `wasm32-gc` | Notes |
-|-----------|----------|-------------|-------|
-| `core-wasm` | Yes | Yes | default production path |
-| `wat` | Yes | Yes | WAT text format |
-| `component` | No | Yes | requires external `wasm-tools` + adapter |
-| `wit` | No | Yes | WIT export surface generation |
-| `all` | No | Yes | emits both core Wasm and component artifacts |
+| Emit kind | `wasm32` | `wasm32-gc` | `native-cpp` | `native-llvm` | Notes |
+|-----------|----------|-------------|--------------|---------------|-------|
+| `core-wasm` | Yes | Yes | — | — | default production path (`.wasm`) |
+| `wat` | Yes | Yes | — | — | WAT text format (`.wat`) |
+| `component` | No | Yes | — | — | requires external `wasm-tools` + adapter |
+| `wit` | No | Yes | — | — | WIT export surface generation (`.wit`) |
+| `all` | No | Yes | — | — | emits both core Wasm and component artifacts |
+| `c-source` | — | — | Yes | — | C99 source (`.c`), default for `native-cpp` |
+| `llvm-ir` | — | — | — | Yes | LLVM IR text (`.ll`), default for `native-llvm` |
+| `object` | — | — | Yes | Yes | object file (`.o`), requires external compiler |
+| `bitcode` | — | — | — | Yes | LLVM bitcode (`.bc`), `llvm-as` required |
+| `executable` | — | — | scaffold | scaffold | executable (`.out`), requires external linker |
 
 Component output は `wasm-tools component embed` → `wasm-tools component new` で生成する。
 複数コンポーネントのリンクは `wac plug` を使用する。

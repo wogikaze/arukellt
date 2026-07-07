@@ -37,7 +37,6 @@ graph LR
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
   I718["718 718 — Stdlib free-function → method/trait migration inventory"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
-  I720["720 出力ファイル命名規則と native emit 形式の決定"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I722["722 Typed Function References (`call_ref`) ベンチマーク計測"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
@@ -126,7 +125,6 @@ graph LR
 - **714** depends on: 074, 510; blocks: 668
 - **718** depends on: 700, 701; blocks: none
 - **719** depends on: 715; blocks: none
-- **720** depends on: none; blocks: none
 - **721** depends on: none; blocks: none
 - **722** depends on: none; blocks: none
 - **723** depends on: none; blocks: none

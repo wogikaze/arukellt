@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: closed
 Created: 2026-07-07
 Updated: 2026-07-07
 ID: 720
@@ -52,10 +52,22 @@ ADR-007 改定（2026-07）にて、ターゲット構造を `wasm32` / `wasm32-
 
 ## Acceptance criteria
 
-- [ ] 出力ファイル命名規則が ADR-007 に追記される
-- [ ] native-cpp / native-llvm の出力形式が ADR-007 または新規ADRに記載される
-- [ ] `<input>` の定義（stem抽出、`--output` 上書き可否）が明文化される
-- [ ] `--emit all` 時のファイル衝突がないことを確認
+- [x] 出力ファイル命名規則が ADR-007 に追記される
+      — 2026-07-07: ADR-007 §出力ファイル を全面改訂。`<input>` 定義、
+      ターゲット別出力ファイル表、`--output` 上書き規則を明文化。
+- [x] native-cpp / native-llvm の出力形式が ADR-007 または新規ADRに記載される
+      — 2026-07-07: ADR-007 §native ターゲットの出力形式 に追記。
+      native-cpp → `.c` (C99), native-llvm → `.ll` (LLVM IR)。
+      object/executable/bitcode emit kind も定義。
+      Emit surface 表も native 列を追加。
+- [x] `<input>` の定義（stem抽出、`--output` 上書き可否）が明文化される
+      — 2026-07-07: `<input>` = 入力ファイルパスから `.ark` 拡張子を除去した文字列。
+      `--output <path>` で上書き可能（`--emit core-wasm` 時はそのまま、
+      `--emit all` 時は `.wasm`/`.component.wasm` を派生）。
+- [x] `--emit all` 時のファイル衝突がないことを確認
+      — 2026-07-07: `--emit all` は `wasm32-gc` のみ有効で
+      `<input>.wasm` + `<input>.component.wasm` を生成。拡張子が異なるため衝突なし。
+      `<input>.wit` は `--emit wit` で別途出力。
 
 ## Related
 
