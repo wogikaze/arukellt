@@ -18,6 +18,9 @@ use corehir::host_intrinsic_spec
 use corehir::mir_value_type
 use corehir::type_id
 use mir::host_intrinsic_stub_names
+use mir::function_identity
+use wasm::ctx_record
+use wasm::emit_target
 
 // Classify a host intrinsic name by its ABI sub-kind.
 // Returns HOST_ABI_SCALAR for intrinsics that return plain i32/i64/f64,
@@ -68,4 +71,15 @@ fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
         push(returns, i32_mvt)
     }
     host_intrinsic_spec::HostIntrinsicSpec_new(name, abi, Vec_new_MirValueType(), returns, 0 - 1)
+}
+
+fn host_intrinsic_should_emit_unreachable_gc_stub(f: MirFunction, ctx: SelfEmitCtx) -> bool {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return false
+    }
+    let name = function_identity::MirFunction_name(f)
+    if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(name) {
+        return false
+    }
+    return !host_intrinsic_can_emit_gc_body(clone(name))
 }

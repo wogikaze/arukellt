@@ -1,13 +1,9 @@
 use wasm::opcodes
 use mir::function_param_view
 use mir::function_locals_view
-use mir::function_identity
 use mir::local_access
 use wasm::ctx_scratch
 use wasm::ctx_vec_locals
-use wasm::ctx_record
-use wasm::emit_target
-use mir::host_intrinsic_stub_names
 use wasm::host_intrinsic_adapter
 use wasm::writer_core
 use wasm::code_locals
@@ -27,16 +23,10 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
         writer_core::emit_byte(body, opcodes::OP_END())
         return body
     }
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && is_host_intrinsic_stub(f) {
-        // Host intrinsic functions on GC targets: Scalar intrinsics can
-        // emit a real body; LinearMemoryPtr intrinsics still need adapter
-        // conversion and emit unreachable until the adapter is implemented.
-        let name = function_identity::MirFunction_name(f)
-        if !host_intrinsic_adapter::host_intrinsic_can_emit_gc_body(clone(name)) {
-            writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
-            writer_core::emit_byte(body, opcodes::OP_END())
-            return body
-        }
+    if host_intrinsic_adapter::host_intrinsic_should_emit_unreachable_gc_stub(f, ctx) {
+        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(body, opcodes::OP_END())
+        return body
     }
     code_body_helpers::emit_function_instructions(body, f, ctx, bindings)
 
@@ -60,9 +50,4 @@ fn is_generic_function(f: MirFunction) -> bool {
         j = j + 1
     }
     false
-}
-
-fn is_host_intrinsic_stub(f: MirFunction) -> bool {
-    let name = function_identity::MirFunction_name(f)
-    return host_intrinsic_stub_names::host_intrinsic_stub_is_known(name)
 }
