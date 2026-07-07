@@ -148,19 +148,27 @@ fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> 
     if starts_with(clone(name), String_from("vec:")) {
         return gc_type_base + 10
     }
-    if starts_with(clone(name), String_from("hashmap:i32:String")) {
+    // Hashmap type names use abbreviated format: hashmap:si32, hashmap:i32str, etc.
+    if starts_with(clone(name), String_from("hashmap:i32str")) {
         return gc_type_base + 17
     }
-    if starts_with(clone(name), String_from("hashmap:String:String")) {
+    if starts_with(clone(name), String_from("hashmap:si32")) {
+        return gc_type_base + 16
+    }
+    if starts_with(clone(name), String_from("hashmap:strstr")) {
         return gc_type_base + 18
+    }
+    if starts_with(clone(name), String_from("hashmap:i32i32")) {
+        return gc_type_base + 10
     }
     if starts_with(clone(name), String_from("hashmap:")) {
         return gc_type_base + 16
     }
-    if starts_with(clone(name), String_from("enum:")) || starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Option_")) || starts_with(clone(name), String_from("Option:")) || starts_with(clone(name), String_from("Option<")) || starts_with(clone(name), String_from("Result_")) || starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Result:")) || starts_with(clone(name), String_from("Result<")) {
+    if starts_with(clone(name), String_from("enum:")) || starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Option_")) || starts_with(clone(name), String_from("Option:")) || starts_with(clone(name), String_from("Option<")) || starts_with(clone(name), String_from("Result_")) || starts_with(clone(name), String_from("Result:")) || starts_with(clone(name), String_from("Result<")) {
         return gc_type_base + 14
     }
-    gc_type_base + 2
+    // Unknown type — return -1 so caller knows there's no mapping.
+    0 - 1
 }
 
 fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, gc_type_base: i32, struct_type_idx: i32) -> GcLayoutId {
@@ -178,6 +186,10 @@ fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, g
     if struct_type_idx >= 0 {
         type_idx = struct_type_idx
         st_idx = struct_type_idx
+    }
+    // Skip registration if no valid type index was found.
+    if type_idx < 0 {
+        return GC_LAYOUT_ID_INVALID()
     }
     gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), st_idx)
 }
