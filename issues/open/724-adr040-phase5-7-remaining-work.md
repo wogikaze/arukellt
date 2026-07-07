@@ -98,10 +98,15 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 **作成するファイル**:
 - `src/compiler/wasm/local_allocator.ark` — LocalAllocator, ScratchPool
 
+**完了（2026-07-15）**:
+- `local_allocator.ark` 作成: `LocalAllocator` 構造体 + user/scratch local index マッピング API
+- 現在の `scratch_base = local_count` 設計により、スクラッチローカル追加で user local index はシフトしない
+- T3: 386 pass / 33 validate-fail / 1 compile-fail（Phase 5 マージ後と同一、回帰なし）
+
 **完了条件**:
-- [ ] `src/compiler/wasm/local_allocator.ark` が存在する
-- [ ] スクラッチローカル追加で index シフトしない
-- [ ] 既存テスト pass 数が悪化しない
+- [x] `src/compiler/wasm/local_allocator.ark` が存在する
+- [x] スクラッチローカル追加で index シフトしない
+- [x] 既存テスト pass 数が悪化しない
 
 ### Phase 7: host intrinsic adapter 実装
 

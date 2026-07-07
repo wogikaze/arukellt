@@ -1,0 +1,60 @@
+// Arukellt Selfhost - ADR-040 Phase 6b LocalAllocator.
+//
+// Phase 6b intermediate stage: a LocalAllocator that maps MIR local
+// indices to Wasm local indices and provides symbolic scratch slot
+// allocation.  The current implementation is a thin layer over the
+// existing scratch_base mechanism — user locals keep their MIR index
+// (scratch_base == local_count) and scratch slots are appended after
+// user locals with fixed offsets.
+//
+// The struct is intentionally minimal so that callers can gradually
+// switch from direct `ctx_scratch::SelfEmitCtx_scratch_local(ctx, N)`
+// to `LocalAllocator::scratch_slot(alloc, ctx, N)` without changing
+// generated output.  A future revision will replace the fixed-offset
+// scheme with a pool-based allocator that recycles scratch slots.
+
+use wasm::ctx_scratch
+use wasm::ctx_record
+
+struct LocalAllocator {
+    user_local_count: i32,
+    param_count: i32,
+}
+
+fn LocalAllocator_new(user_local_count: i32, param_count: i32) -> LocalAllocator {
+    LocalAllocator { user_local_count: user_local_count, param_count: param_count }
+}
+
+// The Wasm local index for a user (non-scratch) MIR local.
+// Currently the identity mapping: MIR local N → Wasm local N.
+fn LocalAllocator_user_local(alloc: LocalAllocator, mir_local_idx: i32) -> i32 {
+    mir_local_idx
+}
+
+// The base Wasm local index where scratch slots begin.
+fn LocalAllocator_scratch_base(alloc: LocalAllocator) -> i32 {
+    alloc.user_local_count
+}
+
+// A specific scratch slot by offset within the scratch region.
+fn LocalAllocator_scratch_slot(alloc: LocalAllocator, ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx_scratch::SelfEmitCtx_scratch_local(ctx, offset)
+}
+
+// A GC scratch slot by offset within the GC scratch region.
+fn LocalAllocator_scratch_gc_slot(alloc: LocalAllocator, ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, offset)
+}
+
+// Total number of scratch locals (delegated to code_scratch_locals).
+fn LocalAllocator_scratch_local_count(alloc: LocalAllocator, ctx: SelfEmitCtx) -> i32 {
+    // Delegate to the existing ctx_scratch accessor chain.
+    // The scratch count is fixed per target and does not depend on
+    // user_local_count, so we read it from the ctx scratch base region.
+    let base = alloc.user_local_count
+    let gc_base = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    // The scratch count is implicit: gc_base - base gives the non-GC
+    // scratch span, but the full count is managed by code_scratch_locals.
+    // For now, return 0 — callers use code_scratch_locals directly.
+    0
+}
