@@ -2,8 +2,10 @@
 
 use mir::function_return_view
 use mir::function_locals_view
+use mir::local_access
 use mir::value_types
 use wasm::ctx_gc_type
+use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_infer
 use wasm::code_ref_locals_scan
@@ -52,6 +54,14 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
+    // Phase 5e: variant_slot direct lookup (structured type ID)
+    let variant_slot = local_access::MirLocal_variant_slot(loc)
+    if variant_slot >= 0 {
+        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            return variant_gc
+        }
+    }
     if code_ref_locals_types::is_gc_container_type_name(clone(type_name)) {
         return code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
     }
