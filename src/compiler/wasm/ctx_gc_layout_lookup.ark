@@ -2,8 +2,8 @@
 
 use wasm::ctx_record
 use wasm::gc_layout_table
-use wasm::lower_value_type
 use corehir::mir_value_type
+use corehir::kinds
 use corehir::type_id
 use corehir::type_table
 use corehir::type_info_to_mir_value
@@ -17,19 +17,20 @@ fn SelfEmitCtx_gc_layout_id_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueTy
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
     let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-    // Only trust the lowering result when the type actually has a layout
-    // entry; the lowering falls back to type index 0 for unknown TypeIds,
-    // which must not leak out as a valid GC type index.
-    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, mir_value_type::mir_value_type_type_id(mvt))
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, tid)
     if !gc_layout_table::gc_layout_id_is_valid(lid) {
         return 0 - 1
     }
-    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let wvt = lower_value_type::lower_mir_value_type(layout, tt, mvt)
-    if gc_layout_table::wasm_value_type_is_ref(wvt) {
-        return gc_layout_table::wasm_ref_type_idx(gc_layout_table::wasm_value_type_ref_type(wvt))
+    // Inline lower_mir_value_type logic — lower_value_type.ark is not in the
+    // selfhost flat-src, so a cross-module call to lower_mir_value_type traps.
+    let repr = mir_value_type::mir_value_type_repr(mvt)
+    if repr != kinds::VALUE_REPR_GC_REF() {
+        return 0 - 1
     }
-    0 - 1
+    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
+    let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
+    gc_layout_table::wasm_ref_type_idx(ref_type)
 }
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -49,7 +50,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
             return spine_idx
         }
     }
-    // Spine lookup failed — return -1 so callers fall back to legacy inference.
     0 - 1
 }
 

@@ -63,7 +63,7 @@ fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: 
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec_new_TypeId())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("option:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec_new_TypeId())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
