@@ -10,6 +10,7 @@ use mir::module_wit_imports
 use mir::module_gc_struct
 use mir::module_gc_enum
 use mir::module_spine
+use wasm::gc_layout_table_build
 
 fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let fn_count = module_functions::MirModule_function_count(mir)
@@ -30,6 +31,8 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_context::emit_wasm_context_set_gc_struct_names(ctx, module_gc_struct::MirModule_gc_struct_names(mir))
     wasm_context::emit_wasm_context_set_fn_type_map(ctx, wasm_sections_facade::type_plan_fn_type_map(type_plan))
     wasm_context::emit_wasm_context_set_signature_spine(ctx, module_spine::MirModule_signature_registry(mir), module_spine::MirModule_type_table(mir), module_spine::MirModule_mono_instance_table(mir), module_spine::MirModule_signature_spine_populated(mir))
+    let gc_layout = gc_layout_table_build::build_gc_layout_table_for_emit(module_spine::MirModule_type_table(mir), mir, wasm_sections_facade::type_plan_gc_type_base(type_plan), wasm_sections_facade::type_plan_gc_enum_variant_type_map(type_plan), wasm_sections_facade::type_plan_gc_struct_type_map(type_plan))
+    wasm_context::emit_wasm_context_set_gc_layout_table(ctx, gc_layout)
     wasm_sections_facade::emit_import_section(out, wasm_sections_facade::type_plan_host_type_map(type_plan), clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings, wasm_sections_facade::type_plan_wit_type_map(type_plan))
     wasm_sections_facade::emit_function_section(out, fn_count, wasm_sections_facade::type_plan_fn_type_map(type_plan), needs_wrapper, wasm_sections_facade::type_plan_wrapper_type_idx(type_plan))
     wasm_sections_facade::emit_table_section(out, mir)
