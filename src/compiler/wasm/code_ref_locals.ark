@@ -70,9 +70,8 @@ fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
 }
 
 fn mir_function_returns_option(f: MirFunction) -> bool {
-    if code_ref_locals_types::mir_fn_returns_option_by_name(clone(f.name)) {
-        return true
-    }
+    // Phase 5e Step 3: hardcoded fn-name matching removed; return type_name
+    // check is sufficient (identical T3 results: 389 pass, 32 validate-fail).
     if function_return_view::MirFunction_return_type(f) != value_types::VT_GC_REF() {
         return false
     }

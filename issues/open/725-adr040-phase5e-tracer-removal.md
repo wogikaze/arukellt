@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-16
-Updated: 2026-07-16
+Updated: 2026-07-08
 ID: 725
 Track: compiler-internal
 Depends on: #724
@@ -272,9 +272,57 @@ local.set 17  (pop ref)  ← スタック履歴を遡って producer を特定
 - `infer_builtin_callee_gc_type` のハードコードされた callee 名 matching を
   SignatureRegistry 経由に移行
 
+### Step 3 完了 (2026-07-08): ハードコード callee 名 matching 削除 + フォールバック統合
+
+#### 削除した関数
+
+以下のハードコードされた callee 名 / 関数名 matching 関数を削除:
+
+- `code_ref_locals_infer_callee.ark::infer_string_callee_gc_type` — 文字列返却 callee 名 matching
+- `code_ref_locals_infer_callee.ark::infer_hashmap_callee_gc_type` — hashmap 返却 callee 名 matching
+- `code_ref_locals_infer_callee.ark::infer_builtin_callee_gc_type` — 組み込み callee 名 matching
+- `code_ref_locals_infer_callee.ark::infer_vec_new_callee_gc_type` — Vec_new_* callee 名 matching
+- `code_ref_locals_types.ark::mir_fn_returns_option_by_name` — Option 返却関数名 matching
+
+これらはすべて `infer_call_result_gc_type_from_fn` (関数戻り値型 type_name →
+GcLayoutTable lookup → 文字列フォールバック) で代替可能であることを
+T3 実験で確認後、削除した。
+
+#### 統合したコード
+
+- `infer_call_result_gc_type_from_fn` の文字列フォールバック部分を
+  `code_ref_locals_typename::infer_gc_type_from_type_name` に統合
+  (重複する vec/hashmap/option/result/string プレフィックス matching を削除)
+- `parse_struct_name_from_ret_name` / `parse_struct_byte_size_from_ret_name`
+  (code_ref_locals_infer_callee.ark) を
+  `extract_struct_name_from_type_name` / `parse_struct_byte_size`
+  (code_ref_locals_typename.ark) に統合 (重複ヘルパー削除)
+
+#### 残存する文字列ベース型推論箇所
+
+以下は GcLayoutTable lookup のフォールバックとして残存する。
+これらは TypeTable に intern されていない型 (`hashmap:i32str`, `struct:Foo:24` 等)
+を処理するために必要であり、TypeTable 側の拡張なしには削除できない:
+
+1. **`code_ref_locals_typename.ark::infer_gc_type_from_type_name`** —
+   hashmap/vec/string/option/result/enum/struct の文字列プレフィックス matching
+   (GcLayoutTable lookup 失敗時のフォールバック)
+2. **`code_ref_locals_types.ark::is_option_type_name`** —
+   Option 型 type_name 分類 (`Option_`, `option:`, `Option:`, `Option<`, `enum:Option`)
+3. **`code_ref_locals_types.ark::is_gc_container_type_name`** —
+   コンテナ型 type_name 分類 (`vec:`, `hashmap:`)
+4. **`code_ref_locals.ark::should_gc_ref_cast_to_dest`** —
+   Result/string/struct type_name 分類 (cast 判定用)
+5. **`code_ref_locals_infer_callee.ark::infer_gc_type_from_return_struct`** —
+   VT_GC_REF 戻り値の struct/enum フォールバック
+
+これらの完全な構造化移行には、TypeTable に全 type_name を intern し
+GcLayoutTable にエントリを追加する深いアーキテクチャ変更が必要である。
+本 issue のスコープ外とし、別 issue で追跡する。
+
 **完了条件**:
-- [ ] 文字列ベース型推論の残存箇所を文書化
-- [ ] 可能な範囲で構造化ルックアップに移行
+- [x] 文字列ベース型推論の残存箇所を文書化
+- [x] 可能な範囲で構造化ルックアップに移行
 
 ## リスク
 
