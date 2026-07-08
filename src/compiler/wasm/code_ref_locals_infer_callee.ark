@@ -4,6 +4,7 @@ use mir::function_return_view
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::ctx_gc_layout_lookup
 use wasm::inst_ctx
 
 // Infer GC type for string-returning callees. Returns -1 if not a string callee.
@@ -43,9 +44,14 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
     let ret_name = function_return_view::MirFunction_return_type_name(called)
-    // On GC targets, many ref-typed values have VT_I32 in MIR but need to be
-    // emitted as GC reference locals. Check the return type name for known GC
-    // ref patterns regardless of ret_type.
+    // Phase 5e: try structured lookup (GcLayoutTable) first
+    if len(ret_name) > 0 {
+        let structured_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(ret_name))
+        if structured_gc >= 0 {
+            return structured_gc
+        }
+    }
+    // String-based fallback for types not in the TypeTable
     if starts_with(clone(ret_name), String_from("vec:")) {
         if eq(clone(ret_name), String_from("vec:String")) {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
