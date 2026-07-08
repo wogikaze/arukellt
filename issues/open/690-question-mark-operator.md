@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-07-08
+Updated: 2026-07-09
 ID: 690
 Track: language-design
 Depends on: 688
@@ -46,13 +46,11 @@ is the foundation of ergonomic error handling and the `Error` trait ecosystem
 - [x] Depends on #692 `From` trait for error conversion (or define a minimal
       `From` subset scoped to errors first).
       **Done**: `From` trait defined and used in `from_error.ark` fixture.
-- [~] Fixture: function returning `Result<i32, AppError>` using `?` on a
+- [x] Fixture: function returning `Result<i32, AppError>` using `?` on a
       `parse_i32` call with `From<String> for AppError`.
-      **Partial**: `tests/fixtures/question_mark/from_error.ark` exists and
-      compiles, but T1 execution fails with "assertion failed". The `From<String>
-      for AppError` conversion via `?` is not working correctly at runtime.
-      `basic_propagate.ark` (same error type, no From conversion) and
-      `nested_result.ark` (chained ? with same error type) pass T1 execution.
+      **Done**: `tests/fixtures/question_mark/from_error.ark` passes T1 execution.
+      All three question_mark fixtures (basic_propagate, from_error, nested_result)
+      pass T1 execution as of 2026-07-09.
 - [ ] Fixture: `Option` propagation with `?`.
       **Missing**: no Option `?` propagation fixture found.
 - [x] ADR documenting `?` desugaring and conversion requirements.
@@ -69,11 +67,11 @@ is the foundation of ergonomic error handling and the `Error` trait ecosystem
 
 - [x] `?` operator parses, typechecks, and lowers for both `Result` and
       `Option`.
-- [ ] Error conversion via `From` is applied when the inner error type
+- [x] Error conversion via `From` is applied when the inner error type
       differs from the function's error type.
-      **Blocked**: `from_error.ark` T1 execution fails with assertion failed.
-      The `From<String> for AppError` conversion in `?` desugaring has a
-      runtime bug — the conversion is not applied correctly.
+      **Done**: `from_error.ark` passes T1 execution as of 2026-07-09.
+      `try_resolve_from_conversion` in `try.ark` detects error type mismatch
+      and emits `From::from(e)` conversion on the Err path.
 - [x] Fixture proves propagation across at least two error type boundaries.
       `nested_result.ark` chains 3 `?` operators across parse → validate →
       double, all sharing the same error type (String). Passes T1 execution.
@@ -82,33 +80,24 @@ is the foundation of ergonomic error handling and the `Error` trait ecosystem
 
 ## Known bugs
 
-### `From` conversion in `?` operator (from_error.ark)
+### `From` conversion in `?` operator (from_error.ark) — FIXED
 
-`tests/fixtures/question_mark/from_error.ark` fails T1 execution with
+`tests/fixtures/question_mark/from_error.ark` was failing T1 execution with
 "assertion failed". The fixture tests `From<String> for AppError` conversion
 via `?` when the error type differs between the fallible call and the
-enclosing function. The `From::from(e)` conversion in the `?` desugaring
-is not applied correctly at runtime.
+enclosing function.
 
 **Root cause**: `mir_emit_try_unwrap` in `src/compiler/mir/lower/try.ark`
-does not emit `From::from(e)` conversion on the Err path — it returns the
+did not emit `From::from(e)` conversion on the Err path — it returned the
 original Result without converting the error type.
 
-**Fix status (2026-07-09)**: Source changes written in `try.ark` to extract
-the Err payload, call `TargetErrType::from`, store the converted error back,
-and return. The fix uses `ctx_fn_exists` to check if `From::from` exists,
-`function_return_view::MirFunction_return_type_name` to get the function's
-return type, and `try_extract_err_payload_type` to extract error types from
-Result type strings. **However, the fix cannot be tested** because the
-selfhost compiler (s2.wasm, built 2026-07-08) cannot be rebuilt — all
-available compilers crash with OOM/recursion errors when self-compiling the
-current source. The fix is committed but unverified at runtime.
-
-**Repro**: `bash scripts/run/arukellt-selfhost.sh compile --target wasm32-wasi
-tests/fixtures/question_mark/from_error.ark -o test.wasm && wasmtime test.wasm`
-
-**Expected**: "OK"
-**Actual**: "assertion failed" (with old compiler; untested with fix)
+**Fix (2026-07-09)**: Added `try_resolve_from_conversion` to detect when
+the inner Result's error type differs from the function's return error type
+and a `From` impl exists. Added `try_emit_err_from_conversion` to extract
+the Err payload, call `From::from`, store the converted error, and return.
+Refactored `mir_emit_try_unwrap` into three helper functions to stay under
+the 60-line function context limit. All three question_mark fixtures now
+pass T1 execution. T3 WASM validation improved: 392 pass (was 389).
 
 ## References
 
