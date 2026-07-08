@@ -2,6 +2,7 @@
 
 use mir::function_return_view
 use mir::function_locals_view
+use mir::function_param_view
 use mir::local_access
 use mir::value_types
 use wasm::ctx_gc_type
@@ -84,7 +85,22 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
     if mir_function_returns_option(f) && code_ref_locals_scan::local_feeds_return(f, local_idx) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
+    // Phase 5e: function parameter type_name lookup
+    let param_count = function_param_view::MirFunction_param_count(f)
+    if local_idx >= 0 && local_idx < param_count {
+        let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
+        if len(param_type_name) > 0 {
+            let param_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, param_type_name)
+            if param_gc >= 0 {
+                return param_gc
+            }
+            if code_ref_locals_types::is_option_type_name(param_type_name) {
+                return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+            }
+        }
+    }
     // Final fallback: instruction tracer for complex cases
+    // (LOCAL_SET chains, stack-based LOCAL_SET, producer inspection)
     code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
 }
 
