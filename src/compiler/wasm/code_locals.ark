@@ -5,12 +5,17 @@ use wasm::ctx_record
 use wasm::code_ref_locals
 use wasm::code_scratch_locals
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::sections_types_gc
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types
+use mir::block_inst_access
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::opcodes
 use wasm::writer_core
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
@@ -68,7 +73,13 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             } else if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
             } else {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+                // Check if element is a struct ref (non-primitive type name).
+                let elem_name = substring(clone(type_name), 4, len(type_name))
+                if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+                    writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
+                } else {
+                    writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+                }
             }
             return true
         }
@@ -143,7 +154,51 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name)))
         return true
     }
+    // Try gc_layout_table lookup for raw struct names (e.g. "Point")
+    // that are not in the gc_struct_names list (i32-only structs).
+    if len(type_name) > 0 {
+        let layout_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
+        if layout_gc >= 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, layout_gc)
+            return true
+        }
+    }
+    // Fallback: scan function for MIR_STRUCT_NEW with this struct name
+    // to determine byte_size, then map to GC struct type.
+    if len(type_name) > 0 {
+        let byte_size = lookup_struct_byte_size(f, clone(type_name))
+        if byte_size > 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
+            return true
+        }
+    }
     emit_gc_local_inferred_type(body, f, local_idx, vt, ctx)
+}
+
+// Scan function instructions for MIR_STRUCT_NEW with matching struct name
+// to extract the byte_size value stored in the instruction.
+fn lookup_struct_byte_size(f: MirFunction, struct_name: String) -> i32 {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
+                let name = inst_accessors_literals::MirInst_str_val(inst)
+                if eq(clone(name), clone(struct_name)) {
+                    return inst_accessors_literals::MirInst_int_val(inst)
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0
 }
 
 // Extract struct name from "struct:TypeName:byte_size" format.

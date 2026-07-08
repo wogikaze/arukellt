@@ -81,6 +81,13 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
         }
         return value_types::VT_REF()
     }
+    // String-returning stdlib functions that may not be in the fn_index.
+    if eq(clone(bare_name), "split") || eq(clone(bare_name), "join") || eq(clone(bare_name), "clone") || eq(clone(bare_name), "slice") || eq(clone(bare_name), "to_lower") || eq(clone(bare_name), "to_upper") || eq(clone(bare_name), "trim") || eq(clone(bare_name), "replace") {
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            return value_types::VT_GC_REF()
+        }
+        return value_types::VT_REF()
+    }
     value_types::VT_I32()
 }
 

@@ -11,6 +11,7 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_locals
+use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
 use mir::opcodes as mir_opcodes
@@ -29,11 +30,12 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     let is_vec_v128 = vec_type == ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     let element_is_gc_ref = push_gc_element_is_gc_ref(ctx, inst, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
 
-    let s_val = push_gc_val_scratch(ctx, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, element_is_gc_ref)
-    let arr_tmp = push_gc_array_scratch(ctx, 0, arr_tmp_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
-    let arr_old = push_gc_array_scratch(ctx, 1, arr_old_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
+    let s_val = push_gc_val_scratch(ctx, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, element_is_gc_ref, is_vec_sref)
+    let arr_tmp = push_gc_array_scratch(ctx, 0, arr_tmp_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, is_vec_sref)
+    let arr_old = push_gc_array_scratch(ctx, 1, arr_old_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, is_vec_sref)
 
     emit_gc_push_setup(w, s_val, s_vec, vec_type, arr_tmp)
 
@@ -50,7 +52,10 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 
 // Value scratch: Vec<String>/struct refs→GC ref scratch; Vec<v128>→v128;
 // Vec<i64>→i64 (offset 15); Vec<f64>→f64 (offset 12); Vec<i32>→i32 base scratch.
-fn push_gc_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, element_is_gc_ref: bool) -> i32 {
+fn push_gc_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, element_is_gc_ref: bool, is_vec_sref: bool) -> i32 {
+    if is_vec_sref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    }
     if is_vec_string || element_is_gc_ref {
         return ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     }
@@ -83,7 +88,7 @@ fn push_gc_primitive_vec_elem(elem: String) -> bool {
 }
 
 // Array scratch locals must match the vec's element array type.
-fn push_gc_array_scratch(ctx: SelfEmitCtx, slot: i32, i32_fallback: i32, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool) -> i32 {
+fn push_gc_array_scratch(ctx: SelfEmitCtx, slot: i32, i32_fallback: i32, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, is_vec_sref: bool) -> i32 {
     if is_vec_string {
         return ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, slot)
     }
@@ -95,6 +100,9 @@ fn push_gc_array_scratch(ctx: SelfEmitCtx, slot: i32, i32_fallback: i32, is_vec_
     }
     if is_vec_f64 {
         return ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, slot)
+    }
+    if is_vec_sref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_array_local(ctx, slot)
     }
     i32_fallback
 }

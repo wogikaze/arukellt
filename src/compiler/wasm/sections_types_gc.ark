@@ -61,13 +61,27 @@ fn parse_type_sig_int(s: String) -> i32 {
     val
 }
 
-fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
-    emit_array_elem_type(type_sec, array_elem_type(sig), gc_type_base)
+    emit_array_elem_type(type_sec, array_elem_type(sig), gc_type_base, gc_struct_type_map)
     writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
 }
 
-fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i32) {
+fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+    if eq(clone(elem_type), String_from("structref")) {
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
+        return
+    }
+    if starts_with(clone(elem_type), String_from("gcsref")) {
+        let slot = parse_type_sig_int(substring(elem_type, 6, len(elem_type)))
+        if slot < len(gc_struct_type_map) {
+            let type_idx = get_unchecked(gc_struct_type_map, slot)
+            writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(type_sec, type_idx)
+            return
+        }
+    }
     if starts_with(clone(elem_type), String_from("ref")) {
         let offset_str = substring(elem_type, 3, len(elem_type))
         let offset = parse_type_sig_int(offset_str)
@@ -145,10 +159,12 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("GS_f0_ref20_f1_i32"))
     push(type_sigs, String_from("GS_f0_ref11_f1_i32"))
     push(type_sigs, String_from("GS_f0_ref12_f1_i32"))
+    push(type_sigs, String_from("A_structref"))
+    push(type_sigs, String_from("GS_f0_ref24_f1_i32"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    24
+    26
 }
 
 fn gc_enum_open_type_offset() -> i32 {

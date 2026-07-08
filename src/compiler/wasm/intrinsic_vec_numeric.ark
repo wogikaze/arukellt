@@ -200,6 +200,9 @@ fn emit_vec_get_unchecked_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmit
     // Save idx, vec_ref stays on stack for struct.get
     helpers_core::emit_local_set(w, s_idx)
 
+    // Cast vec_ref to concrete vec type before struct.get
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+
     // Get data array: struct.get vec_type 0
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
 

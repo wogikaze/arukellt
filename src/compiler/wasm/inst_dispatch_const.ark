@@ -81,18 +81,9 @@ fn try_emit_const_literal_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, n
     }
     if op == opcodes::MIR_CONST_STRING() {
         inst_const::emit_const_string(w, inst, ctx)
-        // For linear (non-GC) targets, emit_const_string_linear always pushes
-        // the string address onto the stack, so the result is on the stack.
-        // For GC targets, emit_const_string_gc stores to dest directly when
-        // dest >= 0, so the result is only on the stack when dest < 0.
-        let on_stack = !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) || inst_accessors_facade::MirInst_dest(inst) < 0
-        if !on_stack {
-            // On GC targets, the result was stored to the dest local directly.
-            // If the next instruction is a direct consumer (e.g. a call that
-            // needs the value on the stack), push it back with local.get.
-            inst_store::emit_gc_const_string_repush_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
-        }
-        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+        // Both linear and GC targets push the result onto the stack.
+        // The store policy (SET/TEE/SKIP) handles storing to dest uniformly.
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
         return true
     }
     false

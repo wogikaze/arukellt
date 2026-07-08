@@ -12,10 +12,17 @@ use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_access_lm
 use wasm::intrinsics::helpers_core
 use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::inst_accessors_operands
+use mir::block_inst_access
+use mir::function_locals_view
+use mir::local_access
+use mir::function_block_queries
 
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -62,6 +69,9 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
     // Save idx, vec_ref stays on stack
     helpers_core::emit_local_set(w, s_idx)
 
+    // Cast vec_ref to concrete vec type before struct.get
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+
     // Get data array: struct.get vec_type 0  → [arr_ref]
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
 
@@ -70,7 +80,59 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
 
     // Get element: array.get array_type  → [value]
     writer_gc::emit_gc_array_get(w, array_type)
+
+    // If the array element type is abstract structref, cast to the
+    // concrete struct type so the result can be stored in a typed local.
+    let struct_ref_array_type = ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
+    if array_type == struct_ref_array_type {
+        let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+        if len(elem_name) > 0 {
+            let elem_gc_type = resolve_concrete_struct_type(ctx, clone(elem_name))
+            if elem_gc_type >= 0 {
+                writer_gc::emit_gc_ref_cast(w, elem_gc_type)
+            }
+        }
+    }
     return true
+}
+
+// Resolve a concrete GC struct type from a struct type name (e.g. "Point").
+// Checks gc_struct_names first, then falls back to byte_size-based lookup.
+fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    }
+    // Look up byte_size from the current function's MIR_STRUCT_NEW instructions.
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let byte_size = lookup_struct_byte_size_in_func(f, clone(struct_name))
+    if byte_size > 0 {
+        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
+    }
+    0 - 1
+}
+
+// Scan function instructions for MIR_STRUCT_NEW with matching struct name.
+fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
+                let name = inst_accessors_literals::MirInst_str_val(inst)
+                if eq(clone(name), clone(struct_name)) {
+                    return inst_accessors_literals::MirInst_int_val(inst)
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0
 }
 
 fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {

@@ -12,6 +12,7 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_locals
+use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
 use mir::inst_accessors_literals
@@ -22,11 +23,13 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let arr_tmp_i32 = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let arr_tmp_str = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let arr_tmp_sref = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_array_local(ctx, 0)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
     let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
     let is_vec_string = vec_type == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    let arr_tmp = if is_vec_string { arr_tmp_str } else { arr_tmp_i32 }
+    let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    let arr_tmp = if is_vec_string { arr_tmp_str } else { if is_vec_sref { arr_tmp_sref } else { arr_tmp_i32 } }
     let enum_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
 
     // Step 1: Store vec_ref from stack into scratch local
