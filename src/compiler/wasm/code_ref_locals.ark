@@ -100,7 +100,11 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
         }
     }
     // Final fallback: instruction tracer for complex cases
-    // (LOCAL_SET chains, stack-based LOCAL_SET, producer inspection)
+    // (CALL results with hardcoded callee names, stack-based LOCAL_SET
+    // chains, producer inspection for types not in GcLayoutTable).
+    // Phase 5e Step 1: post_pass_type_propagate.ark reduces the number
+    // of cases that reach this fallback.  Complete tracer removal
+    // (Step 2) requires expanding GcLayoutTable coverage.
     code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
 }
 

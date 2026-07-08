@@ -1,0 +1,171 @@
+// Arukellt Selfhost - ADR-040 Phase 5e Step 1: post-lowering type propagation.
+//
+// Propagates variant_slot and type_name through LOCAL_SET chains and
+// direct dest assignments so the emitter can resolve GC ref types
+// without the instruction tracer (infer_ref_local_gc_type_depth).
+//
+// Cases handled:
+//  1. LOCAL_SET with source local (arg1 >= 0): copy variant_slot/type_name
+//     from source to dest if dest lacks them.
+//  2. Stack-based LOCAL_SET (arg1 < 0): find the producer instruction via
+//     backward scan and set variant_slot/type_name from the producer.
+//  3. Direct dest assignment (dest == local_idx): set type_name from
+//     producer instructions (CALL, STRUCT_NEW, CONST_STRING, etc.)
+//     when the lowering didn't already set it.
+//
+// Runs as a fixpoint iteration: a chain A←B←C may need multiple passes
+// to fully propagate from C to A.
+
+use mir::block_inst_access
+use mir::function_locals_view
+use mir::function_local_mutation
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::local_access
+use mir::local_mutation
+use mir::module_functions
+use mir::opcodes
+use mir::post_pass_callee_lookup
+use mir::post_pass_stack_scan
+
+fn mir_module_propagate_local_types(m: MirModule) {
+    let count = module_functions::MirModule_function_count(m)
+    let mut fi = 0
+    while fi < count {
+        let f = module_functions::MirModule_function_at(m, fi)
+        let propagated = mir_function_propagate_local_types(m, f)
+        module_functions::MirModule_set_function_at(m, fi, propagated)
+        fi = fi + 1
+    }
+}
+
+fn mir_function_propagate_local_types(m: MirModule, f: MirFunction) -> MirFunction {
+    let local_count = function_locals_view::MirFunction_local_count(f)
+    let mut changed = true
+    let mut iterations = 0
+    let max_iterations = 4
+    while changed && iterations < max_iterations {
+        changed = false
+        let block_count = len(f.blocks)
+        let mut bi = 0
+        while bi < block_count {
+            let block = get_unchecked(f.blocks, bi)
+            let inst_count = block_inst_access::MirBlock_inst_count(block)
+            changed = scan_block_for_propagation(m, f, block, inst_count, local_count, changed)
+            bi = bi + 1
+        }
+        iterations = iterations + 1
+    }
+    f
+}
+
+fn scan_block_for_propagation(m: MirModule, f: MirFunction, block: MirBlock, inst_count: i32, local_count: i32, changed: bool) -> bool {
+    let mut result = changed
+    let mut ii = 0
+    while ii < inst_count {
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if dest >= 0 && dest < local_count {
+            if post_pass_callee_lookup::propagate_from_producer_inst(m, f, inst, op, dest) {
+                result = true
+            }
+        }
+        if op == opcodes::MIR_LOCAL_SET() {
+            let set_dest = inst_accessors_operands::MirInst_arg0(inst)
+            let source = inst_accessors_operands::MirInst_arg1(inst)
+            if set_dest >= 0 && set_dest < local_count {
+                if source >= 0 {
+                    if propagate_from_local(f, set_dest, source) {
+                        result = true
+                    }
+                } else {
+                    if propagate_from_stack_producer(f, block, inst_count, ii, set_dest) {
+                        result = true
+                    }
+                }
+            }
+        }
+        ii = ii + 1
+    }
+    result
+}
+
+// Propagate variant_slot and type_name from source local to dest local.
+// Only fills in missing fields — does not overwrite existing values.
+fn propagate_from_local(f: MirFunction, dest: i32, source: i32) -> bool {
+    if source < 0 || source >= function_locals_view::MirFunction_local_count(f) {
+        return false
+    }
+    if dest < 0 || dest >= function_locals_view::MirFunction_local_count(f) {
+        return false
+    }
+    let src_loc = function_locals_view::MirFunction_local_at(f, source)
+    let dst_loc = function_locals_view::MirFunction_local_at(f, dest)
+    let src_variant_slot = local_access::MirLocal_variant_slot(src_loc)
+    let src_type_name = local_access::MirLocal_type_name(src_loc)
+    let dst_variant_slot = local_access::MirLocal_variant_slot(dst_loc)
+    let dst_type_name = local_access::MirLocal_type_name(dst_loc)
+    let mut updated = false
+    let mut new_loc = dst_loc
+    if dst_variant_slot < 0 && src_variant_slot >= 0 {
+        local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
+        updated = true
+    }
+    if len(dst_type_name) == 0 && len(src_type_name) > 0 {
+        new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, clone(src_type_name))
+        updated = true
+    }
+    if updated {
+        function_local_mutation::MirFunction_set_local(f, dest, new_loc)
+    }
+    updated
+}
+
+// For stack-based LOCAL_SET, find the producer and propagate its type.
+fn propagate_from_stack_producer(f: MirFunction, block: MirBlock, inst_count: i32, set_ii: i32, dest: i32) -> bool {
+    let src_ii = post_pass_stack_scan::find_stack_producer(block, inst_count, set_ii)
+    if src_ii < 0 {
+        return false
+    }
+    let src_inst = block_inst_access::MirBlock_inst_at(block, src_ii)
+    let src_op = inst_accessors_shape::MirInst_op(src_inst)
+    if src_op == opcodes::MIR_LOCAL_GET() {
+        let src_local = inst_accessors_operands::MirInst_arg0(src_inst)
+        return propagate_from_local(f, dest, src_local)
+    }
+    let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
+    if src_dest >= 0 && src_dest != dest {
+        return propagate_from_local(f, dest, src_dest)
+    }
+    infer_and_set_from_producer(f, src_inst, src_op, dest)
+}
+
+// Set type_name/variant_slot from a stack producer instruction.
+fn infer_and_set_from_producer(f: MirFunction, inst: MirInst, op: i32, dest: i32) -> bool {
+    if dest < 0 || dest >= function_locals_view::MirFunction_local_count(f) {
+        return false
+    }
+    let dst_loc = function_locals_view::MirFunction_local_at(f, dest)
+    let dst_variant_slot = local_access::MirLocal_variant_slot(dst_loc)
+    let dst_type_name = local_access::MirLocal_type_name(dst_loc)
+    let mut updated = false
+    let mut new_loc = dst_loc
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        let slot = inst_accessors_operands::MirInst_arg0(inst)
+        if dst_variant_slot < 0 && slot >= 0 {
+            local_access::MirLocal_set_variant_slot(new_loc, slot)
+            updated = true
+        }
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        if len(dst_type_name) == 0 {
+            new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, String_from("string"))
+            updated = true
+        }
+    }
+    if updated {
+        function_local_mutation::MirFunction_set_local(f, dest, new_loc)
+    }
+    updated
+}

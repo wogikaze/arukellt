@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering module context API.
 
 use mir::lower::ctx_module
+use mir::post_pass_type_propagate
 use mir::typed_mir_sync_module
 
 fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) { ctx_module::ctx_push_module_function(ctx, func) }
@@ -9,6 +10,12 @@ fn ctx_intern_string(ctx: LowerCtx, s: String) -> i32 { ctx_module::ctx_intern_s
 fn ctx_prune_unreachable(ctx: LowerCtx) -> i32 { ctx_module::ctx_prune_unreachable(ctx) }
 fn ctx_current_module(ctx: LowerCtx) -> MirModule { ctx_module::ctx_current_module(ctx) }
 fn ctx_sync_typed_value_types(ctx: LowerCtx) {
-    typed_mir_sync_module::mir_module_sync_all_value_types(ctx_module::ctx_current_module(ctx))
+    let m = ctx_module::ctx_current_module(ctx)
+    typed_mir_sync_module::mir_module_sync_all_value_types(m)
+    post_pass_type_propagate::mir_module_propagate_local_types(m)
+    // Re-sync value_types after propagation, since setting type_name
+    // recalculates value_type via mvt_from_legacy_vt (without TypeTable
+    // access).  The second sync restores TypeTable-derived value_types.
+    typed_mir_sync_module::mir_module_sync_all_value_types(m)
 }
 fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) { ctx.mono_instances = instances }
