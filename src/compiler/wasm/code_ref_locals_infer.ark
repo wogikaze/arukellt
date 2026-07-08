@@ -11,20 +11,25 @@ use mir::opcodes
 use wasm::code_ref_locals_scan
 use wasm::code_ref_locals_typename
 use wasm::code_ref_locals_infer_dest
+use wasm::ctx_gc_layout_lookup
 
 fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
     if depth > 3 {
         return 0 - 1
     }
-    // Check the local's own type_name first — if it maps to a known GC ref
-    // type, use that directly. This handles cases where a local is traced
-    // from another local's inference and has a type_name like "string",
-    // "vec:i32", "hashmap:...", "Option_...", "Result_...", etc.
+    // Phase 5e: structured type_name lookup via GcLayoutTable, with
+    // string-based fallback for types not in the TypeTable.
     if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(f) {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let type_name = local_access::MirLocal_type_name(loc)
         if len(type_name) > 0 {
-            let gc_type = code_ref_locals_typename::infer_gc_type_from_type_name(clone(type_name), ctx)
+            // Try structured lookup first (GcLayoutTable by type_id)
+            let gc_type = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
+            if gc_type < 0 {
+                // Fall back to string-prefix matching for types not interned
+                // in the TypeTable (e.g. "hashmap:i32str", "struct:Foo:24")
+                gc_type = code_ref_locals_typename::infer_gc_type_from_type_name(clone(type_name), ctx)
+            }
             if gc_type >= 0 {
                 // Only use type_name if the local is actually assigned a ref
                 // value. Locals can be reused for i32 in other code paths, and
@@ -43,8 +48,13 @@ fn infer_ref_local_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     let param_count = function_param_view::MirFunction_param_count(f)
     if local_idx >= 0 && local_idx < param_count {
         let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
-        let param_gc_type = code_ref_locals_typename::infer_gc_type_from_type_name(param_type_name, ctx)
-        if param_gc_type >= 0 {
+        let param_gc_type = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(param_type_name))
+        if param_gc_type < 0 {
+            let fallback = code_ref_locals_typename::infer_gc_type_from_type_name(param_type_name, ctx)
+            if fallback >= 0 {
+                return fallback
+            }
+        } else {
             return param_gc_type
         }
     }
