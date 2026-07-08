@@ -1,0 +1,73 @@
+// Arukellt Selfhost - Stack value source scanning for GC type inference.
+//
+// Extracted from the former tracer (code_ref_locals_infer.ark) to support
+// the structured block scan in code_ref_locals_block_scan.ark.
+
+use mir::block_inst_access
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+
+// Scan backwards from set_ii-1 to find the instruction that produced the
+// value consumed by a stack-based LOCAL_SET at position set_ii.
+// Tracks a "needed" counter: each stack-based LOCAL_SET or DROP increments
+// it (they consume a value), each value-producing instruction decrements it.
+// When "needed" reaches 0, we found the producer.
+// Returns the instruction index, or -1 if not found.
+fn find_stack_value_source(block: MirBlock, inst_count: i32, set_ii: i32) -> i32 {
+    let mut needed = 1
+    let mut ii = set_ii - 1
+    let mut steps = 0
+    let max_steps = 128
+    while ii >= 0 && steps < max_steps {
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+        if op == opcodes::MIR_LOCAL_SET() && arg1 < 0 {
+            needed = needed + 1
+        } else if op == opcodes::MIR_DROP() {
+            needed = needed + 1
+        } else if is_stack_value_producing_op(op) {
+            needed = needed - 1
+            if needed == 0 {
+                return ii
+            }
+        }
+        ii = ii - 1
+        steps = steps + 1
+    }
+    0 - 1
+}
+
+// Check if an opcode produces a value on the stack (or via TEE).
+// Excludes LOCAL_SET and DROP (which consume rather than produce).
+fn is_stack_value_producing_op(op: i32) -> bool {
+    if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64() || op == opcodes::MIR_CONST_F64() || op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_CONST_BOOL() {
+        return true
+    }
+    if op == opcodes::MIR_LOCAL_GET() {
+        return true
+    }
+    if op == opcodes::MIR_CALL() || op == opcodes::MIR_WIT_CALL() {
+        return true
+    }
+    if op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_ARRAY_NEW() || op == opcodes::MIR_ARRAY_GET() || op == opcodes::MIR_ARRAY_LEN() {
+        return true
+    }
+    if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_GC_STRUCT_GET() {
+        return true
+    }
+    if op == opcodes::MIR_REF_CAST() || op == opcodes::MIR_REF_TEST() || op == opcodes::MIR_REF_FUNC() {
+        return true
+    }
+    if op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() || op == opcodes::MIR_EQZ() {
+        return true
+    }
+    if op == opcodes::MIR_EXTEND_I32_TO_I64() || op == opcodes::MIR_TRUNC_I64_TO_I32() {
+        return true
+    }
+    if opcodes::is_arith_opcode(op) {
+        return true
+    }
+    false
+}
