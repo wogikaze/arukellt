@@ -45,9 +45,13 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     }
     let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     if storage == open {
-        let raw = code_ref_locals_infer::infer_ref_local_gc_type_depth(f, local_idx, ctx, 0)
-        if raw >= 0 && raw != open {
-            return true
+        // Phase 5e: if type_name maps to a specific GC type (not open),
+        // a ref.cast is needed to narrow from open to the specific type.
+        if len(type_name) > 0 {
+            let tn_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
+            if tn_gc >= 0 && tn_gc != open {
+                return true
+            }
         }
     }
     false
