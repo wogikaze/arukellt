@@ -130,7 +130,7 @@ fn gc_layout_entry_wasm_ref_type(entry: GcLayoutEntry) -> WasmRefType {
 }
 
 fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> i32 {
-    if eq(clone(name), String_from("String")) {
+    if eq(clone(name), String_from("String")) || eq(clone(name), String_from("string")) {
         return gc_type_base + 0
     }
     if starts_with(clone(name), String_from("vec:String")) {

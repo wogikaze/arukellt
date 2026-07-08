@@ -73,13 +73,23 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx: SelfEmitCtx, variant_slot
 }
 
 // ADR-040 Phase 5: typed-spine GC type index lookup from a MIR type name.
-// Returns -1 when the GcLayoutTable has no entry for the name, letting the
-// legacy string-prefix matcher act as the compat fallback.
+// Falls back to gc_layout_table_ref_offset_for_type_name (centralized
+// name→offset mapping) when the type_id lookup fails, so callers no longer
+// need their own string-prefix matchers.
 fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: String) -> i32 {
     if len(type_name) == 0 {
         return 0 - 1
     }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let mvt = type_info_to_mir_value::vt_to_mir_value(tt, value_types::VT_GC_REF(), type_name)
-    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    let mvt = type_info_to_mir_value::vt_to_mir_value(tt, value_types::VT_GC_REF(), clone(type_name))
+    let tid_result = SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    if tid_result >= 0 {
+        return tid_result
+    }
+    // Fallback: centralized name→offset mapping in GcLayoutTable.
+    let gc_type_base = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    if gc_type_base < 0 {
+        return 0 - 1
+    }
+    gc_layout_table::gc_layout_table_ref_offset_for_type_name(type_name, gc_type_base)
 }
