@@ -15,7 +15,7 @@ fn store_result_action(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i
     if should_skip_store_after_early_tee(inst, next_op, next_arg0, next_arg1, next2_op) {
         return constants::STORE_ACTION_SKIP()
     }
-    if should_tee_store_late(inst, next_op, next2_op, next_arg1) {
+    if should_tee_store_late(inst, next_op, next2_op, next_arg1, next_arg0) {
         return constants::STORE_ACTION_TEE()
     }
     return constants::STORE_ACTION_SET()
@@ -101,7 +101,7 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
     false
 }
 
-fn should_tee_store_late(inst: MirInst, next_op: i32, next2_op: i32, next_arg1: i32) -> bool {
+fn should_tee_store_late(inst: MirInst, next_op: i32, next2_op: i32, next_arg1: i32, next_arg0: i32) -> bool {
     if next_op == opcodes::MIR_LOCAL_SET() {
         if next2_op == opcodes::MIR_LOCAL_SET() {
             return true

@@ -4,6 +4,9 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::block_inst_access
 use mir::opcodes
+use mir::value_types
+use mir::function_locals_view
+use mir::local_access
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
@@ -62,6 +65,22 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     }
     if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    // MIR_ADD with VT_REF/VT_GC_REF on GC targets is string concatenation.
+    // The emitter dispatches it to emit_concat, which produces a GC string ref.
+    if op == opcodes::MIR_ADD() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
+            return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        }
+    }
+    // MIR_REF_CAST on GC targets produces a ref of the enum variant type.
+    // The emitter uses SelfEmitCtx_enum_variant_type(ctx, arg0) for the cast.
+    if op == opcodes::MIR_REF_CAST() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let type_slot = inst_accessors_operands::MirInst_arg0(inst)
+        if type_slot >= 0 {
+            return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
+        }
     }
     0 - 1
 }

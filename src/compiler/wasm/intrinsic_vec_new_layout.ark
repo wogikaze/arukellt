@@ -10,6 +10,7 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_locals
+use wasm::ctx_gc_type_vec_ref
 use wasm::emit_target
 use wasm::ctx_record
 use wasm::ctx_scratch
@@ -34,6 +35,7 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let is_vec_v128 = vec_type == ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     let arr_tmp = if is_vec_string {
         ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
     } else if is_vec_v128 {
@@ -42,6 +44,8 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         ctx_scratch::SelfEmitCtx_scratch_gc_i64_array_local(ctx, 0)
     } else if is_vec_f64 {
         ctx_scratch::SelfEmitCtx_scratch_gc_f64_array_local(ctx, 0)
+    } else if is_vec_sref {
+        ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_array_local(ctx, 0)
     } else {
         ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     }

@@ -66,6 +66,11 @@ fn emit_gc_local_get(w: WasmWriter, local: i32) {
     writer_core::emit_leb128_u(w, local)
 }
 
+fn emit_gc_local_tee(w: WasmWriter, local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_core::emit_leb128_u(w, local)
+}
+
 fn emit_gc_array_len(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_LEN())

@@ -32,6 +32,7 @@ fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
 
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 1)  // len
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     return true

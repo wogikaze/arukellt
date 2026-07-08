@@ -1,5 +1,6 @@
 // GC type from type names.
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 
 fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
     let hm = infer_hashmap_gc_type_from_type_name(clone(type_name), ctx)
@@ -72,6 +73,11 @@ fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 
     }
     if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
         return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    }
+    // Check if element is a struct ref (non-primitive type name).
+    let elem_name = substring(clone(type_name), 4, len(type_name))
+    if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+        return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     }
     ctx_gc_type::SelfEmitCtx_vec_type(ctx)
 }

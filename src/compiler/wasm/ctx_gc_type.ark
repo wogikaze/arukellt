@@ -2,6 +2,7 @@
 
 use wasm::ctx_record
 use wasm::ctx_gc_type_locals
+use wasm::ctx_gc_type_vec_ref
 use wasm::sections_types_gc
 use mir::function_identity
 use mir::function_locals_view
@@ -114,6 +115,10 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return SelfEmitCtx_vec_f64_type(ctx)
     }
     if starts_with(clone(tname), String_from("vec:")) {
+        let elem = substring(clone(tname), 4, len(tname))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        }
         return SelfEmitCtx_vec_type(ctx)
     }
     0 - 1
