@@ -90,11 +90,25 @@ via `?` when the error type differs between the fallible call and the
 enclosing function. The `From::from(e)` conversion in the `?` desugaring
 is not applied correctly at runtime.
 
+**Root cause**: `mir_emit_try_unwrap` in `src/compiler/mir/lower/try.ark`
+does not emit `From::from(e)` conversion on the Err path — it returns the
+original Result without converting the error type.
+
+**Fix status (2026-07-09)**: Source changes written in `try.ark` to extract
+the Err payload, call `TargetErrType::from`, store the converted error back,
+and return. The fix uses `ctx_fn_exists` to check if `From::from` exists,
+`function_return_view::MirFunction_return_type_name` to get the function's
+return type, and `try_extract_err_payload_type` to extract error types from
+Result type strings. **However, the fix cannot be tested** because the
+selfhost compiler (s2.wasm, built 2026-07-08) cannot be rebuilt — all
+available compilers crash with OOM/recursion errors when self-compiling the
+current source. The fix is committed but unverified at runtime.
+
 **Repro**: `bash scripts/run/arukellt-selfhost.sh compile --target wasm32-wasi
 tests/fixtures/question_mark/from_error.ark -o test.wasm && wasmtime test.wasm`
 
 **Expected**: "OK"
-**Actual**: "assertion failed"
+**Actual**: "assertion failed" (with old compiler; untested with fix)
 
 ## References
 

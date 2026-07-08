@@ -57,10 +57,18 @@ impl Clone for char {
     }
 }
 
-/// `Clone` impl for `String` — delegates to the prelude `clone` function.
+/// Internal helper to clone a String without triggering trait dispatch
+/// recursion.  `__intrinsic_clone` is normalised to `clone` by the WASM
+/// emitter's callee-name normaliser, so it is emitted as the string-clone
+/// intrinsic rather than a self-dispatching trait method call.
+fn __clone_string_helper(s: String) -> String {
+    __intrinsic_clone(s)
+}
+
+/// `Clone` impl for `String` — delegates to the helper to avoid recursion.
 impl Clone for String {
     fn clone(self: String) -> String {
-        clone(self)
+        __clone_string_helper(self)
     }
 }
 // issue #715 in-file tests

@@ -47,12 +47,11 @@ of treating `Self` as an opaque placeholder.
 
 - `tests/fixtures/stdlib_trait/self_return_add.ark` — **pass** T1 execution.
   `fn add_any<T: Add>(x: T, y: T) -> T { x.add(y) }` works for i32 and f64.
-- `tests/fixtures/stdlib_trait/self_return_clone.ark` — **partial**.
-  i32 clone works (output "42"), but String clone traps with `unreachable`
-  instruction. Root cause: `impl Clone for String` in `std/core/clone.ark`
-  calls `clone(self)` which dispatches to `Clone::clone` (infinite recursion)
-  instead of the prelude `clone` free function. Attempted fix to call
-  `__intrinsic_string_clone` directly caused T3 validate-fail regression
-  (389→388 pass), so the fix was reverted. The String clone via trait
-  dispatch bug is a separate issue (trait dispatch for GC ref types).
+- `tests/fixtures/stdlib_trait/self_return_clone.ark` — **pass** T1 execution.
+  i32 clone works (output "42"), String clone works (output "hello").
+  **Fix applied 2026-07-09**: `impl Clone for String` in `std/core/clone.ark`
+  was calling `clone(self)` which dispatched to `Clone::clone` (infinite
+  recursion). Fixed by introducing `__clone_string_helper` that calls
+  `__intrinsic_clone(s)` (normalised to `clone` by the WASM emitter's
+  callee-name normaliser), avoiding trait dispatch recursion.
   No `.expected` file exists for this fixture.
