@@ -41,18 +41,15 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
     if !code_ref_locals::should_gc_ref_cast_to_dest(f, dest, ctx) {
         return
     }
+    // Phase 5e: structured lookup (variant_slot + type_name → GcLayoutTable)
     let dest_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, dest)
     if dest_gc < 0 {
+        // Fallback to storage inference (which may use the instruction tracer
+        // as a last resort for complex cases like stack-based LOCAL_SET chains)
         dest_gc = code_ref_locals::infer_ref_local_gc_type(f, dest, ctx)
     }
     if dest_gc >= 0 {
         writer_gc::emit_gc_ref_cast(w, dest_gc)
-    } else {
-        // Spine lookup fallback for types legacy inference can't handle
-        let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, dest)
-        if spine_gc >= 0 {
-            writer_gc::emit_gc_ref_cast(w, spine_gc)
-        }
     }
 }
 
