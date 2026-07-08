@@ -48,6 +48,7 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
         ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
+    ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, type_slot)
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
     emit_variant_tag_field(ctx, dest, tag, type_slot)
     emit_gc_variant_payload_fields(ctx, dest, type_slot, payload_locals, payload_vts)

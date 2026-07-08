@@ -10,11 +10,12 @@ pub struct MirLocal {
     type_name: String,
     ssa_name: String,
     ssa_version: i32,
+    variant_slot: i32,
 }
 
 fn MirLocal_new(name: String, val_type: i32, type_name: String) -> MirLocal {
     let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(type_name))
-    MirLocal { name: clone(name), val_type: val_type, value_type: mvt, type_name: type_name, ssa_name: name, ssa_version: 0 - 1 }
+    MirLocal { name: clone(name), val_type: val_type, value_type: mvt, type_name: type_name, ssa_name: name, ssa_version: 0 - 1, variant_slot: 0 - 1 }
 }
 
 fn mir_local_val_type(local: MirLocal) -> i32 {
@@ -35,6 +36,14 @@ fn mir_local_ssa_name(local: MirLocal) -> String {
 
 fn mir_local_ssa_version(local: MirLocal) -> i32 {
     local.ssa_version
+}
+
+fn mir_local_variant_slot(local: MirLocal) -> i32 {
+    local.variant_slot
+}
+
+fn mir_local_set_variant_slot(local: MirLocal, variant_slot: i32) {
+    local.variant_slot = variant_slot
 }
 
 fn mir_local_name(local: MirLocal) -> String {
@@ -65,19 +74,19 @@ fn mir_local_set_type_name(local: MirLocal, type_name: String) {
 }
 
 fn mir_local_copy_with_ssa(source: MirLocal, ssa_name: String, ssa_version: i32) -> MirLocal {
-    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mir_value_type::mir_value_type_copy(source.value_type), type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version }
+    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mir_value_type::mir_value_type_copy(source.value_type), type_name: clone(source.type_name), ssa_name: ssa_name, ssa_version: ssa_version, variant_slot: source.variant_slot }
 }
 
 fn mir_local_copy_with_val_type(source: MirLocal, val_type: i32) -> MirLocal {
     let mvt = typed_mir_compat::mvt_from_legacy_vt(val_type, clone(source.type_name))
-    MirLocal { name: clone(source.name), val_type: val_type, value_type: mvt, type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+    MirLocal { name: clone(source.name), val_type: val_type, value_type: mvt, type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version, variant_slot: source.variant_slot }
 }
 
 fn mir_local_copy_with_value_type(source: MirLocal, value_type: MirValueType) -> MirLocal {
-    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mir_value_type::mir_value_type_copy(value_type), type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mir_value_type::mir_value_type_copy(value_type), type_name: clone(source.type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version, variant_slot: source.variant_slot }
 }
 
 fn mir_local_copy_with_type_name(source: MirLocal, type_name: String) -> MirLocal {
     let mvt = typed_mir_compat::mvt_from_legacy_vt(source.val_type, clone(type_name))
-    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mvt, type_name: clone(type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version }
+    MirLocal { name: clone(source.name), val_type: source.val_type, value_type: mvt, type_name: clone(type_name), ssa_name: clone(source.ssa_name), ssa_version: source.ssa_version, variant_slot: source.variant_slot }
 }

@@ -25,3 +25,11 @@ fn MirLocal_name(local: MirLocal) -> String {
 fn MirLocal_value_type(local: MirLocal) -> MirValueType {
     local_record::mir_local_value_type(local)
 }
+
+fn MirLocal_variant_slot(local: MirLocal) -> i32 {
+    local_record::mir_local_variant_slot(local)
+}
+
+fn MirLocal_set_variant_slot(local: MirLocal, variant_slot: i32) {
+    local_record::mir_local_set_variant_slot(local, variant_slot)
+}
