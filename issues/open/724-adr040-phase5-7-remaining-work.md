@@ -64,7 +64,7 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 
 **未完了（T3 compile trap のため bisect 待ち）**:
 - `code_locals.ark` / `inst_locals.ark` の spine 優先切替 — **inst_locals 完了**（spine lookup + infer フォールバック、T3 386/33/1）、`code_locals` は `ctx_gc_type` が既に正確なため spine 不要
-- `code_ref_locals_infer*.ark` 削除（infer フォールバック必要 — VT_I32 の GC ref 再利用判定に infer 必要）
+- `code_ref_locals_infer*.ark` 削除（infer フォールバック必要 — VT_I32 の GC ref 再利用判定に infer 必要）→ **#725 に移管**
 - pipeline 完全 `verify_mir_hard` 切替 — **完了**（`6a29ec03c`）
 
 **完了（2026-07-15 GcLayoutTable 配線）**:
@@ -73,6 +73,16 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - `ctx_gc_layout_lookup.ark`: `lower_mir_value_type` の nested-struct return bootstrap バグ回避（直接 GcLayoutEntry から ref type idx 取得）
 - `inst_locals.ark`: `emit_gc_ref_cast_to_dest` に spine lookup 優先 + infer フォールバック追加
 - **根因特定**: Phase 5 compile trap は `SelfEmitCtx_gc_layout_table` 未定義 + `lower_mir_value_type` の nested-struct return bootstrap コンパイルバグ
+
+**完了（2026-07-16 Phase 5e: variant_slot 構造化型 ID）**:
+- `MirLocal.variant_slot` フィールド追加 + MIR lowering で設定（GC_STRUCT_NEW 時）
+- `SelfEmitCtx_wasm_ref_type_idx_for_variant_slot` 直接 lookup（文字列マッチングなし）
+- HOF Option 結果 local に `type_name = "option:i32"` 設定
+- トレーサ呼び出しを 6 箇所から 1 箇所（最終フォールバックのみ）に削減
+- トレーサ内部の type_name ルックアップを GcLayoutTable 優先に変更
+- callee 戻り値型推論を GcLayoutTable 優先に変更
+- T3: 388 pass / 33 validate-fail / 1 compile-fail（回帰なし）
+- **残作業は #725 に移管**: トレーサ完全削除には LOCAL_SET チェーン型伝播 post-pass が必要
 
 **削除する関数**:
 - `code_ref_locals_infer.ark::find_stack_value_source`
@@ -86,8 +96,8 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - `src/compiler/mir/verify.ark` — warning を fail に切り替え（INV-5 完全執行）
 
 **完了条件**:
-- [ ] `find_stack_value_source` の呼び出し回数 = 0
-- [ ] `infer_ref_local_gc_type_depth` の呼び出し回数 = 0
+- [ ] `find_stack_value_source` の呼び出し回数 = 0 → **#725 に移管**
+- [ ] `infer_ref_local_gc_type_depth` の呼び出し回数 = 0 → **#725 に移管**
 - [ ] `mono_return_type_name` の名前逆引き回数 = 0
 - [ ] 旧推論経路が呼ばれないことを確認
 - [x] MIR verifier が W005/W006/W007 を fail にする（pipeline hard-fail）
