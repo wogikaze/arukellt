@@ -1,0 +1,77 @@
+// Arukellt Selfhost - ADR-040 Phase 5e Step 1: callee return type lookup.
+//
+// Extracted from post_pass_type_propagate.ark to reduce import fan-out.
+
+use mir::function_identity
+use mir::function_locals_view
+use mir::function_local_mutation
+use mir::function_return_view
+use mir::inst_accessors_operands
+use mir::inst_record
+use mir::local_access
+use mir::local_mutation
+use mir::module_functions
+use mir::opcodes
+
+// Set type_name on dest based on the producer instruction type.
+// For CALL, looks up the callee's return type_name from the module.
+fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op: i32, dest: i32) -> bool {
+    if dest < 0 || dest >= function_locals_view::MirFunction_local_count(f) {
+        return false
+    }
+    let dst_loc = function_locals_view::MirFunction_local_at(f, dest)
+    let dst_variant_slot = local_access::MirLocal_variant_slot(dst_loc)
+    let dst_type_name = local_access::MirLocal_type_name(dst_loc)
+    let mut updated = false
+    let mut new_loc = dst_loc
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        let slot = inst_accessors_operands::MirInst_arg0(inst)
+        if dst_variant_slot < 0 && slot >= 0 {
+            local_access::MirLocal_set_variant_slot(new_loc, slot)
+            updated = true
+        }
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        if len(dst_type_name) == 0 {
+            new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, String_from("string"))
+            updated = true
+        }
+    }
+    if op == opcodes::MIR_STRUCT_NEW() {
+        if len(dst_type_name) == 0 {
+            let struct_name = inst_record::mir_inst_str_val(inst)
+            if len(struct_name) > 0 {
+                new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, struct_name)
+                updated = true
+            }
+        }
+    }
+    if op == opcodes::MIR_CALL() {
+        if len(dst_type_name) == 0 {
+            let callee = inst_record::mir_inst_str_val(inst)
+            let ret_name = lookup_callee_return_type_name(m, callee)
+            if len(ret_name) > 0 {
+                new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, ret_name)
+                updated = true
+            }
+        }
+    }
+    if updated {
+        function_local_mutation::MirFunction_set_local(f, dest, new_loc)
+    }
+    updated
+}
+
+// Look up a function's return type_name by name from the module.
+fn lookup_callee_return_type_name(m: MirModule, callee: String) -> String {
+    let count = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < count {
+        let f = module_functions::MirModule_function_at(m, i)
+        if eq(function_identity::MirFunction_name(f), clone(callee)) {
+            return function_return_view::MirFunction_return_type_name(f)
+        }
+        i = i + 1
+    }
+    String_new()
+}
