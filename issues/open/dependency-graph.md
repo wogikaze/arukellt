@@ -51,6 +51,7 @@ graph LR
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
   I668["668 668 — P2 native component polish (post-#074)"]
+  I726["726 T3 WASM validation failures: 32件の validate-fail 修正（GC ref 型推論バグ）"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
@@ -68,6 +69,7 @@ graph LR
   I691 --> I703
   I695 --> I703
   I714 --> I668
+  I724 --> I726
   I682 --> I683
   I691 --> I709
   I695 --> I709
@@ -124,7 +126,7 @@ graph LR
 - **721** depends on: none; blocks: none
 - **722** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
-- **724** depends on: none; blocks: none
+- **724** depends on: none; blocks: 726
 - **725** depends on: None; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
@@ -134,6 +136,7 @@ graph LR
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **668** depends on: 074, 510, 714; blocks: none
+- **726** depends on: 724; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711

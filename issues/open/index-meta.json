@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-08T03:11:28Z",
+  "generated_at": "2026-07-08T04:21:48Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -892,7 +892,9 @@
       "blocks_v4": "none",
       "blocks_v5": "none",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "726"
+      ],
       "acceptance": {
         "checked": 10,
         "unchecked": 8
@@ -1134,6 +1136,30 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "726",
+      "path": "726-t3-wasm-validation-32-failures.md",
+      "title": "T3 WASM validation failures: 32件の validate-fail 修正（GC ref 型推論バグ）",
+      "track": "compiler-internal",
+      "status": "open",
+      "blocks_v1": "none",
+      "blocks_v2": "none",
+      "blocks_v3": "none",
+      "blocks_v4": "none",
+      "blocks_v5": "none",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
       }
     },
     {
