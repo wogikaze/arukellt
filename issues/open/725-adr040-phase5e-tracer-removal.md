@@ -272,9 +272,67 @@ local.set 17  (pop ref)  ← スタック履歴を遡って producer を特定
 - `infer_builtin_callee_gc_type` のハードコードされた callee 名 matching を
   SignatureRegistry 経由に移行
 
+### Step 3 調査結果 (2026-07-08): ハードコード matching 削除は不可
+
+#### 試行内容
+
+ハードコードされた callee 名 matching 関数を削除し、
+`infer_call_result_gc_type_from_fn` (関数戻り値型 type_name → GcLayoutTable
+lookup → 文字列フォールバック) に統合する変更を試行した。
+
+#### 回帰発見
+
+selfhost wasm 再ビルド後に T3 が大幅悪化:
+- **変更前 (baseline)**: 389 pass, 32 validate-fail
+- **変更後 (wasm rebuild)**: 350 pass, 71 validate-fail (-39 pass, +39 fail)
+
+**原因**: `inst_ctx::resolve_fn_index` が全 callee を解決できない。
+host intrinsic や builtin 関数 (String_new, __hm_si_new, Vec_new_*, parse_*, etc.)
+は関数テーブルに存在しない場合があり、`resolve_fn_index` が -1 を返す。
+ハードコード matching はこれらの callee の GC 型を直接返すために必要。
+
+**注意**: 実験中 (wasm 再ビルド前) は T3 が 389/32 で変化なしに見えたが、
+これは T3 check が prebuilt wasm を使用するため、ソース変更が wasm に
+反映される前に検証していた。pre-commit hook で wasm が再ビルドされて
+初めて回帰が顕在化した。以後、コンパイラソース変更時は必ず
+`python3 scripts/manager.py selfhost fixpoint --build` で wasm を再ビルド
+してから T3 を検証すること。
+
+#### 残存する文字列ベース型推論箇所 (文書化)
+
+以下は GcLayoutTable lookup のフォールバックとして残存する。
+これらは TypeTable に intern されていない型や `resolve_fn_index` で解決
+できない callee を処理するために必要:
+
+1. **`code_ref_locals_infer_callee.ark::infer_string_callee_gc_type`** —
+   文字列返却 callee 名 matching (String_new, concat, to_string, etc.)
+2. **`code_ref_locals_infer_callee.ark::infer_hashmap_callee_gc_type`** —
+   hashmap 返却 callee 名 matching (__hm_si_new, etc.)
+3. **`code_ref_locals_infer_callee.ark::infer_builtin_callee_gc_type`** —
+   組み込み callee 名 matching (Vec_new_*, vec_pop, parse_*, split, etc.)
+4. **`code_ref_locals_infer_callee.ark::infer_vec_new_callee_gc_type`** —
+   Vec_new_* callee 名 matching
+5. **`code_ref_locals_types.ark::mir_fn_returns_option_by_name`** —
+   Option 返却関数名 matching (hashmap_get, parse_*, etc.)
+6. **`code_ref_locals_typename.ark::infer_gc_type_from_type_name`** —
+   hashmap/vec/string/option/result/enum/struct の文字列プレフィックス matching
+   (GcLayoutTable lookup 失敗時のフォールバック)
+7. **`code_ref_locals_types.ark::is_option_type_name`** —
+   Option 型 type_name 分類
+8. **`code_ref_locals_types.ark::is_gc_container_type_name`** —
+   コンテナ型 type_name 分類
+
+これらの完全な構造化移行には、以下のいずれかが必要:
+- `resolve_fn_index` が host intrinsic / builtin 関数も解決できるようにする
+- TypeTable に全 type_name を intern し GcLayoutTable にエントリを追加する
+- SignatureRegistry に host intrinsic / builtin の戻り値型を登録する
+
+本 issue のスコープ外とし、別 issue で追跡する。
+
 **完了条件**:
-- [ ] 文字列ベース型推論の残存箇所を文書化
-- [ ] 可能な範囲で構造化ルックアップに移行
+- [x] 文字列ベース型推論の残存箇所を文書化
+- [ ] 可能な範囲で構造化ルックアップに移行 (blocked: `resolve_fn_index` が
+      host intrinsic / builtin を解決できないため、ハードコード matching 削除不可)
 
 ## リスク
 
