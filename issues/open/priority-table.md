@@ -11,7 +11,7 @@ Scoring criteria (0-5 each, total 25):
 
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
-| 1 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 4 | 5 | 4 | 14 |
+| 1 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 5 | 5 | 4 | 15 |
 | 2 | 686 | Wasm GC Selfhost Implementation | main | 0 | 0 | 4 | 5 | 4 | 13 |
 | 3 | 725 | ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth) | compiler-internal | 0 | 0 | 4 | 5 | 4 | 13 |
 | 4 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
@@ -33,7 +33,7 @@ Scoring criteria (0-5 each, total 25):
 | 20 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
 | 21 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
 | 22 | 722 | Typed Function References (`call_ref`) ベンチマーク計測 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 23 | 726 | T3 WASM validation failures: 32件の validate-fail 修正（GC ref 型... | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 23 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
 | 24 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 2 | 3 | 2 | 8 |
 | 25 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 1 | 0 | 1 | 3 | 3 | 8 |
 | 26 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 1 | 0 | 1 | 3 | 3 | 8 |

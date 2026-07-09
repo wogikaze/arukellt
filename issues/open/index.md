@@ -145,7 +145,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 43. [697 — 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)](697-vec-operation-extension.md)
 44. [703 — 703 — Monomorphic API bold cutover (ADR-036 D2)](703-monomorphic-api-bold-cutover.md)
 45. [668 — 668 — P2 native component polish (post-#074)](668-p2-native-component-polish.md)
-46. [726 — T3 WASM validation failures: 32件の validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md)
+46. [726 — T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md)
 47. [683 — 683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md)
 48. [709 — 709 — Stdlib trait-first API policy and i32 helper containment](709-stdlib-trait-first-api-policy.md)
 49. [710 — 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md)
@@ -176,7 +176,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 685 | [685 — IDE / Playground / Extension product-claim vs compiler gate audit](685-ide-playground-extension-claim-audit.md) | docs-audit | none | 679 | none | 0 checked / 6 open | audit-ready | None | |
 | 686 | [Wasm GC Selfhost Implementation](686-wasm-gc-selfhost-implementation.md) | main | none | none | none | 12 checked / 4 open | — | — | |
 | 687 | [687 — HashMap / HashSet Rust parity gap audit and closure](687-hashmap-hashset-rust-parity-gap.md) | stdlib-api | none | 495 | none | 8 checked / 1 open | implementation-ready | None | |
-| 690 | [690 — `?` operator and `From<E>` error conversion](690-question-mark-operator.md) | language-design | none | 688 | 694 | 9 checked / 2 open | design-required | None | |
+| 690 | [690 — `?` operator and `From<E>` error conversion](690-question-mark-operator.md) | language-design | none | 688 | 694 | 11 checked / 1 open | design-required | None | |
 | 691 | [691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`](691-iterator-trait-lazy-adapters.md) | stdlib-api | none | 688, 707 | 697, 703, 709, 710 | 0 checked / 16 open | blocked-by-upstream | #688 trait method dispatch | |
 | 693 | [693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification](693-read-write-traits-io-unification.md) | stdlib-api | none | 688, 692 | none | 0 checked / 16 open | blocked-by-upstream | #688 trait dispatch, #692 From/Into/AsRef | |
 | 695 | [695 — `Ord` / `PartialOrd` traits and comparison-based algorithms](695-ord-partialord-traits.md) | stdlib-api | none | 688 | 697, 703, 709 | 0 checked / 12 open | blocked-by-upstream | #688 trait method dispatch | |
@@ -202,7 +202,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 697 | [697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)](697-vec-operation-extension.md) | stdlib-api | none | 691, 695 | 709, 710 | 0 checked / 15 open | blocked-by-upstream | #691 Iterator, #695 Ord | |
 | 703 | [703 — Monomorphic API bold cutover (ADR-036 D2)](703-monomorphic-api-bold-cutover.md) | stdlib-api | none | 700, 701, 691, 695 | 709 | 0 checked / 19 open | blocked-by-upstream | #700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord | |
 | 668 | [668 — P2 native component polish (post-#074)](668-p2-native-component-polish.md) | wasi-feature | none | 074, 510, 714 | none | 0 checked / 9 open | implementation-ready | None | |
-| 726 | [T3 WASM validation failures: 32件の validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md) | compiler-internal | none | 724 | none | 0 checked / 8 open | implementation-ready | — | |
+| 726 | [T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md) | compiler-internal | none | 724 | none | 2 checked / 6 open | implementation-ready | — | |
 | 683 | [683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md) | docs-audit | none | 679, 682 | none | 0 checked / 6 open | audit-ready | None | |
 | 709 | [709 — Stdlib trait-first API policy and i32 helper containment](709-stdlib-trait-first-api-policy.md) | stdlib-api | none | 691, 695, 697, 703 | 710, 711, 712, 713 | 0 checked / 11 open | blocked-by-upstream | #691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover | |
 | 710 | [710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md) | stdlib-api | none | 691, 697, 701, 707, 709 | 711 | 0 checked / 13 open | blocked-by-upstream | #691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy | |

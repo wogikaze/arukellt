@@ -35,6 +35,7 @@ Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確
 - **完了**: `MirLocal.value_type`、`MirInst.result_types`、post-lowering sync、verifier W005/W006/W007 baseline ゼロ化、`verify_mir_pipeline` → `verify_mir`（full hard-fail）
 - **検証**: 420 deduped t3-compile fixture で W005=W006=W007=0（`6a29ec03c`）
 - **T3**: 387 pass / 32 validate-fail / 1 compile-fail（wave 1 hard-verify 後、390/29/1 から -3 pass / +3 validate-fail）
+- **最新 T3 ベースライン（2026-07-09, #726）**: 392 pass / **29** validate-fail / 1 compile-fail（詳細は #726）
 
 ### Phase 6a: 完了
 

@@ -51,7 +51,7 @@ graph LR
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
   I668["668 668 — P2 native component polish (post-#074)"]
-  I726["726 T3 WASM validation failures: 32件の validate-fail 修正（GC ref 型推論バグ）"]
+  I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
