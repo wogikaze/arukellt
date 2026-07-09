@@ -125,10 +125,12 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
 }
 
 fn vec_elem_is_nested_container_name(elem_name: String) -> bool {
-    if eq(clone(elem_name), String_from("Vec")) || eq(clone(elem_name), String_from("HashMap")) || eq(clone(elem_name), String_from("HashSet")) {
+    // HashMap/HashSet remain i32-vec-backed containers. Nested Vec elements
+    // use the structref-array layout so push/get can store GC vec refs.
+    if eq(clone(elem_name), String_from("HashMap")) || eq(clone(elem_name), String_from("HashSet")) {
         return true
     }
-    if starts_with(clone(elem_name), String_from("vec:")) || starts_with(clone(elem_name), String_from("hashmap:")) {
+    if starts_with(clone(elem_name), String_from("hashmap:")) || starts_with(clone(elem_name), String_from("hashset:")) {
         return true
     }
     false

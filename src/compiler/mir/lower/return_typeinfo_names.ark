@@ -23,6 +23,7 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
         2 => String_from("vec:i64"),
         3 => String_from("vec:f64"),
         5 => String_from("vec:String"),
+        10 => String_from("vec:Vec"),
         _ => String_from("vec:i32"),
     }
 }

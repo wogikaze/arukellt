@@ -1,0 +1,124 @@
+// Arukellt Selfhost - Vec_new dest/store-target GC type resolution.
+
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::opcodes as mir_opcodes
+use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
+use wasm::ctx_record
+use wasm::intrinsic_vec_type
+
+fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
+    let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, dest_local)
+    if vt >= 0 {
+        return vt
+    }
+    // Vec_new often writes a temp that is immediately stored into an annotated
+    // let binding (e.g. `let outer: Vec<Vec<i32>> = Vec_new_i32()`). Prefer the
+    // store target's type when the temp itself is untyped / vec:i32.
+    let store_vt = resolve_vec_type_from_immediate_store(ctx, dest_local)
+    if store_vt >= 0 {
+        return store_vt
+    }
+    ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+}
+
+fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
+    let tname = intrinsic_vec_type::local_type_name(ctx, dest_local)
+    let resolved = resolve_array_type_from_type_name(ctx, clone(tname))
+    if resolved >= 0 {
+        return resolved
+    }
+    let store_tname = find_immediate_store_target_type_name(ctx, dest_local)
+    let store_resolved = resolve_array_type_from_type_name(ctx, clone(store_tname))
+    if store_resolved >= 0 {
+        return store_resolved
+    }
+    ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+}
+
+fn resolve_array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
+    if eq(clone(tname), String_from("vec:String")) {
+        return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+        return ctx_gc_type::SelfEmitCtx_v128_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:i64")) || eq(clone(tname), String_from("vec:I64")) {
+        return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
+        return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
+    }
+    if starts_with(clone(tname), String_from("vec:")) {
+        let elem = substring(clone(tname), 4, len(tname))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || eq(clone(elem), String_from("Vec")) || starts_with(clone(elem), String_from("vec:")) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+    }
+    0 - 1
+}
+
+fn resolve_vec_type_from_immediate_store(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
+    let tname = find_immediate_store_target_type_name(ctx, dest_local)
+    if len(tname) == 0 {
+        return 0 - 1
+    }
+    if eq(clone(tname), String_from("vec:String")) {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
+        return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:i64")) || eq(clone(tname), String_from("vec:I64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    }
+    if starts_with(clone(tname), String_from("vec:")) {
+        let elem = substring(clone(tname), 4, len(tname))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || eq(clone(elem), String_from("Vec")) || starts_with(clone(elem), String_from("vec:")) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        }
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    0 - 1
+}
+
+fn find_immediate_store_target_type_name(ctx: SelfEmitCtx, dest_local: i32) -> String {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
+                if inst_accessors_operands::MirInst_dest(cur) == dest_local {
+                    let mut ahead = 1
+                    while ahead <= 4 && ii + ahead < inst_count {
+                        let next = block_inst_access::MirBlock_inst_at(block, ii + ahead)
+                        if inst_accessors_shape::MirInst_op(next) == mir_opcodes::MIR_LOCAL_SET() {
+                            // MirInst_local_set_from(target, source): arg0=target, arg1=source
+                            if inst_accessors_operands::MirInst_arg1(next) == dest_local {
+                                let target = inst_accessors_operands::MirInst_arg0(next)
+                                return intrinsic_vec_type::local_type_name(ctx, target)
+                            }
+                        }
+                        ahead = ahead + 1
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    String_new()
+}

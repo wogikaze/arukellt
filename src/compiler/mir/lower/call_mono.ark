@@ -13,8 +13,9 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
     if first_arg_idx >= 0 {
         let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         let mut mono_type_key = clone(mono_arg_type)
+        // Nested containers: vec:vec:i32 → Vec<i32> (same as call_mono_by_type).
         if starts_with(clone(mono_arg_type), String_from("vec:")) {
-            mono_type_key = substring(mono_arg_type, 4, len(mono_arg_type))
+            mono_type_key = call_mono_nested_vec_type_key(substring(mono_arg_type, 4, len(mono_arg_type)))
         }
         if starts_with(clone(mono_type_key), String_from("Option:")) {
             mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
@@ -106,4 +107,16 @@ fn mir_strip_callee_module_prefix(name: String) -> String {
         i = i - 1
     }
     clone(name)
+}
+
+fn call_mono_nested_vec_type_key(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        let inner = call_mono_nested_vec_type_key(substring(clone(type_name), 4, len(type_name)))
+        return concat(String_from("Vec<"), concat(inner, String_from(">")))
+    }
+    // Bare "Vec" from Vec<Vec<...>> annotations that lost the inner key.
+    if eq(clone(type_name), String_from("Vec")) {
+        return String_from("Vec<i32>")
+    }
+    type_name
 }

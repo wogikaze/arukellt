@@ -12,10 +12,13 @@ fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
 }
 
 fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
-    let count = len(ctx.gc_struct_sigs)
+    // Dedupe by name, not by sig. Distinct structs can share a field layout
+    // (Range and RangeIter are both two i32 fields) but each still needs a
+    // named GC slot so params/returns resolve via gcsref rather than i32.
+    let count = len(ctx.gc_struct_names)
     let mut i = 0
     while i < count {
-        if eq(get_unchecked(ctx.gc_struct_sigs, i), clone(sig)) {
+        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
             return
         }
         i = i + 1
@@ -69,6 +72,18 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
         return concat(prefix, String_from("_i32"))
     }
+    // Function refs are table indices (i32), not GC struct refs.
+    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
+        return concat(prefix, String_from("_i32"))
+    }
+    // Unsubstituted type parameters (T, U, ?T) stay i32 until mono fills them.
+    if gc_struct_field_type_is_type_param(clone(type_name)) {
+        return concat(prefix, String_from("_i32"))
+    }
+    // Container fields (Vec/HashMap/HashSet) are GC vec refs (gcref10).
+    if gc_struct_field_type_is_container(clone(type_name)) {
+        return concat(prefix, String_from("_ref10"))
+    }
     // Struct-typed field: resolve the correct GC type offset.
     // If the referenced struct is a named GC struct (has ref/v128/f64/i64
     // fields), use gcsref<slot> so the type section builder can resolve it.
@@ -91,6 +106,36 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     concat(prefix, String_from("_ref14"))
 }
 
+fn gc_struct_field_type_is_container(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("hashset:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("HashMap<")) || starts_with(clone(type_name), String_from("HashSet<")) {
+        return true
+    }
+    false
+}
+
+fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("?")) {
+        return gc_struct_field_type_is_type_param(substring(type_name, 1, len(type_name)))
+    }
+    // Single uppercase letter (T, U, V, ...) — unsubstituted generic field.
+    if len(type_name) == 1 {
+        let ch = char_at(type_name, 0)
+        if ch >= 65 && ch <= 90 {
+            return true
+        }
+    }
+    false
+}
+
 fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
     let mut fi = 0
     while fi < field_count {
@@ -103,21 +148,11 @@ fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32)
 }
 
 fn gc_struct_needs_named_type(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
-    let mut fi = 0
-    while fi < field_count {
-        if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(struct_name), fi) {
-            return true
-        }
-        if ctx_struct_field_type::ctx_struct_field_is_v128(ctx, clone(struct_name), fi) {
-            return true
-        }
-        if ctx_struct_field_type::ctx_struct_field_is_f64(ctx, clone(struct_name), fi) {
-            return true
-        }
-        if ctx_struct_field_type::ctx_struct_field_is_i64(ctx, clone(struct_name), fi) {
-            return true
-        }
-        fi = fi + 1
+    // On GC targets, every user struct needs a named type so params/returns
+    // and field access use (ref null $struct) instead of the legacy i32-handle
+    // ABI. All-i32 structs previously skipped this and broke range_iter etc.
+    if field_count > 0 {
+        return true
     }
     false
 }

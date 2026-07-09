@@ -84,6 +84,9 @@ fn mono_type_key_from_local_type_name(type_name: String) -> String {
         let inner = mono_type_key_from_local_type_name(substring(clone(type_name), 4, len(type_name)))
         return concat(String_from("Vec<"), concat(inner, String_from(">")))
     }
+    if eq(clone(type_name), String_from("Vec")) {
+        return String_from("Vec<i32>")
+    }
     type_name
 }
 

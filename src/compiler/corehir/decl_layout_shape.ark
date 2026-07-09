@@ -3,6 +3,8 @@
 use corehir::decl_node_identity
 use corehir::decl_member_collections
 use corehir::decl_type_annotations
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 use corehir::type_ann_node
 
 fn decl_layout_name(decl: AstNode) -> String {
@@ -50,6 +52,9 @@ fn decl_layout_field_type_name(field: AstNode) -> String {
         return String_from("")
     }
     let fty = decl_layout_member_type_ann_at(field, 0)
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(fty)) {
+        return String_from("fnref")
+    }
     if type_ann_node::type_ann_is_generic(fty) {
         if type_ann_node::type_ann_is_name(fty, String_from("Vec")) {
             if type_ann_node::type_ann_child_count(fty) >= 2 {

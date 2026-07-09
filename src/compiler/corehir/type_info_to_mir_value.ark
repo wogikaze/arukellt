@@ -67,9 +67,37 @@ fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: 
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec_new_TypeId())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
+    // Bare user type names (Range, RangeIter, ...) must not be interned as
+    // TYPE_KIND_PRIMITIVE when the local is already VT_GC_REF — that collapses
+    // the ABI back to i32 in legacy_vt_from_mir_value_type after typed sync.
+    // Only upgrade when val_type is already a GC/ref; leave other bare names
+    // alone so scalar/fnref locals are not rewritten into struct refs.
+    if val_type == value_types::VT_GC_REF() || val_type == value_types::VT_REF() {
+        if !type_name_is_scalar_primitive(clone(type_name)) {
+            let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), clone(type_name), Vec_new_TypeId())
+            return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+        }
+    }
     let tag = vt_tag_from_mir_vt(val_type)
     let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), type_name, Vec_new_TypeId())
     mir_value_type::MirValueType_new(id, type_info_repr_approx(tag), type_info_nullability_approx(tag))
+}
+
+fn type_name_is_scalar_primitive(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) || eq(clone(type_name), String_from("u8")) || eq(clone(type_name), String_from("u16")) || eq(clone(type_name), String_from("u32")) || eq(clone(type_name), String_from("u64")) || eq(clone(type_name), String_from("i16")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("void")) || eq(clone(type_name), String_from("()")) || eq(clone(type_name), String_from("v128")) {
+        return true
+    }
+    // Function refs stay scalar/i32 (or funcref) — not GC structs.
+    if eq(clone(type_name), String_from("fnref")) || eq(clone(type_name), String_from("fn")) {
+        return true
+    }
+    false
 }
 
 fn mir_value_type_vec_single(table: TypeTable, ty: TypeInfo) -> Vec<MirValueType> {

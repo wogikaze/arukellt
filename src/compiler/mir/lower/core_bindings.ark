@@ -47,8 +47,15 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         }
         // An explicit annotation wins over the initializer's inferred type name;
         // e.g. `let r: Result<f64, _> = ...` must keep the payload-typed name.
+        // For nested vec annotations (`Vec<Vec<i32>>` → vec:Vec) also rewrite the
+        // initializer temp so Vec_new emission uses the structref-vec layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if len(init_type) > 1 && len(type_name) == 0 {
+        if len(type_name) > 0 {
+            if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
+                ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(type_name))
+                ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
+            }
+        } else if len(init_type) > 1 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
         }
         core_bindings_type::infer_core_let_local_type_name(ctx, exprs, expr, local_idx, val_idx, clone(type_name), child_count)

@@ -8,6 +8,7 @@ use mir::module_gc_struct
 use wasm::emit_target
 use wasm::sections_type_plan
 use wasm::sections_types_gc
+use wasm::sections_types_gc_phase7
 use wasm::sections_types_gc_override
 use wasm::sections_types_sigs_mono
 
@@ -135,6 +136,10 @@ fn try_collection_param_sig(p_type_name: String, target: String) -> String {
         }
         if eq(clone(p_type_name), String_from("vec:v128")) || eq(clone(p_type_name), String_from("vec:V128")) {
             return sections_types_gc::gc_vec_v128_type_sig()
+        }
+        let elem = substring(clone(p_type_name), 4, len(p_type_name))
+        if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) || eq(clone(elem), String_from("Vec")) || starts_with(clone(elem), String_from("vec:")) {
+            return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
         }
         return sections_types_gc::gc_vec_type_sig()
     }

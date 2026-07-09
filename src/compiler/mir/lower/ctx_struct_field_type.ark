@@ -29,11 +29,52 @@ fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32
     if eq(clone(ft), "String") || eq(clone(ft), "string") {
         return true
     }
+    // Unsubstituted type params are scalar placeholders, not GC refs.
+    if field_type_is_type_param(clone(ft)) {
+        return false
+    }
+    // Function refs are i32 table indices.
+    if eq(clone(ft), "fnref") || eq(clone(ft), "fn") || starts_with(clone(ft), String_from("fn(")) {
+        return false
+    }
+    // Vec/HashMap/HashSet container fields are GC refs (not i32 handles).
+    if field_type_is_container_ref(clone(ft)) {
+        return true
+    }
     if field_type_is_registered_enum(ctx, clone(ft)) {
         return true
     }
     if field_type_is_registered_struct(ctx, clone(ft)) {
         return true
+    }
+    false
+}
+
+fn field_type_is_container_ref(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("hashset:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("HashMap<")) || starts_with(clone(type_name), String_from("HashSet<")) {
+        return true
+    }
+    false
+}
+
+fn field_type_is_type_param(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("?")) {
+        return field_type_is_type_param(substring(type_name, 1, len(type_name)))
+    }
+    if len(type_name) == 1 {
+        let ch = char_at(type_name, 0)
+        if ch >= 65 && ch <= 90 {
+            return true
+        }
     }
     false
 }

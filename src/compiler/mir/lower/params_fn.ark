@@ -38,6 +38,16 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
                 if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) || ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(bare)) {
                     pvt = value_types::VT_GC_REF()
                     sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
+                } else {
+                    // Named user type not yet in layout table (or all-i32
+                    // struct that previously skipped GC registration): still
+                    // use the GC ABI so range_iter(Range) is not i32.
+                    // Unsubstituted type params (T, U, ...) stay i32.
+                    if !binary_type_names::mir_is_builtin_type_name(clone(bare)) && len(bare) > 0 && !mir_param_name_is_type_param(clone(bare)) {
+                        pvt = value_types::VT_GC_REF()
+                        sig_type_name = clone(bare)
+                        mir_type_name = clone(bare)
+                    }
                 }
             }
         }
@@ -76,4 +86,20 @@ fn mir_param_strip_module_prefix(name: String) -> String {
         i = i - 1
     }
     clone(name)
+}
+
+fn mir_param_name_is_type_param(name: String) -> bool {
+    if len(name) == 0 {
+        return false
+    }
+    if starts_with(clone(name), String_from("?")) {
+        return mir_param_name_is_type_param(substring(name, 1, len(name)))
+    }
+    if len(name) == 1 {
+        let ch = char_at(name, 0)
+        if ch >= 65 && ch <= 90 {
+            return true
+        }
+    }
+    false
 }

@@ -8,50 +8,67 @@ use corehir::value_types
 
 fn fn_param_value_type(node: AstNode) -> i32 {
     if param_shape_node::param_has_type_ann(node) {
-        let ann = param_shape_node::param_type_ann(node)
-        if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
-            return value_types::VT_I32()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
-            return value_types::VT_F64()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("f32")) {
-            return value_types::VT_F32()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("v128")) {
-            return value_types::VT_V128()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) || decl_ann_name::decl_ann_is_name(ann, String_from("u64")) {
-            return value_types::VT_I64()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("String")) || decl_ann_name::decl_ann_is_name(ann, String_from("string")) {
-            return value_types::VT_REF()
-        }
+        return param_ann_value_type(param_shape_node::param_type_ann(node))
     }
     value_types::VT_I32()
 }
 
 fn method_param_value_type(node: AstNode) -> i32 {
     if param_shape_node::param_has_type_ann(node) {
-        let ann = param_shape_node::param_type_ann(node)
-        if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
-            return value_types::VT_I32()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
-            return value_types::VT_F64()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("f32")) {
-            return value_types::VT_F32()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("v128")) {
-            return value_types::VT_V128()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) {
-            return value_types::VT_I64()
-        }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("String")) || decl_ann_name::decl_ann_is_name(ann, String_from("string")) {
-            return value_types::VT_REF()
-        }
+        return param_ann_value_type(param_shape_node::param_type_ann(node))
     }
     value_types::VT_I32()
+}
+
+fn param_ann_value_type(ann: AstNode) -> i32 {
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
+        return value_types::VT_I32()
+    }
+    if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if decl_ann_name::decl_ann_is_name(ann, String_from("f32")) {
+        return value_types::VT_F32()
+    }
+    if decl_ann_name::decl_ann_is_name(ann, String_from("v128")) {
+        return value_types::VT_V128()
+    }
+    if decl_ann_name::decl_ann_is_name(ann, String_from("i64")) || decl_ann_name::decl_ann_is_name(ann, String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    if decl_ann_name::decl_ann_is_name(ann, String_from("String")) || decl_ann_name::decl_ann_is_name(ann, String_from("string")) {
+        return value_types::VT_REF()
+    }
+    if decl_ann_name::decl_ann_is_name(ann, String_from("i32")) || decl_ann_name::decl_ann_is_name(ann, String_from("bool")) || decl_ann_name::decl_ann_is_name(ann, String_from("char")) || decl_ann_name::decl_ann_is_name(ann, String_from("u8")) || decl_ann_name::decl_ann_is_name(ann, String_from("u16")) || decl_ann_name::decl_ann_is_name(ann, String_from("u32")) || decl_ann_name::decl_ann_is_name(ann, String_from("i16")) {
+        return value_types::VT_I32()
+    }
+    // Named/generic user types (Range, VecIter, Option, Vec, ...) are GC refs.
+    // Unsubstituted type parameters (T, U, ...) stay i32 until mono fills them.
+    if decl_ann_name::decl_ann_is_named(ann) {
+        let name = decl_ann_name::decl_ann_name(ann)
+        if param_ann_name_is_type_param(clone(name)) {
+            return value_types::VT_I32()
+        }
+        return value_types::VT_GC_REF()
+    }
+    if decl_ann_name::decl_ann_is_generic(ann) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_I32()
+}
+
+fn param_ann_name_is_type_param(name: String) -> bool {
+    if len(name) == 0 {
+        return false
+    }
+    if starts_with(clone(name), String_from("?")) {
+        return param_ann_name_is_type_param(substring(name, 1, len(name)))
+    }
+    if len(name) == 1 {
+        let ch = char_at(name, 0)
+        if ch >= 65 && ch <= 90 {
+            return true
+        }
+    }
+    false
 }
