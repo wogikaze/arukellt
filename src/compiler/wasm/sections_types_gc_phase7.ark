@@ -28,6 +28,12 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
     if eq(clone(elem), String_from("v128")) || eq(clone(elem), String_from("V128")) {
         return false
     }
+    // Option/Result/enum payloads are GC enum refs (or scalar-backed), not
+    // structref array elements. Treating them as structref breaks Vec_new_i32
+    // locals annotated as Vec<Option<T>> (nested_option / no_nested_generics).
+    if gc_vec_elem_name_is_enum_like(clone(elem)) {
+        return false
+    }
     // Unsubstituted type parameters (generic shells like min_by / max_by
     // that were not monomorphized) must not select the structref array
     // layout — that mismatches the i32-vec signature used for dead shells.
@@ -35,6 +41,22 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
         return false
     }
     true
+}
+
+fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
+    if eq(clone(elem), String_from("Option")) || eq(clone(elem), String_from("Result")) {
+        return true
+    }
+    if starts_with(clone(elem), String_from("Option")) || starts_with(clone(elem), String_from("option:")) || starts_with(clone(elem), String_from("Option:")) || starts_with(clone(elem), String_from("Option_")) || starts_with(clone(elem), String_from("Option<")) {
+        return true
+    }
+    if starts_with(clone(elem), String_from("Result")) || starts_with(clone(elem), String_from("result:")) || starts_with(clone(elem), String_from("Result:")) || starts_with(clone(elem), String_from("Result_")) || starts_with(clone(elem), String_from("Result<")) {
+        return true
+    }
+    if starts_with(clone(elem), String_from("enum:")) {
+        return true
+    }
+    false
 }
 
 fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
