@@ -23,6 +23,9 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     // Phase 5e: variant_slot set → structured type known, cast needed
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     if variant_slot >= 0 {
+        if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+            return false
+        }
         return true
     }
     if code_ref_locals_types::is_gc_container_type_name(clone(type_name)) {

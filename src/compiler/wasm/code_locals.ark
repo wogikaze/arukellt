@@ -48,6 +48,15 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
 fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = local_access::MirLocal_type_name(loc)
+    let variant_slot = local_access::MirLocal_variant_slot(loc)
+    if variant_slot >= 0 && enum_payload_type_name(clone(type_name)) {
+        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, variant_gc)
+            return true
+        }
+    }
     if starts_with(clone(type_name), String_from("enum:")) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
@@ -104,7 +113,6 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     if emit_gc_local_named_type(body, type_name, vt, f, local_idx, ctx) {
         return true
     }
-    let variant_slot = local_access::MirLocal_variant_slot(loc)
     if variant_slot >= 0 && !local_has_container_type_name(clone(type_name)) {
         let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
@@ -151,6 +159,19 @@ fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i3
         return inferred_gc != ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     }
     false
+}
+
+fn enum_payload_type_name(type_name: String) -> bool {
+    if len(type_name) <= 5 {
+        return false
+    }
+    if !starts_with(clone(type_name), String_from("enum:")) {
+        return false
+    }
+    if eq(clone(type_name), String_from("enum:open")) {
+        return false
+    }
+    true
 }
 
 fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {

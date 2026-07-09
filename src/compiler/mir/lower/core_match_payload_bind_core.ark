@@ -176,6 +176,9 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
                 type_slot = payload_slot
             }
         }
+        if effective_vt == value_types::VT_GC_REF() && type_slot >= 0 && core_match_payload_bind_types::payload_bind_needs_variant_slot(ctx_api_local_types::ctx_get_local_type(ctx, bind_local), clone(variant_name)) {
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
+        }
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))
         return
     }
