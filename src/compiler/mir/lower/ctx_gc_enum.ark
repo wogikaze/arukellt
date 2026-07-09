@@ -111,6 +111,14 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
     // reuse a variant registered with a ref payload, and vice versa.
     let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
+        let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
+        if len(layout_field_sigs) > 0 {
+            let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
+            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), String_from("SubF+14_S_f0_i32"))
+            if eq(clone(existing_payload), clone(layout_field_sigs)) {
+                return name_slot
+            }
+        }
         let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
         let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
         if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
@@ -149,6 +157,14 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
     // Fall back to name-only lookup with compatibility check.
     let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
+        let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
+        if len(layout_field_sigs) > 0 {
+            let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
+            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), String_from("SubF+14_S_f0_i32"))
+            if eq(clone(existing_payload), clone(layout_field_sigs)) {
+                return name_slot
+            }
+        }
         let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
         if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
             return name_slot

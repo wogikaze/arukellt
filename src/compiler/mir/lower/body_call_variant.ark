@@ -23,6 +23,10 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         if len(src_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
         }
+        let src_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, p_idx)
+        if src_slot >= 0 {
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, src_slot)
+        }
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
         push(payload_locals, save_local)
         push(payload_vts, p_vt)
@@ -33,5 +37,6 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         }
         pa = pa + 1
     }
-    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, ast_node::node_text(node))
+    let callee = ast_node::node_child_at(node, 0)
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, ast_node::node_text(callee))
 }

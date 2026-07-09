@@ -33,6 +33,15 @@ fn ctx_set_local_variant_slot(ctx: LowerCtx, local_idx: i32, variant_slot: i32) 
     }
 }
 
+fn ctx_get_local_variant_slot(ctx: LowerCtx, local_idx: i32) -> i32 {
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(func) {
+        let loc = function_locals_view::MirFunction_local_at(func, local_idx)
+        return local_access::MirLocal_variant_slot(loc)
+    }
+    0 - 1
+}
+
 fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
     let count = ctx_local_type_storage::ctx_local_type_count(ctx)
     let mut i = count - 1

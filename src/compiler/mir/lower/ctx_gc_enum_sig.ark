@@ -46,22 +46,22 @@ fn gc_enum_payload_suffix_after_prefix(s: String, prefix: String) -> String {
 }
 
 fn gc_enum_payload_sigs_compatible(existing_sig: String, want_field_sigs: String) -> bool {
-    // Extract the payload field sigs from the existing sig (everything after
-    // the base "SubF+14_S_f0_i32" prefix).
     let base = String_from("SubF+14_S_f0_i32")
     let existing_payload = gc_enum_payload_suffix_after_prefix(clone(existing_sig), clone(base))
-    // For single-field payloads (the common case), check if both are ref or
-    // both are non-ref.  A field sig is a ref type if it contains "ref".
+    if eq(clone(existing_payload), clone(want_field_sigs)) {
+        return true
+    }
     let want_has_ref = contains(clone(want_field_sigs), String_from("ref"))
     let existing_has_ref = contains(clone(existing_payload), String_from("ref"))
+    if want_has_ref && existing_has_ref {
+        return false
+    }
     if want_has_ref && !existing_has_ref {
         return false
     }
     if existing_has_ref && !want_has_ref {
         return false
     }
-    // For zero-payload (unit) variants, existing_payload is empty.
-    // If want has payload fields but existing has none, incompatible.
     let want_len = len(want_field_sigs)
     let existing_len = len(existing_payload)
     if want_len > 0 && existing_len == 0 {

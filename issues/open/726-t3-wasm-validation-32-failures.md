@@ -2,7 +2,6 @@
 Status: open
 Created: 2026-07-15
 Updated: 2026-07-09
-ID: 726
 Track: compiler-internal
 Depends on: 724
 Related: ADR-040, #707, #716, #690
@@ -17,7 +16,54 @@ T3 WASM validation で `validate-fail` が残っており、`verify quick` が b
 pre-commit hook が `verify quick` を実行するため、現状コミットに `--no-verify` が必要な状態。
 残失敗の主因は GC ref 型推論の不整合（ネストした enum/option/result/tuple のペイロード型名喪失）。
 
-### 現在のベースライン（2026-07-09 再測定 #2）
+### 現在のベースライン（2026-07-09 再測定 #3）
+
+| 状態 | 件数 |
+|------|------|
+| pass | 397 |
+| **validate-fail** | **24** |
+| compile-fail | 1 |
+| skip | 22 |
+| **total** | **444** |
+
+> 進捗メモ（`fix/726-task1-ref-vs-ref` 作業中, 2026-07-09）:
+>
+> - 393/28 → 396/25 → **397/24**（+4 pass, -4 validate-fail）
+> - **新規 PASS**: `integration/word_counter.ark`, `stdlib_string/string_split.ark`,
+>   `from_trait/from_auto_convert.ark`, `enums/nested_enum.ark`
+> - enum payload variant: レイアウト型名 + `variant_slot` 伝播で
+>   `Result::Err(AppError)` / `Outer::Wrap(Inner)` の ref-vs-ref を解消
+> - 既存 PASS 維持: `generics/two_params`, `stdlib_option_result/option_map`,
+>   `stdlib_io/clock_random`, `stdlib_trait/ord_sort_by`
+
+### エラー型別内訳（2026-07-09 #3）
+
+| エラー型 | 件数 |
+|----------|------|
+| ref-vs-ref (expected (ref null $type), found (ref null $type)) | 18 |
+| ref-vs-i32 (expected (ref null $type), found i32) | 0 |
+| i32-vs-ref (expected i32, found (ref null $type)) | 5 |
+| empty-stack | 0 |
+| array-subtype (expected subtype of arrayref) | 1 |
+| **合計 validate-fail** | **24** |
+
+#### 個別 fixture（2026-07-09 #3）
+
+- **ref-vs-ref (18)**: generics_v1/trait_dispatch_stdlib,
+  iterator/custom_iterator, stdlib_hashmap/hashmap_typed_remove_extend,
+  stdlib_io/fs_read_error, stdlib_io/fs_read_write, stdlib_json/json_perf_decode,
+  stdlib_trait/debug_trait, stdlib_trait/debug_vec,
+  stdlib_trait/buf_read, stdlib_trait/display_trait_vec,
+  stdlib_trait/io_backward_compat, stdlib_trait/io_copy, stdlib_trait/read_write,
+  stdlib_trait/seek, structs/struct_in_vec, stdlib_csv/csv_perf,
+  stdlib_toml/toml_full_inline_dotted, stdlib_toml/toml_full_table_header
+- **ref-vs-i32 (0)**: （タスク2 で解消）
+- **i32-vs-ref (5)**: generics_v1/generic_method_call, generics_v1/nested_generic_call,
+  stdlib_trait/iterator_adapters, stdlib_wit/wit_names, trait/builtin_method
+- **array-subtype (1)**: host/sockets/connect_read_write
+- **compile-fail (1)**: stdlib_wit/wit_ast_parse
+
+### 旧ベースライン（2026-07-09 再測定 #2）
 
 | 状態 | 件数 |
 |------|------|
