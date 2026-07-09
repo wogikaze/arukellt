@@ -50,6 +50,9 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
             if eq(clone(name), String_from("HashSet")) {
                 return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
             }
+            if eq(clone(name), String_from("HashMap")) {
+                return return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty)
+            }
             name
         },
         22 => return_typeinfo_names::mir_enum_return_type_name_from_type_info(ty),

@@ -15,7 +15,10 @@ fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name:
     if gc_param_is_scalar_type_name(clone(type_name)) {
         return String_new()
     }
-    if contains(clone(fn_name), String_from("hashset_i32_")) || contains(clone(fn_name), String_from("hashmap_i32_i32_")) {
+    if contains(clone(fn_name), String_from("hashset_i32_")) || contains(clone(fn_name), String_from("hashmap_i32_i32_")) || ends_with(clone(fn_name), String_from("hashset_i32_extend")) || ends_with(clone(fn_name), String_from("hashmap_i32_i32_extend")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    if eq(clone(fn_name), String_from("hash::hashset_extend")) || eq(clone(fn_name), String_from("hashset_extend")) {
         return sections_types_gc::gc_vec_type_sig()
     }
     String_new()

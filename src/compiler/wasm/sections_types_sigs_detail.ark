@@ -11,6 +11,19 @@ use wasm::sections_types_gc
 use wasm::sections_types_gc_override
 use wasm::sections_types_sigs_mono
 
+fn is_hash_container_type_name(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) || eq(clone(type_name), String_from("Vec")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("?HashMap")) || eq(clone(type_name), String_from("?HashSet")) || eq(clone(type_name), String_from("?Vec")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("struct:HashMap:")) || starts_with(clone(type_name), String_from("struct:HashSet:")) {
+        return true
+    }
+    false
+}
+
 fn build_function_type_sig(uf: MirFunction, target: String, mir: MirModule) -> String {
     let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
@@ -45,7 +58,7 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if len(coll_sig) > 0 {
         return coll_sig
     }
-    if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("HashMap")) || starts_with(clone(p_type_name), String_from("struct:HashMap:")) || eq(clone(p_type_name), String_from("HashSet")) || starts_with(clone(p_type_name), String_from("struct:HashSet:"))) {
+    if emit_target::is_gc_target(clone(target)) && is_hash_container_type_name(clone(p_type_name)) {
         return sections_types_gc::gc_vec_type_sig()
     }
     let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
@@ -144,7 +157,7 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if len(coll_sig) > 0 {
         return coll_sig
     }
-    if emit_target::is_gc_target(clone(target)) && (eq(clone(return_type_name), String_from("HashMap")) || starts_with(clone(return_type_name), String_from("struct:HashMap:")) || eq(clone(return_type_name), String_from("HashSet")) || starts_with(clone(return_type_name), String_from("struct:HashSet:"))) {
+    if emit_target::is_gc_target(clone(target)) && is_hash_container_type_name(clone(return_type_name)) {
         return sections_types_gc::gc_vec_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) {

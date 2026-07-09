@@ -116,11 +116,24 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     false
 }
 
+fn vec_elem_is_nested_container_name(elem_name: String) -> bool {
+    if eq(clone(elem_name), String_from("Vec")) || eq(clone(elem_name), String_from("HashMap")) || eq(clone(elem_name), String_from("HashSet")) {
+        return true
+    }
+    if starts_with(clone(elem_name), String_from("vec:")) || starts_with(clone(elem_name), String_from("hashmap:")) {
+        return true
+    }
+    false
+}
+
 fn emit_vec_struct_ref_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {
     if !starts_with(clone(type_name), String_from("vec:")) {
         return false
     }
     let elem_name = substring(clone(type_name), 4, len(type_name))
+    if vec_elem_is_nested_container_name(clone(elem_name)) {
+        return false
+    }
     if !ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
         return false
     }
