@@ -1,9 +1,10 @@
 use mir::lower::call_rewrite
 use mir::lower::call_rewrite_string
-use mir::lower::ctx_api_local_alloc
+use mir::lower::call_emit_dest
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::call_types
+use mir::lower::ctx_fn_return_vt
 // Arukellt Selfhost - MIR method call emission.
 
 use mir::inst_call
@@ -25,15 +26,15 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
         return return_local
     }
     callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
-    let call_ret_vt = ctx_fn_return_vt(ctx, clone(callee_name))
-    let dest = ctx_fresh_local(ctx, call_ret_vt)
+    // Match direct-call dest allocation (including ::to_string GC-ref override).
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name))
     // Reuse the same result-type propagation as direct calls so that
     // String/Vec/Hash/struct return types are inferred consistently.
     // first_arg_idx is the receiver's local index, which corresponds to
     // the first argument of the resolved intrinsic (e.g. vec_get_unchecked).
     call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
     ctx_emit(ctx, inst_call::MirInst_call(callee_name, arg_count, dest))
-    if call_ret_vt == value_types::VT_VOID() {
+    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name)) == value_types::VT_VOID() {
         return 0 - 1
     }
     dest

@@ -1,11 +1,19 @@
 // Arukellt Selfhost - MIR entry impl method mono body emission loop.
 
 use mir::lower::entry_emit_method
-use mir::lower::entry_view
+use mir::lower::entry_fns_mono
+use mir::lower::entry_view_method
+use mir::lower::fn_index_method_return_type
+use mir::lower::return_typeinfo
+use mir::lower::ctx_gc_enum
+use mir::type_contracts
+use mir::value_types
 use mir::mono
 
 fn mir_emit_method_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, struct_name: String, mangled: String, method_param_count: i32, entry_view: MirLowerEntryView, method_info_index: i32, midx: MonoIndex) {
+    let generic_rtn = entry_view_method::mir_entry_method_return_type_name_at(entry_view, method_info_index)
     let method_mono_emit_count_raw = mono::mono_index_count(midx, clone(mangled))
+    let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(generic_rtn), method_mono_emit_count_raw > 0)
     let method_mono_emit_count = method_mono_emit_count_raw + 1
     let mut method_mono_emit_i = 0
     while method_mono_emit_i < method_mono_emit_count {
@@ -13,7 +21,22 @@ fn mir_emit_method_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput
         if method_mono_emit_i > 0 {
             emit_method_name = mono::mono_safe_name(mono::mono_index_mangled_at(midx, clone(mangled), method_mono_emit_i - 1))
         }
-        entry_method::mir_emit_method_body(ctx, body_input, clone(struct_name), clone(mangled), emit_method_name, method_param_count, entry_view, method_info_index)
+        let mut return_vt = return_typeinfo::mir_return_vt_from_type_info(generic_return_ty)
+        let mut rt_type_name = clone(generic_rtn)
+        if len(rt_type_name) == 0 && method_mono_emit_count_raw > 0 {
+            rt_type_name = String_from("T")
+        }
+        if method_mono_emit_i > 0 || method_mono_emit_count_raw > 0 {
+            let concrete = entry_fns_mono::mono_instantiate_return_from_instance(ctx, clone(emit_method_name), generic_return_ty)
+            if type_contracts::TypeInfo_tag(concrete) != 0 {
+                return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete)
+                if return_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+                    return_vt = value_types::VT_GC_REF()
+                }
+                rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
+            }
+        }
+        entry_emit_method::mir_emit_method_body(ctx, body_input, clone(struct_name), clone(mangled), emit_method_name, method_param_count, entry_view, method_info_index, return_vt, rt_type_name)
         method_mono_emit_i = method_mono_emit_i + 1
     }
 }

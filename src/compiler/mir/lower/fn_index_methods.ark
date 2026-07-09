@@ -1,7 +1,9 @@
 // Arukellt Selfhost - MIR lowering impl method index prepass.
 
 use mir::lower::fn_index_mono
+use mir::lower::fn_index_method_return_type
 use mir::lower::fn_index_source
+use mir::mono
 use mir::type_contracts
 use mir::value_types
 
@@ -19,9 +21,10 @@ fn mir_index_impl_methods(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_ret
         push(fn_names, mangled)
         let mrvt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, value_types::VT_I32())
         let mrtn = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, String_from(""))
+        let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(mrtn), mono::mono_index_count(midx, clone(mangled)) > 0)
         push(fn_return_vts, mrvt)
         push(fn_return_type_names, mrtn)
-        fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(mangled), mrvt, clone(mrtn), mono_instances, type_contracts::TypeInfo_simple(0))
+        fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(mangled), mrvt, clone(mrtn), mono_instances, generic_return_ty)
         next_fn_index = next_fn_index + 1
         mi = mi + 1
     }
