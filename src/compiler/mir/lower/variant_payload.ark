@@ -114,7 +114,7 @@ fn gc_payload_is_scalar_type_name(type_name: String) -> bool {
 }
 
 fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if eq(clone(type_name), String_from("Vec")) || starts_with(clone(type_name), String_from("vec:")) {
         return true
     }
     if starts_with(clone(type_name), String_from("hashmap:")) {

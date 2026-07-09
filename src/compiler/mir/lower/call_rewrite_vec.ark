@@ -46,7 +46,7 @@ fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if starts_with(clone(arg_type_len), "vec:") {
+        if eq(clone(arg_type_len), String_from("Vec")) || starts_with(clone(arg_type_len), "vec:") {
             return String_from("vec_len")
         }
     }

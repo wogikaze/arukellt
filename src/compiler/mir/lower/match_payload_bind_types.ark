@@ -38,6 +38,13 @@ fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind
     }
 }
 
+fn normalize_payload_elem_type_name(elem_ty: String) -> String {
+    if eq(clone(elem_ty), String_from("Vec")) {
+        return String_from("vec:i32")
+    }
+    elem_ty
+}
+
 fn extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
@@ -54,9 +61,9 @@ fn extract_first_result_type_param(scrut_type: String) -> String {
         i = i + 1
     }
     if sep < 0 {
-        return rest
+        return normalize_payload_elem_type_name(rest)
     }
-    substring(rest, 0, sep)
+    normalize_payload_elem_type_name(substring(rest, 0, sep))
 }
 
 fn extract_second_result_type_param(scrut_type: String) -> String {

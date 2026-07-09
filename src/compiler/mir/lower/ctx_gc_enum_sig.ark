@@ -101,7 +101,7 @@ fn gc_enum_field_sig_for_type(type_name: String) -> String {
         return String_from("_f1_i32")
     }
     // Vec types map to the Vec struct type (gc type offset 10).
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec_")) {
+    if eq(clone(type_name), String_from("Vec")) || starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec_")) {
         return String_from("_f1_ref10")
     }
     // HashMap types map to specific hashmap struct types.

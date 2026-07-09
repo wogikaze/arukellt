@@ -1,4 +1,16 @@
 use mir::typeinfo_shape
+use mir::lower_kinds
+
+fn mir_mono_key_for_type_info(ty: TypeInfo) -> String {
+    if typeinfo_shape::mir_type_info_tag(ty) == lower_kinds::TY_VEC() {
+        let vec_name = mir_vec_return_type_name_from_type_info(ty)
+        if len(vec_name) > 0 {
+            return vec_name
+        }
+        return String_from("vec:i32")
+    }
+    return mir_type_info_to_mono_key(ty)
+}
 
 fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
@@ -147,13 +159,13 @@ fn mir_result_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if arg_count >= 2 {
         let ok_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
         let err_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
-        let ok_key = mir_type_info_to_mono_key(ok_arg)
-        let err_key = mir_type_info_to_mono_key(err_arg)
+        let ok_key = mir_mono_key_for_type_info(ok_arg)
+        let err_key = mir_mono_key_for_type_info(err_arg)
         return concat(String_from("Result_"), concat(ok_key, concat(String_from("_"), err_key)))
     }
     if arg_count == 1 {
         let ok_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
-        let ok_key = mir_type_info_to_mono_key(ok_arg)
+        let ok_key = mir_mono_key_for_type_info(ok_arg)
         return concat(String_from("Result_"), ok_key)
     }
     String_from("Result")

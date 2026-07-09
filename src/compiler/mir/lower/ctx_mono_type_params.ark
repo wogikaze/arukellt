@@ -7,6 +7,7 @@
 
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_types
+use mir::lower::return_typeinfo_names
 use mir::lower_kinds
 use mir::function_locals_view
 use mir::local_access
@@ -29,7 +30,13 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     if tag == lower_kinds::TY_STRING() { return String_from("String") }
     if tag == lower_kinds::TY_CHAR() { return String_from("char") }
     if tag == lower_kinds::TY_UNIT() { return String_from("()") }
-    if tag == lower_kinds::TY_VEC() { return String_from("Vec") }
+    if tag == lower_kinds::TY_VEC() {
+        let vec_name = return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
+        if len(vec_name) > 0 {
+            return vec_name
+        }
+        return String_from("vec:i32")
+    }
     if tag == lower_kinds::TY_STRUCT() || tag == lower_kinds::TY_ENUM() {
         return type_contracts::TypeInfo_name(ty)
     }
