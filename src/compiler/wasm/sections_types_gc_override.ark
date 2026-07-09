@@ -3,6 +3,24 @@
 use wasm::emit_target
 use wasm::sections_types_gc
 
+fn gc_param_is_scalar_type_name(type_name: String) -> bool {
+    eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) || eq(clone(type_name), String_from("u32"))
+}
+
+// Typed HashMap<i32,i32> / HashSet<i32> wrappers pass container refs in params 0/1.
+fn gc_typed_hash_container_param_sig(fn_name: String, param_idx: i32, type_name: String) -> String {
+    if param_idx < 0 || param_idx > 1 {
+        return String_new()
+    }
+    if gc_param_is_scalar_type_name(clone(type_name)) {
+        return String_new()
+    }
+    if contains(clone(fn_name), String_from("hashset_i32_")) || contains(clone(fn_name), String_from("hashmap_i32_i32_")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    String_new()
+}
+
 fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String, target: String) -> String {
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
@@ -16,6 +34,10 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
         if len(type_name) == 0 || starts_with(clone(type_name), String_from("?")) {
             return sections_types_gc::gc_string_type_sig()
         }
+    }
+    let typed_container_sig = gc_typed_hash_container_param_sig(clone(fn_name), param_idx, clone(type_name))
+    if len(typed_container_sig) > 0 {
+        return typed_container_sig
     }
     if param_idx != 0 {
         return String_new()
@@ -78,12 +100,15 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
     }
+    if gc_fn_returns_option(clone(fn_name)) {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if starts_with(clone(fn_name), String_from("hashmap_new")) || starts_with(clone(fn_name), String_from("hashmap_with_capacity")) || ends_with(clone(fn_name), String_from("hashmap_i32_i32_new")) || starts_with(clone(fn_name), String_from("hashmap_i32_i32_new__")) || eq(clone(fn_name), String_from("HashMap_i32_i32_new")) || starts_with(clone(fn_name), String_from("hashset_new")) || starts_with(clone(fn_name), String_from("hash::hashset_new")) || ends_with(clone(fn_name), String_from("hashset_i32_new")) || starts_with(clone(fn_name), String_from("hashset_i32_new__")) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
     let enum_sig = gc_enum_return_type_sig(clone(type_name), clone(target))
     if len(enum_sig) > 0 {
         return enum_sig
-    }
-    if gc_fn_returns_option(clone(fn_name)) {
-        return sections_types_gc::gc_enum_open_type_sig()
     }
     if len(type_name) > 0 {
         return String_new()
@@ -97,17 +122,14 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
     if starts_with(clone(fn_name), String_from("hash_string::hashmap_str_str_new")) {
         return sections_types_gc::gc_hashmap_str_str_type_sig()
     }
-    if starts_with(clone(fn_name), String_from("hashmap_new")) || starts_with(clone(fn_name), String_from("hashmap_with_capacity")) {
-        return sections_types_gc::gc_vec_type_sig()
-    }
     String_new()
 }
 
 fn gc_fn_returns_option(fn_name: String) -> bool {
-    if eq(clone(fn_name), String_from("hashmap_get_option")) || eq(clone(fn_name), String_from("hash::hashmap_get_option")) || eq(clone(fn_name), String_from("HashMap_i32_i32_get")) {
+    if eq(clone(fn_name), String_from("hashmap_get_option")) || eq(clone(fn_name), String_from("hash::hashmap_get_option")) || eq(clone(fn_name), String_from("HashMap_i32_i32_get")) || ends_with(clone(fn_name), String_from("hashmap_i32_i32_get")) {
         return true
     }
-    if eq(clone(fn_name), String_from("hashmap_remove")) || eq(clone(fn_name), String_from("hash::hashmap_remove")) || eq(clone(fn_name), String_from("HashMap_i32_i32_remove")) {
+    if eq(clone(fn_name), String_from("hashmap_remove")) || eq(clone(fn_name), String_from("hash::hashmap_remove")) || eq(clone(fn_name), String_from("HashMap_i32_i32_remove")) || ends_with(clone(fn_name), String_from("hashmap_i32_i32_remove")) {
         return true
     }
     if eq(clone(fn_name), String_from("hash_string::hashmap_str_get")) || eq(clone(fn_name), String_from("hashmap_str_get")) || eq(clone(fn_name), String_from("hash::hashmap_str_get")) || eq(clone(fn_name), String_from("HashMap_String_i32_get")) {

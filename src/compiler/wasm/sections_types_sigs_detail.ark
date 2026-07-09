@@ -45,6 +45,9 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if len(coll_sig) > 0 {
         return coll_sig
     }
+    if emit_target::is_gc_target(clone(target)) && (eq(clone(p_type_name), String_from("HashMap")) || starts_with(clone(p_type_name), String_from("struct:HashMap:")) || eq(clone(p_type_name), String_from("HashSet")) || starts_with(clone(p_type_name), String_from("struct:HashSet:"))) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
     let gc_param_sig = sections_types_gc_override::gc_param_type_sig_override(clone(uf.name), pi, clone(p_type_name), clone(target))
     if len(gc_param_sig) > 0 {
         return gc_param_sig
@@ -141,24 +144,17 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if len(coll_sig) > 0 {
         return coll_sig
     }
+    if emit_target::is_gc_target(clone(target)) && (eq(clone(return_type_name), String_from("HashMap")) || starts_with(clone(return_type_name), String_from("struct:HashMap:")) || eq(clone(return_type_name), String_from("HashSet")) || starts_with(clone(return_type_name), String_from("struct:HashSet:"))) {
+        return sections_types_gc::gc_vec_type_sig()
+    }
     if emit_target::is_gc_target(clone(target)) {
         let mono_method_ret = sections_types_sigs_mono::resolve_mono_method_return_value_sig(clone(uf.name), clone(return_type_name), mir)
         if len(mono_method_ret) > 0 {
             return mono_method_ret
         }
     }
-    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
-        return gc_struct_return_sig_from_name(clone(return_type_name), mir)
-    }
     if emit_target::is_gc_target(clone(target)) && (eq(clone(return_type_name), String_from("string")) || eq(clone(return_type_name), String_from("String"))) {
         return sections_types_gc::gc_string_type_sig()
-    }
-    // Check if the return type name is a registered gc_struct (raw name without "struct:" prefix).
-    if emit_target::is_gc_target(clone(target)) && len(return_type_name) > 0 {
-        let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
-        if slot >= 0 {
-            return concat(String_from("gcsref"), i32_to_string(slot))
-        }
     }
     let gc_enum_ret_sig = sections_types_gc_override::gc_enum_return_type_sig(clone(return_type_name), clone(target))
     if len(gc_enum_ret_sig) > 0 {
@@ -167,6 +163,16 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     let gc_ret_sig = sections_types_gc_override::gc_return_type_sig_override(clone(uf.name), clone(return_type_name), clone(target))
     if len(gc_ret_sig) > 0 {
         return gc_ret_sig
+    }
+    if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
+        return gc_struct_return_sig_from_name(clone(return_type_name), mir)
+    }
+    // Check if the return type name is a registered gc_struct (raw name without "struct:" prefix).
+    if emit_target::is_gc_target(clone(target)) && len(return_type_name) > 0 {
+        let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
+        if slot >= 0 {
+            return concat(String_from("gcsref"), i32_to_string(slot))
+        }
     }
     let generic_ret_sig = build_generic_type_var_sig(clone(uf.name), clone(return_type_name), 0 - 1, clone(target), mir)
     if len(generic_ret_sig) > 0 {

@@ -58,6 +58,15 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if starts_with(clone(type_name), String_from("hashmap:")) {
         return type_name
     }
+    if eq(clone(type_name), String_from("HashMap")) {
+        return type_name
+    }
+    if eq(clone(type_name), String_from("HashSet")) {
+        return type_name
+    }
+    if eq(clone(type_name), String_from("Vec")) {
+        return type_name
+    }
     if starts_with(clone(type_name), String_from("struct:")) {
         return type_name
     }

@@ -72,6 +72,9 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         if emit_explicit_vec_gc_type(body, clone(type_name), ctx) {
             return true
         }
+        if emit_vec_struct_ref_gc_type(body, clone(type_name), ctx) {
+            return true
+        }
         if vt == value_types::VT_I32() {
             let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
             if gc_type < 0 {
@@ -83,7 +86,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             }
         } else {
             let inferred_vec = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-            if inferred_vec >= 0 {
+            if inferred_vec >= 0 && !vec_inferred_type_conflicts_with_type_name(clone(type_name), inferred_vec, ctx) {
                 writer_core::emit_byte(body, constants::WASM_REF_NULL())
                 writer_core::emit_leb128_s(body, inferred_vec)
                 return true
@@ -109,6 +112,30 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             writer_core::emit_leb128_s(body, variant_gc)
             return true
         }
+    }
+    false
+}
+
+fn emit_vec_struct_ref_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {
+    if !starts_with(clone(type_name), String_from("vec:")) {
+        return false
+    }
+    let elem_name = substring(clone(type_name), 4, len(type_name))
+    if !ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+        return false
+    }
+    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+    writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
+    true
+}
+
+fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i32, ctx: SelfEmitCtx) -> bool {
+    if !starts_with(clone(type_name), String_from("vec:")) {
+        return false
+    }
+    let elem_name = substring(clone(type_name), 4, len(type_name))
+    if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+        return inferred_gc != ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     }
     false
 }
@@ -192,6 +219,11 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
 
 // GC-target local val type for struct:/raw struct names, with inference fallback.
 fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    if eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) || starts_with(clone(type_name), String_from("struct:HashMap:")) || starts_with(clone(type_name), String_from("struct:HashSet:")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+        return true
+    }
     if starts_with(clone(type_name), String_from("struct:")) {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
