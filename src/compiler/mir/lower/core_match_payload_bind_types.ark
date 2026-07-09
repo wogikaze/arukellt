@@ -130,6 +130,19 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
     elem_ty
 }
 
+fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> bool {
+    if core_match_variant_is_some_or_ok(clone(variant_name)) || core_match_variant_is_err(clone(variant_name)) {
+        return false
+    }
+    if len(type_name) == 0 || eq(clone(type_name), String_from("enum:open")) {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    false
+}
+
 fn core_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
