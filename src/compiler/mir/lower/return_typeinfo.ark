@@ -45,7 +45,16 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         11 => return_typeinfo_names::mir_option_return_type_name_from_type_info(ty),
         12 => return_typeinfo_names::mir_result_return_type_name_from_type_info(ty),
         13 => return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty),
-        21 => typeinfo_shape::mir_type_info_name(ty),
+        21 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if eq(clone(name), String_from("HashSet")) {
+                return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
+            }
+            if eq(clone(name), String_from("HashMap")) {
+                return return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty)
+            }
+            name
+        },
         22 => return_typeinfo_names::mir_enum_return_type_name_from_type_info(ty),
         23 => return_typeinfo_names::mir_tuple_return_type_name_from_type_info(ty),
         _ => String_from(""),

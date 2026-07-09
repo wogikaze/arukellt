@@ -69,8 +69,10 @@ fn mir_function_clear_open_enum_variant_slots(f: MirFunction) -> MirFunction {
         let type_name = local_access::MirLocal_type_name(loc)
         let slot = local_access::MirLocal_variant_slot(loc)
         if slot >= 0 && is_open_enum_container_type_name(clone(type_name)) {
-            local_access::MirLocal_set_variant_slot(loc, 0 - 1)
-            function_local_mutation::MirFunction_set_local(f, li, loc)
+            if !payload_extract_local_keeps_variant_slot(f, li, clone(type_name)) {
+                local_access::MirLocal_set_variant_slot(loc, 0 - 1)
+                function_local_mutation::MirFunction_set_local(f, li, loc)
+            }
         }
         li = li + 1
     }
@@ -165,6 +167,44 @@ fn collect_variant_slots_for_local(f: MirFunction, local_idx: i32, depth: i32, f
         bi = bi + 1
     }
     slot_state
+}
+
+fn payload_extract_local_keeps_variant_slot(f: MirFunction, local_idx: i32, type_name: String) -> bool {
+    if eq(clone(type_name), String_from("enum:open")) {
+        return false
+    }
+    if !starts_with(clone(type_name), String_from("enum:")) {
+        return false
+    }
+    let mut get_count = 0
+    let mut other_count = 0
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            if dest == local_idx {
+                if op == opcodes::MIR_GC_STRUCT_GET() {
+                    get_count = get_count + 1
+                } else {
+                    if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_LOCAL_SET() || op == opcodes::MIR_CALL() {
+                        other_count = other_count + 1
+                    }
+                }
+            }
+            if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                other_count = other_count + 1
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    get_count > 0 && other_count == 0
 }
 
 // Returns -1 (unset), slot (single), or -2 (multiple distinct slots).

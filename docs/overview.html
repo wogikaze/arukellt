@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arukellt — 見取り図</title>
+  <meta name="description" content="Arukellt プロジェクトの全体見取り図。Wasm-first・静的型付け・LLM-friendly な言語ツールチェーン。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #12151a;
+      --ink-soft: #1c2129;
+      --paper: #f3efe6;
+      --paper-dim: #e8e2d4;
+      --line: #c9c0ae;
+      --muted: #5c6570;
+      --text: #1a1f26;
+      --accent: #0d7a6f;
+      --accent-bright: #12a396;
+      --warm: #c45c26;
+      --warm-soft: #e8a87c;
+      --code-bg: #1a1f26;
+      --code-fg: #e8e2d4;
+      --ok: #2a7a4b;
+      --warn: #9a6b1a;
+      --scaffold: #6b7280;
+      --radius: 2px;
+      --max: 1080px;
+      --font: "IBM Plex Sans JP", system-ui, sans-serif;
+      --display: "Syne", "IBM Plex Sans JP", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--paper);
+      line-height: 1.65;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Atmosphere: warm paper + ink grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 122, 111, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(196, 92, 38, 0.08), transparent 50%),
+        linear-gradient(180deg, var(--paper) 0%, #ebe4d6 100%);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(18, 21, 26, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(18, 21, 26, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.5), transparent 70%);
+      pointer-events: none;
+    }
+
+    a { color: var(--accent); text-underline-offset: 3px; }
+    a:hover { color: var(--warm); }
+
+    code, .mono {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      font-weight: 500;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+    }
+
+    /* —— Nav —— */
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(12px);
+      background: rgba(243, 239, 230, 0.85);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topnav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0.7rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .topnav .brand {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .topnav nav {
+      display: flex;
+      gap: 0.15rem;
+      flex-wrap: nowrap;
+    }
+
+    .topnav nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.35rem 0.55rem;
+      white-space: nowrap;
+      border-radius: var(--radius);
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .topnav nav a:hover {
+      color: var(--ink);
+      background: var(--paper-dim);
+    }
+
+    /* —— Hero —— */
+    .hero {
+      padding: 4.5rem 0 3.5rem;
+      min-height: min(78vh, 640px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .hero-kicker {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: rise 0.7s ease forwards 0.1s;
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(3.2rem, 10vw, 5.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      margin-bottom: 1.25rem;
+      opacity: 0;
+      animation: rise 0.8s ease forwards 0.2s;
+    }
+
+    .hero h1 span {
+      display: block;
+      background: linear-gradient(105deg, var(--ink) 40%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-lead {
+      font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+      max-width: 36em;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: rise 0.8s ease forwards 0.35s;
+    }
+
+    .hero-lead strong { color: var(--text); font-weight: 600; }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      opacity: 0;
+      animation: rise 0.8s ease forwards 0.5s;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.15rem;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: var(--radius);
+      border: 1.5px solid transparent;
+      transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .hero-meta {
+      margin-top: 2.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem 2.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line);
+      opacity: 0;
+      animation: rise 0.8s ease forwards 0.65s;
+    }
+
+    .hero-meta dt {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .hero-meta dd {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* —— Sections —— */
+    section {
+      padding: 3.25rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .sec-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    section h2 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(1.6rem, 3.5vw, 2.15rem);
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 0.6rem;
+      line-height: 1.15;
+    }
+
+    .sec-lead {
+      color: var(--muted);
+      max-width: 42em;
+      margin-bottom: 1.75rem;
+      font-size: 0.98rem;
+    }
+
+    /* —— Chips / pills for traits —— */
+    .trait-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .trait {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      background: var(--ink-soft);
+      color: var(--paper);
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+    }
+
+    .trait i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-bright);
+      flex-shrink: 0;
+    }
+
+    /* —— Two-col facts —— */
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .fact {
+      padding: 1.1rem 1.15rem;
+      border-left: 3px solid var(--accent);
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .fact h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      color: var(--ink);
+    }
+
+    .fact p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* —— Pipeline —— */
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 0;
+      margin: 1.5rem 0 1rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .pipe-step {
+      flex: 1 1 90px;
+      min-width: 88px;
+      position: relative;
+      padding: 1rem 0.75rem;
+      background: var(--ink);
+      color: var(--paper);
+      text-align: center;
+      border-right: 1px solid rgba(243, 239, 230, 0.12);
+      transition: background 0.2s;
+    }
+
+    .pipe-step:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .pipe-step:last-child { border-radius: 0 var(--radius) var(--radius) 0; border-right: none; }
+
+    .pipe-step:hover { background: #243038; }
+
+    .pipe-step .n {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent-bright);
+      display: block;
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.05em;
+    }
+
+    .pipe-step .name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .pipe-step .file {
+      display: block;
+      margin-top: 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: rgba(243, 239, 230, 0.45);
+      word-break: break-all;
+    }
+
+    .pipe-arrow {
+      display: none;
+    }
+
+    .pipe-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.75rem;
+    }
+
+    .pipe-branch {
+      margin-top: 1.25rem;
+      padding: 1rem 1.15rem;
+      border: 1px dashed var(--line);
+      background: rgba(255,255,255,0.25);
+      font-size: 0.88rem;
+    }
+
+    .pipe-branch strong { color: var(--warm); }
+
+    /* —— Tables —— */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(18, 21, 26, 0.04);
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--radius);
+      white-space: nowrap;
+    }
+
+    .badge-ok { background: #d4edda; color: var(--ok); }
+    .badge-warn { background: #f5e6c8; color: var(--warn); }
+    .badge-mute { background: #e5e7eb; color: var(--scaffold); }
+    .badge-primary {
+      background: rgba(13, 122, 111, 0.15);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* —— Repo map —— */
+    .repo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.65rem;
+    }
+
+    .repo-item {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 0.75rem;
+      padding: 0.85rem 0.95rem;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.3);
+      transition: background 0.15s;
+    }
+
+    .repo-item:hover { background: rgba(255,255,255,0.55); }
+
+    .repo-item .path {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .repo-item .desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* —— Commands —— */
+    .cmd-block {
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 1.15rem 1.25rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin: 0.75rem 0 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.7;
+    }
+
+    .cmd-block .c { color: #7dcea0; }
+    .cmd-block .cm { color: #6b7280; }
+
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .cmd-panel h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    /* —— Focus tracks —— */
+    .tracks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.65rem;
+    }
+
+    .track {
+      padding: 1rem;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.35);
+    }
+
+    .track .count {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 1.8rem;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .track .count span {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      font-family: var(--font);
+    }
+
+    .track h3 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .track p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* —— Code sample —— */
+    .sample {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 720px) {
+      .sample { grid-template-columns: 1fr; }
+    }
+
+    .sample pre {
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 1.15rem 1.25rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .sample .kw { color: #e8a87c; }
+    .sample .fn { color: #7dcea0; }
+    .sample .str { color: #a8d5c0; }
+    .sample .ty { color: #8ecae6; }
+    .sample .cm { color: #6b7280; }
+
+    .sample-cap {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    /* —— Philosophy —— */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 600px) {
+      .compare { grid-template-columns: 1fr; }
+    }
+
+    .compare > div {
+      padding: 1.1rem;
+      border-radius: var(--radius);
+    }
+
+    .compare .prefer {
+      background: rgba(13, 122, 111, 0.1);
+      border: 1px solid rgba(13, 122, 111, 0.25);
+    }
+
+    .compare .avoid {
+      background: rgba(196, 92, 38, 0.06);
+      border: 1px solid rgba(196, 92, 38, 0.2);
+    }
+
+    .compare h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.65rem;
+    }
+
+    .compare .prefer h3 { color: var(--accent); }
+    .compare .avoid h3 { color: var(--warm); }
+
+    .compare ul {
+      list-style: none;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.85;
+    }
+
+    /* —— ADR list —— */
+    .adr-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .adr {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      border-left: 2px solid var(--accent);
+      background: rgba(255,255,255,0.3);
+      font-size: 0.85rem;
+    }
+
+    .adr .id {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--accent);
+      white-space: nowrap;
+      padding-top: 0.15rem;
+    }
+
+    .adr .title { color: var(--text); line-height: 1.4; }
+
+    /* —— Next steps —— */
+    .next-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .next-item {
+      padding: 1.25rem 1.15rem;
+      background: var(--ink);
+      color: var(--paper);
+      text-decoration: none;
+      border-radius: var(--radius);
+      transition: transform 0.15s, background 0.15s;
+      display: block;
+    }
+
+    .next-item:hover {
+      transform: translateY(-2px);
+      background: #243038;
+      color: var(--paper);
+    }
+
+    .next-item .n {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent-bright);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.08em;
+    }
+
+    .next-item h3 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .next-item p {
+      font-size: 0.8rem;
+      color: rgba(243, 239, 230, 0.6);
+      line-height: 1.45;
+    }
+
+    /* —— Footer —— */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0 3rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    footer .mono { color: var(--text); }
+
+    /* —— Reveal on scroll —— */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* —— Quick ref strip —— */
+    .quickref {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      padding: 1rem 1.15rem;
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: var(--radius);
+      font-size: 0.8rem;
+      margin-top: 1.5rem;
+    }
+
+    .quickref span { color: rgba(243, 239, 230, 0.5); }
+    .quickref code { color: var(--accent-bright); }
+  </style>
+</head>
+<body>
+  <div class="topnav">
+    <div class="topnav-inner">
+      <a class="brand" href="#top">Arukellt</a>
+      <nav>
+        <a href="#what">なにものか</a>
+        <a href="#pipeline">パイプライン</a>
+        <a href="#targets">ターゲット</a>
+        <a href="#repo">リポジトリ</a>
+        <a href="#run">動かし方</a>
+        <a href="#focus">いまの焦点</a>
+        <a href="#stdlib">stdlib</a>
+        <a href="#adr">ADR</a>
+        <a href="#next">次に読む</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="wrap" id="top">
+    <!-- HERO -->
+    <header class="hero">
+      <p class="hero-kicker">Project Map · One Pager</p>
+      <h1><span>Arukellt</span></h1>
+      <p class="hero-lead">
+        <strong>Wasm-first</strong>、<strong>LLM-friendly</strong> を目指す静的型付け言語。
+        コンパイラ・標準ライブラリ・CLI・検証インフラまで、ひとつのツールチェーンとしてこのリポジトリに揃っている。
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#pipeline">パイプラインを見る</a>
+        <a class="btn btn-ghost" href="#run">動かし方へ</a>
+        <a class="btn btn-ghost" href="current-state.md">current-state.md</a>
+      </div>
+      <dl class="hero-meta">
+        <div>
+          <dt>Primary target</dt>
+          <dd>wasm32-wasi-p2 (T3)</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>.ark → selfhost compiler</dd>
+        </div>
+        <div>
+          <dt>Truth docs</dt>
+          <dd>docs/current-state.md</dd>
+        </div>
+        <div>
+          <dt>Open queue</dt>
+          <dd>issues/open/</dd>
+        </div>
+      </dl>
+    </header>
+
+    <!-- WHAT -->
+    <section id="what" class="reveal">
+      <p class="sec-label">01 · Identity</p>
+      <h2>なにものか</h2>
+      <p class="sec-lead">
+        Rust 風の構文を持つ静的型付け言語。出力は Wasm（WASI）。ホスト I/O は <code>std::host::*</code> に隔離され、
+        コンパイラ自身も Arukellt で書かれた selfhost 実装が本体。
+      </p>
+
+      <div class="trait-row">
+        <span class="trait"><i></i>静的型付け</span>
+        <span class="trait"><i></i>Wasm-first / GC-native (T3)</span>
+        <span class="trait"><i></i>LLM-friendly (import/use 二層)</span>
+        <span class="trait"><i></i>Self-hosting compiler</span>
+        <span class="trait"><i></i>Component Model / WIT</span>
+        <span class="trait"><i></i>Trait-first stdlib 移行中</span>
+      </div>
+
+      <div class="facts">
+        <div class="fact">
+          <h3>構文の味</h3>
+          <p><code>fn</code> / <code>let</code> / <code>match</code> / <code>Result</code>・<code>Option</code> / <code>?</code>。struct・enum・ジェネリクス（制限付きモノモーフ化）。</p>
+        </div>
+        <div class="fact">
+          <h3>メモリモデル (T3)</h3>
+          <p>全値が Wasm GC ヒープ。線形メモリは I/O マーシャリング用。</p>
+        </div>
+        <div class="fact">
+          <h3>ホスト境界</h3>
+          <p>stdio / fs / env / process などは <code>std::host::*</code>（ADR-011）。純粋計算と I/O を分離。</p>
+        </div>
+        <div class="fact">
+          <h3>正本の読み方</h3>
+          <p>挙動 → <code>docs/current-state.md</code>。設計意図 → <code>docs/adr/</code>。作業キュー → <code>issues/open/</code>。</p>
+        </div>
+      </div>
+
+      <div class="sample" style="margin-top: 1.75rem;">
+        <div>
+          <p class="sample-cap">hello.ark</p>
+          <pre><span class="kw">use</span> std::host::stdio
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    stdio::<span class="fn">println</span>(<span class="str">"Hello, Arukellt!"</span>)
+}</pre>
+        </div>
+        <div>
+          <p class="sample-cap">Result + match</p>
+          <pre><span class="kw">fn</span> <span class="fn">divide</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">Result</span>&lt;<span class="ty">i32</span>, <span class="ty">String</span>&gt; {
+    <span class="kw">if</span> b == 0 {
+        Err(String_from(<span class="str">"division by zero"</span>))
+    } <span class="kw">else</span> {
+        Ok(a / b)
+    }
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section id="pipeline" class="reveal">
+      <p class="sec-label">02 · Compiler</p>
+      <h2>コンパイルパイプライン</h2>
+      <p class="sec-lead">
+        CLI の <code>compile</code> / <code>build</code> / <code>run</code> / <code>check</code> はすべて単一の corehir パス。
+        実装は <code>src/compiler/</code>（Arukellt 自身で記述）。
+      </p>
+
+      <div class="pipeline" aria-label="Compilation pipeline">
+        <div class="pipe-step">
+          <span class="n">01</span>
+          <span class="name">Lexer</span>
+          <span class="file">lexer/</span>
+        </div>
+        <div class="pipe-step">
+          <span class="n">02</span>
+          <span class="name">Parser</span>
+          <span class="file">parser/</span>
+        </div>
+        <div class="pipe-step">
+          <span class="n">03</span>
+          <span class="name">Resolver</span>
+          <span class="file">resolver/</span>
+        </div>
+        <div class="pipe-step">
+          <span class="n">04</span>
+          <span class="name">TypeChecker</span>
+          <span class="file">typechecker/</span>
+        </div>
+        <div class="pipe-step">
+          <span class="n">05</span>
+          <span class="name">CoreHIR</span>
+          <span class="file">corehir/</span>
+        </div>
+        <div class="pipe-step">
+          <span class="n">06</span>
+          <span class="name">MIR + Opt</span>
+          <span class="file">mir/</span>
+        </div>
+        <div class="pipe-step">
+          <span class="n">07</span>
+          <span class="name">Wasm Emit</span>
+          <span class="file">wasm/</span>
+        </div>
+      </div>
+
+      <p class="pipe-note">
+        エントリ: <code>main.ark</code> → オーケストレーション: <code>driver/</code>。
+        フェーズダンプ: <code>ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan</code>
+      </p>
+
+      <div class="pipe-branch">
+        <strong>Component path</strong> —
+        MIR → WasmEmit → WIT 生成 → <code>wasm-tools component embed</code> → <code>wasm-tools component new</code>。
+        実装: <code>component/</code> · CLI: <code>--emit component|wit|all</code>
+      </div>
+
+      <div class="facts" style="margin-top: 1.5rem;">
+        <div class="fact">
+          <h3>IDE / LSP</h3>
+          <p><code>lsp/</code>・<code>dap/</code>・分析 API。VS Code 拡張は <code>extensions/arukellt-all-in-one</code>。</p>
+        </div>
+        <div class="fact">
+          <h3>診断</h3>
+          <p>診断レジストリは <code>diagnostics/</code>。canonical なエラーコード体系を持つ。</p>
+        </div>
+        <div class="fact">
+          <h3>モジュール解決</h3>
+          <p><code>loader/</code> がモジュールグラフと stdlib パスを担当。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TARGETS -->
+    <section id="targets" class="reveal">
+      <p class="sec-label">03 · Targets</p>
+      <h2>ターゲット階層</h2>
+      <p class="sec-lead">
+        ADR-013 により primary は T3（<code>wasm32-wasi-p2</code>）。CLI のデフォルトは互換のため T1。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Target</th>
+              <th>Tier</th>
+              <th>Status</th>
+              <th>Run</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>wasm32-wasi-p1</code></td>
+              <td>T1</td>
+              <td><span class="badge badge-ok">stable</span></td>
+              <td>Yes</td>
+              <td>互換パス。競技・AtCoder 向け。CLI default。</td>
+            </tr>
+            <tr>
+              <td><code>wasm32-freestanding</code></td>
+              <td>T2</td>
+              <td><span class="badge badge-mute">scaffold</span></td>
+              <td>No</td>
+              <td>compile-only。最小 Wasm スタブ。</td>
+            </tr>
+            <tr>
+              <td><code>wasm32-wasi-p2</code></td>
+              <td>T3</td>
+              <td><span class="badge badge-primary">stable · primary</span></td>
+              <td>Yes</td>
+              <td>GC-native。全 CI ゲート対象。Canonical。</td>
+            </tr>
+            <tr>
+              <td><code>native</code></td>
+              <td>T4</td>
+              <td><span class="badge badge-mute">scaffold</span></td>
+              <td>No</td>
+              <td>compile-only asm stub。フル lowering は未完。</td>
+            </tr>
+            <tr>
+              <td><code>wasm32-wasi-p3</code></td>
+              <td>T5</td>
+              <td><span class="badge badge-mute">not-started</span></td>
+              <td>No</td>
+              <td>target id のみ。async / P3 は将来。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- REPO -->
+    <section id="repo" class="reveal">
+      <p class="sec-label">04 · Repository</p>
+      <h2>リポジトリ見取り図</h2>
+      <p class="sec-lead">トップレベルディレクトリの役割。詳細な所有権は <code>docs/directory-ownership.md</code>。</p>
+
+      <div class="repo-grid">
+        <div class="repo-item">
+          <span class="path">src/compiler/</span>
+          <span class="desc">selfhost コンパイラ本体（lexer〜emitter、LSP、component）</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">std/</span>
+          <span class="desc">標準ライブラリ。host / collections / json / wit 等 + prelude</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">bootstrap/</span>
+          <span class="desc">pinned selfhost wasm（<code>arukellt-selfhost.wasm</code>）</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">scripts/</span>
+          <span class="desc">manager.py・check / run / gen / verify。検証の中枢</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">tests/</span>
+          <span class="desc">fixtures（manifest E2E）・baselines・snapshots</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">docs/</span>
+          <span class="desc">current-state・language・compiler・adr・stdlib</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">issues/</span>
+          <span class="desc">open / done / blocked。作業キューの正本</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">playground/</span>
+          <span class="desc">ブラウザ Playground（parse / format / tokenize）</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">examples/</span>
+          <span class="desc">クロス言語 interop（ark / rust / js）</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">extensions/</span>
+          <span class="desc">VS Code 拡張 all-in-one</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">benchmarks/</span>
+          <span class="desc">性能測定・ゲート用ベンチ</span>
+        </div>
+        <div class="repo-item">
+          <span class="path">.agents/</span>
+          <span class="desc">エージェント用スキル・オーケストレーションプロンプト</span>
+        </div>
+      </div>
+
+      <div class="quickref">
+        <div><span>Language</span> <code>.ark</code></div>
+        <div><span>Compiler</span> <code>src/compiler/</code></div>
+        <div><span>CLI</span> <code>scripts/run/arukellt-selfhost.sh</code></div>
+        <div><span>Verify</span> <code>python3 scripts/manager.py verify quick</code></div>
+      </div>
+    </section>
+
+    <!-- RUN -->
+    <section id="run" class="reveal">
+      <p class="sec-label">05 · Run &amp; Verify</p>
+      <h2>動かし方・検証</h2>
+      <p class="sec-lead">
+        実行は wasmtime（≥ 30）上の selfhost wasm。解決順:
+        <code>$ARUKELLT_SELFHOST_WASM</code> → <code>.build/selfhost/arukellt-s3.wasm</code> → <code>bootstrap/arukellt-selfhost.wasm</code>
+      </p>
+
+      <div class="cmd-grid">
+        <div class="cmd-panel">
+          <h3>実行・コンパイル</h3>
+          <div class="cmd-block">
+<span class="cm"># 実行</span>
+<span class="c">scripts/run/arukellt-selfhost.sh</span> run hello.ark
+
+<span class="cm"># T3 向けコンパイル</span>
+<span class="c">scripts/run/arukellt-selfhost.sh</span> compile \
+  --target wasm32-wasi-p2 hello.ark
+
+<span class="cm"># 型チェックのみ</span>
+<span class="c">scripts/run/arukellt-selfhost.sh</span> check hello.ark
+          </div>
+        </div>
+        <div class="cmd-panel">
+          <h3>検証ゲート</h3>
+          <div class="cmd-block">
+<span class="cm"># クイック（日常）</span>
+python3 <span class="c">scripts/manager.py</span> verify quick
+
+<span class="cm"># フル</span>
+python3 <span class="c">scripts/manager.py</span> verify --full
+
+<span class="cm"># T3 WASM validation</span>
+python3 <span class="c">scripts/check/check-t3-wasm-validate.py</span>
+          </div>
+        </div>
+        <div class="cmd-panel">
+          <h3>Component / WIT</h3>
+          <div class="cmd-block">
+<span class="c">scripts/run/arukellt-selfhost.sh</span> compile \
+  --target wasm32-wasi-p2 \
+  --emit component hello.ark
+
+<span class="c">scripts/run/arukellt-selfhost.sh</span> compile \
+  --target wasm32-wasi-p2 \
+  --emit wit hello.ark --wit host.wit
+          </div>
+        </div>
+        <div class="cmd-panel">
+          <h3>ドキュメント再生成</h3>
+          <div class="cmd-block">
+python3 <span class="c">scripts/gen/generate-docs.py</span>
+python3 <span class="c">scripts/gen/generate-issue-index.py</span>
+python3 <span class="c">scripts/check/check-docs-consistency.py</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOCUS -->
+    <section id="focus" class="reveal">
+      <p class="sec-label">06 · Now</p>
+      <h2>いまの焦点</h2>
+      <p class="sec-lead">
+        作業キューは <code>issues/open/</code>（自動生成 index）。
+        古いロードマップ文より issue index を優先すること。
+      </p>
+
+      <div class="tracks">
+        <div class="track">
+          <div class="count">14 <span>open</span></div>
+          <h3>stdlib-api</h3>
+          <p>Trait-first 移行、モノモーフ API カットオーバー、host capability 完成。</p>
+        </div>
+        <div class="track">
+          <div class="count">5 <span>open</span></div>
+          <h3>language-design</h3>
+          <p><code>?</code>・Iterator・Read/Write・Debug など言語トレイト。</p>
+        </div>
+        <div class="track">
+          <div class="count">5 <span>open</span></div>
+          <h3>wasm-feature</h3>
+          <p>Wasm 機能拡張・ターゲット関連。</p>
+        </div>
+        <div class="track">
+          <div class="count">4 <span>open</span></div>
+          <h3>component-model</h3>
+          <p>native P2 component 出力、export 集約、composition、DX。</p>
+        </div>
+      </div>
+
+      <div class="facts" style="margin-top: 1.5rem;">
+        <div class="fact">
+          <h3>依存順のハイライト</h3>
+          <p>① Component/WIT（#714 等）→ ② <code>std::host::*</code> rollout → ③ Trait-first stdlib → ④ 言語トレイト → ⑤ ADR-040 typed MIR</p>
+        </div>
+        <div class="fact">
+          <h3>完了の定義</h3>
+          <p><code>manager.py verify</code> 通過、生成物の再生成、必要なら ADR/docs 更新、issue を <code>done/</code> へ移動、コミット。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STDLIB -->
+    <section id="stdlib" class="reveal">
+      <p class="sec-label">07 · Stdlib</p>
+      <h2>標準ライブラリの方針</h2>
+      <p class="sec-lead">
+        ADR-036 / issue #709 — <strong>trait-first, type-first, method syntax</strong> へ移行中。
+        公開 API は <code>impl Type</code> とメソッドを優先。
+      </p>
+
+      <div class="compare">
+        <div class="prefer">
+          <h3>Prefer</h3>
+          <ul>
+            <li>s.split(sep)</li>
+            <li>v.push(x)</li>
+            <li>n.to_string()</li>
+            <li>Vec::new()</li>
+            <li>String::from("x")</li>
+          </ul>
+        </div>
+        <div class="avoid">
+          <h3>非推奨（公開面）</h3>
+          <ul>
+            <li>split(s, sep)</li>
+            <li>push(v, x)</li>
+            <li>i32_to_string(n)</li>
+            <li>Vec_new_i32()</li>
+            <li>String_from を主 API に</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="pipe-note" style="margin-top: 1rem;">
+        フリー関数・モノモーフヘルパーは内部・ブリッジ用として残る。ホスト API は <code>std::host::stdio</code> 等。
+      </p>
+    </section>
+
+    <!-- ADR -->
+    <section id="adr" class="reveal">
+      <p class="sec-label">08 · Design</p>
+      <h2>押さえておく ADR</h2>
+      <p class="sec-lead">設計判断の正本は <code>docs/adr/</code>。初見ならこのあたりから。</p>
+
+      <div class="adr-list">
+        <div class="adr"><span class="id">002</span><span class="title">GC vs non-GC — Wasm GC 採用</span></div>
+        <div class="adr"><span class="id">007</span><span class="title">Targets — T1〜T4 の整理</span></div>
+        <div class="adr"><span class="id">011</span><span class="title">WASI host layering — std::host::*</span></div>
+        <div class="adr"><span class="id">013</span><span class="title">Primary target = T3 (wasi-p2)</span></div>
+        <div class="adr"><span class="id">024</span><span class="title">Selfhost MIR CFG / SSA 前段</span></div>
+        <div class="adr"><span class="id">029</span><span class="title">Selfhost-native verification 契約</span></div>
+        <div class="adr"><span class="id">031</span><span class="title">use (Layer S) vs import (Layer C)</span></div>
+        <div class="adr"><span class="id">034</span><span class="title">Component composition (wac plug)</span></div>
+        <div class="adr"><span class="id">036</span><span class="title">Trait-first stdlib redesign</span></div>
+        <div class="adr"><span class="id">040</span><span class="title">Typed MIR signature registry</span></div>
+        <div class="adr"><span class="id">041</span><span class="title">In-file test syntax</span></div>
+      </div>
+    </section>
+
+    <!-- NEXT -->
+    <section id="next" class="reveal">
+      <p class="sec-label">09 · Start here</p>
+      <h2>次に読む・触る</h2>
+      <p class="sec-lead">このペライチのあとは、用途に応じてここへ。</p>
+
+      <div class="next-grid">
+        <a class="next-item" href="current-state.md">
+          <div class="n">01</div>
+          <h3>current-state.md</h3>
+          <p>実装の現在地。挙動の正本。</p>
+        </a>
+        <a class="next-item" href="quickstart.md">
+          <div class="n">02</div>
+          <h3>quickstart.md</h3>
+          <p>最短で動かす手順。</p>
+        </a>
+        <a class="next-item" href="../issues/open/index.md">
+          <div class="n">03</div>
+          <h3>issues/open/</h3>
+          <p>いま開いている作業キュー。</p>
+        </a>
+        <a class="next-item" href="adr/README.md">
+          <div class="n">04</div>
+          <h3>docs/adr/</h3>
+          <p>なぜそうなっているかの設計記録。</p>
+        </a>
+        <a class="next-item" href="language/">
+          <div class="n">05</div>
+          <h3>docs/language/</h3>
+          <p>言語仕様・構文の詳細。</p>
+        </a>
+        <a class="next-item" href="compiler/">
+          <div class="n">06</div>
+          <h3>docs/compiler/</h3>
+          <p>パイプライン・MIR・emitter の設計。</p>
+        </a>
+        <a class="next-item" href="../AGENTS.md">
+          <div class="n">07</div>
+          <h3>AGENTS.md</h3>
+          <p>エージェント／貢献者向けの作業契約。</p>
+        </a>
+        <a class="next-item" href="examples/hello.ark">
+          <div class="n">08</div>
+          <h3>docs/examples/</h3>
+          <p>hello / Result / struct などの短い例。</p>
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Arukellt project map · 単体 HTML · 情報源:
+        <span class="mono">README.md</span> /
+        <span class="mono">docs/current-state.md</span> /
+        <span class="mono">AGENTS.md</span> /
+        <span class="mono">issues/open/</span>
+      </p>
+      <p style="margin-top: 0.4rem;">挙動が変わったら current-state を正とし、このページも追随すること。</p>
+    </footer>
+  </div>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("visible");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    reveals.forEach((el) => io.observe(el));
+
+    // Subtle pipeline stagger on first view
+    const pipe = document.querySelector(".pipeline");
+    if (pipe) {
+      const steps = pipe.querySelectorAll(".pipe-step");
+      const pio = new IntersectionObserver(
+        (entries) => {
+          if (!entries[0].isIntersecting) return;
+          steps.forEach((s, i) => {
+            s.style.opacity = "0";
+            s.style.transform = "translateY(8px)";
+            s.style.transition = "opacity 0.35s ease, transform 0.35s ease, background 0.2s";
+            setTimeout(() => {
+              s.style.opacity = "1";
+              s.style.transform = "translateY(0)";
+            }, 60 * i);
+          });
+          pio.disconnect();
+        },
+        { threshold: 0.3 }
+      );
+      pio.observe(pipe);
+    }
+  </script>
+</body>
+</html>

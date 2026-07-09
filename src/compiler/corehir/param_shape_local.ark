@@ -45,6 +45,13 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
             return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
         }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+            let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+            if decl_ann_name::decl_ann_is_name(elem, String_from("String")) {
+                return String_from("vec:String")
+            }
+            return String_from("vec:i32")
+        }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Option")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {
@@ -88,6 +95,13 @@ fn method_param_local_type_name(node: AstNode) -> String {
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
             return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+        }
+        if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+            let elem = decl_ann_children::decl_ann_child_at(ann, 1)
+            if decl_ann_name::decl_ann_is_name(elem, String_from("String")) {
+                return String_from("vec:String")
+            }
+            return String_from("vec:i32")
         }
     } else {
         return param_named_local_type_name(ann)

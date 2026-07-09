@@ -32,8 +32,4 @@
 | [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |
 | [std-task.md](std-task.md) | stdlib migration task board | Rust 実装中心の stdlib を、Arukellt 実装中心の std/.ark へ移していくための実行順タスクボード。 |
-| [v0-completion-report.md](v0-completion-report.md) | Archived v0 completion report | この文書は過去の設計・進捗レポートです。現在の実装確認には使わないでください。 |
-| [v0-scope.md](v0-scope.md) | v0 スコープ定義 | arukellt v0 は「LLM フレンドリな言語」の最小限の実装。 |
-| [v1-non-goals.md](v1-non-goals.md) | v1 Non-Goals | Archive / current-first note: |
-| [v1-status.md](v1-status.md) | V1 Completion Report | Historical report: this page records the v1 exit state as it stood on 2026-03-27. |
 | [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: achieved (fixture tests/fixtures/hello/hello.ark under 1 KB on T1 and T3) |

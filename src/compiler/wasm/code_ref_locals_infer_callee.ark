@@ -4,6 +4,7 @@ use mir::function_return_view
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::inst_ctx
@@ -200,6 +201,12 @@ fn infer_vec_new_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     }
     if eq(clone(callee), String_from("Vec_new_v128")) {
         return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    }
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        let elem = substring(clone(callee), 8, len(callee))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        }
     }
     ctx_gc_type::SelfEmitCtx_vec_type(ctx)
 }

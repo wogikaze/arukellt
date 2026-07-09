@@ -20,7 +20,7 @@ Stability):
 | Label | Meaning |
 |-------|---------|
 | **stable** | Feature is finalized. Breaking changes require a new major version. |
-| **provisional** | Feature is implemented and tested, but the interface may change before v1 exit. |
+| **provisional** | Feature is implemented and tested, but the interface may change before stabilization. |
 | **experimental** | Feature exists in the codebase but is not tested or guaranteed on every build. |
 | **unimplemented** | Feature is specified but not yet implemented. |
 

@@ -225,39 +225,21 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - **Selfhost Phase 1 fixpoint achieved** — `sha256(s2) == sha256(s3)` passes (`attainment: reached`). The selfhost compiler (`src/compiler/main.ark`) reproducibly compiles itself. Multi-file module loading, qualified call resolution, and cross-module type handling are all working. See [Self-Hosting Bootstrap Status](#self-hosting-bootstrap-status).
 - **`arukellt doc` subcommand added (issue 456)** — stdlib manifest lookup via `arukellt doc <symbol>`. Supports `--json`, `--target`, and fuzzy-match "did you mean?" for unknown symbols.
 - **Host capability honesty (#633)** — `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost execution path (`call_host_io.ark` dispatches env/fs/process/stdio only). Manifest and [ADR-007: Targets](adr/ADR-007-targets.md#capability-surface) now cross-link #446/#447/#077/#139. HTTPS is not supported for HTTP.
-- **GC-native T3 emitter complete** — the v1 GC-native track closed on 2026-03-27
-- **Component / WIT support added in v2** — `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`
-- **Stdlib v3 track completed** — the stdlib roadmap items tracked as issues 039–059 now live in `issues/done/`
+- **GC-native T3 emitter** — T3 (`wasm32-wasi-p2`) uses a fully GC-native data model (all values on the Wasm GC heap; linear memory for I/O marshaling only)
+- **Component / WIT** — `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`
+- **Stdlib roadmap issues 039–059** — closed; see `issues/done/`
 - **T3 runtime correctness sweep (2026-04)** — wasmtime 29.x DRC GC bug mitigated (null collector workaround); peephole local.tee suppressed for GC-ref locals; nested concat scratch-local clobbering fixed; `eq`/`ne`/`split` builtins implemented. Fixture harness now **575/575 pass** with 31 new t3-run entries. With the wasmtime 46 upgrade (2026-06), the default GC collector switched from DRC to the copying collector, making the null-collector workaround unnecessary for new code paths.
-- **Current open queue shifted** — active work now focuses on WASI / `std::host::*` rollout rather than the completed v3 stdlib track
+- **Current open queue** — active work focuses on WASI / `std::host::*` rollout, Component Model depth, and trait-first stdlib (see `issues/open/`)
 - **`std::host::process::exit` and `abort` available (issue 445)** — `__intrinsic_process_exit(i32)` and `__intrinsic_process_abort()` are wired into the T1 and T3 WASI emitters via `wasi_snapshot_preview1/proc_exit`. Both are noreturn; the emitter emits `unreachable` after every call site. `abort()` uses `proc_exit(134)` (SIGABRT convention). `std::host::process` is no longer a stub.
 - **Associated function syntax for builtin types (issue 701)** — `Vec::new<i32>()`, `String::from("hello")`, and `i32::from("42")` now compile and execute correctly. The parser desugars these to the corresponding intrinsic names (`Vec_new_i32`, `String_from`, `parse_i32`) at AST construction time, so the resolver, typechecker, and MIR lowering require no changes. Existing monomorphic constructors (`Vec_new_i32()`, `String_from()`) continue to work unchanged.
 - **In-file test syntax (ADR-041)** — `test` is a contextual keyword (lexer keeps `TK_IDENT`) introducing three declaration forms: `test "name" { ... }` (standalone), `test <fn> "name" { ... }` (function-bound white-box), and `test mod "name" { test ... ; ... }` (1-level nested test module). Test bodies are resolved and type-checked in the enclosing file scope. `arukellt test <file>` discovers and lists tests, then type-checks the file. Test names are not registered as module symbols (not callable from production code). See `docs/adr/ADR-041-in-file-test-syntax.md`.
 - **In-file test coverage targets (#715)** — Phase 1 adoption adds ≥180 `test` declarations under `std/` (core, collections, text, bytes pure helpers) and Phase 2 adds ≥60 under `src/compiler/` (lexer/parser/resolver/typechecker/mir/diagnostics pure helpers). In-file tests are white-box unit tests co-located with implementation; integration and side-effectful behavior (host, component, wasm emitter body) remain fixture-only. `python3 scripts/check/check-infile-test-adoption.py` reports progress (advisory, non-blocking). `arukellt test` allows lint warnings `W0005`–`W0007` during check-only discovery so assertion helpers do not fail the gate.
 
-## V1 Exit Status: **COMPLETE**
+## Component Model Status
 
-All v1 exit criteria are satisfied as of 2026-03-27.
-
-1. ✅ **T3 compile/run correctness**: `--target wasm32-wasi-p2` compiles and runs the v1 exit fixture set using the fully GC-native T3 backend.
-2. ✅ **True GC-native data model**: All values live in Wasm GC heap. Linear memory remains only for I/O marshaling.
-3. ✅ **T1 retained as compatibility path**: `wasm32-wasi-p1` remains functional for non-GC environments.
-4. ✅ **Runtime model**: `RuntimeModel::T3WasmGcP2` is the sole T3 runtime model.
-
-### What is NOT in the original v1 gate
-
-- Component output and WIT generation (added later in v2)
-- T4 (native/LLVM) completion
-- WASI Preview 3 / async-first runtime work
-- `call_ref`-based HOF dispatch migration
-
-## V2 Exit Status: **COMPLETE**
-
-v2 (Component Model) implementation is complete as of 2026-03-28.
-
-1. ✅ **Component emit**: `--emit component` produces `.component.wasm` outputs on the supported `wasm32-wasi-p2` path.
-2. ✅ **WIT generation**: `--emit wit` generates WIT from source-level export type annotations for the supported export surface, including bool, char, string, list, option, result, tuple, record, enum, and variant shapes used by the component fixture surface.
-3. ✅ **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
+1. **Component emit**: `--emit component` produces `.component.wasm` outputs on the supported `wasm32-wasi-p2` path.
+2. **WIT generation**: `--emit wit` generates WIT from source-level export type annotations for the supported export surface, including bool, char, string, list, option, result, tuple, record, enum, and variant shapes used by the component fixture surface.
+3. **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
   `--wit` paths are accepted, validated, and threaded through CLI → `DriverConfig` → resolver/typecheck/MIR → Wasm import section (Phase 1 slices [#652](../issues/done/652-wit-import-parser-grammar.md)–[#654](../issues/done/654-wit-import-component-emit.md)).
   Scalar WIT function imports bind via `import "package/id" as alias` source syntax and resolve to `host::add(...)`-style calls in `tests/fixtures/wit_import/`.
   `ark.toml` `[dependencies]` vendor WIT packages resolve without `--wit` ([#663](../issues/done/663-ark-toml-wit-package-resolution.md)); compose round-trip fixture `tests/fixtures/wit_import/compose_roundtrip/` validates provider/socket WIT surfaces via `arukellt compose --validate` ([#665](../issues/done/665-wit-import-compose-roundtrip-e2e.md)).
@@ -266,10 +248,10 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
   supported for fixture-backed import and export round-trip ([#473](../issues/done/473-wit-resource-handles.md)).
   WIT `flags` types are supported for import and export round-trip
   fixtures ([#651](../issues/done/651-wit-flags-type-support.md)).
-4. ✅ **Current export behavior**: non-exportable functions surface `W0005` warnings.
-5. ✅ **No regression to core Wasm paths**: T1/T3 core Wasm flows remain available.
+4. **Current export behavior**: non-exportable functions surface `W0005` warnings.
+5. **Core Wasm paths**: T1/T3 core Wasm flows remain available alongside component emit.
 
-### Known v2 carry-over limitations
+### Known Component Model limitations
 
 - The current selfhost `--emit component` path emits a direct Component Model wrapper around the core Wasm module. With `--wasi-version p1` (default for non-`-p2` targets), it injects a minimal WASI Preview 1 stub instance so the core module's `wasi_snapshot_preview1` imports can instantiate.
 - With `--wasi-version p2` on `wasm32-wasi-p2`, the T3 emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../issues/done/510-t3-p2-import-table-switch.md)). The post-compile `p2_component_wrap.py` helper builds a `wasi:cli/command` component via `wasm-tools component embed/new` (~5.3KB, no P1 adapter): stdout is adapted through host `get-stdout` + `blocking-write-and-flush`, guest core wasm is patched for canonical ABI `write(ret, ptr, len, 0)`, and `gate_074` proves `wasm-tools validate` + wasmtime prints `hello p2` ([issue 074](../issues/done/074-wasi-p2-native-component.md)).
@@ -309,9 +291,9 @@ catches GC reference types that bypass WIT-level checks (W0004).
 - **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.
 - **Library vs command component worlds (#666)**: on `wasm32-wasi-p2` with default `--wasi-version p2`, modules that export component-compatible `pub fn` surfaces compile through the **library export** path (generic or specialized canonical ABI adapters). Modules with no exportable `pub fn` and no explicit `--world` use the **P2 command** wrapper (`wasi:cli/run`). When both `pub fn` exports and `fn main` are present, exports take precedence: the artifact is a library component with callable exports; `main` remains in core wasm but is not exported as `wasi:cli/run`. For a command-only program, omit exportable `pub fn` declarations or pass `--world wasi:cli/command`.
 
-## V4 Optimization Status
+## MIR Optimization Status
 
-The v4 optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](docs/compiler/optimization.md) for the complete reference.
+The MIR optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](docs/compiler/optimization.md) for the complete reference.
 
 - **20 MIR passes** implemented in selfhost `src/compiler/passes/`, running up to 3 fixed-point rounds
 - **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)

@@ -19,6 +19,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 
 ## Start here
 
+- [見取り図 (HTML)](docs/overview.html) — 初見向けの全体マップ（ペライチ）
 - [Current state](docs/current-state.md) — 実装の現在地
 - [Quickstart](docs/quickstart.md) — まず動かすための最短ガイド
 - [Stdlib overview](docs/stdlib/README.md) — 現在の標準ライブラリ公開面

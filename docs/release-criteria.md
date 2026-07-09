@@ -1,35 +1,7 @@
 # Arukellt Release Criteria
 
-This document defines what must be true before each release tier.
+This document defines what must be true before a tagged release.
 "Guarantee" means: CI verifies this on every merge; a regression is a P1 bug.
-
-## V1 Criteria (SATISFIED — closed 2026-03-27)
-
-| Guarantee | Verification method |
-|-----------|-------------------|
-| T3 (`wasm32-wasi-p2`) compiles all v1 fixture set | `python scripts/manager.py selfhost fixture-parity` |
-| All values use Wasm GC heap | T3 type system + Wasm validator |
-| T1 (`wasm32-wasi-p1`) still passes | Harness `run:` kind tests |
-| No output-channel panics | ADR-015 audit + verify-harness.sh |
-
-## V2 Criteria (SATISFIED — closed 2026-03-28)
-
-| Guarantee | Verification method |
-|-----------|-------------------|
-| `--emit component` on `wasm32-wasi-p2` produces valid `.component.wasm` | Component fixture tests |
-| `--emit wit` generates extractable WIT | WIT round-trip fixture |
-| No regression in T1/T3 core Wasm | Full harness |
-
-## V3 Criteria (SATISFIED — stdlib track complete)
-
-| Guarantee | Verification method |
-|-----------|-------------------|
-| Stdlib module system (`use std::*`) functional | Fixture harness with manifest-driven tests |
-| Scalar type completeness (all primitive types) | Type system validation + fixture coverage |
-| Manifest-backed stdlib reference generated | `python3 scripts/gen/generate-docs.py` exit 0 |
-| Prelude migration completed | Deprecated APIs flagged, migration guide exists |
-| Stability labels applied to stdlib surface | `docs/stdlib-compatibility.md` verification |
-| All v3 stdlib fixtures pass | `python scripts/manager.py verify fixtures` (stdlib subset) |
 
 ## Pre-release Checklist
 
@@ -64,7 +36,7 @@ These things work and regressions are P1:
 
 - `arukellt compile <file> --target wasm32-wasi-p2` produces valid Wasm
 - `arukellt run <file>` executes the compiled output via wasmtime
-- All 575 fixture tests pass
+- Fixture harness passes for the current manifest-backed set
 - Compilation is deterministic (same input → same output bytes)
 - No panic on any user-reachable CLI path
 
@@ -74,7 +46,7 @@ These work but the API or behavior may change without a deprecation cycle:
 
 - `--emit component` (works, but canonical ABI coverage is not exhaustive)
 - LSP hover/completion/diagnostics (functional, feature set evolving)
-- `ark.toml` schema (some fields added in v2; `[world]` section new)
+- `ark.toml` schema (fields continue to grow; `[world]` section is relatively new)
 
 ### Experimental (may break)
 
@@ -84,9 +56,9 @@ These work but the API or behavior may change without a deprecation cycle:
 
 ### Not guaranteed
 
-- `--target wasm32-freestanding` (T2: not started)
-- `--target native` (T4: not implemented; ark-llvm scaffold removed in #586)
-- `--target wasm32-wasi-p3` (T5: spec not finalized)
+- `--target wasm32-freestanding` (T2: scaffold)
+- `--target native` (T4: scaffold; ark-llvm removed in #586)
+- `--target wasm32-wasi-p3` (T5: not started)
 
 ## Stability Policy
 
