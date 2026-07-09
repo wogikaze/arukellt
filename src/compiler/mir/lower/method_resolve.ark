@@ -1,10 +1,127 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
+use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR method callee monomorphization resolution.
 
 use mir::mono
 use mir::value_types
+
+fn mir_method_name_last_segment(name: String) -> String {
+    let n = len(name)
+    let mut last_start = 0 - 1
+    let mut i = 0
+    while i < n - 1 {
+        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+            last_start = i + 2
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if last_start >= 0 {
+        return substring(name, last_start, n)
+    }
+    clone(name)
+}
+
+fn mir_method_name_last_two_segments(name: String) -> String {
+    let n = len(name)
+    let mut prev_start = 0 - 1
+    let mut last_start = 0 - 1
+    let mut i = 0
+    while i < n - 1 {
+        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+            prev_start = last_start
+            last_start = i + 2
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if prev_start >= 0 {
+        return substring(name, prev_start, n)
+    }
+    if last_start >= 0 {
+        return substring(name, last_start, n)
+    }
+    clone(name)
+}
+
+fn mir_is_all_digits(s: String) -> bool {
+    let n = len(s)
+    if n == 0 {
+        return false
+    }
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c < 48 || c > 57 {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn mir_strip_type_instance_suffix(name: String) -> String {
+    let n = len(name)
+    if n == 0 {
+        return name
+    }
+    let mut last_colon = 0 - 1
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            last_colon = i
+            i = 0 - 1
+        }
+        i = i - 1
+    }
+    if last_colon >= 0 {
+        let suffix = substring(name, last_colon + 1, n)
+        if mir_is_all_digits(suffix) {
+            return substring(name, 0, last_colon)
+        }
+    }
+    clone(name)
+}
+
+fn mir_normalize_type_name(t: String) -> String {
+    let mut n = clone(t)
+    if starts_with(clone(n), String_from("struct:")) {
+        n = substring(n, 7, len(n))
+    }
+    if starts_with(clone(n), String_from("enum:")) {
+        n = substring(n, 5, len(n))
+    }
+    n = mir_strip_type_instance_suffix(clone(n))
+    n = mir_method_name_last_segment(clone(n))
+    n
+}
+
+fn mir_resolve_short_method_name(ctx: LowerCtx, name: String) -> String {
+    let norm = mir_normalize_type_name(clone(name))
+    let exact = ctx_fn_index::ctx_fn_index_find(ctx, clone(norm))
+    if exact >= 0 {
+        return clone(ctx_fn_index::ctx_fn_index_name_at(ctx, exact))
+    }
+    let last_two = mir_method_name_last_two_segments(clone(norm))
+    if !eq(clone(last_two), clone(norm)) {
+        let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(last_two))
+        if found >= 0 {
+            return clone(ctx_fn_index::ctx_fn_index_name_at(ctx, found))
+        }
+    }
+    let last = mir_method_name_last_segment(clone(norm))
+    if !eq(clone(last), clone(norm)) {
+        let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(last))
+        if found >= 0 {
+            return clone(ctx_fn_index::ctx_fn_index_name_at(ctx, found))
+        }
+    }
+    String_from("")
+}
 
 fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String {
     if first_method_arg_idx < 0 {
@@ -58,6 +175,10 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
             return intrinsic_name
         }
         return bare_name
+    }
+    let short_name = mir_resolve_short_method_name(ctx, clone(callee_name))
+    if len(short_name) > 0 {
+        return short_name
     }
     callee_name
 }

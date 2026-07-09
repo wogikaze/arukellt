@@ -31,6 +31,10 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     if eq(clone(struct_name), String_from("string")) {
         struct_name = String_from("String")
     }
+    // Strip aggregate classifiers, module path prefixes, and per-use instance
+    // suffixes (e.g. "struct:VecIter:12" or "std::core::iter::VecIter:12")
+    // so method calls resolve to the unqualified base type name.
+    struct_name = method_resolve::mir_normalize_type_name(clone(struct_name))
     if len(struct_name) > 0 {
         return concat(clone(struct_name), concat(String_from("::"), clone(method_name)))
     }

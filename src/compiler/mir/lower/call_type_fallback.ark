@@ -5,6 +5,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::mono_return_vt
+use mir::lower::mono_suffix_parse
 // Arukellt Selfhost - MIR call result type fallback propagation.
 
 use mir::value_types
@@ -27,7 +28,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
         if len(mono_rtn) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
-        } else if len(rtn) > 1 {
+        } else if len(rtn) > 1 && !is_mono_type_var_name(clone(rtn)) {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
         }
     }
@@ -36,8 +37,13 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     }
     let resolved_type = ctx_api_local_types::ctx_get_local_type(ctx, dest)
     set_vt_for_resolved_type_name(ctx, dest, clone(resolved_type))
-    if len(resolved_type) == 0 || !type_name_is_ref_type(ctx, clone(resolved_type)) {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest)))
+    let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest))
+    // Prefer mono-resolved scalar return vts even when receiver-based inference
+    // left a ref-typed dest (i32-vs-ref on method calls like vec.len()).
+    if mono_vt == value_types::VT_I32() || mono_vt == value_types::VT_I64() || mono_vt == value_types::VT_F64() || mono_vt == value_types::VT_F32() {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+    } else if len(resolved_type) == 0 || !type_name_is_ref_type(ctx, clone(resolved_type)) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
     }
 }
 
@@ -95,24 +101,13 @@ fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
 
 fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     let cn_stripped = mir_strip_module_prefix(clone(callee_name))
-    let n = len(cn_stripped)
-    let mut sep = 0 - 1
-    let mut i = n - 2
-    while i >= 0 {
-        if char_at(cn_stripped, i) == 95 && char_at(cn_stripped, i + 1) == 95 {
-            sep = i
-            i = 0 - 1
-        }
-        i = i - 1
-    }
-    if sep < 0 {
+    // Prefer mono-suffix extraction that understands method names like
+    // Picker__echo__String (base contains "__" from "::" → "__").
+    let suffix = mono_suffix_parse::extract_mono_suffix(clone(cn_stripped))
+    if len(suffix) == 0 {
         return
     }
-    if mono_mangled_type_param_count(cn_stripped) > 1 {
-        return
-    }
-    let suffix = substring(cn_stripped, sep + 2, n)
-    if !mono_suffix_is_single_type_key(suffix) {
+    if !mono_suffix_is_single_type_key(clone(suffix)) {
         return
     }
     if eq(clone(suffix), "String") || eq(clone(suffix), "string") {
@@ -122,6 +117,21 @@ fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
         } else {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
+        return
+    }
+    if eq(clone(suffix), "i32") || eq(clone(suffix), "I32") || eq(clone(suffix), "bool") || eq(clone(suffix), "char") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(suffix))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+        return
+    }
+    if eq(clone(suffix), "i64") || eq(clone(suffix), "I64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i64"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
+        return
+    }
+    if eq(clone(suffix), "f64") || eq(clone(suffix), "F64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
     }
 }
 
@@ -137,17 +147,8 @@ fn mono_suffix_is_single_type_key(suffix: String) -> bool {
     true
 }
 
-fn mono_mangled_type_param_count(cn_stripped: String) -> i32 {
-    let n = len(cn_stripped)
-    let mut count = 0
-    let mut i = 0
-    while i < n - 1 {
-        if char_at(cn_stripped, i) == 95 && char_at(cn_stripped, i + 1) == 95 {
-            count = count + 1
-        }
-        i = i + 1
-    }
-    count
+fn is_mono_type_var_name(type_name: String) -> bool {
+    eq(clone(type_name), String_from("T")) || eq(clone(type_name), String_from("A")) || eq(clone(type_name), String_from("B")) || eq(clone(type_name), String_from("C")) || eq(clone(type_name), String_from("D")) || eq(clone(type_name), String_from("E")) || eq(clone(type_name), String_from("K")) || eq(clone(type_name), String_from("U")) || eq(clone(type_name), String_from("V")) || eq(clone(type_name), String_from("W"))
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {

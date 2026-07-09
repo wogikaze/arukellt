@@ -1,0 +1,114 @@
+// Arukellt Selfhost - method return TypeInfo for mono index prepass.
+
+use mir::lower::mono_suffix_parse
+use mir::lower_kinds
+use mir::type_contracts
+use mir::value_types
+
+fn method_generic_return_type_from_name(type_name: String, has_mono_variants: bool) -> TypeInfo {
+    if len(type_name) == 0 && has_mono_variants {
+        return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), String_from("T"), Vec_new_TypeInfo())
+    }
+    method_return_type_info_from_name(type_name)
+}
+
+fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
+    if len(type_name) == 0 {
+        return type_contracts::TypeInfo_simple(0)
+    }
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("u32")) || eq(clone(type_name), String_from("u8")) || eq(clone(type_name), String_from("u16")) || eq(clone(type_name), String_from("i16")) || eq(clone(type_name), String_from("i8")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_I32())
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_I64())
+    }
+    if eq(clone(type_name), String_from("f64")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_F64())
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_F32())
+    }
+    if eq(clone(type_name), String_from("bool")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_BOOL())
+    }
+    if eq(clone(type_name), String_from("char")) {
+        return type_contracts::TypeInfo_simple(lower_kinds::TY_CHAR())
+    }
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return type_contracts::TypeInfo_new(lower_kinds::TY_STRING(), String_from("String"), Vec_new_TypeInfo())
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return type_contracts::TypeInfo_new(lower_kinds::TY_VEC(), clone(type_name), Vec_new_TypeInfo())
+    }
+    if method_return_type_name_is_type_var(clone(type_name)) {
+        return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), clone(type_name), Vec_new_TypeInfo())
+    }
+    type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), clone(type_name), Vec_new_TypeInfo())
+}
+
+fn method_return_type_name_is_type_var(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("T")) || eq(clone(type_name), String_from("A")) || eq(clone(type_name), String_from("B")) || eq(clone(type_name), String_from("C")) || eq(clone(type_name), String_from("D")) || eq(clone(type_name), String_from("E")) || eq(clone(type_name), String_from("K")) || eq(clone(type_name), String_from("U")) || eq(clone(type_name), String_from("V")) || eq(clone(type_name), String_from("W")) {
+        return true
+    }
+    false
+}
+
+// Resolve a generic method mono return from the mangled function name suffix
+// (e.g. Picker__echo__String → "String" when the generic return is T).
+fn method_concrete_return_from_mono_fn_name(fn_name: String, generic_return_name: String) -> String {
+    let mut var_name = clone(generic_return_name)
+    if len(var_name) == 0 {
+        var_name = String_from("T")
+    }
+    if !method_return_type_name_is_type_var(clone(var_name)) {
+        return String_new()
+    }
+    let suffix = mono_suffix_parse::extract_mono_suffix(clone(fn_name))
+    if len(suffix) == 0 {
+        return String_new()
+    }
+    let keys = mono_suffix_parse::split_mono_suffix(clone(suffix))
+    let key_count = len(keys)
+    if key_count <= 0 {
+        return String_new()
+    }
+    if key_count == 1 {
+        return get_unchecked(keys, 0)
+    }
+    let idx = method_mono_type_var_index(clone(var_name), key_count)
+    if idx >= 0 && idx < key_count {
+        return get_unchecked(keys, idx)
+    }
+    get_unchecked(keys, key_count - 1)
+}
+
+fn method_return_vt_from_type_name(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("u32")) || eq(clone(type_name), String_from("u8")) || eq(clone(type_name), String_from("u16")) || eq(clone(type_name), String_from("i16")) || eq(clone(type_name), String_from("i8")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+        return value_types::VT_I32()
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(type_name), String_from("f64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return value_types::VT_F32()
+    }
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return value_types::VT_REF()
+    }
+    value_types::VT_GC_REF()
+}
+
+fn method_mono_type_var_index(var_name: String, key_count: i32) -> i32 {
+    if key_count <= 0 {
+        return 0
+    }
+    if eq(clone(var_name), String_from("T")) || eq(clone(var_name), String_from("A")) || eq(clone(var_name), String_from("K")) { return 0 }
+    if eq(clone(var_name), String_from("E")) || eq(clone(var_name), String_from("B")) { return 1 }
+    if eq(clone(var_name), String_from("U")) || eq(clone(var_name), String_from("C")) { return 2 }
+    if eq(clone(var_name), String_from("V")) || eq(clone(var_name), String_from("D")) { return 3 }
+    if eq(clone(var_name), String_from("W")) { return 4 }
+    0
+}
