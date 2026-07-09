@@ -1,5 +1,6 @@
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
+use mir::value_types
 // Arukellt Selfhost - MIR monomorphized call target resolution by arg type.
 
 use mir::mono
@@ -15,6 +16,12 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
         mono_type_key = mono_type_key_from_local_type_name(substring(mono_arg_type, 4, len(mono_arg_type)))
     }
     if starts_with(clone(mono_type_key), String_from("Option:")) {
+        mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
+    }
+    if starts_with(clone(mono_type_key), String_from("option:")) {
+        mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
+    }
+    if starts_with(clone(mono_type_key), String_from("Option_")) {
         mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
     }
     if starts_with(clone(mono_type_key), String_from("enum:")) {
@@ -37,13 +44,36 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
             return mono_candidate_string
         }
     }
-    // ADR-040 Phase 5: format_debug<T> defers to T::fmt_debug. When mono
-    // instances were not recorded (flat stdlib overlay / missing generic
-    // params in AST), dispatch directly to the concrete trait impl.
-    if eq(clone(out), String_from("format_debug")) {
-        let trait_method = concat(clone(mono_type_key), String_from("::fmt_debug"))
-        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
-            return trait_method
+    // ADR-040 Phase 5: format_debug<T> / format_debug__?t0 defers to
+    // T::fmt_debug. Type-var mono shells must not stay as unreachable stubs.
+    if eq(clone(out), String_from("format_debug")) || starts_with(clone(out), String_from("format_debug__")) {
+        let mut key = clone(mono_type_key)
+        if len(key) == 0 || starts_with(clone(key), String_from("?")) {
+            let vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
+            if vt == value_types::VT_I32() {
+                key = String_from("i32")
+            } else {
+                if vt == value_types::VT_I64() {
+                    key = String_from("i64")
+                } else {
+                    if vt == value_types::VT_F64() {
+                        key = String_from("f64")
+                    } else {
+                        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+                            let tn = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+                            if eq(clone(tn), String_from("string")) || eq(clone(tn), String_from("String")) {
+                                key = String_from("String")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if len(key) > 0 && !starts_with(clone(key), String_from("?")) {
+            let trait_method = concat(clone(key), String_from("::fmt_debug"))
+            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
+                return trait_method
+            }
         }
     }
     out

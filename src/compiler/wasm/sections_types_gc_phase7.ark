@@ -28,5 +28,43 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
     if eq(clone(elem), String_from("v128")) || eq(clone(elem), String_from("V128")) {
         return false
     }
+    // Unsubstituted type parameters (generic shells like min_by / max_by
+    // that were not monomorphized) must not select the structref array
+    // layout — that mismatches the i32-vec signature used for dead shells.
+    if gc_vec_elem_name_is_type_param(clone(elem)) {
+        return false
+    }
     true
+}
+
+fn gc_vec_elem_name_is_type_param(elem: String) -> bool {
+    // Single-letter type vars: T, U, K, E, R, A, B, V, ...
+    if len(elem) == 1 {
+        let c = char_at(elem, 0)
+        if c >= 65 && c <= 90 {
+            return true
+        }
+    }
+    // Ordinal mono placeholders: t0, t1, ?t0, T0, ...
+    if starts_with(clone(elem), String_from("?")) {
+        return gc_vec_elem_name_is_type_param(substring(elem, 1, len(elem)))
+    }
+    if len(elem) >= 2 {
+        let c0 = char_at(elem, 0)
+        if (c0 == 116 || c0 == 84) {
+            let mut i = 1
+            let mut all_digit = true
+            while i < len(elem) {
+                let c = char_at(elem, i)
+                if c < 48 || c > 57 {
+                    all_digit = false
+                }
+                i = i + 1
+            }
+            if all_digit {
+                return true
+            }
+        }
+    }
+    false
 }

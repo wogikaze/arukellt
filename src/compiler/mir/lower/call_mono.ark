@@ -5,6 +5,7 @@ use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering monomorphized call target resolution
 
 use mir::mono
+use mir::value_types
 
 fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx: i32, span_start: i32) -> String {
     let mut resolved = clone(rewritten)
@@ -64,5 +65,45 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
             }
         }
     }
+    // format_debug / fmt::format_debug__?t0 → concrete T::fmt_debug
+    let bare = mir_strip_callee_module_prefix(clone(resolved))
+    if starts_with(clone(bare), String_from("format_debug")) && first_arg_idx >= 0 {
+        let mut key = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if starts_with(clone(key), String_from("option:")) || starts_with(clone(key), String_from("Option_")) {
+            key = substring(clone(key), 7, len(key))
+        }
+        if len(key) == 0 || starts_with(clone(key), String_from("?")) || eq(clone(key), String_from("enum:open")) {
+            let vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
+            if vt == value_types::VT_I32() {
+                key = String_from("i32")
+            } else {
+                if vt == value_types::VT_I64() {
+                    key = String_from("i64")
+                } else {
+                    if vt == value_types::VT_F64() {
+                        key = String_from("f64")
+                    }
+                }
+            }
+        }
+        if len(key) > 0 && !starts_with(clone(key), String_from("?")) && !eq(clone(key), String_from("enum:open")) {
+            let trait_method = concat(clone(key), String_from("::fmt_debug"))
+            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
+                resolved = trait_method
+            }
+        }
+    }
     resolved
+}
+
+fn mir_strip_callee_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
 }

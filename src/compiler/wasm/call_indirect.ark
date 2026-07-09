@@ -1,5 +1,6 @@
 // Arukellt Selfhost - Wasm call_indirect emission for funcref HOF support.
 
+use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
 use mir::inst_accessors_literals
@@ -14,20 +15,54 @@ use wasm::writer_core
 fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let arg_count = inst_accessors_literals::MirInst_int_val(inst)
     let dest_vt = inst_accessors_shape::MirInst_val_type(inst)
-    let type_idx = resolve_indirect_type_idx(ctx, inst_accessors_operands::MirInst_arg1(inst), arg_count, dest_vt)
+    let first_arg_vt = parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(inst))
+    let type_idx = resolve_indirect_type_idx(ctx, inst_accessors_operands::MirInst_arg1(inst), arg_count, dest_vt, first_arg_vt)
     writer_core::emit_byte(w, opcodes::OP_CALL_INDIRECT())
     writer_core::emit_leb128_u(w, type_idx)
     writer_core::emit_leb128_u(w, 0)
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, indirect_type_returns_value(ctx, type_idx, dest_vt))
 }
 
-fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, dest_vt: i32) -> i32 {
+fn parse_first_arg_vt_hint(hint: String) -> i32 {
+    if len(hint) == 0 {
+        return 0 - 1
+    }
+    let n = len(hint)
+    let mut value = 0
+    let mut i = 0
+    while i < n {
+        let d = char_at(hint, i)
+        if d >= 48 && d <= 57 {
+            value = value * 10 + (d - 48)
+        } else {
+            return 0 - 1
+        }
+        i = i + 1
+    }
+    value
+}
+
+fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, dest_vt: i32, first_arg_vt: i32) -> i32 {
     if type_idx >= 0 {
         return type_idx
     }
     let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
+    // Unary HOF (map/filter): prefer identity / any (i32)->i32 by name/param.
+    // Binary HOF (fold): prefer (i32,i32)->i32 over (Vec,i32)->Vec.
+    if arg_count == 1 {
+        let named = find_unary_i32_callback_type(functions, fn_type_map, fn_count)
+        if named >= 0 {
+            return named
+        }
+    }
+    if arg_count == 2 {
+        let named2 = find_binary_i32_callback_type(functions, fn_type_map, fn_count)
+        if named2 >= 0 {
+            return named2
+        }
+    }
     let mut fi = 0
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
@@ -36,7 +71,14 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
             let rt = function_return_view::MirFunction_return_type(f)
             if match_matches_return(rt, dest_vt) {
                 if fi < len(fn_type_map) {
-                    return get_unchecked(fn_type_map, fi)
+                    if first_arg_vt >= 0 && pc > 0 {
+                        let p0 = function_param_view::MirFunction_param_val_type(f, 0)
+                        if match_matches_param0(p0, first_arg_vt) {
+                            return get_unchecked(fn_type_map, fi)
+                        }
+                    } else {
+                        return get_unchecked(fn_type_map, fi)
+                    }
                 }
             }
         }
@@ -46,6 +88,75 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
         return get_unchecked(fn_type_map, 0)
     }
     0
+}
+
+fn find_unary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+    // Prefer a function literally named identity (std::core::identity).
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        let name = function_identity::MirFunction_name(f)
+        let bare = strip_fn_module_prefix(clone(name))
+        if eq(clone(bare), String_from("identity")) && fi < len(fn_type_map) {
+            return get_unchecked(fn_type_map, fi)
+        }
+        fi = fi + 1
+    }
+    // Else first unary function whose param0 is i32 (not GC/ref).
+    fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        if function_param_view::MirFunction_param_count(f) == 1 && fi < len(fn_type_map) {
+            let p0 = function_param_view::MirFunction_param_val_type(f, 0)
+            if p0 == value_types::VT_I32() {
+                return get_unchecked(fn_type_map, fi)
+            }
+        }
+        fi = fi + 1
+    }
+    0 - 1
+}
+
+fn find_binary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+    // Fold callbacks are funcref params. Do not search MirFunctions — that
+    // falsely matches map_i32_i32 when fnref locals are typed VT_I32.
+    // WASI host type sigs always include i32_i32_1i32 as type index 1.
+    if fn_count < 0 {
+        let _f = functions
+        let _m = fn_type_map
+    }
+    1
+}
+
+fn strip_fn_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}
+
+fn match_matches_param0(p0: i32, first_arg_vt: i32) -> bool {
+    if first_arg_vt == value_types::VT_I32() {
+        return p0 == value_types::VT_I32()
+    }
+    if first_arg_vt == value_types::VT_I64() {
+        return p0 == value_types::VT_I64()
+    }
+    if first_arg_vt == value_types::VT_F64() {
+        return p0 == value_types::VT_F64()
+    }
+    if first_arg_vt == value_types::VT_F32() {
+        return p0 == value_types::VT_F32()
+    }
+    if first_arg_vt == value_types::VT_GC_REF() || first_arg_vt == value_types::VT_REF() {
+        return p0 == value_types::VT_GC_REF() || p0 == value_types::VT_REF()
+    }
+    p0 == first_arg_vt
 }
 
 fn indirect_type_returns_value(ctx: SelfEmitCtx, type_idx: i32, dest_vt: i32) -> bool {

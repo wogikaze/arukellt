@@ -61,7 +61,7 @@ fn try_emit_text_collection_join_call(w: WasmWriter, callee: String, inst: MirIn
 // Arukellt Selfhost - text collection view call dispatch.
 
 fn try_emit_text_collection_view_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "slice") || eq(clone(callee), "substring") || eq(clone(callee), "text::slice_bytes") {
+    if eq(clone(callee), "slice") || eq(clone(callee), "substring") || eq(clone(callee), "text::slice_bytes") || eq(clone(callee), "__intrinsic_string_slice") {
         let _result_on_stack = intrinsic_string_collection::emit_slice(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

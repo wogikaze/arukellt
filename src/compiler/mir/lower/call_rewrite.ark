@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering call target rewrites
 
 use mir::lower::call_mono
+use mir::lower::call_mono_by_type
 use mir::lower::call_rewrite_method
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
@@ -65,5 +66,10 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
         }
     }
     rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
+    // Only re-dispatch format_debug / format_debug__?t0 shells — applying
+    // mono_by_type to every callee regresses modules/multi_import (to_string).
+    if eq(clone(rewritten), String_from("format_debug")) || starts_with(clone(rewritten), String_from("format_debug__")) || ends_with(clone(rewritten), String_from("::format_debug")) || contains(clone(rewritten), String_from("format_debug__")) {
+        rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, first_arg_idx)
+    }
     MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
 }

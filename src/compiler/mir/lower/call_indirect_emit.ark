@@ -16,9 +16,13 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
 
 fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32, callee_local: i32) -> i32 {
     let arg_count = child_count - 1
+    let mut first_arg_vt = 0 - 1
     let mut a = 1
     while a < child_count {
-        lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        let arg_local = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        if a == 1 && arg_local >= 0 {
+            first_arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_local)
+        }
         a = a + 1
     }
     let mut dest = 0 - 1
@@ -29,6 +33,6 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call_indirect::MirInst_call_indirect(callee_local, 0 - 1, arg_count, dest, dest_vt))
+    ctx_api_emit::ctx_emit(ctx, inst_call_indirect::MirInst_call_indirect_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt))
     dest
 }

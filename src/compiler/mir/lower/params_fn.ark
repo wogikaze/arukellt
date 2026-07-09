@@ -24,12 +24,21 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
         sig_type_name = clone(local_type_name)
-        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) || starts_with(clone(local_type_name), String_from("Option_")) || starts_with(clone(local_type_name), String_from("option:")) {
+        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) || starts_with(clone(local_type_name), String_from("Option_")) || starts_with(clone(local_type_name), String_from("option:")) || starts_with(clone(local_type_name), String_from("Result_")) || starts_with(clone(local_type_name), String_from("result:")) {
             pvt = value_types::VT_GC_REF()
         } else {
-            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
+            // Qualified names like "parser::TomlValue" need the bare enum
+            // name for layout lookup; without this, export shells keep VT_I32.
+            let bare = mir_param_strip_module_prefix(clone(local_type_name))
+            if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(bare)) || ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(local_type_name)) {
                 pvt = value_types::VT_GC_REF()
-                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
+                sig_type_name = clone(mir_type_name)
+            } else {
+                if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) || ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(bare)) {
+                    pvt = value_types::VT_GC_REF()
+                    sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
+                }
             }
         }
     } else {
@@ -55,4 +64,16 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
+}
+
+fn mir_param_strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
 }
