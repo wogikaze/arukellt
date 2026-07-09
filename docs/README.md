@@ -13,6 +13,7 @@
 - Verification: `python3 scripts/manager.py verify quick` — 162/168 checks pass
 - Stdlib manifest-backed public API: 772 functions
 
+- [見取り図 (HTML)](overview.html) — 初見向けの全体マップ
 - [Current state](current-state.md)
 - [Quickstart](quickstart.md)
 - [コンパイラ](compiler/README.md)
