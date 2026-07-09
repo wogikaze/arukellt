@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-09T14:22:04Z",
+  "generated_at": "2026-07-09T17:33:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -9,11 +9,6 @@
       "title": "036-jco-javascript-interop",
       "track": "component-model",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "27"
       ],
@@ -33,11 +28,6 @@
       "title": "Async component support (v5)",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "035",
         "done)",
@@ -61,11 +51,6 @@
       "title": "649 — T4 native full lowering (beyond scaffold #641)",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "641"
       ],
@@ -87,11 +72,6 @@
       "title": "667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path",
       "track": "component-model",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "666"
       ],
@@ -113,11 +93,6 @@
       "title": "669 — WIT import IDE and formatter surface",
       "track": "lsp-navigation",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "652",
         "done)"
@@ -138,11 +113,6 @@
       "title": "670 — WIT import resolver hardening (duplicates, spans, collisions)",
       "track": "language-design",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "653",
         "done)"
@@ -163,11 +133,6 @@
       "title": "671 — WIT import callable type matrix (fixtures + gates)",
       "track": "language-design",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "653",
         "654"
@@ -188,11 +153,6 @@
       "title": "672 — WIT type binding code generation",
       "track": "language-design",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "664",
         "done)"
@@ -213,11 +173,6 @@
       "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
       "track": "component-composition",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "443",
         "663",
@@ -239,11 +194,6 @@
       "title": "675 — Host capability user-reachability and runtime permission flags",
       "track": "capability",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "446",
         "447",
@@ -269,11 +219,6 @@
       "title": "676 — std::host fs / env / process capability completion",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "076",
         "done)",
@@ -296,11 +241,6 @@
       "title": "677 — Component developer experience (CLI, cookbooks, diagnostics explain)",
       "track": "cli",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "475",
         "485"
@@ -321,11 +261,6 @@
       "title": "678 — Verification gates: stale docs, release checklist, and close-gate coverage",
       "track": "tooling-contract",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -343,11 +278,6 @@
       "title": "680 — Target tier honesty audit (stable / smoke / scaffold / none)",
       "track": "docs-audit",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "679"
       ],
@@ -369,11 +299,6 @@
       "title": "681 — Stdlib manifest reachability contract audit",
       "track": "docs-audit",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "679"
       ],
@@ -395,11 +320,6 @@
       "title": "684 — False-done and limited-scope done issue re-audit program",
       "track": "docs-audit",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -417,11 +337,6 @@
       "title": "685 — IDE / Playground / Extension product-claim vs compiler gate audit",
       "track": "docs-audit",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "679"
       ],
@@ -441,11 +356,6 @@
       "title": "Wasm GC Selfhost Implementation",
       "track": "main",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -463,11 +373,6 @@
       "title": "687 — HashMap / HashSet Rust parity gap audit and closure",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "495"
       ],
@@ -487,11 +392,6 @@
       "title": "690 — `?` operator and `From<E>` error conversion",
       "track": "language-design",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "688"
       ],
@@ -513,11 +413,6 @@
       "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "688",
         "707"
@@ -543,11 +438,6 @@
       "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "688",
         "692"
@@ -568,11 +458,6 @@
       "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "688"
       ],
@@ -596,11 +481,6 @@
       "title": "696 — `Debug` trait and `format!` / `write!` formatting ecosystem",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "688",
         "692"
@@ -621,11 +501,6 @@
       "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "688",
         "700",
@@ -647,11 +522,6 @@
       "title": "std::json Full JSON RFC 8259 Compliance",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "606"
       ],
@@ -671,11 +541,6 @@
       "title": "std::toml Full TOML 1.0 Compliance",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "606"
       ],
@@ -695,11 +560,6 @@
       "title": "std::wit Full WIT 1.0 Compliance",
       "track": "stdlib",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "606"
       ],
@@ -719,11 +579,6 @@
       "title": "708 — `TryFrom` / `TryInto` traits for fallible conversions",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "692",
         "707"
@@ -744,11 +599,6 @@
       "title": "714 — Emitter-native WASI P2 component output without wrapper",
       "track": "component-model",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "074",
         "510"
@@ -771,11 +621,6 @@
       "title": "718 — Stdlib free-function → method/trait migration inventory",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "700",
         "701"
@@ -796,11 +641,6 @@
       "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
       "track": "tooling",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "715"
       ],
@@ -820,11 +660,6 @@
       "title": "Final Types (`sub final`) を全 struct に適用",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -842,11 +677,6 @@
       "title": "Typed Function References (`call_ref`) ベンチマーク計測",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -864,11 +694,6 @@
       "title": "Wasm Exception Handling (`exnref`) 統合の検討",
       "track": "language-design",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -886,11 +711,6 @@
       "title": "ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業",
       "track": "compiler-internal",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [],
       "blocks_issue_ids": [
         "726"
@@ -910,11 +730,6 @@
       "title": "ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)",
       "track": "compiler-internal",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "None"
       ],
@@ -934,11 +749,6 @@
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
       "track": "wasm-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "474"
       ],
@@ -958,11 +768,6 @@
       "title": "699 — T4 LLVM native SIMD lowering for std::simd",
       "track": "native-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "649",
         "698"
@@ -983,11 +788,6 @@
       "title": "673 — Component export aggregate expansion (Tier 2 blocked shapes)",
       "track": "component-model",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "648",
         "660",
@@ -1009,11 +809,6 @@
       "title": "682 — Component / WIT product-claim verification audit",
       "track": "docs-audit",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "679",
         "680"
@@ -1036,11 +831,6 @@
       "title": "694 — `Error` trait and unified error type ecosystem",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "690",
         "692"
@@ -1061,11 +851,6 @@
       "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "691",
         "695"
@@ -1089,11 +874,6 @@
       "title": "703 — Monomorphic API bold cutover (ADR-036 D2)",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "700",
         "701",
@@ -1118,11 +898,6 @@
       "title": "668 — P2 native component polish (post-#074)",
       "track": "wasi-feature",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "074",
         "510",
@@ -1144,11 +919,6 @@
       "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
       "track": "compiler-internal",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "724"
       ],
@@ -1168,11 +938,6 @@
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
       "track": "docs-audit",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "679",
         "682"
@@ -1193,11 +958,6 @@
       "title": "709 — Stdlib trait-first API policy and i32 helper containment",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "691",
         "695",
@@ -1225,11 +985,6 @@
       "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
       "track": "stdlib-api",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "691",
         "697",
@@ -1255,11 +1010,6 @@
       "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
       "track": "stdlib-docs",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "681",
         "709",
@@ -1284,11 +1034,6 @@
       "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
       "track": "tooling-contract",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "709",
         "711"
@@ -1311,11 +1056,6 @@
       "title": "713 — Stdlib and Arukellt code best-practices doc pack",
       "track": "language-docs",
       "status": "open",
-      "blocks_v1": "none",
-      "blocks_v2": "none",
-      "blocks_v3": "none",
-      "blocks_v4": "none",
-      "blocks_v5": "none",
       "depends_on": [
         "709",
         "711",

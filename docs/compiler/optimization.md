@@ -1,6 +1,6 @@
 # Optimization Passes
 
-> Current-first reference for the v4 optimization pipeline.
+> Current-first reference for the MIR optimization pipeline.
 > For pipeline context see [pipeline.md](pipeline.md); for overall state see [../current-state.md](../current-state.md).
 
 ## Overview

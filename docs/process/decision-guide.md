@@ -21,4 +21,3 @@
 - [../current-state.md](../current-state.md)
 - [../adr/](../adr/)
 - [ADR-007: Targets](../adr/ADR-007-targets.md)
-- [v0-scope.md](v0-scope.md)
