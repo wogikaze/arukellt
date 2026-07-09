@@ -46,7 +46,8 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
 // payload type.
 fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     let cn = mir_strip_module_prefix(clone(callee_name))
-    if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) {
+    // Plain "cmp", "Trait::cmp", and mono mangled "cmp__i32" / "Ord::cmp__i32".
+    if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:Ordering"))
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
@@ -191,6 +192,25 @@ fn set_ref_vt_for_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     } else {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
     }
+}
+
+// Promote an Option/Result/enum *container* local to VT_GC_REF before
+// MIR_GC_STRUCT_GET uses it as a base. Call only when the local is about
+// to be treated as a GC enum container (match scrutinee, Option HOF, etc.).
+// Empty type_name still forces VT_GC_REF — callers must only invoke this
+// on paths that already decided the value is a GC struct base.
+fn mir_promote_gc_enum_container_vt(ctx: LowerCtx, local_idx: i32) {
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return
+    }
+    let tn = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
+    if len(tn) > 0 {
+        if type_name_is_ref_type(ctx, tn) {
+            set_ref_vt_for_type_name(ctx, local_idx, tn)
+        }
+        return
+    }
+    ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
 }
 
 fn type_name_is_ref_type(ctx: LowerCtx, type_name: String) -> bool {

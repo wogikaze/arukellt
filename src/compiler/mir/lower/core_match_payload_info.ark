@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
+use mir::lower::call_type_fallback
 // Arukellt Selfhost - CoreHIR match payload analysis.
 
 use mir::inst_struct_get
@@ -60,6 +61,7 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
     let scrut_ok_is_ref = core_scrut_type_is_ref(scrut_type)
     let mut compare_idx = scrut_idx
     if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
+        call_type_fallback::mir_promote_gc_enum_container_vt(ctx, scrut_idx)
         compare_idx = core_emit_payload_tag_local(ctx, scrut_idx)
     }
     core_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, scrut_ok_is_ref, compare_idx)

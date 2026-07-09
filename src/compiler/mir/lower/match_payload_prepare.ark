@@ -4,6 +4,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower_kinds
 use mir::lower::ctx_gc_enum
+use mir::lower::call_type_fallback
 // Arukellt Selfhost - MIR match payload preparation
 
 use mir::inst_struct_get
@@ -53,6 +54,7 @@ fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scr
     let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32") || starts_with(clone(scrut_type), String_from("Result_i32_")) || starts_with(clone(scrut_type), String_from("result:i32:"))
     let mut compare_idx = scrut_idx
     if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
+        call_type_fallback::mir_promote_gc_enum_container_vt(ctx, scrut_idx)
         compare_idx = mir_emit_payload_tag_local(ctx, scrut_idx)
     }
     mir_match_payload_info_new(is_payload_match, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_i32, compare_idx)

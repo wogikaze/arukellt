@@ -4,6 +4,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
+use mir::lower::call_type_fallback
 // Arukellt Selfhost - MIR lowering for Option higher-order helpers.
 
 use mir::inst_structured_control
@@ -24,6 +25,7 @@ fn mir_lower_map_option_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_opt_local:
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
         ctx_api_local_types::ctx_set_local_type(ctx, mopt_new_local, String_from("option:i32"))
     }
+    call_type_fallback::mir_promote_gc_enum_container_vt(ctx, mopt_opt_local)
     hof_option_setup::emit_map_option_setup(ctx, mopt_opt_local, mopt_tag_local, mopt_new_local)
     ctx_api_nesting::ctx_push_nesting(ctx)
     hof_option_branches::emit_map_option_some_i32(ctx, mopt_fn_name, mopt_opt_local, mopt_new_local)

@@ -20,6 +20,11 @@ use mir::function_return_view
 
 fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     let is_gc = ctx_gc_enum::ctx_is_gc_target(ctx)
+    // `?` operand is always a Result/Option container; promote before
+    // MIR_GC_STRUCT_GET so the emitter declares the local as a GC ref.
+    if is_gc {
+        ctx_api_local_types::ctx_set_local_vt(ctx, inner_idx, value_types::VT_GC_REF())
+    }
     let res_vt = if is_gc {
         value_types::VT_GC_REF()
     } else {

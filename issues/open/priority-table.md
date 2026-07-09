@@ -23,17 +23,17 @@ Scoring criteria (0-5 each, total 25):
 | 10 | 709 | 709 — Stdlib trait-first API policy and i32 helper containment | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
 | 11 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
 | 12 | 723 | Wasm Exception Handling (`exnref`) 統合の検討 | language-design | 0 | 0 | 1 | 5 | 4 | 10 |
-| 13 | 670 | 670 — WIT import resolver hardening (duplicates, spans, col... | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 14 | 671 | 671 — WIT import callable type matrix (fixtures + gates) | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 15 | 672 | 672 — WIT type binding code generation | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
-| 16 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
-| 17 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
-| 18 | 694 | 694 — `Error` trait and unified error type ecosystem | stdlib-api | 0 | 0 | 1 | 5 | 3 | 9 |
-| 19 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
-| 20 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
-| 21 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 22 | 722 | Typed Function References (`call_ref`) ベンチマーク計測 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 23 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 13 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
+| 14 | 670 | 670 — WIT import resolver hardening (duplicates, spans, col... | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 15 | 671 | 671 — WIT import callable type matrix (fixtures + gates) | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 16 | 672 | 672 — WIT type binding code generation | language-design | 0 | 0 | 1 | 5 | 3 | 9 |
+| 17 | 678 | 678 — Verification gates: stale docs, release checklist, an... | tooling-contract | 0 | 3 | 1 | 2 | 3 | 9 |
+| 18 | 685 | 685 — IDE / Playground / Extension product-claim vs compile... | docs-audit | 0 | 0 | 1 | 5 | 3 | 9 |
+| 19 | 694 | 694 — `Error` trait and unified error type ecosystem | stdlib-api | 0 | 0 | 1 | 5 | 3 | 9 |
+| 20 | 697 | 697 — `Vec<T>` operation extension (windows / chunks / reta... | stdlib-api | 2 | 0 | 1 | 3 | 3 | 9 |
+| 21 | 710 | 710 — Linear collection ADTs: `Deque<T>` / queue / stack / ... | stdlib-api | 1 | 0 | 1 | 5 | 2 | 9 |
+| 22 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
+| 23 | 722 | Typed Function References (`call_ref`) ベンチマーク計測 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
 | 24 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 2 | 3 | 2 | 8 |
 | 25 | 649 | 649 — T4 native full lowering (beyond scaffold #641) | wasm-feature | 1 | 0 | 1 | 3 | 3 | 8 |
 | 26 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 1 | 0 | 1 | 3 | 3 | 8 |

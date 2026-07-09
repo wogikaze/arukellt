@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
+use mir::lower::call_type_fallback
 use mir::value_types
 // Arukellt Selfhost - MIR call result type propagation for vec-producing calls.
 
@@ -50,8 +51,11 @@ fn mark_vec_get_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if starts_with(clone(vec_type), "vec:") {
             let elem_ty = substring(vec_type, 4, len(vec_type))
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, concat(String_from("option:"), elem_ty))
-            set_ref_vt_for_elem_type(ctx, dest, elem_ty)
+            // dest is Option<T> (the container), not T — always a GC ref.
+            // set_ref_vt_for_elem_type would wrongly set VT_I32 for option:i32.
+            let opt_ty = concat(String_from("option:"), elem_ty)
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(opt_ty))
+            call_type_fallback::set_ref_vt_for_type_name(ctx, dest, opt_ty)
         }
     }
 }
