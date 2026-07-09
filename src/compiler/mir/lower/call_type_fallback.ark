@@ -1,7 +1,6 @@
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_fn_return_type
-use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
@@ -11,7 +10,6 @@ use mir::lower::mono_return_vt
 use mir::value_types
 
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    let return_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
     }
@@ -36,9 +34,11 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_mono_call_result_type(ctx, callee_name, dest)
     }
-    set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
-    let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest))
-    ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+    let resolved_type = ctx_api_local_types::ctx_get_local_type(ctx, dest)
+    set_vt_for_resolved_type_name(ctx, dest, clone(resolved_type))
+    if len(resolved_type) == 0 || !type_name_is_ref_type(ctx, clone(resolved_type)) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest)))
+    }
 }
 
 // cmp returns enum:Ordering; find_i64/find_f64/find_String return Option<T> —

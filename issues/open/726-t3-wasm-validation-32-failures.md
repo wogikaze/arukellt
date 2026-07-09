@@ -17,19 +17,53 @@ T3 WASM validation で `validate-fail` が残っており、`verify quick` が b
 pre-commit hook が `verify quick` を実行するため、現状コミットに `--no-verify` が必要な状態。
 残失敗の主因は GC ref 型推論の不整合（ネストした enum/option/result/tuple のペイロード型名喪失）。
 
-### 現在のベースライン（2026-07-09 再測定）
+### 現在のベースライン（2026-07-09 再測定 #2）
 
-> ⚠️ **重要な罠**: セルフホスト再構築時、`.build/selfhost/flat-overlay-cache.json`
-> （ディスクキャッシュ）が `src/compiler` の **古いフラットオーバレイ** を返し、
-> ソース編集が s2.wasm に反映されない。結果として T3 の失敗数が変化しないように
-> 見える。コンパイラ変更を試すたびに以下を削除してから再構築すること：
+| 状態 | 件数 |
+|------|------|
+| pass | 396 |
+| **validate-fail** | **25** |
+| compile-fail | 1 |
+| skip | 22 |
+| **total** | **444** |
+
+> 進捗メモ（`fix/726-task1-ref-vs-ref` 作業中, 2026-07-09）:
 >
-> ```bash
-> rm -f .build/selfhost/flat-overlay-cache.json
-> rm -rf .build/selfhost/flat-src .build/selfhost/arukellt-s2.wasm \
->        .build/selfhost/s2-hash.txt .build/selfhost/arukellt-s3.wasm
-> ARUKELLT_FIXPOINT_NO_CACHE=1 python3 scripts/manager.py selfhost fixpoint --build
-> ```
+> - 393/28 → **396/25**（+3 pass, -3 validate-fail）
+> - **新規 PASS**: `integration/word_counter.ark`, `stdlib_string/string_split.ark`
+>   （`vec:string` 型名 + `VT_I32` 誤宣言の修正、`call_type_fallback` の GC ref vt 保持）
+> - 既存 PASS 維持: `generics/two_params`, `stdlib_option_result/option_map`,
+>   `stdlib_io/clock_random`, `stdlib_trait/ord_sort_by`
+> - `from_trait/from_auto_convert.ark` は **まだ fail**（match 枝の variant cast 誤り）
+
+### エラー型別内訳（2026-07-09 #2）
+
+| エラー型 | 件数 |
+|----------|------|
+| ref-vs-ref (expected (ref null $type), found (ref null $type)) | 20 |
+| ref-vs-i32 (expected (ref null $type), found i32) | 0 |
+| i32-vs-ref (expected i32, found (ref null $type)) | 5 |
+| empty-stack | 0 |
+| array-subtype (expected subtype of arrayref) | 1 |
+| **合計 validate-fail** | **25** |
+
+#### 個別 fixture（2026-07-09 #2）
+
+- **ref-vs-ref (20)**: from_trait/from_auto_convert, generics_v1/trait_dispatch_stdlib,
+  iterator/custom_iterator, stdlib_hashmap/hashmap_typed_remove_extend,
+  stdlib_io/fs_read_error, stdlib_io/fs_read_write, stdlib_json/json_perf_decode,
+  stdlib_trait/debug_trait, stdlib_trait/debug_vec,
+  stdlib_trait/buf_read, stdlib_trait/display_trait_vec,
+  stdlib_trait/io_backward_compat, stdlib_trait/io_copy, stdlib_trait/read_write,
+  stdlib_trait/seek, structs/struct_in_vec, stdlib_csv/csv_perf,
+  stdlib_toml/toml_full_inline_dotted, stdlib_toml/toml_full_table_header
+- **ref-vs-i32 (0)**: （タスク2 で解消）
+- **i32-vs-ref (5)**: generics_v1/generic_method_call, generics_v1/nested_generic_call,
+  stdlib_trait/iterator_adapters, stdlib_wit/wit_names, trait/builtin_method
+- **array-subtype (1)**: host/sockets/connect_read_write
+- **compile-fail (1)**: stdlib_wit/wit_ast_parse
+
+### 旧ベースライン（2026-07-09 初回）
 
 | 状態 | 件数 |
 |------|------|
@@ -47,35 +81,19 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 >   **`stdlib_trait/ord_sort_by.ark`**（タスク2 個別経路）
 > - タスク2 完了: **ref-vs-i32 = 0**。残4件はすべて **ref-vs-ref** へ移行
 >   （`debug_vec`, `toml_full_*`）または PASS（`ord_sort_by`）
-> - `from_trait/from_auto_convert.ark` は **まだ fail**（タスク1）
+> - `from_trait/from_auto_convert.ark` は **まだ fail**（match 枝 variant cast）
 
-### エラー型別内訳（master）
-
-| エラー型 | 件数 |
-|----------|------|
-| ref-vs-ref (expected (ref null $type), found (ref null $type)) | 22 |
-| ref-vs-i32 (expected (ref null $type), found i32) | 0 |
-| i32-vs-ref (expected i32, found (ref null $type)) | 5 |
-| empty-stack | 0 |
-| array-subtype (expected subtype of arrayref) | 1 |
-| **合計 validate-fail** | **28** |
-
-#### 個別 fixture（master `check-t3-wasm-validate.py`）
-
-- **ref-vs-ref (22)**: from_trait/from_auto_convert, generics/two_params,
-  generics_v1/trait_dispatch_stdlib, integration/word_counter,
-  iterator/custom_iterator, stdlib_hashmap/hashmap_typed_remove_extend,
-  stdlib_io/fs_read_error, stdlib_io/fs_read_write, stdlib_json/json_perf_decode,
-  stdlib_string/string_split, stdlib_trait/debug_trait, stdlib_trait/debug_vec,
-  stdlib_trait/buf_read, stdlib_trait/display_trait_vec,
-  stdlib_trait/io_backward_compat, stdlib_trait/io_copy, stdlib_trait/read_write,
-  stdlib_trait/seek, structs/struct_in_vec, stdlib_csv/csv_perf,
-  stdlib_toml/toml_full_inline_dotted, stdlib_toml/toml_full_table_header
-- **ref-vs-i32 (0)**: （タスク2 で解消）
-- **i32-vs-ref (5)**: generics_v1/generic_method_call, generics_v1/nested_generic_call,
-  stdlib_trait/iterator_adapters, stdlib_wit/wit_names, trait/builtin_method
-- **array-subtype (1)**: host/sockets/connect_read_write
-- **compile-fail (1)**: stdlib_wit/wit_ast_parse
+> ⚠️ **重要な罠**: セルフホスト再構築時、`.build/selfhost/flat-overlay-cache.json`
+> （ディスクキャッシュ）が `src/compiler` の **古いフラットオーバレイ** を返し、
+> ソース編集が s2.wasm に反映されない。コンパイラ変更を試すたびに以下を削除してから再構築すること：
+>
+> ```bash
+> rm -f .build/selfhost/flat-overlay-cache.json
+> rm -rf .build/selfhost/flat-src .build/selfhost/arukellt-s2.wasm \
+>        .build/selfhost/s2-hash.txt .build/selfhost/arukellt-s3.wasm
+> ARUKELLT_FIXPOINT_NO_CACHE=1 python3 scripts/manager.py selfhost fixpoint --build
+> /bin/cp -f .build/selfhost/arukellt-s2.wasm .build/selfhost/arukellt-s2-runtime.wasm
+> ```
 
 ### 2026-07-08 調査で判明した根本ブロッカー
 
@@ -127,7 +145,7 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 | **empty-stack** | 0 | （タスク5で解消） |
 | **array-subtype** | 1 | `expected subtype of arrayref, found (ref null (id 21))` |
 
-## タスク1: ref-vs-ref（22件）— 最大グループ
+## タスク1: ref-vs-ref（20件）— 最大グループ
 
 ### エラー
 
@@ -136,14 +154,10 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 ### 対象fixture
 
 - `from_trait/from_auto_convert.ark`
-- `generics/two_params.ark`
-- `generics_v1/nested_generic_call.ark`
 - `generics_v1/trait_dispatch_stdlib.ark`
-- `integration/word_counter.ark`
 - `iterator/custom_iterator.ark`
 - `stdlib_csv/csv_perf.ark`
 - `stdlib_hashmap/hashmap_typed_remove_extend.ark`
-- `stdlib_string/string_split.ark`
 - `stdlib_trait/buf_read.ark`
 - `stdlib_trait/debug_trait.ark`
 - `stdlib_trait/display_trait_vec.ark`

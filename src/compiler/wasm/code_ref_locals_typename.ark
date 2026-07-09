@@ -62,7 +62,7 @@ fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 
     if !starts_with(clone(type_name), String_from("vec:")) {
         return 0 - 1
     }
-    if eq(clone(type_name), String_from("vec:String")) {
+    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
         return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     }
     if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {

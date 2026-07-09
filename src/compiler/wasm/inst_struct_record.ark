@@ -13,7 +13,9 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_record
+use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
+use wasm::code_ref_locals
 use wasm::intrinsics::helpers_core
 use mir::value_types
 
@@ -44,24 +46,12 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
     helpers_core::emit_heap_set(w)
 }
 
-fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
-        let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-        let gc_type_idx = if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-        } else {
-            let size_hint = inst_accessors_operands::MirInst_arg1(inst)
-            let struct_size_est = if size_hint >= 100000 {
-                size_hint % 100000
-            } else if size_hint > 0 {
-                size_hint
-            } else {
-                byte_offset + 4
-            }
-            ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
-        }
+        let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, prev_op, prev_arg0, byte_offset, inst_accessors_operands::MirInst_arg1(inst))
         let field_idx = compute_field_idx_get(inst, byte_offset)
+        writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
         return
     }
@@ -97,20 +87,7 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
-        let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-        let gc_type_idx = if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-        } else {
-            let size_hint = inst_accessors_operands::MirInst_dest(inst)
-            let struct_size_est = if size_hint >= 100000 {
-                size_hint % 100000
-            } else if size_hint > 0 {
-                size_hint
-            } else {
-                byte_offset + 4
-            }
-            ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
-        }
+        let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, 0 - 1, 0 - 1, byte_offset, inst_accessors_operands::MirInst_dest(inst))
         let field_idx = compute_field_idx_set(inst, byte_offset)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
@@ -165,4 +142,36 @@ fn compute_field_idx_get(inst: MirInst, byte_offset: i32) -> i32 {
         return arg1 / 100000
     }
     byte_offset / 4
+}
+
+fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, byte_offset: i32, size_hint: i32) -> i32 {
+    let struct_name = inst_accessors_literals::MirInst_str_val(inst)
+    if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    }
+    let mut base_local = inst_accessors_operands::MirInst_arg0(inst)
+    if base_local < 0 && prev_op == mir::opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
+        base_local = prev_arg0
+    }
+    if base_local >= 0 {
+        let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base_local)
+        if spine_gc >= 0 {
+            return spine_gc
+        }
+        let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+        let inferred = code_ref_locals::infer_ref_local_gc_type(f, base_local, ctx)
+        if inferred >= 0 {
+            return inferred
+        }
+    }
+    let size_hint_val = size_hint
+    let struct_size_est = if size_hint_val >= 100000 {
+        size_hint_val % 100000
+    } else if size_hint_val > 0 {
+        size_hint_val
+    } else {
+        byte_offset + 4
+    }
+    ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
 }

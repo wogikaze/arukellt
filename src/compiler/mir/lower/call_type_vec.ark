@@ -13,8 +13,11 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         let elem_ty = strip_with_cap_suffix(clone(raw_elem))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, concat(String_from("vec:"), elem_ty))
     }
-    if eq(clone(callee_name), "text::chars") || eq(clone(callee_name), "chars") || eq(clone(callee_name), "split") || eq(clone(callee_name), "text::split") || eq(clone(callee_name), "string::split") {
+    if is_vec_string_producer_callee(clone(callee_name)) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:string"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        }
     }
     if eq(clone(callee_name), "env::args") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:String"))
@@ -90,6 +93,42 @@ fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
         }
     }
+}
+
+fn is_vec_string_producer_callee(callee_name: String) -> bool {
+    if vec_string_producer_base_matches(clone(callee_name)) {
+        return true
+    }
+    let base = strip_mono_suffix_for_vec_producer(clone(callee_name))
+    if len(base) > 0 && !eq(clone(base), clone(callee_name)) {
+        return vec_string_producer_base_matches(base)
+    }
+    false
+}
+
+fn vec_string_producer_base_matches(name: String) -> bool {
+    if eq(clone(name), "text::chars") || eq(clone(name), "chars") || eq(clone(name), "split") || eq(clone(name), "text::split") || eq(clone(name), "string::split") {
+        return true
+    }
+    if ends_with(clone(name), String_from("::split")) || ends_with(clone(name), String_from("::chars")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("split__")) || starts_with(clone(name), String_from("chars__")) {
+        return true
+    }
+    false
+}
+
+fn strip_mono_suffix_for_vec_producer(name: String) -> String {
+    let name_len = len(name)
+    let mut i = 0
+    while i < name_len - 1 {
+        if char_at(name, i) == 95 && char_at(name, i + 1) == 95 {
+            return substring(name, 0, i)
+        }
+        i = i + 1
+    }
+    name
 }
 
 fn strip_with_cap_suffix(s: String) -> String {

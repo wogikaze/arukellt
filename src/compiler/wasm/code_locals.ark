@@ -3,6 +3,7 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
+use wasm::code_ref_locals_infer_dest
 use wasm::code_scratch_locals
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
@@ -52,7 +53,25 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
         return true
     }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+        return true
+    }
+    if starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+        return true
+    }
+    if code_ref_locals_infer_dest::local_has_multiple_enum_variant_types(f, local_idx) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+        return true
+    }
     if starts_with(clone(type_name), String_from("vec:")) {
+        if emit_explicit_vec_gc_type(body, clone(type_name), ctx) {
+            return true
+        }
         if vt == value_types::VT_I32() {
             let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
             if gc_type < 0 {
@@ -63,28 +82,69 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
                 return true
             }
         } else {
+            let inferred_vec = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+            if inferred_vec >= 0 {
+                writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                writer_core::emit_leb128_s(body, inferred_vec)
+                return true
+            }
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
-            } else if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
-            } else if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
-            } else if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
+            let elem_name = substring(clone(type_name), 4, len(type_name))
+            if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+                writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
             } else {
-                // Check if element is a struct ref (non-primitive type name).
-                let elem_name = substring(clone(type_name), 4, len(type_name))
-                if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
-                    writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
-                } else {
-                    writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
-                }
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
             }
             return true
         }
     }
     if emit_gc_local_named_type(body, type_name, vt, f, local_idx, ctx) {
+        return true
+    }
+    let variant_slot = local_access::MirLocal_variant_slot(loc)
+    if variant_slot >= 0 && !local_has_container_type_name(clone(type_name)) {
+        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, variant_gc)
+            return true
+        }
+    }
+    false
+}
+
+fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {
+    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
+        return true
+    }
+    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
+        return true
+    }
+    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
+        return true
+    }
+    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
+        return true
+    }
+    false
+}
+
+fn local_has_container_type_name(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
         return true
     }
     false

@@ -1,0 +1,210 @@
+// Arukellt Selfhost - ADR-040 Phase 5e: multi-variant local normalization.
+//
+// When a local receives values from more than one enum variant slot,
+// clear variant_slot and keep an open enum type_name so local declaration
+// (enum_open) matches stores without ref.cast to a specific variant.
+
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::function_local_mutation
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::local_access
+use mir::local_mutation
+use mir::opcodes
+use mir::post_pass_stack_scan
+
+fn mir_function_normalize_multi_variant_locals(f: MirFunction) -> MirFunction {
+    let local_count = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < local_count {
+        if local_receives_multiple_variant_slots(f, li) {
+            normalize_local_to_open_enum(f, li)
+        }
+        li = li + 1
+    }
+    mir_function_clear_open_enum_variant_slots(f)
+    mir_function_clear_container_variant_slots(f)
+}
+
+fn is_ref_container_type_name(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("struct:")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    false
+}
+
+// vec:/hashmap:/struct: locals must not keep enum variant_slot metadata.
+fn mir_function_clear_container_variant_slots(f: MirFunction) -> MirFunction {
+    let local_count = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < local_count {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let type_name = local_access::MirLocal_type_name(loc)
+        let slot = local_access::MirLocal_variant_slot(loc)
+        if slot >= 0 && is_ref_container_type_name(clone(type_name)) {
+            local_access::MirLocal_set_variant_slot(loc, 0 - 1)
+            function_local_mutation::MirFunction_set_local(f, li, loc)
+        }
+        li = li + 1
+    }
+    f
+}
+
+// Open enum containers (enum:/option:/Result_) always declare as enum_open in
+// code_locals.ark regardless of variant_slot. Clear stray slots so local.set
+// does not ref.cast to a specific variant type.
+fn mir_function_clear_open_enum_variant_slots(f: MirFunction) -> MirFunction {
+    let local_count = function_locals_view::MirFunction_local_count(f)
+    let mut li = 0
+    while li < local_count {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        let type_name = local_access::MirLocal_type_name(loc)
+        let slot = local_access::MirLocal_variant_slot(loc)
+        if slot >= 0 && is_open_enum_container_type_name(clone(type_name)) {
+            local_access::MirLocal_set_variant_slot(loc, 0 - 1)
+            function_local_mutation::MirFunction_set_local(f, li, loc)
+        }
+        li = li + 1
+    }
+    f
+}
+
+fn is_open_enum_container_type_name(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        return true
+    }
+    false
+}
+
+fn local_receives_multiple_variant_slots(f: MirFunction, local_idx: i32) -> bool {
+    collect_variant_slots_for_local(f, local_idx, 0, 0 - 1) == 0 - 2
+}
+
+fn collect_variant_slots_for_local(f: MirFunction, local_idx: i32, depth: i32, first_slot: i32) -> i32 {
+    if depth > 8 {
+        return first_slot
+    }
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return first_slot
+    }
+    let mut slot_state = first_slot
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if op == opcodes::MIR_GC_STRUCT_NEW() {
+                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                    slot_state = merge_variant_slot(slot_state, inst_accessors_operands::MirInst_arg0(inst))
+                    if slot_state == 0 - 2 {
+                        return 0 - 2
+                    }
+                }
+            }
+            if op == opcodes::MIR_LOCAL_SET() {
+                let set_dest = inst_accessors_operands::MirInst_arg0(inst)
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if set_dest == local_idx {
+                    if source >= 0 {
+                        let src_loc = function_locals_view::MirFunction_local_at(f, source)
+                        let src_slot = local_access::MirLocal_variant_slot(src_loc)
+                        if src_slot >= 0 {
+                            slot_state = merge_variant_slot(slot_state, src_slot)
+                            if slot_state == 0 - 2 {
+                                return 0 - 2
+                            }
+                        }
+                        slot_state = collect_variant_slots_for_local(f, source, depth + 1, slot_state)
+                        if slot_state == 0 - 2 {
+                            return 0 - 2
+                        }
+                    } else {
+                        let src_ii = post_pass_stack_scan::find_stack_producer(block, inst_count, ii)
+                        if src_ii >= 0 {
+                            let src_inst = block_inst_access::MirBlock_inst_at(block, src_ii)
+                            if inst_accessors_shape::MirInst_op(src_inst) == opcodes::MIR_GC_STRUCT_NEW() {
+                                slot_state = merge_variant_slot(slot_state, inst_accessors_operands::MirInst_arg0(src_inst))
+                                if slot_state == 0 - 2 {
+                                    return 0 - 2
+                                }
+                            }
+                            let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
+                            if src_dest >= 0 && src_dest != local_idx {
+                                slot_state = collect_variant_slots_for_local(f, src_dest, depth + 1, slot_state)
+                                if slot_state == 0 - 2 {
+                                    return 0 - 2
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    slot_state
+}
+
+// Returns -1 (unset), slot (single), or -2 (multiple distinct slots).
+fn merge_variant_slot(first_slot: i32, slot: i32) -> i32 {
+    if slot < 0 {
+        return first_slot
+    }
+    if first_slot < 0 {
+        return slot
+    }
+    if slot != first_slot {
+        return 0 - 2
+    }
+    first_slot
+}
+
+fn normalize_local_to_open_enum(f: MirFunction, local_idx: i32) {
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let type_name = local_access::MirLocal_type_name(loc)
+    let open_name = normalize_type_name_to_open_enum(clone(type_name))
+    let mut new_loc = loc
+    local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
+    if len(open_name) > 0 {
+        new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, open_name)
+    }
+    function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
+}
+
+fn normalize_type_name_to_open_enum(type_name: String) -> String {
+    if is_open_enum_container_type_name(clone(type_name)) {
+        return clone(type_name)
+    }
+    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+        return String_from("result:")
+    }
+    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+        return String_from("option:")
+    }
+    if len(type_name) == 0 {
+        return String_from("enum:")
+    }
+    String_from("enum:")
+}
