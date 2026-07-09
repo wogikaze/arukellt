@@ -173,15 +173,30 @@ fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
 // receiver struct name ("Picker" / "struct:Picker:…") as return_type_name.
 // When the mono suffix names a different concrete type, use that for wasm return.
 fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: String, mir: MirModule) -> String {
-    let receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(clone(return_type_name), mir)
+    let full_suffix = extract_mono_suffix(fn_name)
+    if len(full_suffix) == 0 {
+        return String_new()
+    }
+    let suffix_with_sep = concat(String_from("__"), clone(full_suffix))
+    let fn_len = len(fn_name)
+    let suffix_sep_len = len(suffix_with_sep)
+    if fn_len <= suffix_sep_len || !ends_with(clone(fn_name), clone(suffix_with_sep)) {
+        return String_new()
+    }
+    let base = substring(fn_name, 0, fn_len - suffix_sep_len)
+    let base_parts = split_by_double_underscore(clone(base))
+    // Require Type__method base shape; plain mono functions like id__i32 must not match.
+    if len(base_parts) < 2 {
+        return String_new()
+    }
+    let mut receiver = sections_types_sigs_mono_helpers::mono_method_receiver_name(clone(return_type_name), mir)
+    if len(receiver) == 0 {
+        receiver = get_unchecked(base_parts, 0)
+    }
     if len(receiver) == 0 {
         return String_new()
     }
     if !starts_with(clone(fn_name), concat(clone(receiver), String_from("__"))) {
-        return String_new()
-    }
-    let full_suffix = extract_mono_suffix(fn_name)
-    if len(full_suffix) == 0 {
         return String_new()
     }
     let type_keys = split_by_double_underscore(full_suffix)

@@ -34,6 +34,15 @@ fn mir_emit_method_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput
                     return_vt = value_types::VT_GC_REF()
                 }
                 rt_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete)
+            } else {
+                let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(clone(emit_method_name), clone(generic_rtn))
+                if len(suffix_rtn) > 0 {
+                    rt_type_name = clone(suffix_rtn)
+                    return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(suffix_rtn))
+                    if return_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+                        return_vt = value_types::VT_GC_REF()
+                    }
+                }
             }
         }
         entry_emit_method::mir_emit_method_body(ctx, body_input, clone(struct_name), clone(mangled), emit_method_name, method_param_count, entry_view, method_info_index, return_vt, rt_type_name)

@@ -24,7 +24,7 @@ fn mir_index_impl_methods(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_ret
         let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(mrtn), mono::mono_index_count(midx, clone(mangled)) > 0)
         push(fn_return_vts, mrvt)
         push(fn_return_type_names, mrtn)
-        fn_index_mono::mir_index_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(mangled), mrvt, clone(mrtn), mono_instances, generic_return_ty)
+        fn_index_mono::mir_index_method_mono_variants(fn_names, fn_return_vts, fn_return_type_names, midx, clone(mangled), mrvt, clone(mrtn), mono_instances, generic_return_ty)
         next_fn_index = next_fn_index + 1
         mi = mi + 1
     }

@@ -1,5 +1,6 @@
 // Arukellt Selfhost - MIR lowering function index mono variants.
 
+use mir::lower::fn_index_method_return_type
 use mir::lower::return_typeinfo
 use mir::lower_kinds
 use mir::mono
@@ -8,6 +9,14 @@ use mir::type_contracts
 use mir::typeinfo_shape
 
 fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo) {
+    mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, clone(base_name), return_vt, clone(return_type_name), mono_instances, generic_return_ty, false)
+}
+
+fn mir_index_method_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo) {
+    mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, clone(base_name), return_vt, clone(return_type_name), mono_instances, generic_return_ty, true)
+}
+
+fn mir_index_mono_variants_with_method_fallback(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo, method_return_suffix_fallback: bool) {
     let mono_count = mono::mono_index_count(midx, clone(base_name))
     if mono_count > 0 {
         let mut mono_i = 0
@@ -20,6 +29,12 @@ fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_re
             if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
                 mono_rvt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
                 mono_rtn = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
+            } else if method_return_suffix_fallback {
+                let suffix_rtn = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(clone(safe_name), clone(return_type_name))
+                if len(suffix_rtn) > 0 {
+                    mono_rtn = clone(suffix_rtn)
+                    mono_rvt = fn_index_method_return_type::method_return_vt_from_type_name(clone(suffix_rtn))
+                }
             }
             push(fn_names, safe_name)
             push(fn_return_vts, mono_rvt)
