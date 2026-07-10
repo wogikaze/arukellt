@@ -57,6 +57,7 @@ graph LR
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
   I729["729 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration"]
+  I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -82,6 +83,7 @@ graph LR
   I703 --> I709
   I724 --> I729
   I727 --> I729
+  I726 --> I730
   I691 --> I710
   I697 --> I710
   I709 --> I710
@@ -145,10 +147,11 @@ graph LR
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **668** depends on: 074, 510, 714; blocks: none
 - **727** depends on: 714, 675; blocks: 729
-- **726** depends on: 724; blocks: none
+- **726** depends on: 724; blocks: 730
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **729** depends on: 724, 727; blocks: none
+- **730** depends on: 726; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713

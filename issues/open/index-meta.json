@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-10T04:45:27Z",
+  "generated_at": "2026-07-10T12:28:34Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -965,7 +965,9 @@
       "depends_on": [
         "724"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "730"
+      ],
       "acceptance": {
         "checked": 4,
         "unchecked": 4
@@ -1040,6 +1042,25 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "730",
+      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
+      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "726"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "architecture-investigation",
+        "upstream_notes": null
       }
     },
     {

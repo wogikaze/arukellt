@@ -46,3 +46,4 @@
 | [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: Question Mark Operator (?) and Error Conversion | Archive | ステータス: DRAFT — #688/#692 完了後に実装される ? 演算子の設計 ADR |
 | [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | Archive | ステータス: Accepted; implementation in progress (PR-4-wide-audit / PR-4-switch 完了。T3 reg-vt-audit mismatched=0。PR-4b-trait-generic 完了 — trait/generic/mono CALL の戻り値型を SignatureRegistry / MonoInstanceTable 経由に切替。Phase 5-7 残作業は #724 で追跡) |
 | [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | Archive | ステータス: ACCEPTED — Phase 1 (構文・型チェック・ディスカバリ・カバレッジ採用 #715) 完了、Phase 2 (実行モデル) 未実装 |
+| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | Archive | ステータス: PROPOSED |
