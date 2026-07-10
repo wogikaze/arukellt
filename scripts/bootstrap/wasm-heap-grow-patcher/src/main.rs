@@ -1,3 +1,5 @@
+mod wasm32to64;
+
 use std::collections::HashSet;
 use std::env;
 use walrus::{
@@ -148,17 +150,6 @@ fn stack_top_is_i32(instrs: &[(Instr, walrus::ir::InstrLocId)]) -> bool {
     }
 }
 
-fn recent_heap_get(instrs: &[(Instr, walrus::ir::InstrLocId)], heap_global: GlobalId) -> bool {
-    let start = instrs.len().saturating_sub(12);
-    for (instr, _) in &instrs[start..] {
-        if let Instr::GlobalGet(GlobalGet { global }) = instr {
-            if *global == heap_global {
-                return true;
-            }
-        }
-    }
-    false
-}
 
 fn patch_instr_seq(
     func: &mut LocalFunction,
@@ -181,7 +172,6 @@ fn patch_instr_seq(
         }
         if let Instr::GlobalSet(ref gs) = instr {
             if gs.global == heap_global
-                && recent_heap_get(&out, heap_global)
                 && stack_top_is_i32(&out)
             {
                 out.push((Instr::Call(walrus::ir::Call { func: grow_fn }), loc));
@@ -196,10 +186,19 @@ fn patch_instr_seq(
 fn main() {
     let path = env::args().nth(1).expect("input wasm");
     let out = env::args().nth(2).expect("output wasm");
-    let dedupe_only = env::args().nth(3).as_deref() == Some("--dedupe-exports");
+    let mode = env::args().nth(3);
+
+    if mode.as_deref() == Some("--memory64") {
+        let bytes = std::fs::read(&path).expect("read wasm");
+        let converted = wasm32to64::convert_to_memory64(&bytes).expect("convert to memory64");
+        std::fs::write(&out, &converted).expect("write wasm");
+        eprintln!("converted to memory64; wrote {}", out);
+        return;
+    }
+
     let mut module = load_module(&path);
 
-    if dedupe_only {
+    if mode.as_deref() == Some("--dedupe-exports") {
         let removed = dedupe_export_names(&mut module);
         module.emit_wasm_file(&out).expect("write wasm");
         eprintln!("removed {} duplicate exports (no GC); wrote {}", removed, out);
@@ -207,7 +206,7 @@ fn main() {
     }
 
     for mem in module.memories.iter_mut() {
-        mem.initial = 65536;
+        mem.initial = 1;
         mem.maximum = None;
     }
 
@@ -225,15 +224,19 @@ fn main() {
     builder
         .func_body()
         .local_get(end)
+        .i32_const(1048576) // headroom: pre-grow 16 pages before reaching boundary
+        .binop(walrus::ir::BinaryOp::I32Add)
         .memory_size(memory_id)
         .i32_const(16)
         .binop(walrus::ir::BinaryOp::I32Shl)
-        .binop(walrus::ir::BinaryOp::I32GtU)
+        .binop(walrus::ir::BinaryOp::I32GeU)
         .if_else(
             None,
             |then_| {
                 then_
                     .local_get(end)
+                    .i32_const(1048576) // headroom
+                    .binop(walrus::ir::BinaryOp::I32Add)
                     .memory_size(memory_id)
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32Shl)
@@ -275,7 +278,7 @@ fn main() {
 
     module.emit_wasm_file(&out).expect("write wasm");
     eprintln!(
-        "patched {} heap global.set sites; memory initial=65536; wrote {}",
+        "patched {} heap global.set sites; memory initial=1; wrote {}",
         total_patched, out
     );
 }

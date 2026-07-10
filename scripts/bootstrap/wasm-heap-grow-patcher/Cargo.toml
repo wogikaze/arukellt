@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 walrus = "0.23"
+wasmparser = "0.214"
+wasm-encoder = { version = "0.214", features = ["wasmparser"] }
