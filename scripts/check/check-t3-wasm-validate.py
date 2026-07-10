@@ -71,6 +71,8 @@ T3_COMPILE_SKIP: frozenset[str] = frozenset({
     "stdlib_fs/host_capability_contract.ark",
     # stdlib_http_compile requires HTTP host capability
     "stdlib_http_compile.ark",
+    # #730: selfhost OOM compiling recursive WitNode AST to T3 GC
+    "stdlib_wit/wit_ast_parse.ark",
 })
 
 

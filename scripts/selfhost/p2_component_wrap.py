@@ -637,7 +637,8 @@ def _wrap_p2_command_component_locked(core_wasm: bytes) -> bytes:
                 return via_tools
             if attempt < 9:
                 time.sleep(0.25)
-        raise RuntimeError("wasm-tools component embed/new failed")
+        # Fall through to bridged/legacy when wasm-tools embed+new
+        # rejects the guest (e.g. invalid rethrow label on newer wasm-tools).
     via_tools = _wrap_via_wasm_tools(core_wasm)
     if via_tools is not None:
         return via_tools

@@ -7,7 +7,6 @@ use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
-use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::match_payload_bind_types
 use mir::lower::match_payload_bind_gc_resolve

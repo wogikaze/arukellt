@@ -2262,6 +2262,7 @@ t3-compile:stdlib_sort/sort_f64.ark
 t3-compile:stdlib_sort/sort_i64.ark
 t3-compile:stdlib_wit/wit_ast_parse.ark
 t3-compile:stdlib_wit/wit_names.ark
+t3-compile:stdlib_wit/wit_type_basic.ark
 t3-compile:string_interp/fstring_basic.ark
 t3-compile:string_interp/fstring_expr.ark
 t3-compile:struct_mutation/field_assign.ark

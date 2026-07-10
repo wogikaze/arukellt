@@ -1617,6 +1617,7 @@ def _write_worktree_namespace_overlay(
         text = _rename_overlay_publish_symbols(text, rel_name)
         text = _rewrite_overlay_call_sites(text)
         out_name = f"{flat_name}.ark"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(_flatten_compiler_imports(text), encoding="utf-8")
         written.add(out_name)
         write_order.append(out_name)
@@ -2667,14 +2668,15 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
             host_text,
         ):
             continue
-        text = _sub_required(
+        # Facades may already be stripped as thin overlay delegates.
+        text = _sub_optional(
             text,
             rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool \{{[^}}]+\}}\n+",
             "",
             f"drop recursive host-call facade {symbol} from mir_module_functions",
             count=1,
         )
-        text = _replace_required(
+        text = _replace_optional(
             text,
             f"{symbol}(",
             f"mir_module_host_calls::{symbol}(",
