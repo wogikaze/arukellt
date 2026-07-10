@@ -142,6 +142,103 @@ Add or extend a gate under `scripts/check/` that:
   use standard WASI P2 imports (not `arukellt_host`); this issue brings
   HTTP/sockets to the same standard.
 
+## Related: retire `wasm-heap-grow-patcher` (walrus dependency)
+
+The workspace has a second external Rust dependency in the selfhost
+bootstrap pipeline: `scripts/bootstrap/wasm-heap-grow-patcher` (depends
+on `walrus` crate).  This tool post-processes the pinned wasm before
+stage-2 compilation.  It should be retired alongside the host bridge —
+both are external Rust dependencies that the selfhost pipeline should
+not need.
+
+### What the patcher does
+
+1. **Memory expansion**: bumps `initial` to 65536 pages (4 GiB) and
+   removes `maximum`.  The pinned wasm ships with 128 pages (8 MiB);
+   the current selfhost compiler emits 8192 pages (512 MiB) for non-GC
+   targets (`sections_memory.ark` → `initial_memory_pages()`).
+2. **Vec_new overflow guard**: replaces the bump allocator prologue in
+   `Vec_new` intrinsics with a u32-wraparound-aware version.
+3. **Export deduplication**: removes duplicate export names (first-wins).
+
+A fourth post-processing step (`_patch_bootstrap_disable_selfhost_mir_prune`
+in `scripts/selfhost/checks.py`) flips a `prune=1` flag to `prune=0` in
+the pinned wasm binary so stage-2 keeps the wasm emitter functions.
+
+### Why 4 GiB is overkill
+
+The patcher's 65536-page (4 GiB) initial memory is a brute-force fix for
+the pinned wasm's small 128-page initial memory.  The current compiler
+already emits 8192 pages (512 MiB) and has `memory.grow` support
+(`helpers_core_heap.ark` → `emit_heap_ensure_grown` called from
+`emit_heap_set`, 85+ call sites).  4 GiB is unnecessary; the
+performance concern (memory.grow call overhead) can be addressed later.
+**Removing the external dependency takes priority over performance
+tuning.**
+
+### Root cause analysis (must precede patcher removal)
+
+The patcher masks three distinct root-cause issues.  Each must be fixed
+at the source before the patcher can be deleted:
+
+#### 1. Pinned wasm stale memory section (128 pages)
+
+The pinned wasm (`bootstrap/arukellt-selfhost.wasm`) has 128 pages in
+its memory section.  No emitter in the codebase history — Rust T1
+(256 → 8192), Rust T3 (4), or selfhost (1024 → 8192) — ever emitted 128
+pages.  The value likely originates from the original bootstrap artifact
+created before ADR-029.  **Fix**: refresh the pinned wasm from current
+source so it carries 8192 pages natively.  The patcher's memory
+expansion then becomes a no-op.
+
+#### 2. Vec_new missing u32 wraparound detection
+
+`src/compiler/wasm/intrinsic_vec_new_layout.ark` emits a simple bump
+allocator (`global.get 0; i32.const N; i32.add; global.set 0`) without
+checking for u32 overflow.  The patcher's `patch_vec_new` replaces this
+with a wraparound-safe version.  **Fix**: add the overflow check to the
+compiler's own `emit_vec_new_write_header` / `emit_vec_new_finish_allocation`
+so the patcher's Vec_new replacement is unnecessary.
+
+#### 3. Duplicate export names
+
+The selfhost compiler already has export deduplication logic
+(`sections_exports.ark` → `mir_collision_export_name` in
+`call_resolve.ark`), which renames colliding exports.  However, the
+pinned wasm (built from older source) may predate this logic, or the
+deduplication may not cover all cases.  **Fix**: verify the current
+compiler never emits duplicate export names; if gaps exist, fix them in
+`sections_exports.ark`.  The patcher's `dedupe_export_names` then
+becomes unnecessary.
+
+#### 4. MIR prune strips emitter functions (most critical)
+
+The pinned wasm's `lower_to_mir` passes `prune=1`, which strips most
+of the wasm emitter when the compiler compiles itself to stage-2
+(~345 KiB broken s2).  `_patch_bootstrap_disable_selfhost_mir_prune`
+flips this to `prune=0` via binary byte patching.
+
+This is the **most critical** issue: necessary code disappears without
+the patch.  **Fix**: refresh the pinned wasm from current source where
+`lower_entry_input_to_mir` hardcodes the no-prune path (the modular
+pipeline already does this — see `src/compiler/mir/lower/entry.ark`
+L17-19).  The binary patch then becomes unnecessary.
+
+### Retirement sequence
+
+1. **Root cause fixes** (compiler-side):
+   - Add u32 wraparound check to Vec_new emission
+   - Verify export deduplication covers all cases
+2. **Refresh pinned wasm** from current source (carries 8192 pages +
+   no-prune path + current export dedup natively)
+3. **Delete `scripts/bootstrap/wasm-heap-grow-patcher/`** and remove
+   from `Cargo.toml` workspace members
+4. **Remove patcher calls** from `scripts/selfhost/checks.py`
+   (`_ensure_bootstrap_compiler_wasm`, `_ensure_runtime_compiler_wasm`,
+   `_dedupe_selfhost_wasm_exports`, `_patch_bootstrap_disable_selfhost_mir_prune`)
+5. **Remove patcher build** from `.github/workflows/ci.yml`
+6. `python3 scripts/manager.py verify quick` passes without the patcher
+
 ## References
 
 - `docs/adr/ADR-007-targets.md` — L204-210: `arukellt_io` abolition and
@@ -155,3 +252,13 @@ Add or extend a gate under `scripts/check/` that:
   `emit_target.ark`
 - `std/host/http.ark`, `std/host/sockets.ark`
 - `std/manifest.toml` (HTTP/sockets availability blocks)
+- `scripts/bootstrap/wasm-heap-grow-patcher/src/main.rs` (walrus patcher)
+- `scripts/selfhost/checks.py` — `_ensure_bootstrap_compiler_wasm`,
+  `_patch_bootstrap_disable_selfhost_mir_prune`,
+  `_dedupe_selfhost_wasm_exports`
+- `src/compiler/wasm/intrinsics/helpers_core_heap.ark` — `emit_heap_set`,
+  `emit_heap_ensure_grown`, `emit_heap_grow_pages`
+- `src/compiler/wasm/intrinsic_vec_new_layout.ark` — Vec_new bump allocator
+- `src/compiler/wasm/sections_exports.ark` — export deduplication logic
+- `src/compiler/wasm/sections_memory.ark` — `initial_memory_pages()`
+- `src/compiler/mir/lower/entry.ark` — `lower_entry_input_to_mir` (no-prune path)
