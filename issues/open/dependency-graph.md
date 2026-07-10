@@ -54,6 +54,7 @@ graph LR
   I668["668 668 — P2 native component polish (post-#074)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
+  I729["729 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
@@ -74,6 +75,7 @@ graph LR
   I714 --> I727
   I675 --> I727
   I724 --> I726
+  I724 --> I729
   I682 --> I683
   I691 --> I709
   I695 --> I709
@@ -130,7 +132,7 @@ graph LR
 - **721** depends on: none; blocks: none
 - **722** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
-- **724** depends on: none; blocks: 726
+- **724** depends on: none; blocks: 726, 729
 - **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
@@ -143,6 +145,7 @@ graph LR
 - **668** depends on: 074, 510, 714; blocks: none
 - **727** depends on: 714, 675; blocks: none
 - **726** depends on: 724; blocks: none
+- **729** depends on: 724; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711

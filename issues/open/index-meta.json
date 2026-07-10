@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-10T03:58:52Z",
+  "generated_at": "2026-07-10T04:42:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -716,7 +716,8 @@
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [
-        "726"
+        "726",
+        "729"
       ],
       "acceptance": {
         "checked": 10,
@@ -970,6 +971,25 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 71
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
       }
     },
     {
