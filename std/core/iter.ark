@@ -699,9 +699,15 @@ pub fn iter_count_i32(v: Vec<i32>) -> i32 {
     len(v)
 }
 
+fn add_i32_i32(a: i32, b: i32) -> i32 {
+    a + b
+}
+
 /// Sum all elements of `v`.
 pub fn iter_sum_i32(v: Vec<i32>) -> i32 {
-    iter_fold_i32(v, 0, fn(a: i32, b: i32) -> i32 { a + b })
+    // Named callback: anonymous `fn(...)` closures currently emit an empty-stack
+    // stub on GC targets (nop/drop/unreachable), which fails wasm validation.
+    iter_fold_i32(v, 0, add_i32_i32)
 }
 
 /// Returns true if any element of `v` satisfies `f`.

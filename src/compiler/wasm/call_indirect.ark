@@ -1,6 +1,5 @@
 // Arukellt Selfhost - Wasm call_indirect emission for funcref HOF support.
 
-use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
 use mir::inst_accessors_literals
@@ -49,12 +48,16 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
-    // Unary HOF (map/filter): prefer identity / any (i32)->i32 by name/param.
+    // Unary HOF (map/filter): when element and result are i32, use the stable
+    // WASI host sig i32_1i32 (type index 3). Searching MirFunctions can falsely
+    // match Vec→Iter helpers whose wasm type is GC-ref based.
     // Binary HOF (fold): prefer (i32,i32)->i32 over (Vec,i32)->Vec.
     if arg_count == 1 {
-        let named = find_unary_i32_callback_type(functions, fn_type_map, fn_count)
-        if named >= 0 {
-            return named
+        if dest_vt == value_types::VT_I32() && (first_arg_vt < 0 || first_arg_vt == value_types::VT_I32()) {
+            let named = find_unary_i32_callback_type(functions, fn_type_map, fn_count)
+            if named >= 0 {
+                return named
+            }
         }
     }
     if arg_count == 2 {
@@ -91,30 +94,15 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
 }
 
 fn find_unary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
-    // Prefer a function literally named identity (std::core::identity).
-    let mut fi = 0
-    while fi < fn_count {
-        let f = get_unchecked(functions, fi)
-        let name = function_identity::MirFunction_name(f)
-        let bare = strip_fn_module_prefix(clone(name))
-        if eq(clone(bare), String_from("identity")) && fi < len(fn_type_map) {
-            return get_unchecked(fn_type_map, fi)
-        }
-        fi = fi + 1
+    // Map/filter callbacks are funcref params. Searching MirFunctions can
+    // falsely match Vec→Iter helpers whose wasm type is GC-ref based.
+    // WASI host type sigs always include i32_1i32 as type index 3
+    // (see sections_types_sigs::append_wasi_type_sigs).
+    if fn_count < 0 {
+        let _f = functions
+        let _m = fn_type_map
     }
-    // Else first unary function whose param0 is i32 (not GC/ref).
-    fi = 0
-    while fi < fn_count {
-        let f = get_unchecked(functions, fi)
-        if function_param_view::MirFunction_param_count(f) == 1 && fi < len(fn_type_map) {
-            let p0 = function_param_view::MirFunction_param_val_type(f, 0)
-            if p0 == value_types::VT_I32() {
-                return get_unchecked(fn_type_map, fi)
-            }
-        }
-        fi = fi + 1
-    }
-    0 - 1
+    3
 }
 
 fn find_binary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
@@ -126,18 +114,6 @@ fn find_binary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i
         let _m = fn_type_map
     }
     1
-}
-
-fn strip_fn_module_prefix(name: String) -> String {
-    let n = len(name)
-    let mut i = n - 1
-    while i >= 0 {
-        if char_at(name, i) == 58 {
-            return substring(name, i + 1, n)
-        }
-        i = i - 1
-    }
-    clone(name)
 }
 
 fn match_matches_param0(p0: i32, first_arg_vt: i32) -> bool {
