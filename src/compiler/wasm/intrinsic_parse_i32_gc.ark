@@ -1,0 +1,41 @@
+// Arukellt Selfhost - GC-target parse_i32 Result/Option emission.
+
+use wasm::ctx_record
+use wasm::ctx_scratch
+use wasm::ctx_gc_type
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
+
+fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let _inst = inst
+    // Consume the String GC argument so the stack is balanced.
+    let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    helpers_core::emit_local_set(w, s_str)
+
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
+    if none_type >= 0 {
+        writer_gc::emit_gc_struct_new_default(w, none_type)
+        writer_gc::emit_gc_ref_cast(w, open_type)
+        return true
+    }
+
+    let err_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Result::Err"))
+    if err_type >= 0 {
+        let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+        helpers_numeric_i32::emit_i32_const(w, 1)
+        writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+        writer_core::emit_leb128_s(w, string_type)
+        writer_gc::emit_gc_struct_new(w, err_type)
+        writer_gc::emit_gc_ref_cast(w, open_type)
+        return true
+    }
+
+    // Fallback: null open-enum ref matches Result/Option return types.
+    writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+    writer_core::emit_leb128_s(w, open_type)
+    true
+}
