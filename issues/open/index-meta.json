@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-10T04:42:50Z",
+  "generated_at": "2026-07-10T04:45:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -944,7 +944,9 @@
         "714",
         "675"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "729"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
@@ -971,25 +973,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 71
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
       }
     },
     {
@@ -1037,6 +1020,26 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
+      }
+    },
+    {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "724",
+        "727"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 71
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
       }
     },
     {

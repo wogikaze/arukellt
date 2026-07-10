@@ -4,8 +4,8 @@ Created: 2026-07-10
 Updated: 2026-07-10
 ID: 729
 Track: compiler-internal
-Depends on: "724"
-Related: "718, 709, 727, ADR-040, ADR-036, ADR-042"
+Depends on: "724, 727"
+Related: "718, 709, ADR-040, ADR-036, ADR-042"
 Orchestration class: architecture-implementation
 Orchestration upstream: None
 Blocks v{N}: none
@@ -218,6 +218,10 @@ A check script under `scripts/check/` that:
 - Depends on **#724** (ADR-040 Phase 5-7 remaining work) — the semantic
   spine must be complete before extending it with effect/inline/lowering
   policy
+- Depends on **#727** (host bridge retirement + wasm-heap-grow-patcher
+  retirement) — verify quick must pass (memory/LSP/formatter failures
+  resolved) before intrinsic dispatch refactoring begins.  Host intrinsic
+  removal is shared scope with Phase 2.
 - Related: **#718** (free-function → method migration) — the Ark stdlib
   migration target is the same; ADR-042 adds the semantic/inliner layer
 - Related: **#709** (trait-first API policy) — trait-based generics replace

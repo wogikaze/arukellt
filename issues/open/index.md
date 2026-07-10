@@ -143,9 +143,9 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 46. [668 — 668 — P2 native component polish (post-#074)](668-p2-native-component-polish.md)
 47. [727 — 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports](727-arukellt-host-bridge-retirement.md)
 48. [726 — T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md)
-49. [729 — 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration](729-intrinsic-layer-separation.md)
-50. [683 — 683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md)
-51. [709 — 709 — Stdlib trait-first API policy and i32 helper containment](709-stdlib-trait-first-api-policy.md)
+49. [683 — 683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md)
+50. [709 — 709 — Stdlib trait-first API policy and i32 helper containment](709-stdlib-trait-first-api-policy.md)
+51. [729 — 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration](729-intrinsic-layer-separation.md)
 52. [710 — 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md)
 53. [711 — 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability](711-stdlib-docs-rich-reference-quality.md)
 54. [712 — 712 — LLM code quality signal gates for readability and stdlib misuse](712-llm-code-quality-signal-gates.md)
@@ -201,11 +201,11 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 697 | [697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)](697-vec-operation-extension.md) | stdlib-api | 691, 695 | 709, 710 | 0 checked / 15 open | blocked-by-upstream | #691 Iterator, #695 Ord | |
 | 703 | [703 — Monomorphic API bold cutover (ADR-036 D2)](703-monomorphic-api-bold-cutover.md) | stdlib-api | 700, 701, 691, 695 | 709 | 0 checked / 19 open | blocked-by-upstream | #700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord | |
 | 668 | [668 — P2 native component polish (post-#074)](668-p2-native-component-polish.md) | wasi-feature | 074, 510, 714 | none | 0 checked / 9 open | implementation-ready | None | |
-| 727 | [727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports](727-arukellt-host-bridge-retirement.md) | wasi-feature | 714, 675 | none | 0 checked / 11 open | architecture-implementation | None | |
+| 727 | [727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports](727-arukellt-host-bridge-retirement.md) | wasi-feature | 714, 675 | 729 | 0 checked / 11 open | architecture-implementation | None | |
 | 726 | [T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md) | compiler-internal | 724 | none | 4 checked / 4 open | implementation-ready | — | |
-| 729 | [729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration](729-intrinsic-layer-separation.md) | compiler-internal | 724 | none | 0 checked / 71 open | architecture-implementation | None | |
 | 683 | [683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md) | docs-audit | 679, 682 | none | 0 checked / 6 open | audit-ready | None | |
 | 709 | [709 — Stdlib trait-first API policy and i32 helper containment](709-stdlib-trait-first-api-policy.md) | stdlib-api | 691, 695, 697, 703 | 710, 711, 712, 713 | 0 checked / 11 open | blocked-by-upstream | #691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover | |
+| 729 | [729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration](729-intrinsic-layer-separation.md) | compiler-internal | 724, 727 | none | 0 checked / 71 open | architecture-implementation | None | |
 | 710 | [710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md) | stdlib-api | 691, 697, 701, 707, 709 | 711 | 0 checked / 13 open | blocked-by-upstream | #691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy | |
 | 711 | [711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability](711-stdlib-docs-rich-reference-quality.md) | stdlib-docs | 681, 709, 710 | 712, 713 | 0 checked / 13 open | blocked-by-upstream | #681 manifest reachability, #709 trait-first policy, #710 linear collection type surface | |
 | 712 | [712 — LLM code quality signal gates for readability and stdlib misuse](712-llm-code-quality-signal-gates.md) | tooling-contract | 709, 711 | 713 | 0 checked / 11 open | ready | None | |
