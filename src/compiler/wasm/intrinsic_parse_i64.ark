@@ -8,12 +8,12 @@ use wasm::emit_target
 use wasm::intrinsic_parse_digit_loop_common
 use wasm::intrinsic_parse_int
 use wasm::intrinsic_parse_result
+use wasm::intrinsic_parse_i32_gc
 
 // Handler for: parse_i64, convert::parse_i64
 fn emit_parse_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
-    return true
+    return intrinsic_parse_i32_gc::emit_parse_i32_gc(w, inst, ctx)
 }
 let s64_tmp = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
 intrinsic_parse_int::emit_parse_i64_init(w, s64_tmp)
