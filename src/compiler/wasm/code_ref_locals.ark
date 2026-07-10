@@ -72,6 +72,10 @@ fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx)
 }
 
+fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
+    code_ref_locals_scan::local_feeds_return(f, local_idx)
+}
+
 fn mir_function_returns_option(f: MirFunction) -> bool {
     if code_ref_locals_types::mir_fn_returns_option_by_name(clone(f.name)) {
         return true
@@ -80,4 +84,24 @@ fn mir_function_returns_option(f: MirFunction) -> bool {
         return false
     }
     code_ref_locals_types::is_option_type_name(function_return_view::MirFunction_return_type_name(f))
+}
+
+// True when the function's declared return is Option/Result/open-enum
+// (GC open-enum ABI). Used to override sticky String type_names on
+// return temps that actually hold parse/Result values.
+fn mir_function_returns_enum_open(f: MirFunction) -> bool {
+    if mir_function_returns_option(f) {
+        return true
+    }
+    if function_return_view::MirFunction_return_type(f) != value_types::VT_GC_REF() {
+        return false
+    }
+    let ret_name = function_return_view::MirFunction_return_type_name(f)
+    if starts_with(clone(ret_name), String_from("Result_")) || starts_with(clone(ret_name), String_from("result:")) || starts_with(clone(ret_name), String_from("Result:")) || starts_with(clone(ret_name), String_from("Result<")) {
+        return true
+    }
+    if starts_with(clone(ret_name), String_from("enum:")) {
+        return true
+    }
+    false
 }

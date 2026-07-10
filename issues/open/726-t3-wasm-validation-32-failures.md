@@ -16,7 +16,53 @@ T3 WASM validation で `validate-fail` が残っており、`verify quick` が b
 pre-commit hook が `verify quick` を実行するため、現状コミットに `--no-verify` が必要な状態。
 残失敗の主因は GC ref 型推論の不整合（ネストした enum/option/result/tuple のペイロード型名喪失）。
 
-### 現在のベースライン（2026-07-10 再測定 #5）
+### 現在のベースライン（2026-07-10 再測定 #6）
+
+| 状態 | 件数 |
+|------|------|
+| pass | 406 |
+| **validate-fail** | **15** |
+| compile-fail | 1 |
+| skip | 22 |
+| **total** | **444** |
+
+> 進捗メモ（並列 wave/726-{a,b,c} + c2 parse-local, 2026-07-10）:
+>
+> - 402/19 → **406/15**（+4 pass, -4 validate-fail）
+> - **新規 PASS**:
+>   - `stdlib_trait/iterator_adapters` — unary `call_indirect` が `(i32)->i32` type 3 を選択
+>   - `stdlib_wit/wit_names` — `from_utf8` の `get_unchecked` + GC string scratch 4 枠
+>   - `trait/builtin_method` — parse_* 戻り値ローカルの sticky String → enum open
+>   - `generics_v1/trait_dispatch_stdlib` — parse_i64/f64 GC stub + 同上ローカル型修正の波及
+> - **i32-vs-ref クラスタ解消**（残り 0）
+> - 残りはすべて ref-vs-ref（15）
+
+### エラー型別内訳（2026-07-10 #6）
+
+| エラー型 | 件数 |
+|----------|------|
+| ref-vs-ref (expected (ref null $type), found (ref null $type)) | 15 |
+| ref-vs-i32 (expected (ref null $type), found i32) | 0 |
+| i32-vs-ref (expected i32, found (ref null $type)) | 0 |
+| empty-stack | 0 |
+| array-subtype (expected subtype of arrayref) | 0 |
+| **合計 validate-fail** | **15** |
+
+#### 個別 fixture（2026-07-10 #6）
+
+- **ref-vs-ref (15)**: iterator/custom_iterator,
+  stdlib_io/fs_read_error, stdlib_io/fs_read_write, stdlib_json/json_perf_decode,
+  stdlib_trait/debug_trait, stdlib_trait/debug_vec,
+  stdlib_trait/buf_read, stdlib_trait/display_trait_vec,
+  stdlib_trait/io_backward_compat, stdlib_trait/io_copy, stdlib_trait/read_write,
+  stdlib_trait/seek, stdlib_csv/csv_perf,
+  stdlib_toml/toml_full_inline_dotted, stdlib_toml/toml_full_table_header
+- **ref-vs-i32 (0)**: （タスク2 で解消）
+- **i32-vs-ref (0)**: （wave/726-a/b/c/c2 で解消）
+- **array-subtype (0)**: （タスク6 で解消 — `connect_read_write`）
+- **compile-fail (1)**: stdlib_wit/wit_ast_parse
+
+### 旧ベースライン（2026-07-10 再測定 #5）
 
 | 状態 | 件数 |
 |------|------|
@@ -26,46 +72,10 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 | skip | 22 |
 | **total** | **444** |
 
-> 進捗メモ（継続改善: nested Vec mono + Range GC ABI, 2026-07-10）:
->
-> - 401/20 → **402/19**（+1 pass, -1 validate-fail）
-> - **新規 PASS**: `generics_v1/nested_generic_call.ark`
->   - `push(outer, inner)` の vec ソース解決を第1引数優先に修正
->   - `vec:vec:i32` / bare `Vec` → `count__Vec_i32_` mono 解決
->   - `Vec_new` dest の store-target 型伝播（`intrinsic_vec_type_new`）
-> - **基盤**: 全 user struct の named GC 登録（sig ではなく name で dedupe）、
->   bare `Range` 等の TypeTable STRUCT 化、`fn` フィールドを `fnref`/i32 に、
->   未置換型変数 `T` を GC 昇格から除外（`ord_sort_by` / `generic_struct` 維持）
-> - 残り i32-vs-ref: `iterator_adapters`（call_indirect）、`wit_names`、`builtin_method`
-
-### エラー型別内訳（2026-07-10 #5）
-
-| エラー型 | 件数 |
-|----------|------|
-| ref-vs-ref (expected (ref null $type), found (ref null $type)) | 16 |
-| ref-vs-i32 (expected (ref null $type), found i32) | 0 |
-| i32-vs-ref (expected i32, found (ref null $type)) | 3 |
-| empty-stack | 0 |
-| array-subtype (expected subtype of arrayref) | 0 |
-| **合計 validate-fail** | **19** |
-
-#### 個別 fixture（2026-07-10 #5）
-
-- **ref-vs-ref (16)**: generics_v1/trait_dispatch_stdlib,
-  iterator/custom_iterator,
-  stdlib_io/fs_read_error, stdlib_io/fs_read_write, stdlib_json/json_perf_decode,
-  stdlib_trait/debug_trait, stdlib_trait/debug_vec,
-  stdlib_trait/buf_read, stdlib_trait/display_trait_vec,
-  stdlib_trait/io_backward_compat, stdlib_trait/io_copy, stdlib_trait/read_write,
-  stdlib_trait/seek, stdlib_csv/csv_perf,
-  stdlib_toml/toml_full_inline_dotted, stdlib_toml/toml_full_table_header
-- **ref-vs-i32 (0)**: （タスク2 で解消）
-- **i32-vs-ref (3)**: stdlib_trait/iterator_adapters, stdlib_wit/wit_names,
-  trait/builtin_method
-- **array-subtype (0)**: （タスク6 で解消 — `connect_read_write`）
-- **compile-fail (1)**: stdlib_wit/wit_ast_parse
+> 進捗メモ（nested Vec mono + Range GC ABI）: 401/20 → 402/19。残り i32-vs-ref 3 件。
 
 ### 旧ベースライン（2026-07-10 再測定 #4）
+
 
 | 状態 | 件数 |
 |------|------|

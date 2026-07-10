@@ -5,14 +5,14 @@ use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::intrinsic_parse_f64_finalize
 use wasm::intrinsic_parse_f64_scan
+use wasm::intrinsic_parse_i32_gc
 use wasm::opcodes
 use wasm::constants
 use wasm::writer_core
 
 fn emit_parse_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-    writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
-    return true
+    return intrinsic_parse_i32_gc::emit_parse_i32_gc(w, inst, ctx)
 }
 let s_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
 let s_len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
