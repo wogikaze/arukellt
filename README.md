@@ -39,3 +39,11 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 
 - 仕様書や ADR には設計意図も含まれます。
 - 現在動くものを判断したいときは、まず `docs/current-state.md` を見てください。
+
+## License
+
+MIT License
+
+Copyright (c) 2026 wogikaze
+
+本リポジトリのコードは [MIT License](LICENSE) のもとで公開されています。
