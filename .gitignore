@@ -92,5 +92,5 @@ docs/playground/dist/benchmarks/results/
 # Powers(力)
 superpowers/
 .worktrees
-tmp/.tmp/
+tmp/
 .ark-t3-tmp/
