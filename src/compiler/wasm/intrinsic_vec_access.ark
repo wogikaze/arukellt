@@ -106,75 +106,69 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
     helpers_core::emit_local_get(w, s_idx)
     writer_gc::emit_gc_array_get(w, array_type)
     if is_vec_string || is_struct_ref_elem {
-        // Ref payload: cast structref elems to concrete type, then wrap in
-        // Option::Some with a matching ref field (#726 display_trait_vec).
-        let mut some_suffix = String_from("_f1_ref0")
-        if is_struct_ref_elem {
-            let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
-            if len(elem_name) > 0 {
-                let elem_gc_type = intrinsic_vec_access_gc::resolve_concrete_struct_type(ctx, clone(elem_name))
-                if elem_gc_type >= 0 {
-                    writer_gc::emit_gc_ref_cast(w, elem_gc_type)
-                }
-                let gcsref_suffix = intrinsic_vec_access_gc::find_gcsref_suffix_for_struct(ctx, clone(elem_name))
-                if len(gcsref_suffix) > 0 {
-                    some_suffix = gcsref_suffix
-                }
-            }
-        }
-        let s_ref = if is_vec_string {
-            ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-        } else {
-            ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
-        }
-        helpers_core::emit_local_set(w, s_ref)
-        let some_type_idx = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, clone(some_suffix), enum_type)
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_core::emit_leb128_s(w, 0)
-        helpers_core::emit_local_get(w, s_ref)
-        // Abstract structref scratch loses the concrete cast; re-cast
-        // before struct.new so Option::Some(Token) type-checks (#726).
-        if is_struct_ref_elem {
-            let elem_name2 = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
-            if len(elem_name2) > 0 {
-                let elem_gc_type2 = intrinsic_vec_access_gc::resolve_concrete_struct_type(ctx, clone(elem_name2))
-                if elem_gc_type2 >= 0 {
-                    writer_gc::emit_gc_ref_cast(w, elem_gc_type2)
-                }
-            }
-        }
-        writer_gc::emit_gc_struct_new(w, some_type_idx)
-        helpers_core::emit_local_set(w, s_opt)
+        emit_vec_get_gc_some_ref(w, ctx, s_opt, is_struct_ref_elem, is_vec_string, enum_type, callee, inst)
         return
     }
     if is_i64_elem {
-        let s_i64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
-        helpers_core::emit_local_set(w, s_i64)
-        let some_type_idx = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, String_from("_f1_i64"), enum_type)
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_core::emit_leb128_s(w, 0)
-        helpers_core::emit_local_get(w, s_i64)
-        writer_gc::emit_gc_struct_new(w, some_type_idx)
-        helpers_core::emit_local_set(w, s_opt)
+        emit_vec_get_gc_some_scalar(w, ctx, s_opt, 15, String_from("_f1_i64"), enum_type)
         return
     }
     if is_f64_elem {
-        let s_f64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
-        helpers_core::emit_local_set(w, s_f64)
-        let some_type_idx = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, String_from("_f1_f64"), enum_type)
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_core::emit_leb128_s(w, 0)
-        helpers_core::emit_local_get(w, s_f64)
-        writer_gc::emit_gc_struct_new(w, some_type_idx)
-        helpers_core::emit_local_set(w, s_opt)
+        emit_vec_get_gc_some_scalar(w, ctx, s_opt, 12, String_from("_f1_f64"), enum_type)
         return
     }
     // Vec<i32>/bool: element is an i32 value
-    helpers_core::emit_local_set(w, s_idx)
-    let some_type_idx = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, String_from("_f1_i32"), enum_type)
+    emit_vec_get_gc_some_scalar(w, ctx, s_opt, s_idx, String_from("_f1_i32"), enum_type)
+}
+
+fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_struct_ref_elem: bool, is_vec_string: bool, enum_type: i32, callee: String, inst: MirInst) {
+    // Ref payload: cast structref elems to concrete type, then wrap in
+    // Option::Some with a matching ref field (#726 display_trait_vec).
+    let mut some_suffix = String_from("_f1_ref0")
+    if is_struct_ref_elem {
+        let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+        if len(elem_name) > 0 {
+            let elem_gc_type = intrinsic_vec_access_gc::resolve_concrete_struct_type(ctx, clone(elem_name))
+            if elem_gc_type >= 0 {
+                writer_gc::emit_gc_ref_cast(w, elem_gc_type)
+            }
+            let gcsref_suffix = intrinsic_vec_access_gc::find_gcsref_suffix_for_struct(ctx, clone(elem_name))
+            if len(gcsref_suffix) > 0 {
+                some_suffix = gcsref_suffix
+            }
+        }
+    }
+    let s_ref = if is_vec_string {
+        ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    } else {
+        ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    }
+    helpers_core::emit_local_set(w, s_ref)
+    let some_type_idx = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, clone(some_suffix), enum_type)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
-    helpers_core::emit_local_get(w, s_idx)
+    helpers_core::emit_local_get(w, s_ref)
+    // Abstract structref scratch loses the concrete cast; re-cast
+    // before struct.new so Option::Some(Token) type-checks (#726).
+    if is_struct_ref_elem {
+        let elem_name2 = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+        if len(elem_name2) > 0 {
+            let elem_gc_type2 = intrinsic_vec_access_gc::resolve_concrete_struct_type(ctx, clone(elem_name2))
+            if elem_gc_type2 >= 0 {
+                writer_gc::emit_gc_ref_cast(w, elem_gc_type2)
+            }
+        }
+    }
+    writer_gc::emit_gc_struct_new(w, some_type_idx)
+    helpers_core::emit_local_set(w, s_opt)
+}
+
+fn emit_vec_get_gc_some_scalar(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, s_val: i32, suffix: String, enum_type: i32) {
+    helpers_core::emit_local_set(w, s_val)
+    let some_type_idx = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, clone(suffix), enum_type)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, s_val)
     writer_gc::emit_gc_struct_new(w, some_type_idx)
     helpers_core::emit_local_set(w, s_opt)
 }
