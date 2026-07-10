@@ -1,0 +1,3 @@
+mir-verify: W001=16 W002=0 W003=259 W004=27 W005=0 W006=0 W007=0
+compilation succeeded (phase 6)
+wrote 48846 bytes to .ark-t3-tmp/head/toml_full_table_header.ark.wasm

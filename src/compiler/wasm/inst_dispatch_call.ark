@@ -5,7 +5,7 @@ use mir::inst_accessors_shape
 use wasm::call_dispatch_table
 use mir::opcodes
 
-fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> bool {
+fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> bool {
     if call_dispatch_table::try_wit_call(w, inst, ctx, bindings, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -15,7 +15,7 @@ fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
         let callee = normalize_callee_name(clone(inst_accessors_literals::MirInst_str_val(inst)))
-        if call_dispatch_table::try_host_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
+        if call_dispatch_table::try_host_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
         if call_dispatch_table::try_seq_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -39,7 +39,7 @@ fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i
         if call_dispatch_table::try_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
-        call_dispatch_table::emit_fallback(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, len(bindings))
+        call_dispatch_table::emit_fallback(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op, len(bindings))
         return true
     }
     false

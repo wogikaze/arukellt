@@ -1,0 +1,3 @@
+mir-verify: W001=7 W002=0 W003=22 W004=9 W005=0 W006=0 W007=0
+compilation succeeded (phase 6)
+wrote 8654 bytes to .ark-t3-tmp/head/fs_read_write.ark.wasm

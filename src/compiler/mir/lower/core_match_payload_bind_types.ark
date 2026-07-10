@@ -1,6 +1,7 @@
 // CoreHIR match payload bind types.
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::value_types
@@ -86,19 +87,49 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("string"))
         return
     }
+    // Vec<T> must stay a container type — never enum:Vec<...> (#726 toml Table).
+    let vec_type = normalize_core_payload_vec_type_name(clone(field_type))
+    if len(vec_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, vec_type)
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        return
+    }
     if len(field_type) > 0 && ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(field_type)) {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
     if len(field_type) > 0 && !core_payload_scalar_type_name(clone(field_type)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        // Named GC structs keep bare names for gcsref Option payloads (#726).
+        if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(field_type)) >= 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(field_type))
+        } else {
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        }
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
     if core_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("string"))
     }
+}
+
+fn normalize_core_payload_vec_type_name(field_type: String) -> String {
+    if starts_with(clone(field_type), String_from("vec:")) {
+        return field_type
+    }
+    if eq(clone(field_type), String_from("Vec")) {
+        return String_from("vec:i32")
+    }
+    if starts_with(clone(field_type), String_from("Vec<")) && ends_with(clone(field_type), String_from(">")) {
+        let inner = substring(clone(field_type), 4, len(field_type) - 1)
+        return concat(String_from("vec:"), inner)
+    }
+    if starts_with(clone(field_type), String_from("Vec_")) {
+        let inner = substring(clone(field_type), 4, len(field_type))
+        return concat(String_from("vec:"), inner)
+    }
+    String_new()
 }
 
 fn core_payload_scalar_type_name(type_name: String) -> bool {

@@ -7,6 +7,8 @@ use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_struct
+use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::match_payload_bind_types
 use mir::lower::match_payload_field_type
@@ -56,6 +58,29 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
     String_new()
 }
 
+fn mir_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
+    // For non-scalar, non-String types (e.g. AppError),
+    // prefix with "enum:" so the emitter's ref local type
+    // inference maps it to the enum open type.
+    // However, types that already have a recognised ref
+    // prefix (vec:, hashmap:, Option_, Result_, option:,
+    // result:) should NOT be prefixed with "enum:" because
+    // the emitter has dedicated GC type mappings for them.
+    // Named GC structs (Token, etc.) must keep their bare
+    // name so Option::Some can use gcsref<slot> (#726 display).
+    let mut set_type = clone(elem_ty)
+    if !match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
+        if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
+            if !starts_with(clone(elem_ty), String_from("vec:")) && !starts_with(clone(elem_ty), String_from("Vec<")) && !starts_with(clone(elem_ty), String_from("Vec_")) && !eq(clone(elem_ty), String_from("Vec")) && !starts_with(clone(elem_ty), String_from("hashmap:")) && !starts_with(clone(elem_ty), String_from("Option_")) && !starts_with(clone(elem_ty), String_from("option:")) && !starts_with(clone(elem_ty), String_from("Result_")) && !starts_with(clone(elem_ty), String_from("result:")) {
+                if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(elem_ty)) < 0 {
+                    set_type = concat(String_from("enum:"), clone(elem_ty))
+                }
+            }
+        }
+    }
+    set_type
+}
+
 // Infer the concrete payload type for the first bind of Some/Ok/Err patterns
 // from the scrutinee's type name, then fix up the local's type and vt.
 fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, scrut_idx: i32) {
@@ -79,27 +104,19 @@ fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: 
     if len(elem_ty) == 0 {
         return
     }
-    // For non-scalar, non-String types (e.g. AppError),
-    // prefix with "enum:" so the emitter's ref local type
-    // inference maps it to the enum open type.
-    // However, types that already have a recognised ref
-    // prefix (vec:, hashmap:, Option_, Result_, option:,
-    // result:) should NOT be prefixed with "enum:" because
-    // the emitter has dedicated GC type mappings for them.
-    let mut set_type = clone(elem_ty)
-    if !match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
-        if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
-            if !starts_with(clone(elem_ty), String_from("vec:")) && !starts_with(clone(elem_ty), String_from("hashmap:")) && !starts_with(clone(elem_ty), String_from("Option_")) && !starts_with(clone(elem_ty), String_from("option:")) && !starts_with(clone(elem_ty), String_from("Result_")) && !starts_with(clone(elem_ty), String_from("result:")) {
-                set_type = concat(String_from("enum:"), clone(elem_ty))
-            }
-        }
-    }
+    let mut set_type = mir_infer_payload_set_type(ctx, clone(elem_ty))
     ctx_set_local_type(ctx, bind_local, set_type)
-    // Fix vt: if the element type is scalar, override
-    // VT_GC_REF with VT_I32 to match the actual payload.
+    // Fix vt for scalars: i64/f64 keep their width; other
+    // scalars collapse to i32. Do not force i64 → i32 (#726 debug_vec).
     if match_payload_field_type::mir_payload_scalar_type_name(clone(elem_ty)) {
         if bind_vt == value_types::VT_GC_REF() {
-            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
+            if eq(clone(elem_ty), "i64") || eq(clone(elem_ty), "I64") {
+                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I64())
+            } else if eq(clone(elem_ty), "f64") || eq(clone(elem_ty), "F64") {
+                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_F64())
+            } else {
+                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
+            }
         }
     } else {
         // Non-scalar types (String, Vec, etc.) are GC refs
@@ -146,26 +163,42 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
             field_vt = value_types::VT_I64()
         }
     }
-    if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
-        if field_idx == 0 {
-            let payload_vts = Vec_new_i32()
-            push(payload_vts, effective_vt)
-            // Pass the bind local's type name so that the correct GC ref
-            // type offset is used (e.g. ref10 for Vec, ref0 for String).
-            let bind_type_name = ctx_get_local_type(ctx, bind_local)
-            let payload_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), payload_vts, clone(bind_type_name))
-            if payload_slot >= 0 {
-                type_slot = payload_slot
-            }
-        }
-        if effective_vt == value_types::VT_GC_REF() && type_slot >= 0 && match_payload_bind_types::payload_bind_needs_variant_slot(ctx_get_local_type(ctx, bind_local), clone(variant_name)) {
-            ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
-        }
-        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, field_idx + 1, field_vt))
+    if emit_payload_field_bind_gc(ctx, clone(variant_name), field_idx, effective_vt, bind_local, scrut_idx, field_vt) {
         return
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(variant_name), ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), field_idx + 1), field_idx + 1, ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name)), field_vt, bind_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
+}
+
+fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, field_idx: i32, effective_vt: i32, bind_local: i32, scrut_idx: i32, field_vt: i32) -> bool {
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return false
+    }
+    let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    if field_idx == 0 {
+        let payload_vts = Vec_new_i32()
+        push(payload_vts, effective_vt)
+        // Pass the bind local's type name so that the correct GC ref
+        // type offset is used (e.g. ref10 for Vec, ref0 for String).
+        // Fall back to layout field type when still enum:open (#726 toml).
+        let mut bind_type_name = ctx_get_local_type(ctx, bind_local)
+        if len(bind_type_name) == 0 || eq(clone(bind_type_name), String_from("enum:open")) {
+            let layout_ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+            let norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(layout_ft))
+            if len(norm) > 0 {
+                bind_type_name = norm
+                ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+            }
+        }
+        let payload_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), payload_vts, clone(bind_type_name))
+        if payload_slot >= 0 {
+            type_slot = payload_slot
+        }
+    }
+    if effective_vt == value_types::VT_GC_REF() && type_slot >= 0 && match_payload_bind_types::payload_bind_needs_variant_slot(ctx_get_local_type(ctx, bind_local), clone(variant_name)) {
+        ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
+    }
+    ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, field_idx + 1, field_vt))
+    true
 }

@@ -3,6 +3,20 @@
 use mir::lower::ctx_struct_storage
 
 fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
+    let found = ctx_struct_field_type_name_exact(ctx, clone(struct_name), field_idx)
+    if len(found) > 0 || ctx_struct_layout_exists(ctx, clone(struct_name)) {
+        return found
+    }
+    // Match arms may use bare `Table` while layouts are registered as
+    // `TomlValue::Table` (#726 toml_full_*).
+    let resolved = ctx_resolve_variant_layout_name(ctx, clone(struct_name))
+    if len(resolved) > 0 && !eq(clone(resolved), clone(struct_name)) {
+        return ctx_struct_field_type_name_exact(ctx, resolved, field_idx)
+    }
+    String_new()
+}
+
+fn ctx_struct_field_type_name_exact(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut offset = 0
     let mut si = 0
@@ -19,6 +33,41 @@ fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32
         si = si + 1
     }
     String_new()
+}
+
+fn ctx_struct_layout_exists(ctx: LowerCtx, struct_name: String) -> bool {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
+            return true
+        }
+        si = si + 1
+    }
+    false
+}
+
+fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> String {
+    if contains(clone(variant_name), String_from("::")) {
+        return variant_name
+    }
+    let suffix = concat(String_from("::"), clone(variant_name))
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    let mut found = String_new()
+    let mut hits = 0
+    while si < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+        if ends_with(clone(sn), clone(suffix)) {
+            found = sn
+            hits = hits + 1
+        }
+        si = si + 1
+    }
+    if hits == 1 {
+        return found
+    }
+    variant_name
 }
 
 fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
@@ -58,6 +107,13 @@ fn field_type_is_container_ref(type_name: String) -> bool {
         return true
     }
     if starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("HashMap<")) || starts_with(clone(type_name), String_from("HashSet<")) {
+        return true
+    }
+    // Result/Option angle-bracket forms are GC enum-open refs (#726 json).
+    if starts_with(clone(type_name), String_from("Result<")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+        return true
+    }
+    if starts_with(clone(type_name), String_from("Option<")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) {
         return true
     }
     false

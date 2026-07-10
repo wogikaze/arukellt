@@ -1,0 +1,17 @@
+
+use std::host::stdio
+use std::json::parser
+
+fn main() {
+    let step = parser::parse_value_at(String_from("\"hi\""), 0)
+    let v = step.value
+    match v {
+        Result::Ok(jv) => {
+            match jv {
+                parser::JsonValue::Str(s) => stdio::println(s),
+                _ => stdio::println(String_from("other")),
+            }
+        },
+        Result::Err(_) => stdio::println(String_from("err")),
+    }
+}

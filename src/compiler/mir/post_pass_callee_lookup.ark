@@ -9,7 +9,6 @@ use mir::function_locals_view
 use mir::function_local_mutation
 use mir::function_return_view
 use mir::inst_accessors_operands
-use mir::inst_accessors_shape
 use mir::inst_record
 use mir::local_access
 use mir::local_mutation
@@ -55,14 +54,8 @@ fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op:
     }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
-        if dst_variant_slot < 0 {
-            let ret_slot = lookup_callee_return_variant_slot(m, callee)
-            if ret_slot >= 0 {
-                if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
-                    local_access::MirLocal_set_variant_slot(new_loc, ret_slot)
-                    updated = true
-                }
-            }
+        if propagate_call_variant_slot(m, callee, dst_variant_slot, dst_type_name, new_loc) {
+            updated = true
         }
         if len(dst_type_name) == 0 {
             let mut ret_name = lookup_callee_return_type_name(m, callee)
@@ -79,6 +72,20 @@ fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op:
         function_local_mutation::MirFunction_set_local(f, dest, new_loc)
     }
     updated
+}
+
+fn propagate_call_variant_slot(m: MirModule, callee: String, dst_variant_slot: i32, dst_type_name: String, new_loc: MirLocal) -> bool {
+    if dst_variant_slot >= 0 {
+        return false
+    }
+    let ret_slot = lookup_callee_return_variant_slot(m, callee)
+    if ret_slot >= 0 {
+        if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
+            local_access::MirLocal_set_variant_slot(new_loc, ret_slot)
+            return true
+        }
+    }
+    false
 }
 
 // Look up a function's return type_name by name from the module.
@@ -107,7 +114,7 @@ fn lookup_callee_return_variant_slot(m: MirModule, callee: String) -> i32 {
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_RETURN() {
+            if inst_record::mir_inst_op(inst) == opcodes::MIR_RETURN() {
                 let ret_local = inst_accessors_operands::MirInst_arg0(inst)
                 if ret_local >= 0 && ret_local < function_locals_view::MirFunction_local_count(f) {
                     let loc = function_locals_view::MirFunction_local_at(f, ret_local)

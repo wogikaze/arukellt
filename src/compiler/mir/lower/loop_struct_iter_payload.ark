@@ -1,13 +1,30 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - MIR struct iterator payload extraction.
 
 use mir::inst_struct_get
+use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::lower::loop_conditions
 use mir::value_types
 
 fn mir_emit_struct_iterator_payload(ctx: LowerCtx, opt_local: i32, iter_var: i32) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        // Payload is on Option::Some(_f1_i32); must cast to that variant
+        // before struct.get field 1 — the open enum type has only the tag.
+        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Option::Some"))
+        if type_slot < 0 {
+            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Some"))
+        }
+        if type_slot < 0 {
+            let payload_vts = Vec_new_i32()
+            push(payload_vts, value_types::VT_I32())
+            type_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, String_from("Option::Some"), payload_vts)
+        }
+        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(iter_var, opt_local, type_slot, 1, value_types::VT_I32()))
+        return
+    }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
     ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(4, value_types::VT_I32(), iter_var))
     loop_conditions::mir_save_stack_to_local(ctx, iter_var)

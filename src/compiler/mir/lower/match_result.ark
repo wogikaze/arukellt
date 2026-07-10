@@ -3,7 +3,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR match result storage helpers.
 
-use mir::inst_local_get
 use mir::inst_local_set
 use mir::value_types
 
@@ -23,6 +22,10 @@ fn mir_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
 }
 
 fn mir_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {
-    ctx_emit(ctx, inst_local_get::MirInst_local_get(result))
+    // Arm results are already stored into `result` via local_set.
+    // Do not leave a local_get on the stack: callers that need the value
+    // (including MirInst_return_value) load the local themselves.
+    // Emitting local_get + return_value caused duplicate stack values
+    // on GC targets (#726 write_all / is_readable_file).
     result
 }

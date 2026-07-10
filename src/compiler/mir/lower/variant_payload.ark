@@ -10,7 +10,6 @@ use mir::inst_const_i32
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::inst_gc_struct
-use mir::inst_local_get
 use mir::lower::variant_payload_fields
 use mir::value_types
 
@@ -22,7 +21,6 @@ fn lower_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals: Ve
     ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new(dest, total_bytes))
     emit_variant_tag_field(ctx, dest, tag, 0 - 1)
     variant_payload_fields::emit_variant_payload_fields(ctx, dest, payload_locals, payload_vts, clone(variant_name))
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
     dest
 }
 
@@ -34,7 +32,17 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
         let typed_name = gc_payload_typed_variant_name(ctx, first_local, clone(payload_type_name), clone(variant_name), first_vt)
         if len(typed_name) > 0 {
             let effective_vts = gc_payload_vts_with_first(payload_vts, gc_payload_promote_vt(ctx, first_local, first_vt, clone(typed_name)))
-            ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), effective_vts, typed_name)
+            let slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), effective_vts, typed_name)
+            // Keep payload field stores aligned with the promoted VT used for
+            // typed variant selection (String → VT_GC_REF / `_f1_ref0`).
+            let dest_slot = slot
+            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, dest_slot)
+            ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, dest_slot))
+            emit_variant_tag_field(ctx, dest, tag, dest_slot)
+            emit_gc_variant_payload_fields(ctx, dest, dest_slot, payload_locals, effective_vts)
+            // Value lives in `dest`; callers load via local_set_from / return_value.
+            return dest
         } else {
             ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, clone(variant_name), payload_vts)
         }
@@ -46,7 +54,6 @@ fn lower_gc_payload_variant_from_locals(ctx: LowerCtx, tag: i32, payload_locals:
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(dest, type_slot))
     emit_variant_tag_field(ctx, dest, tag, type_slot)
     emit_gc_variant_payload_fields(ctx, dest, type_slot, payload_locals, payload_vts)
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
     dest
 }
 
@@ -54,27 +61,30 @@ fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: Strin
     if gc_payload_type_name_needs_typed_variant(clone(type_name)) {
         return type_name
     }
+    // String payloads must select the `_f1_ref0` Ok/Some variant, not the
+    // first name-only `_f1_i32` registration (see #726 buf_read / io_*).
     if gc_payload_is_string_type_name(clone(type_name)) {
-        return String_new()
+        return String_from("string")
     }
-    let layout_type = gc_payload_layout_field_type_name(ctx, clone(variant_name), 1)
-    if len(layout_type) > 0 {
-        if gc_payload_is_string_type_name(clone(layout_type)) {
-            return String_new()
-        }
-        if gc_payload_type_name_needs_typed_variant(clone(layout_type)) {
-            return layout_type
-        }
-        if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(layout_type)) {
-            if starts_with(clone(layout_type), String_from("enum:")) {
-                return layout_type
-            }
-            return concat(String_from("enum:"), clone(layout_type))
-        }
-        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() || ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), 1) {
-            if len(layout_type) > 0 && !gc_payload_is_scalar_type_name(clone(layout_type)) {
-                return layout_type
-            }
+    // Concrete scalar VT on the payload local must drive variant selection
+    // even when the enum layout field is a wider type (Float/f64 vs i32) (#726 toml).
+    if vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    if vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if vt == value_types::VT_I32() && (len(type_name) == 0 || gc_payload_is_scalar_type_name(clone(type_name))) {
+        return String_from("i32")
+    }
+    let layout_result = gc_payload_typed_variant_from_layout(ctx, clone(variant_name), clone(type_name), vt)
+    if len(layout_result) > 0 {
+        return layout_result
+    }
+    // Concrete non-scalar payload type on the local wins over Ok's String layout.
+    if len(type_name) > 0 && !gc_payload_is_scalar_type_name(clone(type_name)) && !gc_payload_is_string_type_name(clone(type_name)) {
+        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+            return type_name
         }
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
@@ -90,6 +100,36 @@ fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: Strin
     }
     if len(type_name) > 0 {
         return String_new()
+    }
+    String_new()
+}
+
+fn gc_payload_typed_variant_from_layout(ctx: LowerCtx, variant_name: String, type_name: String, vt: i32) -> String {
+    let layout_type = gc_payload_layout_field_type_name(ctx, clone(variant_name), 1)
+    if len(layout_type) > 0 {
+        // Ok/Some layout often defaults to String; only use that when the
+        // payload local is untyped or actually a string. Otherwise prefer
+        // the concrete payload type (TomlValStep / Vec / enum) (#726 toml/csv).
+        if gc_payload_is_string_type_name(clone(layout_type)) {
+            if len(type_name) == 0 || gc_payload_is_string_type_name(clone(type_name)) {
+                return String_from("string")
+            }
+        } else {
+            if gc_payload_type_name_needs_typed_variant(clone(layout_type)) {
+                return layout_type
+            }
+            if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(layout_type)) {
+                if starts_with(clone(layout_type), String_from("enum:")) {
+                    return layout_type
+                }
+                return concat(String_from("enum:"), clone(layout_type))
+            }
+            if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() || ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), 1) {
+                if len(layout_type) > 0 && !gc_payload_is_scalar_type_name(clone(layout_type)) {
+                    return layout_type
+                }
+            }
+        }
     }
     String_new()
 }
@@ -114,7 +154,7 @@ fn gc_payload_is_scalar_type_name(type_name: String) -> bool {
 }
 
 fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("Vec")) || starts_with(clone(type_name), String_from("vec:")) {
+    if eq(clone(type_name), String_from("Vec")) || starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("Vec_")) {
         return true
     }
     if starts_with(clone(type_name), String_from("hashmap:")) {
@@ -130,7 +170,7 @@ fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
 }
 
 fn gc_payload_promote_vt(ctx: LowerCtx, local_idx: i32, vt: i32, type_name: String) -> i32 {
-    if gc_payload_type_name_needs_typed_variant(clone(type_name)) {
+    if gc_payload_type_name_needs_typed_variant(clone(type_name)) || gc_payload_is_string_type_name(clone(type_name)) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
             return value_types::VT_GC_REF()

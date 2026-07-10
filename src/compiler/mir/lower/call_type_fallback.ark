@@ -7,9 +7,7 @@ use mir::lower::ctx_types
 use mir::lower::mono_return_vt
 use mir::lower::mono_suffix_parse
 // Arukellt Selfhost - MIR call result type fallback propagation.
-
 use mir::value_types
-
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
@@ -19,12 +17,9 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
-        // For monomorphized calls, resolve the concrete return type
-        // name by substituting type variables with concrete types
-        // from the MonoInstance (e.g. "option:T" → "option:i32").
-        // This also handles generic functions returning T where the
-        // base return type name is empty — the MonoInstance has the
-        // concrete type (e.g. T→Point → "struct:Point:8").
+        // For monomorphized calls, resolve concrete return type name
+        // by substituting type vars from MonoInstance (e.g. "option:T"
+        // → "option:i32"). Also handles generic T→Point → "struct:Point:8".
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
         if len(mono_rtn) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
@@ -73,6 +68,17 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
     }
     if eq(clone(cn), "find_i32") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+    }
+    // fs::read_to_string / __intrinsic_fs_read_file → Result<String, String>
+    // so match arms bind Ok/Err as String variants (not i32 / wrong local types).
+    if eq(clone(cn), "read_to_string") || eq(clone(cn), "fs_read_file") || eq(clone(cn), "__intrinsic_fs_read_file") || ends_with(clone(callee_name), String_from("::read_to_string")) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("result:String:String"))
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+        }
+        return
     }
 }
 
@@ -195,11 +201,8 @@ fn set_ref_vt_for_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     }
 }
 
-// Promote an Option/Result/enum *container* local to VT_GC_REF before
-// MIR_GC_STRUCT_GET uses it as a base. Call only when the local is about
-// to be treated as a GC enum container (match scrutinee, Option HOF, etc.).
-// Empty type_name still forces VT_GC_REF — callers must only invoke this
-// on paths that already decided the value is a GC struct base.
+// Promote an Option/Result/enum container local to VT_GC_REF before
+// MIR_GC_STRUCT_GET uses it as a base. Empty type_name forces VT_GC_REF.
 fn mir_promote_gc_enum_container_vt(ctx: LowerCtx, local_idx: i32) {
     if !ctx_gc_enum::ctx_is_gc_target(ctx) {
         return

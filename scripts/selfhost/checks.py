@@ -1773,7 +1773,7 @@ def _ensure_wasm_patcher_binary(root: Path) -> Path | None:
     """Build the walrus heap/export patcher when sources are newer than the binary."""
     patcher_dir = root / PATCHER_DIR_REL
     patcher_src = patcher_dir / "src" / "main.rs"
-    patcher_bin = patcher_dir / "target" / "release" / "wasm-heap-grow-patcher"
+    patcher_bin = root / "target" / "release" / "wasm-heap-grow-patcher"
     if not patcher_src.is_file():
         return None
     source_mtime = max(
@@ -1835,7 +1835,7 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
     out = root / BOOTSTRAP_WASM_REL
     patcher_dir = root / PATCHER_DIR_REL
     patcher_src = patcher_dir / "src" / "main.rs"
-    patcher_bin = patcher_dir / "target" / "release" / "wasm-heap-grow-patcher"
+    patcher_bin = root / "target" / "release" / "wasm-heap-grow-patcher"
     if not patcher_src.is_file():
         return None
     source_mtime = max(

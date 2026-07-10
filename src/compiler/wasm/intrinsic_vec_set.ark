@@ -10,9 +10,9 @@ use wasm::emit_target
 use wasm::intrinsic_vec_set_gc
 
 // Handler for: vec_set
-fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return intrinsic_vec_set_gc::emit_vec_set_gc(w, inst, ctx)
+        return intrinsic_vec_set_gc::emit_vec_set_gc(w, inst, ctx, is_void_set)
     }
     let s_val_set = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_idx_set = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -42,6 +42,9 @@ fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
+    if is_void_set {
+        return false
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_vec_set)
     return true

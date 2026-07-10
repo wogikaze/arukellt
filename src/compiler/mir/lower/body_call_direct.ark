@@ -2,26 +2,18 @@ use mir::lower::ast_node
 use mir::lower_kinds
 // Arukellt MIR lowering body - direct function calls
 
-use mir::inst_call_indirect
-use mir::inst_local_get
 use mir::lower::call_args
 use mir::lower::call_emit
-use mir::lower::call_emit_dest
 use mir::lower::call_indirect_emit
-use mir::lower::call_types
 use mir::lower::ctx_api_local_alloc
-use mir::lower::ctx_api_local_types
-use mir::lower::ctx_api_emit
-use mir::lower::ctx_types
 use mir::lower::literals
-use mir::value_types
 
 fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count: i32) -> i32 {
     // Funcref parameter call: f(x) where f: fn(i32) -> i32
     if ast_node::node_kind_is(callee, lower_kinds::NK_IDENT()) {
         let callee_local = ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(callee))
         if callee_local >= 0 && call_indirect_emit::mir_is_funcref_local(ctx, callee_local) {
-            return mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)
+            return call_indirect_emit::mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)
         }
     }
     let callee_name = ast_node::node_text(callee)
@@ -57,12 +49,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         } else {
             arg_idx = lower_expr(ctx, arg)
         }
-        if is_println && a == 1 && arg_idx >= 0 {
-            let needs_convert = call_args::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
-            if needs_convert {
-                arg_idx = call_args::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
-            }
-        }
+        arg_idx = lower_direct_call_print_convert(ctx, is_println, a, arg, arg_idx)
         if stage_call_args && arg_idx >= 0 {
             arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
         }
@@ -77,32 +64,29 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
     call_emit::mir_emit_direct_call(ctx, callee_name, child_count - 1, first_arg_idx, second_arg_idx, staged_arg_locals, stage_call_args, ast_node::node_span_start(node), lane_immediate)
 }
 
-fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, callee_local: i32) -> i32 {
-    let arg_count = child_count - 1
-    let mut first_arg_vt = 0 - 1
-    let mut a = 1
-    while a < child_count {
-        let arg = ast_node::node_child_at(node, a)
-        let arg_local = lower_expr(ctx, arg)
-        if a == 1 && arg_local >= 0 {
-            first_arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_local)
+fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg: AstNode, arg_idx: i32) -> i32 {
+    if is_println && a == 1 && arg_idx >= 0 {
+        let needs_convert = call_args::mir_print_arg_needs_string_conversion(ctx, arg, arg_idx)
+        if needs_convert {
+            return call_args::mir_convert_print_arg_to_string(ctx, arg, arg_idx)
         }
-        a = a + 1
     }
-    let mut dest = 0 - 1
-    let mut dest_vt = value_types::VT_VOID()
-    if arg_count != 0 {
-        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"))
-        call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
-        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
-    }
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call_indirect::MirInst_call_indirect_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt))
-    dest
+    arg_idx
 }
 
 fn mir_callee_expects_i64(callee_name: String) -> bool {
     if contains(clone(callee_name), String_from("i64")) {
+        return true
+    }
+    // Seek APIs take i64 positions; force int literals to i64 so staged
+    // calls do not pass i32 into (ref, i64) (#726 seek / io_copy).
+    if ends_with(clone(callee_name), String_from("seek_to")) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("seek")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("::seek")) {
         return true
     }
     false

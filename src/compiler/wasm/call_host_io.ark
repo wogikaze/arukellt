@@ -84,7 +84,7 @@ fn try_emit_fs_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitC
 // Arukellt Selfhost - filesystem query host call dispatch.
 
 fn try_emit_fs_query_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "fs::exists") {
+    if eq(clone(callee), "fs::exists") || eq(clone(callee), "exists") {
         let _result_on_stack = intrinsic_fs::emit_fs_exists(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -95,7 +95,8 @@ fn try_emit_fs_query_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Sel
 // Arukellt Selfhost - filesystem read host call dispatch.
 
 fn try_emit_fs_read_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "fs::read_to_string") {
+    // normalize_callee_name strips `__intrinsic_`, so match `fs_read_file`.
+    if eq(clone(callee), "fs::read_to_string") || eq(clone(callee), "read_to_string") || eq(clone(callee), "fs_read_file") || eq(clone(callee), "__intrinsic_fs_read_file") {
         let _result_on_stack = intrinsic_fs::emit_fs_read_to_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -106,12 +107,12 @@ fn try_emit_fs_read_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 // Arukellt Selfhost - filesystem write host call dispatch.
 
 fn try_emit_fs_write_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "fs::write_string") {
+    if eq(clone(callee), "fs::write_string") || eq(clone(callee), "write_string") || eq(clone(callee), "fs_write_file") || eq(clone(callee), "__intrinsic_fs_write_file") {
         let _result_on_stack = intrinsic_fs::emit_fs_write_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "fs::write_bytes") {
+    if eq(clone(callee), "fs::write_bytes") || eq(clone(callee), "write_bytes") || eq(clone(callee), "fs_write_bytes") || eq(clone(callee), "__intrinsic_fs_write_bytes") {
         let _result_on_stack = intrinsic_fs::emit_fs_write_bytes(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -137,7 +138,7 @@ fn try_emit_process_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 
 // Arukellt Selfhost - Wasm stdio host call dispatch
 
-fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
         if eq(clone(callee), "stdio::read_stdin") || eq(clone(callee), "stdin_read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
             let _result_on_stack = intrinsic_stdio::emit_read_stdin_to_string(w, inst, ctx)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)

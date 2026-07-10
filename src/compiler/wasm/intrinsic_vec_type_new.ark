@@ -4,11 +4,25 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::block_inst_access
 use mir::function_block_queries
+use mir::function_locals_view
+use mir::local_access
 use mir::opcodes as mir_opcodes
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
-use wasm::intrinsic_vec_type
+
+fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
+    if local_idx < 0 {
+        return String_from("")
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return String_from("")
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    local_access::MirLocal_type_name(loc)
+}
 
 fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, dest_local)
@@ -26,7 +40,7 @@ fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
 }
 
 fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
-    let tname = intrinsic_vec_type::local_type_name(ctx, dest_local)
+    let tname = local_type_name(ctx, dest_local)
     let resolved = resolve_array_type_from_type_name(ctx, clone(tname))
     if resolved >= 0 {
         return resolved
@@ -109,7 +123,7 @@ fn find_immediate_store_target_type_name(ctx: SelfEmitCtx, dest_local: i32) -> S
                             // MirInst_local_set_from(target, source): arg0=target, arg1=source
                             if inst_accessors_operands::MirInst_arg1(next) == dest_local {
                                 let target = inst_accessors_operands::MirInst_arg0(next)
-                                return intrinsic_vec_type::local_type_name(ctx, target)
+                                return local_type_name(ctx, target)
                             }
                         }
                         ahead = ahead + 1

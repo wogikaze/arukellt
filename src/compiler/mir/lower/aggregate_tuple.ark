@@ -5,15 +5,26 @@ use mir::lower::ctx_gc_struct
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering tuple aggregate emission
 
+use mir::inst_const_i32
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::inst_local_get
 use mir::value_types
+use mir::lower::ctx_api_local_types
 use std::text
 
 fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
-    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
     let child_count = len(field_locals)
+    // Empty tuple `()` is the unit value. Represent it as i32 0 so
+    // `Ok(())` / `Result<(), E>` select the builtin `_f1_i32` Ok variant
+    // instead of a GC struct ref that collapses to `_f1_ref0` (String).
+    if child_count == 0 {
+        let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+        ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, dest))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+        return dest
+    }
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
     let struct_name = tuple_struct_name_from_field_vts(ctx, field_vts, child_count, total_bytes)
     if len(struct_name) > 0 {
         let sig = tuple_gc_sig_from_field_vts(field_vts, child_count)
@@ -50,7 +61,7 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
         }
         ti = ti + 1
     }
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))
+    // Value lives in `dest`; callers load via local_set_from / return_value.
     if len(struct_name) > 0 {
         let type_name = concat(String_from("struct:"), concat(clone(struct_name), concat(String_from(":"), i32_to_string(total_bytes))))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)

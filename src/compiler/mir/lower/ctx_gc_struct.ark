@@ -1,16 +1,13 @@
 // Arukellt Selfhost - MIR lowering GC struct type registration.
-
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_size
 use mir::module_gc_struct
 use std::text
-
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
 }
-
 fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     // Dedupe by name, not by sig. Distinct structs can share a field layout
     // (Range and RangeIter are both two i32 fields) but each still needs a
@@ -26,7 +23,6 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     push(ctx.gc_struct_names, struct_name)
     push(ctx.gc_struct_sigs, sig)
 }
-
 fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
@@ -38,7 +34,6 @@ fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     }
     0 - 1
 }
-
 fn ctx_flush_gc_structs(ctx: LowerCtx) {
     let m = ctx.module
     let count = len(ctx.gc_struct_names)
@@ -48,41 +43,53 @@ fn ctx_flush_gc_structs(ctx: LowerCtx) {
         i = i + 1
     }
 }
-
-fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
-    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
-        return concat(prefix, String_from("_f64"))
+        return String_from("_f64")
     }
     if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
-        return concat(prefix, String_from("_i64"))
+        return String_from("_i64")
     }
     if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
-        return concat(prefix, String_from("_v128"))
+        return String_from("_v128")
     }
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
-        return concat(prefix, String_from("_ref0"))
+        return String_from("_ref0")
     }
     if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
-        return concat(prefix, String_from("_i32"))
+        return String_from("_i32")
     }
     if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
-        return concat(prefix, String_from("_i32"))
+        return String_from("_i32")
     }
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
-        return concat(prefix, String_from("_i32"))
+        return String_from("_i32")
     }
     // Function refs are table indices (i32), not GC struct refs.
     if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
-        return concat(prefix, String_from("_i32"))
+        return String_from("_i32")
     }
     // Unsubstituted type parameters (T, U, ?T) stay i32 until mono fills them.
     if gc_struct_field_type_is_type_param(clone(type_name)) {
-        return concat(prefix, String_from("_i32"))
+        return String_from("_i32")
     }
-    // Container fields (Vec/HashMap/HashSet) are GC vec refs (gcref10).
+    String_new()
+}
+fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
+    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    let scalar = gc_struct_scalar_field_suffix(clone(type_name))
+    if len(scalar) > 0 {
+        return concat(prefix, scalar)
+    }
+    // Enum-typed fields must use the GC enum open type (gcref14), not the
+    // all-i32 generic struct slot derived from byte size (#726 TomlValStep).
+    if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name)) {
+        return concat(prefix, String_from("_ref14"))
+    }
+    // Container fields: pick the concrete GC vec/map type when the
+    // element type is known (Vec<String> ≠ Vec<i32>; #726 TomlKeyStep).
     if gc_struct_field_type_is_container(clone(type_name)) {
-        return concat(prefix, String_from("_ref10"))
+        return concat(prefix, gc_struct_container_ref_suffix(clone(type_name)))
     }
     // Struct-typed field: resolve the correct GC type offset.
     // If the referenced struct is a named GC struct (has ref/v128/f64/i64
@@ -105,7 +112,6 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     }
     concat(prefix, String_from("_ref14"))
 }
-
 fn gc_struct_field_type_is_container(type_name: String) -> bool {
     if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
         return true
@@ -118,7 +124,61 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
     }
     false
 }
-
+// Map container type names to the fixed GC type-section offsets used by
+// sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
+fn gc_struct_container_ref_suffix(type_name: String) -> String {
+    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) || eq(clone(type_name), String_from("Vec<String>")) || eq(clone(type_name), String_from("Vec<string>")) || eq(clone(type_name), String_from("Vec_String")) {
+        // Vec<String> fixed GC slot is gcref19 (GS_f0_ref15_f1_i32 in
+        // sections_types_gc — string-array vec, not the A_ref0 at offset 15).
+        return String_from("_ref19")
+    }
+    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+        return String_from("_ref21")
+    }
+    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+        return String_from("_ref22")
+    }
+    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+        return String_from("_ref23")
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap")) {
+        return String_from("_ref16")
+    }
+    if starts_with(clone(type_name), String_from("hashset:")) || starts_with(clone(type_name), String_from("HashSet")) {
+        return String_from("_ref16")
+    }
+    // Nested / struct-element Vec → structref-array vec (gcref25).
+    if eq(clone(type_name), String_from("vec:Vec_String")) || starts_with(clone(type_name), String_from("vec:Vec")) || starts_with(clone(type_name), String_from("vec:vec:")) {
+        return String_from("_ref25")
+    }
+    // Angle-bracket Vec<T> for non-scalar T (TomlField, TomlValue, …) (#726).
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        let elem = substring(clone(type_name), 4, len(type_name) - 1)
+        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+            return String_from("_ref19")
+        }
+        if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
+            return String_from("_ref22")
+        }
+        if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
+            return String_from("_ref23")
+        }
+        if eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char")) {
+            return String_from("_ref10")
+        }
+        return String_from("_ref25")
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        if !(eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))) {
+            if !eq(clone(elem), String_from("String")) && !eq(clone(elem), String_from("string")) {
+                return String_from("_ref25")
+            }
+        }
+    }
+    // Default Vec / vec:i32 / bare Vec → i32-array vec (gcref10).
+    String_from("_ref10")
+}
 fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
@@ -135,7 +195,6 @@ fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
     }
     false
 }
-
 fn gc_struct_has_ref_field(ctx: LowerCtx, struct_name: String, field_count: i32) -> bool {
     let mut fi = 0
     while fi < field_count {

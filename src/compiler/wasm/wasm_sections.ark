@@ -27,6 +27,7 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, wasm_sections_facade::type_plan_gc_enum_variant_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_type_map(ctx, wasm_sections_facade::type_plan_gc_enum_variant_type_map(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_names(ctx, module_gc_enum::MirModule_gc_enum_variant_names(mir))
+    wasm_context::emit_wasm_context_set_gc_enum_variant_sigs(ctx, module_gc_enum::MirModule_gc_enum_variant_sigs(mir))
     wasm_context::emit_wasm_context_set_gc_struct_base(ctx, wasm_sections_facade::type_plan_gc_struct_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_struct_type_map(ctx, wasm_sections_facade::type_plan_gc_struct_type_map(type_plan))
     wasm_context::emit_wasm_context_set_gc_struct_names(ctx, module_gc_struct::MirModule_gc_struct_names(mir))

@@ -4,7 +4,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-use mir::inst_local_get
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::lower::struct_lit_copy
@@ -37,6 +36,8 @@ fn mir_emit_struct_field_set(ctx: LowerCtx, struct_name: String, dest: i32, fiel
 }
 
 fn mir_emit_struct_get_local(ctx: LowerCtx, dest: i32) -> i32 {
-    ctx_emit(ctx, inst_local_get::MirInst_local_get_to(dest, dest))
+    // Value already lives in `dest`; do not push a duplicate local_get
+    // (return_value / local_set_from load it themselves). Fixes #726
+    // TomlValStep_ok double local.get before return.
     dest
 }

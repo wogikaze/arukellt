@@ -3,7 +3,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 // Arukellt Selfhost - CoreHIR match arm result local helpers.
 
-use mir::inst_local_get
 use mir::inst_local_set
 use mir::value_types
 
@@ -23,6 +22,7 @@ fn core_store_match_arm_result(ctx: LowerCtx, result: i32, arm_result: i32) {
 }
 
 fn core_emit_match_result_get(ctx: LowerCtx, result: i32) -> i32 {
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(result))
+    // Arm results are already stored into `result` via local_set.
+    // Do not leave a local_get on the stack (see match_result.ark / #726).
     result
 }

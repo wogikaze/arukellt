@@ -1,9 +1,6 @@
 use mir::lower::ast_node
-use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 // Arukellt MIR lowering body - block expressions.
-
-use mir::inst_misc_control
 
 fn lower_block_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
@@ -12,8 +9,8 @@ fn lower_block_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     while s < child_count {
         let stmt = ast_node::node_child_at(node, s)
         let stmt_result = lower_stmt(ctx, stmt)
-        if s < child_count - 1 && stmt_result >= 0 {
-            ctx_emit(ctx, inst_misc_control::MirInst_drop())
+        // Intermediate results live in locals; do not drop from an empty stack.
+        if s < child_count - 1 {
             last_result = 0 - 1
         } else {
             last_result = stmt_result

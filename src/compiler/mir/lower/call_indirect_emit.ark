@@ -2,6 +2,7 @@
 
 use mir::inst_call_indirect
 use mir::inst_local_get
+use mir::lower::ast_node
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::core_expr_shape_accessors
@@ -20,6 +21,32 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     let mut a = 1
     while a < child_count {
         let arg_local = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        if a == 1 && arg_local >= 0 {
+            first_arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_local)
+        }
+        a = a + 1
+    }
+    let mut dest = 0 - 1
+    let mut dest_vt = value_types::VT_VOID()
+    if arg_count != 0 {
+        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"))
+        call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
+        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(callee_local))
+    ctx_api_emit::ctx_emit(ctx, inst_call_indirect::MirInst_call_indirect_with_arg0_vt(callee_local, 0 - 1, arg_count, dest, dest_vt, first_arg_vt))
+    dest
+}
+
+// AST-level indirect (funcref) call lowering, moved from body_call_direct
+// to reduce import fan-out.  Uses ast_node instead of core_expr_shape_accessors.
+fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, callee_local: i32) -> i32 {
+    let arg_count = child_count - 1
+    let mut first_arg_vt = 0 - 1
+    let mut a = 1
+    while a < child_count {
+        let arg = ast_node::node_child_at(node, a)
+        let arg_local = lower_expr(ctx, arg)
         if a == 1 && arg_local >= 0 {
             first_arg_vt = ctx_api_local_types::ctx_local_vt(ctx, arg_local)
         }

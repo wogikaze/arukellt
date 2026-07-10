@@ -1,22 +1,17 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
-use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
-use mir::lower::ctx_fn_exists
-use mir::lower::ctx_current_storage
+use mir::lower::try_from_conversion
 // Arukellt Selfhost - MIR lowering try expression helper
 
 use mir::inst_struct_get
-use mir::inst_struct_set
 use mir::inst_return
 use mir::inst_structured_control
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_gc_struct
-use mir::inst_call
 use mir::value_types
-use mir::function_return_view
 
 fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     let is_gc = ctx_gc_enum::ctx_is_gc_target(ctx)
@@ -32,7 +27,7 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     }
     let res_ptr = ctx_api_local_alloc::ctx_fresh_local(ctx, res_vt)
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(res_ptr))
-    let from_fn_name = try_resolve_from_conversion(ctx, inner_idx, is_gc)
+    let from_fn_name = try_from_conversion::try_resolve_from_conversion(ctx, inner_idx, is_gc)
     let has_from = len(from_fn_name) > 0
     let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     if is_gc {
@@ -45,50 +40,13 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_local))
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
     if has_from {
-        try_emit_err_from_conversion(ctx, res_ptr, from_fn_name)
+        try_from_conversion::try_emit_err_from_conversion(ctx, res_ptr, from_fn_name)
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
         ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
     }
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_end())
     try_emit_ok_payload_extract(ctx, inner_idx, is_gc, res_ptr)
-}
-
-// Resolve the From::from conversion function for the Err path of `?`.
-// Returns the mangled function name (e.g. "AppError::from") if conversion
-// is needed, or an empty string if not.
-fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32, is_gc: bool) -> String {
-    if is_gc {
-        return String_new()
-    }
-    let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
-    let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
-    let source_err_type = try_extract_err_payload_type(clone(inner_type_name))
-    let target_err_type = try_extract_err_payload_type(clone(fn_return_type_name))
-    if len(source_err_type) == 0 || len(target_err_type) == 0 || eq(clone(source_err_type), clone(target_err_type)) {
-        return String_new()
-    }
-    let from_fn_name = concat(clone(target_err_type), String_from("::from"))
-    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(from_fn_name)) {
-        return from_fn_name
-    }
-    String_new()
-}
-
-// Emit the Err path with From conversion: extract Err payload, call
-// From::from, store converted error back, then return.
-// Result struct layout (T1): offset 0=tag, offset 4=payload (union).
-fn try_emit_err_from_conversion(ctx: LowerCtx, res_ptr: i32, from_fn_name: String) {
-    let err_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(4, value_types::VT_VOID()))
-    ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(err_local))
-    let converted_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(err_local))
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(from_fn_name), 1, converted_local))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(res_ptr, converted_local, 4, value_types::VT_VOID()))
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
-    ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
 }
 
 // Extract the Ok payload from the Result and return the local index.

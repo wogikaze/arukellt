@@ -1,19 +1,26 @@
 // Arukellt Selfhost - fs read intrinsic handlers.
 
 use wasm::constants
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
 use wasm::intrinsic_fs_read_body
+use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
+use wasm::string_gc_helpers
 
-// Handler for: fs::read_to_string
+// Handler for: fs::read_to_string / __intrinsic_fs_read_file
 fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_path = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    emit_fs_read_open_branch(w, s_path)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_fs_read_to_string_gc(w, inst, ctx, s_path)
+    }
+    emit_fs_read_open_branch(w, inst, ctx, s_path)
     intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
     helpers_control::emit_else(w)
     intrinsic_fs_read_body::emit_fs_read_loop(w)
@@ -22,14 +29,41 @@ fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     return true
 }
 
-fn emit_fs_read_open_branch(w: WasmWriter, path_local: i32) {
-    emit_fs_read_open_setup(w, path_local)
+// GC path: void-typed if/else that stores Result into an enum scratch local.
+// (Linear-memory path uses if (result i32) for the Result pointer.)
+fn emit_fs_read_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s_path: i32) -> bool {
+    let s_res = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    emit_fs_read_open_setup(w, inst, ctx, s_path)
+    emit_fs_read_open_call(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_ne(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_else(w)
+    intrinsic_fs_read_body::emit_fs_read_loop(w)
+    intrinsic_fs_read_body::emit_fs_read_success(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_res)
+    return true
+}
+
+fn emit_fs_read_open_branch(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, path_local: i32) {
+    emit_fs_read_open_setup(w, inst, ctx, path_local)
     emit_fs_read_open_call(w)
     emit_fs_read_open_error_branch(w)
 }
 
-fn emit_fs_read_open_setup(w: WasmWriter, path_local: i32) {
-    helpers_core::emit_local_set(w, path_local)
+fn emit_fs_read_open_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, path_local: i32) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // Path is a GC string ref; copy into linear memory for WASI path_open.
+        let buf = intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+        helpers_core::emit_local_get(w, buf)
+        helpers_core::emit_local_set(w, path_local)
+    } else {
+        helpers_core::emit_local_set(w, path_local)
+    }
     helpers_io::emit_store_string_local_to_scratch(w, path_local, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
 }
 

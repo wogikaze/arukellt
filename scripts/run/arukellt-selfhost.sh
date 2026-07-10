@@ -188,9 +188,9 @@ if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
     exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@"
   fi
-  DEBUG_ADAPTER="$REPO_ROOT/tools/host-linker/target/release/arukellt-debug-adapter"
+  DEBUG_ADAPTER="$REPO_ROOT/target/release/arukellt-debug-adapter"
   if [[ ! -x "$DEBUG_ADAPTER" ]]; then
-  DEBUG_ADAPTER="$REPO_ROOT/tools/host-linker/target/debug/arukellt-debug-adapter"
+  DEBUG_ADAPTER="$REPO_ROOT/target/debug/arukellt-debug-adapter"
   fi
   if [[ -x "$DEBUG_ADAPTER" ]]; then
     export ARUKELLT_REPO_ROOT="$REPO_ROOT"

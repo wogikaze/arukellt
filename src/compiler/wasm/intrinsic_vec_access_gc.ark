@@ -1,0 +1,185 @@
+// Arukellt Selfhost - vec access GC intrinsic helpers.
+use wasm::opcodes
+use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::writer_gc
+use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
+use wasm::intrinsic_vec_type
+use wasm::intrinsics::helpers_core
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::inst_accessors_operands
+use mir::block_inst_access
+
+// Resolve a concrete GC struct type from a struct type name (e.g. "Point").
+// Checks gc_struct_names first, then falls back to byte_size-based lookup.
+// Container element names (vec:String, Vec, ...) resolve via fixed GC slots
+// so structref-array gets cast before calls (#726 csv_perf).
+fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
+    let container = resolve_container_elem_gc_type(ctx, clone(struct_name))
+    if container >= 0 {
+        return container
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    }
+    // Look up byte_size from the current function's MIR_STRUCT_NEW instructions.
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let byte_size = lookup_struct_byte_size_in_func(f, clone(struct_name))
+    if byte_size > 0 {
+        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
+    }
+    0 - 1
+}
+
+fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) || eq(clone(type_name), String_from("Vec<String>")) || eq(clone(type_name), String_from("Vec<string>")) || eq(clone(type_name), String_from("Vec_String")) || eq(clone(type_name), String_from("Vec_string")) {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) || eq(clone(type_name), String_from("Vec_i64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) || eq(clone(type_name), String_from("Vec_f64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    }
+    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) || eq(clone(type_name), String_from("Vec_v128")) {
+        return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    }
+    if eq(clone(type_name), String_from("vec:i32")) || eq(clone(type_name), String_from("vec:I32")) || eq(clone(type_name), String_from("Vec_i32")) {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    }
+    // Bare "Vec" is ambiguous in nested Vec<Vec<String>>; prefer string-vec
+    // when the surrounding module uses Vec_String rows (#726 csv). Fall back
+    // to i32-vec only when no better signal exists.
+    if eq(clone(type_name), String_from("Vec")) {
+        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) || eq(clone(elem), String_from("Vec_String")) {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || starts_with(clone(elem), String_from("vec:")) || starts_with(clone(elem), String_from("Vec")) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        }
+    }
+    if starts_with(clone(type_name), String_from("Vec_")) {
+        // Mono names like Vec_String / Vec_Token.
+        if eq(clone(type_name), String_from("Vec_String")) || eq(clone(type_name), String_from("Vec_string")) {
+            return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        }
+        return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    }
+    0 - 1
+}
+
+// Scan function instructions for MIR_STRUCT_NEW with matching struct name.
+fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
+                let name = inst_accessors_literals::MirInst_str_val(inst)
+                if eq(clone(name), clone(struct_name)) {
+                    return inst_accessors_literals::MirInst_int_val(inst)
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0
+}
+
+fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
+    let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+    helpers_core::emit_local_set(w, s_idx)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_get(w, s_idx)
+    writer_gc::emit_gc_array_get(w, array_type)
+    // If array element type is abstract structref, cast to concrete struct type.
+    // Prefer dest local's type (vec:String) over bare "Vec" (#726 csv_perf).
+    let struct_ref_array_type = ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
+    if array_type == struct_ref_array_type {
+        let mut elem_gc_type = 0 - 1
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if dest >= 0 {
+            let dest_tname = intrinsic_vec_type::local_type_name(ctx, dest)
+            if len(dest_tname) > 0 {
+                elem_gc_type = resolve_concrete_struct_type(ctx, clone(dest_tname))
+            }
+        }
+        if elem_gc_type < 0 {
+            let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+            if len(elem_name) > 0 {
+                elem_gc_type = resolve_concrete_struct_type(ctx, clone(elem_name))
+            }
+        }
+        if elem_gc_type >= 0 {
+            writer_gc::emit_gc_ref_cast(w, elem_gc_type)
+        }
+    }
+    return true
+}
+
+// Map a named GC struct to `_f1_gcsref<slot>` for Option::Some payloads.
+fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> String {
+    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+    let count = len(names)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
+            return concat(String_from("_f1_gcsref"), i32_to_string(i))
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+// Prefer Option::Some with the requested payload suffix (_f1_i32 / _f1_i64 /
+// _f1_ref0 / _f1_gcsrefN / ...) over the first name-only match (#726).
+fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_type: i32) -> i32 {
+    let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
+    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let count = len(names)
+    let mut fallback = 0 - 1
+    let mut i = 0
+    while i < count {
+        let name = clone(get_unchecked(names, i))
+        if eq(clone(name), String_from("Option::Some")) || eq(clone(name), String_from("Some")) {
+            if i < len(type_map) {
+                let variant_type = get_unchecked(type_map, i)
+                if variant_type != open_type {
+                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), clone(field_suffix)) {
+                        return variant_type
+                    }
+                    if fallback < 0 {
+                        fallback = variant_type
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    if fallback >= 0 {
+        return fallback
+    }
+    let named = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::Some"))
+    if named >= 0 {
+        return named
+    }
+    enum_type
+}

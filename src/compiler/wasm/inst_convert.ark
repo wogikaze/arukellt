@@ -1,5 +1,6 @@
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::opcodes as mir_opcodes
 use mir::value_types
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -14,10 +15,23 @@ use wasm::writer_core
 use wasm::writer_gc
 
 fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    if inst_accessors_operands::MirInst_arg0(inst) >= 0 {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
-        inst_locals::emit_gc_ref_cast_to_dest(w, ctx, inst_accessors_operands::MirInst_arg0(inst))
+    emit_return_with_prev(w, inst, ctx, 0 - 1, 0 - 1)
+}
+
+// When the previous MIR op already left the return local on the stack
+// (identity local_get_to), do not push it again — that caused
+// "values remaining on stack after return" / double local.get (#726 Vec::read).
+fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {
+    let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+    if ret_local >= 0 {
+        let already_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() && prev_arg0 == ret_local
+        if !already_on_stack {
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_core::emit_leb128_u(w, ret_local)
+            inst_locals::emit_gc_ref_cast_to_dest(w, ctx, ret_local)
+        } else {
+            inst_locals::emit_gc_ref_cast_to_dest(w, ctx, ret_local)
+        }
     } else {
         emit_return_stack_gc_cast_if_needed(w, ctx)
     }

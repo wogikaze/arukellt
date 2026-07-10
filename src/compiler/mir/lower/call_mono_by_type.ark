@@ -44,30 +44,20 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
             return mono_candidate_string
         }
     }
+    let special = resolve_special_mono_target(ctx, clone(out), clone(mono_type_key), first_arg_idx)
+    if len(special) > 0 {
+        return special
+    }
+    out
+}
+
+fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String, first_arg_idx: i32) -> String {
     // ADR-040 Phase 5: format_debug<T> / format_debug__?t0 defers to
     // T::fmt_debug. Type-var mono shells must not stay as unreachable stubs.
     if eq(clone(out), String_from("format_debug")) || starts_with(clone(out), String_from("format_debug__")) {
         let mut key = clone(mono_type_key)
         if len(key) == 0 || starts_with(clone(key), String_from("?")) {
-            let vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
-            if vt == value_types::VT_I32() {
-                key = String_from("i32")
-            } else {
-                if vt == value_types::VT_I64() {
-                    key = String_from("i64")
-                } else {
-                    if vt == value_types::VT_F64() {
-                        key = String_from("f64")
-                    } else {
-                        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
-                            let tn = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-                            if eq(clone(tn), String_from("string")) || eq(clone(tn), String_from("String")) {
-                                key = String_from("String")
-                            }
-                        }
-                    }
-                }
-            }
+            key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
         }
         if len(key) > 0 && !starts_with(clone(key), String_from("?")) {
             let trait_method = concat(clone(key), String_from("::fmt_debug"))
@@ -76,7 +66,49 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
             }
         }
     }
-    out
+    // write_debug_to__?t0 → write_debug_to__i32 / __String (value type key).
+    if eq(clone(out), String_from("write_debug_to")) || starts_with(clone(out), String_from("write_debug_to__")) {
+        let mut key = clone(mono_type_key)
+        if len(key) == 0 || starts_with(clone(key), String_from("?")) {
+            key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
+        }
+        if eq(clone(key), String_from("string")) {
+            key = String_from("String")
+        }
+        if len(key) > 0 && !starts_with(clone(key), String_from("?")) {
+            let mono_candidate = mono::mono_safe_name(concat(String_from("write_debug_to__"), key))
+            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
+                return mono_candidate
+            }
+        }
+    }
+    String_new()
+}
+
+fn call_mono_by_type_scalar_key_from_local(ctx: LowerCtx, arg_idx: i32) -> String {
+    let vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
+    if vt == value_types::VT_I32() {
+        return String_from("i32")
+    }
+    if vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        let tn = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
+        if eq(clone(tn), String_from("string")) || eq(clone(tn), String_from("String")) {
+            return String_from("String")
+        }
+        if eq(clone(tn), String_from("bool")) || eq(clone(tn), String_from("Bool")) {
+            return String_from("bool")
+        }
+        if eq(clone(tn), String_from("char")) {
+            return String_from("char")
+        }
+    }
+    String_new()
 }
 
 fn mono_type_key_from_local_type_name(type_name: String) -> String {

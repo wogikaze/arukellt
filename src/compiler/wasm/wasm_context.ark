@@ -24,6 +24,10 @@ fn emit_wasm_context_set_gc_enum_variant_names(ctx: SelfEmitCtx, gc_enum_variant
     ctx_record::SelfEmitCtx_set_gc_enum_variant_names(ctx, gc_enum_variant_names)
 }
 
+fn emit_wasm_context_set_gc_enum_variant_sigs(ctx: SelfEmitCtx, gc_enum_variant_sigs: Vec<String>) {
+    ctx_record::SelfEmitCtx_set_gc_enum_variant_sigs(ctx, gc_enum_variant_sigs)
+}
+
 fn emit_wasm_context_set_gc_struct_base(ctx: SelfEmitCtx, gc_struct_base: i32) {
     ctx_record::SelfEmitCtx_set_gc_struct_base(ctx, gc_struct_base)
 }
