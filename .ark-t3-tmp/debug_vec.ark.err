@@ -1,3 +1,0 @@
-mir-verify: W001=14 W002=0 W003=58 W004=18 W005=0 W006=0 W007=0
-compilation succeeded (phase 6)
-wrote 22849 bytes to .ark-t3-tmp/debug_vec.ark.wasm

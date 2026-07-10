@@ -93,3 +93,4 @@ docs/playground/dist/benchmarks/results/
 superpowers/
 .worktrees
 tmp/.tmp/
+.ark-t3-tmp/

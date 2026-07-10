@@ -1,8 +1,0 @@
-
-fn main() {
-    let r: Result<(), i32> = Ok(())
-    match r {
-        Result::Ok(_) => { let x = 1 },
-        Result::Err(_) => { let x = 0 },
-    }
-}
