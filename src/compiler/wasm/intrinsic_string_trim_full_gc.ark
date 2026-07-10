@@ -17,7 +17,8 @@ fn emit_trim_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     let s5 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
-    let s6 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    // Result array must use a GC scratch local — i32 scratch rejects array refs.
+    let s6 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
 
     // Save string ref to g0
