@@ -212,8 +212,17 @@ fn is_vec_new_header_bump(instrs: &[(Instr, walrus::ir::InstrLocId)], heap_globa
         && matches!(&p[5].0, Instr::GlobalSet(GlobalSet { global }) if *global == heap_global)
 }
 
+fn is_vec_new_function_name(name: Option<&str>) -> bool {
+    match name {
+        Some(n) if n.starts_with("Vec_new") => true,
+        Some(n) if n.starts_with("__intrinsic_vec_new") => true,
+        _ => false,
+    }
+}
+
 fn patch_vec_new(
     func: &mut LocalFunction,
+    name: Option<&str>,
     locals: &mut ModuleLocals,
     types: &ModuleTypes,
     heap_global: GlobalId,
@@ -222,6 +231,9 @@ fn patch_vec_new(
 ) {
     let ty = func.ty();
     if types.results(ty) != [ValType::I32] {
+        return;
+    }
+    if !is_vec_new_function_name(name) {
         return;
     }
     let entry = func.entry_block();
@@ -377,8 +389,8 @@ fn main() {
     }
 
     for mem in module.memories.iter_mut() {
-        mem.initial = 65536;
-        mem.maximum = None;
+        mem.initial = 65535;
+        mem.maximum = Some(65536);
     }
 
     let heap_global = module
@@ -439,9 +451,11 @@ fn main() {
     let locals = &mut module.locals;
     let types = &module.types;
     for (func_id, entry) in local_funcs {
-        let func = funcs.get_mut(func_id).kind.unwrap_local_mut();
+        let func_ref = funcs.get_mut(func_id);
+        let name = func_ref.name.as_deref();
+        let func = func_ref.kind.unwrap_local_mut();
         let mut patched = 0usize;
-        patch_vec_new(func, locals, types, heap_global, memory_id, &mut patched);
+        patch_vec_new(func, name, locals, types, heap_global, memory_id, &mut patched);
         patch_instr_seq(func, entry, heap_global, grow_fn, &mut patched);
         total_patched += patched;
     }

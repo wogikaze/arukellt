@@ -66,13 +66,68 @@ fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
     variant_name
 }
 
+// Bare variant leaf after the last `::` (TomlValue::Table → Table).
+// Option/Result keep their qualified normalize form for disambiguation.
+fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
+    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    if starts_with(clone(normalized), String_from("Option::")) || starts_with(clone(normalized), String_from("Result::")) {
+        return normalized
+    }
+    if !contains(clone(normalized), String_from("::")) {
+        return normalized
+    }
+    let n = len(normalized)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(clone(normalized), i) == 58 {
+            return substring(clone(normalized), i + 1, n)
+        }
+        i = i - 1
+    }
+    normalized
+}
+
+fn ctx_gc_enum_variant_names_match(a: String, b: String) -> bool {
+    if eq(clone(a), clone(b)) {
+        return true
+    }
+    let a_norm = ctx_gc_enum_normalize_variant_name(clone(a))
+    let b_norm = ctx_gc_enum_normalize_variant_name(clone(b))
+    if eq(clone(a_norm), clone(b_norm)) {
+        return true
+    }
+    eq(ctx_gc_enum_bare_variant_name(clone(a_norm)), ctx_gc_enum_bare_variant_name(clone(b_norm)))
+}
+
 fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let found = ctx_gc_enum_lookup_slot(ctx, clone(normalized))
     if found >= 0 {
         return found
     }
-    ctx_gc_enum_lookup_slot(ctx, clone(variant_name))
+    let direct = ctx_gc_enum_lookup_slot(ctx, clone(variant_name))
+    if direct >= 0 {
+        return direct
+    }
+    // Bare `Table` must resolve to `TomlValue::Table` when unique (#726).
+    let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
+    let suffix = concat(String_from("::"), clone(bare))
+    let count = len(ctx.gc_enum_variant_names)
+    let mut i = 0
+    let mut hit = 0 - 1
+    let mut hits = 0
+    while i < count {
+        let nm = clone(get_unchecked(ctx.gc_enum_variant_names, i))
+        if eq(clone(nm), clone(bare)) || ends_with(clone(nm), clone(suffix)) {
+            hit = i
+            hits = hits + 1
+        }
+        i = i + 1
+    }
+    if hits == 1 {
+        return hit
+    }
+    0 - 1
 }
 
 fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
@@ -93,93 +148,9 @@ fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, pay
     0 - 1
 }
 
-fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
-    // Try payload-specific lookup first — this ensures we find a variant
-    // whose field types match the actual payload value types.  This is
-    // critical when the same variant name (e.g. "Err") is used with
-    // different payload types (e.g. Result<i32, string> vs Result<i32, i32>).
-    let payload_found = ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)
-    if payload_found >= 0 {
-        return payload_found
-    }
-    // Fall back to name-only lookup — the registration path may have already
-    // created the variant with correct field sigs derived from type names.
-    // This is essential for nested enum payloads (e.g. Outer::Wrap(Inner))
-    // where the value-type-based sig (VT_GC_REF -> _f1_ref0 = String) differs
-    // from the type-name-based sig ("Inner" -> _f1_ref14 = enum open type).
-    // However, only accept the name-only match if the payload field types
-    // are compatible (both ref or both non-ref).  An i32 payload must not
-    // reuse a variant registered with a ref payload, and vice versa.
-    let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
-    if name_slot >= 0 {
-        let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
-        if len(layout_field_sigs) > 0 {
-            let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), String_from("SubF+14_S_f0_i32"))
-            if eq(clone(existing_payload), clone(layout_field_sigs)) {
-                return name_slot
-            }
-        }
-        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-        let want_field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
-        if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, want_field_sigs) {
-            return name_slot
-        }
-    }
-    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
-    let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
-    ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
-    len(ctx.gc_enum_variant_names) - 1
-}
-
-// Like ctx_ensure_gc_enum_payload_variant but uses a type_name to generate
-// the correct field sig when the payload VT is VT_GC_REF.  This is critical
-// for distinguishing between different GC ref payload types (e.g. String
-// vs Vec<i32>) that both have VT_GC_REF but need different WASM ref types.
-
-fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
-    let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
-    let mut field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, clone(type_name))
-    if len(layout_field_sigs) > 0 {
-        if len(type_name) == 0 || eq(clone(type_name), String_from("enum:open")) || contains(clone(field_sigs), String_from("ref14")) {
-            if contains(clone(layout_field_sigs), String_from("ref")) || contains(clone(layout_field_sigs), String_from("gcsref")) {
-                field_sigs = layout_field_sigs
-            }
-        }
-    }
-    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, clone(field_sigs))
-    let count = len(ctx.gc_enum_variant_sigs)
-    let mut i = 0
-    while i < count {
-        if eq(get_unchecked(ctx.gc_enum_variant_sigs, i), clone(want_sig)) {
-            let name_canon = ctx_gc_enum_normalize_variant_name(clone(get_unchecked(ctx.gc_enum_variant_names, i)))
-            if eq(name_canon, clone(normalized)) {
-                return i
-            }
-        }
-        i = i + 1
-    }
-    let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
-    if name_slot >= 0 {
-        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-        let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), String_from("SubF+14_S_f0_i32"))
-        if len(layout_field_sigs) > 0 && eq(clone(existing_payload), clone(layout_field_sigs)) {
-            return name_slot
-        }
-        if (len(type_name) == 0 || eq(clone(type_name), String_from("enum:open"))) && len(existing_payload) > 0 {
-            if contains(clone(existing_payload), String_from("ref")) || contains(clone(existing_payload), String_from("gcsref")) {
-                return name_slot
-            }
-        }
-        if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
-            return name_slot
-        }
-    }
-    let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
-    ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
-    len(ctx.gc_enum_variant_names) - 1
+fn gc_enum_variant_is_vec_container(normalized: String) -> bool {
+    let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
+    eq(clone(bare), String_from("Array")) || eq(clone(bare), String_from("Table")) || eq(clone(bare), String_from("Object"))
 }
 
 
@@ -191,32 +162,4 @@ fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
         module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(get_unchecked(ctx.gc_enum_variant_sigs, i)))
         i = i + 1
     }
-}
-
-fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
-    let mut sig = String_new()
-    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
-    let layout_count = len(ctx.struct_names)
-    let mut li = 0
-    while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), clone(layout_name)) || eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
-            let field_count = get_unchecked(ctx.struct_field_counts, li)
-            let mut fi = 1
-            while fi < field_count {
-                let mut off = 0
-                let mut si = 0
-                while si < li {
-                    off = off + get_unchecked(ctx.struct_field_counts, si)
-                    si = si + 1
-                }
-                off = off + fi
-                let ft = get_unchecked(ctx.struct_field_types, off)
-                sig = text::builder_append(sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
-                fi = fi + 1
-            }
-            return sig
-        }
-        li = li + 1
-    }
-    sig
 }

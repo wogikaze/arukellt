@@ -1,7 +1,10 @@
 // Arukellt Selfhost - MIR verifier entry (warning-only, aggregate logging).
 
+use std::host::stdio
+use mir::function_block_queries
 use mir::function_identity
 use mir::module_functions
+use mir::block_inst_access
 use mir::verify_call
 use mir::verify_local
 use mir::verify_report
@@ -24,8 +27,34 @@ fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport 
     }
     verify_call::verify_calls_in_module(m, report, verbose)
     verify_spine::verify_spine_mono_inv9(m, report, verbose)
+    verify_report_print_largest_function(m)
     verify_report::mir_verify_report_print_summary(report)
     report
+}
+
+fn verify_report_print_largest_function(m: MirModule) {
+    let count = module_functions::MirModule_function_count(m)
+    let mut fi = 0
+    let mut max_name = String_from("")
+    let mut max_count = 0
+    while fi < count {
+        let f = module_functions::MirModule_function_at(m, fi)
+        let fname = function_identity::MirFunction_name(f)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        let mut inst_count = 0
+        while bi < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, bi)
+            inst_count = inst_count + block_inst_access::MirBlock_inst_count(block)
+            bi = bi + 1
+        }
+        if inst_count > max_count {
+            max_count = inst_count
+            max_name = clone(fname)
+        }
+        fi = fi + 1
+    }
+    stdio::eprintln(concat(String_from("mir-verify: largest function "), concat(max_name, concat(String_from(" = "), to_string(max_count)))))
 }
 
 fn verify_mir(m: MirModule) -> i32 {

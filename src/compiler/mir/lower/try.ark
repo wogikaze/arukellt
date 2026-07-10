@@ -2,6 +2,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_enum_payload
 use mir::lower::try_from_conversion
 // Arukellt Selfhost - MIR lowering try expression helper
 
@@ -63,7 +64,7 @@ fn try_emit_ok_payload_extract(ctx: LowerCtx, inner_idx: i32, is_gc: bool, res_p
     if is_gc {
         let payload_vts = Vec_new_i32()
         push(payload_vts, ok_vt)
-        let mut ok_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Ok"), payload_vts, clone(ok_type_name))
+        let mut ok_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Ok"), payload_vts, clone(ok_type_name))
         if ok_slot < 0 {
             ok_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Ok"))
         }

@@ -110,11 +110,12 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
         return
     }
     if is_i64_elem {
-        emit_vec_get_gc_some_scalar(w, ctx, s_opt, 15, String_from("_f1_i64"), enum_type)
+        // Must use scratch_base+15 (i64 slot), not absolute local 15 (#726 debug_vec).
+        emit_vec_get_gc_some_scalar(w, ctx, s_opt, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15), String_from("_f1_i64"), enum_type)
         return
     }
     if is_f64_elem {
-        emit_vec_get_gc_some_scalar(w, ctx, s_opt, 12, String_from("_f1_f64"), enum_type)
+        emit_vec_get_gc_some_scalar(w, ctx, s_opt, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12), String_from("_f1_f64"), enum_type)
         return
     }
     // Vec<i32>/bool: element is an i32 value
@@ -135,6 +136,17 @@ fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_stru
             let gcsref_suffix = intrinsic_vec_access_gc::find_gcsref_suffix_for_struct(ctx, clone(elem_name))
             if len(gcsref_suffix) > 0 {
                 some_suffix = gcsref_suffix
+            } else {
+                // Enum elems (JsonValue, TomlValue, …) use enum-open Option
+                // payload — never string _f1_ref0 (#726 json_get_index).
+                let open_ty = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+                if elem_gc_type >= 0 && elem_gc_type == open_ty {
+                    some_suffix = String_from("_f1_ref14")
+                } else if starts_with(clone(elem_name), String_from("enum:")) {
+                    some_suffix = String_from("_f1_ref14")
+                } else if intrinsic_vec_access_gc::elem_name_looks_like_enum(ctx, clone(elem_name)) {
+                    some_suffix = String_from("_f1_ref14")
+                }
             }
         }
     }

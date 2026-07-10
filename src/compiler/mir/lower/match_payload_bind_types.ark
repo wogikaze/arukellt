@@ -74,6 +74,13 @@ fn normalize_payload_elem_type_name(elem_ty: String) -> String {
     if eq(clone(elem_ty), String_from("Vec")) {
         return String_from("vec:i32")
     }
+    if starts_with(clone(elem_ty), String_from("Vec<")) && ends_with(clone(elem_ty), String_from(">")) {
+        let inner = substring(clone(elem_ty), 4, len(elem_ty) - 1)
+        return concat(String_from("vec:"), inner)
+    }
+    if starts_with(clone(elem_ty), String_from("Vec_")) {
+        return concat(String_from("vec:"), substring(clone(elem_ty), 4, len(elem_ty)))
+    }
     elem_ty
 }
 
@@ -84,8 +91,12 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
     if len(type_name) == 0 || eq(clone(type_name), String_from("enum:open")) {
         return false
     }
+    // Nested enum payloads (enum:Inner from Outer::Wrap) must stay
+    // enum-open. The container's payload type_slot is Outer::Wrap, not
+    // Inner — applying it types the bind as the wrong concrete variant
+    // (#726 nested_enum).
     if starts_with(clone(type_name), String_from("enum:")) {
-        return true
+        return false
     }
     false
 }
@@ -93,43 +104,38 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
 fn extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
+    // Split Ok/Err on the LAST encoding separator so nested vec:T /
+    // Vec_T / option:T stay intact (#726 toml Result<Vec<T>, E>).
+    // result:vec:T:E → last ':'; Result_vec:T_E / Result_Vec_T_E → last '_'.
     let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
-    let mut sep = 0 - 1
-    let mut i = 0
-    let rlen = len(rest)
-    while i < rlen {
-        let ch = char_at(rest, i)
-        if ch == sep_char {
-            sep = i
-            i = rlen
-        }
-        i = i + 1
+    let last = find_last_sep_char(clone(rest), sep_char)
+    if last > 0 {
+        return normalize_payload_elem_type_name(substring(rest, 0, last))
     }
-    if sep < 0 {
-        return normalize_payload_elem_type_name(rest)
-    }
-    normalize_payload_elem_type_name(substring(rest, 0, sep))
+    normalize_payload_elem_type_name(rest)
 }
 
 fn extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
     let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
-    let mut first_sep = 0 - 1
-    let mut i = 0
-    let rlen = len(rest)
-    while i < rlen {
-        let ch = char_at(rest, i)
-        if ch == sep_char {
-            first_sep = i
-            i = rlen
+    let last = find_last_sep_char(clone(rest), sep_char)
+    if last >= 0 && last + 1 < len(rest) {
+        return substring(rest, last + 1, len(rest))
+    }
+    String_new()
+}
+
+fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
+    let n = len(s)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(clone(s), i) == sep_char {
+            return i
         }
-        i = i + 1
+        i = i - 1
     }
-    if first_sep < 0 {
-        return String_new()
-    }
-    substring(rest, first_sep + 1, rlen)
+    0 - 1
 }
 
 fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {

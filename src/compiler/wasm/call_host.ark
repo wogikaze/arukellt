@@ -22,7 +22,7 @@ fn try_emit_host_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmi
         if call_host_io::try_emit_env_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
-        if call_host_assert::try_emit_option_assert_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        if call_host_assert::try_emit_option_assert_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
             return true
         }
         if call_host_convert::try_emit_host_convert_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {

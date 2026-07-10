@@ -18,14 +18,29 @@ fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     }
     let vec_elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
     let elem_tag = mir_return_tag_from_type_info(vec_elem)
-    match elem_tag {
-        1 => String_from("vec:i32"),
-        2 => String_from("vec:i64"),
-        3 => String_from("vec:f64"),
-        5 => String_from("vec:String"),
-        10 => String_from("vec:Vec"),
-        _ => String_from("vec:i32"),
+    if elem_tag == 1 {
+        return String_from("vec:i32")
     }
+    if elem_tag == 2 {
+        return String_from("vec:i64")
+    }
+    if elem_tag == 3 {
+        return String_from("vec:f64")
+    }
+    if elem_tag == 5 {
+        return String_from("vec:String")
+    }
+    if elem_tag == 10 {
+        return String_from("vec:Vec")
+    }
+    // Struct/enum elems (TomlField, TomlValue, JsonField, …) must keep
+    // their names — collapsing to vec:i32 breaks Result::Ok(Vec) match
+    // payload typing (#726 toml/json).
+    let n = typeinfo_shape::mir_type_info_name(vec_elem)
+    if len(n) > 0 {
+        return concat(String_from("vec:"), n)
+    }
+    String_from("vec:i32")
 }
 
 fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {

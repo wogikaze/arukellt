@@ -64,6 +64,12 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
 }
 
 fn mir_core_callee_expects_i64(callee_name: String) -> bool {
+    // Conversion intrinsics that *produce* i64 from i32 must keep i32 args.
+    // `contains("i64")` alone wrongly matches `__intrinsic_i32_to_i64` and
+    // forces i64.const + extend (#726 hashmap i64::hash).
+    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+        return false
+    }
     if contains(clone(callee_name), String_from("i64")) {
         return true
     }

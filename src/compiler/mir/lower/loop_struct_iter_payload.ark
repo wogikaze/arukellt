@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_enum_payload
 // Arukellt Selfhost - MIR struct iterator payload extraction.
 
 use mir::inst_struct_get
@@ -20,7 +21,7 @@ fn mir_emit_struct_iterator_payload(ctx: LowerCtx, opt_local: i32, iter_var: i32
         if type_slot < 0 {
             let payload_vts = Vec_new_i32()
             push(payload_vts, value_types::VT_I32())
-            type_slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant(ctx, String_from("Option::Some"), payload_vts)
+            type_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant(ctx, String_from("Option::Some"), payload_vts)
         }
         ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(iter_var, opt_local, type_slot, 1, value_types::VT_I32()))
         return
