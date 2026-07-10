@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-10T01:20:33Z",
+  "generated_at": "2026-07-10T02:13:51Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -203,7 +203,9 @@
         "658",
         "done)"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "727"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
@@ -604,7 +606,8 @@
         "510"
       ],
       "blocks_issue_ids": [
-        "668"
+        "668",
+        "727"
       ],
       "acceptance": {
         "checked": 0,
@@ -910,6 +913,26 @@
       },
       "orchestration": {
         "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "727",
+      "path": "727-arukellt-host-bridge-retirement.md",
+      "title": "727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "714",
+        "675"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
         "upstream_notes": "None"
       }
     },

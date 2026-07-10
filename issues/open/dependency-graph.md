@@ -51,6 +51,7 @@ graph LR
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API bold cutover (ADR-036 D2)"]
   I668["668 668 — P2 native component polish (post-#074)"]
+  I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and i32 helper containment"]
@@ -69,6 +70,8 @@ graph LR
   I691 --> I703
   I695 --> I703
   I714 --> I668
+  I714 --> I727
+  I675 --> I727
   I724 --> I726
   I682 --> I683
   I691 --> I709
@@ -100,7 +103,7 @@ graph LR
 - **671** depends on: 653, 654; blocks: none
 - **672** depends on: 664, done); blocks: none
 - **674** depends on: 443, 663, 665; blocks: none
-- **675** depends on: 446, 447, 655, 656, 657, 658, done); blocks: none
+- **675** depends on: 446, 447, 655, 656, 657, 658, done); blocks: 727
 - **676** depends on: 076, done), 445, done); blocks: none
 - **677** depends on: 475, 485; blocks: none
 - **678** depends on: none; blocks: none
@@ -120,7 +123,7 @@ graph LR
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none
-- **714** depends on: 074, 510; blocks: 668
+- **714** depends on: 074, 510; blocks: 668, 727
 - **718** depends on: 700, 701; blocks: none
 - **719** depends on: 715; blocks: none
 - **721** depends on: none; blocks: none
@@ -136,6 +139,7 @@ graph LR
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **668** depends on: 074, 510, 714; blocks: none
+- **727** depends on: 714, 675; blocks: none
 - **726** depends on: 724; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713

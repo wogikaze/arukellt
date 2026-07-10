@@ -71,6 +71,8 @@ New script `scripts/check/gate-668-p2-native-polish.py` (or extend `gate_074`) t
 
 - Library component routing (#667)
 - Full WASI P2 filesystem/HTTP/sockets capability facades (#076, #077, #139)
+- `arukellt_host` bridge retirement and HTTP/sockets import migration
+  to standard WASI P2 (**#727**)
 - Removing `BOOTSTRAP_COMPONENT_STUB` entirely (tracked separately if memory-budget
   work is needed; this issue only requires non-stub proof for gates)
 

@@ -76,6 +76,8 @@ directly.
 
 - Full WASI filesystem, sockets, HTTP, or async coverage beyond the command
   stdout/stderr/env/args/exit surface needed by existing P2 native gates.
+  **HTTP/sockets migration from `arukellt_host` to standard WASI P2 imports
+  is tracked by #727.**
 - General library component interop fixes tracked by #667 and related
   component export issues.
 - Full `std::wit` WIT parser consolidation tracked by #706.
@@ -121,7 +123,9 @@ Add or update a gate under `scripts/check/` so it:
   the P2-specific import surface.
 - Blocks the coherent-architecture portion of #668.
 - Related but not blocking: #667 (library component routing), #678
-  (verification gate coverage), #706 (`std::wit` parser compliance).
+  (verification gate coverage), #706 (`std::wit` parser compliance),
+  #727 (`arukellt_host` bridge retirement — HTTP/sockets follow the same
+  emitter-native component import architecture).
 
 ## References
 

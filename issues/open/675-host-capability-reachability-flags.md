@@ -49,8 +49,22 @@ behavior.
 - [ ] Close gate for user-reachable host capabilities (extend #138 or new gate)
 - [ ] `python3 scripts/manager.py verify quick` exits 0
 
+## ADR-007 alignment note (2026-07-10)
+
+The current `arukellt_host` bridge (`tools/host-linker/src/host_http.rs`,
+`host_sockets.rs`) is a **legacy layer** that contradicts ADR-007 (2026-07
+revision), which mandates all host functions go through standard WASI P2/P3
+imports. Issue **#727** tracks the retirement of `arukellt_host` and
+migration of HTTP/sockets to `wasi:http/outgoing-handler` /
+`wasi:io/sockets` component imports.
+
+This issue (#675) focuses on user-reachability and permission flags; #727
+focuses on the import-path migration. Both must be reconciled so the
+migrated capabilities remain user-reachable after the bridge is removed.
+
 ## References
 
 - `issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md`
+- `issues/open/727-arukellt-host-bridge-retirement.md`
 - `src/compiler/wasm/call_host_network.ark`
 - `scripts/check/gate-655-http-outgoing.py`, `gate-657-sockets-connect-read-write.py`
