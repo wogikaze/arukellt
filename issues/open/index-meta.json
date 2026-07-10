@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-10T02:13:51Z",
+  "generated_at": "2026-07-10T03:42:59Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -744,6 +744,23 @@
       "orchestration": {
         "class": "design-then-implement",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "728",
+      "path": "728-wir-target-backend-ir.md",
+      "title": "728 — WIR / backend target IR for ADR-007 multi-target separation",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
       }
     },
     {
