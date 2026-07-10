@@ -83,7 +83,10 @@ fn try_emit_vec_core_mutation_call(w: WasmWriter, callee: String, inst: MirInst,
             return true
         }
         if eq(clone(callee), "vec_set") {
-            let _result_on_stack = intrinsic_vec::emit_vec_set(w, inst, ctx)
+            // GC statement-form `set` must not leave the vec ref on the stack
+            // (same void convention as vec_push on GC; see #726 reader_read_exact).
+            let is_void_set = emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx))
+            let _result_on_stack = intrinsic_vec::emit_vec_set(w, inst, ctx, is_void_set)
             inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
             return true
         }

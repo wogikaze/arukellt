@@ -1,9 +1,7 @@
 // Arukellt Selfhost - ADR-040 Phase 5e: multi-variant local normalization.
-//
 // When a local receives values from more than one enum variant slot,
 // clear variant_slot and keep an open enum type_name so local declaration
 // (enum_open) matches stores without ref.cast to a specific variant.
-
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_locals_view
@@ -14,7 +12,6 @@ use mir::local_access
 use mir::local_mutation
 use mir::opcodes
 use mir::post_pass_stack_scan
-
 fn mir_function_normalize_multi_variant_locals(f: MirFunction) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut li = 0
@@ -27,7 +24,6 @@ fn mir_function_normalize_multi_variant_locals(f: MirFunction) -> MirFunction {
     mir_function_clear_open_enum_variant_slots(f)
     mir_function_clear_container_variant_slots(f)
 }
-
 fn is_ref_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
@@ -40,7 +36,6 @@ fn is_ref_container_type_name(type_name: String) -> bool {
     }
     false
 }
-
 // vec:/hashmap:/struct: locals must not keep enum variant_slot metadata.
 fn mir_function_clear_container_variant_slots(f: MirFunction) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
@@ -57,10 +52,8 @@ fn mir_function_clear_container_variant_slots(f: MirFunction) -> MirFunction {
     }
     f
 }
-
 // Open enum containers (enum:/option:/Result_) always declare as enum_open in
-// code_locals.ark regardless of variant_slot. Clear stray slots so local.set
-// does not ref.cast to a specific variant type.
+// code_locals.ark regardless of variant_slot. Clear stray slots so no ref.cast.
 fn mir_function_clear_open_enum_variant_slots(f: MirFunction) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut li = 0
@@ -78,7 +71,6 @@ fn mir_function_clear_open_enum_variant_slots(f: MirFunction) -> MirFunction {
     }
     f
 }
-
 fn is_open_enum_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
@@ -94,11 +86,9 @@ fn is_open_enum_container_type_name(type_name: String) -> bool {
     }
     false
 }
-
 fn local_receives_multiple_variant_slots(f: MirFunction, local_idx: i32) -> bool {
     collect_variant_slots_for_local(f, local_idx, 0, 0 - 1) == 0 - 2
 }
-
 fn collect_variant_slots_for_local(f: MirFunction, local_idx: i32, depth: i32, first_slot: i32) -> i32 {
     if depth > 8 {
         return first_slot
@@ -125,46 +115,55 @@ fn collect_variant_slots_for_local(f: MirFunction, local_idx: i32, depth: i32, f
                 }
             }
             if op == opcodes::MIR_LOCAL_SET() {
-                let set_dest = inst_accessors_operands::MirInst_arg0(inst)
-                let source = inst_accessors_operands::MirInst_arg1(inst)
-                if set_dest == local_idx {
-                    if source >= 0 {
-                        let src_loc = function_locals_view::MirFunction_local_at(f, source)
-                        let src_slot = local_access::MirLocal_variant_slot(src_loc)
-                        if src_slot >= 0 {
-                            slot_state = merge_variant_slot(slot_state, src_slot)
-                            if slot_state == 0 - 2 {
-                                return 0 - 2
-                            }
-                        }
-                        slot_state = collect_variant_slots_for_local(f, source, depth + 1, slot_state)
-                        if slot_state == 0 - 2 {
-                            return 0 - 2
-                        }
-                    } else {
-                        let src_ii = post_pass_stack_scan::find_stack_producer(block, inst_count, ii)
-                        if src_ii >= 0 {
-                            let src_inst = block_inst_access::MirBlock_inst_at(block, src_ii)
-                            if inst_accessors_shape::MirInst_op(src_inst) == opcodes::MIR_GC_STRUCT_NEW() {
-                                slot_state = merge_variant_slot(slot_state, inst_accessors_operands::MirInst_arg0(src_inst))
-                                if slot_state == 0 - 2 {
-                                    return 0 - 2
-                                }
-                            }
-                            let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
-                            if src_dest >= 0 && src_dest != local_idx {
-                                slot_state = collect_variant_slots_for_local(f, src_dest, depth + 1, slot_state)
-                                if slot_state == 0 - 2 {
-                                    return 0 - 2
-                                }
-                            }
-                        }
-                    }
+                slot_state = process_local_set_variant_slot(f, local_idx, inst, block, inst_count, ii, depth, slot_state)
+                if slot_state == 0 - 2 {
+                    return 0 - 2
                 }
             }
             ii = ii + 1
         }
         bi = bi + 1
+    }
+    slot_state
+}
+fn process_local_set_variant_slot(f: MirFunction, local_idx: i32, inst: MirInst, block: MirBlock, inst_count: i32, ii: i32, depth: i32, first_slot: i32) -> i32 {
+    let set_dest = inst_accessors_operands::MirInst_arg0(inst)
+    let source = inst_accessors_operands::MirInst_arg1(inst)
+    if set_dest != local_idx {
+        return first_slot
+    }
+    let mut slot_state = first_slot
+    if source >= 0 {
+        let src_loc = function_locals_view::MirFunction_local_at(f, source)
+        let src_slot = local_access::MirLocal_variant_slot(src_loc)
+        if src_slot >= 0 {
+            slot_state = merge_variant_slot(slot_state, src_slot)
+            if slot_state == 0 - 2 {
+                return 0 - 2
+            }
+        }
+        slot_state = collect_variant_slots_for_local(f, source, depth + 1, slot_state)
+        if slot_state == 0 - 2 {
+            return 0 - 2
+        }
+    } else {
+        let src_ii = post_pass_stack_scan::find_stack_producer(block, inst_count, ii)
+        if src_ii >= 0 {
+            let src_inst = block_inst_access::MirBlock_inst_at(block, src_ii)
+            if inst_accessors_shape::MirInst_op(src_inst) == opcodes::MIR_GC_STRUCT_NEW() {
+                slot_state = merge_variant_slot(slot_state, inst_accessors_operands::MirInst_arg0(src_inst))
+                if slot_state == 0 - 2 {
+                    return 0 - 2
+                }
+            }
+            let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
+            if src_dest >= 0 && src_dest != local_idx {
+                slot_state = collect_variant_slots_for_local(f, src_dest, depth + 1, slot_state)
+                if slot_state == 0 - 2 {
+                    return 0 - 2
+                }
+            }
+        }
     }
     slot_state
 }

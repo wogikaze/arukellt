@@ -153,6 +153,9 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
 
 fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 1)
-    helpers_io_p2::emit_p2_write_newline(w, 1)
+    // P2 import table has stdout write at index 0; there is no stderr write
+    // import. Using index 1 hits args-sizes (2-param) and leaves stack junk
+    // (#726 writer_write / io_* "values remaining on stack").
+    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
+    helpers_io_p2::emit_p2_write_newline(w, 0)
 }

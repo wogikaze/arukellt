@@ -1,0 +1,120 @@
+// Arukellt Selfhost - fs byte write GC path and path-open helper.
+// Extracted from intrinsic_fs_write_bytes.ark to reduce import fan-out.
+
+use wasm::constants
+use wasm::ctx_gc_type
+use wasm::ctx_scratch
+use wasm::intrinsic_fs_write_result
+use wasm::intrinsic_stdio_gc
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i64_const
+use wasm::string_gc_helpers
+use wasm::writer_gc
+
+// GC: path is a String ref, bytes is a Vec<i32> GC struct. Copy bytes into
+// linear memory, then reuse the open/write/close Result path.
+fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let s_path = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_bcount = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_bbuf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_bi = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_res = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+
+    // Stack (top→bottom): bytes vec, path string
+    helpers_core::emit_local_set(w, s_vec)
+    let path_buf = intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core::emit_local_get(w, path_buf)
+    helpers_core::emit_local_set(w, s_path)
+
+    // bcount = vec.len
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_bcount)
+
+    // Allocate linear buffer of bcount bytes
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, s_bbuf)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, s_bcount)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 0 - 4)
+    helpers_numeric_i32::emit_i32_and(w)
+    helpers_core::emit_heap_set(w)
+
+    // Copy vec data[i] as bytes into linear buffer
+    emit_fs_write_bytes_copy_loop(w, s_bi, s_bcount, s_bbuf, s_vec, vec_type, arr_type)
+
+    // path_open + write write
+    helpers_io_store_path_and_open(w, s_path)
+    string_gc_helpers::emit_gc_if_void(w)
+    intrinsic_fs_write_result::emit_fs_write_error_message(w)
+    intrinsic_fs_write_result::emit_fs_write_error_result(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_else(w)
+    emit_fs_write_bytes_iov(w, s_bbuf, s_bcount)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV())
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_NWRITTEN())
+    intrinsic_fs_write_result::emit_fs_write_success_writev_and_close(w)
+    intrinsic_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_res)
+    true
+}
+
+fn emit_fs_write_bytes_copy_loop(w: WasmWriter, s_bi: i32, s_bcount: i32, s_bbuf: i32, s_vec: i32, vec_type: i32, arr_type: i32) {
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_bi)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_bi)
+    helpers_core::emit_local_get(w, s_bcount)
+    helpers_numeric_i32::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_bbuf)
+    helpers_core::emit_local_get(w, s_bi)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_get(w, s_bi)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_memory::emit_i32_store8_default(w)
+    helpers_core::emit_local_get(w, s_bi)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_bi)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
+fn helpers_io_store_path_and_open(w: WasmWriter, s_path: i32) {
+    helpers_io::emit_store_string_local_to_scratch(w, s_path, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_PATHPTR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_PATHLEN())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 9)
+    helpers_numeric_i64_const::emit_i64_const(w, 64)
+    helpers_numeric_i64_const::emit_i64_const(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_core::emit_call(w, 3)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_ne(w)
+}

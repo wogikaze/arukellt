@@ -27,6 +27,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     }
     let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
     let stage_call_args = !is_println && child_count > 2
+    let callee_expects_i64 = mir_core_callee_expects_i64(clone(callee_name))
     let staged_arg_locals = Vec_new_i32()
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1
@@ -44,6 +45,8 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         let needs_print_convert = is_println && a == 1 && core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) && core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, core_names::mir_core_lookup_local(ctx, arg_expr))
         if needs_print_convert {
             arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
+        } else if callee_expects_i64 && core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) {
+            arg_idx = core_literals::lower_core_int_literal_forced_i64(ctx, arg_expr)
         } else {
             arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
         }
@@ -58,4 +61,20 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         a = a + 1
     }
     call_emit::mir_emit_direct_call(ctx, callee_name, child_count - 1, first_arg_idx, second_arg_idx, staged_arg_locals, stage_call_args, core_expr_shape_accessors::mir_core_expr_span_start(expr), lane_immediate)
+}
+
+fn mir_core_callee_expects_i64(callee_name: String) -> bool {
+    if contains(clone(callee_name), String_from("i64")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("seek_to")) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("seek")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("::seek")) {
+        return true
+    }
+    false
 }

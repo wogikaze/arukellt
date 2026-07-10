@@ -6,7 +6,6 @@ use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering helpers for if expressions.
 
 use mir::inst_structured_control
-use mir::inst_local_get
 use mir::inst_local_set
 use mir::value_types
 
@@ -52,8 +51,12 @@ fn mir_emit_if_else(ctx: LowerCtx) {
 fn mir_end_if_expr(ctx: LowerCtx, result: i32, then_result: i32, else_result: i32) -> i32 {
     ctx_emit(ctx, inst_structured_control::MirInst_end())
     ctx_api_nesting::ctx_pop_nesting(ctx)
+    // Branch results are already stored into `result` via local_set.
+    // Do not leave a local_get on the stack here: callers that need the
+    // value (including MirInst_return_value) load the local themselves.
+    // Emitting local_get + return_value caused "values remaining on stack"
+    // on GC targets (#726 writer_write / io_*).
     if then_result >= 0 || else_result >= 0 {
-        ctx_emit(ctx, inst_local_get::MirInst_local_get_to(result, result))
         return result
     }
     0 - 1

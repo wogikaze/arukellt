@@ -150,27 +150,35 @@ fn emit_fs_read_result_pair_gc(w: WasmWriter, tag: i32, ctx: SelfEmitCtx) {
 }
 
 fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i32 {
-    let direct = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(variant_name))
-    if direct >= 0 {
-        return direct
-    }
+    // Prefer `_f1_ref0` (String payload) over the first name-only match
+    // which is usually `_f1_i32` from builtin registration order.
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
     let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let count = len(names)
+    let mut fallback = 0 - 1
     let mut i = 0
     while i < count {
         if eq(clone(get_unchecked(names, i)), clone(variant_name)) {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
-                let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
                 if variant_type != open_type {
-                    return variant_type
+                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), String_from("_f1_ref0")) {
+                        return variant_type
+                    }
+                    if fallback < 0 {
+                        fallback = variant_type
+                    }
                 }
             }
         }
         i = i + 1
     }
-    0 - 1
+    if fallback >= 0 {
+        return fallback
+    }
+    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(variant_name))
 }
 
 fn emit_fs_read_gc_string_from_scratch(w: WasmWriter, s_str: i32, s_i: i32, s_len: i32, string_type: i32) {

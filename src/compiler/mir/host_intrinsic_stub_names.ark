@@ -1,7 +1,10 @@
 // Arukellt Selfhost - canonical host intrinsic stub name list (shared with wasm emitter).
 
 fn host_intrinsic_stub_count() -> i32 {
-    24
+    // read_to_string / write_string / write_bytes are stdlib wrappers that
+    // call __intrinsic_fs_* — do not treat them as GC unreachable stubs
+    // (that collided with std::host::fs and left fs_read_* validate-fail).
+    21
 }
 
 fn host_intrinsic_stub_name_at(index: i32) -> String {
@@ -11,24 +14,21 @@ fn host_intrinsic_stub_name_at(index: i32) -> String {
     if index == 3 { return String_from("get_var") }
     if index == 4 { return String_from("var_or_default") }
     if index == 5 { return String_from("read_stdin") }
-    if index == 6 { return String_from("read_to_string") }
-    if index == 7 { return String_from("write_string") }
-    if index == 8 { return String_from("write_bytes") }
-    if index == 9 { return String_from("read_dir") }
-    if index == 10 { return String_from("metadata") }
-    if index == 11 { return String_from("is_readable_file") }
-    if index == 12 { return String_from("exists") }
-    if index == 13 { return String_from("is_file") }
-    if index == 14 { return String_from("is_dir") }
-    if index == 15 { return String_from("connect") }
-    if index == 16 { return String_from("read") }
-    if index == 17 { return String_from("write") }
-    if index == 18 { return String_from("listen") }
-    if index == 19 { return String_from("accept") }
-    if index == 20 { return String_from("get") }
-    if index == 21 { return String_from("request") }
-    if index == 22 { return String_from("serve") }
-    if index == 23 { return String_from("clock_now") }
+    if index == 6 { return String_from("read_dir") }
+    if index == 7 { return String_from("metadata") }
+    if index == 8 { return String_from("is_readable_file") }
+    if index == 9 { return String_from("exists") }
+    if index == 10 { return String_from("is_file") }
+    if index == 11 { return String_from("is_dir") }
+    if index == 12 { return String_from("connect") }
+    if index == 13 { return String_from("read") }
+    if index == 14 { return String_from("write") }
+    if index == 15 { return String_from("listen") }
+    if index == 16 { return String_from("accept") }
+    if index == 17 { return String_from("get") }
+    if index == 18 { return String_from("request") }
+    if index == 19 { return String_from("serve") }
+    if index == 20 { return String_from("clock_now") }
     String_new()
 }
 

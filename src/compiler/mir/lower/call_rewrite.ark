@@ -5,7 +5,9 @@ use mir::lower::call_mono_by_type
 use mir::lower::call_rewrite_method
 use mir::lower::call_rewrite_string
 use mir::lower::call_rewrite_vec
+use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
+use mir::inst_convert
 use mir::value_types
 
 struct MirCallRewrite {
@@ -56,12 +58,19 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let vec_rewrite = call_rewrite_vec::mir_rewrite_vec_call(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
     rewritten = call_rewrite_vec::mir_vec_call_rewrite_callee_name(vec_rewrite)
     push_i64_needs_extend = call_rewrite_vec::mir_vec_call_rewrite_push_i64_needs_extend(vec_rewrite)
-    // Extend i32 literals to i64 for assert_eq_i64 calls when the second
-    // argument is an i32-typed local (e.g. integer literal not yet widened).
-    if !push_i64_needs_extend && stage_call_args && second_arg_idx >= 0 {
-        if ends_with(clone(rewritten), String_from("assert_eq_i64")) {
-            if ctx_api_local_types::ctx_local_vt(ctx, second_arg_idx) == value_types::VT_I32() {
-                push_i64_needs_extend = true
+    // Extend i32 literals to i64 when the callee's trailing arg is i64
+    // (assert_eq_i64, seek_to / Seek::seek, etc.) and the value is still
+    // i32 (#726 seek / io_copy / io_backward_compat).
+    // Two-arg calls often skip staging (child_count == 2); emit the
+    // extend immediately in that case, matching vec_push_i64.
+    if !push_i64_needs_extend && second_arg_idx >= 0 {
+        if ctx_api_local_types::ctx_local_vt(ctx, second_arg_idx) == value_types::VT_I32() {
+            if callee_needs_i64_trailing_arg(clone(rewritten)) {
+                if stage_call_args {
+                    push_i64_needs_extend = true
+                } else {
+                    ctx_api_emit::ctx_emit(ctx, inst_convert::MirInst_extend_i32_to_i64_stack())
+                }
             }
         }
     }
@@ -71,5 +80,29 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     if eq(clone(rewritten), String_from("format_debug")) || starts_with(clone(rewritten), String_from("format_debug__")) || ends_with(clone(rewritten), String_from("::format_debug")) || contains(clone(rewritten), String_from("format_debug__")) {
         rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, first_arg_idx)
     }
+    // write_debug_to<T>(buf, value) is monomorphized on the *value* (2nd arg),
+    // not the buffer. Without this, write_debug_to__?t0 stays unresolved and
+    // the emitter emits drop/drop/unreachable (#726 debug_trait).
+    if eq(clone(rewritten), String_from("write_debug_to")) || starts_with(clone(rewritten), String_from("write_debug_to__")) || ends_with(clone(rewritten), String_from("::write_debug_to")) || contains(clone(rewritten), String_from("write_debug_to__")) {
+        let mono_arg = if second_arg_idx >= 0 { second_arg_idx } else { first_arg_idx }
+        rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, mono_arg, span_start)
+        rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, mono_arg)
+    }
     MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
+}
+
+fn callee_needs_i64_trailing_arg(callee_name: String) -> bool {
+    if ends_with(clone(callee_name), String_from("assert_eq_i64")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("seek_to")) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("seek")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("::seek")) {
+        return true
+    }
+    false
 }

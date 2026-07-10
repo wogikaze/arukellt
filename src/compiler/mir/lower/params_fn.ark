@@ -39,34 +39,23 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
                     pvt = value_types::VT_GC_REF()
                     sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(bare))
                 } else {
-                    // Named user type not yet in layout table (or all-i32
-                    // struct that previously skipped GC registration): still
-                    // use the GC ABI so range_iter(Range) is not i32.
-                    // Unsubstituted type params (T, U, ...) stay i32.
-                    if !binary_type_names::mir_is_builtin_type_name(clone(bare)) && len(bare) > 0 && !mir_param_name_is_type_param(clone(bare)) {
+                    let named = mir_param_resolve_named_user_type(ctx, clone(bare))
+                    if len(named) > 0 {
                         pvt = value_types::VT_GC_REF()
-                        sig_type_name = clone(bare)
-                        mir_type_name = clone(bare)
+                        sig_type_name = clone(named)
+                        mir_type_name = named
                     }
                 }
             }
         }
     } else {
-        if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
+        let resolved = mir_param_resolve_no_local_type(ctx, clone(p_type_name))
+        if len(resolved) > 0 {
             pvt = value_types::VT_GC_REF()
-            mir_type_name = concat(String_from("enum:"), p_type_name)
-            sig_type_name = clone(mir_type_name)
-        } else {
-            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
-                pvt = value_types::VT_GC_REF()
-                sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name))
-            } else {
-                if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
-                    is_type_var = true
-                    pvt = value_types::VT_GC_REF()
-                    mir_type_name = concat(String_from("?"), clone(p_type_name))
-                    sig_type_name = clone(mir_type_name)
-                }
+            mir_type_name = get_unchecked(resolved, 0)
+            sig_type_name = get_unchecked(resolved, 1)
+            if starts_with(clone(mir_type_name), String_from("?")) {
+                is_type_var = true
             }
         }
     }
@@ -74,6 +63,39 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
+}
+
+fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
+    let result = Vec_new_String()
+    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
+        let mt = concat(String_from("enum:"), p_type_name)
+        push(result, mt)
+        push(result, clone(mt))
+        return result
+    }
+    if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+        push(result, clone(p_type_name))
+        push(result, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name)))
+        return result
+    }
+    if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
+        let mt = concat(String_from("?"), clone(p_type_name))
+        push(result, mt)
+        push(result, clone(mt))
+        return result
+    }
+    result
+}
+
+fn mir_param_resolve_named_user_type(ctx: LowerCtx, bare: String) -> String {
+    // Named user type not yet in layout table (or all-i32
+    // struct that previously skipped GC registration): still
+    // use the GC ABI so range_iter(Range) is not i32.
+    // Unsubstituted type params (T, U, ...) stay i32.
+    if !binary_type_names::mir_is_builtin_type_name(clone(bare)) && len(bare) > 0 && !mir_param_name_is_type_param(clone(bare)) {
+        return bare
+    }
+    String_new()
 }
 
 fn mir_param_strip_module_prefix(name: String) -> String {

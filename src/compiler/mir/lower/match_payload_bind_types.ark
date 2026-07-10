@@ -1,6 +1,7 @@
 // MIR match payload bind types.
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_field_type
 use mir::lower::match_payload_field_type
 use mir::value_types
@@ -14,19 +15,50 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         ctx_set_local_type(ctx, bind_local, String_from("string"))
         return
     }
+    // Vec<T> / Vec_T must stay container types — never enum:Vec<...> which
+    // collapses Table payloads to enum-open (#726 toml_full_*).
+    let vec_type = normalize_payload_vec_type_name(clone(field_type))
+    if len(vec_type) > 0 {
+        ctx_set_local_type(ctx, bind_local, vec_type)
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+        return
+    }
     if len(field_type) > 0 && ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(field_type)) {
         ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
     if len(field_type) > 0 && !match_payload_field_type::mir_payload_scalar_type_name(clone(field_type)) {
-        ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        // Named GC structs keep bare names for gcsref Option payloads (#726).
+        if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(field_type)) >= 0 {
+            ctx_set_local_type(ctx, bind_local, clone(field_type))
+        } else {
+            ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        }
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
     if match_payload_field_type::mir_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
         ctx_set_local_type(ctx, bind_local, String_from("string"))
     }
+}
+
+fn normalize_payload_vec_type_name(field_type: String) -> String {
+    if starts_with(clone(field_type), String_from("vec:")) {
+        return field_type
+    }
+    if eq(clone(field_type), String_from("Vec")) {
+        return String_from("vec:i32")
+    }
+    if starts_with(clone(field_type), String_from("Vec<")) && ends_with(clone(field_type), String_from(">")) {
+        let inner = substring(clone(field_type), 4, len(field_type) - 1)
+        return concat(String_from("vec:"), inner)
+    }
+    if starts_with(clone(field_type), String_from("Vec_")) {
+        let inner = substring(clone(field_type), 4, len(field_type))
+        return concat(String_from("vec:"), inner)
+    }
+    String_new()
 }
 
 fn set_i32_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, scrut_ok_is_i32: bool) {
@@ -108,7 +140,7 @@ fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("Vec_")) || eq(clone(type_name), String_from("Vec")) {
         return true
     }
     if starts_with(clone(type_name), String_from("hashmap:")) {

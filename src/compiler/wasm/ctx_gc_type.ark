@@ -102,7 +102,7 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let tname = local_access::MirLocal_type_name(loc)
-    if eq(clone(tname), String_from("vec:String")) {
+    if eq(clone(tname), String_from("vec:String")) || eq(clone(tname), String_from("vec:string")) {
         return SelfEmitCtx_vec_string_type(ctx)
     }
     if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {

@@ -1,6 +1,7 @@
 // Arukellt Selfhost - MIR lowering GC enum variant registration.
 
 use mir::lower::ctx_gc_enum_sig
+use mir::lower::ctx_struct_field_type
 use mir::module_gc_enum
 use wasm::emit_target
 use std::text
@@ -138,11 +139,17 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
 // vs Vec<i32>) that both have VT_GC_REF but need different WASM ref types.
 
 fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
-    // Build field sigs using the type name when available.
-    let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(payload_vts, clone(type_name))
+    let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
+    let mut field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_typed(ctx, payload_vts, clone(type_name))
+    if len(layout_field_sigs) > 0 {
+        if len(type_name) == 0 || eq(clone(type_name), String_from("enum:open")) || contains(clone(field_sigs), String_from("ref14")) {
+            if contains(clone(layout_field_sigs), String_from("ref")) || contains(clone(layout_field_sigs), String_from("gcsref")) {
+                field_sigs = layout_field_sigs
+            }
+        }
+    }
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, clone(field_sigs))
-    // Try payload-specific lookup with the typed sig.
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
     while i < count {
@@ -154,31 +161,27 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
         }
         i = i + 1
     }
-    // Fall back to name-only lookup with compatibility check.
     let name_slot = ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
-        let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
-        if len(layout_field_sigs) > 0 {
-            let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
-            let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), String_from("SubF+14_S_f0_i32"))
-            if eq(clone(existing_payload), clone(layout_field_sigs)) {
+        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
+        let existing_payload = ctx_gc_enum_sig::gc_enum_payload_suffix_after_prefix(clone(existing_sig), String_from("SubF+14_S_f0_i32"))
+        if len(layout_field_sigs) > 0 && eq(clone(existing_payload), clone(layout_field_sigs)) {
+            return name_slot
+        }
+        if (len(type_name) == 0 || eq(clone(type_name), String_from("enum:open"))) && len(existing_payload) > 0 {
+            if contains(clone(existing_payload), String_from("ref")) || contains(clone(existing_payload), String_from("gcsref")) {
                 return name_slot
             }
         }
-        let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
         if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
             return name_slot
         }
     }
-    // Create new variant with the typed sig.
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
     ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
     len(ctx.gc_enum_variant_names) - 1
 }
 
-// Generate payload field sigs from VTs, using a type name for the first
-// field when its VT is VT_GC_REF.  This allows distinguishing String
-// (ref0) from Vec (ref10) from enum types (ref14).
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
     let m = ctx.module
@@ -192,10 +195,11 @@ fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
 
 fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
     let mut sig = String_new()
+    let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
     let layout_count = len(ctx.struct_names)
     let mut li = 0
     while li < layout_count {
-        if eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
+        if eq(get_unchecked(ctx.struct_names, li), clone(layout_name)) || eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
             let mut fi = 1
             while fi < field_count {
@@ -207,7 +211,7 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 }
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
-                sig = text::builder_append(sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type(clone(ft)))
+                sig = text::builder_append(sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
                 fi = fi + 1
             }
             return sig

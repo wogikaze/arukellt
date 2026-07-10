@@ -3,20 +3,15 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
-use wasm::code_ref_locals_infer_dest
 use wasm::code_scratch_locals
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
-use wasm::sections_types_gc
+use wasm::code_locals_struct
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types
-use mir::block_inst_access
-use mir::inst_accessors_shape
-use mir::inst_accessors_literals
-use mir::opcodes
 use wasm::writer_core
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
@@ -44,42 +39,12 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
     writer_core::emit_byte(body, val_type_to_wasm(vt))
 }
 
-fn emit_gc_enum_open_local(body: WasmWriter, ctx: SelfEmitCtx) {
-    writer_core::emit_byte(body, constants::WASM_REF_NULL())
-    writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
-}
-
-// Enum/option/result/return-temp open-enum local typing.
-fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, type_name: String, variant_slot: i32, ctx: SelfEmitCtx) -> bool {
-    if code_ref_locals::local_feeds_return(f, local_idx) && code_ref_locals::mir_function_returns_enum_open(f) {
-        emit_gc_enum_open_local(body, ctx)
-        return true
-    }
-    if variant_slot >= 0 && enum_payload_type_name(clone(type_name)) {
-        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
-        if variant_gc >= 0 {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, variant_gc)
-            return true
-        }
-    }
-    if starts_with(clone(type_name), String_from("enum:")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
-        emit_gc_enum_open_local(body, ctx)
-        return true
-    }
-    if code_ref_locals_infer_dest::local_has_multiple_enum_variant_types(f, local_idx) {
-        emit_gc_enum_open_local(body, ctx)
-        return true
-    }
-    false
-}
-
 // GC-target local val type emission. Returns true if emitted as a GC ref.
 fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = local_access::MirLocal_type_name(loc)
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    if emit_gc_local_enum_like(body, f, local_idx, clone(type_name), variant_slot, ctx) {
+    if code_locals_struct::emit_gc_local_enum_like(body, f, local_idx, clone(type_name), variant_slot, ctx) {
         return true
     }
     if starts_with(clone(type_name), String_from("vec:")) {
@@ -115,10 +80,10 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             return true
         }
     }
-    if emit_gc_local_named_type(body, type_name, vt, f, local_idx, ctx) {
+    if code_locals_struct::emit_gc_local_named_type(body, type_name, vt, f, local_idx, ctx) {
         return true
     }
-    if variant_slot >= 0 && !local_has_container_type_name(clone(type_name)) {
+    if variant_slot >= 0 && !code_locals_struct::local_has_container_type_name(clone(type_name)) {
         let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -168,19 +133,6 @@ fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i3
     false
 }
 
-fn enum_payload_type_name(type_name: String) -> bool {
-    if len(type_name) <= 5 {
-        return false
-    }
-    if !starts_with(clone(type_name), String_from("enum:")) {
-        return false
-    }
-    if eq(clone(type_name), String_from("enum:open")) {
-        return false
-    }
-    true
-}
-
 fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {
     if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -200,207 +152,6 @@ fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitC
     if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
-        return true
-    }
-    false
-}
-
-fn local_has_container_type_name(type_name: String) -> bool {
-    if len(type_name) == 0 {
-        return false
-    }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("struct:")) {
-        return true
-    }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        return true
-    }
-    false
-}
-
-// GC-target local val type for hashmap/string/option/inferred types.
-fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if starts_with(clone(type_name), String_from("hashmap:")) {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
-        } else {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            if starts_with(clone(type_name), String_from("hashmap:i32str")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
-            } else if starts_with(clone(type_name), String_from("hashmap:strstr")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
-            } else if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
-            } else {
-                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
-            }
-            return true
-        }
-    }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
-        } else {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
-            return true
-        }
-    }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
-        } else {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
-            return true
-        }
-    }
-    emit_gc_local_struct_type(body, type_name, vt, f, local_idx, ctx)
-}
-
-// GC-target local val type for struct:/raw struct names, with inference fallback.
-fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) || starts_with(clone(type_name), String_from("struct:HashMap:")) || starts_with(clone(type_name), String_from("struct:HashSet:")) {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
-        return true
-    }
-    if starts_with(clone(type_name), String_from("struct:")) {
-        let struct_name = extract_struct_name_from_type_name(clone(type_name))
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
-            return true
-        }
-        // Fallback for structs without ref fields: extract byte_size
-        // and map to the correct GC struct type index.
-        let byte_size = extract_struct_byte_size(clone(type_name))
-        if byte_size > 0 {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
-            return true
-        }
-    }
-    // Check raw struct name (without "struct:" prefix) as gc_struct.
-    if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name)))
-        return true
-    }
-    // Try gc_layout_table lookup for raw struct names (e.g. "Point")
-    // that are not in the gc_struct_names list (i32-only structs).
-    if len(type_name) > 0 {
-        let layout_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
-        if layout_gc >= 0 {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, layout_gc)
-            return true
-        }
-    }
-    // Fallback: scan function for MIR_STRUCT_NEW with this struct name
-    // to determine byte_size, then map to GC struct type.
-    if len(type_name) > 0 {
-        let byte_size = lookup_struct_byte_size(f, clone(type_name))
-        if byte_size > 0 {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
-            return true
-        }
-    }
-    emit_gc_local_inferred_type(body, f, local_idx, vt, ctx)
-}
-
-// Scan function instructions for MIR_STRUCT_NEW with matching struct name
-// to extract the byte_size value stored in the instruction.
-fn lookup_struct_byte_size(f: MirFunction, struct_name: String) -> i32 {
-    let block_count = len(f.blocks)
-    let mut bi = 0
-    while bi < block_count {
-        let block = get_unchecked(f.blocks, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
-                let name = inst_accessors_literals::MirInst_str_val(inst)
-                if eq(clone(name), clone(struct_name)) {
-                    return inst_accessors_literals::MirInst_int_val(inst)
-                }
-            }
-            ii = ii + 1
-        }
-        bi = bi + 1
-    }
-    0
-}
-
-// Extract struct name from "struct:TypeName:byte_size" format.
-fn extract_struct_name_from_type_name(type_name: String) -> String {
-    let mut first_colon = 0 - 1
-    let mut last_colon = 0 - 1
-    let n = len(type_name)
-    let mut i = 0
-    while i < n {
-        if char_at(type_name, i) == ':' {
-            if first_colon < 0 {
-                first_colon = i
-            }
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
-        return String_new()
-    }
-    substring(type_name, first_colon + 1, last_colon)
-}
-
-// Extract byte_size from "struct:TypeName:byte_size" format.
-fn extract_struct_byte_size(type_name: String) -> i32 {
-    let n = len(type_name)
-    let mut last_colon = 0 - 1
-    let mut i = 0
-    while i < n {
-        if char_at(type_name, i) == ':' {
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if last_colon < 0 {
-        return 0
-    }
-    let mut byte_size = 0
-    let mut j = last_colon + 1
-    while j < n {
-        let d = char_at(type_name, j)
-        if d >= 48 && d <= 57 {
-            byte_size = byte_size * 10 + (d - 48)
-        } else {
-            j = n
-        }
-        j = j + 1
-    }
-    byte_size
-}
-
-// Fallback: legacy inference first, spine lookup as fallback for the GC ref type.
-fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
-    let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-    if gc_type >= 0 {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, gc_type)
-        return true
-    }
-    // Spine lookup fallback for types legacy inference can't handle
-    let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
-    if spine_gc >= 0 {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, spine_gc)
-        return true
-    }
-    if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx))
         return true
     }
     false

@@ -26,8 +26,13 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if starts_with(clone(arg_type), String_from("enum:")) {
         return substring(clone(arg_type), 5, len(arg_type))
     }
+    // Vec locals are typed "vec:i32" / "vec:String"; impl methods are
+    // mangled as "Vec::read" / "Vec::seek", not "i32::seek" (#726 seek_to).
     if starts_with(clone(arg_type), String_from("vec:")) {
-        return substring(clone(arg_type), 4, len(arg_type))
+        return String_from("Vec")
+    }
+    if eq(clone(arg_type), String_from("Vec")) {
+        return String_from("Vec")
     }
     if starts_with(clone(arg_type), String_from("option:")) {
         return substring(clone(arg_type), 7, len(arg_type))

@@ -1,9 +1,11 @@
 use mir::lower::ctx_api_emit
 use mir::opcodes
 use mir::lower::ctx_types
+use mir::lower::ctx_gc_enum
 // Arukellt Selfhost - MIR struct iterator None-branch emission.
 
 use mir::inst_struct_get
+use mir::inst_gc_struct
 use mir::inst_const_i32
 use mir::inst_branch
 use mir::inst_local_get
@@ -12,9 +14,26 @@ use mir::lower::loop_conditions
 use mir::value_types
 
 fn mir_emit_struct_iterator_none_break(ctx: LowerCtx, opt_local: i32, tag_local: i32, none_tag: i32, cmp_dest: i32) {
-    ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
-    ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(0, value_types::VT_I32(), tag_local))
-    loop_conditions::mir_save_stack_to_local(ctx, tag_local)
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        // Tag lives on the enum open type (field 0); any variant slot works
+        // for the cast because all variants share the open supertype layout
+        // for field 0. Prefer Option::None / None unit slot when present.
+        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Option::None"))
+        if type_slot < 0 {
+            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("None"))
+        }
+        if type_slot < 0 {
+            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Option::Some"))
+        }
+        if type_slot < 0 {
+            type_slot = 0
+        }
+        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, opt_local, type_slot, 0, value_types::VT_I32()))
+    } else {
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
+        ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(0, value_types::VT_I32(), tag_local))
+        loop_conditions::mir_save_stack_to_local(ctx, tag_local)
+    }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_local))
     ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, none_tag))
     ctx_emit(ctx, inst_op::MirInst_binop(opcodes::MIR_EQ(), cmp_dest, tag_local, none_tag))

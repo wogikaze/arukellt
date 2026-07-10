@@ -1,7 +1,9 @@
 // Arukellt Selfhost - fs byte write intrinsic facade
 
 use wasm::constants
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
 use wasm::intrinsic_fs_write_bytes_buffer
 use wasm::intrinsic_fs_write_result
 use wasm::intrinsics::helpers_control
@@ -12,6 +14,9 @@ use wasm::intrinsics::helpers_numeric_i64_const
 
 // Handler for: fs::write_bytes
 fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_fs_write_bytes_gc(w, inst, ctx)
+    }
     intrinsic_fs_write_bytes_buffer::emit_fs_write_bytes_buffer(w, ctx)
     emit_fs_write_bytes_result(w, ctx)
     return true
@@ -35,15 +40,15 @@ fn emit_fs_write_bytes_result(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_ne(w)
     helpers_control::emit_if_i32(w)
-    emit_fs_write_bytes_error_result(w)
+    emit_fs_write_bytes_error_result(w, ctx)
     helpers_control::emit_else(w)
     emit_fs_write_bytes_success_result(w, ctx)
     helpers_control::emit_end(w)
 }
 
-fn emit_fs_write_bytes_error_result(w: WasmWriter) {
+fn emit_fs_write_bytes_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
     intrinsic_fs_write_result::emit_fs_write_error_message(w)
-    intrinsic_fs_write_result::emit_fs_write_error_result(w)
+    intrinsic_fs_write_result::emit_fs_write_error_result(w, ctx)
 }
 
 fn emit_fs_write_bytes_success_result(w: WasmWriter, ctx: SelfEmitCtx) {
@@ -56,7 +61,7 @@ fn emit_fs_write_bytes_success_result(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_NWRITTEN())
     intrinsic_fs_write_result::emit_fs_write_success_writev_and_close(w)
-    intrinsic_fs_write_result::emit_fs_write_success_unit_result(w)
+    intrinsic_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
 }
 
 fn emit_fs_write_bytes_iov(w: WasmWriter, buf_local: i32, count_local: i32) {

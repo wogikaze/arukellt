@@ -16,9 +16,9 @@ BUILD_WASM = BUILD_DIR / "smoke.wasm"
 BUILD_PATCHED = BUILD_DIR / "smoke.debug.wasm"
 WRAPPER = REPO_ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
 HOST_LINKER = REPO_ROOT / "tools" / "host-linker"
-PROBE = HOST_LINKER / "target" / "release" / "arukellt-debug-probe"
-ADAPTER = HOST_LINKER / "target" / "release" / "arukellt-debug-adapter"
-PREPARE = HOST_LINKER / "target" / "release" / "arukellt-debug-prepare"
+PROBE = REPO_ROOT / "target" / "release" / "arukellt-debug-probe"
+ADAPTER = REPO_ROOT / "target" / "release" / "arukellt-debug-adapter"
+PREPARE = REPO_ROOT / "target" / "release" / "arukellt-debug-prepare"
 BOOTSTRAP_WASM = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 
 

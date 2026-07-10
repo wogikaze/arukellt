@@ -350,3 +350,26 @@ pub fn json_get_int(json: String, key: String) -> i32 {
     parse_int_at(json, q + 1)
 }
 
+// ─── Re-exports from std/json/parser.ark ────────────────────────────────────
+// Full JsonValue parser lives in std/json/parser.ark. Wrappers let
+// `use std::json` callers invoke `json::parse(...)` without unresolved
+// drop/unreachable stubs (#726 json_perf_decode).
+
+use std::json::parser
+
+pub fn parse(s: String) -> Result<parser::JsonValue, parser::JsonParseError> {
+    parser::parse(s)
+}
+
+pub fn parse_error_message(err: parser::JsonParseError) -> String {
+    parser::parse_error_message(err)
+}
+
+pub fn json_as_string(v: parser::JsonValue) -> Option<String> {
+    parser::json_as_string(v)
+}
+
+pub fn stringify(v: parser::JsonValue) -> String {
+    parser::stringify(v)
+}
+

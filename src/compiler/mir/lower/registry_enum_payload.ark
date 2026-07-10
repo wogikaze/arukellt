@@ -1,4 +1,5 @@
 use mir::lower::ctx_struct_storage
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR lowering enum payload layout registration.
@@ -23,7 +24,11 @@ fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant
         } else {
             concat(String_from("_"), to_string(pfi))
         }
-        ctx_struct_storage::ctx_struct_push_field(ctx, effective_name, layout_variant::layout_variant_payload_type_name_at(variant, pfi))
+        // Normalize Vec</Result</Option< so GC enum sigs and match binds
+        // see vec:/result:/option: prefixes (#726 toml Table / json Result).
+        let raw_ty = layout_variant::layout_variant_payload_type_name_at(variant, pfi)
+        let field_ty = ctx_struct_layout::ctx_normalize_generic_type_name(raw_ty)
+        ctx_struct_storage::ctx_struct_push_field(ctx, effective_name, field_ty)
         pfi = pfi + 1
     }
 }

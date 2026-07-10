@@ -52,6 +52,12 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if starts_with(clone(type_name), String_from("enum:")) {
         return type_name
     }
+    // Normalize angle-bracket forms so GC locals / match payload see
+    // the same prefixes as Result_ / option: / vec: (#726 json/toml).
+    let normalized = ctx_normalize_generic_type_name(clone(type_name))
+    if !eq(clone(normalized), clone(type_name)) {
+        return ctx_maybe_enum_return_type_name(ctx, normalized)
+    }
     if starts_with(clone(type_name), String_from("vec:")) {
         return type_name
     }
@@ -84,6 +90,51 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
         return concat(concat(String_from("struct:"), type_name), concat(String_from(":"), i32_to_string(byte_size)))
     }
     type_name
+}
+
+fn ctx_normalize_generic_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        let inner = substring(clone(type_name), 4, len(type_name) - 1)
+        return concat(String_from("vec:"), inner)
+    }
+    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
+        let inner = substring(clone(type_name), 7, len(type_name) - 1)
+        return concat(String_from("option:"), inner)
+    }
+    if starts_with(clone(type_name), String_from("Result<")) && ends_with(clone(type_name), String_from(">")) {
+        let inner = substring(clone(type_name), 7, len(type_name) - 1)
+        let sep = find_top_level_comma(clone(inner))
+        if sep >= 0 {
+            let ok_ty = substring(clone(inner), 0, sep)
+            let err_ty = substring(clone(inner), sep + 1, len(inner))
+            // Trim a single leading space after the comma if present.
+            let mut err = err_ty
+            if len(err) > 0 && char_at(err, 0) == 32 {
+                err = substring(err, 1, len(err))
+            }
+            return concat(concat(String_from("result:"), ok_ty), concat(String_from(":"), err))
+        }
+        return concat(String_from("result:"), inner)
+    }
+    type_name
+}
+
+fn find_top_level_comma(s: String) -> i32 {
+    let n = len(s)
+    let mut depth = 0
+    let mut i = 0
+    while i < n {
+        let ch = char_at(s, i)
+        if ch == 60 {
+            depth = depth + 1
+        } else if ch == 62 {
+            depth = depth - 1
+        } else if ch == 44 && depth == 0 {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
 }
 
 fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {

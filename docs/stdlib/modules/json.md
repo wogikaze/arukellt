@@ -55,6 +55,9 @@ The full JSON parser with `pub enum JsonValue` lives in
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
+| `stringify` | `(JsonValue) -> String` | `experimental` | - |
 | `is_array` | `(JsonValue) -> bool` | `experimental` | - |
 | `is_bool` | `(JsonValue) -> bool` | `experimental` | - |
 | `is_null` | `(JsonValue) -> bool` | `experimental` | - |
@@ -64,7 +67,6 @@ The full JSON parser with `pub enum JsonValue` lives in
 | `json_as_bool` | `(JsonValue) -> Option<bool>` | `experimental` | - |
 | `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | - |
 | `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | - |
-| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
 | `json_encode_string` | `(String) -> String` | `experimental` | - |
 | `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | - |
 | `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | - |
@@ -74,9 +76,15 @@ The full JSON parser with `pub enum JsonValue` lives in
 | `json_stringify_bool` | `(bool) -> String` | `experimental` | - |
 | `json_stringify_i32` | `(i32) -> String` | `experimental` | - |
 | `json_stringify_string` | `(String) -> String` | `experimental` | - |
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | - |
-| `stringify` | `(JsonValue) -> String` | `experimental` | - |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | - |
+
+#### `parse`
+
+Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
+
+#### `stringify`
+
+Serialize a JsonValue back to its JSON text.
 
 #### `json_encode_string`
 
@@ -89,14 +97,6 @@ Look up a named field in a JSON object value.
 #### `json_get_index`
 
 Return the element at index in a JSON array value.
-
-#### `parse`
-
-Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
-
-#### `stringify`
-
-Serialize a JsonValue back to its JSON text.
 
 #### `stringify_pretty`
 

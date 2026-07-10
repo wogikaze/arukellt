@@ -1,10 +1,8 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
-use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 // Arukellt MIR lowering body - match expression emission
 
-use mir::inst_local_set
 use mir::value_types
 use mir::lower::body_match_arm_last
 use mir::lower::body_match_arm_nonlast
@@ -17,7 +15,6 @@ fn lower_match_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     }
     let scrutinee = ast_node::node_child_at(node, 0)
     let scrut_idx = lower_expr(ctx, scrutinee)
-    ctx_emit(ctx, inst_local_set::MirInst_local_set(scrut_idx))
     let result = ctx_fresh_local(ctx, value_types::VT_I32())
     let payload_info = match::mir_prepare_match_payload(ctx, node, child_count, scrut_idx)
     let mut arm = 1

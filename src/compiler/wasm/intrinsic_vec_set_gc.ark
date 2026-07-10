@@ -42,50 +42,40 @@ fn emit_vec_set_gc_load_value(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bo
     }
 }
 
-fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     // GC Vec set
     //
     // Stack: [vec_ref, idx, value]  (value on top)
-    // After: [vec_ref]
+    // After: [] when void (statement form); [vec_ref] when result is used.
     //
-    // 1. Save value, idx → scratches, drop vec_ref
-    // 2. struct.get 0 → data array
-    // 3. array.set data idx value
-    // 4. Return vec_ref (from MIR local)
+    // Always save vec_ref to a scratch — MIR CALL arg0 is often the
+    // receiver/self local, not the staged buf local on the stack (#726
+    // Vec::read / reader_read_exact).
 
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    let vec_local = inst_accessors_operands::MirInst_arg0(inst)
-    // Use per-instruction type resolution when possible, falling back to
-    // arg0-based and context-based detection.
+    // Vec ref must use a GC vec scratch — i32 scratches cause
+    // "expected i32, found (ref null $vec)" on local.set (#726 reader_read).
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
     let is_vec_string = vec_type == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
-    let array_type = if is_vec_string {
-        ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
-    } else if is_vec_i64 {
-        ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
-    } else if is_vec_f64 {
-        ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
-    } else {
-        ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-    }
+    let array_type = vec_set_array_type(ctx, is_vec_string, is_vec_i64, is_vec_f64)
 
-    // Step 1: Save value, idx, drop vec_ref
-    // For Vec<String>, value is a String ref → use GC ref scratch local.
-    // For Vec<i64>, value is i64 → use i64 scratch local (offset 15).
-    // For Vec<f64>, value is f64 → use f64 scratch local (offset 12).
-    // For Vec<i32>, value is i32 → use i32 scratch local.
+    // Step 1: Save value, idx, vec_ref → scratches (do not drop vec).
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64))
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_idx)
-    writer_core::emit_byte(w, opcodes::OP_DROP())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_vec)
 
-    // Step 2: Get data array
+    // Step 2: Get data array from the saved vec_ref
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, vec_local)
+    writer_core::emit_leb128_u(w, s_vec)
+    // scratch_gc_vec_local is typed structref; cast to the concrete Vec type.
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
 
     // Step 3: array.set data[idx] = value
@@ -95,10 +85,27 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_leb128_u(w, vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64))
     writer_gc::emit_gc_array_set(w, array_type)
 
-    // Step 4: Return vec_ref
+    // Step 4: Return vec_ref only when the call result is consumed.
+    if is_void_set {
+        return false
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, vec_local)
+    writer_core::emit_leb128_u(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     return true
+}
+
+fn vec_set_array_type(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_i64: bool, is_vec_f64: bool) -> i32 {
+    if is_vec_string {
+        return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
+    }
+    if is_vec_i64 {
+        return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
+    }
+    if is_vec_f64 {
+        return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
+    }
+    ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
 }
 
 // Value scratch local matching the vec element type.

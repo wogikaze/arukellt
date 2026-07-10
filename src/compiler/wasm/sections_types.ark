@@ -32,16 +32,19 @@ fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
     let gc_type_base = first_gc_type_index(canon_types)
-    let mut gc_enum_variant_base = 0 - 1
-    if enum_variant_count > 0 && gc_type_base >= 0 {
-        gc_enum_variant_base = gc_type_base + gc_fixed_count
-    }
-    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, enum_variant_count)
+    // Named GC structs are emitted before enum variants so Option/Result
+    // payloads can reference them via gcsref without forward type indices
+    // (#726 display_trait_vec / toml).
     let mut gc_struct_base = 0 - 1
     if gc_struct_count > 0 && gc_type_base >= 0 {
-        gc_struct_base = gc_type_base + gc_fixed_count + enum_variant_count
+        gc_struct_base = gc_type_base + gc_fixed_count
     }
-    let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, enum_variant_count, gc_struct_count)
+    let mut gc_enum_variant_base = 0 - 1
+    if enum_variant_count > 0 && gc_type_base >= 0 {
+        gc_enum_variant_base = gc_type_base + gc_fixed_count + gc_struct_count
+    }
+    let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count)
+    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, enum_variant_count)
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, len(canon_types))
     sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
@@ -49,26 +52,26 @@ fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction
     sections_type_plan::build_type_section_plan(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map, gc_struct_base, gc_struct_type_map)
 }
 
-fn build_gc_enum_variant_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, enum_variant_count: i32) -> Vec<i32> {
-    let mut variant_map = Vec_new_i32()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count
-    let mut si = 0
-    while si < enum_variant_count {
-        push(variant_map, get_unchecked(type_map, base_idx + si))
-        si = si + 1
-    }
-    variant_map
-}
-
-fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, enum_variant_count: i32, gc_struct_count: i32) -> Vec<i32> {
+fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32) -> Vec<i32> {
     let mut struct_map = Vec_new_i32()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count + enum_variant_count
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count
     let mut si = 0
     while si < gc_struct_count {
         push(struct_map, get_unchecked(type_map, base_idx + si))
         si = si + 1
     }
     struct_map
+}
+
+fn build_gc_enum_variant_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32, enum_variant_count: i32) -> Vec<i32> {
+    let mut variant_map = Vec_new_i32()
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_struct_count
+    let mut si = 0
+    while si < enum_variant_count {
+        push(variant_map, get_unchecked(type_map, base_idx + si))
+        si = si + 1
+    }
+    variant_map
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -93,8 +96,9 @@ fn build_type_sigs(mir: MirModule, functions: Vec<MirFunction>, fn_count: i32, n
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
-        sections_types_gc::append_enum_variant_sigs(type_sigs, mir)
+        // Structs before enum variants so gcsref fields resolve (#726).
         sections_types_gc::append_gc_struct_sigs(type_sigs, mir)
+        sections_types_gc::append_enum_variant_sigs(type_sigs, mir)
     }
     sections_types_sigs::append_function_type_sigs(type_sigs, functions, fn_count, clone(target), mir)
     sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper)

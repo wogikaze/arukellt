@@ -51,6 +51,16 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
         let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, prev_op, prev_arg0, byte_offset, inst_accessors_operands::MirInst_arg1(inst))
         let field_idx = compute_field_idx_get(inst, byte_offset)
+        if prev_op == mir::opcodes::MIR_STRUCT_SET() {
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_core::emit_leb128_u(w, prev_arg0)
+        } else if prev_op != mir::opcodes::MIR_LOCAL_GET() {
+            let base_local = inst_accessors_operands::MirInst_arg0(inst)
+            if base_local >= 0 {
+                writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+                writer_core::emit_leb128_u(w, base_local)
+            }
+        }
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
         return
@@ -89,9 +99,12 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
         let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, 0 - 1, 0 - 1, byte_offset, inst_accessors_operands::MirInst_dest(inst))
         let field_idx = compute_field_idx_set(inst, byte_offset)
+        let base_local = inst_accessors_operands::MirInst_arg0(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        writer_core::emit_leb128_u(w, base_local)
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+        writer_core::emit_leb128_u(w, base_local)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
         writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)
@@ -150,7 +163,7 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
     }
     let mut base_local = inst_accessors_operands::MirInst_arg0(inst)
-    if base_local < 0 && prev_op == mir::opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
+    if base_local < 0 && prev_arg0 >= 0 && (prev_op == mir::opcodes::MIR_LOCAL_GET() || prev_op == mir::opcodes::MIR_STRUCT_SET()) {
         base_local = prev_arg0
     }
     if base_local >= 0 {

@@ -1,61 +1,23 @@
 // Arukellt Selfhost - Wasm call namespace: call_fallback
 
-use mir::opcodes as mir_opcodes
 use wasm::opcodes
-use wasm::ctx_record
 use wasm::inst_ctx
 use wasm::inst_store
 use wasm::writer_core
-use wasm::function_indices
+use wasm::intrinsic_vec_new_layout
+use wasm::call_fallback_resolved
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
-use wasm::intrinsic_vec_new_layout
-use wasm::registry_return_audit
-use wasm::registry_return_resolve
-use wasm::inst_locals
 
-fn emit_fallback_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_fallback_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
     if starts_with(clone(callee), String_from("Vec_new_")) {
         emit_vec_new_fallback_call(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
         return
     }
-    if try_emit_resolved_fallback_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
+    if call_fallback_resolved::try_emit_resolved_fallback_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
         return
     }
     emit_unresolved_fallback_call(w, inst)
-}
-
-fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) -> bool {
-    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
-    if fn_idx < 0 {
-        return false
-    }
-    writer_core::emit_byte(w, opcodes::OP_CALL())
-    writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
-    let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
-    let fn_ret_vt = registry_return_resolve::resolve_call_fn_ret_vt(ctx, inst, called)
-    registry_return_audit::registry_audit_observe_call(ctx, inst, callee, fn_ret_vt)
-    if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, callee, fn_ret_vt) {
-        if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0, next_arg1) {
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            inst_locals::emit_gc_ref_cast_to_dest(w, ctx, dest)
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-            writer_core::emit_leb128_u(w, dest)
-        } else {
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
-        }
-    }
-    true
-}
-
-fn should_force_call_dest_store(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {
-    if next_op == mir_opcodes::MIR_LOCAL_SET() && next_arg1 >= 0 {
-        return true
-    }
-    if next_op == mir_opcodes::MIR_CALL() && next_arg0 >= 0 {
-        return true
-    }
-    false
 }
 
 fn emit_unresolved_fallback_call(w: WasmWriter, inst: MirInst) {

@@ -12,7 +12,7 @@ FIXTURE = Path("tests/fixtures/t3/array_gc.ark")
 EXPECTED = Path("tests/fixtures/t3/array_gc.expected")
 BUILD_DIR = REPO_ROOT / ".build" / "gc-smoke"
 OUT_WASM = BUILD_DIR / "array_gc.wasm"
-HOST_RUN = REPO_ROOT / "tools/host-linker" / "target" / "release" / "arukellt-host-run"
+HOST_RUN = REPO_ROOT / "target" / "release" / "arukellt-host-run"
 
 
 def main() -> int:

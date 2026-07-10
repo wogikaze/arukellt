@@ -131,8 +131,14 @@ fn build_generic_type_var_sig(fn_name: String, type_name: String, pi: i32, targe
 
 fn try_collection_param_sig(p_type_name: String, target: String) -> String {
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("vec:")) {
-        if eq(clone(p_type_name), String_from("vec:String")) {
+        if eq(clone(p_type_name), String_from("vec:String")) || eq(clone(p_type_name), String_from("vec:string")) {
             return sections_types_gc::gc_vec_string_type_sig()
+        }
+        if eq(clone(p_type_name), String_from("vec:i64")) || eq(clone(p_type_name), String_from("vec:I64")) {
+            return sections_types_gc::gc_vec_i64_type_sig()
+        }
+        if eq(clone(p_type_name), String_from("vec:f64")) || eq(clone(p_type_name), String_from("vec:F64")) {
+            return sections_types_gc::gc_vec_f64_type_sig()
         }
         if eq(clone(p_type_name), String_from("vec:v128")) || eq(clone(p_type_name), String_from("vec:V128")) {
             return sections_types_gc::gc_vec_v128_type_sig()

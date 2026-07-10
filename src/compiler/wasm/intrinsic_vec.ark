@@ -31,8 +31,8 @@ fn emit_vec_pop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     intrinsic_vec_pop::emit_vec_pop(w, inst, ctx)
 }
 
-fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_vec_set::emit_vec_set(w, inst, ctx)
+fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
+    intrinsic_vec_set::emit_vec_set(w, inst, ctx, is_void_set)
 }
 
 fn emit_is_empty(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
