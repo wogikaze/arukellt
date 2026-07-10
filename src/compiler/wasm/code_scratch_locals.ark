@@ -20,7 +20,8 @@ fn scratch_f32_local_count() -> i32 { 0 }
 
 fn scratch_i64_local_count() -> i32 { 1 }
 
-fn scratch_gc_local_count() -> i32 { 2 }
+// replace/pad need src+pat+rep+result (4) GC string temps concurrently.
+fn scratch_gc_local_count() -> i32 { 4 }
 
 fn scratch_gc_i32_array_local_count() -> i32 { 2 }
 

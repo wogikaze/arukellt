@@ -128,7 +128,9 @@ pub fn from_utf8(bytes: Vec<i32>) -> String {
     let n = len(bytes)
     let mut i = 0
     while i < n {
-        let b = get(bytes, i)
+        // Bounds already checked by `i < n`; use get_unchecked so the byte is
+        // an i32 (not Option) for char_to_string / concat on GC targets.
+        let b = get_unchecked(bytes, i)
         result = __intrinsic_concat(result, char_to_string(b))
         i = i + 1
     }
