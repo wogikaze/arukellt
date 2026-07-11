@@ -33,8 +33,8 @@ ADR-007 は canonical ターゲットを `wasm32` / `wasm32-gc` / `native-*` に
 
 | Tier | 定義 |
 |------|------|
-| **primary** | 出荷品質を保証。CI の全品質ゲート対象。 |
-| **supported** | 日常利用可。CI は別 job、失敗は merge を止めない。 |
+| **primary** | リリース品質の**基準とする唯一の target**。リリース時には全 gate を通過しなければならない。開発中の各 commit が常に release-ready であることまでは意味しない（`implementation_state = partial` や NOT READY と両立しうる）。 |
+| **supported** | 日常利用可。CI は別 job、失敗は merge を止めない場合あり。 |
 | **scaffold** | 構造・実験のみ。広域保証対象外。 |
 | **not-started** | 未着手。 |
 

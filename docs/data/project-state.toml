@@ -72,6 +72,31 @@ id = "wasm32-freestanding"
 action = "remove"
 note = "ADR-007 retired (hard error as public target); leftover driver/emitter code is deletion backlog, not a public contract"
 
+# Host profiles are NOT targets (ADR-007/013). Keep separate from [[target_profiles]].
+[[host_profiles]]
+id = "wasi-p1"
+supported_targets = ["wasm32", "wasm32-gc"]
+support_tier = "supported"
+implementation_state = "complete"
+contract_stability = "stable"
+role = "WASI Preview 1 host profile (AtCoder / linear path on wasm32; also usable on wasm32-gc)"
+
+[[host_profiles]]
+id = "wasi-p2"
+supported_targets = ["wasm32-gc"]
+support_tier = "primary"
+implementation_state = "partial"
+contract_stability = "stable"
+role = "Default host profile for primary target wasm32-gc (ADR-013)"
+
+[[host_profiles]]
+id = "wasi-p3"
+supported_targets = ["wasm32-gc"]
+support_tier = "not-started"
+implementation_state = "unimplemented"
+contract_stability = "experimental"
+role = "Future WASI Preview 3 host profile on wasm32-gc; not a separate language target"
+
 [verification]
 fixture_passed = 654
 fixture_skipped = 29

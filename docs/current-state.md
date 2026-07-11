@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T16:17:38+09:00
-> Source-Commit: `9c8d8a54`
+> Generated-At: 2026-07-11T16:32:15+09:00
+> Source-Commit: `dbbb23f2`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 6 verification check failure(s)
@@ -20,7 +20,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
   - **ADR-008 契約**: `--emit component` は in-tree（`wasm-tools component new` への恒久依存なし）
   - **現行実装ギャップ**: 一部経路はまだ `WIT generation → wasm-tools component embed/new` や
     Python wrap helper（例: `p2_component_wrap.py`）を使う。理想と現状の差であり、
-    公開契約は ADR-008。詳細は下記「ADR contract gaps」
+    公開契約は ADR-008。詳細は下記「Accepted ADR contract gaps」
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
@@ -44,9 +44,12 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | 項目 | 提案 ADR | 現行 |
 |------|----------|------|
-| SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128`；portable bitwise/bit_select | #698 experimental: lane モジュール関数 + 無印 `v128` + `std::simd::v128` / `std::wasm::v128_*` に portable 操作が混在 → **移行前** |
-| SIMD capabilities | ADR-037: `portable_simd_lowering` / `wasm_raw_v128` / `wasm_relaxed_simd` 分離 | `is_simd_target()` が全 target で `true`。Scalar 経路が選ばれず raw/portable 判定未分離 → **未実装** |
-| Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定。#698 全 op をそのまま portable 契約化していない → **RFC DRAFT** |
+| Trait stdlib redesign | ADR-036: ADR-014 に従う削除方針 + From/Into blanket | モノモルフィック stable API と trait 面が併存 → **移行前** |
+| Intrinsic layer | ADR-042: `docs/data/core-ops.toml` SSOT | manifest / resolver 二重面 → **移行前** |
+| SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
+| SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
+| Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |
+| Trait expressiveness | RFC-004: Self + 型引数、associated type 先送り | 未実装 → **RFC DRAFT** |
 
 ### CoreHIR boundary and driver responsibilities
 
@@ -63,12 +66,19 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 ## Targets
 
 | Target | Support Tier | Implementation | Contract Stability | Run | Notes |
-|--------|--------------|----------------|---------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | AtCoder / linear-memory competition path (canonical; was wasm32-wasi-p1) |
+|--------|--------------|----------------|--------------------|-----|-------|
+| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1) |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
 | `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |
-| `wasm32-gc` + `--wasi p3` | not-started | unimplemented | — | No | Host profile on same language target; not a separate primary |
+
+### Host profiles
+
+| Host profile | Targets | Support Tier | Implementation | Contract Stability | Notes |
+|--------------|---------|--------------|----------------|--------------------|-------|
+| `wasi-p1` | `wasm32`, `wasm32-gc` | supported | complete | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32; also usable on wasm32-gc) |
+| `wasi-p2` | `wasm32-gc` | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
+| `wasi-p3` | `wasm32-gc` | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）

@@ -53,8 +53,8 @@ PartialOrd: PartialEq (#695) — 部分順序（f64 / F32x4 等）
 | `Ord` | `Eq` + `PartialOrd` | #695 | 全順序 |
 | `Copy` | `Clone` | #692 | marker trait (メソッドなし) |
 | `Debug` | — | #696 | Display と独立（supertrait なし） |
-| `Into<T>` | — | #692 | `From` からの blanket impl。supertrait ではない |
-| `TryInto<T>` | — | #692 | `TryFrom` からの blanket impl。supertrait ではない |
+| `Into<T>` | — | #692 | `From` からの blanket のみ。直接 impl 禁止 |
+| `TryInto<T, E>` | — | #692 | `TryFrom` からの blanket のみ。直接 impl 禁止 |
 | `BufRead` | `Read` | #693 | |
 | `Error` | `Display` | #694 | source() chaining |
 
@@ -166,8 +166,8 @@ std::collections/
                     drain/splice/sort/sort_by/sort_by_key
                     dedup/dedup_by/binary_search/binary_search_by
                     reverse/contains/into_iter/from_iter
-  hash_map.ark    — HashMap<K: Hash, V> (既存、dispatch 有効化)
-  hash_set.ark    — HashSet<T: Hash> (既存、dispatch 有効化)
+  hash_map.ark    — HashMap<K: Eq + Hash, V> (既存、dispatch 有効化)
+  hash_set.ark    — HashSet<T: Eq + Hash> (既存、dispatch 有効化)
   ...
 ```
 
@@ -444,21 +444,19 @@ python3 scripts/check/check-docs-consistency.py
 
 ---
 
-## 7. 未決定事項 (688-697 実装中に確定)
+## 7. 言語機能前提（RFC-004）
 
-本 redesign の設計は以下の未決定事項に依存する。各 issue の実装中に確定させる:
+本 redesign が依存する言語機能は [RFC-004](../rfcs/004-trait-expressiveness.md) で固定する。
 
-| 未決定事項 | 確定する issue | 影響 |
-|-----------|--------------|------|
-| trait import semantics (スコープ規則) | #688 | prelude の trait イポート設計 |
-| メソッド構文 (`x.method()` vs `method(x)`) | #688 | 全 API 表面 |
-| `Self` 型のサポート有無 | #692 | Clone/Default の trait 定義 |
-| associated type の有無 | #691 | Iterator の `Item` 型表現 |
-| blanket impl のサポート | #692 | Into/From, TryInto/TryFrom |
-| derive 機構 (Debug/Clone 自動導出) | #696 | struct の trait impl 負担 |
-| `format!` マクロのパーサー対応 | #696 | フォーマット文字列構文 |
-| manifest.toml の trait/method 登録スキーマ | #688 | manifest 更新方式 |
+| 事項 | 初期方針 |
+|------|----------|
+| `Self` | 導入（`clone() -> Self` 等） |
+| associated type | **先送り**。`Iterator<Item>` / `TryFrom<T,E>` / `Index<Idx,Out>` で代替 |
+| blanket impl | コンパイラ既知の少数のみ（`Into`/`TryInto`）。ユーザー任意 blanket は後続 |
+| trait import | use しないとメソッド解決に使わない（#688） |
+| derive | 後続（#696） |
 
+旧「688-697 実装中に未決定のまま進める」表は撤回。実装開始前に RFC-004 を満たす。
 ---
 
 ## 8. 参照

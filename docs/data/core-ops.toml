@@ -1,0 +1,29 @@
+# Core semantic operations registry (SSOT)
+
+ステータス: **scaffold** — ADR-042 D5 が選定した正本ファイル。  
+実装開始時に types / SemanticId / effects / lowering policy / fallback を埋める。
+
+生成物:
+
+- TypeTable 登録（compiler）
+- `std/manifest.toml` の公開 path / docs / stability（または参照）
+- docs / resolver / MIR の semantic 表
+
+手作業で compiler と manifest へ二重登録しない。
+
+```toml
+# Example shape (not yet authoritative entries):
+# [[types]]
+# id = "simd.i32x4"
+# kind = "Simd"
+# lane = "i32"
+# lanes = 4
+# public_path = "std::simd::I32x4"
+#
+# [[ops]]
+# id = "simd.i32x4.add"
+# semantic = "I32x4Add"
+# effect = "pure"
+# lowering = "native_or_scalar"
+# fallback = "std::simd::i32x4::add_scalar"
+```

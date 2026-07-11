@@ -1,22 +1,28 @@
-# Target contract summary (current-state source)
+# Target / host contract summary
 
-> Hand-maintained source for `docs/current-state.md` target table.
-> Not an ADR. Living status belongs here / current-state, not in ADR-007.
+> **Generated** from `docs/data/project-state.toml` by `scripts/gen/generate-docs.py`.
+> Do not hand-edit the tables below. Edit `project-state.toml` instead.
 >
-> Axes (do not collapse into one `status`):
+> Axes:
 > - **Support Tier**: primary | supported | scaffold | not-started (ADR-007/013)
 > - **Implementation**: complete | partial | scaffold | unimplemented
-> - **Contract Stability**: stable | provisional | experimental (ADR-007 §9; target/CLI contract, not ADR-014 API labels)
+> - **Contract Stability**: stable | provisional | experimental (never `unimplemented`)
 >
-> Retired surfaces (e.g. `wasm32-freestanding`) live in `project-state.toml`
-> `[[legacy_gaps]]`, not in this public target table.
+> Host profiles are separate from language targets.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 | Target | Support Tier | Implementation | Contract Stability | Run | Notes |
 |--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | AtCoder / linear-memory competition path (canonical; was `wasm32-wasi-p1`) |
+| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1) |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
 | `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |
-| `wasm32-gc` + `--wasi p3` | not-started | unimplemented | — | No | Host profile on same language target; not a separate primary |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
+
+<!-- BEGIN GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->
+| Host profile | Targets | Support Tier | Implementation | Contract Stability | Notes |
+|--------------|---------|--------------|----------------|--------------------|-------|
+| `wasi-p1` | `wasm32`, `wasm32-gc` | supported | complete | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32; also usable on wasm32-gc) |
+| `wasi-p2` | `wasm32-gc` | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
+| `wasi-p3` | `wasm32-gc` | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
+<!-- END GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->

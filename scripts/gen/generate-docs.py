@@ -1165,20 +1165,82 @@ def join_pipeline(parts: list[str]) -> str:
 def render_target_table(state: dict) -> str:
     rows = [
         "| Target | Support Tier | Implementation | Contract Stability | Run | Notes |",
-        "|--------|--------------|----------------|---------------|-----|-------|",
+        "|--------|--------------|----------------|--------------------|-----|-------|",
     ]
-    for profile in load_target_contract_summary():
+    for profile in state.get("target_profiles", []):
+        run = "Yes" if profile.get("run_supported") else "No"
         rows.append(
             "| `{}` | {} | {} | {} | {} | {} |".format(
-                profile["Target"].strip("`"),
-                profile["Support Tier"],
-                profile["Implementation"],
-                profile["Contract Stability"],
-                profile["Run"],
-                escape_table(profile["Notes"]),
+                profile["id"],
+                profile["support_tier"],
+                profile["implementation_state"],
+                profile["contract_stability"],
+                run,
+                escape_table(profile.get("role", "")),
             )
         )
     return "\n".join(rows)
+
+
+def render_host_profile_table(state: dict) -> str:
+    rows = [
+        "| Host profile | Targets | Support Tier | Implementation | Contract Stability | Notes |",
+        "|--------------|---------|--------------|----------------|--------------------|-------|",
+    ]
+    for profile in state.get("host_profiles", []):
+        targets = ", ".join(f"`{t}`" for t in profile.get("supported_targets", []))
+        rows.append(
+            "| `{}` | {} | {} | {} | {} | {} |".format(
+                profile["id"],
+                targets,
+                profile["support_tier"],
+                profile["implementation_state"],
+                profile["contract_stability"],
+                escape_table(profile.get("role", "")),
+            )
+        )
+    return "\n".join(rows)
+
+
+def write_target_contract_summary(state: dict, check: bool, stale: list[Path]) -> None:
+    """Generate docs/data/target-contract-summary.md from project-state.toml (SSOT)."""
+    lines = [
+        "# Target / host contract summary",
+        "",
+        "> **Generated** from `docs/data/project-state.toml` by `scripts/gen/generate-docs.py`.",
+        "> Do not hand-edit the tables below. Edit `project-state.toml` instead.",
+        ">",
+        "> Axes:",
+        "> - **Support Tier**: primary | supported | scaffold | not-started (ADR-007/013)",
+        "> - **Implementation**: complete | partial | scaffold | unimplemented",
+        "> - **Contract Stability**: stable | provisional | experimental (never `unimplemented`)",
+        ">",
+        "> Host profiles are separate from language targets.",
+        "",
+        "<!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->",
+        render_target_table(state),
+        "<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->",
+        "",
+        "<!-- BEGIN GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->",
+        render_host_profile_table(state),
+        "<!-- END GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->",
+        "",
+    ]
+    write_file(TARGET_CONTRACT, "\n".join(lines), check, stale)
+
+
+def render_current_state_targets(state: dict) -> str:
+    return "\n".join(
+        [
+            "## Targets",
+            "",
+            render_target_table(state),
+            "",
+            "### Host profiles",
+            "",
+            render_host_profile_table(state),
+        ]
+    )
 
 
 def _parse_markdown_table_row(line: str) -> list[str]:
@@ -1186,47 +1248,6 @@ def _parse_markdown_table_row(line: str) -> list[str]:
     if not stripped.startswith("|") or not stripped.endswith("|"):
         raise ValueError(f"invalid markdown table row: {line}")
     return [cell.strip() for cell in stripped[1:-1].split("|")]
-
-
-def load_target_contract_summary() -> list[dict[str, str]]:
-    text = TARGET_CONTRACT.read_text(encoding="utf-8")
-    start = "<!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->"
-    end = "<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->"
-    match = re.search(re.escape(start) + r"\n(.*?)\n" + re.escape(end), text, re.DOTALL)
-    if not match:
-        raise ValueError(
-            "missing current-state target summary source block in docs/data/target-contract-summary.md"
-        )
-
-    lines = [line.strip() for line in match.group(1).splitlines() if line.strip()]
-    if len(lines) < 2:
-        raise ValueError("target-contract summary source block is empty")
-
-    headers = _parse_markdown_table_row(lines[0])
-    expected_headers = [
-        "Target",
-        "Support Tier",
-        "Implementation",
-        "Contract Stability",
-        "Run",
-        "Notes",
-    ]
-    if headers != expected_headers:
-        raise ValueError(
-            "unexpected target-contract summary headers: "
-            f"expected {expected_headers}, found {headers}"
-        )
-
-    profiles: list[dict[str, str]] = []
-    for line in lines[2:]:
-        cells = _parse_markdown_table_row(line)
-        if len(cells) != len(headers):
-            raise ValueError(f"malformed target-contract summary row: {line}")
-        profiles.append(dict(zip(headers, cells)))
-
-    if not profiles:
-        raise ValueError("target-contract summary source block has no target rows")
-    return profiles
 
 
 def render_current_state_updated(state: dict) -> str:
@@ -1279,16 +1300,6 @@ def render_current_state_updated(state: dict) -> str:
             f"> Verification-Command: `{cmd}`",
             f"> Release-Readiness: **{readiness}**",
             f"> Blocking: {blocking_line}",
-        ]
-    )
-
-
-def render_current_state_targets(state: dict) -> str:
-    return "\n".join(
-        [
-            "## Targets",
-            "",
-            render_target_table(state),
         ]
     )
 
@@ -3280,6 +3291,8 @@ def main() -> int:
     examples = collect_examples(state)
     fixture_total = fixture_count()
     stale: list[Path] = []
+
+    write_target_contract_summary(state, args.check, stale)
 
     apply_marker_updates(
         ROOT / "README.md",

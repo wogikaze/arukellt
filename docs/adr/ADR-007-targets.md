@@ -98,7 +98,7 @@ WASI 非依存の旧 freestanding は提供しない。
 
 | Tier | 意味 |
 |------|------|
-| primary | 出荷品質。CI 全ゲート（ADR-013） |
+| primary | リリース品質の基準とする唯一の target（ADR-013）。リリース時に全 gate 必須。各 commit が常に release-ready とは限らない |
 | supported | 日常利用可。失敗は merge を止めない場合あり |
 | scaffold | 試験のみ。広域保証なし |
 

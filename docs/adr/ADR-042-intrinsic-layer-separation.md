@@ -133,15 +133,17 @@ ADR-040 の SignatureEntry に以下を追加する:
 | lowering policy | normal call, MIR op, runtime call, target intrinsic |
 | fallback body | Ark 関数の FunctionId |
 
-**宣言の単一正本（SSOT）は未決。** 候補:
+**宣言の単一正本（SSOT）:** `docs/data/core-ops.toml`（新規。GHC `primops.txt.pp` 方式）。
 
-- `std/manifest.toml`（既存 manifest を拡張）
-- 別ファイル `core-ops.toml`（GHC `primops.txt.pp` 方式）
+- **core-ops.toml** が semantic types / SemanticId / effect / lowering policy / fallback body の正本。
+- **std/manifest.toml** は公開 path・docs・stability・deprecation を持ち、core-ops から生成または参照する。
+- resolver / typechecker / MIR / docs は core-ops（および生成物）から読む。手作業二重登録禁止。
+
+移行中は既存 manifest を拡張してよいが、実装開始前に core-ops へ切り替える（本 ADR の D5 決定）。
 
 resolver、typechecker、MIR、docs、runtime ABI 表は SSOT から生成する方針とする。
 現状 `std/manifest.toml` と resolver/typechecker 間に不一致があるため、
-SSOT 選定と生成パイプラインは実装計画で具体化する。
-
+生成パイプラインは実装計画で具体化する。
 ### D6: callee 文字列 dispatch の廃止
 
 intrinsic 判定を callee 名から `func_id_raw` + `SemanticId` へ移行する。
@@ -188,7 +190,7 @@ linear-memory 規則を直接露出する場合に限る。
   廃止と prelude 本体の backend 通過。型チェック専用スタブからの移行は
   破壊的変更を伴うため、専用 ADR / RFC が必要。
 - **sealed raw API のモジュール名と公開面**（D4 候補の最終決定）
-- **semantic 宣言 SSOT の選定**（D5 候補の最終決定）
+- **semantic 宣言 SSOT**: `docs/data/core-ops.toml`（D5 で決定）。manifest は公開面。
 
 ## 等価性検証
 

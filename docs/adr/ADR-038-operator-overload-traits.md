@@ -28,19 +28,24 @@ magic method 面を、#688 の trait method dispatch に基づく
 
 ### D1: 演算子 → trait マッピング（移行先）
 
-| 演算子 | trait | メソッド |
-|--------|-------|---------|
-| `a + b` | `Add` | `add` |
-| `a - b` | `Sub` | `sub` |
-| `a * b` | `Mul` | `mul` |
-| `a / b` | `Div` | `div` |
-| `a % b` | `Rem` | `rem` |
-| `-a` | `Neg` | `neg` |
-| `a & b` / `\|` / `^` | `BitAnd` / `BitOr` / `BitXor` | … |
-| `a << b` / `>>` | `Shl` / `Shr` | … |
-| `!a` | `Not` | `not` |
-| `a[i]` / `a[i]=v` | `Index` / `IndexMut` | `index` / `index_set` |
-| `*a` / `*a=v` | `Deref` / `DerefMut` | `deref` / `deref_mut` |
+| 演算子 | trait | 初期メソッド署名（RFC-004） |
+|--------|-------|---------------------------|
+| `a + b` | `Add<Rhs>` | `fn add(self, rhs: Rhs) -> Self` |
+| `a - b` | `Sub<Rhs>` | `fn sub(self, rhs: Rhs) -> Self` |
+| `a * b` | `Mul<Rhs>` | `fn mul(self, rhs: Rhs) -> Self` |
+| `a / b` | `Div<Rhs>` | `fn div(self, rhs: Rhs) -> Self` |
+| `a % b` | `Rem<Rhs>` | `fn rem(self, rhs: Rhs) -> Self` |
+| `-a` | `Neg` | `fn neg(self) -> Self` |
+| `a & b` 等 | `BitAnd` / `BitOr` / `BitXor` | 戻り `Self` |
+| `a << b` / `>>` | `Shl` / `Shr` | 戻り `Self` |
+| `!a` | `Not` | `fn not(self) -> Self` |
+| `a[i]` | `Index<Idx, Out>` | `fn index(self, index: Idx) -> Out` |
+| `a[i]=v` | `IndexMut<Idx, Out>` | `fn index_set(self, index: Idx, value: Out)` |
+| `*a` | `Deref<Target>` | `fn deref(self) -> Target` |
+| `*a=v` | `DerefMut<Target>` | setter パターン |
+
+初期は算術・bitwise の戻りを **`Self` に限定**する。
+任意 `Output` associated type は RFC-004 後継（associated type 導入後）。
 
 ### D2: 解決優先順位（移行後）
 
@@ -78,5 +83,7 @@ Arukellt に `&T` がないため、`Index::index` / `Deref::deref` は値返し
 ## 参照
 
 - 現行 magic methods: `docs/language/spec.md`
+- [RFC-004](../rfcs/004-trait-expressiveness.md) — 初期署名の型表現
+- ADR-036 / #688 / #689
 - ADR-036、Issue #688 / #689
 - Rust `std::ops`: https://doc.rust-lang.org/std/ops/index.html

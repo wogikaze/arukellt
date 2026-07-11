@@ -74,14 +74,25 @@ Mask4
 
 | 層 | 置き場 | 役割 |
 |----|--------|------|
-| Compiler semantic type | `SimdType` / `MaskType`（TypeTable / semantic registry） | 型検査・MIR・lowering の正本 |
-| Public stdlib identity | `std::simd::I32x4` / `F32x4` / `Mask4` | ユーザーが書く名前。manifest / docs の公開面 |
+| Compiler semantic type | TypeTable の `TypeId` + `TypeKind` | 型検査・MIR・lowering の正本 |
+| Public stdlib path | `std::simd::I32x4` / `F32x4` / `Mask4`、`std::wasm::V128` | ユーザーが書く名前 |
 | Prelude | **自動 import しない**（初期） | 明示 `use std::simd::I32x4` |
 
+**TypeKind（別 identity）:**
+
+```text
+TypeKind::Simd { lane_type, lanes }   // I32x4, F32x4, …
+TypeKind::Mask { lanes }              // Mask4, …
+TypeKind::WasmV128                    // std::wasm::V128 のみ
+```
+
+- `I32x4` と `V128` はどちらも 128 bit でも **異なる TypeId**。暗黙変換は禁止。
+  明示変換（`from_bits` / raw cast API）のみ。
 - parser/typechecker が文字列 `"I32x4"` を個別ハードコード判定する構造にはしない。
-  公開名は semantic type ID へ解決し、MIR では構造化型になる（ADR-042 の分散回避）。
-- SSOT 候補: semantic type registry（ADR-040 spine）+ `std/manifest.toml` の型メタデータ。
-  最終 SSOT ファイル名は実装計画で固定してよいが、**二重定義しない**。
+  公開 path → TypeId 解決の後、MIR は TypeId / MirValueType のみを持つ。
+- **不変条件:** 同一の generated CoreTypeSpec（または同等の registry）から
+  TypeTable 登録と stdlib 公開情報を生成し、手作業で二重登録しない。
+  ファイル名（`core-types.toml` 等）は ADR-042 / 実装計画で固定してよいが、SSOT は一つ。
 
 #### 1.2 Well-formedness（初期 = 128-bit）
 
