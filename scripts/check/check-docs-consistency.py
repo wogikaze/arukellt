@@ -1640,9 +1640,13 @@ def check_docs_runtime_contract() -> int:
 
     if fixture_passed is not None and manifest_count is not None:
         fixture_failures = verification.get("fixture_failures", 0)
+        observed = verification.get("fixture_harness_observed")
+        if observed is None:
+            observed = int(fixture_passed) + int(fixture_failures) + int(fixture_skipped)
         expected_harness = (
             f"{fixture_passed} passed, {fixture_failures} failed, "
-            f"{fixture_skipped} skipped / {manifest_count} entries"
+            f"{fixture_skipped} skipped (observed harness: {observed}); "
+            f"registry: {manifest_count} manifest entries"
         )
         if expected_harness not in status_block:
             errors.append(
@@ -1670,9 +1674,17 @@ def check_docs_runtime_contract() -> int:
                 errors.append(
                     f"CURRENT_STATE_TEST_HEALTH verify drift: expected {expected_cs_verify!r}"
                 )
-        if manifest_count is not None and f"Fixture manifest: {manifest_count} entries" not in test_health:
+        if (
+            manifest_count is not None
+            and f"Fixture registry: {manifest_count} manifest entries" not in test_health
+        ):
             errors.append(
-                f"CURRENT_STATE_TEST_HEALTH manifest drift: expected {manifest_count} entries"
+                f"CURRENT_STATE_TEST_HEALTH registry drift: expected "
+                f"Fixture registry: {manifest_count} manifest entries"
+            )
+        if "observed harness" not in test_health:
+            errors.append(
+                "CURRENT_STATE_TEST_HEALTH must label harness totals as observed snapshot"
             )
 
     if not contract:

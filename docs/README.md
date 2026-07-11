@@ -8,8 +8,8 @@
 - Updated: 2026-07-11
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
-- Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components work on pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component.)
-- Fixture harness: 654 passed, 4 failed, 29 skipped / 2679 entries
+- Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `component_cli`=`provisional` — Living path may still use wasm-tools / Python wrap helpers for some packaging steps ([axes](data/component-availability.md))
+- Fixture harness: 654 passed, 4 failed, 29 skipped (observed harness: 687); registry: 2679 manifest entries
 - Verification: `python3 scripts/manager.py verify quick` — 169/173 checks pass
 - Stdlib manifest-backed public API: 772 functions
 
@@ -32,6 +32,10 @@
 | [retention-policy.md](retention-policy.md) | Docs retention / archive zones |
 | [debug-support.md](debug-support.md) | Debug / DAP support status |
 | [capability-surface.md](capability-surface.md) | Host capability reachability matrix |
+| [data/cli-surface.md](data/cli-surface.md) | Generated CLI surface from cli-surface.toml |
+| [data/bootstrap-contract.md](data/bootstrap-contract.md) | Generated bootstrap contract (ADR-029) |
+| [data/release-guarantees.md](data/release-guarantees.md) | Generated release guarantees matrix |
+| [data/component-availability.md](data/component-availability.md) | Component availability axes |
 | [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |
 | [directory-ownership.md](directory-ownership.md) | Directory ownership map |
 | [release/README.md](release/README.md) | Release criteria + checklist entry |

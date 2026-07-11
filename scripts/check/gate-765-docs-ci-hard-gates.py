@@ -78,17 +78,36 @@ def check_numeric_consistency(state: dict, failures: list[str]) -> None:
     passed = verification.get("fixture_passed")
     failed = verification.get("fixture_failures")
     skipped = verification.get("fixture_skipped")
+    observed = verification.get("fixture_harness_observed")
+    remainder = verification.get("fixture_not_in_last_harness_snapshot")
     if count is None:
         failures.append("project-state.toml missing fixture_manifest_count")
         return
-    harness = f"{passed} passed, {failed} failed, {skipped} skipped"
-    with_total = f"{harness} / {count} entries"
+    if passed is None or failed is None or skipped is None:
+        failures.append("project-state.toml missing fixture_passed/failures/skipped")
+        return
+    sum_outcomes = int(passed) + int(failed) + int(skipped)
+    if observed is None:
+        failures.append("project-state.toml missing fixture_harness_observed")
+    elif int(observed) != sum_outcomes:
+        failures.append(
+            f"fixture_harness_observed={observed} != passed+failed+skipped={sum_outcomes}"
+        )
+    if remainder is None:
+        failures.append("project-state.toml missing fixture_not_in_last_harness_snapshot")
+    elif observed is not None and int(remainder) != int(count) - int(observed):
+        failures.append(
+            f"fixture_not_in_last_harness_snapshot={remainder} != "
+            f"manifest-observed={int(count) - int(observed)}"
+        )
+    harness = f"{passed} passed, {failed} failed, {skipped} skipped (observed harness: {observed})"
+    with_registry = f"{harness}; registry: {count} manifest entries"
     views = [
-        (REPO / "README.md", with_total),
-        (REPO / "docs" / "README.md", with_total),
+        (REPO / "README.md", with_registry),
+        (REPO / "docs" / "README.md", with_registry),
         (REPO / "docs" / "language" / "README.md", f"{count} manifest entries"),
-        (REPO / "docs" / "process" / "README.md", f"{count} entries"),
-        (REPO / "docs" / "current-state.md", f"Fixture manifest: {count} entries"),
+        (REPO / "docs" / "process" / "README.md", f"{count} manifest entries"),
+        (REPO / "docs" / "current-state.md", f"Fixture registry: {count} manifest entries"),
     ]
     for path, needle in views:
         if not path.is_file():
@@ -97,10 +116,13 @@ def check_numeric_consistency(state: dict, failures: list[str]) -> None:
         text = path.read_text(encoding="utf-8")
         if needle not in text:
             failures.append(f"numeric drift in {rel(path)}: expected to contain {needle!r}")
-        # Root README views must include failures
         if path in {REPO / "README.md", REPO / "docs" / "README.md"}:
             if failed is not None and f"{failed} failed" not in text:
                 failures.append(f"{rel(path)} must display fixture failures ({failed})")
+            if "observed harness" not in text:
+                failures.append(f"{rel(path)} must label harness totals as observed (not same unit as registry)")
+            if "registry:" not in text.lower() and f"{count} manifest entries" not in text:
+                failures.append(f"{rel(path)} must display registry size separately from harness")
 
 
 def check_deprecated_vocab(cfg: dict, failures: list[str]) -> None:
@@ -436,6 +458,41 @@ def check_capability_policy(cfg: dict, failures: list[str]) -> None:
             failures.append(f"stale capability policy wording in {rel(path)}: {needle!r}")
 
 
+def check_structured_state(failures: list[str]) -> None:
+    """Phase-2 SSOTs and generated views must exist (#770)."""
+    required_tomls = [
+        "docs/data/cli-surface.toml",
+        "docs/data/bootstrap-contract.toml",
+        "docs/data/capabilities.toml",
+        "docs/data/component-availability.toml",
+        "docs/data/release-guarantees.toml",
+    ]
+    required_views = [
+        "docs/capability-surface.md",
+        "docs/data/cli-surface.md",
+        "docs/data/bootstrap-contract.md",
+        "docs/data/component-availability.md",
+        "docs/data/release-guarantees.md",
+    ]
+    for rel_path in required_tomls + required_views:
+        if not (REPO / rel_path).is_file():
+            failures.append(f"missing structured state artifact: {rel_path}")
+    cap = REPO / "docs" / "capability-surface.md"
+    if cap.is_file():
+        text = cap.read_text(encoding="utf-8")
+        if "Generated" not in text[:500] or "capabilities.toml" not in text[:800]:
+            failures.append(
+                "capability-surface.md must be generated from docs/data/capabilities.toml"
+            )
+    readme = REPO / "docs" / "README.md"
+    if readme.is_file():
+        text = readme.read_text(encoding="utf-8")
+        if "multi-axis" not in text and "`command_component`" not in text:
+            failures.append(
+                "docs/README.md must not flatten component emit to available true/false"
+            )
+
+
 def main() -> int:
     failures: list[str] = []
     if not CONFIG.is_file():
@@ -463,6 +520,7 @@ def main() -> int:
     check_cli_binary_name(cfg, failures)
     check_ci_job_ids(cfg, failures)
     check_capability_policy(cfg, failures)
+    check_structured_state(failures)
 
     if failures:
         print("gate-765-docs-ci-hard-gates: FAIL", file=sys.stderr)

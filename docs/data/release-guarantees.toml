@@ -1,0 +1,137 @@
+# Release guarantees SSOT (#770 Phase 2)
+# Views: docs/release-criteria.md (normative), docs/release-checklist.md (executable)
+
+[meta]
+criteria_view = "docs/release-criteria.md"
+checklist_view = "docs/release-checklist.md"
+entry_view = "docs/release/entry.md"
+
+[[guarantees]]
+id = "compile_wasm32_gc"
+tier = "guaranteed"
+summary = "arukellt compile --target wasm32-gc produces valid Wasm (CLI default)"
+check = "python3 scripts/manager.py verify"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = ""
+
+[[guarantees]]
+id = "compile_wasm32"
+tier = "guaranteed"
+summary = "arukellt compile --target wasm32 produces valid Wasm (supported / AtCoder path)"
+check = "python3 scripts/manager.py verify"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "Not the primary CI emphasis; still contract-stable"
+
+[[guarantees]]
+id = "run_wasmtime"
+tier = "guaranteed"
+summary = "arukellt run executes via wasmtime"
+check = "arukellt run tests/fixtures/hello_world.ark"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = ""
+
+[[guarantees]]
+id = "fixture_harness"
+tier = "guaranteed"
+summary = "Fixture harness passes for the current observed harness snapshot"
+check = "python3 scripts/manager.py verify fixtures"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "See fixture accounting: observed harness ≠ full manifest expansion"
+
+[[guarantees]]
+id = "determinism"
+tier = "guaranteed"
+summary = "Same input → identical Wasm bytes"
+check = "compile twice and sha256 compare"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "No dedicated top-level ci.yml job"
+
+[[guarantees]]
+id = "no_panic_user_paths"
+tier = "guaranteed"
+summary = "No panic on user-reachable CLI paths"
+check = "bash scripts/check/check-panic-audit.sh"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = ""
+
+[[guarantees]]
+id = "emit_component"
+tier = "provisional"
+summary = "compile --emit component / component build"
+check = "python3 scripts/manager.py verify --component"
+ci_job = "verification"
+release_blocker = false
+platforms = ["linux"]
+known_limitation = "Library exports need s2 wasm; ABI coverage incomplete; may use wasm-tools helpers"
+
+[[guarantees]]
+id = "lsp"
+tier = "provisional"
+summary = "LSP hover/completion/diagnostics"
+check = "python3 scripts/manager.py verify quick (LSP gates)"
+ci_job = "verification"
+release_blocker = false
+platforms = ["linux"]
+known_limitation = "Feature set still evolving"
+
+[[guarantees]]
+id = "ark_toml"
+tier = "provisional"
+summary = "ark.toml project schema"
+check = "arukellt build"
+ci_job = "verification"
+release_blocker = false
+platforms = ["linux"]
+known_limitation = "Schema fields continue to grow"
+
+[[guarantees]]
+id = "dap"
+tier = "experimental"
+summary = "ark-dap / debug-adapter"
+check = "manual / scaffold"
+ci_job = "none"
+release_blocker = false
+platforms = ["linux"]
+known_limitation = "Scaffold only"
+
+[[guarantees]]
+id = "vscode_dap"
+tier = "experimental"
+summary = "VS Code extension DAP wiring"
+check = "extension-tests (partial)"
+ci_job = "extension-tests"
+release_blocker = false
+platforms = ["linux"]
+known_limitation = "Stub / evolving"
+
+[[guarantees]]
+id = "freestanding"
+tier = "not_guaranteed"
+summary = "wasm32-freestanding public target"
+check = "n/a"
+ci_job = "none"
+release_blocker = false
+platforms = []
+known_limitation = "ADR-007 retired / hard error"
+
+[[guarantees]]
+id = "native_targets"
+tier = "not_guaranteed"
+summary = "native-cpp / native-llvm"
+check = "n/a"
+ci_job = "none"
+release_blocker = false
+platforms = []
+known_limitation = "Scaffold; ABI undecided (ADR-045)"

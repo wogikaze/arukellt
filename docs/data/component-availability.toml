@@ -1,0 +1,43 @@
+# Component availability axes (#770 Phase 2) — do not flatten to available=true/false
+
+[meta]
+target = "wasm32-gc"
+public_contract = "ADR-008 in-tree component/wit emit"
+implementation_note = "Living path may still use wasm-tools / Python wrap helpers for some packaging steps"
+
+[artifacts]
+pinned_bootstrap = "bootstrap/arukellt-selfhost.wasm"
+recommended_library_compiler = ".build/selfhost/arukellt-s2.wasm"
+env_override = "ARUKELLT_SELFHOST_WASM"
+
+[[surfaces]]
+id = "command_component"
+label = "Command component (wasi:cli/run)"
+status = "available_on_pinned"
+active_compiler = "pinned_or_s2"
+external_tool_dependency = "optional (wasm-tools for inspect)"
+notes = "Modules without exportable pub fn use P2 command wrapper"
+
+[[surfaces]]
+id = "library_component"
+label = "Library component (pub fn exports)"
+status = "requires_s2"
+active_compiler = "s2_or_ARUKELLT_SELFHOST_WASM"
+external_tool_dependency = "optional"
+notes = "Pinned bootstrap returns empty WIT / non-invokable components for library-style pub fn exports (#666)"
+
+[[surfaces]]
+id = "wit_emit"
+label = "WIT emit"
+status = "partial"
+active_compiler = "s2_preferred"
+external_tool_dependency = "optional"
+notes = "Scalar library wit works on s2; pinned may emit empty library WIT"
+
+[[surfaces]]
+id = "component_cli"
+label = "arukellt component build"
+status = "provisional"
+active_compiler = "same_as_compile"
+external_tool_dependency = "none for build"
+notes = "Aliases compile --emit component; inspect/validate not implemented"

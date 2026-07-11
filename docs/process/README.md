@@ -7,9 +7,9 @@
 
 - Verification command: `python3 scripts/manager.py verify quick`
 - Current verification gate: 169/173 checks pass
-- Fixture manifest size: 2679 entries (`docs/data/project-state.toml`)
-- Fixture harness: 654 passed, 4 failed, 29 skipped
-- Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.
+- Fixture registry: 2679 manifest entries (`docs/data/project-state.toml`)
+- Fixture harness (observed): 654 passed, 4 failed, 29 skipped (observed harness: 687)
+- Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.
 
 ## Documents
 

@@ -4741,6 +4741,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/gen/generate-ci-jobs-doc.py --check",
         ),
         (
+            "structured state docs freshness (#770)",
+            "python3 scripts/gen/generate-structured-state-docs.py --check",
+        ),
+        (
             "stdlib manifest check",
             "bash scripts/check/check-stdlib-manifest.sh",
         ),

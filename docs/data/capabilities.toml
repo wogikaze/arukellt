@@ -1,0 +1,141 @@
+# Host capability matrix SSOT (#770 Phase 2)
+# Axes: declared, registered, compiles, links, runs, user_reachable, grant_required, verified_on
+
+[meta]
+source_of_truth = "docs/data/capabilities.toml"
+human_view = "docs/capability-surface.md"
+deny_policy_doc = "docs/process/policy.md"
+
+[[modules]]
+id = "stdio"
+module = "std::host::stdio"
+path = "std/host/stdio.ark"
+declared = true
+registered = true
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "no"
+verified_on = ["wasm32", "wasm32-gc"]
+notes = "Always available"
+
+[[modules]]
+id = "fs"
+module = "std::host::fs"
+path = "std/host/fs.ark"
+declared = true
+registered = true
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "yes (--dir)"
+verified_on = ["wasm32", "wasm32-gc"]
+notes = "Deny-by-default"
+
+[[modules]]
+id = "env"
+module = "std::host::env"
+path = "std/host/env.ark"
+declared = true
+registered = true
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "no"
+verified_on = ["wasm32", "wasm32-gc"]
+notes = ""
+
+[[modules]]
+id = "process"
+module = "std::host::process"
+path = "std/host/process.ark"
+declared = true
+registered = true
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "no"
+verified_on = ["wasm32", "wasm32-gc"]
+notes = ""
+
+[[modules]]
+id = "clock"
+module = "std::host::clock"
+path = "std/host/clock.ark"
+declared = true
+registered = true
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "deny flags"
+deny_flag = "--deny-clock"
+deny_enforcement = "compile_time_mir"
+deny_transitive = true
+deny_applies_to = "run"
+verified_on = ["wasm32", "wasm32-gc"]
+notes = "--deny-clock hard error on run when referenced"
+
+[[modules]]
+id = "random"
+module = "std::host::random"
+path = "std/host/random.ark"
+declared = true
+registered = true
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "deny flags"
+deny_flag = "--deny-random"
+deny_enforcement = "compile_time_mir"
+deny_transitive = true
+deny_applies_to = "run"
+verified_on = ["wasm32", "wasm32-gc"]
+notes = "--deny-random hard error on run when referenced"
+
+[[modules]]
+id = "http"
+module = "std::host::http"
+path = "std/host/http.ark"
+declared = true
+registered = true
+compiles = "partial"
+links = "partial"
+runs = false
+user_reachable = false
+grant_required = "n/a"
+verified_on = []
+notes = "host_http_user_reachable=false"
+
+[[modules]]
+id = "sockets"
+module = "std::host::sockets"
+path = "std/host/sockets.ark"
+declared = true
+registered = true
+compiles = "partial"
+links = "partial"
+runs = false
+user_reachable = false
+grant_required = "n/a"
+verified_on = []
+notes = "E0500 on wasm32; not user-reachable"
+
+[[modules]]
+id = "udp"
+module = "std::host::udp"
+path = "std/host/udp.ark"
+declared = true
+registered = true
+compiles = "partial"
+links = "partial"
+runs = false
+user_reachable = false
+grant_required = "n/a"
+verified_on = []
+notes = "Same class as sockets"

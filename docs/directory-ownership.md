@@ -35,6 +35,16 @@
 | `docs/data/project-state.toml` | product (SSOT input) | hand-maintained | Structured current-state numbers / target profiles |
 | `docs/data/sections.toml` | product (SSOT input) | hand-maintained | Docs section registry |
 | `docs/data/language-doc-classifications.toml` | product (SSOT input) | hand-maintained | Language doc classifications |
+| `docs/data/cli-surface.toml` | product (SSOT input) | hand-maintained | CLI surface SSOT (#770) |
+| `docs/data/bootstrap-contract.toml` | product (SSOT input) | hand-maintained | Bootstrap contract SSOT (ADR-029) |
+| `docs/data/capabilities.toml` | product (SSOT input) | hand-maintained | Host capability matrix SSOT |
+| `docs/data/component-availability.toml` | product (SSOT input) | hand-maintained | Component availability axes |
+| `docs/data/release-guarantees.toml` | product (SSOT input) | hand-maintained | Release guarantees SSOT |
+| `docs/capability-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From capabilities.toml |
+| `docs/data/cli-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From cli-surface.toml |
+| `docs/data/bootstrap-contract.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From bootstrap-contract.toml |
+| `docs/data/component-availability.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From component-availability.toml |
+| `docs/data/release-guarantees.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From release-guarantees.toml |
 | `docs/data/target-contract-summary.md` | generated | `scripts/gen/generate-docs.py` | Generated from project-state.toml |
 | `docs/data/core-ops.toml` | product (SSOT input) | hand-maintained | Core ops registry input |
 | `docs/spec/` | archive | — | Previous version specs |

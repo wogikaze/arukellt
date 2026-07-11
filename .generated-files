@@ -69,3 +69,8 @@ issues/open/index.md | scripts/gen/generate-issue-index.py | python3 scripts/gen
 issues/open/dependency-graph.md | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
 issues/open/index-meta.json | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
 docs/data/ci-jobs.md | scripts/gen/generate-ci-jobs-doc.py | python3 scripts/gen/generate-ci-jobs-doc.py
+docs/capability-surface.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
+docs/data/cli-surface.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
+docs/data/bootstrap-contract.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
+docs/data/component-availability.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py
+docs/data/release-guarantees.md | scripts/gen/generate-structured-state-docs.py | python3 scripts/gen/generate-structured-state-docs.py

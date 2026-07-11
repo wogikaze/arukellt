@@ -1,0 +1,64 @@
+# Bootstrap contract SSOT (#770 Phase 2) — ADR-029
+
+[trust]
+base = "pinned_wasm"
+artifact = "bootstrap/arukellt-selfhost.wasm"
+provenance = "bootstrap/PROVENANCE.md"
+entrypoint = "scripts/run/arukellt-selfhost.sh"
+rust_stage0 = false
+adr = "docs/adr/ADR-029-selfhost-native-verification-contract.md"
+
+[[stages]]
+id = "0"
+name = "trust_base"
+description = "Pinned selfhost wasm is the trust base (not a Rust compiler)"
+artifact = "bootstrap/arukellt-selfhost.wasm"
+comparison = "n/a"
+
+[[stages]]
+id = "build_s2"
+name = "current_selfhost"
+description = "Pinned compiles src/compiler/main.ark → s2"
+artifact = ".build/selfhost/arukellt-s2.wasm"
+command = "python3 scripts/manager.py selfhost fixpoint --build"
+comparison = "build succeeds"
+
+[[stages]]
+id = "fixpoint"
+name = "s2_equals_s3"
+description = "sha256(s2) == sha256(s3)"
+artifact = ".build/selfhost/arukellt-s3.wasm"
+command = "python3 scripts/manager.py selfhost fixpoint"
+comparison = "sha256"
+
+[[gates]]
+id = "fixpoint"
+command = "python3 scripts/manager.py selfhost fixpoint"
+ci_job = "selfhost"
+
+[[gates]]
+id = "fixture_parity"
+command = "python3 scripts/manager.py selfhost fixture-parity"
+ci_job = "selfhost"
+
+[[gates]]
+id = "cli_parity"
+command = "python3 scripts/manager.py selfhost parity --mode --cli"
+ci_job = "selfhost"
+
+[[gates]]
+id = "diag_parity"
+command = "python3 scripts/manager.py selfhost diag-parity"
+ci_job = "selfhost"
+
+[[retired]]
+id = "verify-bootstrap-rust-stage0"
+path = "scripts/run/verify-bootstrap.sh"
+reason = "Rust Stage 0 cannot parse current selfhost source surface"
+archive = "docs/history/reports/bootstrap-rust-era-verification.md"
+
+[[retired]]
+id = "ARUKELLT_USE_RUST"
+path = "env:ARUKELLT_USE_RUST"
+reason = "Hard-fails in arukellt-selfhost.sh (#583 / ADR-029)"
+archive = "docs/history/reports/bootstrap-rust-era-compiler-guide.md"

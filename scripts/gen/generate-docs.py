@@ -26,6 +26,7 @@ import argparse
 import os
 import re
 import sys
+import subprocess
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -877,17 +878,46 @@ def fixture_count() -> int:
 
 
 def format_fixture_harness(verification: dict, *, with_manifest: bool = True) -> str:
-    """Canonical harness line: passed / failed / skipped [/ manifest entries]."""
+    """Harness outcomes (observed snapshot) vs registry size (distinct units)."""
     passed = verification.get("fixture_passed", 0)
     failed = verification.get("fixture_failures", 0)
     skipped = verification.get("fixture_skipped", 0)
-    base = f"{passed} passed, {failed} failed, {skipped} skipped"
+    observed = verification.get("fixture_harness_observed")
+    if observed is None:
+        observed = int(passed) + int(failed) + int(skipped)
+    base = (
+        f"{passed} passed, {failed} failed, {skipped} skipped "
+        f"(observed harness: {observed})"
+    )
     if not with_manifest:
         return base
     manifest_count = verification.get("fixture_manifest_count")
     if manifest_count is None:
         return base
-    return f"{base} / {manifest_count} entries"
+    return f"{base}; registry: {manifest_count} manifest entries"
+
+
+def format_component_emit_summary(state: dict | None = None) -> str:
+    """Multi-axis component availability — never flatten to available true/false."""
+    path = DOCS / "data" / "component-availability.toml"
+    if path.is_file():
+        data = load_toml(path)
+        meta = data.get("meta", {})
+        target = meta.get("target")
+        if not target and state:
+            target = state.get("targets", {}).get("component_target", "wasm32-gc")
+        surfaces = data.get("surfaces", [])
+        axes = "; ".join(f"`{s['id']}`=`{s['status']}`" for s in surfaces)
+        note = meta.get("implementation_note", "")
+        suffix = f" — {note}" if note else ""
+        return f"multi-axis on `{target}`: {axes}{suffix}"
+    if state:
+        targets = state.get("targets", {})
+        return (
+            f"on `{targets.get('component_target')}` "
+            f"({targets.get('component_note', 'see docs/data/component-availability.toml')})"
+        )
+    return "see docs/data/component-availability.toml"
 
 
 def fixture_manifest_count_from_state(state: dict, fallback: int | None = None) -> int:
@@ -1338,17 +1368,39 @@ def render_current_state_updated(state: dict) -> str:
 def render_current_state_test_health(state: dict, fixture_total: int) -> str:
     verification = state["verification"]
     manifest_count = fixture_manifest_count_from_state(state, fixture_total)
-    return "\n".join(
+    observed = verification.get("fixture_harness_observed")
+    if observed is None:
+        observed = (
+            int(verification.get("fixture_passed", 0))
+            + int(verification.get("fixture_failures", 0))
+            + int(verification.get("fixture_skipped", 0))
+        )
+    remainder = verification.get("fixture_not_in_last_harness_snapshot")
+    if remainder is None and verification.get("fixture_manifest_count") is not None:
+        remainder = int(verification["fixture_manifest_count"]) - int(observed)
+    accounting = verification.get("fixture_accounting_note", "")
+    lines = [
+        "## Test Health",
+        "",
+        f"- Unit tests: {verification['unit_tests_note']}",
+        f"- Fixture harness (observed snapshot): {format_fixture_harness(verification, with_manifest=False)}",
+        f"- Fixture registry: {manifest_count} manifest entries (distinct unit from harness outcomes)",
+    ]
+    if remainder is not None:
+        lines.append(
+            f"- Not in last harness snapshot: {remainder} registry entries "
+            f"(not proof they fail)"
+        )
+    if accounting:
+        lines.append(f"- Accounting note: {accounting}")
+    lines.extend(
         [
-            "## Test Health",
-            "",
-            f"- Unit tests: {verification['unit_tests_note']}",
-            f"- Fixture harness: {format_fixture_harness(verification, with_manifest=False)} (manifest-driven)",
-            f"- Fixture manifest: {manifest_count} entries",
             "- Wasm validation is a hard error (W0004)",
-            f"- Verification entry point: `{state['project']['verification_command']}` — **{verification['checks_passed']}/{verification['checks_total']} checks pass**",
+            f"- Verification entry point: `{state['project']['verification_command']}` — "
+            f"**{verification['checks_passed']}/{verification['checks_total']} checks pass**",
         ]
     )
+    return "\n".join(lines)
 
 
 def render_current_state_perf(state: dict) -> str:
@@ -1419,7 +1471,7 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         f"- Updated: {state['project']['updated']}",
         f"- CLI default target: `{state['targets']['cli_default']}`",
         f"- Canonical target: `{state['targets']['canonical']}`",
-        f"- Component emit: {'available' if state['targets']['component_emit'] else 'not available'} on `{state['targets']['component_target']}` ({state['targets']['component_note']})",
+        f"- Component emit: {format_component_emit_summary(state)} ([axes](data/component-availability.md))",
         f"- Fixture harness: {_harness}",
         f"- Verification: `{state['project']['verification_command']}` — {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
         f"- Stdlib manifest-backed public API: {len(manifest_stats['public_functions'])} functions",
@@ -1443,6 +1495,10 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         "| [retention-policy.md](retention-policy.md) | Docs retention / archive zones |",
         "| [debug-support.md](debug-support.md) | Debug / DAP support status |",
         "| [capability-surface.md](capability-surface.md) | Host capability reachability matrix |",
+        "| [data/cli-surface.md](data/cli-surface.md) | Generated CLI surface from cli-surface.toml |",
+        "| [data/bootstrap-contract.md](data/bootstrap-contract.md) | Generated bootstrap contract (ADR-029) |",
+        "| [data/release-guarantees.md](data/release-guarantees.md) | Generated release guarantees matrix |",
+        "| [data/component-availability.md](data/component-availability.md) | Component availability axes |",
         "| [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |",
         "| [directory-ownership.md](directory-ownership.md) | Directory ownership map |",
         "| [release/README.md](release/README.md) | Release criteria + checklist entry |",
@@ -2597,16 +2653,16 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
         return [
             f"- CLI default target: `{state['targets']['cli_default']}`",
             f"- Canonical target: `{state['targets']['canonical']}`",
-            f"- Component emit: {'available' if state['targets']['component_emit'] else 'not available'} on `{state['targets']['component_target']}`",
+            f"- Component emit: {format_component_emit_summary(state)} ([axes](../data/component-availability.md))",
             "- Backend validation failure (`W0004`) is a hard error.",
         ]
     if snapshot == "process":
         return [
             f"- Verification command: `{state['project']['verification_command']}`",
             f"- Current verification gate: {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
-            f"- Fixture manifest size: {manifest_count} entries (`docs/data/project-state.toml`)",
-            f"- Fixture harness: {format_fixture_harness(state['verification'], with_manifest=False)}",
-            "- Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.",
+            f"- Fixture registry: {manifest_count} manifest entries (`docs/data/project-state.toml`)",
+            f"- Fixture harness (observed): {format_fixture_harness(state['verification'], with_manifest=False)}",
+            "- Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.",
         ]
     if snapshot == "stdlib":
         return [
@@ -2635,7 +2691,7 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
         return [
             f"- CLI default target remains `{state['targets']['cli_default']}`.",
             f"- Canonical path for current docs is `{state['targets']['canonical']}`.",
-            f"- Component emit lives on `{state['targets']['component_target']}`.",
+            f"- Component emit: {format_component_emit_summary(state)} ([axes](../data/component-availability.md)).",
         ]
     if snapshot == "sample":
         return [
@@ -3360,6 +3416,34 @@ def main() -> int:
         )
         return 1
 
+    verification = state.get("verification", {})
+    passed = int(verification.get("fixture_passed", 0) or 0)
+    failed = int(verification.get("fixture_failures", 0) or 0)
+    skipped = int(verification.get("fixture_skipped", 0) or 0)
+    observed_sum = passed + failed + skipped
+    stated_observed = verification.get("fixture_harness_observed")
+    if stated_observed is not None and int(stated_observed) != observed_sum:
+        print(
+            "project-state.toml fixture harness accounting drift: "
+            f"passed+failed+skipped={observed_sum} fixture_harness_observed={stated_observed}",
+            file=sys.stderr,
+        )
+        return 1
+    stated_remainder = verification.get("fixture_not_in_last_harness_snapshot")
+    if (
+        stated_fixture_total is not None
+        and stated_observed is not None
+        and stated_remainder is not None
+        and int(stated_remainder) != int(stated_fixture_total) - int(stated_observed)
+    ):
+        print(
+            "project-state.toml fixture remainder drift: "
+            f"manifest-observed={int(stated_fixture_total) - int(stated_observed)} "
+            f"fixture_not_in_last_harness_snapshot={stated_remainder}",
+            file=sys.stderr,
+        )
+        return 1
+
     # Schema validation: always run, fail fast before any doc generation
     schema_errors = validate_manifest_schema(manifest)
     if schema_errors:
@@ -3388,6 +3472,28 @@ def main() -> int:
     stale: list[Path] = []
 
     write_target_contract_summary(state, args.check, stale)
+
+    # Phase-2 structured state views (#770)
+    structured_script = ROOT / "scripts" / "gen" / "generate-structured-state-docs.py"
+    structured_cmd = [sys.executable, str(structured_script)]
+    if args.check:
+        structured_cmd.append("--check")
+    structured_result = subprocess.run(
+        structured_cmd,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if structured_result.returncode != 0:
+        if structured_result.stderr:
+            print(structured_result.stderr, file=sys.stderr, end="")
+        if structured_result.stdout:
+            print(structured_result.stdout, file=sys.stderr, end="")
+        if args.check:
+            stale.append(DOCS / "capability-surface.md")
+        else:
+            print("structured state doc generation failed", file=sys.stderr)
+            return 1
 
     apply_marker_updates(
         ROOT / "README.md",

@@ -7,7 +7,7 @@
 
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
-- Component emit: available on `wasm32-gc`
+- Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `component_cli`=`provisional` — Living path may still use wasm-tools / Python wrap helpers for some packaging steps ([axes](../data/component-availability.md))
 - Backend validation failure (`W0004`) is a hard error.
 
 ## Documents

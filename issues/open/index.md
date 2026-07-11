@@ -198,7 +198,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 725 | [ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)](725-adr040-phase5e-tracer-removal.md) | compiler-internal | None | none | 8 checked / 1 open | design-then-implement | — | |
 | 728 | [728 — WIR / backend target IR for ADR-007 multi-target separation](728-wir-target-backend-ir.md) | compiler-internal | none | none | 0 checked / 5 open | design-ready | None | |
 | 760 | [ADR 台帳の規則追従 — research/plans 分離と supersession 整合](760-adr-registry-rule-compliance.md) | main | none | none | 0 checked / 0 open | — | — | |
-| 770 | [770 — Docs re-audit Phase 2–4 (structured state + lifecycle)](770-docs-reaudit-phase2-4.md) | docs-audit | 766, 767, 768, 769 | none | 0 checked / 7 open | design-ready | None | |
+| 770 | [770 — Docs re-audit Phase 2–4 (structured state + lifecycle)](770-docs-reaudit-phase2-4.md) | docs-audit | 766, 767, 768, 769 | none | 4 checked / 4 open | design-ready | None | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 699 | [699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md) | native-feature | 649, 698 | none | 0 checked / 9 open | design-ready | None | |
 | 673 | [673 — Component export aggregate expansion (Tier 2 blocked shapes)](673-component-export-aggregate-expansion.md) | component-model | 648, 660, 667 | none | 0 checked / 12 open | implementation-ready | None | |

@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T17:32:59+09:00
-> Source-Commit: `02130617`
+> Generated-At: 2026-07-11T17:36:02+09:00
+> Source-Commit: `97ae35f8`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 4 verification check failure(s)
@@ -94,8 +94,10 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 ## Test Health
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
-- Fixture harness: 654 passed, 4 failed, 29 skipped (manifest-driven)
-- Fixture manifest: 2679 entries
+- Fixture harness (observed snapshot): 654 passed, 4 failed, 29 skipped (observed harness: 687)
+- Fixture registry: 2679 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1992 registry entries (not proof they fail)
+- Accounting note: 654+4+29=687 observed harness outcomes from the last recorded snapshot; 2679 is tests/fixtures/manifest.txt registry size. The 1992 remainder were not part of that snapshot (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **169/173 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->

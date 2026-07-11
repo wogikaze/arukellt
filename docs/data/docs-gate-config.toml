@@ -143,6 +143,11 @@ must_be_hand_ssot = [
   "docs/data/project-state.toml",
   "docs/data/sections.toml",
   "docs/data/language-doc-classifications.toml",
+  "docs/data/cli-surface.toml",
+  "docs/data/bootstrap-contract.toml",
+  "docs/data/capabilities.toml",
+  "docs/data/component-availability.toml",
+  "docs/data/release-guarantees.toml",
 ]
 
 [bootstrap]
