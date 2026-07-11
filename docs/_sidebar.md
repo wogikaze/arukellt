@@ -24,6 +24,8 @@
   - [テスト](#/testing/README)
   - [移行](#/migration/README)
   - [サンプル](#/sample/README)
+  - [リリース](#/release/README)
+  - [ガバナンス](#/governance/README)
 
 - **Archive / History**
   - [ADR](#/adr/README)

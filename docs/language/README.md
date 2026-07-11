@@ -76,11 +76,11 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Class | Note |
 |------|-------|------|
 | [error-handling.md](error-handling.md) | normative | Current-first error handling reference; reflects implemented Result/Option behavior |
-| [formatter.md](formatter.md) | — | (unclassified — add entry to language-doc-classifications.toml) |
+| [formatter.md](formatter.md) | explanatory | Formatter / fmt CLI and LSP formatting surface; mirrors implemented selfhost formatter |
 | [guide.md](guide.md) | explanatory | Current-first language guide; stable/implemented features only; recommended first reading |
 | [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model; language semantics = GC (ADR-002); wasm32-gc primary with linear wasm32 compatibility |
-| [ownership-map.md](ownership-map.md) | — | (unclassified — add entry to language-doc-classifications.toml) |
+| [ownership-map.md](ownership-map.md) | explanatory | Language docs ownership and release-gate map; governance companion to stdlib ownership-map |
 | [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | transitional | Describes planned v1 syntax additions; retires when all items land in spec.md |
 | [syntax.md](syntax.md) | normative | Current-first syntax reference; reflects implemented, tested behavior |
@@ -91,11 +91,11 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Title | Class | Summary |
 |------|-------|-------|---------|
 | [error-handling.md](error-handling.md) | エラー処理 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
-| [formatter.md](formatter.md) | Formatter canonical surface | — | The selfhost formatter (src/compiler/fmt/) is the single source of truth for |
+| [formatter.md](formatter.md) | Formatter canonical surface | explanatory | The selfhost formatter (src/compiler/fmt/) is the single source of truth for |
 | [guide.md](guide.md) | Arukellt Language Guide | explanatory | Explanatory: This document explains concepts and usage patterns. |
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative memory-model contract for Arukellt. |
-| [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | — | Defines the ownership, maintenance tier, and release gate responsibilities |
+| [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | explanatory | See also docs/governance/document-ownership.md |
 | [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | transitional | Transitional: This document describes planned or in-progress changes to Arukellt. |
 | [syntax.md](syntax.md) | 構文仕様 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |

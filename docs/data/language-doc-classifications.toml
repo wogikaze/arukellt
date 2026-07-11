@@ -43,6 +43,16 @@ file = "maturity-matrix.md"
 class = "normative"
 note = "Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below"
 
+[[docs]]
+file = "formatter.md"
+class = "explanatory"
+note = "Formatter / fmt CLI and LSP formatting surface; mirrors implemented selfhost formatter"
+
+[[docs]]
+file = "ownership-map.md"
+class = "explanatory"
+note = "Language docs ownership and release-gate map; governance companion to stdlib ownership-map"
+
 # ── Feature maturity classifications ─────────────────────────────────────────
 # Source of truth for docs/language/maturity-matrix.md (generated).
 # Stability labels: stable | provisional | experimental | unimplemented | deprecated

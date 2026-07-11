@@ -1,8 +1,9 @@
 # Stdlib Docs Ownership Map
 
 > Defines the ownership, maintenance tier, and release gate responsibilities
-> for every file in `docs/stdlib/`. See also [docs/directory-ownership.md](../directory-ownership.md)
-> for the repo-wide directory ownership map.
+> for every file in `docs/stdlib/`. See also
+> [docs/governance/document-ownership.md](../governance/document-ownership.md) for the shared schema and
+> [docs/directory-ownership.md](../directory-ownership.md) for the repo-wide directory ownership map.
 
 ## Ownership Tiers
 

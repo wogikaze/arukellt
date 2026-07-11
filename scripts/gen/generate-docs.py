@@ -1443,6 +1443,8 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         "| [capability-surface.md](capability-surface.md) | Host capability reachability matrix |",
         "| [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |",
         "| [directory-ownership.md](directory-ownership.md) | Directory ownership map |",
+        "| [release/README.md](release/README.md) | Release criteria + checklist entry |",
+        "| [governance/document-ownership.md](governance/document-ownership.md) | Shared ownership schema |",
         "",
         "> [overview.html](overview.html) is an **archived** visual map (pre-canonical target rename).",
         "> Do not treat it as current behavior — use [current-state.md](current-state.md).",
@@ -3386,6 +3388,24 @@ def main() -> int:
     for page in STDLIB_ALIAS_PAGES:
         write_file(DOCS / "stdlib" / page["path"], render_stdlib_alias_page(page), args.check, stale)
 
+    classifications = load_language_classifications()
+    classified = {c.get("file") for c in classifications if c.get("file")}
+    lang_files = {
+        p.name
+        for p in (DOCS / "language").glob("*.md")
+        if p.name != "README.md"
+    }
+    unclassified = sorted(lang_files - classified)
+    if unclassified:
+        print(
+            "language doc classification incomplete — add entries to "
+            "docs/data/language-doc-classifications.toml:",
+            file=sys.stderr,
+        )
+        for name in unclassified:
+            print(f"  ✗ {name}", file=sys.stderr)
+        return 1
+
     for section in sections:
         section_dir = DOCS / section["dir"]
         entries = collect_markdown_entries(section_dir)
@@ -3400,7 +3420,7 @@ def main() -> int:
                 section,
                 entries,
                 section_snapshot(section, state, fixture_total, manifest_stats, examples),
-                load_language_classifications(),
+                classifications,
             )
         elif section["dir"] == "playground":
             content = render_playground_readme(

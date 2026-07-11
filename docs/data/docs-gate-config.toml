@@ -1,0 +1,146 @@
+# Docs CI hard-gate configuration (#765)
+# Allowlists and budgets for scripts/check/gate-765-docs-ci-hard-gates.py
+
+[deprecated_vocab]
+# Paths (repo-relative) skipped entirely for deprecated-target / T0–T5 scans.
+path_globs = [
+  "docs/history/**",
+  "docs/adr/**",
+  "docs/rfcs/**",
+  "docs/plans/**",
+  "docs/research/**",
+  "docs/design/**",
+  "docs/spec/**",
+  "docs/compiler/t3-*.md",
+  "docs/process/benchmark-results.md",
+  "docs/process/wasm-size-reduction.md",
+  "docs/process/linear-vs-gc-report.md",
+  "docs/process/false-done-prevention.md",
+]
+
+# Line substrings that mark a mention as historical / alias / type-param noise.
+line_allow_substrings = [
+  "legacy",
+  "alias",
+  "historical",
+  "retired",
+  "obsolete",
+  "invalid",
+  "廃止",
+  "旧",
+  "W0002",
+  "公開契約ではない",
+  "実装ギャップ",
+  "was ",
+  "移行",
+  "availability",
+  "evidence ではない",
+  "全件 skipped",
+  "t3-run",
+  "t3-compile",
+  "hard error",
+  "Hard error",
+  "(T1, T2",
+  "fn(T1",
+  "Variant(T1",
+  "param1: T1",
+  "Anonymous product",
+]
+
+# Additional files scanned in "strict" mode (must stay clean).
+strict_paths = [
+  "docs/current-state.md",
+  "docs/README.md",
+  "docs/quickstart.md",
+  "docs/contributing.md",
+  "docs/release-criteria.md",
+  "docs/release-checklist.md",
+  "docs/test-strategy.md",
+  "docs/capability-surface.md",
+  "docs/process/policy.md",
+  "docs/process/decision-guide.md",
+  "docs/language/*.md",
+  "docs/platform/*.md",
+  "docs/state/*.md",
+  "docs/stdlib/README.md",
+  "docs/stdlib/generation-schema.md",
+  "docs/stdlib/stability-policy.md",
+  "docs/stdlib/scoreboard.md",
+]
+
+[skip_doc_check]
+# Ceiling counts — increasing beyond these fails the gate.
+# Prefer structured form: <!-- skip-doc-check reason="..." owner="..." kind="pseudocode|future|non-runnable" -->
+[[skip_doc_check.budgets]]
+path = "docs/language/spec.md"
+max = 44
+[[skip_doc_check.budgets]]
+path = "docs/language/syntax.md"
+max = 10
+[[skip_doc_check.budgets]]
+path = "docs/language/guide.md"
+max = 45
+[[skip_doc_check.budgets]]
+path = "docs/language/error-handling.md"
+max = 3
+[[skip_doc_check.budgets]]
+path = "docs/language/memory-model.md"
+max = 1
+[[skip_doc_check.budgets]]
+path = "docs/language/type-system.md"
+max = 2
+[[skip_doc_check.budgets]]
+path = "docs/stdlib/cookbook.md"
+max = 38
+[[skip_doc_check.budgets]]
+path = "docs/stdlib/std.md"
+max = 11
+[[skip_doc_check.budgets]]
+path = "docs/stdlib/migration-guidance.md"
+max = 16
+
+[orphan_current]
+# Root current/reference docs that must have ≥1 inbound Markdown link.
+required_inbound = [
+  "docs/ark-toml.md",
+  "docs/capability-surface.md",
+  "docs/cli-reference.md",
+  "docs/cli-startup-contract.md",
+  "docs/data/target-contract-summary.md",
+  "docs/debug-support.md",
+  "docs/release-checklist.md",
+  "docs/release-criteria.md",
+  "docs/retention-policy.md",
+  "docs/test-strategy.md",
+  "docs/directory-ownership.md",
+]
+
+[overview]
+require_archive_banner_substrings = [
+  "アーカイブ",
+  "ARCHIVED",
+  "archived",
+]
+forbid_as_primary_entry_in = [
+  "docs/README.md",
+  "README.md",
+]
+
+[capability]
+require_axes = [
+  "declared",
+  "registered",
+  "compiles",
+  "user_reachable",
+]
+forbid_phrases = [
+  "All modules are registered in `std/manifest.toml` and compiled via the",
+]
+
+[ownership]
+# These must NOT be classified as generated in directory-ownership.md
+must_be_hand_ssot = [
+  "docs/data/project-state.toml",
+  "docs/data/sections.toml",
+  "docs/data/language-doc-classifications.toml",
+]

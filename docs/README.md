@@ -10,7 +10,7 @@
 - Canonical target: `wasm32-gc`
 - Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps). CLI default = primary (wasm32-gc); impl may still spell alias wasm32-wasi-p2 until parser migrates.)
 - Fixture harness: 654 passed, 4 failed, 29 skipped / 2679 entries
-- Verification: `python3 scripts/manager.py verify quick` — 167/171 checks pass
+- Verification: `python3 scripts/manager.py verify quick` — 168/172 checks pass
 - Stdlib manifest-backed public API: 772 functions
 
 - [Current state](current-state.md)
@@ -34,6 +34,8 @@
 | [capability-surface.md](capability-surface.md) | Host capability reachability matrix |
 | [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |
 | [directory-ownership.md](directory-ownership.md) | Directory ownership map |
+| [release/README.md](release/README.md) | Release criteria + checklist entry |
+| [governance/document-ownership.md](governance/document-ownership.md) | Shared ownership schema |
 
 > [overview.html](overview.html) is an **archived** visual map (pre-canonical target rename).
 > Do not treat it as current behavior — use [current-state.md](current-state.md).
@@ -60,6 +62,8 @@
 | テスト | [testing](testing/README.md) | テストカテゴリ分類と戦略。 |
 | 移行 | [migration](migration/README.md) | バージョンやランタイム間の移行ガイド。 |
 | サンプル | [sample](sample/README.md) | 実装寄りの参考コード断片。 |
+| リリース | [release](release/README.md) | リリース保証と実行チェックリストの入口。 |
+| ガバナンス | [governance](governance/README.md) | 文書 ownership など横断ガバナンス。 |
 
 ## Archive / History
 

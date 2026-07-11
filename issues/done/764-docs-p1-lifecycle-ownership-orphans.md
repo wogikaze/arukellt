@@ -27,8 +27,9 @@ release / benchmark / ownership の重複正本が残る。
 - [x] orphan current/reference 文書（cli-reference, release-*, test-strategy, retention-policy, ark-toml, debug-support, capability-surface, target-contract-summary）を README / sidebar から少なくとも 1 inbound link
 - [x] `directory-ownership.md` で `project-state.toml` 等の入力正本と生成物を分離記載
 - [x] process README に report/plan を current と同列掲載しない
-- [ ] （残）front matter `lifecycle` / `valid_as_of` 必須化は #765 と分担可
 - [x] docs-related verify gates for this slice pass (link integrity for moved reports; generated banner)
+
+Front-matter `lifecycle` / `valid_as_of` 必須化は #765 へ移管。
 
 ## References
 

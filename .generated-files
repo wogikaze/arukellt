@@ -20,6 +20,18 @@ docs/process/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/gene
 docs/sample/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/spec/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/release/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/governance/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/benchmarks/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/cookbook/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/testing/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/history/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/state/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/migration/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/playground/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/plans/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/research/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/rfcs/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/_sidebar.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 
 # stdlib reference and module pages (generate-docs.py)

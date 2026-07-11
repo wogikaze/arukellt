@@ -246,6 +246,17 @@ def _bg_check_prefixes(label: str, cmd_str: str) -> tuple[str, ...]:
         return ("docs", "scripts/gen", "scripts/check/check-docs-consistency.py", "tests/fixtures/manifest.txt", "std")
     if "docs freshness" in text:
         return ("docs", "scripts/check/check-docs-freshness.py", "tests/fixtures/manifest.txt")
+    if "docs CI hard gates" in text or "gate-765" in text:
+        return (
+            "docs",
+            "scripts/check/gate-765-docs-ci-hard-gates.py",
+            "scripts/gen/generate-docs.py",
+            "docs/data/docs-gate-config.toml",
+            "docs/data/project-state.toml",
+            "docs/data/sections.toml",
+            ".generated-files",
+            "README.md",
+        )
     if "docs-runtime contract" in text or "gate-679" in text:
         return ("docs", "scripts/check/gate-679-docs-runtime-contract-audit.py", "scripts/gen", "scripts/check/check-docs-consistency.py", "tests/fixtures/manifest.txt", "std")
     if "internal link" in text:
@@ -4720,6 +4731,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "docs freshness (project-state.toml vs manifest.txt)",
             "python3 scripts/check/check-docs-freshness.py",
+        ),
+        (
+            "docs CI hard gates (#765)",
+            "python3 scripts/check/gate-765-docs-ci-hard-gates.py",
         ),
         (
             "stdlib manifest check",

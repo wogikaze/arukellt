@@ -1,7 +1,7 @@
 # Language Docs Ownership Map
 
-> Defines the ownership, maintenance tier, and release gate responsibilities
-> for every file in `docs/language/`. See also [docs/stdlib/ownership-map.md](../stdlib/ownership-map.md)
+> See also [docs/governance/document-ownership.md](../governance/document-ownership.md)
+> for the shared ownership schema, and [docs/stdlib/ownership-map.md](../stdlib/ownership-map.md)
 > for the stdlib counterpart.
 
 ## Ownership Tiers

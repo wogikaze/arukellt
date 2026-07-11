@@ -139,3 +139,17 @@ title = "アーカイブ仕様"
 description = "過去版仕様と履歴参照。現行 reality の正本ではない。"
 category = "archive"
 snapshot = "archive"
+
+[[sections]]
+dir = "release"
+title = "リリース"
+description = "リリース保証と実行チェックリストの入口。"
+category = "supporting"
+snapshot = "current"
+
+[[sections]]
+dir = "governance"
+title = "ガバナンス"
+description = "文書 ownership など横断ガバナンス。"
+category = "supporting"
+snapshot = "current"

@@ -83,7 +83,7 @@ Entries with `kind = "host_stub"` must additionally provide:
 
 - `module` — the `std::host::*` module they belong to.
 - `target` — a **list** of target triples on which the capability is available
-  (e.g., `["wasm32-wasi-p2"]`).
+  (e.g., `["wasm32-gc"]`).
 
 ---
 

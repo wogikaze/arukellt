@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T16:48:19+09:00
-> Source-Commit: `82e52800`
+> Generated-At: 2026-07-11T17:07:35+09:00
+> Source-Commit: `157f180a`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 4 verification check failure(s)
@@ -97,7 +97,7 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 - Fixture harness: 654 passed, 4 failed, 29 skipped (manifest-driven)
 - Fixture manifest: 2679 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **167/171 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **168/172 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
