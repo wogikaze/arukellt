@@ -301,6 +301,9 @@ def _bg_check_prefixes(label: str, cmd_str: str) -> tuple[str, ...]:
     if "artifact size" in text:
         return ("scripts/check/check-artifact-size-budget.sh", ".build")
     if "repository structure" in text:
+        # Root *.ark/*.py/*.sh are part of the check surface but are often
+        # untracked; failure caching is disabled separately so junk files
+        # cannot pin a false fail after deletion.
         return ("scripts/check/check-repo-structure.sh", "scripts")
     if "generated file" in text:
         return ("scripts/check/check-generated-files.sh", "docs", "src", "std")
@@ -325,18 +328,30 @@ def _cached_quick_check(
     if cache_file.is_file():
         try:
             entry = json.loads(cache_file.read_text(encoding="utf-8"))
-            return int(entry.get("returncode", 1)), entry.get("output", "")
+            cached_rc = int(entry.get("returncode", 1))
+            # Never replay failures: fingerprints are git-OID based and miss
+            # untracked root junk (e.g. test-medium.ark), so a one-off fail
+            # would otherwise stick until scripts/ changes.
+            if cached_rc == 0:
+                return cached_rc, entry.get("output", "")
         except (OSError, json.JSONDecodeError, ValueError):
             pass
     rc, out = run_fn(cmd_str)
-    try:
-        _VERIFY_QUICK_CHECK_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        cache_file.write_text(
-            json.dumps({"returncode": rc, "output": out}),
-            encoding="utf-8",
-        )
-    except OSError:
-        pass
+    if rc == 0:
+        try:
+            _VERIFY_QUICK_CHECK_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(
+                json.dumps({"returncode": rc, "output": out}),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
+    else:
+        # Drop any stale success/fail entry so the next run re-executes.
+        try:
+            cache_file.unlink(missing_ok=True)
+        except OSError:
+            pass
     return rc, out
 
 
