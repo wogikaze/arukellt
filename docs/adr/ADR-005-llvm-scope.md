@@ -1,60 +1,91 @@
 # ADR-005: LLVM IR バックエンドの役割制限
 
-ステータス: **DEFERRED** — LLVM 役割の判断を保留（Wasm バックエンド成熟待ち）
+ステータス: **SUPERSEDED** — 旧 LLVM 従属方針を撤回
 
-決定日: 2026-03-24
-改訂日: 2026-07-11 — ACCEPTED を撤回し白紙化
+後継: [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md)  
+決定日: 2026-03-24  
+統合日: 2026-07-11
+
+---
+
+## 廃止記録
+
+2026-03-24 に「LLVM IR バックエンドは Wasm 意味論に従属」を採択したが、
+コア意味論と FFI 境界の混在により矛盾していたため、
+[ADR-045](ADR-045-llvm-scope-withdrawn.md) で撤回し再開まで未決定とした。
+
+以下は**効力のない旧本文**（履歴復元用）である。
 
 ---
 
 ## 文脈
 
-arukellt は WASM32 を主ターゲットとし、将来 native 実行のために LLVM IR
-バックエンドを検討する余地がある。2026-03 に「LLVM は Wasm 意味論に従属」と
-採択したが、本文は次の二つを同時に主張しており矛盾していた。
+arukellt は WASM32 を主ターゲットとするが、native 実行のために LLVM IR バックエンドも提供する。
 
-- 同じ MIR・同じ言語意味論を Wasm と LLVM で再現する
-- `extern "C"` は LLVM バックエンドでのみ有効
-
-現状では Wasm バックエンド自体が未完成であり、LLVM の役割・意味論従属・
-FFI 境界を固定する判断材料が足りない。
+LLVM IR 側で「より良い最適化」を追求すると、Wasm と native で意味論が乖離するリスクがある。
 
 ---
 
 ## 決定
 
-**本 ADR の採択内容は撤回する。LLVM バックエンドの役割・制約は未決定とする。**
+**LLVM IR バックエンドは Wasm 意味論に従属する**
 
-- 旧 ACCEPTED 本文（Wasm 意味論従属、未最適化方針、`extern "C"` の LLVM 限定、
-  native 専用機能の禁止など）は **効力を持たない**
-- 他 ADR・issue が「ADR-005 に従い…」と引用している箇所は、再開まで
-  **未確定の仮置き**として扱う
-- native / LLVM 向けの新規言語機能・ABI・最適化方針は、本 ADR の再開まで
-  設計決定として固定しない（scaffold 実装の実験は妨げない）
+### 原則
+
+1. **Wasm 意味論が正**
+   - 言語の意味論は Wasm 側で定義
+   - LLVM IR は Wasm と同じ動作を再現するだけ
+
+2. **未最適化でよい**
+   - LLVM の最適化パスに頼りすぎない
+   - Wasm emitter と同じ MIR から生成
+
+3. **native 専用機能は追加しない**
+   - SIMD は Wasm SIMD を優先
+   - スレッドは Wasm Threads を優先
+   - native 専用の言語機能は入れない
+
+### 役割
+
+| バックエンド | 役割 |
+|-------------|------|
+| Wasm Emitter | **主**。言語の意味論を定義 |
+| LLVM IR Emitter | **従**。native 実行用。デバッグ用 |
+
+### 使用シーン
+
+LLVM IR バックエンドの正当な使用:
+
+- ローカルでのデバッグ（gdb/lldb との連携）
+- 性能比較（Wasm ランタイム vs native）
+- Wasm 未対応環境での実行
 
 ---
 
-## 再開条件
+## 制約事項
 
-次の**すべて**が満たされたとき、本 ADR を `PROPOSED` に戻して再検討する:
+### LLVM で追加してはいけないもの
 
-1. 主 Wasm ターゲット（`wasm32-gc`）の emit・実行経路が、現行の verify ゲートで
-   安定して通る
-2. 言語コア意味論（評価・型・メモリモデル）の正本が Wasm 側で文書化され、
-   native との差分を議論できる状態にある
-3. native / LLVM をいつ・何のために必要とするかが、issue または RFC で
-   具体的に再提起されている
+- Wasm にない最適化（Wasm の動作と乖離する可能性）
+- native 専用の言語機能
+- LLVM 依存の型表現
 
-再開時に必ず決着させる論点:
+### FFI の扱い
 
-- コア言語意味論とホスト結合（ABI 投影）の境界
-- `extern "C"` / Layer 3 FFI をターゲット限定構文とするか、共有 MIR 概念とするか
-- LLVM を「従属再現」に留めるか、独立最適化を許すか
+```
+// extern "C" は LLVM バックエンドでのみ有効
+extern "C" fn my_c_function(x: i32) -> i32
+
+// Wasm では WASI import として解決
+```
+
+native FFI は C ABI のみサポート。arukellt 独自の ABI 拡張は行わない。
 
 ---
 
 ## 関連
 
-- ADR-006: 公開 ABI（3 層構造）— Layer 3 の詳細は本 ADR 再開と合わせて再確認
-- ADR-007: ターゲット整理 — `native-llvm` の意味論従属は本 ADR 再開まで未確定
-- ADR-000: ADR プロセス（`DEFERRED` は再開条件必須）
+- ADR-006: 公開 ABI（3 層構造）
+- `docs/compiler/pipeline.md`: MIR からの分岐
+- `docs/platform/abi.md`: native ABI 詳細
+

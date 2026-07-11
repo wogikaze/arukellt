@@ -1,6 +1,6 @@
 # ADR-006: 公開 ABI を 3 層に固定
 
-ステータス: **ACCEPTED** — 公開ABIは3層まで（内部・WASM・native）
+ステータス: **ACCEPTED** — 公開 ABI は最大 3 層（Layer 3 native は予約・詳細未決定）
 
 決定日: 2026-03-24
 
@@ -26,7 +26,7 @@
 |-------|------|---------|-----------|
 | 1 | 内部 ABI | 非公開 | なし |
 | 2 | WASM 公開 ABI | Wasm モジュール間 | 互換性を維持する |
-| 3 | native 公開 ABI | C ライブラリとの FFI | C ABI 準拠 |
+| 3 | native 公開 ABI（予約） | native 外部境界 | **未決定**（ADR-045） |
 
 ### Layer 1: 内部 ABI
 
@@ -43,13 +43,13 @@
 - 独立した Layer 4 にはしない
 - raw Wasm 面と WIT 面は同じ言語セマンティクスから生成する
 
-### Layer 3: native 公開 ABI
+### Layer 3: native 公開 ABI（予約領域）
 
-- C ABI（System V AMD64 / Windows x64）のみ
-- POSIX / Windows の差異は platform 抽象層が吸収
-- arukellt 独自の拡張は入れない
-- LLVM IR バックエンドからのみ使用
-
+- Layer 3 は **native 外部境界のための予約スロット**である。
+- 具体的な ABI（C ABI か否か）、ソース構文（`extern "C"` 等）、型制約、
+  target module 境界は **未決定**（[ADR-045](ADR-045-llvm-scope-withdrawn.md)）。
+- portable な Ark コードから直接利用可能とはしない。
+- scaffold 実装の実験は妨げないが、本層の契約を ACCEPTED として固定しない。
 ---
 
 ## 禁止事項
@@ -92,6 +92,6 @@ Layer 2A / 2B で共有する型意味論:
 
 ## 関連
 
-- ADR-005: LLVM IR の役割制限（`DEFERRED`）
+- ADR-045: 旧 LLVM 方針の撤回（Layer 3 詳細は再開まで未決定）
 - `docs/platform/abi.md`: ABI 詳細
 - [ADR-007: Targets](ADR-007-targets.md): 使用する Wasm 機能

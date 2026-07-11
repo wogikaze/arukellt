@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-11T00:08:38Z",
+  "generated_at": "2026-07-11T04:29:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -762,6 +762,23 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "760",
+      "path": "760-adr-registry-rule-compliance.md",
+      "title": "ADR 台帳の規則追従 — research/plans 分離と supersession 整合",
+      "track": "main",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {

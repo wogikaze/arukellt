@@ -1,6 +1,6 @@
 # ADR-034: Component 合成を wac plug に委譲
 
-ステータス: **ACCEPTED**
+ステータス: **ACCEPTED** — Component 合成は wac plug に委譲する
 
 決定日: 2026-06-15
 

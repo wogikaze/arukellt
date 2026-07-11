@@ -1,6 +1,6 @@
 # ADR-029 — セルフホストネイティブ検証契約
 
-ステータス: **ACCEPTED**
+ステータス: **ACCEPTED** — セルフホスト検証の信頼ベースをピン留め wasm に移す
 日付: 2026-04-22
 Issue: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 解除する依存: #583, #560, #561, #562, #563, #564（Phase 5 Rust 退役）

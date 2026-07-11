@@ -49,6 +49,7 @@
 | ADR | [adr](adr/README.md) | 設計判断の記録。現行 reality の正本ではない。 |
 | RFC | [rfcs](rfcs/README.md) | 詳細な設計提案・仕様草案。ADR の判断を支える長文。現行 reality の正本ではない。 |
 | 実装計画 | [plans](plans/README.md) | フェーズ・PR 分割・検証手順などの実装計画。現行 reality の正本ではない。 |
+| 調査メモ | [research](research/README.md) | 設計調査・比較検討。決定記録ではない。関連 ADR から参照する。 |
 | 設計メモ | [design](design/README.md) | 将来設計や比較検討。現行 reality の正本ではない。 |
 | アーカイブ仕様 | [spec](spec/README.md) | 過去版仕様と履歴参照。現行 reality の正本ではない。 |
 

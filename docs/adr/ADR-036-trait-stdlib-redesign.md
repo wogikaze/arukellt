@@ -3,7 +3,8 @@
 ステータス: **PROPOSED** — #688–#697 後に実行する stdlib 再設計の戦略
 
 決定日: 2026-06-26
-廃止: [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md)（trait / メソッド構文の延期評価を置換）
+
+関連: [ADR-044](ADR-044-trait-method-syntax-adopted.md)（trait / メソッド構文の採択）
 
 ---
 
@@ -46,7 +47,7 @@ Layer 3 (コレクション拡張):
 688-697 が完了すると、これらすべてを trait ベースのジェネリック API に再構築できる。
 本 ADR はその再設計の戦略的方向性を決定する。
 
-## 決定事項
+## 提案する決定
 
 ### D1: 静的ディスパッチ (monomorphization) をデフォルトとする
 

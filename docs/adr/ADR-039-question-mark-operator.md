@@ -16,7 +16,7 @@ Rust の `?` は `match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }
 に脱糖し、`From` trait でエラー型変換を行う。本 ADR はこの脱糖と変換の
 セマンティクスを決定する。
 
-## 決定事項
+## 提案する決定
 
 ### D1: `?` の脱糖規則
 

@@ -1,0 +1,23 @@
+# ADR 台帳の規則追従 — research/plans 分離と supersession 整合
+
+Status: open
+Priority: P1
+Created: 2026-07-11
+
+## Summary
+
+ADR-000 の規則に既存 ADR 群を追従させる残作業を追跡する。
+猶予は **2026年7月末**（ADR-000 帰結）。恒久的な自己正当化には使わない。
+
+## DONE_WHEN
+
+1. [ ] 調査・epic・移行フェーズが ADR 本文に残っていない（research / plans / RFC へ移済み）
+2. [ ] 現役 ADR の判断文脈で T1–T5 を使っていない（歴史括弧のみ可）
+3. [ ] `docs/current-state.md` のターゲット表記が ADR-007/013 canonical 名と一致
+4. [ ] ADR-002 等の生きたランタイム版・未実装スナップショットが current-state 側へ整理済み
+5. [ ] `python3 scripts/check/check-adrs.py` と `python3 scripts/manager.py verify quick` が緑
+
+## Notes
+
+2026-07-11 時点で着手済み: ADR-043→research、035/040/042→plans、ADR-004/005 supersession、
+ADR-006 Layer3 弱体化、ADR-007/013 一本化、check-adrs 強化。

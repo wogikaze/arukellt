@@ -19,12 +19,14 @@ ALLOWED_STATUSES = frozenset(
 )
 FORBIDDEN_ALIASES = frozenset({"DECIDED", "DRAFT", "SURVEY"})
 
-# 番号はちょうど 3 桁（ADR-004-P4-... のような接尾辞付きレガシー名も許容）
-FILENAME_RE_FLEX = re.compile(r"^ADR-(\d{3})(?:-[A-Za-z0-9]+)?-")
+# 番号はちょうど 3 桁。接尾辞は小文字 kebab（レガシー大文字接尾辞は警告）
+FILENAME_RE = re.compile(r"^ADR-(\d{3})(?:-([a-z0-9]+(?:-[a-z0-9]+)*))?-$")
+FILENAME_RE_FLEX = re.compile(r"^ADR-(\d{3})(?:-([A-Za-z0-9]+(?:-[A-Za-z0-9]+)*))?-")
 FILENAME_OVERPAD_RE = re.compile(r"^ADR-\d{4,}")
 
 STATUS_LINE_RE = re.compile(
-    r"(?:ステータス|\*\*Status\*\*|Status)\s*[:：]\s*\*?\*?([A-Za-z]+)",
+    r"(?:ステータス|\*\*Status\*\*|Status)\s*[:：]\s*\*?\*?([A-Za-z]+)\*?\*?"
+    r"(?:\s*[—–-]\s*(.+))?",
     re.IGNORECASE,
 )
 DATE_RE = re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b")
@@ -36,18 +38,30 @@ SUPERSEDED_BY_RE = re.compile(
 )
 ADR_REF_RE = re.compile(r"ADR-0*(\d+)", re.IGNORECASE)
 TOMBSTONE_RE = re.compile(r"^##\s+(?:Tombstone|廃止記録)\s*$", re.MULTILINE)
+DECISION_HEADING_RE = re.compile(
+    r"^##\s+(決定事項|決定)\s*$", re.MULTILINE
+)
+PROPOSED_DECISION_HEADING_RE = re.compile(
+    r"^##\s+提案する決定\s*$", re.MULTILINE
+)
 
 
 def is_tombstone(text: str) -> bool:
     return bool(TOMBSTONE_RE.search(text))
 
 
-def extract_status(text: str) -> str | None:
+def extract_status_and_summary(text: str) -> tuple[str | None, str | None]:
     for line in text.splitlines()[:20]:
         m = STATUS_LINE_RE.search(line)
         if m:
-            return m.group(1).upper()
-    return None
+            status = m.group(1).upper()
+            summary = (m.group(2) or "").strip() or None
+            return status, summary
+    return None, None
+
+
+def extract_status(text: str) -> str | None:
+    return extract_status_and_summary(text)[0]
 
 
 def extract_adr_refs(fragment: str) -> list[int]:
@@ -67,6 +81,7 @@ def main() -> int:
     by_id: dict[int, list[Path]] = defaultdict(list)
     bodies: dict[int, list[Path]] = defaultdict(list)
     tombstones: dict[int, list[Path]] = defaultdict(list)
+    status_by_id: dict[int, str] = {}
     id_by_path: dict[Path, int] = {}
 
     for path in files:
@@ -82,6 +97,14 @@ def main() -> int:
             )
             continue
         adr_id = int(m.group(1))
+        suffix = m.group(2)
+        if suffix and not re.fullmatch(
+            r"[a-z0-9]+(?:-[a-z0-9]+)*", suffix
+        ):
+            warnings.append(
+                f"{path.name}: ファイル名接尾辞は小文字 kebab-case を推奨"
+                f"（レガシー接尾辞: {suffix}）"
+            )
         by_id[adr_id].append(path)
         id_by_path[path] = adr_id
         text = path.read_text(encoding="utf-8")
@@ -90,7 +113,7 @@ def main() -> int:
         else:
             bodies[adr_id].append(path)
 
-        status = extract_status(text)
+        status, summary = extract_status_and_summary(text)
         if status is None:
             errors.append(f"{path.name}: ステータスヘッダがありません")
         elif status in FORBIDDEN_ALIASES:
@@ -102,6 +125,26 @@ def main() -> int:
             errors.append(
                 f"{path.name}: 未知のステータス {status!r}; "
                 f"許可: {', '.join(sorted(ALLOWED_STATUSES))}"
+            )
+        else:
+            status_by_id[adr_id] = status
+            if not is_tombstone(text) and not summary:
+                errors.append(
+                    f"{path.name}: ステータス行に一行要約がありません"
+                    f"（形式: ステータス: **{status}** — <要約>）"
+                )
+
+        if status == "PROPOSED" and DECISION_HEADING_RE.search(text):
+            if not PROPOSED_DECISION_HEADING_RE.search(text):
+                errors.append(
+                    f"{path.name}: PROPOSED なのに `## 決定` / `## 決定事項` がある"
+                    f"（`## 提案する決定` を使う）"
+                )
+
+        if status == "ACCEPTED" and "CURRENT_STATE_TARGET_SUMMARY_SOURCE" in text:
+            errors.append(
+                f"{path.name}: ACCEPTED ADR に current-state 生成ソースを置かない"
+                f"（docs/data/target-contract-summary.md へ）"
             )
 
         for ym, mo, da in DATE_RE.findall(text):
@@ -142,6 +185,7 @@ def main() -> int:
     known_ids = set(by_id)
     for path in files:
         text = path.read_text(encoding="utf-8")
+        status = extract_status(text)
         for line in text.splitlines()[:40]:
             for cre in (SUPERSEDES_RE, SUPERSEDED_BY_RE):
                 m = cre.match(line.strip())
@@ -153,16 +197,24 @@ def main() -> int:
                             f"{path.name}: 後継/廃止先 ADR-{ref:03d} が存在しません"
                         )
 
-        if extract_status(text) == "SUPERSEDED":
+        if status == "SUPERSEDED":
             head = "\n".join(text.splitlines()[:40])
-            if (
-                "Superseded-by" not in head
-                and "後継" not in head
-                and not ADR_REF_RE.search(head)
-            ):
+            succ_refs: list[int] = []
+            for line in text.splitlines()[:40]:
+                m = SUPERSEDED_BY_RE.match(line.strip())
+                if m:
+                    succ_refs.extend(extract_adr_refs(m.group(1)))
+            if not succ_refs and not ADR_REF_RE.search(head):
                 warnings.append(
                     f"{path.name}: SUPERSEDED なのにヘッダに後継リンクがありません"
                 )
+            for ref in succ_refs:
+                succ_status = status_by_id.get(ref)
+                if succ_status and succ_status != "ACCEPTED":
+                    errors.append(
+                        f"{path.name}: SUPERSEDED の後継 ADR-{ref:03d} は"
+                        f" ACCEPTED である必要がある（現在: {succ_status}）"
+                    )
 
     for w in warnings:
         print(f"警告: {w}")

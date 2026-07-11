@@ -125,8 +125,8 @@ The stdlib is migrating from function-centric free functions to
   details or temporary bridges — not user-facing API.
 
 References: ADR-036 (trait-stdlib-redesign), ADR-038 (operator overload
-traits), issue #709 (trait-first API policy), issue #703
-(monomorphic API bold cutover).
+traits), ADR-044 (trait/method syntax adopted), issue #709
+(trait-first API policy), issue #703 (monomorphic API bold cutover).
 
 ## Agent Skills
 

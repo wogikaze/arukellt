@@ -1,6 +1,6 @@
 # ADR-041: In-file Test Syntax — `test` Declarations
 
-ステータス: **ACCEPTED**
+ステータス: **ACCEPTED** — ファイル内 `test` 宣言構文を採択する
 
 決定日: 2026-07-04
 

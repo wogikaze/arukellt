@@ -20,7 +20,7 @@ Issue #107 (ループベクトル化ヒント) は reject 済みであり、本 
 - ADR-002: Wasm GC 前提 — v128 は値型だが GC struct/array フィールドに保持可能
 - ADR-005: LLVM 役割（`DEFERRED`）— native SIMD 方針は再開まで未確定
 - ADR-006: 公開 ABI 3層 — SIMD 値の ABI 表現を追加
-- ADR-007: ターゲット T1/T2/T3/T4/T5 — ターゲット別 SIMD 可否
+- ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` — ターゲット別 SIMD 可否
 - ADR-014: stability labels — 初期は experimental
 
 ### Wasm 3.0 仕様上の前提
@@ -37,7 +37,7 @@ GC の `struct` / `array` のフィールド型は `storagetype` で、`storaget
 
 ---
 
-## 決定
+## 提案する決定
 
 ### 1. v128 第一級型
 
@@ -119,9 +119,11 @@ let d = f32x4::replace_lane(c, 3, f32x4::extract_lane(c, 0))
 コンパイルターゲットによる出し分けとする。実行時検出は行わない。
 ターゲットが決まれば SIMD 可否は確定する。
 
-### 6. 非対応ターゲットでの挙動
+### 6. SIMD 無効時の挙動
 
-T1 (SIMD 非対応) では scalar で計算する。エラーではなくエミュレーション (scalar 展開) である。
+`wasm32` と `wasm32-gc` はともにネイティブ SIMD 命令を使用する（§4 参照）。
+SIMD が無効なビルド（例: `-simd128` 未指定、または SIMD 非対応の将来 embedder）では
+scalar 展開で同値計算する。エラーではなくエミュレーションである。
 これは「fallback」ではなく「scalar による同値計算」であり、ADR-015 (ユーザパス panic 禁止) に
 従い panic は発生しない。
 
@@ -203,7 +205,7 @@ portable SIMD API の範囲には入らない。
 - locals / params の v128 扱い
 - MIR (`mir_opcodes.ark`) への SIMD 命令追加
 
-### 13. LLVM emitter (T4)
+### 13. LLVM emitter (`native-llvm`)
 
 LLVM native SIMD (`<4 x i32>` 等) を使用する想定。native SIMD と Wasm SIMD の
 意味論関係は ADR-005 再開まで未確定（旧「セマンティクス再現」方針は効力なし）。
@@ -264,7 +266,7 @@ LLVM native SIMD (`<4 x i32>` 等) を使用する想定。native SIMD と Wasm 
 - ユーザが明示的に SIMD を制御でき、予測可能な性能が得られる
 - Wasm SIMD 命令を直接 emit するため、wasmtime / V8 / SpiderMonkey 間で一貫した挙動
 - GC struct/array フィールドに v128 を保持できるため、GC Vec 上の SIMD 値が自然に扱える
-- T1 でも scalar 展開により同値計算が可能で、ポータビリティが保たれる
+- SIMD 無効ビルドでも scalar 展開により同値計算が可能で、ポータビリティが保たれる
 - `std::simd` (portable) と `std::wasm` (Wasm-specific) の責務分離が明確
 
 ### 負の影響

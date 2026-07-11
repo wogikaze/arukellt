@@ -39,7 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 DOCS = ROOT / "docs"
 DATA = DOCS / "data"
 PROJECT_STATE = DATA / "project-state.toml"
-TARGET_CONTRACT = DOCS / "adr" / "ADR-007-targets.md"
+TARGET_CONTRACT = DOCS / "data" / "target-contract-summary.md"
 SECTIONS_FILE = DATA / "sections.toml"
 STDLIB_MANIFEST = ROOT / "std" / "manifest.toml"
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
@@ -1194,7 +1194,9 @@ def load_target_contract_summary() -> list[dict[str, str]]:
     end = "<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->"
     match = re.search(re.escape(start) + r"\n(.*?)\n" + re.escape(end), text, re.DOTALL)
     if not match:
-        raise ValueError("missing current-state target summary source block in docs/adr/ADR-007-targets.md")
+        raise ValueError(
+            "missing current-state target summary source block in docs/data/target-contract-summary.md"
+        )
 
     lines = [line.strip() for line in match.group(1).splitlines() if line.strip()]
     if len(lines) < 2:

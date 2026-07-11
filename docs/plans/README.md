@@ -13,3 +13,6 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | ステータス: 運用メモ（決定記録ではない） |
+| [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
+| [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
+| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | ステータス: 実装計画（決定記録ではない） |

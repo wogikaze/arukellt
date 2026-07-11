@@ -272,7 +272,7 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 
 - **デフォルト出力**: `<input>.ll` (LLVM IR テキスト)
   - LLVM IR テキストを選択する理由: デバッグ可能性と `opt` / `llc` での手動最適化
-  - MIR からの生成経路は scaffold。意味論従属は ADR-005 再開まで未確定
+  - MIR からの生成経路は scaffold。意味論従属は ADR-045 再開まで未確定
 - **`--emit object`**: `<input>.o` (オブジェクトファイル)
   - `llc <input>.ll -filetype=obj -o <input>.o` で変換
 - **`--emit bitcode`**: `<input>.bc` (LLVM bitcode)
@@ -325,42 +325,35 @@ Component output tier:
 
 ## Alias policy
 
-旧ターゲット alias は受理されるが `W0002` を出す。canonical 名を使うこと。
+旧ターゲット名の扱い:
 
-| 旧名 | 新名 |
+| 旧名 | 扱い |
 |------|------|
-| `wasm32-wasi-p1` | `wasm32` |
-| `wasm32-wasi` | `wasm32` |
-| `wasm32-freestanding` | `wasm32-gc` |
-| `wasm32` (旧 freestanding) | `wasm32-gc` |
-| `wasm-gc` | `wasm32-gc` |
-| `wasm32-wasi-p2` | `wasm32-gc` |
-| `wasm-gc-wasi-p2` | `wasm32-gc` |
-| `wasm32-wasi-p3` | `wasm32-gc` (+ `--wasi p3` flag) |
-| `native` | `native-cpp` または `native-llvm` |
+| `wasm32-wasi-p1` | → `wasm32`（警告 `W0002`） |
+| `wasm32-wasi` | → `wasm32`（警告 `W0002`） |
+| `wasm32-wasi-p2` | → `wasm32-gc`（警告 `W0002`）。既定 host は WASI P2 |
+| `wasm-gc` / `wasm-gc-wasi-p2` | → `wasm32-gc`（警告 `W0002`） |
+| `wasm32-wasi-p3` | → `wasm32-gc` + `--wasi p3`（警告 `W0002`）。別ターゲットではない |
+| `native` | → `native-cpp` または `native-llvm` を明示（曖昧ならエラー） |
+| `wasm32-freestanding` | **受理しない**（ハードエラー）。`wasm32-gc` への自動変換はしない。host / メモリモデル / Component 前提が変わるため alias ではない |
+
+`wasm32` は AtCoder / P1 向け canonical 名のみを指す。旧 freestanding を `wasm32` と書いて
+`wasm32-gc` へ誘導する規則は置かない（入力文字列が衝突し実装不能なため）。
 
 ---
 
 ## Runtime model terminology
 
-| RuntimeModel | Meaning | Current state |
-|-------------|---------|---------------|
-| `Wasm32Linear` | Linear memory + WASI P1 (wabt/iwasm) | Active |
-| `Wasm32Gc` | Linear memory + Wasm GC + Component Model | Active |
-| `NativeCpp` | C++ native backend | Scaffold |
-| `NativeLlvm` | LLVM IR native backend | Scaffold |
+| RuntimeModel | Meaning |
+|-------------|---------|
+| `Wasm32Linear` | Linear memory + WASI P1 |
+| `Wasm32Gc` | Linear memory + Wasm GC + Component Model |
+| `NativeCpp` | C++ / C99 native backend（scaffold） |
+| `NativeLlvm` | LLVM IR native backend（scaffold; 意味論は ADR-045） |
+
+現行の稼働状態・件数は `docs/current-state.md` を参照。
 
 ---
-
-<!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
-| Target | Tier | ADR-013 Tier | Status | Run | Notes |
-|--------|------|--------------|--------|-----|-------|
-| `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
-| `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
-| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): WASI P2 linear-memory path (default target), all CI gates apply |
-| `native` | T4 | scaffold | scaffold | No | Scaffold: selfhost-native asm stub via `native::emit_native_scaffold`; compile-only proof at `tests/fixtures/t4/native_scaffold.ark` (#641). |
-| `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
-<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 
 ## 検証サーフェス
 
