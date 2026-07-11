@@ -4,7 +4,7 @@ This is a short pointer document for developers and agents working in this repos
 
 ## Quick Start
 
-1. **Setup**: Follow `docs/process/agent-harness.md` for bootstrap instructions
+1. **Setup**: Follow `AGENTS.md` for repository bootstrap and tooling prerequisites
 2. **Tasks**: See `AGENTS.md` for repository contract and `scripts/manager.py` for verification
 3. **Queue**: Check `issues/open/` for active work; see `issues/done/` for completed items
 4. **Decisions**: Review `docs/adr/` for workflow and design decisions
