@@ -50,7 +50,7 @@ These fields are mandatory regardless of role:
 | `semantic_id` | string | Reference into `docs/data/core-ops.toml` `[[operations]]` (ADR-042). Public path stays in manifest only. |
 | `type_id` | string | Reference into `docs/data/core-ops.toml` `[[types]]`. |
 | `deprecated_by` | string | Replacement identifier. Signals that this entry is superseded. |
-| `deprecated_since` | string | Release that started deprecation (W0008). |
+| `deprecated_since` | string | Release that started deprecation (W0009). |
 | `remove_in` | string | Earliest release that may delete the entry. |
 | `doc` | string | Inline documentation string for the function (currently unused by generator; reserved). |
 

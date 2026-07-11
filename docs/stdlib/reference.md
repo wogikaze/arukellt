@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 395 | Backward-compatible within a major version. Safe for production use. |
+| `stable` | 395 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 28 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 27 | Superseded — see migration guidance. |

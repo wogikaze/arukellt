@@ -214,15 +214,17 @@ numbers into current contracts.
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation
 
-- Canonical diagnostics registry lives in `src/compiler/diagnostics.ark`
-- Diagnostics are tracked by code, severity, and phase origin
-- `W0001`: same-body heuristic warning for shared mutable aliasing (warning, `typecheck`)
-- `W0002`: deprecated target alias warning (warning, `target`)
-- `W0004`: generated Wasm failed backend validation (error, `backend-validate`)
-- `W0005`: non-exportable function skipped from component exports (warning, `component`)
-- `W0101`: deprecated `import <name>` syntax; use `use <name>` (warning, `parse`)
-- `E0500`: module requires a different target (e.g. `std::host::sockets` on wasm32 emits E0500; use `--target wasm32-gc`) (error, `resolve`)
-- `E0501`: symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module) (error, `typecheck`)
+- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/project-state.toml`
+- Diagnostics are tracked by code, severity, phase origin, and implementation maturity
+- `W0001`: same-body heuristic warning for shared mutable aliasing (warning, `typecheck`, implemented)
+- `W0002`: deprecated target alias warning (warning, `target`, implemented)
+- `W0004`: generated Wasm failed backend validation (error, `backend-validate`, implemented)
+- `W0005`: non-exportable function skipped from component exports (warning, `component`, implemented)
+- `W0008`: documentation drift; declared and registered, but the current checker is a no-op (warning, `lint`, declared, not currently emitted)
+- `W0009`: deprecated API usage with the current replacement (warning, `lint-post-resolve`, implemented, emitted)
+- `W0101`: component lowering note (warning, `lint`, implemented)
+- `E0500`: module requires a different target (e.g. `std::host::sockets` on wasm32 emits E0500; use `--target wasm32-gc`) (error, `resolve`, implemented)
+- `E0501`: symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module) (error, `typecheck`, implemented)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 

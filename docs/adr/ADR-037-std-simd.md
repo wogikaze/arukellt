@@ -126,7 +126,7 @@ experimental API は直接削除可能という ADR-036 D2 の既定より **厳
 を採用する。SIMD は型 identity と名前空間を変更し、raw/portable の意味分割を伴うため、
 少なくとも 1 リリースの deprecation 期間を設ける。
 
-1. ADR 採択後: 新 API を追加。旧 API に `deprecated_by`（W0008）
+1. ADR 採択後: 新 API を追加。旧 API に `deprecated_by`（W0009）
 2. 1 リリース以上: 旧・新併存。fixture を新 API へ移行
 3. その後: 旧 `std::simd::*` モジュール関数と、portable へ移した誤配置
    `std::wasm::v128_*`（reinterpret 等）を削除。raw として正当な `V128` 操作は残す

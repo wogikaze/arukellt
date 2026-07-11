@@ -5,6 +5,9 @@
 
 ## Current Snapshot
 
+- **Release readiness: NOT READY**
+- Failing release checks: 6
+- Distinct incidents: 6
 - Updated: 2026-07-11
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`

@@ -41,22 +41,18 @@ These are handled by `src/compiler/typechecker.ark` and are always in scope.
 Plus scalar conversion intrinsics (`i32_to_i64`, `f64_to_f32`, …) and basic
 math helpers (`abs`, `min`, `max`).
 
-## Legacy Compat (deprecated — bold cutover per ADR-036)
+## Legacy compatibility and migration
 
-All **monomorphic Vec constructors** and **monomorphic higher-order functions**
-in `std/prelude.ark` are marked `stability = "deprecated"` in `std/manifest.toml`
-with `deprecated_by` pointing to the trait-based replacement. Per
-[ADR-036](../adr/ADR-036-trait-stdlib-redesign.md) D2, **already-deprecated**
-surfaces are eligible for bold cutover (direct removal without a further
-deprecation window) once issues #688–#697 (trait-based stdlib redesign)
-are complete. This is consistent with ADR-036's rule that `stable` APIs
-require at least one release of deprecation — these APIs are already
-past that stage.
+Only entries marked `stability = "deprecated"` in `std/manifest.toml` are
+deprecated. The generated, symbol-level list—including `deprecated_since`,
+`earliest_removal`, and the currently usable replacement—is
+[`monomorphic-deprecation.md`](monomorphic-deprecation.md). Other monomorphic
+helpers remain stable or provisional until the manifest changes; this page does
+not broaden their lifecycle state.
 
-### Correct migration target: trait-based method syntax
-
-The correct replacement is **trait-based method syntax**, not the intermediate
-`std::text` / `std::seq` explicit-import style that was previously recommended.
+The manifest's `deprecated_by` value is the **current replacement**. Trait-based
+method syntax is the planned end state from ADR-036, but must not be presented
+as the current replacement until the compiler supports that path.
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
@@ -69,28 +65,19 @@ let n: String = i32_to_string(42)
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
-// preferred — trait-based method syntax (post-#688)
+// planned end state — not the current migration target (post-#688)
 let v: Vec<i32> = Vec::new()              // #697 generic Vec
 let doubled: Vec<i32> = v.map(fn(x) { x * 2 })  // #691 Iterator trait
 let s: String = "a".concat("b")           // String method
 let n: String = 42.to_string()            // #702 Display trait
 ```
 
-### Migration table
+### Current migration table
 
-| Deprecated (prelude) | Trait-based replacement | Issue |
-|-----------------------|-------------------------|-------|
-| `Vec_new_i32()` / `Vec_new_i64()` / … | `Vec::new()` (generic) | #697 |
-| `map_i32_i32(v, f)` / `map_f64_f64(v, f)` / … | `v.map(f)` (Iterator trait) | #691 |
-| `filter_i32(v, f)` / `filter_f64(v, f)` / … | `v.filter(f)` (Iterator trait) | #691 |
-| `fold_i32_i32(v, init, f)` / … | `v.fold(init, f)` (Iterator trait) | #691 |
-| `sort_i32(v)` / `sort_String(v)` / … | `v.sort()` (Vec method) | #697 |
-| `concat(a, b)` | `a.concat(b)` (String method) | — |
-| `split(s, delim)` | `s.split(delim)` (String method) | — |
-| `join(v, sep)` | `v.join(sep)` (Iterator method) | #691 |
-| `i32_to_string(n)` / `bool_to_string(b)` / … | `n.to_string()` (Display trait) | #702 |
-| `clone(s)` | `s.clone()` (Clone trait) | #692 |
-| `eq(a, b)` | `a.eq(b)` (Eq trait) | #695 |
+The current table is generated from the manifest in
+[`monomorphic-deprecation.md`](monomorphic-deprecation.md). Planned trait
+replacements remain design information in ADR-036 and
+[`trait-stdlib-redesign.md`](trait-stdlib-redesign.md).
 
 ### Thin wrapper policy (ADR-036 D5)
 
@@ -109,8 +96,9 @@ during the transition, while new code should prefer method syntax
 
 ## Timeline
 
-1. **v3 (current)**: monomorphic APIs are deprecated; trait definitions exist
-   in `std/core/*.ark` but trait method dispatch is not yet implemented (#688).
+1. **stdlib design epoch 3 (current)**: selected manifest entries are
+   deprecated; trait definitions exist in `std/core/*.ark` but trait method
+   dispatch is not yet implemented (#688).
 2. **Post-#688–#697**: trait dispatch implemented; bold cutover removes
    monomorphic APIs; prelude free functions become thin wrappers to trait impls.
 

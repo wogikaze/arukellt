@@ -767,37 +767,39 @@ let x = 1                  // W0007 if x is never used
 
 ---
 
-### W0008 — deprecated API
-<a id="w0008-deprecated-api"></a>
-<a id="w0008--deprecated-api"></a>
+### W0008 — documentation drift
+<a id="w0008-documentation-drift"></a>
 
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | resolve |
+| **Phase** | lint |
+| **Message** | documentation drift |
+| **Maturity** | declared; current checker is a no-op |
+
+Reserved for documentation drift detected from tracked documentation comments.
+The current compiler declares and registers this code, but does not emit it
+because full comment tracking is not implemented.
+
+---
+
+### W0009 — deprecated API
+<a id="w0009-deprecated-api"></a>
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | lint (post-resolve) |
 | **Message** | deprecated API: use `<replacement>` instead |
 
-A function marked as deprecated in `std/manifest.toml` is being used.
-The `deprecated_by` field indicates the recommended replacement.
+A function marked as deprecated in the compiler's generated deprecation table
+is being used. The manifest `deprecated_by` field owns the current replacement.
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 // Vec_new_i32() is deprecated — use Vec::new() with type annotation
-let v = Vec_new_i32()  // W0008: deprecated API
+let v = Vec_new_i32()  // W0009: deprecated API
 ```
-
----
-
-### W0009 — WASI Preview 2 native Wasm imports incomplete
-
-| | |
-|---|---|
-| **Severity** | warning |
-| **Phase** | backend-validate |
-| **Message** | WASI Preview 2 native Wasm imports are not fully implemented |
-
-Emitted when compiling for targets that rely on Preview 2 WASI imports that are
-not yet fully wired in the native Wasm pipeline.
 
 ---
 
@@ -859,8 +861,8 @@ one, please file a bug report.
 | W0005 | warning | backend-validate | non-exportable function skipped |
 | W0006 | warning | resolve | unused import |
 | W0007 | warning | typecheck | unused binding |
-| W0008 | warning | resolve | deprecated API |
-| W0009 | warning | backend-validate | WASI Preview 2 native Wasm imports are not fully implemented |
+| W0008 | warning | lint | documentation drift (declared; checker not yet active) |
+| W0009 | warning | lint (post-resolve) | deprecated API |
 | W0101 | warning | parse | deprecated `import <name>` syntax |
 
 ---

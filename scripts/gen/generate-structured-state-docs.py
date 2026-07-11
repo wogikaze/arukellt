@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+from datetime import date, datetime
 from pathlib import Path
 
 try:
@@ -284,14 +285,13 @@ def _check_result(ch: dict) -> str:
 
 
 def _check_freshness(ch: dict) -> str:
-    """Get the freshness field, deriving from result if absent."""
-    if "freshness" in ch:
-        return ch["freshness"]
-    # Backward compat: old current_status "stale" maps to freshness=stale
-    cs = ch.get("current_status", "")
-    if cs == "stale":
-        return "stale"
-    return "fresh"
+    """Derive evidence age; test outcome must never influence freshness."""
+    verified_at = ch.get("verified_at")
+    stale_after_days = ch.get("stale_after_days")
+    if not verified_at or stale_after_days is None:
+        return "unknown"
+    verified = datetime.strptime(verified_at, "%Y-%m-%d").date()
+    return "stale" if (date.today() - verified).days > int(stale_after_days) else "fresh"
 
 
 def render_release_guarantees(data: dict) -> str:
@@ -493,9 +493,19 @@ def validate_release_guarantees(release_data: dict) -> list[str]:
         result = ch.get("result", ch.get("current_status"))
         if result is not None and result not in CHECK_RESULT_VALUES:
             errors.append(f"check {cid}: invalid result '{result}'; must be one of {list(CHECK_RESULT_VALUES)}")
-        freshness = ch.get("freshness")
-        if freshness is not None and freshness not in CHECK_FRESHNESS_VALUES:
-            errors.append(f"check {cid}: invalid freshness '{freshness}'; must be one of {list(CHECK_FRESHNESS_VALUES)}")
+        if "freshness" in ch:
+            errors.append(f"check {cid}: freshness is derived; remove the hand-maintained field")
+        if not ch.get("verification_environment"):
+            errors.append(f"check {cid}: missing verification_environment")
+        if result != "not-run":
+            if not ch.get("verified_at"):
+                errors.append(f"check {cid}: observed result lacks verified_at")
+            if ch.get("stale_after_days") is None:
+                errors.append(f"check {cid}: observed result lacks stale_after_days")
+            if not ch.get("last_verified_commit"):
+                errors.append(f"check {cid}: observed result lacks last_verified_commit")
+        elif ch.get("verified_at") or ch.get("stale_after_days") is not None:
+            errors.append(f"check {cid}: not-run evidence must derive freshness=unknown without an execution date")
         etype = ch.get("evidence_type")
         if etype is not None and etype not in CHECK_EVIDENCE_TYPE_VALUES:
             errors.append(f"check {cid}: invalid evidence_type '{etype}'; must be one of {list(CHECK_EVIDENCE_TYPE_VALUES)}")

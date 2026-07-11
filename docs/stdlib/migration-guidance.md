@@ -12,8 +12,8 @@ superseded by **generic** equivalents (`Vec::new<i32>()`, `sort<i32>()`,
 `filter<i32>()`) that reduce API surface while preserving identical runtime
 behavior.
 
-Deprecated APIs continue to compile and run, but will emit **W0008** warnings
-once the deprecation resolver is wired. They will be removed in a future major
+Deprecated APIs continue to compile and run and emit **W0009** warnings from
+the post-resolve lint pass. They will be removed in a future major
 version per the [Stability Policy](stability-policy.md#deprecation-process).
 
 ---
@@ -259,8 +259,8 @@ let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
 3. **Test**: Deprecated and generic versions have identical runtime behavior.
    Swapping one for the other should not change program output.
 
-4. **Check warnings**: Once deprecation warnings (W0008) are active, the
-   compiler will flag any remaining deprecated calls.
+4. **Check warnings**: Deprecation warnings (W0009) flag remaining deprecated
+   calls and identify their current replacement.
 
 ## Deprecation Timeline
 
@@ -268,7 +268,7 @@ let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
 |-------|--------|-------------|
 | Phase 1 — Mark | **Active** | `deprecated_by` added to manifest for initial batch (`Vec_new_i32`, `Vec_new_i64`, `filter_i32`) |
 | Phase 2 — Expand | Planned | Remaining monomorphic APIs get `deprecated_by` as generic implementations land |
-| Phase 3 — Warn | Planned | Resolver emits W0008 for deprecated API usage |
+| Phase 3 — Warn | **Active** | Post-resolve lint emits W0009 for deprecated API usage |
 | Phase 4 — Remove | Planned | Deprecated APIs removed in next major version |
 
 ## See Also
@@ -277,4 +277,4 @@ let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
 - [Monomorphic Deprecation Table](monomorphic-deprecation.md) — concise status table
 - [Stability Policy](stability-policy.md) — deprecation lifecycle rules
 - [Prelude Migration (v3)](prelude-migration.md) — historical migration context
-- [Error Code W0008](../compiler/error-codes.md#w0008-deprecated-api) — deprecation warning
+- [Error Code W0009](../compiler/error-codes.md#w0009-deprecated-api) — deprecation warning

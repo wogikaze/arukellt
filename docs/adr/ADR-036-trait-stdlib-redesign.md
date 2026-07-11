@@ -73,7 +73,7 @@ manifest 上 `stable` の記号が多数ある（ADR-014）。
 |-----------|----------|
 | `experimental` | 直接削除可（migration note 推奨） |
 | `provisional` | 個別判断。原則 migration note |
-| `stable` | **少なくとも 1 リリースの deprecation**（W0008）+ migration guide + 削除リリースを明記 |
+| `stable` | **少なくとも 1 リリースの deprecation**（W0009）+ migration guide + 削除リリースを明記 |
 | 既に `deprecated_by` | 定めた削除時期に削除 |
 
 「bold cutover」は **experimental / 明示 deprecated 済み** に限定する。

@@ -27,9 +27,10 @@
 - The current selfhost `--emit component` path emits a Component Model wrapper around the core Wasm module. With Preview 1 host profiles it may inject a minimal WASI Preview 1 stub instance so the core module's `wasi_snapshot_preview1` imports can instantiate.
 - On `wasm32-gc` with WASI P2, the emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../../issues/done/510-t3-p2-import-table-switch.md)). Living wrap helpers (e.g. `p2_component_wrap.py`) may still build a `wasi:cli/command` component via `wasm-tools component embed/new` (~5.3KB, no P1 adapter) while in-tree emit (ADR-008) is completed: stdout is adapted through host `get-stdout` + `blocking-write-and-flush`, guest core wasm is patched for canonical ABI `write(ret, ptr, len, 0)`, and `gate_074` proves `wasm-tools validate` + wasmtime prints `hello p2` ([issue 074](../../issues/done/074-wasi-p2-native-component.md)). Canonical scratch limits: [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md).
 - Component output is `wasm32-gc`-oriented: use `--target wasm32-gc` for `--emit component`, `--emit wit`, and `--emit all` (legacy alias `wasm32-wasi-p2` may still appear in older fixtures).
-- The selfhost component interop gate currently passes **103/103** fixtures.
-  個別名の正本は fixture manifest（`tests/fixtures/` の component / wit 系）であり、
-  本メモへ手書き列挙しない。
+- Component interop の現行結果は release check
+  [`check_component_interop_wasmtime`](../data/release-guarantees.md#check-catalogue)
+  を参照する。本メモでは pass/fail/count を所有しない。個別 fixture 名の正本は
+  `tests/fixtures/` の component / WIT manifest である。
 - Callable scalar WIT function imports (`import "test:host/math" as host` + `--wit host_math.wit`) typecheck and lower to `MIR_WIT_CALL` with core Wasm import entries ([#034](../../issues/done/034-wit-cli-integration.md)). WIT `resource` / `own<T>` / `borrow<T>` fixture shapes compile via name-independent adapters ([#473](../../issues/done/473-wit-resource-handles.md)); `stream<T>` / `future<T>` async resource shapes are still rejected with `E0402`.
 - Nested or otherwise unsupported component export shapes such as mixed-type multi-export f32 (f32 exports alongside non-f32-scalar exports), mixed-type multi-export string (`String -> String` alongside `String -> i32` or other non-unary string shapes), extra exports next to single-export string/list/option/result adapter shapes, non-`Color` enums (see `export_unsupported_enum_status.ark`), non-`Point` records (see `export_unsupported_record_rect.ark`), non-`Shape` payload variants (see `export_unsupported_variant_payload_i32.ark`), `Option<String>`, `Option<Vec<i32>>`, `Result<i32, bool>`, `Result<i64, i64>`, `Result<String, i32>`, `Result<String, String>`, `Result<Vec<i32>, String>` parameters, `Vec<bool>`, `Vec<u8>`, `Vec<i64>`, `Vec<Option<i32>>`, `Vec<String>`, `tuple<String, String>`, and 3-element tuples are rejected with `E0401` before backend emission.
 - general string/general list/general option/result/general enum/general record/complex canonical ABI lift-lower coverage is not complete for every case
@@ -52,4 +53,3 @@ The compiler enforces type-tier restrictions on component exports at compile tim
 Unsupported Tier 2/3 export shapes produce compile errors. Functions with non-exportable
 types are excluded from component exports with W0005 warning. Core Wasm binary validation
 catches GC reference types that bypass WIT-level checks (W0004).
-

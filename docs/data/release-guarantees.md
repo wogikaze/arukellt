@@ -22,11 +22,11 @@
 | `cli_init` | `guaranteed` | `every-pr` | The init command generates every supported project template | `minimal`, `cli`, `with-tests`, `wasi-host` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | Template checks validate generated project structure and smoke behavior |
 | `cli_doc` | `guaranteed` | `every-pr` | The doc command resolves manifest symbols and generates HTML reference | `std/manifest.toml`, `symbol-lookup`, `html-generation` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | Guarantee covers manifest lookup and generator contract |
 | `cli_help` | `guaranteed` | `every-pr` | The help command prints the canonical command surface | `src/compiler/main/usage.ark`, `docs/data/cli-surface.toml` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | Help output is checked against the structured command catalogue |
-| `emit_component` | `provisional` | `nightly` | compile --emit component / component build | `component-emit`, `wasm32-gc` | ❌ fail | ⏰ stale | fixture-set, smoke | `a80b4181` | Library exports need s2 wasm; ABI coverage incomplete; may use wasm-tools helpers |
+| `emit_component` | `provisional` | `nightly` | compile --emit component / component build | `component-emit`, `wasm32-gc` | ❌ fail | 🟢 fresh | fixture-set, smoke | `a80b4181` | Library exports need s2 wasm; ABI coverage incomplete; may use wasm-tools helpers |
 | `lsp` | `provisional` | `nightly` | LSP hover/completion/diagnostics | — | ✅ pass | 🟢 fresh | smoke | `a80b4181` | Feature set still evolving |
-| `ark_toml` | `provisional` | `nightly` | ark.toml project schema | — | ⬜ not-run | ⏰ stale | smoke | `a80b4181` | Schema fields continue to grow |
+| `ark_toml` | `provisional` | `nightly` | ark.toml project schema | — | ⬜ not-run | ❓ unknown | smoke | `a80b4181` | Schema fields continue to grow |
 | `dap` | `experimental` | `manual` | ark-dap / debug-adapter | — | ⬜ not-run | ❓ unknown | manual | — | Scaffold only |
-| `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | ⏰ stale | smoke | `a80b4181` | Stub / evolving |
+| `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | 🟢 fresh | smoke | `a80b4181` | Stub / evolving |
 | `freestanding` | `not_guaranteed` | `release-only` | wasm32-freestanding public target | — | ⬜ not-run | ❓ unknown | — | — | ADR-007 retired / hard error |
 | `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Scaffold; ABI undecided (ADR-045) |
 
@@ -60,20 +60,8 @@ incidents, not by individual checks.
 | `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 103 | `incident_component_interop_103` | `a80b4181` | `python3 scripts/manager.py verify --component-interop` |
 | `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
 | `check_binary_version` | — | no | — | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `arukellt --version` |
-| `check_emit_component` | `emit_component` | no | ✓ | — | ⚠️ partial | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify --component` |
+| `check_emit_component` | `emit_component` | no | ✓ | — | ⚠️ partial | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify --component` |
 | `check_lsp` | `lsp` | no | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify quick` |
-| `check_ark_toml` | `ark_toml` | no | — | — | ⬜ not-run | ⏰ stale | `smoke` | — | — | `a80b4181` | `arukellt build` |
+| `check_ark_toml` | `ark_toml` | no | — | — | ⬜ not-run | ❓ unknown | `smoke` | — | — | `a80b4181` | `arukellt build` |
 | `check_dap` | `dap` | no | — | — | ⬜ not-run | ❓ unknown | `manual` | — | — | `—` | `manual / scaffold` |
-| `check_vscode_dap` | `vscode_dap` | no | — | — | ⚠️ partial | ⏰ stale | `smoke` | — | — | `a80b4181` | `extension-tests (partial)` |
-
-
-### Stale check derivation details
-
-Stale status is derived from `verified_at` + `stale_after_days` relative to the current date.
-Each stale check records the reason and threshold for mechanical verification.
-
-| Check ID | Verified at | Stale after (days) | Stale reason |
-|----------|-------------|:------------------:|--------------|
-| `check_emit_component` | 2026-07-11 | 30 | component interop has 103 failures; last smoke run was at source commit but feature is not passing |
-| `check_ark_toml` | 2026-07-11 | 60 | ark.toml build not exercised in recent CI; last verified at source commit but not re-run since |
-| `check_vscode_dap` | 2026-07-11 | 30 | VS Code DAP extension tests only partially pass; last run at source commit but feature is scaffold-level |
+| `check_vscode_dap` | `vscode_dap` | no | — | — | ⚠️ partial | 🟢 fresh | `smoke` | — | — | `a80b4181` | `extension-tests (partial)` |

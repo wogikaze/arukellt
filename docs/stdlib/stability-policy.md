@@ -8,7 +8,9 @@ Every public API in the Arukellt standard library carries one of four lifecycle 
 
 - Backward-compatible within a major version.
 - Breaking changes only occur on major version bumps.
-- Suitable for production use.
+- Compatibility commitment within the stated versioning policy.
+- This label does not claim that the project or implementation is production-ready;
+  release readiness is owned by [`../current-state.md`](../current-state.md).
 
 ### Experimental
 

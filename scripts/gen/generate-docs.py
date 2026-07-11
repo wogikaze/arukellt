@@ -1548,12 +1548,18 @@ def render_current_state_diagnostics(state: dict) -> str:
     lines = [
         "## Diagnostics and Validation",
         "",
-        "- Canonical diagnostics registry lives in `src/compiler/diagnostics.ark`",
-        "- Diagnostics are tracked by code, severity, and phase origin",
+        "- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/project-state.toml`",
+        "- Diagnostics are tracked by code, severity, phase origin, and implementation maturity",
     ]
     for diagnostic in state["diagnostics"]:
+        maturity = diagnostic.get("maturity", "implemented")
+        emitted = diagnostic.get("emitted_by_current_compiler")
+        emitted_note = ""
+        if emitted is not None:
+            emitted_note = ", emitted" if emitted else ", not currently emitted"
         lines.append(
-            f"- `{diagnostic['code']}`: {diagnostic['summary']} ({diagnostic['severity']}, `{diagnostic['phase']}`)"
+            f"- `{diagnostic['code']}`: {diagnostic['summary']} "
+            f"({diagnostic['severity']}, `{diagnostic['phase']}`, {maturity}{emitted_note})"
         )
     lines.append("- Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`")
     return "\n".join(lines)
@@ -1622,8 +1628,20 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
     )
 
 
-def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: int, manifest_stats: dict) -> str:
+def render_root_docs_readme(
+    sections: list[dict],
+    state: dict,
+    fixture_total: int,
+    manifest_stats: dict,
+    release_checks: list[dict],
+) -> str:
     _harness = format_fixture_harness(state["verification"])
+    failing = [
+        check for check in release_checks
+        if check.get("release_blocking") and check.get("result") == "fail"
+    ]
+    incidents = {check.get("incident_id") for check in failing if check.get("incident_id")}
+    readiness = "READY" if not failing else "NOT READY"
     lines = [
         "# Arukellt Documentation",
         "",
@@ -1632,6 +1650,9 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         "",
         "## Current Snapshot",
         "",
+        f"- **Release readiness: {readiness}**",
+        f"- Failing release checks: {len(failing)}",
+        f"- Distinct incidents: {len(incidents)}",
         f"- Updated: {state['project']['updated']}",
         f"- CLI default target: `{state['targets']['cli_default']}`",
         f"- Canonical target: `{state['targets']['canonical']}`",
@@ -3126,7 +3147,7 @@ _STABILITY_TIER_LABELS = {
 }
 
 _STABILITY_TIER_DESCRIPTIONS = {
-    "stable": "Backward-compatible within a major version. Safe for production use.",
+    "stable": "Compatibility commitment within the stated versioning policy; not a production-readiness claim.",
     "provisional": "API is usable but may change in minor versions based on feedback.",
     "experimental": "API may change without notice. Functionality is available but not finalized.",
 }
@@ -3758,7 +3779,12 @@ def main() -> int:
         stale,
     )
 
-    write_file(DOCS / "README.md", render_root_docs_readme(sections, state, fixture_total, manifest_stats), args.check, stale)
+    write_file(
+        DOCS / "README.md",
+        render_root_docs_readme(sections, state, fixture_total, manifest_stats, release_checks),
+        args.check,
+        stale,
+    )
     write_file(DOCS / "_sidebar.md", render_sidebar(sections), args.check, stale)
     write_file(DOCS / "stdlib" / "reference.md", render_stdlib_reference(manifest), args.check, stale)
     write_file(DOCS / "stdlib" / "name-index.md", render_name_index(manifest), args.check, stale)

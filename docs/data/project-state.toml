@@ -180,10 +180,28 @@ phase = "component"
 summary = "non-exportable function skipped from component exports"
 
 [[diagnostics]]
+code = "W0008"
+severity = "warning"
+phase = "lint"
+summary = "documentation drift; declared and registered, but the current checker is a no-op"
+maturity = "declared"
+emitted_by_current_compiler = false
+coverage_fixture = "none"
+
+[[diagnostics]]
+code = "W0009"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "deprecated API usage with the current replacement"
+maturity = "implemented"
+emitted_by_current_compiler = true
+coverage_fixture = "tests/fixtures/selfhost/lsp_stdlib_definition.lsp-expected"
+
+[[diagnostics]]
 code = "W0101"
 severity = "warning"
-phase = "parse"
-summary = "deprecated `import <name>` syntax; use `use <name>`"
+phase = "lint"
+summary = "component lowering note"
 
 [[diagnostics]]
 code = "E0500"

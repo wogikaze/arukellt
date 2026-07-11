@@ -313,7 +313,7 @@ Phase B: 新 trait API を追加 (本 doc の設計に従って実装)
 Phase C1: 旧 API ごとの stability を manifest から判定
          stable へ deprecated_by / deprecated_since / remove_in を付与
   ↓
-Phase C2: 1 リリース以上併存 + W0008 + migration fixture + docs/guide 更新
+Phase C2: 1 リリース以上併存 + W0009 + migration fixture + docs/guide 更新
   ↓
 Phase C3: remove_in 到達分だけ削除
   ↓

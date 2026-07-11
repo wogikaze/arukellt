@@ -19,13 +19,14 @@
 #   included_in_full  — bool: part of `verify full`
 #   included_in_quick — bool: part of `verify quick`
 #   result            — pass | fail | partial | not-run (test outcome)
-#   freshness         — fresh | stale | unknown (evidence age; auto-derived from verified_at + stale_after_days)
+#   freshness         — generated only; never stored in this file
 #   incident_id       — required when result = "fail" and release_blocking = true
 #   evidence_type     — smoke | static-scan | fixture-set | exhaustive | manual
 #   last_verified_commit — git SHA of the commit where result was observed
 #   verified_at       — date when the check was last run (for freshness derivation)
 #   stale_after_days  — days after which freshness becomes "stale"
-#   stale_reason      — why the evidence is stale (only for freshness = "stale")
+# Freshness is computed by the generator from verified_at and stale_after_days.
+# A failed or partial result can still have fresh evidence.
 
 [meta]
 criteria_view = "docs/release-criteria.md"
@@ -173,9 +174,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -187,9 +190,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -201,9 +206,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -215,9 +222,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "fail"
-freshness = "fresh"
 evidence_type = "fixture-set"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "89eb5eb4"
+verified_at = "2026-07-11"
+stale_after_days = 30
 affected_count = 367
 incident_id = "incident_fixture_parity_367"
 blocker_category = "fixture"
@@ -237,9 +246,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -251,9 +262,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "static-scan"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -265,9 +278,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -279,9 +294,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -293,9 +310,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -307,9 +326,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -321,9 +342,11 @@ release_blocking = true
 included_in_full = false
 included_in_quick = true
 result = "fail"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "89eb5eb4"
+verified_at = "2026-07-11"
+stale_after_days = 30
 affected_count = 1
 incident_id = "incident_close_gate_076"
 blocker_category = "verification"
@@ -345,9 +368,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "fail"
-freshness = "fresh"
 evidence_type = "exhaustive"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 affected_count = 1
 incident_id = "incident_selfhost_fixpoint"
 blocker_category = "bootstrap"
@@ -367,9 +392,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "fail"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 affected_count = 3
 incident_id = "incident_selfhost_cli_parity"
 blocker_category = "bootstrap"
@@ -389,9 +416,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 
 [[checks]]
@@ -403,9 +432,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "fail"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 affected_count = 1
 incident_id = "incident_wat_roundtrip"
 blocker_category = "target-contract"
@@ -425,9 +456,11 @@ release_blocking = true
 included_in_full = true
 included_in_quick = false
 result = "fail"
-freshness = "fresh"
 evidence_type = "fixture-set"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 affected_count = 103
 incident_id = "incident_component_interop_103"
 blocker_category = "component-interop"
@@ -447,9 +480,11 @@ release_blocking = false
 included_in_full = false
 included_in_quick = true
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 note = "O0 == O1 equivalence"
 
@@ -462,9 +497,11 @@ release_blocking = false
 included_in_full = false
 included_in_quick = false
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 note = "Binary smoke: --version exits 0"
 
@@ -479,12 +516,11 @@ release_blocking = false
 included_in_full = true
 included_in_quick = false
 result = "partial"
-freshness = "stale"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
 verified_at = "2026-07-11"
 stale_after_days = 30
-stale_reason = "component interop has 103 failures; last smoke run was at source commit but feature is not passing"
 platforms = ["linux"]
 
 [[checks]]
@@ -496,9 +532,11 @@ release_blocking = false
 included_in_full = false
 included_in_quick = true
 result = "pass"
-freshness = "fresh"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
 platforms = ["linux"]
 note = "LSP gates within verify quick"
 
@@ -511,12 +549,9 @@ release_blocking = false
 included_in_full = false
 included_in_quick = false
 result = "not-run"
-freshness = "stale"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
-verified_at = "2026-07-11"
-stale_after_days = 60
-stale_reason = "ark.toml build not exercised in recent CI; last verified at source commit but not re-run since"
 platforms = ["linux"]
 
 [[checks]]
@@ -528,8 +563,8 @@ release_blocking = false
 included_in_full = false
 included_in_quick = false
 result = "not-run"
-freshness = "unknown"
 evidence_type = "manual"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = ""
 platforms = ["linux"]
 
@@ -542,10 +577,9 @@ release_blocking = false
 included_in_full = false
 included_in_quick = false
 result = "partial"
-freshness = "stale"
 evidence_type = "smoke"
+verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "a80b4181"
 verified_at = "2026-07-11"
 stale_after_days = 30
-stale_reason = "VS Code DAP extension tests only partially pass; last run at source commit but feature is scaffold-level"
 platforms = ["linux"]

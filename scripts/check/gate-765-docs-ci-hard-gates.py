@@ -603,6 +603,15 @@ def check_release_guarantees(failures: list[str]) -> None:
     workflow = (REPO / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     workflow_jobs = set(re.findall(r"^  ([A-Za-z0-9_-]+):\s*$", workflow.split("jobs:", 1)[-1], re.M))
     commands: set[str] = set()
+    component_detail = (REPO / "docs/state/component-model.md").read_text(encoding="utf-8")
+    if re.search(r"interop gate currently (?:passes|fails).*\d+/\d+", component_detail, re.I):
+        failures.append(
+            "docs/state/component-model.md must reference the release check ID instead of owning an interop result/count"
+        )
+    if "check_component_interop_wasmtime" not in component_detail:
+        failures.append(
+            "docs/state/component-model.md must reference check_component_interop_wasmtime"
+        )
     for guarantee in data.get("guarantees", []):
         if not guarantee.get("release_blocker"):
             continue
