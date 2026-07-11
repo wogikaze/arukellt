@@ -70,7 +70,7 @@ For tracked issue work, that normally means:
 ## Verification Loop
 
 - Quick pass: `python scripts/manager.py verify quick`
-- Full pass: `python scripts/manager.py verify --full`
+- Full pass: `python scripts/manager.py verify full`
 
 ## Tooling Notes
 

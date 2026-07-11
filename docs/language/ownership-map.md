@@ -143,7 +143,7 @@ python3 scripts/gen/generate-docs.py             # Regenerate README.md + maturi
 python3 scripts/gen/generate-docs.py --check     # Verify freshness (Gate 1.1)
 
 # Full verification (before releases):
-python3 scripts/manager.py verify --full        # All checks including heavy ones
+python3 scripts/manager.py verify full        # All checks including heavy ones
 ```
 
 ---

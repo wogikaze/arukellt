@@ -3,6 +3,12 @@
 > **Current-first**: 実装の現在地は [../current-state.md](../current-state.md) を参照してください。
 > API リファレンスは [reference.md](reference.md) を参照してください。
 
+> **Deprecated API note**: この cookbook のコード例は現行 bootstrap で動く
+> monomorphic API（`Vec_new_i32()`, `concat()`, `HashMap_i32_i32_new()` など）
+> を使用しています。これらは `std/manifest.toml` で `stability = "deprecated"`
+> とマークされており、推奨APIは trait-based method syntax（ADR-036）です。
+> 移行状況は [migration-guidance.md](migration-guidance.md) を参照してください。
+
 このページは、現行実装でそのまま使いやすい書き方だけを残した cookbook です。
 古い capability API や未確認 helper は削っています。
 

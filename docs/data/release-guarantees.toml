@@ -436,7 +436,7 @@ blocker_owner = "component model"
 blocker_issue = "#074"
 first_seen_commit = "a80b4181"
 platforms = ["linux"]
-note = "All wasmtime component-interop cases fail. Dedicated command (not aggregate verify --full)."
+note = "All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full)."
 
 [[checks]]
 id = "check_opt_equivalence"

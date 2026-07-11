@@ -29,7 +29,7 @@ python3 scripts/manager.py verify fixtures    # fixture harness
 python3 scripts/manager.py verify size        # hello.wasm size gate
 python3 scripts/manager.py verify wat         # WAT roundtrip
 python3 scripts/manager.py verify component   # component interop
-python3 scripts/manager.py verify --full      # all of the above
+python3 scripts/manager.py verify full        # all of the above (canonical positional form)
 ```
 
 ### Other domains

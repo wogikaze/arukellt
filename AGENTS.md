@@ -88,7 +88,7 @@ Project Rules（Cursor Settings → Rules に表示される `git-commits` / `AG
 ## Verification Loop
 
 - Quick pass: `python scripts/manager.py verify quick`
-- Full pass: `python scripts/manager.py verify --full`
+- Full pass: `python scripts/manager.py verify full`
 
 ### T3 WASM Validation Cache & Parallelism
 

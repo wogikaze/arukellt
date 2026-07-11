@@ -124,7 +124,7 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 | `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_cli_parity` | CLI parity drifts for --help, lint, and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` |
 | `check_wat_roundtrip` | `full` | `target-contract` | 1 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` |
-| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify --full). | `python3 scripts/manager.py verify --component-interop` | component model | #074 | `a80b4181` | `a80b4181` |
+| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify --component-interop` | component model | #074 | `a80b4181` | `a80b4181` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates

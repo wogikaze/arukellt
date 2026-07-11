@@ -4,6 +4,12 @@
 > It is not the authoritative specification. For normative behavior, see [spec.md](spec.md)
 > and [../current-state.md](../current-state.md).
 
+> **Deprecated API note**: Some code examples use monomorphic APIs
+> (`Vec_new_i32()`, `concat()`, etc.) that are marked `stability = "deprecated"`
+> in `std/manifest.toml`. These are the current runnable API while the
+> trait-based replacement (`Vec::new<i32>()`, `s.concat(s2)`) is WIP (ADR-036).
+> See [../stdlib/migration-guidance.md](../stdlib/migration-guidance.md) for migration status.
+
 This guide covers the **stable, implemented** features of the Arukellt programming language,
 with explicit callouts where a **provisional** surface is needed for practical use.
 It is written for readers who want a practical introduction before diving into the full

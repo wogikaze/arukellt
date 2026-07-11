@@ -183,7 +183,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 | T1 退行チェック | `python3 scripts/manager.py verify quick 2>&1 \| grep -E 'FAIL\|T1\|p1'` | ✅ 全パス（docs drift 3件を除く） |
 | コンパイラ import fan-out | `grep -r '^use ' src/compiler/wasm/intrinsic_string_*.ark \| wc -l` | ✅ 13件以内 |
 | コンパイラ line limits | `wc -l src/compiler/wasm/intrinsic_string_*.ark src/compiler/wasm/string_gc_helpers.ark` | ✅ 249行以内 |
-| GC 全フィクスチャ通過 | `python3 scripts/manager.py verify --full 2>&1 \| tail -5` | ⏳ 未達 |
+| GC 全フィクスチャ通過 | `python3 scripts/manager.py verify full 2>&1 \| tail -5` | ⏳ 未達 |
 | T1 パス維持 (定期) | `python3 scripts/manager.py verify quick 2>&1 \| tail -5` | 🟡 定期確認 |
 | gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-gc -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ⏳ 未着手 |
 | Benchmark 比較 | `python3 scripts/util/benchmark_runner.py --mode full && python3 scripts/util/benchmark_runner.py --mode compare` | ⏳ 未着手 |

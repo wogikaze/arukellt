@@ -95,6 +95,11 @@ fn main() {
 
 ## String
 
+> **API note**: `String_from()` と `concat()` は現行 bootstrap で動く monomorphic API です。
+> 推奨APIは `String::from()` と `s1.concat(s2)`（trait-based method, ADR-036）ですが、
+> typechecker/lowering が WIP のため現時点では fallback します。
+> 移行状況は [stdlib/migration-guidance.md](stdlib/migration-guidance.md) を参照してください。
+
 <!-- fixture: quickstart/string_basic.ark -->
 ```ark
 use std::host::stdio
