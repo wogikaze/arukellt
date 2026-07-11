@@ -77,6 +77,10 @@ fn mir_payload_scalar_type_name(type_name: String) -> bool {
     if eq(clone(type_name), "char") {
         return true
     }
+    // Result<(), E> Ok payload is represented as i32 0 (#726 toml_insert_key).
+    if eq(clone(type_name), "unit") || eq(clone(type_name), "()") || eq(clone(type_name), "void") {
+        return true
+    }
     false
 }
 

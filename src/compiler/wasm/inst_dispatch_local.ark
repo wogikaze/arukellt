@@ -7,18 +7,35 @@ use wasm::local_opcodes
 use wasm::writer_core
 use mir::opcodes
 
-fn try_emit_local_set_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, next_op: i32, next_arg1: i32) -> bool {
+fn try_emit_local_set_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg1: i32) -> bool {
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_LOCAL_SET() {
         return false
     }
-    if try_emit_local_set_peephole(w, inst, ctx, prev_op, prev_arg0, next_op, next_arg1) {
+    if try_emit_local_set_peephole(w, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg1) {
         return true
     }
     inst_locals::emit_local_set(w, inst, ctx)
     true
 }
 
-fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, next_op: i32, next_arg1: i32) -> bool {
+fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg1: i32) -> bool {
+    // Stack-valued LOCAL_SET after GC/struct field store: the set consumed
+    // the receiver, so reload it before the enum-open cast (#726 hashmap Option).
+    if inst_accessors_operands::MirInst_arg1(inst) < 0 {
+        let reload = local_set_reload_base_after_struct_set(prev_op, prev_arg0, prev_arg1)
+        if reload >= 0 {
+            writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_GET())
+            writer_core::emit_leb128_u(w, reload)
+            inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
+            if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+                writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
+            } else {
+                writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
+            }
+            writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+            return true
+        }
+    }
     if inst_accessors_operands::MirInst_arg1(inst) < 0 && prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 == inst_accessors_operands::MirInst_arg0(inst) {
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
@@ -49,4 +66,14 @@ fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, p
         return true
     }
     false
+}
+
+fn local_set_reload_base_after_struct_set(prev_op: i32, prev_arg0: i32, prev_arg1: i32) -> i32 {
+    if prev_op == opcodes::MIR_GC_STRUCT_SET() {
+        return prev_arg1
+    }
+    if prev_op == opcodes::MIR_STRUCT_SET() {
+        return prev_arg0
+    }
+    0 - 1
 }

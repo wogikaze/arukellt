@@ -75,6 +75,10 @@ fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg:
 }
 
 fn mir_callee_expects_i64(callee_name: String) -> bool {
+    // Keep i32 args for i32→i64 conversions (see core_call_direct_args).
+    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+        return false
+    }
     if contains(clone(callee_name), String_from("i64")) {
         return true
     }

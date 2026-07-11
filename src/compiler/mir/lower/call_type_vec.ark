@@ -1,6 +1,8 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_enum_payload
+use mir::lower::ctx_struct_layout
 use mir::lower::call_type_fallback
 use mir::value_types
 // Arukellt Selfhost - MIR call result type propagation for vec-producing calls.
@@ -64,6 +66,10 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
                 set_ty = String_from("vec:String")
             } else if starts_with(clone(elem_ty), String_from("Vec_")) {
                 set_ty = concat(String_from("vec:"), substring(elem_ty, 4, len(elem_ty)))
+            } else if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(elem_ty)) {
+                // Bare TomlValue/JsonValue must become enum:* so locals and
+                // array.get casts use enum-open, not string fallback (#726).
+                set_ty = concat(String_from("enum:"), clone(elem_ty))
             }
             ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
             set_ref_vt_for_elem_type(ctx, dest, set_ty)
@@ -95,22 +101,22 @@ fn ensure_option_some_for_vec_elem(ctx: LowerCtx, elem_ty: String) {
     let payload_vts = Vec_new_i32()
     if eq(clone(elem_ty), String_from("i64")) || eq(clone(elem_ty), String_from("I64")) {
         push(payload_vts, value_types::VT_I64())
-        let _slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
         return
     }
     if eq(clone(elem_ty), String_from("f64")) || eq(clone(elem_ty), String_from("F64")) {
         push(payload_vts, value_types::VT_F64())
-        let _slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
         return
     }
     if eq(clone(elem_ty), String_from("i32")) || eq(clone(elem_ty), String_from("I32")) || eq(clone(elem_ty), String_from("bool")) || eq(clone(elem_ty), String_from("char")) {
         push(payload_vts, value_types::VT_I32())
-        let _slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+        let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
         return
     }
     // String / named struct / other GC refs
     push(payload_vts, value_types::VT_GC_REF())
-    let _slot = ctx_gc_enum::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
+    let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))
 }
 
 // Set the local's val_type to VT_GC_REF or VT_REF when the element type

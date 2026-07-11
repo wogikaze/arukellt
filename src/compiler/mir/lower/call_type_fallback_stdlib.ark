@@ -1,0 +1,107 @@
+// Arukellt Selfhost - stdlib call result type inference helpers.
+
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_gc_enum
+use mir::value_types
+
+fn set_stdlib_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+    } else {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+    }
+}
+
+fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let cn = mir_strip_module_prefix(clone(callee_name))
+    if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
+        set_stdlib_result_type(ctx, dest, String_from("enum:Ordering"))
+        return
+    }
+    if eq(clone(cn), "find_i64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i64"))
+    }
+    if eq(clone(cn), "find_f64") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_f64"))
+    }
+    if eq(clone(cn), "find_String") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
+    }
+    if eq(clone(cn), "find_i32") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+    }
+    if eq(clone(cn), "read_to_string") || eq(clone(cn), "fs_read_file") || eq(clone(cn), "__intrinsic_fs_read_file") || ends_with(clone(callee_name), String_from("::read_to_string")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:String:String"))
+        return
+    }
+    if eq(clone(cn), "write_string") || eq(clone(cn), "fs_write_file") || eq(clone(cn), "__intrinsic_fs_write_file") || ends_with(clone(callee_name), String_from("::write_string")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
+        return
+    }
+    if eq(clone(cn), "parse_f64") || ends_with(clone(callee_name), String_from("::parse_f64")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:f64:String"))
+        return
+    }
+    if eq(clone(cn), "parse_i64") || ends_with(clone(callee_name), String_from("::parse_i64")) {
+        set_stdlib_result_type(ctx, dest, String_from("result:i64:String"))
+        return
+    }
+}
+
+fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
+    let cn = mir_strip_module_prefix(clone(callee_name))
+    if eq(clone(cn), "toml_navigate_table_count") || eq(clone(cn), "toml_navigate_table") || eq(clone(cn), "toml_append_array_table") {
+        set_stdlib_result_type(ctx, dest, String_from("result:vec:TomlField:String"))
+        return true
+    }
+    if eq(clone(cn), "toml_insert_key") {
+        set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
+        return true
+    }
+    // Option accessors — fixtures match with Result::Ok/Err; keep Vec elem types (#726 dotted).
+    if eq(clone(cn), "toml_as_array") {
+        set_stdlib_result_type(ctx, dest, String_from("option:vec:TomlValue"))
+        return true
+    }
+    if eq(clone(cn), "toml_as_table") {
+        set_stdlib_result_type(ctx, dest, String_from("option:vec:TomlField"))
+        return true
+    }
+    if eq(clone(cn), "toml_get") {
+        set_stdlib_result_type(ctx, dest, String_from("option:TomlValue"))
+        return true
+    }
+    false
+}
+
+// Host sockets return Result — override premature enum:open so match
+// binds Ok(Vec)/Err(String) with the correct GC payload slots (#726 connect_read_write).
+fn mark_host_sockets_result_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
+    let cn = mir_strip_module_prefix(clone(callee_name))
+    let is_sockets = contains(clone(callee_name), String_from("sockets")) || starts_with(clone(cn), String_from("sockets_")) || starts_with(clone(cn), String_from("__intrinsic_sockets"))
+    if !is_sockets {
+        return false
+    }
+    if eq(clone(cn), "read") || eq(clone(cn), "sockets_read") || eq(clone(cn), "__intrinsic_sockets_read") {
+        set_stdlib_result_type(ctx, dest, String_from("result:vec:i32:String"))
+        return true
+    }
+    if eq(clone(cn), "connect") || eq(clone(cn), "sockets_connect") || eq(clone(cn), "__intrinsic_sockets_connect") || eq(clone(cn), "write") || eq(clone(cn), "sockets_write") || eq(clone(cn), "__intrinsic_sockets_write") || eq(clone(cn), "listen") || eq(clone(cn), "sockets_listen") || eq(clone(cn), "__intrinsic_sockets_listen") || eq(clone(cn), "accept") || eq(clone(cn), "sockets_accept") || eq(clone(cn), "__intrinsic_sockets_accept") {
+        set_stdlib_result_type(ctx, dest, String_from("result:i32:String"))
+        return true
+    }
+    false
+}
+
+fn mir_strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
+}

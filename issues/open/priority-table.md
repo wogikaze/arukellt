@@ -12,12 +12,12 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 5 | 5 | 4 | 15 |
-| 2 | 686 | Wasm GC Selfhost Implementation | main | 0 | 0 | 4 | 5 | 4 | 13 |
-| 3 | 724 | ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業 | compiler-internal | 2 | 0 | 3 | 5 | 3 | 13 |
-| 4 | 725 | ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth) | compiler-internal | 0 | 0 | 4 | 5 | 4 | 13 |
-| 5 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
-| 6 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
-| 7 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 1 | 0 | 2 | 5 | 4 | 12 |
+| 2 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 1 | 0 | 4 | 5 | 4 | 14 |
+| 3 | 686 | Wasm GC Selfhost Implementation | main | 0 | 0 | 4 | 5 | 4 | 13 |
+| 4 | 724 | ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業 | compiler-internal | 2 | 0 | 3 | 5 | 3 | 13 |
+| 5 | 725 | ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth) | compiler-internal | 0 | 0 | 4 | 5 | 4 | 13 |
+| 6 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 4 | 12 |
+| 7 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
 | 8 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
 | 9 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 4 | 0 | 1 | 3 | 3 | 11 |
 | 10 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |

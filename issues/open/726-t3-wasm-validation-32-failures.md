@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-10
+Updated: 2026-07-11
 Track: compiler-internal
 Depends on: 724
-Related: ADR-040, #707, #716, #690
+Related: ADR-040, #707, #716, #690, #730
 Orchestration class: implementation-ready
 Blocks v4 exit: True
 ---
@@ -12,11 +12,48 @@ Blocks v4 exit: True
 
 ## Summary
 
-T3 WASM validation で `validate-fail` が残っており、`verify quick` が block されている。
-pre-commit hook が `verify quick` を実行するため、現状コミットに `--no-verify` が必要な状態。
-残失敗の主因は GC ref 型推論の不整合（ネストした enum/option/result/tuple のペイロード型名喪失）。
+T3 WASM validation の **validate-fail は 0**。残るのは `stdlib_wit/wit_ast_parse` の
+compile-fail（#730: bootstrap wasm 4GB メモリ上限）のみ。
+pre-commit の `verify quick` は #730 由来でまだ赤の可能性がある。
 
-### 現在のベースライン（2026-07-10 再測定 #6）
+### 現在のベースライン（2026-07-11 再測定 #7 — wave/726-refvsref-iso）
+
+| 状態 | 件数 |
+|------|------|
+| pass | 421 |
+| **validate-fail** | **0** |
+| compile-fail | 1 |
+| skip | 22 |
+| **total** | **444** |
+
+> 進捗メモ（`wave/726-refvsref-iso`, 2026-07-11）:
+>
+> - 406/15 → **421/0 validate-fail**（+15 pass、元 ref-vs-ref 15 件すべて解消）
+> - 回帰として出た `enums/nested_enum` / `host/sockets/connect_read_write` も PASS
+> - **主な修正**:
+>   - nested enum bind にコンテナ `variant_slot` を付けない（`enum:Inner` は enum-open）
+>   - `Result::Err` の未型付け String ペイロードを `_f1_ref0` に保つ
+>   - host sockets の Result 型を hard-override（`result:vec:i32:String` / `result:i32:String`）
+>   - Option/HashMap 回帰（is_some reload、enum-open cast、i64 hash）も同ブランチで解消済み
+> - **compile-fail (1)**: `stdlib_wit/wit_ast_parse` — #730（4GB OOB）。runtime パッチでも上限到達
+
+### エラー型別内訳（2026-07-11 #7）
+
+| エラー型 | 件数 |
+|----------|------|
+| ref-vs-ref | 0 |
+| ref-vs-i32 | 0 |
+| i32-vs-ref | 0 |
+| empty-stack | 0 |
+| array-subtype | 0 |
+| **合計 validate-fail** | **0** |
+
+#### 個別 fixture（2026-07-11 #7）
+
+- **ref-vs-ref (0)**: （タスク1 完了 — 元 15 件 + nested_enum / connect_read_write 回帰も解消）
+- **compile-fail (1)**: stdlib_wit/wit_ast_parse（#730）
+
+### 旧ベースライン（2026-07-10 再測定 #6）
 
 | 状態 | 件数 |
 |------|------|
@@ -29,38 +66,7 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 > 進捗メモ（並列 wave/726-{a,b,c} + c2 parse-local, 2026-07-10）:
 >
 > - 402/19 → **406/15**（+4 pass, -4 validate-fail）
-> - **新規 PASS**:
->   - `stdlib_trait/iterator_adapters` — unary `call_indirect` が `(i32)->i32` type 3 を選択
->   - `stdlib_wit/wit_names` — `from_utf8` の `get_unchecked` + GC string scratch 4 枠
->   - `trait/builtin_method` — parse_* 戻り値ローカルの sticky String → enum open
->   - `generics_v1/trait_dispatch_stdlib` — parse_i64/f64 GC stub + 同上ローカル型修正の波及
-> - **i32-vs-ref クラスタ解消**（残り 0）
 > - 残りはすべて ref-vs-ref（15）
-
-### エラー型別内訳（2026-07-10 #6）
-
-| エラー型 | 件数 |
-|----------|------|
-| ref-vs-ref (expected (ref null $type), found (ref null $type)) | 15 |
-| ref-vs-i32 (expected (ref null $type), found i32) | 0 |
-| i32-vs-ref (expected i32, found (ref null $type)) | 0 |
-| empty-stack | 0 |
-| array-subtype (expected subtype of arrayref) | 0 |
-| **合計 validate-fail** | **15** |
-
-#### 個別 fixture（2026-07-10 #6）
-
-- **ref-vs-ref (15)**: iterator/custom_iterator,
-  stdlib_io/fs_read_error, stdlib_io/fs_read_write, stdlib_json/json_perf_decode,
-  stdlib_trait/debug_trait, stdlib_trait/debug_vec,
-  stdlib_trait/buf_read, stdlib_trait/display_trait_vec,
-  stdlib_trait/io_backward_compat, stdlib_trait/io_copy, stdlib_trait/read_write,
-  stdlib_trait/seek, stdlib_csv/csv_perf,
-  stdlib_toml/toml_full_inline_dotted, stdlib_toml/toml_full_table_header
-- **ref-vs-i32 (0)**: （タスク2 で解消）
-- **i32-vs-ref (0)**: （wave/726-a/b/c/c2 で解消）
-- **array-subtype (0)**: （タスク6 で解消 — `connect_read_write`）
-- **compile-fail (1)**: stdlib_wit/wit_ast_parse
 
 ### 旧ベースライン（2026-07-10 再測定 #5）
 
@@ -75,7 +81,6 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 > 進捗メモ（nested Vec mono + Range GC ABI）: 401/20 → 402/19。残り i32-vs-ref 3 件。
 
 ### 旧ベースライン（2026-07-10 再測定 #4）
-
 
 | 状態 | 件数 |
 |------|------|
@@ -279,14 +284,15 @@ pre-commit hook が `verify quick` を実行するため、現状コミットに
 
 ## Acceptance Criteria
 
-- [ ] タスク1: ref-vs-ref（16件残）解決 — MIR local 型一貫性（emitter 局所パッチは非推奨）
-- [x] タスク2: ref-vs-i32 — 解消済み（7→0。残件はタスク1へ移行 or PASS）
-- [ ] タスク3: i32-vs-ref（3件残）解決 — `generic_method_call` / `nested_generic_call` は PASS。残り3件
-- [x] タスク4: i32-vs-f64 — 現行 clean ベースラインでは 0 件（解消済み）
-- [x] タスク5: empty-stack — 解消済み（`MIR_CALL_INDIRECT` を store policy consumer に追加）
-- [x] タスク6: array-subtype — 解消済み（`connect_read_write` PASS、Vec/Result payload typing）
-- [ ] `verify quick` が validate-fail=0 で pass する
-- [ ] pre-commit hook が `--no-verify` なしで通過する
+- [x] タスク1: ref-vs-ref 解決 — validate-fail=0（2026-07-11 wave/726-refvsref-iso）
+- [x] タスク2: ref-vs-i32 — 解消済み
+- [x] タスク3: i32-vs-ref — 解消済み
+- [x] タスク4: i32-vs-f64 — 解消済み
+- [x] タスク5: empty-stack — 解消済み
+- [x] タスク6: array-subtype — 解消済み
+- [x] T3 validate-fail=0（421 pass / 0 validate-fail）
+- [ ] compile-fail `wit_ast_parse` — #730（4GB メモリ上限）
+- [ ] `verify quick` / pre-commit — #730 由来でまだ赤の可能性
 
 ## エラーパターン別分類（現行 20 件）
 

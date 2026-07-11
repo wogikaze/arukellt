@@ -39,6 +39,22 @@ _PLAYGROUND_LOCK = REPO_ROOT / ".build" / "close-gate-playground.lock"
 _CACHE_DIR = REPO_ROOT / ".build" / "close-gate-cache"
 _CACHE_VERSION = "close-gate-v1"
 
+
+def _playground_env() -> dict[str, str]:
+    """Prefer a modern Node (nvm) so global/local tsc can run."""
+    env = dict(os.environ)
+    nvm_root = Path.home() / ".nvm" / "versions" / "node"
+    candidates: list[Path] = []
+    if nvm_root.is_dir():
+        for child in sorted(nvm_root.iterdir(), reverse=True):
+            node_bin = child / "bin" / "node"
+            if node_bin.is_file():
+                candidates.append(child / "bin")
+    for bin_dir in candidates:
+        env["PATH"] = f"{bin_dir}{os.pathsep}{env.get('PATH', '')}"
+        break
+    return env
+
 # Issues that invoke pinned-bootstrap selfhost compile or wasmtime.
 # Previously serialized via runtime_lock to prevent parallel wasm state stomping,
 # but audit (2026-07) confirmed all close-gates are read-only w.r.t. s2/s3 wasm:
@@ -678,12 +694,26 @@ def gate_510() -> tuple[int, str]:
 def gate_472() -> tuple[int, str]:
     if not (PLAYGROUND / "package.json").is_file():
         return 1, "playground package missing"
+    env = _playground_env()
+    # Ensure local deps (@types/node) exist for tsc.
+    if not (PLAYGROUND / "node_modules").is_dir():
+        install = subprocess.run(
+            ["npm", "install"],
+            cwd=str(PLAYGROUND),
+            capture_output=True,
+            text=True,
+            timeout=180,
+            env=env,
+        )
+        if install.returncode != 0:
+            return 1, f"playground npm install failed: {(install.stderr or '')[-400:]}"
     build = subprocess.run(
         ["npm", "run", "build"],
         cwd=str(PLAYGROUND),
         capture_output=True,
         text=True,
         timeout=120,
+        env=env,
     )
     if build.returncode != 0:
         return 1, f"playground build failed: {(build.stderr or '')[-400:]}"
@@ -693,6 +723,7 @@ def gate_472() -> tuple[int, str]:
         capture_output=True,
         text=True,
         timeout=60,
+        env=env,
     )
     if test.returncode != 0:
         return 1, (test.stderr or test.stdout)[-800:]

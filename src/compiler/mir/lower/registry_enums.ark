@@ -2,6 +2,7 @@ use mir::lower::ctx_api_variants
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_gc_enum_sig
 // Arukellt Selfhost - MIR lowering enum and variant layout registration.
 
@@ -24,7 +25,7 @@ fn mir_register_enum_variant_gc_sig(ctx: LowerCtx, full_name: String, has_payloa
     }
     let slot = len(ctx.gc_enum_variant_names)
     let sig = if has_payload {
-        let fields = ctx_gc_enum::gc_enum_build_payload_field_sigs(ctx, clone(full_name))
+        let fields = ctx_gc_enum_payload::gc_enum_build_payload_field_sigs(ctx, clone(full_name))
         ctx_gc_enum_sig::gc_enum_payload_variant_sig(slot, fields)
     } else {
         ctx_gc_enum_sig::gc_enum_unit_variant_sig(slot)

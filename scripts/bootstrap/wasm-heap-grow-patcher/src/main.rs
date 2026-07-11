@@ -1,11 +1,13 @@
-mod wasm32to64;
-
 use std::collections::HashSet;
 use std::env;
 use walrus::{
-    FunctionBuilder, FunctionId, GlobalId, GlobalKind, LocalFunction, Module, ValType,
+    FunctionBuilder, FunctionId, GlobalId, GlobalKind, LocalFunction, MemoryId, Module,
+    ModuleLocals, ModuleTypes, ValType,
 };
-use walrus::ir::{GlobalGet, Instr, InstrSeqId, Value};
+use walrus::ir::{
+    Binop, BinaryOp, Const, Drop, GlobalGet, GlobalSet, Instr, InstrSeqId, LocalGet, LocalSet,
+    LocalTee, MemArg, Return, Select, Store, StoreKind, Value,
+};
 
 fn read_leb_u32(data: &[u8], mut offset: usize) -> Option<(u32, usize)> {
     let mut result = 0u32;
@@ -150,6 +152,17 @@ fn stack_top_is_i32(instrs: &[(Instr, walrus::ir::InstrLocId)]) -> bool {
     }
 }
 
+fn recent_heap_get(instrs: &[(Instr, walrus::ir::InstrLocId)], heap_global: GlobalId) -> bool {
+    let start = instrs.len().saturating_sub(12);
+    for (instr, _) in &instrs[start..] {
+        if let Instr::GlobalGet(GlobalGet { global }) = instr {
+            if *global == heap_global {
+                return true;
+            }
+        }
+    }
+    false
+}
 
 fn patch_instr_seq(
     func: &mut LocalFunction,
@@ -172,6 +185,7 @@ fn patch_instr_seq(
         }
         if let Instr::GlobalSet(ref gs) = instr {
             if gs.global == heap_global
+                && recent_heap_get(&out, heap_global)
                 && stack_top_is_i32(&out)
             {
                 out.push((Instr::Call(walrus::ir::Call { func: grow_fn }), loc));
@@ -183,22 +197,191 @@ fn patch_instr_seq(
     func.block_mut(seq_id).instrs = out;
 }
 
-fn main() {
-    let path = env::args().nth(1).expect("input wasm");
-    let out = env::args().nth(2).expect("output wasm");
-    let mode = env::args().nth(3);
+fn is_vec_new_header_bump(instrs: &[(Instr, walrus::ir::InstrLocId)], heap_global: GlobalId) -> bool {
+    // Look for the classic __intrinsic_Vec_new prologue:
+    //   global.get 0; local.set _;
+    //   global.get 0; i32.const 52; i32.add; global.set 0
+    if instrs.len() < 6 {
+        return false;
+    }
+    let p = instrs;
+    matches!(&p[0].0, Instr::GlobalGet(GlobalGet { global }) if *global == heap_global)
+        && matches!(&p[2].0, Instr::GlobalGet(GlobalGet { global }) if *global == heap_global)
+        && matches!(&p[3].0, Instr::Const(Const { value: Value::I32(52) }))
+        && matches!(&p[4].0, Instr::Binop(Binop { op: BinaryOp::I32Add }))
+        && matches!(&p[5].0, Instr::GlobalSet(GlobalSet { global }) if *global == heap_global)
+}
 
-    if mode.as_deref() == Some("--memory64") {
-        let bytes = std::fs::read(&path).expect("read wasm");
-        let converted = wasm32to64::convert_to_memory64(&bytes).expect("convert to memory64");
-        std::fs::write(&out, &converted).expect("write wasm");
-        eprintln!("converted to memory64; wrote {}", out);
+fn is_vec_new_function_name(name: Option<&str>) -> bool {
+    match name {
+        Some(n) if n.starts_with("Vec_new") => true,
+        Some(n) if n.starts_with("__intrinsic_vec_new") => true,
+        _ => false,
+    }
+}
+
+fn patch_vec_new(
+    func: &mut LocalFunction,
+    name: Option<&str>,
+    locals: &mut ModuleLocals,
+    types: &ModuleTypes,
+    heap_global: GlobalId,
+    memory_id: MemoryId,
+    patched: &mut usize,
+) {
+    let ty = func.ty();
+    if types.results(ty) != [ValType::I32] {
+        return;
+    }
+    if !is_vec_new_function_name(name) {
+        return;
+    }
+    let entry = func.entry_block();
+    let instrs = &func.block(entry).instrs;
+    if !is_vec_new_header_bump(instrs, heap_global) {
         return;
     }
 
+    // Distinguish the generic Vec_new (three i32 args: size, len, cap)
+    // from the specialized monomorphic Vec_new variants (len, cap) which
+    // omit the size field and use a 12-byte header.
+    let params = types.params(ty);
+    let (is_generic, _header_size, total_size, len_arg, cap_arg, size_arg) = match params {
+        [ValType::I32, ValType::I32, ValType::I32] => {
+            (true, 16u32, 24u32, func.args[1], func.args[2], Some(func.args[0]))
+        }
+        [ValType::I32, ValType::I32] => {
+            (false, 12u32, 20u32, func.args[0], func.args[1], None)
+        }
+        [ValType::I32, ValType::F64, ValType::I32] => {
+            (false, 12u32, 20u32, func.args[0], func.args[2], None)
+        }
+        _ => return,
+    };
+
+    let old_result = locals.add(ValType::I32);
+    let result = locals.add(ValType::I32);
+    let new_end = locals.add(ValType::I32);
+    let data = locals.add(ValType::I32);
+    let loc = walrus::ir::InstrLocId::default();
+    let store = |offset: u32| Store {
+        memory: memory_id,
+        kind: StoreKind::I32 { atomic: false },
+        arg: MemArg { align: 2, offset },
+    };
+
+    let mut new_instrs: Vec<(Instr, walrus::ir::InstrLocId)> = Vec::new();
+
+    // old_result = result = current heap pointer
+    new_instrs.push((Instr::GlobalGet(GlobalGet { global: heap_global }), loc));
+    new_instrs.push((Instr::LocalTee(LocalTee { local: old_result }), loc));
+    new_instrs.push((Instr::LocalSet(LocalSet { local: result }), loc));
+
+    // new_end = old_result + total_size (may wrap around 2^32)
+    new_instrs.push((Instr::LocalGet(LocalGet { local: old_result }), loc));
+    new_instrs.push((Instr::Const(Const { value: Value::I32(total_size as i32) }), loc));
+    new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+    new_instrs.push((Instr::LocalSet(LocalSet { local: new_end }), loc));
+
+    // result = (new_end < old_result) ? 0 : old_result
+    new_instrs.push((Instr::Const(Const { value: Value::I32(0) }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: old_result }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: new_end }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: old_result }), loc));
+    new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32LtU }), loc));
+    new_instrs.push((Instr::Select(Select { ty: Some(ValType::I32) }), loc));
+    new_instrs.push((Instr::LocalSet(LocalSet { local: result }), loc));
+
+    // new_end = (new_end < old_result) ? total_size : new_end
+    new_instrs.push((Instr::Const(Const { value: Value::I32(total_size as i32) }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: new_end }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: new_end }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: old_result }), loc));
+    new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32LtU }), loc));
+    new_instrs.push((Instr::Select(Select { ty: Some(ValType::I32) }), loc));
+    new_instrs.push((Instr::LocalSet(LocalSet { local: new_end }), loc));
+
+    // global.get 0 (to satisfy heap-set pre-grow detector) and advance the heap
+    new_instrs.push((Instr::GlobalGet(GlobalGet { global: heap_global }), loc));
+    new_instrs.push((Instr::LocalGet(LocalGet { local: new_end }), loc));
+    new_instrs.push((Instr::GlobalSet(GlobalSet { global: heap_global }), loc));
+    new_instrs.push((Instr::Drop(Drop {}), loc));
+
+    // data = global.get 0 - 8 (the inline data slot just allocated)
+    new_instrs.push((Instr::GlobalGet(GlobalGet { global: heap_global }), loc));
+    new_instrs.push((Instr::Const(Const { value: Value::I32(8) }), loc));
+    new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Sub }), loc));
+    new_instrs.push((Instr::LocalSet(LocalSet { local: data }), loc));
+
+    // data[0] = 0
+    new_instrs.push((Instr::LocalGet(LocalGet { local: data }), loc));
+    new_instrs.push((Instr::Const(Const { value: Value::I32(0) }), loc));
+    new_instrs.push((Instr::Store(store(0)), loc));
+    // data[4] = 0
+    new_instrs.push((Instr::LocalGet(LocalGet { local: data }), loc));
+    new_instrs.push((Instr::Const(Const { value: Value::I32(4) }), loc));
+    new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+    new_instrs.push((Instr::Const(Const { value: Value::I32(0) }), loc));
+    new_instrs.push((Instr::Store(store(0)), loc));
+
+    if is_generic {
+        let size = size_arg.unwrap();
+        // result[0] = size
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: size }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+        // result[4] = cap
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::Const(Const { value: Value::I32(4) }), loc));
+        new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: cap_arg }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+        // result[12] = len
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::Const(Const { value: Value::I32(12) }), loc));
+        new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: len_arg }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+        // result[8] = data
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::Const(Const { value: Value::I32(8) }), loc));
+        new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: data }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+    } else {
+        // result[0] = len
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: len_arg }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+        // result[4] = cap
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::Const(Const { value: Value::I32(4) }), loc));
+        new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: cap_arg }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+        // result[8] = data
+        new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+        new_instrs.push((Instr::Const(Const { value: Value::I32(8) }), loc));
+        new_instrs.push((Instr::Binop(Binop { op: BinaryOp::I32Add }), loc));
+        new_instrs.push((Instr::LocalGet(LocalGet { local: data }), loc));
+        new_instrs.push((Instr::Store(store(0)), loc));
+    }
+
+    // return result
+    new_instrs.push((Instr::LocalGet(LocalGet { local: result }), loc));
+    new_instrs.push((Instr::Return(Return {}), loc));
+
+    func.block_mut(entry).instrs = new_instrs;
+    *patched += 1;
+}
+
+fn main() {
+    let path = env::args().nth(1).expect("input wasm");
+    let out = env::args().nth(2).expect("output wasm");
+    let dedupe_only = env::args().nth(3).as_deref() == Some("--dedupe-exports");
     let mut module = load_module(&path);
 
-    if mode.as_deref() == Some("--dedupe-exports") {
+    if dedupe_only {
         let removed = dedupe_export_names(&mut module);
         module.emit_wasm_file(&out).expect("write wasm");
         eprintln!("removed {} duplicate exports (no GC); wrote {}", removed, out);
@@ -206,8 +389,8 @@ fn main() {
     }
 
     for mem in module.memories.iter_mut() {
-        mem.initial = 1;
-        mem.maximum = None;
+        mem.initial = 65535;
+        mem.maximum = Some(65536);
     }
 
     let heap_global = module
@@ -224,19 +407,15 @@ fn main() {
     builder
         .func_body()
         .local_get(end)
-        .i32_const(1048576) // headroom: pre-grow 16 pages before reaching boundary
-        .binop(walrus::ir::BinaryOp::I32Add)
         .memory_size(memory_id)
         .i32_const(16)
         .binop(walrus::ir::BinaryOp::I32Shl)
-        .binop(walrus::ir::BinaryOp::I32GeU)
+        .binop(walrus::ir::BinaryOp::I32GtU)
         .if_else(
             None,
             |then_| {
                 then_
                     .local_get(end)
-                    .i32_const(1048576) // headroom
-                    .binop(walrus::ir::BinaryOp::I32Add)
                     .memory_size(memory_id)
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32Shl)
@@ -266,10 +445,17 @@ fn main() {
             }
         })
         .collect();
+
     let mut total_patched = 0usize;
+    let funcs = &mut module.funcs;
+    let locals = &mut module.locals;
+    let types = &module.types;
     for (func_id, entry) in local_funcs {
-        let func = module.funcs.get_mut(func_id).kind.unwrap_local_mut();
+        let func_ref = funcs.get_mut(func_id);
+        let name = func_ref.name.as_deref();
+        let func = func_ref.kind.unwrap_local_mut();
         let mut patched = 0usize;
+        patch_vec_new(func, name, locals, types, heap_global, memory_id, &mut patched);
         patch_instr_seq(func, entry, heap_global, grow_fn, &mut patched);
         total_patched += patched;
     }
@@ -278,7 +464,7 @@ fn main() {
 
     module.emit_wasm_file(&out).expect("write wasm");
     eprintln!(
-        "patched {} heap global.set sites; memory initial=1; wrote {}",
+        "patched {} heap growth sites; memory initial=65536; wrote {}",
         total_patched, out
     );
 }

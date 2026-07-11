@@ -8,6 +8,7 @@ The trusted base is the committed pinned-reference wasm at
 """
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import os
@@ -1617,6 +1618,7 @@ def _write_worktree_namespace_overlay(
         text = _rename_overlay_publish_symbols(text, rel_name)
         text = _rewrite_overlay_call_sites(text)
         out_name = f"{flat_name}.ark"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(_flatten_compiler_imports(text), encoding="utf-8")
         written.add(out_name)
         write_order.append(out_name)
@@ -2539,6 +2541,8 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
 
     Uses a disk cache keyed by source content hash to skip the ~18s overlay
     regeneration when the source hasn't changed across process invocations.
+    Parallel close-gate workers serialize rebuilds via flock so one process
+    cannot delete flat-src while another is still writing into it.
     """
     global _FLAT_OVERLAY_CACHE
     source_mtime = _compiler_source_mtime(root)
@@ -2550,6 +2554,30 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
 
     # Disk cache: skip overlay regeneration if source content hash matches.
     source_hash = _compiler_source_content_hash(root)
+    disk_cache = _flat_overlay_disk_cache_read(root)
+    if disk_cache is not None and disk_cache.get("source_hash") == source_hash:
+        cached_overlay = Path(disk_cache.get("overlay_path", ""))
+        if cached_overlay.is_dir() and (cached_overlay / "src" / "compiler").is_dir():
+            _FLAT_OVERLAY_CACHE = (source_mtime, cached_overlay)
+            return cached_overlay
+
+    lock_path = root / ".build" / "selfhost" / "flat-overlay.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("w", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        return _prepare_flattened_selfhost_source_locked(
+            root, source_mtime, source_hash
+        )
+
+
+def _prepare_flattened_selfhost_source_locked(
+    root: Path,
+    source_mtime: float,
+    source_hash: str,
+) -> Path:
+    """Rebuild flat-src while holding ``flat-overlay.lock``."""
+    global _FLAT_OVERLAY_CACHE
+    # Another worker may have finished while we waited for the lock.
     disk_cache = _flat_overlay_disk_cache_read(root)
     if disk_cache is not None and disk_cache.get("source_hash") == source_hash:
         cached_overlay = Path(disk_cache.get("overlay_path", ""))
@@ -2667,14 +2695,15 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
             host_text,
         ):
             continue
-        text = _sub_required(
+        # Facades may already be stripped as thin overlay delegates.
+        text = _sub_optional(
             text,
             rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool \{{[^}}]+\}}\n+",
             "",
             f"drop recursive host-call facade {symbol} from mir_module_functions",
             count=1,
         )
-        text = _replace_required(
+        text = _replace_optional(
             text,
             f"{symbol}(",
             f"mir_module_host_calls::{symbol}(",

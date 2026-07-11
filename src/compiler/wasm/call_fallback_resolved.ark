@@ -33,14 +33,9 @@ fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst,
         writer_core::emit_leb128_u(w, base_local)
         if function_param_view::MirFunction_param_count(called) > 0 {
             let param_type_name = function_param_view::MirFunction_param_type_name(called, 0)
-            if len(param_type_name) > 0 {
-                let gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, param_type_name)
-                if gc_type_idx < 0 {
-                    gc_type_idx = ctx_gc_type::SelfEmitCtx_struct_type(ctx, function_param_view::MirFunction_param_val_type(called, 0))
-                }
-                if gc_type_idx >= 0 {
-                    writer_gc::emit_gc_ref_cast(w, gc_type_idx)
-                }
+            let gc_type_idx = resolve_call_param_gc_cast_type(ctx, param_type_name)
+            if gc_type_idx >= 0 {
+                writer_gc::emit_gc_ref_cast(w, gc_type_idx)
             }
         }
     }
@@ -59,6 +54,50 @@ fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst,
         }
     }
     true
+}
+
+// Resolve GC cast target for a call param after GC_STRUCT_SET left the
+// receiver in a local. Prefer enum-open for Option/Result/named enums;
+// never fall back to byte-size struct types (that cast Option → type10).
+fn resolve_call_param_gc_cast_type(ctx: SelfEmitCtx, param_type_name: String) -> i32 {
+    if len(param_type_name) == 0 {
+        return 0 - 1
+    }
+    if call_param_type_is_enum_like(ctx, clone(param_type_name)) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    let named = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(param_type_name))
+    if named >= 0 {
+        return named
+    }
+    0 - 1
+}
+
+fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bool {
+    if starts_with(clone(param_type_name), String_from("enum:")) {
+        return true
+    }
+    if starts_with(clone(param_type_name), String_from("Option")) || starts_with(clone(param_type_name), String_from("option")) {
+        return true
+    }
+    if starts_with(clone(param_type_name), String_from("Result")) || starts_with(clone(param_type_name), String_from("result")) {
+        return true
+    }
+    let bare = if starts_with(clone(param_type_name), String_from("enum:")) {
+        substring(clone(param_type_name), 5, len(param_type_name))
+    } else {
+        clone(param_type_name)
+    }
+    let prefix = concat(clone(bare), String_from("::"))
+    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let mut ei = 0
+    while ei < len(ev_names) {
+        if starts_with(clone(get_unchecked(ev_names, ei)), clone(prefix)) {
+            return true
+        }
+        ei = ei + 1
+    }
+    false
 }
 
 fn should_force_call_dest_store(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {

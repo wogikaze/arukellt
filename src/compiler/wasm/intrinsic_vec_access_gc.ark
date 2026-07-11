@@ -17,12 +17,28 @@ use mir::block_inst_access
 // Container element names (vec:String, Vec, ...) resolve via fixed GC slots
 // so structref-array gets cast before calls (#726 csv_perf).
 fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
+    if starts_with(clone(struct_name), String_from("enum:")) {
+        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
     let container = resolve_container_elem_gc_type(ctx, clone(struct_name))
     if container >= 0 {
         return container
     }
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+    }
+    // Registered enum type names (TomlValue, JsonValue) without enum: prefix
+    // still need enum-open casts after structref array.get (#726 toml/json).
+    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let ev_count = len(ev_names)
+    let mut ei = 0
+    let prefix = concat(clone(struct_name), String_from("::"))
+    while ei < ev_count {
+        let nm = clone(get_unchecked(ev_names, ei))
+        if starts_with(clone(nm), clone(prefix)) {
+            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
+        ei = ei + 1
     }
     // Look up byte_size from the current function's MIR_STRUCT_NEW instructions.
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
@@ -145,6 +161,26 @@ fn find_gcsref_suffix_for_struct(ctx: SelfEmitCtx, struct_name: String) -> Strin
         i = i + 1
     }
     String_new()
+}
+
+fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
+    let bare = if starts_with(clone(struct_name), String_from("enum:")) {
+        substring(clone(struct_name), 5, len(struct_name))
+    } else {
+        clone(struct_name)
+    }
+    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let ev_count = len(ev_names)
+    let mut ei = 0
+    let prefix = concat(clone(bare), String_from("::"))
+    while ei < ev_count {
+        let nm = clone(get_unchecked(ev_names, ei))
+        if starts_with(clone(nm), clone(prefix)) {
+            return true
+        }
+        ei = ei + 1
+    }
+    false
 }
 
 // Prefer Option::Some with the requested payload suffix (_f1_i32 / _f1_i64 /

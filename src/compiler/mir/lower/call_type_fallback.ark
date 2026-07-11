@@ -6,11 +6,21 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::mono_return_vt
 use mir::lower::mono_suffix_parse
+use mir::lower::call_type_fallback_stdlib
 // Arukellt Selfhost - MIR call result type fallback propagation.
 use mir::value_types
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).
+    if call_type_fallback_stdlib::mark_toml_result_vec_call_type(ctx, clone(callee_name), dest) {
+        set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
+        return
+    }
+    if call_type_fallback_stdlib::mark_host_sockets_result_type(ctx, clone(callee_name), dest) {
+        set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
+        return
+    }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
-        mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
+        call_type_fallback_stdlib::mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_struct_constructor_result_type(ctx, callee_name, dest)
@@ -42,46 +52,6 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     }
 }
 
-// cmp returns enum:Ordering; find_i64/find_f64/find_String return Option<T> —
-// set the local type so match expressions can determine the Some variant's
-// payload type.
-fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    let cn = mir_strip_module_prefix(clone(callee_name))
-    // Plain "cmp", "Trait::cmp", and mono mangled "cmp__i32" / "Ord::cmp__i32".
-    if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:Ordering"))
-        if ctx_gc_enum::ctx_is_gc_target(ctx) {
-            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
-        } else {
-            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
-        }
-        return
-    }
-    if eq(clone(cn), "find_i64") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i64"))
-    }
-    if eq(clone(cn), "find_f64") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_f64"))
-    }
-    if eq(clone(cn), "find_String") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
-    }
-    if eq(clone(cn), "find_i32") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
-    }
-    // fs::read_to_string / __intrinsic_fs_read_file → Result<String, String>
-    // so match arms bind Ok/Err as String variants (not i32 / wrong local types).
-    if eq(clone(cn), "read_to_string") || eq(clone(cn), "fs_read_file") || eq(clone(cn), "__intrinsic_fs_read_file") || ends_with(clone(callee_name), String_from("::read_to_string")) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("result:String:String"))
-        if ctx_gc_enum::ctx_is_gc_target(ctx) {
-            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
-        } else {
-            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
-        }
-        return
-    }
-}
-
 fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     if len(type_name) == 0 {
         return
@@ -106,7 +76,7 @@ fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
 }
 
 fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    let cn_stripped = mir_strip_module_prefix(clone(callee_name))
+    let cn_stripped = call_type_fallback_stdlib::mir_strip_module_prefix(clone(callee_name))
     // Prefer mono-suffix extraction that understands method names like
     // Picker__echo__String (base contains "__" from "::" → "__").
     let suffix = mono_suffix_parse::extract_mono_suffix(clone(cn_stripped))
@@ -158,7 +128,7 @@ fn is_mono_type_var_name(type_name: String) -> bool {
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    let cn_stripped = mir_strip_module_prefix(clone(callee_name))
+    let cn_stripped = call_type_fallback_stdlib::mir_strip_module_prefix(clone(callee_name))
     let cn_len = len(cn_stripped)
     if cn_len > 4 {
         let cn_suffix = substring(cn_stripped, cn_len - 4, cn_len)
@@ -169,18 +139,6 @@ fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest:
             }
         }
     }
-}
-
-fn mir_strip_module_prefix(name: String) -> String {
-    let n = len(name)
-    let mut i = n - 1
-    while i >= 0 {
-        if char_at(name, i) == 58 {
-            return substring(name, i + 1, n)
-        }
-        i = i - 1
-    }
-    clone(name)
 }
 
 // Set the local's val_type to VT_GC_REF or VT_REF when the type name

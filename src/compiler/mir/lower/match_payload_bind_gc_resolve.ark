@@ -1,0 +1,49 @@
+// MIR match payload GC bind type resolution.
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_layout
+
+fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, field_idx: i32, bind_local: i32) -> String {
+    let mut bind_type_name = ctx_get_local_type(ctx, bind_local)
+    let layout_ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(layout_ft))
+    let mut layout_vec = String_new()
+    if starts_with(clone(layout_norm), String_from("vec:")) {
+        layout_vec = clone(layout_norm)
+    } else if starts_with(clone(layout_norm), String_from("Vec<")) && ends_with(clone(layout_norm), String_from(">")) {
+        layout_vec = concat(String_from("vec:"), substring(clone(layout_norm), 4, len(layout_norm) - 1))
+    } else if starts_with(clone(layout_norm), String_from("Vec_")) {
+        layout_vec = concat(String_from("vec:"), substring(clone(layout_norm), 4, len(layout_norm)))
+    } else if eq(clone(layout_norm), String_from("Vec")) {
+        layout_vec = String_from("vec:i32")
+    }
+    if len(layout_vec) > 0 {
+        bind_type_name = layout_vec
+        ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+    } else if len(bind_type_name) == 0 || eq(clone(bind_type_name), String_from("enum:open")) {
+        if len(layout_norm) > 0 {
+            bind_type_name = layout_norm
+            ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+        }
+    }
+    if ctx_gc_enum::gc_enum_variant_is_vec_container(clone(variant_name)) {
+        if !starts_with(clone(bind_type_name), String_from("vec:")) && !starts_with(clone(bind_type_name), String_from("Vec")) {
+            let bare = ctx_gc_enum::ctx_gc_enum_bare_variant_name(clone(variant_name))
+            if eq(clone(bare), String_from("Table")) {
+                bind_type_name = String_from("vec:TomlField")
+            } else if eq(clone(bare), String_from("Object")) {
+                bind_type_name = String_from("vec:JsonField")
+            } else if eq(clone(bare), String_from("Array")) {
+                if starts_with(clone(variant_name), String_from("Json")) || contains(clone(variant_name), String_from("JsonValue")) {
+                    bind_type_name = String_from("vec:JsonValue")
+                } else {
+                    bind_type_name = String_from("vec:TomlValue")
+                }
+            } else {
+                bind_type_name = String_from("vec:TomlValue")
+            }
+            ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
+        }
+    }
+    bind_type_name
+}

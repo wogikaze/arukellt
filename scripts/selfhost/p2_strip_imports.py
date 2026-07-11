@@ -3,8 +3,10 @@
 
 Some Arukellt-compiled modules import wasi:clocks/* and wasi:random/*
 interfaces even when those functions are never called.  This module
-removes such imports and patches call indices so the resulting wasm
-can be embedded into a wasi:cli/command@0.2.0 component world.
+removes such imports and replaces them with local stub functions that
+preserve the original function indices, so the resulting wasm can be
+embedded into a wasi:cli/command@0.2.0 component world without rewriting
+call sites in the code section (which is unsafe for Wasm GC binaries).
 """
 
 from __future__ import annotations
@@ -42,11 +44,6 @@ def _read_string(data: bytes, pos: int) -> tuple[str, int]:
     return s, pos + length
 
 
-def _write_string(s: str) -> bytes:
-    raw = s.encode("utf-8")
-    return _write_uleb(len(raw)) + raw
-
-
 def _parse_sections(wasm: bytes) -> tuple[dict[int, tuple[int, int]], int]:
     """Return {section_id: (data_offset, size)} and header length."""
     assert wasm[:4] == b"\x00asm"
@@ -76,248 +73,214 @@ def _rebuild_sections(
     return bytes(out)
 
 
-def strip_wit_imports(
-    wasm: bytes,
-    module_prefixes: tuple[str, ...],
-) -> bytes:
-    """Remove imports whose module starts with any prefix; patch call indices.
+def _skip_valtype(data: bytes, pos: int) -> int:
+    byte = data[pos]
+    pos += 1
+    if byte in (0x64, 0x63):  # ref / ref.null with heap type
+        if pos < len(data) and data[pos] < 0x40:
+            _, pos = _read_uleb(data, pos)
+    return pos
 
-    Returns a new wasm binary with the matching imports removed and all
-    ``call`` / ``ref.func`` indices adjusted accordingly.
+
+def _skip_comptype(data: bytes, pos: int) -> int:
+    form = data[pos]
+    pos += 1
+    if form == 0x60:  # func
+        param_count, pos = _read_uleb(data, pos)
+        for _ in range(param_count):
+            pos = _skip_valtype(data, pos)
+        result_count, pos = _read_uleb(data, pos)
+        for _ in range(result_count):
+            pos = _skip_valtype(data, pos)
+    elif form == 0x5e:  # array
+        pos += 1  # mut
+        pos = _skip_valtype(data, pos)
+    elif form == 0x5f:  # struct
+        field_count, pos = _read_uleb(data, pos)
+        for _ in range(field_count):
+            pos += 1  # mut
+            pos = _skip_valtype(data, pos)
+    return pos
+
+
+def _func_type_results(type_data: bytes, type_idx: int) -> list[int]:
+    """Return result valtype bytes for a func type at *type_idx*."""
+    pos = 0
+    count, pos = _read_uleb(type_data, pos)
+    for idx in range(count):
+        form = type_data[pos]
+        pos += 1
+        if form == 0x60:
+            param_count, pos = _read_uleb(type_data, pos)
+            for _ in range(param_count):
+                pos = _skip_valtype(type_data, pos)
+            result_count, pos = _read_uleb(type_data, pos)
+            results = list(type_data[pos : pos + result_count])
+            pos += result_count
+            if idx == type_idx:
+                return results
+        elif form == 0x5e:
+            pos += 1
+            pos = _skip_valtype(type_data, pos)
+        elif form == 0x5f:
+            field_count, pos = _read_uleb(type_data, pos)
+            for _ in range(field_count):
+                pos += 1
+                pos = _skip_valtype(type_data, pos)
+        elif form in (0x4e, 0x4f):  # sub / sub final
+            super_count, pos = _read_uleb(type_data, pos)
+            for _ in range(super_count):
+                _, pos = _read_uleb(type_data, pos)
+            pos = _skip_comptype(type_data, pos)
+        elif form == 0x50:
+            pos = _skip_comptype(type_data, pos)
+        else:
+            raise ValueError(f"unsupported type form {form:#x}")
+    raise KeyError(type_idx)
+
+
+def _stub_func_body(results: list[int]) -> bytes:
+    """Build a stub function body that returns zero/default for *results*."""
+    body = bytearray()
+    body.extend(_write_uleb(0))  # local decls
+    for r in results:
+        if r == 0x7F:  # i32
+            body.extend(b"\x41\x00")
+        elif r == 0x7E:  # i64
+            body.extend(b"\x42\x00")
+        elif r == 0x7D:  # f32
+            body.extend(b"\x43\x00\x00\x00\x00")
+        elif r == 0x7C:  # f64
+            body.extend(b"\x44\x00\x00\x00\x00\x00\x00\x00\x00")
+        else:
+            raise ValueError(f"unsupported stub result type {r:#x}")
+    body.append(0x0B)
+    return bytes(body)
+
+
+def _parse_import_entries(
+    imp_data: bytes,
+) -> list[tuple[str, str, int, bytes]]:
+    """Return list of (module, field, type_idx, raw_entry_bytes) for func imports.
+
+    Non-func imports are returned with type_idx=-1.
     """
-    sections, _ = _parse_sections(wasm)
-    header = wasm[:8]
-
-    # ── Parse import section (id=2) ──────────────────────────────────────
-    imp_id = 2
-    if imp_id not in sections:
-        return wasm
-    imp_off, imp_size = sections[imp_id]
-    imp_data = wasm[imp_off : imp_off + imp_size]
-
     pos = 0
     count, pos = _read_uleb(imp_data, pos)
-
-    kept_imports: list[bytes] = []
-    removed_func_indices: list[int] = []
-    func_idx = 0
-
+    entries: list[tuple[str, str, int, bytes]] = []
     for _ in range(count):
         start = pos
         mod_name, pos = _read_string(imp_data, pos)
         field_name, pos = _read_string(imp_data, pos)
         kind = imp_data[pos]
         pos += 1
-        if kind == 0:  # func import
+        if kind == 0:  # func
             type_idx, pos = _read_uleb(imp_data, pos)
-            should_remove = any(
-                mod_name.startswith(prefix) for prefix in module_prefixes
-            )
-            if should_remove:
-                removed_func_indices.append(func_idx)
-            else:
-                kept_imports.append(imp_data[start:pos])
-            func_idx += 1
+            entries.append((mod_name, field_name, type_idx, imp_data[start:pos]))
         elif kind == 1:  # table
-            # elemtype (1 byte) + limits flag (1 byte) + min (uleb) [+ max (uleb)]
             pos += 1  # elemtype
             limits_flag = imp_data[pos]
             pos += 1
-            _, pos = _read_uleb(imp_data, pos)  # min
+            _, pos = _read_uleb(imp_data, pos)
             if limits_flag & 1:
-                _, pos = _read_uleb(imp_data, pos)  # max
-            kept_imports.append(imp_data[start:pos])
+                _, pos = _read_uleb(imp_data, pos)
+            entries.append((mod_name, field_name, -1, imp_data[start:pos]))
         elif kind == 2:  # memory
             limits_flag = imp_data[pos]
             pos += 1
-            _, pos = _read_uleb(imp_data, pos)  # min
+            _, pos = _read_uleb(imp_data, pos)
             if limits_flag & 1:
-                _, pos = _read_uleb(imp_data, pos)  # max
-            kept_imports.append(imp_data[start:pos])
+                _, pos = _read_uleb(imp_data, pos)
+            entries.append((mod_name, field_name, -1, imp_data[start:pos]))
         elif kind == 3:  # global
             pos += 1  # valtype
             pos += 1  # mut
-            kept_imports.append(imp_data[start:pos])
+            entries.append((mod_name, field_name, -1, imp_data[start:pos]))
         else:
-            kept_imports.append(imp_data[start:pos])
+            entries.append((mod_name, field_name, -1, imp_data[start:pos]))
+    return entries
 
-    if not removed_func_indices:
+
+def strip_wit_imports(
+    wasm: bytes,
+    module_prefixes: tuple[str, ...],
+) -> bytes:
+    """Remove matching imports and replace them with index-preserving stubs.
+
+    Removed func imports must form a trailing contiguous suffix of the func
+    import list (Arukellt emits wasi:clocks/* and wasi:random/* last).  Stubs
+    are prepended to the function/code sections so their function indices match
+    the removed imports — no call-site rewriting is required.
+    """
+    sections, _ = _parse_sections(wasm)
+    header = wasm[:8]
+
+    if 2 not in sections:
+        return wasm
+    imp_off, imp_size = sections[2]
+    imp_data = wasm[imp_off : imp_off + imp_size]
+    entries = _parse_import_entries(imp_data)
+
+    kept_raw: list[bytes] = []
+    stub_types: list[int] = []
+    removing = False
+    for mod_name, _field, type_idx, raw in entries:
+        should_remove = type_idx >= 0 and any(
+            mod_name.startswith(prefix) for prefix in module_prefixes
+        )
+        if should_remove:
+            removing = True
+            stub_types.append(type_idx)
+        else:
+            if removing:
+                # Non-trailing removal would shift later import indices.
+                raise ValueError(
+                    "strip_wit_imports requires removed imports to be a "
+                    "trailing suffix of the import list"
+                )
+            kept_raw.append(raw)
+
+    if not stub_types:
         return wasm
 
-    # Count local functions from function section (id=3)
-    func_section_id = 3
-    total_local_funcs = 0
-    if func_section_id in sections:
-        fs_off, fs_size = sections[func_section_id]
-        fs_data = wasm[fs_off : fs_off + fs_size]
-        total_local_funcs, _ = _read_uleb(fs_data, 0)
+    if 1 not in sections or 3 not in sections or 10 not in sections:
+        return wasm
 
-    total_funcs = func_idx + total_local_funcs
+    type_off, type_size = sections[1]
+    type_data = wasm[type_off : type_off + type_size]
 
-    # Build index remapping: old_idx -> new_idx
-    # Removed indices are skipped; all others shift down.
-    remap: dict[int, int] = {}
-    removed_set = set(removed_func_indices)
-    new_idx = 0
-    for old_idx in range(total_funcs):
-        if old_idx in removed_set:
-            continue
-        remap[old_idx] = new_idx
-        new_idx += 1
+    new_imp = bytearray(_write_uleb(len(kept_raw)))
+    for raw in kept_raw:
+        new_imp.extend(raw)
 
-    # Rebuild import section
-    new_imp_data = bytearray()
-    new_imp_data.extend(_write_uleb(len(kept_imports)))
-    for imp_bytes in kept_imports:
-        new_imp_data.extend(imp_bytes)
+    fs_off, fs_size = sections[3]
+    fs_data = wasm[fs_off : fs_off + fs_size]
+    fcount, fpos = _read_uleb(fs_data, 0)
+    new_fs = bytearray(_write_uleb(fcount + len(stub_types)))
+    for t in stub_types:
+        new_fs.extend(_write_uleb(t))
+    new_fs.extend(fs_data[fpos:])
 
-    # ── Patch code section (id=10) ───────────────────────────────────────
-    code_id = 10
-    new_code_data: bytes | None = None
-    if code_id in sections:
-        code_off, code_size = sections[code_id]
-        code_data = wasm[code_off : code_off + code_size]
-        new_code_data = _patch_code_section(code_data, remap)
+    code_off, code_size = sections[10]
+    code_data = wasm[code_off : code_off + code_size]
+    ccount, cpos = _read_uleb(code_data, 0)
+    new_code = bytearray(_write_uleb(ccount + len(stub_types)))
+    for t in stub_types:
+        body = _stub_func_body(_func_type_results(type_data, t))
+        new_code.extend(_write_uleb(len(body)))
+        new_code.extend(body)
+    new_code.extend(code_data[cpos:])
 
-    # ── Patch element section (id=9) ─────────────────────────────────────
-    elem_id = 9
-    new_elem_data: bytes | None = None
-    if elem_id in sections:
-        elem_off, elem_size = sections[elem_id]
-        elem_data = wasm[elem_off : elem_off + elem_size]
-        new_elem_data = _patch_elem_section(elem_data, remap)
-
-    # ── Patch start section (id=8) ───────────────────────────────────────
-    start_id = 8
-    new_start_data: bytes | None = None
-    if start_id in sections:
-        start_off, start_size = sections[start_id]
-        start_data = wasm[start_off : start_off + start_size]
-        new_start_data = _patch_start_section(start_data, remap)
-
-    # ── Patch data section (id=11) — no func refs, pass through ──────────
-
-    # ── Patch export section (id=7) ──────────────────────────────────────
-    exp_id = 7
-    new_exp_data: bytes | None = None
-    if exp_id in sections:
-        exp_off, exp_size = sections[exp_id]
-        exp_data = wasm[exp_off : exp_off + exp_size]
-        new_exp_data = _patch_export_section(exp_data, remap)
-
-    # ── Assemble output ──────────────────────────────────────────────────
     section_list: list[tuple[int, bytes]] = []
     for sid in sorted(sections.keys()):
-        if sid == imp_id:
-            section_list.append((sid, bytes(new_imp_data)))
-        elif sid == code_id and new_code_data is not None:
-            section_list.append((sid, new_code_data))
-        elif sid == elem_id and new_elem_data is not None:
-            section_list.append((sid, new_elem_data))
-        elif sid == start_id and new_start_data is not None:
-            section_list.append((sid, new_start_data))
-        elif sid == exp_id and new_exp_data is not None:
-            section_list.append((sid, new_exp_data))
+        if sid == 2:
+            section_list.append((sid, bytes(new_imp)))
+        elif sid == 3:
+            section_list.append((sid, bytes(new_fs)))
+        elif sid == 10:
+            section_list.append((sid, bytes(new_code)))
         else:
             off, size = sections[sid]
             section_list.append((sid, wasm[off : off + size]))
 
     return _rebuild_sections(header, section_list)
-
-
-def _patch_code_section(code_data: bytes, remap: dict[int, int]) -> bytes:
-    """Patch call/ref.func indices in the code section."""
-    pos = 0
-    func_count, pos = _read_uleb(code_data, pos)
-    out = bytearray()
-    out.extend(_write_uleb(func_count))
-
-    for _ in range(func_count):
-        body_start = pos
-        body_size, pos = _read_uleb(code_data, pos)
-        body_end = pos + body_size
-        body = bytearray(code_data[pos:body_end])
-        patched_body = _patch_func_body(bytes(body), remap)
-        out.extend(_write_uleb(len(patched_body)))
-        out.extend(patched_body)
-        pos = body_end
-
-    return bytes(out)
-
-
-def _patch_func_body(body: bytes, remap: dict[int, int]) -> bytes:
-    """Patch call/ref.func indices within a single function body."""
-    pos = 0
-    # local declarations
-    local_count, pos = _read_uleb(body, pos)
-    for _ in range(local_count):
-        pos += 1  # repeat count (uleb, but usually small)
-        # Actually: repeat_count (uleb) + type (1 byte)
-        # Re-read properly:
-    # Re-parse locals properly
-    pos = 0
-    local_count, pos = _read_uleb(body, pos)
-    for _ in range(local_count):
-        _, pos = _read_uleb(body, pos)  # repeat count
-        pos += 1  # type byte
-
-    # Now pos points to the instruction stream
-    out = bytearray(body[:pos])
-    i = pos
-    while i < len(body):
-        byte = body[i]
-        if byte == 0x10:  # call
-            out.append(byte)
-            i += 1
-            idx, i = _read_uleb(body, i)
-            new_idx = remap.get(idx, idx)
-            out.extend(_write_uleb(new_idx))
-        elif byte == 0xD2:  # ref.func
-            out.append(byte)
-            i += 1
-            idx, i = _read_uleb(body, i)
-            new_idx = remap.get(idx, idx)
-            out.extend(_write_uleb(new_idx))
-        else:
-            out.append(byte)
-            i += 1
-
-    return bytes(out)
-
-
-def _patch_elem_section(elem_data: bytes, remap: dict[int, int]) -> bytes:
-    """Patch function indices in the element section."""
-    # Element section is complex; for now, just pass through.
-    # Most guest modules don't have element sections with func refs.
-    return elem_data
-
-
-def _patch_start_section(start_data: bytes, remap: dict[int, int]) -> bytes:
-    """Patch the start function index."""
-    idx, _ = _read_uleb(start_data, 0)
-    new_idx = remap.get(idx, idx)
-    return _write_uleb(new_idx)
-
-
-def _patch_export_section(exp_data: bytes, remap: dict[int, int]) -> bytes:
-    """Patch function indices in the export section."""
-    pos = 0
-    count, pos = _read_uleb(exp_data, pos)
-    out = bytearray()
-    out.extend(_write_uleb(count))
-    for _ in range(count):
-        # name
-        name, pos = _read_string(exp_data, pos)
-        out.extend(_write_string(name))
-        # kind
-        kind = exp_data[pos]
-        out.append(kind)
-        pos += 1
-        # index
-        idx, pos = _read_uleb(exp_data, pos)
-        if kind == 0:  # func export
-            new_idx = remap.get(idx, idx)
-            out.extend(_write_uleb(new_idx))
-        else:
-            out.extend(_write_uleb(idx))
-    return bytes(out)

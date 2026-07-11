@@ -7,6 +7,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_match_payload_bind_types
 use mir::lower::core_match_payload_bind_emit
+use mir::lower::core_match_payload_type_extract
 use mir::value_types
 
 fn core_emit_payload_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, scrut_ok_is_ref: bool) {
@@ -56,12 +57,12 @@ fn core_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) ->
             return substring(scrut_type, 7, len(scrut_type))
         }
         if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
-            return core_match_payload_bind_types::core_extract_first_result_type_param(scrut_type)
+            return core_match_payload_type_extract::core_extract_first_result_type_param(scrut_type)
         }
         return String_new()
     }
     if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
-        return core_match_payload_bind_types::core_extract_second_result_type_param(scrut_type)
+        return core_match_payload_type_extract::core_extract_second_result_type_param(scrut_type)
     }
     String_new()
 }
@@ -111,17 +112,18 @@ fn core_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local:
         return
     }
     let mut set_type = core_infer_payload_set_type(ctx, clone(elem_ty))
+    if eq(clone(elem_ty), "unit") || eq(clone(elem_ty), "()") || eq(clone(elem_ty), "void") {
+        set_type = String_from("i32")
+    }
     ctx_api_local_types::ctx_set_local_type(ctx, bind_local, set_type)
     // Fix vt for scalars: preserve i64/f64 width (#726 debug_vec).
     if core_match_payload_bind_types::core_payload_scalar_type_name(clone(elem_ty)) {
-        if bind_vt == value_types::VT_GC_REF() {
-            if eq(clone(elem_ty), "i64") || eq(clone(elem_ty), "I64") {
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I64())
-            } else if eq(clone(elem_ty), "f64") || eq(clone(elem_ty), "F64") {
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_F64())
-            } else {
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
-            }
+        if eq(clone(elem_ty), "i64") || eq(clone(elem_ty), "I64") {
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I64())
+        } else if eq(clone(elem_ty), "f64") || eq(clone(elem_ty), "F64") {
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_F64())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
         }
     } else {
         // Non-scalar types (String, Vec, etc.) are GC refs

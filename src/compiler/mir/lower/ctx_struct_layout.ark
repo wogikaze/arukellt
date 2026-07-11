@@ -112,7 +112,11 @@ fn ctx_normalize_generic_type_name(type_name: String) -> String {
             if len(err) > 0 && char_at(err, 0) == 32 {
                 err = substring(err, 1, len(err))
             }
-            return concat(concat(String_from("result:"), ok_ty), concat(String_from(":"), err))
+            // Normalize Ok/Err sides so Result<Vec<T>, String> becomes
+            // result:vec:T:String (#726 toml navigate Result match).
+            let ok_norm = ctx_normalize_generic_type_name(ok_ty)
+            let err_norm = ctx_normalize_generic_type_name(err)
+            return concat(concat(String_from("result:"), ok_norm), concat(String_from(":"), err_norm))
         }
         return concat(String_from("result:"), inner)
     }
