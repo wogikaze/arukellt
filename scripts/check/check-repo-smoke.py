@@ -17,6 +17,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_DIRS = [
     "docs",
     "docs/adr",
+    "docs/rfcs",
+    "docs/plans",
     "docs/language",
     "docs/stdlib",
     "docs/platform",

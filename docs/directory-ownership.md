@@ -35,6 +35,9 @@
 | `docs/data/` | generated | `scripts/gen/generate-docs.py` | Project state data |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/adr/` | product | — | Architecture Decision Records |
+| `docs/rfcs/` | product | — | 詳細設計提案・仕様草案（ADR の長文側） |
+| `docs/plans/` | product | — | 実装フェーズ・PR 計画 |
+| `docs/design/` | archive | — | 分類前の設計メモ・比較検討 |
 | `extensions/arukellt-all-in-one/` | product | — | VS Code extension |
 | `harness/` | internal | — | Test harness configuration |
 | `issues/open/` | internal | `python3 scripts/gen/generate-issue-index.py` | Active issue tracking |

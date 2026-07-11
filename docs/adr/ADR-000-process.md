@@ -75,8 +75,15 @@
 書く: 文脈、決定、却下した代替案、帰結、再検討条件、関連リンク。
 
 生きた状態として書かない: fixture 件数、PR レーン進捗、ランタイム版ピン、
-週次で変わるフェーズチェックリスト。これらは issues・RFC・計画・
-`docs/current-state.md` に置く。
+週次で変わるフェーズチェックリスト。置き場は次のとおり。
+
+| 内容 | 置き場 |
+|------|--------|
+| 作業追跡・完了条件 | `issues/open/` / `issues/done/` |
+| 詳細仕様・長文設計 | [`docs/rfcs/`](../rfcs/) |
+| 実装フェーズ・PR 計画 | [`docs/plans/`](../plans/) |
+| 現行挙動・件数・対応状況 | [`docs/current-state.md`](../current-state.md) |
+| 分類しきれない設計メモ | [`docs/design/`](../design/) |
 
 ### 6. 索引と CI
 
@@ -89,11 +96,15 @@
 
 - 既存 ADR の別名（`DECIDED` / `DRAFT` / `SURVEY`）は上表へ移行する。
 - 調査・巨大 epic 文書は台帳修復中は一時的に `docs/adr/` に残してよいが、
-  後続 PR で RFC / 計画 / 現状から分離する。
+  後続で `docs/rfcs/`・`docs/plans/`・`docs/current-state.md` へ分離する。
+  書き方は [`docs/rfcs/000-writing-rfcs.md`](../rfcs/000-writing-rfcs.md) と
+  [`docs/plans/000-writing-plans.md`](../plans/000-writing-plans.md) を参照。
 - 検証ゲートは `ACCEPTED` を決定済み状態として扱う（旧 `DECIDED` は CI で拒否）。
 
 ## 参照
 
 - 監査修復計画（2026-07）: RFC / 現状分離の前に ADR 台帳を修復する
+- [`docs/rfcs/`](../rfcs/) — 詳細設計提案
+- [`docs/plans/`](../plans/) — 実装計画
 - `scripts/check/check-adrs.py`
 - `scripts/gen/generate-docs.py`（ADR README 生成）

@@ -90,6 +90,20 @@ category = "archive"
 snapshot = "archive"
 
 [[sections]]
+dir = "rfcs"
+title = "RFC"
+description = "詳細な設計提案・仕様草案。ADR の判断を支える長文。現行 reality の正本ではない。"
+category = "archive"
+snapshot = "archive"
+
+[[sections]]
+dir = "plans"
+title = "実装計画"
+description = "フェーズ・PR 分割・検証手順などの実装計画。現行 reality の正本ではない。"
+category = "archive"
+snapshot = "archive"
+
+[[sections]]
 dir = "design"
 title = "設計メモ"
 description = "将来設計や比較検討。現行 reality の正本ではない。"
