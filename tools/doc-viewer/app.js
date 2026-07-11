@@ -26,7 +26,8 @@
   const menuToggle = document.getElementById("menu-toggle");
 
   // Configure marked: GFM tables, line breaks.
-  marked.setOptions({ gfm: true, breaks: false, headerIds: true, mangle: false });
+  // (headerIds/mangle were removed in marked v12; we assign ids manually.)
+  marked.setOptions({ gfm: true, breaks: false });
 
   // ---------- route helpers ----------
   function currentRoute() {
@@ -150,6 +151,73 @@
     });
   }
 
+  // ---------- heading ids + page TOC ----------
+  function slugify(text) {
+    return text.toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function addHeadingIds(root) {
+    const counts = {};
+    let idx = 0;
+    root.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
+      const text = h.textContent.trim();
+      let slug = slugify(text);
+      if (!slug) slug = "heading-" + idx;
+      idx++;
+      if (counts[slug] !== undefined) {
+        counts[slug]++;
+        slug = slug + "-" + counts[slug];
+      } else {
+        counts[slug] = 0;
+      }
+      h.id = slug;
+    });
+  }
+
+  function clearPageToc() {
+    const existing = sidebarNav.querySelector(".page-toc");
+    if (existing) existing.remove();
+  }
+
+  function renderPageToc() {
+    clearPageToc();
+    const headings = contentEl.querySelectorAll("h2, h3");
+    if (headings.length === 0) return;
+
+    const toc = document.createElement("ul");
+    toc.className = "page-toc";
+
+    const title = document.createElement("li");
+    title.className = "group-title";
+    title.textContent = "このページの目次";
+    toc.appendChild(title);
+
+    headings.forEach((h) => {
+      const li = document.createElement("li");
+      li.className = "toc-item";
+      if (h.tagName === "H3") li.classList.add("toc-deep");
+      const a = document.createElement("a");
+      a.href = "#" + h.id;
+      a.textContent = h.textContent;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = document.getElementById(h.id);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+      li.appendChild(a);
+      toc.appendChild(li);
+    });
+
+    // Insert at top of sidebar nav, before the section list.
+    sidebarNav.insertBefore(toc, sidebarNav.firstChild);
+  }
+
   // ---------- content rendering ----------
   function rewriteContentLinks(root, baseRoute) {
     // Relative .md links inside content: resolve against baseRoute dir.
@@ -158,7 +226,18 @@
     root.querySelectorAll("a[href]").forEach((a) => {
       const href = a.getAttribute("href") || "";
       if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return; // external
-      if (href.startsWith("#")) return; // in-page anchor
+      if (href.startsWith("#") && !href.startsWith("#/")) {
+        // in-page anchor: intercept to avoid hash-routing conflict
+        a.addEventListener("click", (e) => {
+          const id = href.slice(1);
+          const target = document.getElementById(id);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+        return;
+      }
       if (href.startsWith("#/")) {
         // docsify-style absolute hash link
         const tail = href.slice(2);
@@ -199,8 +278,10 @@
     const html = marked.parse(text);
     contentEl.classList.remove("loading");
     contentEl.innerHTML = html;
+    addHeadingIds(contentEl);
     rewriteContentLinks(contentEl, route);
     highlightActive(route);
+    renderPageToc();
 
     // breadcrumb
     const bc = document.createElement("div");
