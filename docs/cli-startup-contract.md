@@ -56,7 +56,7 @@ The extension README lists the same keys, types, defaults, and descriptions.
 |---------|------|---------|---------|
 | `arukellt.server.path` | `string` | `"arukellt"` | LSP, DAP, tasks |
 | `arukellt.server.args` | `string[]` | `[]` | LSP launch args |
-| `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | LSP (`arkTarget`), tasks, commands |
+| `arukellt.target` | `"wasm32"` \| `"wasm32-gc"` \| legacy aliases `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | LSP (`arkTarget`), tasks, commands. Canonical names are ADR-007; extension `package.json` enum may still list legacy aliases only until migrated (see current-state ADR gaps) |
 | `arukellt.emit` | `string` | `"core-wasm"` | compile command |
 | `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Open in Playground |
 | `arukellt.enableCodeLens` | `boolean` | `true` | LSP (`enableCodeLens`) |

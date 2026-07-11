@@ -64,7 +64,7 @@ let v: Vec<i32> = Vec_new_i32()
 ## Option / Result
 
 Option と Result の型定義は [spec.md §2.2](spec.md#22-composite-types)、
-API 一覧は [spec.md §9.10–9.11](spec.md#910-option) を参照してください。
+API 一覧は [spec.md §9.10–9.11](spec.md#910-option-prelude) を参照してください。
 エラー処理パターンの詳細は [error-handling.md](error-handling.md) を参照。
 
 よく使う helper:

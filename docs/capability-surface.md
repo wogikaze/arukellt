@@ -19,17 +19,18 @@ The following modules implement the ADR-011 host capability surface:
 | `std::host::sockets` | `std/host/sockets.ark` | TCP socket operations |
 
 All modules are registered in `std/manifest.toml` and compiled via the
-selfhost compiler to WASI Preview 1 (`wasm32-wasi-p1`) and Preview 2
-(`wasm32-wasi-p2`) targets.
+selfhost compiler to `wasm32`（WASI P1 host profile）and `wasm32-gc`
+（WASI P2 host profile）targets. Legacy CLI aliases `wasm32-wasi-p1` /
+`wasm32-wasi-p2` may still appear in fixtures and tooling.
 
 ## Runtime verification
 
 Each `std::host::*` module is verified at runtime through:
 
-1. **T1 fixtures** — `tests/fixtures/` contain runnable programs that
+1. **`wasm32` fixtures** — `tests/fixtures/` contain runnable programs that
    exercise each host capability end-to-end via `wasmtime run`.
-2. **T3 WASM validation** — `scripts/check/check-t3-wasm-validate.py`
-   compiles every fixture and validates the emitted WASM against
+2. **`wasm32-gc` WASM validation** — `scripts/check/check-t3-wasm-validate.py`
+   （historical script name）compiles every fixture and validates the emitted WASM against
    `wasm-tools validate`.
 3. **Selfhost fixpoint** — the selfhost compiler itself uses
    `std::host::stdio` and `std::host::fs` for file I/O, ensuring

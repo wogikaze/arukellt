@@ -11,12 +11,12 @@ inspection through static source analysis.
 
 | Target | Debug Status | Breakpoints | Stepping | Variables |
 |--------|-------------|-------------|---------|-----------|
-| `wasm32-wasi-p1` (T1) | ✅ Supported | ✅ Wasm hooks | ✅ Next/Continue | ✅ Live (T1 smoke) |
-| `wasm32-wasi-p2` (T3) | ✅ Supported | ✅ Wasm hooks | ✅ Next/Continue | ✅ Live (T3 smoke) |
-| `wasm32-component` | ⚡ Best-effort | ✅ Source-level | ✅ Next/Continue | ✅ Static |
-| T2/T4/T5 | 🔴 Not implemented | — | — | — |
+| `wasm32` (alias: `wasm32-wasi-p1`) | ✅ Supported | ✅ Wasm hooks | ✅ Next/Continue | ✅ Live (smoke) |
+| `wasm32-gc` (alias: `wasm32-wasi-p2`) | ✅ Supported | ✅ Wasm hooks | ✅ Next/Continue | ✅ Live (smoke) |
+| `wasm32-gc` + component emit | ⚡ Best-effort | ✅ Source-level | ✅ Next/Continue | ✅ Static |
+| `native-*` | 🔴 Not implemented | — | — | — |
 
-**Canonical debug target**: Both T1 and T3 are supported for debugging.
+**Canonical debug targets**: `wasm32` and `wasm32-gc`（ADR-007）。内部 fixture 名の T1/T3 は歴史的ラベル。
 
 ### What "Supported" means
 
@@ -127,7 +127,7 @@ executable line.
 - No conditional breakpoints or function breakpoints
 - Component-model (`wasm32-component`) targets still use best-effort source-level debugging only
 
-## Runtime-level debugging (T1/T3)
+## Runtime-level debugging (`wasm32` / `wasm32-gc`)
 
 For programs compiled to core Wasm modules, `tools/host-linker` post-links a
 `metadata.debug.source_map` custom section (offset → source line) and injects

@@ -15,14 +15,16 @@ source (.ark)
   → selfhost emitter (src/compiler/emitter.ark)
 ```
 
-現在の user-visible な主経路は `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm` です。
+現在の user-visible な主経路は
+`Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm` です。
 
 - `ark-driver::Session` が共有 orchestration の入口
 - `arukellt` が `check` / `compile` / `run` を提供
 - `check` は frontend diagnostics まで
 - `compile` / `run` は backend validation まで進む
-- `wasm32-wasi-p1` は互換パス、`wasm32-wasi-p2` は canonical GC-native パス
-- `--emit component` / `--emit wit` は `wasm32-wasi-p2` 側の追加出力
+- `wasm32` は互換（linear-memory）パス、`wasm32-gc` は primary GC パス（ADR-007/013）
+- `--emit component` / `--emit wit` は `wasm32-gc` 側の追加出力
+- 旧 CLI 名 `wasm32-wasi-p1` / `wasm32-wasi-p2` は alias（移行中）
 
 ## 設計上の境界
 
@@ -111,19 +113,20 @@ MIR optimization runs between `opt_mir()` and `plan_backend()`.
 Dead function elimination runs after MIR optimization, before backend emission.
 Backend peephole and layout optimization run during `emit_wasm()`.
 
-### T3 (`wasm32-wasi-p2`) — pass configuration (updated 2026-04-15, issue #486)
+### `wasm32-gc` pass configuration (updated 2026-04-15, issue #486)
 
-T3 uses a **separate pass invocation path** (`passes::run_all()` directly, bypassing
-`desugar_exprs` which is not GC-safe). The blanket T3 `O0` MIR override that was
+`wasm32-gc`（文書・コード上の歴史的ラベル T3 / 旧名 `wasm32-wasi-p2`）uses a
+**separate pass invocation path** (`passes::run_all()` directly, bypassing
+`desugar_exprs` which is not GC-safe). The blanket `O0` MIR override that was
 present before #486 has been removed.
 
-| Level | T3 MIR passes active | Dead Function Elimination |
+| Level | MIR passes active | Dead Function Elimination |
 |-------|----------------------|--------------------------|
 | `0` | None | Disabled |
-| `1` | All 9 O1 passes (same as T1) | **Disabled** (WASI export reachability concern) |
+| `1` | All 9 O1 passes (same as `wasm32`) | **Disabled** (WASI export reachability concern) |
 | `2` | All O1 + 3 safe O2 arithmetic passes (algebraic_simplify, strength_reduction, string_concat_opt) | **Disabled** |
 
-Several O2/O3 passes remain gated for T3 (`T3_GATED_PASSES`) until each is
+Several O2/O3 passes remain gated for `wasm32-gc` (`T3_GATED_PASSES` は歴史的定数名）until each is
 independently verified GC-safe: `escape_analysis`, `type_narrowing`, `loop_unroll`,
 `licm`, `bounds_check_elim`, `inline_small_leaf`, `aggregate_simplify`, `gc_hint`,
 `branch_hint_infer`. See selfhost `src/compiler/passes/README.md` for unlock conditions

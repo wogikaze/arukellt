@@ -338,9 +338,14 @@ SIMD 機能のターゲット別状況（ADR-037 参照）:
 | GC struct/array v128 field | n/a (linear) | fixtures ready | #699 |
 | shuffle / swizzle | deferred | deferred | deferred |
 
-`wasm32` は iwasm 2.4.1 が SIMD に対応しているため、ネイティブ SIMD 命令を使用する。
+`wasm32` は iwasm 2.4.1 が SIMD に対応しているため、現行実装はネイティブ SIMD 命令を使用する。
 スカラー展開（`call_simd_scalar*.ark`）はフォールバックコードとして存在するが、
 現在の `is_simd_target()` は全ターゲットで `true` を返す。
+
+**ADR-037 契約ギャップ:** 提案は `portable_simd_lowering` / `wasm_raw_v128` /
+`wasm_relaxed_simd` の三軸。現行の単一 `is_simd_target()` は未分離。
+API 面も #698 の lane モジュール + 無印 `v128` が先行しており、ADR-037 の
+nominal 型移行は未着手（`current-state.md` ADR contract gaps）。
 
 ---
 

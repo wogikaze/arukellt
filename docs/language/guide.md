@@ -368,7 +368,7 @@ Patterns also appear in `let` (destructuring) and `for` (iteration target).
 
 ## 9. Error Handling
 
-> 📘 **Canonical reference**: [error-handling.md](error-handling.md) · [spec.md §3.9](spec.md#39-try-operator) · [spec.md §9.10–9.11](spec.md#910-option)
+> 📘 **Canonical reference**: [error-handling.md](error-handling.md) · [spec.md §3.9](spec.md#39-try-operator) · [spec.md §9.10–9.11](spec.md#910-option-prelude)
 
 Arukellt uses `Result<T, E>` for recoverable errors and `Option<T>` for nullable values.
 There is no exception mechanism.

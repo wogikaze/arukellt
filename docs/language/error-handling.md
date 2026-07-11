@@ -8,8 +8,8 @@
 古い docs にある capability I/O 専用エラー階層は、現行 API の基準ではありません。
 
 > **正規仕様との関係**: `?` 演算子は [spec.md §3.9 Try Operator](spec.md#39-try-operator)、
-> Option API は [spec.md §9.10](spec.md#910-option)、Result API は [spec.md §9.11](spec.md#911-result)、
-> panic は [spec.md §9.4](spec.md#94-control) を参照してください。
+> Option API は [spec.md §9.10](spec.md#910-option-prelude)、Result API は [spec.md §9.11](spec.md#911-result-prelude)、
+> panic は [spec.md §9.4](spec.md#94-control-prelude) を参照してください。
 
 ## 基本方針
 
@@ -19,7 +19,7 @@
 - `panic` は回復不能な場面向け
 
 > 📘 Option/Result の型定義は [spec.md §2.2 Composite Types](spec.md#22-composite-types)、
-> 利用可能な関数の完全な一覧は [spec.md §9.10–9.11](spec.md#910-option) を参照。
+> 利用可能な関数の完全な一覧は [spec.md §9.10–9.11](spec.md#910-option-prelude) を参照。
 
 ## `?` 演算子
 
