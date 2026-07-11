@@ -101,29 +101,38 @@ let d = f32x4::replace_lane(c, 3, f32x4::extract_lane(c, 0))
 `v128.load` / `v128.store` / `v128.bitselect` / `v128.and` / `reinterpret` / 外部 intrinsic /
 未分類の raw SIMD 値を扱う際に必要。
 
-### 4. ターゲット適用範囲
+### 4. ターゲット適用範囲と capabilities
 
-| ターゲット | SIMD 可否 | 挙動 |
-|------------|-----------|------|
-| `wasm32` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
-| `wasm32-gc` | 全 SIMD 命令使用可能 | v128 命令を直接 emit |
-| `native-cpp` / `native-llvm` | **本 ADR のスコープ外** | 後継 native ADR（ADR-045 再評価後）で決定 |
+SIMD 可否は **target × target feature** で決まる（target 名だけでは確定しない）。
 
-`wasm32` / `wasm32-gc` は Wasm SIMD を直接 emit する。
-スカラー展開は SIMD 無効ビルド向けの同値計算パスとして保持する。
+| ターゲット | fixed SIMD (`simd128`) | relaxed SIMD | 備考 |
+|------------|------------------------|--------------|------|
+| `wasm32` / `wasm32-gc` | feature 有効時: 直接 emit / 無効時: scalar 同値計算 | `std::wasm` 側で別判定（ADR-042） | portable API は `std::simd` |
+| `native-*` | **本 ADR のスコープ外** | — | ADR-045 再評価後 |
+
+概念モデル:
+
+```text
+TargetCapabilities {
+    simd128: Enabled | ScalarEmulation | Unsupported
+    relaxed_simd: Enabled | Unsupported
+}
+```
+
+- **standardized fixed SIMD**（`i32x4.add` 等）: `simd128` Enabled なら直接 emit、
+  ScalarEmulation なら scalar lowering、Unsupported ならコンパイルエラー
+- **relaxed SIMD**: portable `std::simd` に混ぜず、`std::wasm` の target-specific として扱う（ADR-042）
 
 ### 5. 機能検出
 
-コンパイルターゲットによる出し分けとする。実行時検出は行わない。
-ターゲットが決まれば SIMD 可否は確定する。
+実行時検出は行わない。コンパイル時に `TargetCapabilities`（target + feature フラグ）で決める。
+「ターゲットが決まれば SIMD 可否は確定する」ではない — **feature フラグも必要**。
 
 ### 6. SIMD 無効時の挙動
 
-`wasm32` と `wasm32-gc` はともにネイティブ SIMD 命令を使用する（§4 参照）。
-SIMD が無効なビルド（例: `-simd128` 未指定、または SIMD 非対応の将来 embedder）では
-scalar 展開で同値計算する。エラーではなくエミュレーションである。
-これは「fallback」ではなく「scalar による同値計算」であり、ADR-015 (ユーザパス panic 禁止) に
-従い panic は発生しない。
+`simd128` が ScalarEmulation（例: `-simd128` 未指定、または無効ビルド）のとき、
+portable `std::simd` 操作は scalar 展開で同値計算する。エラーではなくエミュレーションである。
+ADR-015（ユーザパス panic 禁止）に従い panic は発生しない。
 
 ### 7. 名前空間
 
@@ -279,8 +288,8 @@ ADR-045 の再評価条件を満たした後継 ADR で決める。
 
 - ADR-002: Wasm GC 前提 (v128 の GC フィールド保持の根拠)
 - ADR-045: 旧 LLVM 方針撤回 — native SIMD はスコープ外
-- ADR-006: 公開 ABI 3層 (SIMD 値の ABI 表現)
-- ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` (ターゲット別 SIMD 可否)
+- ADR-006: 公開 ABI 境界分類 (SIMD 値の ABI 表現)
+- ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` (target × feature capabilities)
 - ADR-014: stability labels (experimental → stable 昇格条件)
 - `issues/reject/107-runtime-loop-vectorization-hint.md` — 本 ADR の代替元
 - `std/wasm/mod.ark` — `valtype_v128` 定数 (本 ADR では移動しない)

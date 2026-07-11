@@ -38,4 +38,4 @@ std::host::random::random_i32() -> i32
 
 - 実装の現在地: [../current-state.md](../current-state.md)
 - 現行 host API: [../stdlib/io.md](../stdlib/io.md)
-- T1/T3 の位置づけ: [ADR-007: Targets](../adr/ADR-007-targets.md)
+- `wasm32` / `wasm32-gc` の位置づけ: [ADR-007: Targets](../adr/ADR-007-targets.md)

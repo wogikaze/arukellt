@@ -1,36 +1,35 @@
-# ADR-039: Question Mark Operator (`?`) and Error Conversion
+# ADR-039: `?` の Option 対応とエラー型変換
 
-ステータス: **PROPOSED** — #688/#692 後に実装する `?` 演算子の設計
+ステータス: **PROPOSED** — 既存の Result `?` を前提に、Option / From 拡張を提案
 
-提案日: 2026-06-26
+提案日: 2026-06-26  
+改訂日: 2026-07-11 — 実装済み Result `?` を前提化し、未決範囲を Option / From に限定
 
 ---
 
 ## 文脈
 
-Issue #690 は Arukellt に `?` 演算子を導入する。現在 `Result<T, E>` と
-`Option<T>` は存在するが、エラー伝播に手動 `match` が必要で、エラー型変換
-（`From<E1> for E2`）もない。
+**現行（実装済み・stable）:**
 
-Rust の `?` は `match expr { Ok(v) => v, Err(e) => return Err(From::from(e)) }`
-に脱糖し、`From` trait でエラー型変換を行う。本 ADR はこの脱糖と変換の
-セマンティクスを決定する。
+- `expr?` は `Result<T, E>` に対し、同一エラー型 `E` の早期伝播として動作する
+- normative: `docs/language/spec.md`、`docs/language/error-handling.md`
+- maturity: Try Operator = stable（`docs/language/maturity-matrix.md`）
+- fixture 例: `question_mark.ark` 等
+
+**本 ADR が扱う未決範囲:**
+
+1. `Option<T>` に対する `?`
+2. 異なるエラー型間の `From<E_source> for E_target` 変換
+3. trait 解決を含む型検査規則（#688 / #692 連携）
+
+基本的な Result `?` のパーサー構文・同一型 lowering は**前提**であり、本 ADR の提案対象ではない。
+
+---
 
 ## 提案する決定
 
-### D1: `?` の脱糖規則
+### D1: `Option<T>` の `?`
 
-`expr?` は以下の規則で脱糖する:
-
-**`Result<T, E>` の場合:**
-```
-match expr {
-    Ok(v) => v,
-    Err(e) => return Err(convert_error(e))
-}
-```
-
-**`Option<T>` の場合:**
 ```
 match expr {
     Some(v) => v,
@@ -38,113 +37,60 @@ match expr {
 }
 ```
 
-`convert_error` は関数の戻り値エラー型と `expr` のエラー型が一致すれば
-identity、異なれば `From::from(e)` を呼び出す（D2 参照）。
+- エラー型変換は伴わない（`None` をそのまま伝播）
+- `Option` → `Result` 変換は `?` のスコープ外（明示の `ok_or` / `ok_or_else`）
+- 囲む関数の戻り値は `Option<_>` であること
 
-### D2: エラー型変換（`From` trait 連携）
+### D2: Result の異種エラー変換（`From`）
 
-`?` 演算子は関数の戻り値エラー型（`E_target`）と `expr` のエラー型（`E_source`）
-を比較する:
+同一エラー型の Result `?` は現行どおり identity。
 
-1. **`E_source == E_target`**: 変換なし（identity）
-2. **`E_source != E_target`**: `From<E_source> for E_target` の impl を探し、
-   `From::from(e)` を呼び出す。impl が存在しない場合は型エラー。
+`E_source != E_target` のとき:
 
-`From` trait は #692 で定義される。#690 の実装は #692 に依存するが、
-最小スコープとして `From<E> for E_target` のみを先行実装してもよい。
+1. `From<E_source> for E_target` の impl を解決する
+2. `return Err(From::from(e))` に脱糖する
+3. impl が無ければ型エラー
 
-### D3: `Option` の `?` は変換なし
+`From` trait は #692。最小スコープとして必要な `From` impl のみ先行してもよい。
 
-`Option<T>` の `?` はエラー型変換を伴わない（`None` をそのまま伝播）。
-`Option` から `Result` への変換は `?` のスコープ外とし、明示的な
-`ok_or` / `ok_or_else` 関数で行う（将来issue）。
+### D3: 型検査（拡張分）
 
-### D4: パーサー構文
+| 適用 | 囲む関数の戻り値 | `expr?` の型 |
+|------|------------------|--------------|
+| `Result<T, E>`（現行） | `Result<_, E_target>` | `T`（`E`→`E_target` は D2） |
+| `Option<T>`（本提案） | `Option<_>` | `T` |
+| それ以外 | — | 型エラー |
 
-`?` は後置演算子として構文解析する:
+### D4: MIR lowering（拡張分）
 
-```
-postfix_expr := primary_expr postfix*
-postfix := '.' ident | '(' args ')' | '[' expr ']' | '?'
-```
+Option / From 変換付き Result は、早期リターン付き match として生成する。
+同一型 Result `?` の既存 lowering は変更しない（前提）。
 
-`?` の優先順位は他の後置演算子（`.`, `()`, `[]`）と同じ左結合で、
-メソッドチェーン後に適用される: `foo.bar()? + 1` は `(foo.bar()?) + 1`。
-
-### D5: 型推論
-
-型checker は `expr?` の型を以下のように推論する:
-
-1. `expr` の型を推論
-2. `Result<T, E>` なら `expr?` の型は `T`
-3. `Option<T>` なら `expr?` の型は `T`
-4. それ以外は型エラー（`?` は Result/Option のみに適用可能）
-
-関数の戻り値型が `Result<_, E_target>` でない場合、`?` on Result は
-型エラー（`?` は Result を返す関数内でのみ使用可能）。
-同様に `?` on Option は Option を返す関数内でのみ使用可能。
-
-### D6: MIR lowering
-
-`?` の MIR lowering は早期リターン付きの match として生成する:
-
-```
-// expr? の lowering
-let tmp = <lower expr>
-match tmp {
-    Ok(v) => v,       // continue with v
-    Err(e) => {       // early return
-        let converted = <convert_error(e)>
-        return Err(converted)
-    }
-}
-```
-
-`Option` の場合は `None => return None` となる。
+---
 
 ## 代替案と却下理由
 
-### 代替 A: `?` なし（手動 match のまま）
+| 案 | 結果 |
+|----|------|
+| Option `?` を入れず手動 match のまま | 却下（冗長・Rust parity 低下） |
+| `try!` マクロ | 却下（マクロ未整備、`?` の方が簡潔） |
+| From なしで異種 Err を実行時変換 | 却下（静的型安全性・ADR-036 に反する） |
 
-`?` 演算子を導入せず、手動 match でエラー伝播を行う。
+---
 
-却下理由:
-- エラー処理が冗長で LLM フレンドリでない
-- Rust parity の前提が崩れる
-- #694（Error trait ecosystem）の基盤が不足する
+## 結果（実装計画へ）
 
-### 代替 B: `try!` マクロ
+作業チェックリストは issue / plan に置く（本 ADR に進捗ダッシュボードを残さない）:
 
-`?` の代わりに `try!(expr)` マクロを導入する。
+- typechecker: Option `?` と From 解決
+- MIR: Option / 変換付き Result の early-return match
+- #692: `From` trait
+- fixture: Option 伝播、異種 Err + From
 
-却下理由:
-- マクロシステムが Arukellt にまだない
-- `?` の方が構文的に簡潔で Rust と一致する
-
-### 代替 C: `?` に `From` を必須にしない
-
-エラー型が一致しない場合も `?` を許可し、実行時に変換を試みる。
-
-却下理由:
-- 静的型安全性が損なわれる
-- ADR-036 D1 の静的ディスパッチ方針に反する
-
-## 結果
-
-本 ADR の決定により以下が必要となる:
-
-- [ ] parser: `?` 後置演算子の構文解析
-- [ ] typechecker: `?` の型推論とエラー型変換の解決
-- [ ] MIR lowering: 早期リターン付き match のコード生成
-- [ ] #692: `From` trait 定義（`?` のエラー変換に必要）
-- [ ] Fixture: `Result<i32, AppError>` を返す関数で `parse_i32` に `?` を使用
-- [ ] Fixture: `Option` 伝播の `?`
+---
 
 ## 参照
 
-- ADR-036: Trait-based Stdlib Redesign Strategy（D1 静的ディスパッチ）
-- Issue #688: Trait method dispatch inside generic functions
-- Issue #690: `?` operator and `From<E>` error conversion
-- Issue #692: `Clone` / `Default` / `From` / `Into` / `TryFrom` trait group
-- Issue #694: `Error` trait and unified error type ecosystem
-- Rust `?` operator: <https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator>
+- 現行 Result `?`: `docs/language/spec.md` / `error-handling.md`
+- ADR-036、Issue #688 / #690 / #692 / #694
+- Rust `?`: https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator

@@ -29,5 +29,6 @@
   - [RFC](#/rfcs/README)
   - [実装計画](#/plans/README)
   - [調査メモ](#/research/README)
+  - [履歴](#/history/README)
   - [設計メモ](#/design/README)
   - [アーカイブ仕様](#/spec/README)

@@ -67,7 +67,7 @@ scripts/run/verify-bootstrap.sh --stage 0
 tracked in issue **#499** (for example commit `6610945`). That is incremental
 parser/front-end alignment work; it does **not** by itself mean Stage 2 fixpoint
 (`sha256(s2) == sha256(s3)`)—see
-[current-state.md — Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status).
+[history/compiler-mir-and-bootstrap.md — Self-Hosting Bootstrap Status](../history/compiler-mir-and-bootstrap.md#self-hosting-bootstrap-status).
 
 ## Verification Stages
 
@@ -287,7 +287,7 @@ The bootstrap check is available via `scripts/run/verify-bootstrap.sh`:
 | Context | Command | Notes |
 |---------|---------|-------|
 | Fast smoke (local layered gates, etc.) | `scripts/run/verify-bootstrap.sh --stage1-only` | Stage 0 only; does not prove bootstrap attainment |
-| CI `selfhost-bootstrap` job | `scripts/run/verify-bootstrap.sh --check` | Runs Stages 0 → 1 → 2; the workflow asserts Stage 0 and Stage 1 report `reached`; Stage 2 fixpoint is reached; `sha256(s2) == sha256(s3)` (see [current-state.md](../current-state.md#self-hosting-bootstrap-status)) |
+| CI `selfhost-bootstrap` job | `scripts/run/verify-bootstrap.sh --check` | Runs Stages 0 → 1 → 2; the workflow asserts Stage 0 and Stage 1 report `reached`; Stage 2 fixpoint is reached; `sha256(s2) == sha256(s3)` (see [history/compiler-mir-and-bootstrap.md](../history/compiler-mir-and-bootstrap.md#self-hosting-bootstrap-status)) |
 | Local dev | `scripts/run/verify-bootstrap.sh --stage 0` | Single stage |
 
 The `--stage1-only` flag is suitable for fast smoke checks. A **full**
@@ -375,7 +375,7 @@ simultaneously and be verified by CI on every merge to `master`:
 
 ### Current Verification Status
 
-See [docs/current-state.md — Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status)
+See [history/compiler-mir-and-bootstrap.md — Self-Hosting Bootstrap Status](../history/compiler-mir-and-bootstrap.md#self-hosting-bootstrap-status)
 for the authoritative stage-by-stage verification status.
 
 ### What is *not* required for "complete"

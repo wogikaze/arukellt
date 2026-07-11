@@ -110,6 +110,14 @@ description = "設計調査・比較検討。決定記録ではない。関連 A
 category = "archive"
 snapshot = "archive"
 
+
+[[sections]]
+dir = "history"
+title = "履歴"
+description = "過去の到達記録・実装ログ。現行 reality の正本ではない。"
+category = "archive"
+snapshot = "archive"
+
 [[sections]]
 dir = "design"
 title = "設計メモ"

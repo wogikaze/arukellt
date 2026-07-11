@@ -140,7 +140,7 @@ compilation handles all scalar types in parameter/return positions.
 ## Related Issues
 
 - Conversion functions: Requires function param/return type handling for
-  new scalars in T1/T3 emitters
+  new scalars in `wasm32` / `wasm32-gc` emitters
 - Unsigned arithmetic: `div_u`, `rem_u`, `lt_u` etc. for correctness
 - Overflow masking: `& 0xFF` for u8, `& 0xFFFF` for u16 after arithmetic
 - GC packed fields: Use `i8`/`i16` packed types in struct/array storage

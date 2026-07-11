@@ -1,132 +1,82 @@
-# ADR-038: Operator Overload Trait Surface
+# ADR-038: 演算子オーバーロードを magic method から trait へ移行する
 
-ステータス: **PROPOSED** — #688 後に実装する演算子オーバーロードの設計
+ステータス: **PROPOSED** — 既存の magic method 面を `std::core::ops` trait 面へ置換する
 
-提案日: 2026-06-26
+提案日: 2026-06-26  
+改訂日: 2026-07-11 — 「新設」ではなく既存 `__add` 等からの移行として書き直し
 
 ---
 
 ## 文脈
 
-Issue #689 は Arukellt に演算子オーバーロードを導入する。現在 `+`/`-`/`*`/`/`/
-`[]` は組み込みスカラー型のみで動作し、ユーザー定義型は演算子構文に参加できない。
+**現行（実装済み）:**
 
-#688 で trait method dispatch が実装されたため、演算子を trait メソッド呼び出しに
-マッピングできる。本 ADR はそのマッピングのセマンティクスを決定する。
+- ユーザー定義型は **magic method 名**（`__add`, `__sub`, `__mul`, …）で演算子に参加できる
+- normative: `docs/language/spec.md`（Operator overloading via magic method names）
+- `docs/language/syntax.md` も v1 実装済み構文として掲載
+
+**本 ADR の提案:**
+
+magic method 面を、#688 の trait method dispatch に基づく
+**`Add` / `Sub` / `Index` 等の trait-based operator surface** へ移行する。
+
+「演算子オーバーロードが存在しない」わけではない。存在する方式を置換する。
+
+---
 
 ## 提案する決定
 
-### D1: 演算子 → trait マッピング
+### D1: 演算子 → trait マッピング（移行先）
 
-以下の演算子を trait にマッピングする:
+| 演算子 | trait | メソッド |
+|--------|-------|---------|
+| `a + b` | `Add` | `add` |
+| `a - b` | `Sub` | `sub` |
+| `a * b` | `Mul` | `mul` |
+| `a / b` | `Div` | `div` |
+| `a % b` | `Rem` | `rem` |
+| `-a` | `Neg` | `neg` |
+| `a & b` / `\|` / `^` | `BitAnd` / `BitOr` / `BitXor` | … |
+| `a << b` / `>>` | `Shl` / `Shr` | … |
+| `!a` | `Not` | `not` |
+| `a[i]` / `a[i]=v` | `Index` / `IndexMut` | `index` / `index_set` |
+| `*a` / `*a=v` | `Deref` / `DerefMut` | `deref` / `deref_mut` |
 
-| 演算子 | trait | メソッド | 備考 |
-|--------|-------|---------|------|
-| `a + b` | `Add` | `add(self, rhs) -> Self` | |
-| `a - b` | `Sub` | `sub(self, rhs) -> Self` | |
-| `a * b` | `Mul` | `mul(self, rhs) -> Self` | |
-| `a / b` | `Div` | `div(self, rhs) -> Self` | |
-| `a % b` | `Rem` | `rem(self, rhs) -> Self` | |
-| `-a` | `Neg` | `neg(self) -> Self` | 単項 |
-| `a & b` | `BitAnd` | `bitand(self, rhs) -> Self` | |
-| `a \| b` | `BitOr` | `bitor(self, rhs) -> Self` | |
-| `a ^ b` | `BitXor` | `bitxor(self, rhs) -> Self` | |
-| `a << b` | `Shl` | `shl(self, rhs) -> Self` | |
-| `a >> b` | `Shr` | `shr(self, rhs) -> Self` | |
-| `!a` | `Not` | `not(self) -> Self` | 単項 |
-| `a[i]` | `Index` | `index(self, idx) -> T` | |
-| `a[i] = v` | `IndexMut` | `index_set(self, idx, value)` | |
-| `*a` | `Deref` | `deref(self) -> Target` | |
-| `*a = v` | `DerefMut` | `deref_mut(self) -> Target` | |
+### D2: 解決優先順位（移行後）
 
-### D2: 組み込みスカラーへのフォールバック
+1. ユーザー `impl Op for T`（trait dispatch）
+2. 組み込みスカラー演算（`i32 + i32` → Wasm `i32.add` 等）
+3. 型エラー
 
-演算子の型チェックは以下の優先順位で行う:
+### D3: 借用なしの Index / Deref
 
-1. **ユーザー impl ルックアップ**: レシーバ型に対する `impl Op for T` が存在すれば、
-   その trait メソッドに解決する（#688 の trait method dispatch 経由）。
-2. **組み込みフォールバック**: impl が存在しない場合、組み込みスカラー演算に
-   フォールバックする（`i32 + i32` → WASM `i32.add` 等）。
-3. **型エラー**: いずれも該当しない場合は型エラー。
+Arukellt に `&T` がないため、`Index::index` / `Deref::deref` は値返し。
+`IndexMut` は setter（`index_set`）パターン。
 
-この順序により、既存のコードは変更なしで動作し、ユーザー定義型のみが trait 解決を
-経由する。
+### D4: モジュール配置
 
-### D3: `Index` / `IndexMut` の戻り値型
+`std/core/ops.ark` に演算子 trait とスカラー組み込み impl を置く。
 
-Arukellt には借用 (`&T`) がないため、`Index::index` は値返し (`-> Output`) とする。
-`IndexMut` はミュータブル参照の代わりに setter パターンを使用する。
+### D5: magic method の扱い
 
-**理想形（本 ADR の正）:**
+- **移行期間**: `__add` 等は deprecated（警告）または互換エイリアスとして残してよい
+- **理想形**: 公開面は trait のみ。magic method は削除または内部実装詳細へ退避
+- 削除タイミング・互換期間は issue / plan（本 ADR は面の置換方針のみ固定）
 
-```
-trait Index<Idx, Output> {
-    fn index(self: Index, idx: Idx) -> Output
-}
-trait IndexMut<Idx, Output> {
-    fn index_set(self: IndexMut, idx: Idx, value: Output)
-}
-```
-
-`a[i] = v` は `IndexMut::index_set(a, i, v)` に脱糖する。
-
-### D4: `Deref` の戻り値型
-
-借用がないため、`Deref::deref` は値返し (`-> Target`) とする。`*a` は
-`Deref::deref(a)` に脱糖する。`DerefMut` は `deref_mut(self) -> Target` で、
-`*a = v` は `Target` 型の setter を経由する。
-
-**理想形（本 ADR の正）:** `Deref<Target>` / `DerefMut<Target>`。
-
-### D5: モジュール配置
-
-`std::core::ops` モジュールに全ての演算子 trait を配置する:
-
-```
-std/core/ops.ark  — Add, Sub, Mul, Div, Rem, Neg, BitAnd, BitOr, BitXor,
-                    Shl, Shr, Not, Index, IndexMut, Deref, DerefMut
-```
-
-組み込み impl は同じファイルに配置する（`impl Add for i32` 等）。
-
-### D6: 提供する trait 面（理想）
-
-次を言語・stdlib の演算子面として提供する:
-
-- `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Neg` — 算術
-- `BitAnd`, `BitOr`, `BitXor`, `Shl`, `Shr`, `Not` — ビット / 論理
-- `Index`, `IndexMut` — インデックス
-- `Deref`, `DerefMut` — デリファレンス
-
-スカラー型への組み込み impl と、ユーザー定義型への `impl` の両方を理想とする。
+---
 
 ## 代替案と却下理由
 
-### 代替 A: 全演算子を組み込みのまま（trait なし）
+| 案 | 結果 |
+|----|------|
+| magic method のまま恒久運用 | 却下（trait stdlib / ADR-036 と二重面） |
+| 動的 vtable 解決 | 却下（ADR-036 静的ディスパッチ） |
+| 演算子オーバーロード全廃 | 却下（ユーザー数値型・Vec 結合等が書けない） |
 
-演算子オーバーロードを導入せず、全て組み込みスカラーのみで運用する。
-
-却下理由:
-- ユーザー定義の数値型（複素数、行列、量型）が書けない
-- stdlib の `Vec<T>` の `+` 結合などが表現できない
-- Rust parity の前提が崩れる
-
-### 代替 B: 動的ディスパッチ（vtable）
-
-演算子解決を vtable 経由で行う。
-
-却下理由:
-- ADR-036 D1 と矛盾（静的ディスパッチがデフォルト）
-- スカラー演算のフォールバックが複雑になる
-- LLM フレンドリ方針に反する
-
-## 結果
-
-- 演算子は trait メソッドへマッピングされ、スカラーは組み込みフォールバックを持つ
+---
 
 ## 参照
 
-- ADR-036: Trait-based Stdlib Redesign Strategy（D1 静的ディスパッチ）
-- Issue #688: Trait method dispatch inside generic functions
-- Issue #689: Operator overload trait surface
-- Rust `std::ops`: <https://doc.rust-lang.org/std/ops/index.html>
+- 現行 magic methods: `docs/language/spec.md`
+- ADR-036、Issue #688 / #689
+- Rust `std::ops`: https://doc.rust-lang.org/std/ops/index.html

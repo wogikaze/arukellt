@@ -1223,7 +1223,57 @@ def load_target_contract_summary() -> list[dict[str, str]]:
 
 
 def render_current_state_updated(state: dict) -> str:
-    return f"> Updated: {state['project']['updated']}."
+    import subprocess
+    from datetime import datetime, timezone
+
+    updated = state["project"]["updated"]
+    cmd = state["project"].get("verification_command", "python3 scripts/manager.py verify quick")
+    source_commit = "unknown"
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        source_commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=ROOT,
+            text=True,
+        ).strip()
+        # Prefer commit time so regenerate --check is stable until HEAD moves.
+        generated_at = subprocess.check_output(
+            ["git", "show", "-s", "--format=%cI", "HEAD"],
+            cwd=ROOT,
+            text=True,
+        ).strip()
+        if generated_at.endswith("+00:00"):
+            generated_at = generated_at[:-6] + "Z"
+        elif generated_at.endswith("Z") is False and "+" in generated_at:
+            # normalize to Zulu-ish display without breaking local offsets
+            pass
+    except Exception:
+        pass
+    verification = state.get("verification", {})
+    failures = int(verification.get("fixture_failures", 0) or 0)
+    checks_passed = verification.get("checks_passed")
+    checks_total = verification.get("checks_total")
+    check_gap = 0
+    if checks_passed is not None and checks_total is not None:
+        check_gap = int(checks_total) - int(checks_passed)
+    ready = failures == 0 and check_gap == 0
+    readiness = "READY" if ready else "NOT READY"
+    blocking = []
+    if failures:
+        blocking.append(f"{failures} fixture failure(s)")
+    if check_gap:
+        blocking.append(f"{check_gap} verification check failure(s)")
+    blocking_line = ", ".join(blocking) if blocking else "none"
+    return "\n".join(
+        [
+            f"> Updated: {updated}.",
+            f"> Generated-At: {generated_at}",
+            f"> Source-Commit: `{source_commit}`",
+            f"> Verification-Command: `{cmd}`",
+            f"> Release-Readiness: **{readiness}**",
+            f"> Blocking: {blocking_line}",
+        ]
+    )
 
 
 def render_current_state_targets(state: dict) -> str:
