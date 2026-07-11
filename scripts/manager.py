@@ -52,6 +52,7 @@ from selfhost.checks import (  # noqa: E402
 )
 from docs_domain.checks import (  # noqa: E402
     run_consistency,
+    run_deprecated_api_scan,
     run_examples,
     run_freshness,
     run_regenerate,
@@ -4783,6 +4784,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-doc-examples.py docs/",
         ),
         (
+            "deprecated API scan in docs (H8)",
+            "python3 scripts/check/check-deprecated-api-in-docs.py --strict",
+        ),
+        (
             "selfhost analysis API gate (#568)",
             "python3 scripts/check/check-analysis-api.py",
         ),
@@ -7461,6 +7466,7 @@ def cmd_docs_check(args: argparse.Namespace) -> int:
         ("docs consistency", run_consistency),
         ("docs freshness", run_freshness),
         ("doc examples", run_examples),
+        ("deprecated API scan", run_deprecated_api_scan),
     ]
     with _cf.ThreadPoolExecutor() as executor:
         futures = {executor.submit(fn, root, dry_run): label for label, fn in checks}
