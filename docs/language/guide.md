@@ -16,8 +16,8 @@ complete stability picture.
 > 1. **Fixture-backed** (`<!-- fixture: path.ark -->`): The block is verified by a
 >    registered fixture in `tests/fixtures/manifest.txt`. CI compiles and runs the
 >    fixture, not the inline block. These examples are exact copies of the fixture source.
-> 2. **Skip-doc-check** (`<!-- skip-doc-check reason="..." kind="..." -->`): The block
->    is excluded from doc-example compilation because it demonstrates a concept that
+> 2. **Skip-doc-check** (HTML comment marker `skip-doc-check` with structured fields):
+>    The block is excluded from doc-example compilation because it demonstrates a concept that
 >    cannot be compiled standalone (e.g. uses `print` prelude alias not in the bootstrap,
 >    shows a type signature without a `main` function, or is pseudocode for a future feature).
 >    Each skip has a structured `reason`, `owner` (issue #), `kind`, and `expires` date.

@@ -81,6 +81,14 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | `wasi-p1` | `wasm32` | — | `wasm32-gc` | supported | partial | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32 only; wasm32-gc+P1 rejected per ADR-007) |
 | `wasi-p2` | `wasm32-gc` | — | — | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
 | `wasi-p3` | `wasm32-gc` | — | — | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
+
+> **Status axis glossary:**
+> - **Support Tier**: primary / supported / scaffold / not-started — project priority
+> - **Implementation**: complete / partial / scaffold / unimplemented — runtime readiness
+> - **Contract Stability**: stable / experimental — public API commitment
+> - A target can be `stable` (contract) + `partial` (implementation) simultaneously:
+>   `stable` means the target name and CLI interface won't change; `partial` means
+>   not all language features are fully lowered to Wasm yet.
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）

@@ -7,7 +7,7 @@
 古い capability API や未確認 helper は削っています。
 
 > **Code example verification**: この cookbook の Ark コード例は
-> `<!-- skip-doc-check -->` によって doc-example コンパイルから除外されています。
+> HTML comment marker `skip-doc-check` によって doc-example コンパイルから除外されています。
 > 除外理由は各 block に `reason` / `owner` / `kind` / `expires` として構造化記録されています。
 > 主な理由は `non-runnable`（`main` 関数を含まない断片例、prelude alias 使用など）です。
 > 対応する完全な実行可能 fixture は `tests/fixtures/` に登録されており、

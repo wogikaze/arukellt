@@ -1385,6 +1385,14 @@ def render_current_state_targets(state: dict) -> str:
             "### Host profiles",
             "",
             render_host_profile_table(state),
+            "",
+            "> **Status axis glossary:**",
+            "> - **Support Tier**: primary / supported / scaffold / not-started — project priority",
+            "> - **Implementation**: complete / partial / scaffold / unimplemented — runtime readiness",
+            "> - **Contract Stability**: stable / experimental — public API commitment",
+            "> - A target can be `stable` (contract) + `partial` (implementation) simultaneously:",
+            ">   `stable` means the target name and CLI interface won't change; `partial` means",
+            ">   not all language features are fully lowered to Wasm yet.",
         ]
     )
 
