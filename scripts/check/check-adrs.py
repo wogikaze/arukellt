@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ADR 台帳の整合性検査（識別子・ステータス・日付・後継関係）。
 
-docs/adr/ADR-*.md に対して ADR-0000 の規則を強制する。
+docs/adr/ADR-*.md に対して ADR-000 の規則を強制する。
 """
 from __future__ import annotations
 
@@ -19,9 +19,9 @@ ALLOWED_STATUSES = frozenset(
 )
 FORBIDDEN_ALIASES = frozenset({"DECIDED", "DRAFT", "SURVEY"})
 
-FILENAME_RE = re.compile(r"^ADR-0*(\d+)(?:[A-Z]?[A-Z0-9]*)?-.+\.md$", re.IGNORECASE)
-# Also allow ADR-0001 style and ADR-004-P4 style
-FILENAME_RE_FLEX = re.compile(r"^ADR-0*(\d+)", re.IGNORECASE)
+# 番号はちょうど 3 桁（ADR-004-P4-... のような接尾辞付きレガシー名も許容）
+FILENAME_RE_FLEX = re.compile(r"^ADR-(\d{3})(?:-[A-Za-z0-9]+)?-")
+FILENAME_OVERPAD_RE = re.compile(r"^ADR-\d{4,}")
 
 STATUS_LINE_RE = re.compile(
     r"(?:ステータス|\*\*Status\*\*|Status)\s*[:：]\s*\*?\*?([A-Za-z]+)",
@@ -70,9 +70,16 @@ def main() -> int:
     id_by_path: dict[Path, int] = {}
 
     for path in files:
+        if FILENAME_OVERPAD_RE.match(path.name):
+            errors.append(
+                f"{path.name}: 番号はちょうど 3 桁にしてください（例: ADR-001、ADR-0001 は不可）"
+            )
+            continue
         m = FILENAME_RE_FLEX.match(path.name)
         if not m:
-            errors.append(f"{path.name}: ファイル名が ADR-<番号> で始まっていません")
+            errors.append(
+                f"{path.name}: ファイル名が ADR-NNN-... 形式ではありません"
+            )
             continue
         adr_id = int(m.group(1))
         by_id[adr_id].append(path)

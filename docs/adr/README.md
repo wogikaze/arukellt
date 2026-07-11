@@ -8,7 +8,7 @@
 - これらの文書は設計判断の記録であり、現行挙動の正本ではない。
 - 現行の正本: [../current-state.md](../current-state.md)。
 
-ステータスライフサイクル: [ADR-0000-process.md](ADR-0000-process.md)
+ステータスライフサイクル: [ADR-000-process.md](ADR-000-process.md)
 （`PROPOSED` → `ACCEPTED` → `SUPERSEDED`。補助: `REJECTED` / `DEFERRED`）。
 
 台帳検査: `python3 scripts/check/check-adrs.py`。
@@ -17,8 +17,8 @@
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-0000-process.md](ADR-0000-process.md) | ADR-0000: ADR プロセスとステータスライフサイクル | ステータス: ACCEPTED — ADR の識別子・状態遷移・後継関係の規則を固定する |
-| [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
+| [ADR-000-process.md](ADR-000-process.md) | ADR-000: ADR プロセスとステータスライフサイクル | ステータス: ACCEPTED — ADR の識別子・状態遷移・後継関係の規則を固定する |
+| [ADR-001-harness-bootstrap.md](ADR-001-harness-bootstrap.md) | ADR-001: Harness Bootstrap Strategy | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | ステータス: ACCEPTED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: ACCEPTED — 制限付きMonomorphization（型ごとのコード生成）を採用 |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: ACCEPTED — LLVM IRバックエンドはWasm意味論に従属 |

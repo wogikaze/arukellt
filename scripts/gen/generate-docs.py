@@ -1458,7 +1458,7 @@ def _adr_status_for_entry(entry: DocEntry) -> str:
 
 
 def render_adr_readme(section: dict, entries: list[DocEntry], snapshot_lines: list[str]) -> str:
-    """ADR index grouped by status (ADR-0000); no uniform Archive label."""
+    """ADR index grouped by status (ADR-000); no uniform Archive label."""
     lines = [
         f"# {section['title']}",
         "",
@@ -1470,7 +1470,7 @@ def render_adr_readme(section: dict, entries: list[DocEntry], snapshot_lines: li
         "- これらの文書は設計判断の記録であり、現行挙動の正本ではない。",
         "- 現行の正本: [../current-state.md](../current-state.md)。",
         "",
-        "ステータスライフサイクル: [ADR-0000-process.md](ADR-0000-process.md)",
+        "ステータスライフサイクル: [ADR-000-process.md](ADR-000-process.md)",
         "（`PROPOSED` → `ACCEPTED` → `SUPERSEDED`。補助: `REJECTED` / `DEFERRED`）。",
         "",
         "台帳検査: `python3 scripts/check/check-adrs.py`。",

@@ -338,7 +338,7 @@ hard-fail when the bootstrap stage has not yet been run.  When wired into
 - [Bootstrap Verification Process](../process/bootstrap-verification.md)
 - [Compiler Pipeline](pipeline.md)
 - [IR Specification](ir-spec.md)
-- [ADR-0001: Harness Bootstrap](../adr/ADR-0001-harness-bootstrap.md)
+- [ADR-001: Harness Bootstrap](../adr/ADR-001-harness-bootstrap.md)
 
 ## Selfhost Completion Criteria
 
