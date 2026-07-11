@@ -1,4 +1,4 @@
-# ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価
+# ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査
 
 ステータス: **SUPERSEDED** — 番号重複解消のため [ADR-043](ADR-043-wasm-gc-post-mvp.md) へ移番
 

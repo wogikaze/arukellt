@@ -172,7 +172,7 @@ linear が 1.5x 以上高速なケース = 1（binary_tree のみ）。採用基
   GC 採用の性能上の懸念は実質的に解消された。
 - **結論は不変**: wasmtime の最適化未成熟は一時的制約（改善トレンド）であり、
   LLM フレンドリ性・実装単純さ・バイナリサイズの利点が性能面の懸念を上回る。
-  v0 完成後の wasmtime 最適化進展で vec_pushpop / result_heavy の遅延は解消期待。
+  将来の wasmtime 最適化進展で vec_pushpop / result_heavy の遅延は解消期待。
 
 #### 計測インフラ
 
@@ -221,10 +221,10 @@ linear が 1.5x 以上高速なケース = 1（binary_tree のみ）。採用基
 
 ### 前回のフォールバック計画（参考・再評価対象）
 
-v0 完成後のベンチマークで性能問題が判明した場合:
+将来のベンチマーク再評価時に性能問題が判明した場合:
 
 - 特定の hot path のみ linear memory に最適化
-- v1 で hybrid approach を検討
+- 将来 hybrid approach を検討
 
 ## 補足決定（2026-03-25）: AtCoder コンパイルターゲット追加
 

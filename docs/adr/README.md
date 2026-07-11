@@ -41,7 +41,7 @@
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | ステータス: ACCEPTED |
 | [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | ステータス: ACCEPTED — Semantic Type Spine（SignatureRegistry / MonoInstanceTable）を MIR の正本とする。 |
 | [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | ステータス: ACCEPTED |
-| [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価 | ステータス: ACCEPTED — v4 では Post-MVP GC 拡張を実装しない; 本文は v5 設計の参考調査として保持 |
+| [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: WasmGC Post-MVP 拡張機能 — 設計調査 | ステータス: ACCEPTED — Post-MVP GC 拡張は現時点では未実装; 本文は将来設計の参考調査として保持 |
 
 ## 提案
 
@@ -58,14 +58,14 @@
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: メソッド構文の評価 | ステータス: DEFERRED — 評価保留（trigger待ち） |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: DEFERRED — LLVM 役割の判断を保留（Wasm バックエンド成熟待ち） |
 
 ## 後継済み
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-008-wasm-gc-post-mvp.md](ADR-008-wasm-gc-post-mvp.md) | ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査と Arukellt v5 評価 | ステータス: SUPERSEDED — 番号重複解消のため ADR-043 へ移番 |
+| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: メソッド構文の評価 | ステータス: SUPERSEDED — trait / メソッド構文は導入済みのため退役 |
+| [ADR-008-wasm-gc-post-mvp.md](ADR-008-wasm-gc-post-mvp.md) | ADR-008: WasmGC Post-MVP 拡張機能 — 設計調査 | ステータス: SUPERSEDED — 番号重複解消のため ADR-043 へ移番 |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | ステータス: SUPERSEDED — ADR-031 に統合（探索メモ） |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | ステータス: SUPERSEDED — ADR-031 に統合 |
 | [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: プレイグラウンド v2 コンパイラ Wasm とブラウザ実行モデル | ステータス: SUPERSEDED — ADR-017 の v2 節へ統合 |

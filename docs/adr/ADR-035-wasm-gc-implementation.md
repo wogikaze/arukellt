@@ -124,7 +124,7 @@ Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は `
 ## スコープ外
 
 - Post-MVP GC features (ADR-043 survey): static fields, weak references,
-  generics — これらは v5 以降
+  generics — これらは将来の検討対象
 - jco/javy interop (#036, #037): jco の Wasm GC サポート待ち
 - LLVM backend (`native-llvm`): native target は別トラック
 - WASI P3 async-first: WASI P3 仕様未確定のため defer

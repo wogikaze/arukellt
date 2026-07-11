@@ -98,7 +98,7 @@ ADR-014 は仕様の*節*と stdlib の*エントリ*に安定性ラベルを付
 `transitional` 設計メモは ADR-014 の意味での「experimental」ではない。
 
 **形式分類なし。既存の blockquote バナーに頼る**
-却下: 既存バナーは不統一（`Current-first`、`Transitional`、`Frozen for v5`）。クラスと
+却下: 既存バナーは不統一（`Current-first`、`Transitional`、`Frozen for release`）。クラスと
 テンプレートの規範リストがなければ不統一は増える。TOML 正本は機械可読で、将来の harness 検査を可能にする。
 
 ---

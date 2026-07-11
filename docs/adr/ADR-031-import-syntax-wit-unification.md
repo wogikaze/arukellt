@@ -81,7 +81,7 @@ use std::io                   // Layer S -- stdlib module (unchanged)
 use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 // Layer C expressed outside source:
 //   --wit my_interface.wit   (CLI flag, already accepted)
-//   #[wit_import("wasi:cli/stdin@0.2.10")]  (future attribute form, v4+)
+//   #[wit_import("wasi:cli/stdin@0.2.10")]  (future attribute form)
 ```
 
 **利点:**
@@ -93,7 +93,7 @@ use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 
 **欠点:**
 - 2 概念（「Layer S」vs「Layer C」）のドキュメントが必要
-- ソース内のインライン Component Model 宣言には依然構文決定が必要（v4 に延期）
+- ソース内のインライン Component Model 宣言には依然構文決定が必要（将来フェーズに延期）
 
 **判定**: **Chosen**（決定節参照）。
 
@@ -113,9 +113,9 @@ wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
 
 **欠点:**
 - 新しい複合キーワード表面
-- Option B の属性/文字列形式とほぼ重複 — v4 では同じ問題を解く
+- Option B の属性/文字列形式とほぼ重複 — 同じ問題を将来フェーズで解く
 
-**判定**: 選択方向に部分的に統合。Option B の v4 配信経路（`import "..."`）が単一キーワードで同じ曖昧さ解消を達成。
+**判定**: 選択方向に部分的に統合。Option B の配信経路（`import "..."`）が単一キーワードで同じ曖昧さ解消を達成。
 
 ### Option D — ソースの `import`/`use` キーワードを統一し、`import` を Layer C に予約
 
@@ -123,11 +123,11 @@ wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
 
 <!-- skip-doc-check -->
 ```ark
-// v3 (current)
+// 現行
 import math           // local file module
 use std::io           // stdlib module
 
-// v4 (deprecation)
+// 次の移行（廃止予告）
 use math              // W0101 warning: `import <id>` is deprecated; use `use <id>`
 use std::io           // unchanged
 
@@ -140,10 +140,10 @@ import "wasi:cli/stdin@0.2.10"   // WIT package import via freed keyword
 - `use` パスへの構造的破壊なし
 
 **欠点:**
-- パーサ変更と v4 の廃止診断（W0101）が必要
+- パーサ変更と廃止診断（W0101）が必要
 - `import <single-id>` 利用者は移行必須。影響はローカルファイルモジュール import に限定
 
-**判定**: **Adopted as the v4 migration path**（Option B と併用）。`import` キーワードは v3 から Layer C 表面用に予約。
+**判定**: **Adopted as the migration path**（Option B と併用）。`import` キーワードは Layer C 表面用に予約。
 
 ---
 
@@ -153,15 +153,15 @@ import "wasi:cli/stdin@0.2.10"   // WIT package import via freed keyword
 
 1. **`use path::to::module` を Layer S ソース import 構文として確定** — 既存ソースファイルやフィクスチャへの変更なし。
 
-2. **`import <single-identifier>` を v4 で廃止、v5 で削除** — ローカルファイル import は `use <identifier>` に移行。廃止診断: W0101。
+2. **`import <single-identifier>` を次の移行で廃止、最終的に削除** — ローカルファイル import は `use <identifier>` に移行。廃止診断: W0101。
 
-3. **`import` キーワードを v4 で Layer C（WIT/Component Model）用に予約** — 具体構文は TBD（現候補は文字列形式 `import "wasi:cli/stdin@0.2.10"`。issue #124 参照）。
+3. **`import` キーワードを Layer C（WIT/Component Model）用に予約** — 具体構文は TBD（現候補は文字列形式 `import "wasi:cli/stdin@0.2.10"`。issue #124 参照）。
 
 4. **WIT パッケージ識別子は Layer C 境界データのまま** — `.wit`、CLI フラグ、マニフェストに現れる。`use` パスセグメントとしては**無効**。
 
 5. **レイヤー命名は正規**:
    - **Layer S (Source)**: `use` + `::` 区切りパス
-   - **Layer C (Component)**: `import` + WIT 識別子形式（v4+）
+   - **Layer C (Component)**: `import` + WIT 識別子形式
 
 ---
 
@@ -184,13 +184,13 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 
 ## 移行への影響
 
-### 既存コード（v3）
+### 既存コード（現行）
 
-**変更不要。** 既存のすべての `use std::...` と `import <local>` ソース構文は v3 でコンパイル・診断パスを継続。
+**変更不要。** 既存のすべての `use std::...` と `import <local>` ソース構文は現行のコンパイル・診断パスを継続。
 
-### v4 移行経路
+### 次の移行経路
 
-| 構文 | v4 の挙動 | 影響範囲 |
+| 構文 | 次の移行での挙動 | 影響範囲 |
 |--------|-------------|----------------|
 | `use std::io` | 不変、警告なし | すべての stdlib / host import |
 | `use path::to::module` | 不変、警告なし | すべての `use` パス import |
@@ -199,7 +199,7 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 
 `import <single-id>` から `use` への移行の推定フィクスチャ影響: **局所的**。stdlib は全体で `use` を使用。ほとんどの `import <single-id>` は特定テストフィクスチャに現れる。
 
-### v5
+### 最終削除
 
 `import <single-identifier>` パース経路を削除。残存はハードエラー。
 
@@ -208,7 +208,7 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 ## 結果
 
 - `use` は安定した永続の Arukellt ソースモジュール import キーワード。再定義されない。
-- `import` は v4 以降 Component Model / WIT 境界キーワードとなる。`import <single-id>` セマンティクスは移行対象。
+- `import` は Component Model / WIT 境界キーワードとなる。`import <single-id>` セマンティクスは移行対象。
 - ツール（IDE、LLM プロンプト、ドキュメント）は `use` と `import` を同義語ではなく別レイヤーとして説明すべき。
 - `std::` パスプレフィックスは Arukellt ソース名前空間であり、WIT 名前空間ではない。WIT identity 用語の `wasi:` や `arukellt:` と同等ではない。
 

@@ -26,7 +26,7 @@ wasmtime 29+ および主要ランタイムは Extended Const をデフォルト
 - `opt_level >= 2` のとき、heap pointer グローバルの初期値を extended const で出力:
   `(i32.add (i32.const DATA_START) (i32.const data_size))`
 - `opt_level < 2` または `data_size == 0` の場合は従来の `(i32.const offset)` を維持
-- ユーザー定義グローバル変数が v5+ で導入された際、`global.get` を含む
+- ユーザー定義グローバル変数が将来導入された際、`global.get` を含む
   extended const 式にも対応可能な基盤を提供
 
 ---

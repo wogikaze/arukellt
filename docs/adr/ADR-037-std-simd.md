@@ -9,8 +9,7 @@
 ## 文脈
 
 Arukellt には SIMD サポートが存在しない。`std::wasm::valtype_v128` の定数バイトのみが
-experimental で存在する。Wasm SIMD (v128) は roadmap-v4.md §4 で非対象とされていたが、
-本 ADR は v5+ における SIMD 導入の最初の入口を定義する。
+experimental で存在する。本 ADR は明示的 SIMD ライブラリ API としての導入入口を定義する。
 
 Issue #107 (ループベクトル化ヒント) は reject 済みであり、本 ADR はその代替位置づけである。
 ただし「autovectorization を採用する」のではなく、「SIMD 導入の最初の入口を compiler hint
@@ -228,12 +227,12 @@ LLVM native SIMD (`<4 x i32>` 等) を使用する想定。native SIMD と Wasm 
 本 ADR は Issue #107 (ループベクトル化ヒント) の代替である。
 
 - #107 の hint-based autovectorization は本 ADR では採用しない。
-- v5+ で再評価する場合も、hint を直接 Wasm SIMD 命令へ落とすのではなく、明示的な
+- 将来再評価する場合も、hint を直接 Wasm SIMD 命令へ落とすのではなく、明示的な
   `std::simd` 呼び出しと同じ `Simd<T, N>` MIR へ正規化できるかを条件とする。
 - `#[vectorize]` のような hint を入れると、意味論・診断・最適化責任が一気に compiler 側へ
   寄る。現段階ではまず `std::simd::f32x4` を明示的に呼ばせ、compiler はそれを素直に
   v128 または scalar tuple に lower する。
-- autovectorization は v5+ で再評価するが、その場合も内部表現としては `Simd<T, N>` IR に
+- autovectorization は将来再評価するが、その場合も内部表現としては `Simd<T, N>` IR に
   lower する方針である。`std::simd` はソース上の明示 API、IR は compiler 内部の
   canonical SIMD 表現、という分離を維持する。
 

@@ -28,7 +28,7 @@
 - **意図的にスキップ**するもの: 純粋なアンカーのみの参照（`#anchor`）と、ファイルパスに付加されたアンカー（`path.md#anchor`） — ファイルの存在のみを検査する。
 - 外部 URL（`http://`、`https://`）は**検査しない**。
 
-このスクリプトが **v1 の正規リンクチェッカー**である。特定の作業指示で本スクリプトのスコープが明らかに不十分であることが示されない限り、第2のリンクチェッカーを追加しない。
+このスクリプトが **正規のリンクチェッカー**である。特定の作業指示で本スクリプトのスコープが明らかに不十分であることが示されない限り、第2のリンクチェッカーを追加しない。
 
 ### 2. アンカーフラグメント検査（実装済み）
 
@@ -82,5 +82,5 @@
 - `scripts/check/check-links.sh` — 内部ファイル参照チェッカー
 - `scripts/check/check-anchor-fragments.py` — アンカーフラグメントチェッカー（GFM スラッグ + 明示 id）
 - ADR-018: Language Docs Classification — Normative / Explanatory / Transitional
-- Issue #644: Docs anchor fragment link-check (ADR-019 v2 delivery)
+- Issue #644: Docs anchor fragment link-check (ADR-019 後続)
 - Issue #412: Language Docs: 安定した anchor / permalink 体系を整える

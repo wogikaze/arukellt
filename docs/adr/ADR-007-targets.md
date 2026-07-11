@@ -266,7 +266,7 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
   - 外部 C コンパイラ (`cc`) を呼び出して `.c` → `.o` に変換
 - **リンク**: `--emit executable` で `<input>.out` (実行可能ファイル) を生成
   - `cc <input>.c -o <input>.out -larukellt_runtime`
-  - v0 では実行可能ファイル生成は **scaffold tier** (ADR-007 §検証サーフェス)
+  - 実行可能ファイル生成は **scaffold tier** (ADR-007 §検証サーフェス)
 
 #### `native-llvm`
 
@@ -279,7 +279,7 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
   - `llvm-as <input>.ll -o <input>.bc` で変換
 - **リンク**: `--emit executable` で `<input>.out` を生成
   - `clang <input>.ll -o <input>.out -larukellt_runtime`
-  - v0 では **scaffold tier**
+  - **scaffold tier**
 
 ### Component化・jco transpile 後の中間ファイル
 

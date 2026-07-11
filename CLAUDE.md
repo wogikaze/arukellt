@@ -94,8 +94,8 @@ The stdlib is migrating from function-centric free functions to
 - Monomorphic helpers (`*_i32`, `*_i64`, `*_f64`) are implementation
   details or temporary bridges — not user-facing API.
 
-References: ADR-036 (trait-stdlib-redesign), ADR-004-P4 (method-syntax
-evaluation), issue #709 (trait-first API policy), issue #703
+References: ADR-036 (trait-stdlib-redesign), ADR-038 (operator overload
+traits), issue #709 (trait-first API policy), issue #703
 (monomorphic API bold cutover).
 
 ## Markdown Navigation

@@ -13,7 +13,7 @@ Arukellt には 2 種類の「モジュール参照」が混在している。
 | ソースレベル stdlib import | `use std::host::stdio` | `::` |
 | WIT パッケージ識別子 | `wasi:cli/stdin@0.2.10` | `:` + `/` + `@` |
 
-v2 Component Model 対応で「ソースから外部 WIT インターフェースを参照する構文」が必要になり、
+Component Model 対応で「ソースから外部 WIT インターフェースを参照する構文」が必要になり、
 以下の問題が顕在化した:
 
 1. LLM が `std::host::stdio` と `wasi:io/streams` を同じ層の概念として混同するリスク
@@ -42,11 +42,11 @@ Normative import-system contract page: [../spec/import-system.md](../spec/import
 
 ### 2. `import` keyword を Component Model / WIT 境界宣言用に予約する
 
-`import 単識別子`（ローカルファイルモジュール）は v4 で `use` に統一し deprecate する。
-空いた `import` keyword は v4 以降で WIT 外部インターフェース参照に使用する:
+`import 単識別子`（ローカルファイルモジュール）は将来 `use` に統一し deprecate する。
+空いた `import` keyword は WIT 外部インターフェース参照に使用する:
 
 ```
-// v4 以降の構文案
+// 将来の構文案
 import "wasi:cli/stdin@0.2.10"
 ```
 
@@ -88,8 +88,8 @@ WIT import の想定ワークフロー:
 ## Consequences
 
 - `use` は Arukellt ソースの module 参照として確定し、今後変更しない
-- `import` keyword は v4 で WIT 境界宣言専用に再定義される
-- パーサーの `TokenKind::Import` は v4 で WIT import 専用として再割り当てされる
+- `import` keyword は将来 WIT 境界宣言専用に再定義される
+- パーサーの `TokenKind::Import` は WIT import 専用として再割り当てされる
 
 ## Related
 

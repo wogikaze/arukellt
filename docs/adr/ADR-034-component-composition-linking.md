@@ -12,7 +12,7 @@ Issue #443 は複数の Wasm Component を 1 つの実行単位に合成する l
 前提として #442（WIT interop）と #476（`wac plug` / wasm-tools compose smoke）がある。
 
 Selfhost コンパイラは `std::host::process` に `exit` / `abort` のみを持ち、外部プロセス起動 API がない。
-そのため v1 scaffold では **検証 + dependency graph 出力 + `wac plug` 委譲ヒント** を `arukellt compose` に実装する。
+そのため初期 scaffold では **検証 + dependency graph 出力 + `wac plug` 委譲ヒント** を `arukellt compose` に実装する。
 
 ---
 

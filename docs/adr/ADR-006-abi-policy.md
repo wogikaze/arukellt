@@ -25,7 +25,7 @@
 | Layer | 名称 | 公開範囲 | 互換性保証 |
 |-------|------|---------|-----------|
 | 1 | 内部 ABI | 非公開 | なし |
-| 2 | WASM 公開 ABI | Wasm モジュール間 | v0 以降 |
+| 2 | WASM 公開 ABI | Wasm モジュール間 | 互換性を維持する |
 | 3 | native 公開 ABI | C ライブラリとの FFI | C ABI 準拠 |
 
 ### Layer 1: 内部 ABI
@@ -36,7 +36,7 @@
 
 ### Layer 2: WASM 公開 ABI
 
-- v0 では 2 つの公開面を持つ:
+- 2 つの公開面を持つ:
   - **Layer 2A: raw Wasm ABI**（素の import/export）
   - **Layer 2B: Component Model / WIT ABI**（WASI Preview 2、canonical ABI）
 - どちらも Layer 2 の範囲に含める
@@ -60,7 +60,7 @@
 
 2. **Layer 2A / 2B の意味論分岐禁止**
    - raw Wasm 面と WIT 面で言語仕様を分岐させない
-   - 片方のみで成功する API 形は v0 の正規 API にしない
+   - 片方のみで成功する API 形は正規 API にしない
 
 3. **ABI の独自拡張禁止**
    - 標準から外れる呼び出し規約は入れない
