@@ -51,12 +51,12 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP request with the given method, URL, and body. |
-| `get` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Sends an HTTP GET request to the given URL. |
-| `serve` | `(i32, String) -> Result<(), String>` | `provisional` | ✅ impl | Serves one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). |
-| `read_body` | `(HttpResponse) -> String` | `provisional` | ✅ impl | - |
-| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ✅ impl | - |
-| `response_status` | `(HttpResponse) -> i32` | `provisional` | ✅ impl | - |
+| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ functional | Sends an HTTP request with the given method, URL, and body. |
+| `get` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | Sends an HTTP GET request to the given URL. |
+| `serve` | `(i32, String) -> Result<(), String>` | `provisional` | ✅ functional | Serves one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). |
+| `read_body` | `(HttpResponse) -> String` | `provisional` | ✅ functional | - |
+| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ✅ functional | - |
+| `response_status` | `(HttpResponse) -> i32` | `provisional` | ✅ functional | - |
 
 #### `std::host::http::request`
 

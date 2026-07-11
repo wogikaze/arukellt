@@ -10,11 +10,21 @@ release refs; items marked **Manual** require human verification.
 
 ## Pre-release
 
-- [ ] **CI** — `python3 scripts/manager.py verify` passes
-- [ ] **CI** — `arukellt compile docs/examples/hello.ark --target wasm32-gc` produces valid Wasm
-- [ ] **CI** — `arukellt compile docs/examples/hello.ark --target wasm32` produces valid Wasm
-- [ ] **CI** — `python3 scripts/manager.py verify fixtures` passes for the observed harness snapshot
-- [ ] **CI** — `bash scripts/check/check-panic-audit.sh` passes
+<!-- BEGIN GENERATED:release-blockers -->
+<!-- Generated from docs/data/release-guarantees.toml; do not edit this block. -->
+- [ ] **CI `compile_wasm32_gc`** — `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` (job: `verification`)
+- [ ] **CI `compile_wasm32`** — `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` (job: `verification`)
+- [ ] **CI `run_wasmtime`** — `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` (job: `verification`)
+- [ ] **CI `fixture_harness`** — `python3 scripts/manager.py verify fixtures` (job: `verification`)
+- [ ] **CI `determinism`** — `bash scripts/check/check-release-determinism.sh` (job: `verification`)
+- [ ] **CI `no_panic_user_paths`** — `bash scripts/check/check-panic-audit.sh` (job: `verification`)
+<!-- END GENERATED:release-blockers -->
+
+## Supplemental release checks
+
+These checks validate distribution and integration quality but are not additional
+guarantee definitions. The generated blocker block above remains authoritative.
+
 - [ ] **CI** — `python3 scripts/manager.py selfhost fixpoint` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost fixture-parity` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost parity --mode --cli` passes

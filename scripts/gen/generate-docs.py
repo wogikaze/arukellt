@@ -1211,6 +1211,7 @@ def format_host_module_badges(
 
     # Determine implementation status from function ``kind`` fields.
     stub_count = sum(1 for fn in functions if fn.get("kind") == "host_stub")
+    limited_count = sum(1 for fn in functions if _function_semantic_status(fn) != "functional")
     total = len(functions) if functions else 0
     if unbacked:
         status = "⚠️ **Status:** not user-reachable on selfhost path"
@@ -1218,6 +1219,8 @@ def format_host_module_badges(
         status = "⚠️ **Status:** stub — not yet implemented"
     elif stub_count > 0:
         status = f"⚠️ **Status:** mixed — {stub_count}/{total} stub"
+    elif limited_count > 0:
+        status = f"⚠️ **Status:** partial — {limited_count}/{total} APIs have limited or placeholder semantics"
     else:
         status = "✅ **Status:** implemented"
 
@@ -1226,6 +1229,30 @@ def format_host_module_badges(
         f"> 🎯 **Target:** {target_str}{t3_badge} · {status}",
         "",
     ]
+
+
+def _function_semantic_status(entry: dict) -> str:
+    """Classify manifest-described runtime semantics without equating presence with function."""
+    if entry.get("kind") == "host_stub":
+        return "stub"
+    evidence = " ".join(
+        str(value) for value in (
+            entry.get("doc", ""),
+            entry.get("errors", ""),
+            entry.get("availability", {}).get("note", ""),
+        )
+    ).lower()
+    limited_markers = (
+        "always false",
+        "always returns err",
+        "always err",
+        "honest stub",
+        "honest rejection",
+        "not yet supported",
+        "not yet exposed",
+        "does not distinguish file types",
+    )
+    return "limited" if any(marker in evidence for marker in limited_markers) else "functional"
 
 
 def join_pipeline(parts: list[str]) -> str:
@@ -1581,13 +1608,14 @@ def render_sidebar(sections: list[dict]) -> str:
         "  - [Current state](#/current-state)",
         "  - [クイックスタート](#/quickstart)",
         "  - [Contributing](#/contributing)",
-        "  - [見取り図 HTML（アーカイブ）](#/overview.html)",
     ]
     for category in ("current", "supporting", "archive"):
         category_sections = [section for section in sections if section["category"] == category]
         if not category_sections:
             continue
         lines.extend(["", f"- **{category_labels[category]}**"])
+        if category == "archive":
+            lines.append("  - [見取り図 HTML（アーカイブ）](#/overview.html)")
         for section in category_sections:
             lines.append(f"  - [{section['title']}](#/{section['dir']}/README)")
             if section["dir"] == "playground":
@@ -2149,7 +2177,7 @@ def render_stdlib_readme(
         "| [**reference.md**](reference.md) | Complete manifest-backed API reference (all functions, types, stability tiers) |",
         "| [migration-guidance.md](migration-guidance.md) | Deprecated API migration paths and replacement patterns |",
         "| [stability-policy.md](stability-policy.md) | What stable / provisional / experimental mean for your code |",
-        "| [std.md](std.md) | 総合設計書 — comprehensive design rationale |",
+        "| [std.md](std.md) | Historical March 2026 design rationale — not the current API contract |",
         "",
         "## Reading Guide",
         "",
@@ -2443,6 +2471,9 @@ def render_stdlib_module_page(
         doc_lines = HOST_MODULE_SOURCE_DOC_OVERRIDES.get(
             module_name, source_module.docs
         )
+        first_content = next((i for i, line in enumerate(doc_lines) if line.strip()), None)
+        if first_content is not None and doc_lines[first_content].lstrip().startswith("# "):
+            doc_lines = doc_lines[:first_content] + doc_lines[first_content + 1 :]
         lines.extend(
             render_source_doc_block(
                 doc_lines,
@@ -2518,7 +2549,13 @@ def render_stdlib_module_page(
                 name_display = f"~~`{entry['name']}`~~" if deprecated else f"`{entry['name']}`"
                 dep_inline = _format_deprecated_inline(entry) if deprecated else ""
                 if is_host_module:
-                    fn_status = "⚠️ stub" if entry.get("kind") == "host_stub" else "✅ impl"
+                    semantic_status = _function_semantic_status(entry)
+                    if semantic_status == "stub":
+                        fn_status = "⚠️ stub"
+                    elif semantic_status == "limited":
+                        fn_status = "⚠️ limited semantics"
+                    else:
+                        fn_status = "✅ functional"
                     lines.append(
                         "| {name}{dep} | `{signature}` | `{stability}` | {status} | {summary} |".format(
                             name=name_display,
@@ -3230,14 +3267,14 @@ def _scoreboard_has_host_dep(entry: dict) -> bool:
 
 
 def _scoreboard_stability_bucket(entry: dict) -> str:
-    """Classify a function into stable / experimental / deprecated buckets."""
+    """Return the exact manifest stability tier used by the scoreboard."""
     if _is_deprecated(entry):
         return "deprecated"
     stability = entry.get("stability", "stable")
     if stability == "stable":
         return "stable"
-    if stability in {"experimental", "provisional", "unimplemented"}:
-        return "experimental"
+    if stability in {"experimental", "provisional"}:
+        return stability
     if stability == "deprecated":
         return "deprecated"
     return "experimental"
@@ -3293,13 +3330,14 @@ def render_scoreboard(manifest: dict) -> str:
         "[`../../std/manifest.toml`](../../std/manifest.toml).",
         "> Do not edit manually — changes will be overwritten on the next regeneration.",
         "",
-        "| Family | APIs | Stable | Exp | Depr | Fixture Coverage | Host Dep |",
-        "|--------|------|--------|-----|------|------------------|----------|",
+        "| Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |",
+        "|--------|------|--------|-------------|--------------|------------|------------------|----------|",
     ]
 
     totals = {
         "apis": 0,
         "stable": 0,
+        "provisional": 0,
         "experimental": 0,
         "deprecated": 0,
         "fixture_covered": 0,
@@ -3311,6 +3349,9 @@ def render_scoreboard(manifest: dict) -> str:
         entries = families[family_name]
         apis = len(entries)
         stable = sum(1 for entry in entries if _scoreboard_stability_bucket(entry) == "stable")
+        provisional = sum(
+            1 for entry in entries if _scoreboard_stability_bucket(entry) == "provisional"
+        )
         experimental = sum(
             1 for entry in entries if _scoreboard_stability_bucket(entry) == "experimental"
         )
@@ -3332,13 +3373,14 @@ def render_scoreboard(manifest: dict) -> str:
 
         totals["apis"] += apis
         totals["stable"] += stable
+        totals["provisional"] += provisional
         totals["experimental"] += experimental
         totals["deprecated"] += deprecated
         totals["fixture_covered"] += fixture_covered
         totals["fixture_total"] += fixture_total
 
         lines.append(
-            f"| `{family_name}` | {apis} | {stable} | {experimental} | {deprecated} "
+            f"| `{family_name}` | {apis} | {stable} | {provisional} | {experimental} | {deprecated} "
             f"| {coverage_display} | {host_dep} |"
         )
 
@@ -3346,15 +3388,17 @@ def render_scoreboard(manifest: dict) -> str:
     lines.extend([
         "",
         f"**Total**: {totals['apis']} APIs, {totals['stable']} stable, "
-        f"{totals['experimental']} experimental, {totals['deprecated']} deprecated, "
+        f"{totals['provisional']} provisional, {totals['experimental']} experimental, "
+        f"{totals['deprecated']} deprecated, "
         f"{total_coverage} fixture coverage",
         "",
         "## Legend",
         "",
         "- **APIs**: Total function count in the family",
         "- **Stable**: Functions with `stability = \"stable\"` (or default)",
-        "- **Exp**: Functions with `stability = \"experimental\"`, `\"provisional\"`, or `\"unimplemented\"`",
-        "- **Depr**: Functions with `deprecated_by` set or `stability = \"deprecated\"`",
+        "- **Provisional**: Functions with `stability = \"provisional\"`",
+        "- **Experimental**: Functions with `stability = \"experimental\"`",
+        "- **Deprecated**: Functions with `deprecated_by` set or `stability = \"deprecated\"`",
         "- **Fixture Coverage**: How many non-deprecated functions appear in at least one test fixture",
         "- **Host Dep**: Whether the family contains host-imported functions "
         "(`kind = \"host_stub\"` or module under `std::host::`)",

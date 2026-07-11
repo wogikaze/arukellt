@@ -42,7 +42,7 @@ write_string("output.txt", "hello")
 - Manifest-backed functions: 13
 - Stability: experimental 3, provisional 8, stable 2
 
-> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ⚠️ **Status:** partial — 4/13 APIs have limited or placeholder semantics
 
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
@@ -83,19 +83,19 @@ are future on both targets.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `fs_error_message` | `(FsError) -> String` | `provisional` | ✅ impl | - |
-| `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ impl | Reads a UTF-8 text file into memory. |
-| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
-| `is_readable_file` | `(String) -> bool` | `stable` | ✅ impl | Read-probe semantics — not a general path-existence query. |
-| `exists` | `(String) -> bool` | `stable` | ✅ impl | @deprecated Use is_readable_file instead. This function has the same |
-| `is_file` | `(String) -> bool` | `provisional` | ✅ impl | Returns true when the path is a readable file (same semantics as |
-| `is_dir` | `(String) -> bool` | `provisional` | ✅ impl | Returns false unconditionally on current targets. |
-| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ✅ impl | List the entries in a directory. |
-| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `provisional` | ✅ impl | Query file metadata for a given path. |
-| `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
-| `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
-| `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
+| `fs_error_message` | `(FsError) -> String` | `provisional` | ✅ functional | - |
+| `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | Reads a UTF-8 text file into memory. |
+| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | Writes a UTF-8 string to a file, replacing any existing contents. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | Writes a byte array to a file, replacing any existing contents. |
+| `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | Read-probe semantics — not a general path-existence query. |
+| `exists` | `(String) -> bool` | `stable` | ✅ functional | @deprecated Use is_readable_file instead. This function has the same |
+| `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns true when the path is a readable file (same semantics as |
+| `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns false unconditionally on current targets. |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ⚠️ limited semantics | List the entries in a directory. |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `provisional` | ⚠️ limited semantics | Query file metadata for a given path. |
+| `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | Seeks within an open file descriptor. |
+| `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | Returns the current file offset for an open file descriptor. |
+| `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | Returns the errno from fd_fdstat_get for an open file descriptor. |
 
 #### `std::host::fs::fs_error_message`
 

@@ -49,11 +49,11 @@ Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | Opens a TCP connection to the given host and port. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `provisional` | ✅ impl | Reads up to max_len bytes from an open socket. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `provisional` | ✅ impl | Writes byte values from bytes to an open socket. |
-| `listen` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | Binds a TCP listener on the given host and port. Returns listener fd on success. |
-| `accept` | `(i32) -> Result<i32, String>` | `provisional` | ✅ impl | Accepts one inbound connection on a listener fd. Returns connected socket fd. |
+| `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ functional | Opens a TCP connection to the given host and port. |
+| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `provisional` | ✅ functional | Reads up to max_len bytes from an open socket. |
+| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `provisional` | ✅ functional | Writes byte values from bytes to an open socket. |
+| `listen` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ functional | Binds a TCP listener on the given host and port. Returns listener fd on success. |
+| `accept` | `(i32) -> Result<i32, String>` | `provisional` | ✅ functional | Accepts one inbound connection on a listener fd. Returns connected socket fd. |
 
 #### `std::host::sockets::connect`
 

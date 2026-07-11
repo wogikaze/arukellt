@@ -264,6 +264,30 @@ def render_release_guarantees(data: dict) -> str:
     return "\n".join(lines)
 
 
+def render_release_blockers(data: dict) -> str:
+    lines = ["<!-- Generated from docs/data/release-guarantees.toml; do not edit this block. -->"]
+    for guarantee in data.get("guarantees", []):
+        if not guarantee.get("release_blocker"):
+            continue
+        lines.append(
+            f"- [ ] **CI `{guarantee['id']}`** — `{guarantee['check']}` "
+            f"(job: `{guarantee['ci_job']}`)"
+        )
+    return "\n".join(lines)
+
+
+def replace_block(path: Path, marker: str, content: str, check: bool, stale: list[Path]) -> None:
+    text = path.read_text(encoding="utf-8")
+    start = f"<!-- BEGIN GENERATED:{marker} -->"
+    end = f"<!-- END GENERATED:{marker} -->"
+    pattern = __import__("re").compile(__import__("re").escape(start) + r".*?" + __import__("re").escape(end), __import__("re").DOTALL)
+    replacement = f"{start}\n{content}\n{end}"
+    updated = pattern.sub(replacement, text, count=1)
+    if updated == text and replacement not in text:
+        raise ValueError(f"missing generated block {marker} in {path}")
+    write(path, updated, check, stale)
+
+
 def main() -> int:
     check = "--check" in sys.argv
     stale: list[Path] = []
@@ -277,6 +301,14 @@ def main() -> int:
     for toml_name, out, render in mapping:
         data = load(toml_name)
         write(out, render(data), check, stale)
+    release_data = load("release-guarantees.toml")
+    replace_block(
+        ROOT / "docs" / "release-checklist.md",
+        "release-blockers",
+        render_release_blockers(release_data),
+        check,
+        stale,
+    )
     if check:
         if stale:
             for p in stale:

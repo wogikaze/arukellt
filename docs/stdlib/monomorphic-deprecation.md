@@ -2,7 +2,7 @@
 
 > Monomorphic (type-suffixed) APIs are being phased out in favor of generic / trait equivalents.
 > Deprecated names continue to work but will emit W0008 warnings when the resolver is wired.
-> Migration follows ADR-036 D2 / ADR-014: stable APIs require ≥1 release deprecation before removal.
+> Migration follows ADR-036 D2 / ADR-014: stable APIs remain through the next major-version boundary and for at least one complete release before removal.
 
 Columns:
 

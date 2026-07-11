@@ -25,10 +25,10 @@ python3 scripts/gen/generate-docs.py
 
 ## Deprecation Process
 
-1. Add `deprecated = true` and `deprecated_reason = "..."` fields to the manifest entry.
+1. Set `stability = "deprecated"`, `deprecated_by = "..."`, and `deprecated_reason = "..."` on the manifest entry.
 2. Update the stdlib reference docs (`python3 scripts/gen/generate-docs.py`).
 3. If the function is `stable`, provide a migration guide entry in the issue.
-4. The function remains available for at least one minor release after deprecation.
+4. The function remains available until the next major version, and for at least one complete release after deprecation.
 5. Removal moves the function to a `removed_functions` section and produces a compile error with guidance.
 
 ## Version Compatibility
@@ -53,4 +53,4 @@ At v1 release freeze, all functions that meet these criteria will be promoted to
 - `std/manifest.toml` — canonical list of public API entries with stability fields
 - `docs/adr/ADR-014-stability-labels.md` — stability label definitions
 - `scripts/gen/generate-docs.py` — generates reference docs with stability column
-- `docs/std/reference.md` — generated stdlib reference (do not edit by hand)
+- `docs/stdlib/reference.md` — generated stdlib reference (do not edit by hand)

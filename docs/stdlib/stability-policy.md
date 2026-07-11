@@ -85,8 +85,8 @@ The stdlib follows consistent naming patterns for functions that can fail:
 A Stable API is deprecated before removal:
 
 1. Mark with `@deprecated` annotation and document the replacement.
-2. Keep the deprecated API available for at least one major version.
-3. Remove in the next major version with a migration guide.
+2. Keep the deprecated API available until the next major version, and for at least one complete release.
+3. Remove no earlier than that major-version boundary, with a migration guide.
 
 ---
 
@@ -110,13 +110,13 @@ Every tier change must update **both** the manifest source of truth and the gene
   - For `host_stub` functions, confirm fixture tests the stub behavior (compile error, runtime trap, etc.)
 - [ ] **Regenerate documentation**
   - Run `python3 scripts/gen/generate-docs.py`
-  - Verify `docs/stdlib/reference.md` reflects the new tier in both the per-category and by-stability sections
+  - Verify `docs/stdlib/reference.md` reflects the new tier in its canonical category table and overview counts
   - Verify `docs/stdlib/modules/*.md` pages show updated stability
 - [ ] **Run CI checks**
   - `python3 scripts/gen/generate-docs.py --check` must pass
   - `python3 scripts/check/check-docs-consistency.py` must pass
   - `python scripts/manager.py verify quick` must pass
-- [ ] **Update this file** if the module classification table changes
+- [ ] **Review generated module pages** for the affected module
 
 ### Deprecation: Any → Deprecated
 

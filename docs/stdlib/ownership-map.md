@@ -28,7 +28,7 @@ single source of truth. Hand-edits will be overwritten on the next regeneration.
 | `README.md` | `generate-docs.py` | `std/manifest.toml` | `generate-docs.py --check` |
 | `reference.md` | `generate-docs.py` | `std/manifest.toml` | `generate-docs.py --check`, stability/target metadata checks |
 | `name-index.md` | `generate-docs.py` | `std/manifest.toml` | `check_name_index_completeness` |
-| `scoreboard.md` | `generate-scoreboard.sh` | `std/manifest.toml` + fixture counts | — |
+| `scoreboard.md` | `generate-docs.py` | `std/manifest.toml` + fixture counts | `generate-docs.py --check` |
 | `modules/bytes.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
 | `modules/collections.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
 | `modules/component.md` | `generate-docs.py` | `std/manifest.toml` + curated overview | `check_cross_page_metadata_consistency` |
@@ -187,7 +187,7 @@ python3 scripts/gen/generate-docs.py             # Regenerate all generated file
 python3 scripts/gen/generate-docs.py --check     # Verify freshness (Gate 1.1)
 
 # Full verification (before releases):
-bash scripts/manager.py --full        # All checks including heavy ones
+python scripts/manager.py verify --full  # All checks including heavy ones
 ```
 
 ---
@@ -211,7 +211,7 @@ from reality. Only manual review catches inconsistencies.
 ### Gap 2 — No automated deprecation timeline tracking
 
 **Description:** When a function is deprecated (`stability = "deprecated"` in manifest),
-the stability policy requires keeping the API for "at least one major version."
+the stability policy keeps the API until the next major version and for at least one complete release.
 No automated check tracks how long a function has been deprecated or enforces
 removal timelines.
 
@@ -227,16 +227,7 @@ No automated check tracks how many releases an experimental API has been stable.
 **Mitigation:** A `since_version` field in manifest `[[modules]]` entries would
 enable automated promotion-readiness checks.
 
-### Gap 4 — scoreboard.md not validated by consistency checks
-
-**Description:** `scoreboard.md` claims to be auto-generated but no generator
-exists today; it is maintained by hand. The consistency checker does not
-verify its freshness. It could drift without detection.
-
-**Mitigation:** Implement a scoreboard generator (shell or Python) and add a
-`check_scoreboard_freshness` check to `check-docs-consistency.py`.
-
-### Gap 5 — Legacy pages have no link-rot detection
+### Gap 4 — Legacy pages have no link-rot detection
 
 **Description:** The legacy `core.md` and `io.md` archive pages contain redirect
 notices pointing to `modules/core.md` and `modules/io.md`. If those target pages

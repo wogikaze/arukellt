@@ -567,6 +567,29 @@ def check_structured_state(failures: list[str]) -> None:
             )
 
 
+def check_release_guarantees(failures: list[str]) -> None:
+    data = load_toml(REPO / "docs/data/release-guarantees.toml")
+    checklist = (REPO / "docs/release-checklist.md").read_text(encoding="utf-8")
+    workflow = (REPO / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    workflow_jobs = set(re.findall(r"^  ([A-Za-z0-9_-]+):\s*$", workflow.split("jobs:", 1)[-1], re.M))
+    commands: set[str] = set()
+    for guarantee in data.get("guarantees", []):
+        if not guarantee.get("release_blocker"):
+            continue
+        check = guarantee.get("check", "").strip()
+        job = guarantee.get("ci_job", "").strip()
+        if not re.match(r"^(?:python3?|bash|scripts/)", check):
+            failures.append(f"release blocker {guarantee['id']} lacks an exact executable command: {check!r}")
+        if check in commands:
+            failures.append(f"release blockers reuse generic command: {check}")
+        commands.add(check)
+        if job not in workflow_jobs:
+            failures.append(f"release blocker {guarantee['id']} references unknown CI job: {job}")
+        expected = f"**CI `{guarantee['id']}`** — `{check}` (job: `{job}`)"
+        if expected not in checklist:
+            failures.append(f"release checklist missing generated blocker row: {guarantee['id']}")
+
+
 def main() -> int:
     failures: list[str] = []
     if not CONFIG.is_file():
@@ -595,6 +618,7 @@ def main() -> int:
     check_ci_job_ids(cfg, failures)
     check_capability_policy(cfg, failures)
     check_structured_state(failures)
+    check_release_guarantees(failures)
 
     if failures:
         print("gate-765-docs-ci-hard-gates: FAIL", file=sys.stderr)

@@ -5,7 +5,6 @@
   - [Current state](#/current-state)
   - [クイックスタート](#/quickstart)
   - [Contributing](#/contributing)
-  - [見取り図 HTML（アーカイブ）](#/overview.html)
 
 - **Current Docs**
   - [コンパイラ](#/compiler/README)
@@ -28,6 +27,7 @@
   - [ガバナンス](#/governance/README)
 
 - **Archive / History**
+  - [見取り図 HTML（アーカイブ）](#/overview.html)
   - [ADR](#/adr/README)
   - [RFC](#/rfcs/README)
   - [実装計画](#/plans/README)

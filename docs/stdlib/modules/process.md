@@ -57,8 +57,8 @@ These APIs are host-bound and require WASI process capability.
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
-| `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
+| `exit` | `(i32) -> ()` | `stable` | ✅ functional | Requests process termination with the given exit code. |
+| `abort` | `() -> ()` | `stable` | ✅ functional | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
 #### `std::host::process::exit`
 
@@ -88,11 +88,11 @@ WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
-| `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
-| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
-| `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
-| `has_flag` | `(String) -> bool` | `stable` | ✅ impl | Returns true when the argument vector contains the given flag. |
+| `args` | `() -> Vec<String>` | `stable` | ✅ functional | Returns the process argument vector (excluding argv[0]). |
+| `arg_count` | `() -> i32` | `stable` | ✅ functional | Returns the number of process arguments (excluding argv[0]). |
+| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | Returns the argument at the given index when in range. |
+| `var` | `(String) -> Option<String>` | `stable` | ✅ functional | Looks up an environment variable by name. |
+| `has_flag` | `(String) -> bool` | `stable` | ✅ functional | Returns true when the argument vector contains the given flag. |
 
 #### `std::host::env::args`
 
