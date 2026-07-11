@@ -38,7 +38,7 @@ CSV parser/serializer for std::csv.
 
 Supports RFC 4180 quoted fields and basic multi-row documents.
 
-### Public API
+### `std::csv` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -50,26 +50,26 @@ Supports RFC 4180 quoted fields and basic multi-row documents.
 | `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `experimental` | Parse row row_index from a multi-row CSV string. |
 | `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `experimental` | Parse a CSV document with a header row. |
 
-#### `csv_parse_row`
+#### `std::csv::csv_parse_row`
 
 Parse a single CSV line into fields (handles RFC 4180 quoting).
 
-#### `csv_stringify_row`
+#### `std::csv::csv_stringify_row`
 
 Serialize a row of fields to a CSV line.
 
-#### `csv_count_rows`
+#### `std::csv::csv_count_rows`
 
 Count the number of non-empty lines in a CSV string.
 
-#### `csv_get_row_raw`
+#### `std::csv::csv_get_row_raw`
 
 Return the raw text of row at row_index (0-based, skipping empty lines).
 
-#### `csv_parse_row_at`
+#### `std::csv::csv_parse_row_at`
 
 Parse row at row_index from a multi-row CSV string.
 
-#### `csv_parse_with_header`
+#### `std::csv::csv_parse_with_header`
 
 Parse a CSV document and return the header row fields.

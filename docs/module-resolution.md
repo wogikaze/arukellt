@@ -58,7 +58,7 @@ The standard library module tree is defined by `std/manifest.toml`.
 
 After importing, items are accessed via their module alias:
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import math
 let x = math::add(1, 2)
@@ -69,7 +69,7 @@ stdio::println("hello")
 
 A module alias can be renamed at import time:
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import math as m
 let x = m::add(1, 2)

@@ -51,7 +51,7 @@ operations that work on plain strings without host I/O.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Public API
+### `std::path` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -65,14 +65,14 @@ operations that work on plain strings without host I/O.
 | `normalize` | `(String) -> String` | `stable` | Resolves . and .. components and collapses redundant / separators. |
 | `components` | `(String) -> Vec<String>` | `stable` | Returns the non-empty path segments split by /. |
 
-#### `stem`
+#### `std::path::stem`
 
 Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello".
 
-#### `normalize`
+#### `std::path::normalize`
 
 Resolves `.` and `..` components and collapses redundant `/` separators.
 
-#### `components`
+#### `std::path::components`
 
 Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"].

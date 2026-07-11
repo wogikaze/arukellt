@@ -8,9 +8,9 @@
 | `prelude` | 141 | 115 | 1 | 25 | 92/116 (79%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 6/6 (100%) | no |
-| `std::collections::compiler` | 18 | 0 | 18 | 0 | 18/18 (100%) | no |
+| `std::collections::compiler` | 14 | 0 | 14 | 0 | 14/14 (100%) | no |
 | `std::collections::hash` | 42 | 42 | 0 | 0 | 41/42 (98%) | no |
-| `std::collections::linear` | 31 | 31 | 0 | 0 | 31/31 (100%) | no |
+| `std::collections::linear` | 18 | 18 | 0 | 0 | 18/18 (100%) | no |
 | `std::collections::ordered` | 37 | 10 | 27 | 0 | 36/37 (97%) | no |
 | `std::component` | 2 | 0 | 2 | 0 | 2/2 (100%) | no |
 | `std::component::handle` | 5 | 0 | 5 | 0 | 5/5 (100%) | no |
@@ -56,7 +56,7 @@
 | `std::wasm` | 79 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 772 APIs, 409 stable, 337 experimental, 26 deprecated, 626/746 (84%) fixture coverage
+**Total**: 755 APIs, 396 stable, 333 experimental, 26 deprecated, 609/729 (84%) fixture coverage
 
 ## Legend
 

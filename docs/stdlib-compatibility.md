@@ -1,10 +1,10 @@
 # Stdlib Compatibility Policy
 
-> Source of truth for how Arukellt's standard library evolves and how API changes are communicated.
+> Policy explanation for how Arukellt's standard library evolves. `std/manifest.toml` is the only factual source for API identities and current stability labels; generated counts live in [`stdlib/reference.md`](stdlib/reference.md).
 
 ## Stability Levels
 
-All public entries in `std/manifest.toml` carry one of three stability labels.
+All public entries in `std/manifest.toml` carry one of four lifecycle labels.
 The definitions follow [ADR-014](adr/ADR-014-stability-labels.md).
 
 | Level | Meaning |
@@ -12,17 +12,15 @@ The definitions follow [ADR-014](adr/ADR-014-stability-labels.md).
 | `stable` | API is frozen. Breaking changes require a migration guide and a prior deprecation cycle. |
 | `provisional` | API is broadly settled but minor changes are possible. No breaking changes without changelog notice. |
 | `experimental` | Active design; breaking changes possible without prior notice. Not recommended for production code. |
+| `deprecated` | Still callable during a migration window, but superseded by the manifest entry's `deprecated_by` replacement. |
 
 ## Current Status
 
-As of the 2026-04-01 baseline, all 267 public stdlib functions are labelled `provisional`.
-No functions have reached `stable` yet; that promotion happens at the v1 release freeze.
-
-To view stability counts:
+Do not record a hand-maintained count or blanket tier in this policy. To view the current manifest-derived counts:
 
 ```bash
 python3 scripts/gen/generate-docs.py
-# counts are shown in docs/std/README.md under each module section
+# counts are shown in docs/stdlib/reference.md
 ```
 
 ## Deprecation Process

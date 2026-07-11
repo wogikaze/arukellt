@@ -45,13 +45,13 @@ Low-level functions used by the compiler's LSP/DAP/diagnostics.
 The full JSON parser with `pub enum JsonValue` lives in
 `std/json/parser.ark` (loaded as `std::json::parser`).
 
-### Public Types
+### `std::json` — Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
 | `JsonStrResult` | `struct` | Result of a streaming string parse. |
 
-### Public API
+### `std::json` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -78,26 +78,26 @@ The full JSON parser with `pub enum JsonValue` lives in
 | `json_stringify_string` | `(String) -> String` | `experimental` | - |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | - |
 
-#### `parse`
+#### `std::json::parse`
 
 Parse a full JSON document and reject trailing non-whitespace after the first top-level value.
 
-#### `stringify`
+#### `std::json::stringify`
 
 Serialize a JsonValue back to its JSON text.
 
-#### `json_encode_string`
+#### `std::json::json_encode_string`
 
 Encode a plain string as a JSON string literal with escape sequences.
 
-#### `json_get`
+#### `std::json::json_get`
 
 Look up a named field in a JSON object value.
 
-#### `json_get_index`
+#### `std::json::json_get_index`
 
 Return the element at index in a JSON array value.
 
-#### `stringify_pretty`
+#### `std::json::stringify_pretty`
 
 Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged.

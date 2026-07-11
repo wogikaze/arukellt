@@ -48,7 +48,7 @@ and LEB128 encoding utilities.
 
 All APIs are Experimental and may change in v4+.
 
-### Public API
+### `std::wasm` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -75,27 +75,27 @@ All APIs are Experimental and may change in v4+.
 | `reftype_funcref` | `() -> i32` | `experimental` | - |
 | `reftype_externref` | `() -> i32` | `experimental` | - |
 
-#### `valtype_v128`
+#### `std::wasm::valtype_v128`
 
 Value type byte for SIMD v128 (0x7b). Requires SIMD proposal.
 
-#### `valtype_funcref`
+#### `std::wasm::valtype_funcref`
 
 Value type byte for funcref (0x70). Reference-types proposal.
 
-#### `valtype_externref`
+#### `std::wasm::valtype_externref`
 
 Value type byte for externref (0x6f). Reference-types proposal.
 
-#### `reftype_funcref`
+#### `std::wasm::reftype_funcref`
 
 Reference type byte for funcref.
 
-#### `reftype_externref`
+#### `std::wasm::reftype_externref`
 
 Reference type byte for externref.
 
-### FuncType
+### `std::wasm` — FuncType
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -105,27 +105,27 @@ Reference type byte for externref.
 | `functype_get_param` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 | `functype_get_result` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 
-#### `functype_new`
+#### `std::wasm::functype_new`
 
 Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants).
 
-#### `functype_param_count`
+#### `std::wasm::functype_param_count`
 
 Return the number of parameter types in a FuncType.
 
-#### `functype_result_count`
+#### `std::wasm::functype_result_count`
 
 Return the number of result types in a FuncType.
 
-#### `functype_get_param`
+#### `std::wasm::functype_get_param`
 
 Get the valtype constant for the i-th parameter of a FuncType.
 
-#### `functype_get_result`
+#### `std::wasm::functype_get_result`
 
 Get the valtype constant for the i-th result of a FuncType.
 
-### Limits
+### `std::wasm` — Limits
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -135,27 +135,27 @@ Get the valtype constant for the i-th result of a FuncType.
 | `limits_has_max` | `(Vec<i32>) -> bool` | `experimental` | - |
 | `limits_max` | `(Vec<i32>) -> i32` | `experimental` | - |
 
-#### `limits_unbounded`
+#### `std::wasm::limits_unbounded`
 
 Construct a Limits with only a minimum (no maximum).
 
-#### `limits_bounded`
+#### `std::wasm::limits_bounded`
 
 Construct a Limits with both minimum and maximum.
 
-#### `limits_min`
+#### `std::wasm::limits_min`
 
 Get the minimum of a Limits.
 
-#### `limits_has_max`
+#### `std::wasm::limits_has_max`
 
 Return true if this Limits has a maximum.
 
-#### `limits_max`
+#### `std::wasm::limits_max`
 
 Get the maximum of a Limits (only valid if limits_has_max is true).
 
-### WasmModuleBuilder
+### `std::wasm` — WasmModuleBuilder
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -170,62 +170,62 @@ Get the maximum of a Limits (only valid if limits_has_max is true).
 | `module_export_count` | `(Vec<i32>) -> i32` | `experimental` | - |
 | `module_encode_header` | `() -> Vec<i32>` | `experimental` | Encode the module to a Wasm binary header (magic + version). |
 
-#### `module_new`
+#### `std::wasm::module_new`
 
 Create a new empty WasmModuleBuilder.
 
-#### `module_add_type`
+#### `std::wasm::module_add_type`
 
 Register a FuncType in the module type section. Returns its index.
 
-#### `module_add_func`
+#### `std::wasm::module_add_func`
 
 Add a function with the given type index to the module. Returns its function index.
 
-#### `module_add_memory`
+#### `std::wasm::module_add_memory`
 
 Add a memory with the given Limits to the module. Returns its memory index.
 
-#### `module_add_export_func`
+#### `std::wasm::module_add_export_func`
 
 Add a function export to the module.
 
-#### `module_type_count`
+#### `std::wasm::module_type_count`
 
 Get the number of registered types in the module builder.
 
-#### `module_func_count`
+#### `std::wasm::module_func_count`
 
 Get the number of functions added to the module builder.
 
-#### `module_mem_count`
+#### `std::wasm::module_mem_count`
 
 Get the number of memories added to the module builder.
 
-#### `module_export_count`
+#### `std::wasm::module_export_count`
 
 Get the number of exports added to the module builder.
 
-#### `module_encode_header`
+#### `std::wasm::module_encode_header`
 
 Return the Wasm binary magic+version header (8 bytes).
 
-### LEB128 encoding
+### `std::wasm` — LEB128 encoding
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `leb128_encode_u32` | `(i32) -> Vec<i32>` | `experimental` | Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes. |
 | `leb128_size_u32` | `(i32) -> i32` | `experimental` | Return the number of bytes needed to encode x as unsigned LEB128. |
 
-#### `leb128_encode_u32`
+#### `std::wasm::leb128_encode_u32`
 
 Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>.
 
-#### `leb128_size_u32`
+#### `std::wasm::leb128_size_u32`
 
 Return the number of bytes needed to encode x as unsigned LEB128.
 
-### Opcode constants (Wasm MVP subset)
+### `std::wasm` — Opcode constants (Wasm MVP subset)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -247,67 +247,67 @@ Return the number of bytes needed to encode x as unsigned LEB128.
 | `memory_copy` | `(i32, i32, i32) -> ()` | `experimental` | - |
 | `memory_fill` | `(i32, i32, i32) -> ()` | `experimental` | - |
 
-#### `op_unreachable`
+#### `std::wasm::op_unreachable`
 
 Wasm opcode: unreachable (0x00).
 
-#### `op_nop`
+#### `std::wasm::op_nop`
 
 Wasm opcode: nop (0x01).
 
-#### `op_end`
+#### `std::wasm::op_end`
 
 Wasm opcode: end (0x0b).
 
-#### `op_return`
+#### `std::wasm::op_return`
 
 Wasm opcode: return (0x0f).
 
-#### `op_call`
+#### `std::wasm::op_call`
 
 Wasm opcode: call (0x10).
 
-#### `op_local_get`
+#### `std::wasm::op_local_get`
 
 Wasm opcode: local.get (0x20).
 
-#### `op_local_set`
+#### `std::wasm::op_local_set`
 
 Wasm opcode: local.set (0x21).
 
-#### `op_local_tee`
+#### `std::wasm::op_local_tee`
 
 Wasm opcode: local.tee (0x22).
 
-#### `op_i32_const`
+#### `std::wasm::op_i32_const`
 
 Wasm opcode: i32.const (0x41).
 
-#### `op_i64_const`
+#### `std::wasm::op_i64_const`
 
 Wasm opcode: i64.const (0x42).
 
-#### `op_i32_eqz`
+#### `std::wasm::op_i32_eqz`
 
 Wasm opcode: i32.eqz (0x45).
 
-#### `op_i32_eq`
+#### `std::wasm::op_i32_eq`
 
 Wasm opcode: i32.eq (0x46).
 
-#### `op_i32_add`
+#### `std::wasm::op_i32_add`
 
 Wasm opcode: i32.add (0x6a).
 
-#### `op_i32_sub`
+#### `std::wasm::op_i32_sub`
 
 Wasm opcode: i32.sub (0x6b).
 
-#### `op_i32_mul`
+#### `std::wasm::op_i32_mul`
 
 Wasm opcode: i32.mul (0x6c).
 
-### v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3)
+### `std::wasm` — v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -324,55 +324,55 @@ Wasm opcode: i32.mul (0x6c).
 | `v128_bitselect` | `(v128, v128, v128) -> v128` | `experimental` | Bitwise select: for each bit, choose a if c bit is 1 else b. |
 | `v128_any_true` | `(v128) -> i32` | `experimental` | Return 1 if any bit in the v128 is set, 0 otherwise. |
 
-#### `v128_load`
+#### `std::wasm::v128_load`
 
 Load a v128 from linear memory at ptr + offset.
 
-#### `v128_store`
+#### `std::wasm::v128_store`
 
 Store a v128 to linear memory at ptr + offset.
 
-#### `v128_load_splat`
+#### `std::wasm::v128_load_splat`
 
 Load a single byte from linear memory and splat it to all 16 lanes.
 
-#### `v128_load_lane`
+#### `std::wasm::v128_load_lane`
 
 Load a single lane from linear memory into a v128 vector.
 
-#### `v128_store_lane`
+#### `std::wasm::v128_store_lane`
 
 Store a single lane from a v128 vector to linear memory.
 
-#### `v128_and`
+#### `std::wasm::v128_and`
 
 Bitwise AND of two v128 vectors.
 
-#### `v128_or`
+#### `std::wasm::v128_or`
 
 Bitwise OR of two v128 vectors.
 
-#### `v128_xor`
+#### `std::wasm::v128_xor`
 
 Bitwise XOR of two v128 vectors.
 
-#### `v128_not`
+#### `std::wasm::v128_not`
 
 Bitwise NOT of a v128 vector.
 
-#### `v128_andnot`
+#### `std::wasm::v128_andnot`
 
 Bitwise ANDNOT (a & ~b) of two v128 vectors.
 
-#### `v128_bitselect`
+#### `std::wasm::v128_bitselect`
 
 Bitwise select: for each bit, choose a if c bit is 1 else b.
 
-#### `v128_any_true`
+#### `std::wasm::v128_any_true`
 
 Return 1 if any bit in the v128 is set, 0 otherwise.
 
-### v128 reinterpret family (no-op at v128 level, just type casting)
+### `std::wasm` — v128 reinterpret family (no-op at v128 level, just type casting)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -383,26 +383,26 @@ Return 1 if any bit in the v128 is set, 0 otherwise.
 | `v128_reinterpret_f32x4` | `(v128) -> v128` | `experimental` | Reinterpret v128 as f32x4 (no-op, same bits). |
 | `v128_reinterpret_f64x2` | `(v128) -> v128` | `experimental` | Reinterpret v128 as f64x2 (no-op, same bits). |
 
-#### `v128_reinterpret_i8x16`
+#### `std::wasm::v128_reinterpret_i8x16`
 
 Reinterpret v128 as i8x16 (no-op, same bits).
 
-#### `v128_reinterpret_i16x8`
+#### `std::wasm::v128_reinterpret_i16x8`
 
 Reinterpret v128 as i16x8 (no-op, same bits).
 
-#### `v128_reinterpret_i32x4`
+#### `std::wasm::v128_reinterpret_i32x4`
 
 Reinterpret v128 as i32x4 (no-op, same bits).
 
-#### `v128_reinterpret_i64x2`
+#### `std::wasm::v128_reinterpret_i64x2`
 
 Reinterpret v128 as i64x2 (no-op, same bits).
 
-#### `v128_reinterpret_f32x4`
+#### `std::wasm::v128_reinterpret_f32x4`
 
 Reinterpret v128 as f32x4 (no-op, same bits).
 
-#### `v128_reinterpret_f64x2`
+#### `std::wasm::v128_reinterpret_f64x2`
 
 Reinterpret v128 as f64x2 (no-op, same bits).

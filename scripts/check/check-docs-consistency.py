@@ -940,6 +940,23 @@ def check_stability_implementation_consistency() -> int:
     manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
     issues: list[str] = []
 
+    seen_functions: dict[tuple[str, str, tuple[str, ...], str], int] = {}
+    for index, fn in enumerate(manifest.get("functions", []), 1):
+        key = (
+            fn.get("module", "prelude"),
+            fn.get("name", ""),
+            tuple(fn.get("params", [])),
+            fn.get("returns", "()"),
+        )
+        if key in seen_functions:
+            issues.append(
+                "duplicate function identity "
+                f"{key[0]}::{key[1]}({', '.join(key[2])}) -> {key[3]} "
+                f"at entries {seen_functions[key]} and {index}"
+            )
+        else:
+            seen_functions[key] = index
+
     # Build module stability lookup from [[modules]] entries
     module_stability: dict[str, str] = {}
     for mod in manifest.get("modules", []):

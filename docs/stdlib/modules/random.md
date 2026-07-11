@@ -42,7 +42,7 @@ Deterministic pseudo-random helper functions.
 Host entropy lives in `std::host::random`. This module only provides
 seeded helpers so callers can reason about reproducibility.
 
-### Public API
+### `std::random` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|

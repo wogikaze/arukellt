@@ -66,7 +66,7 @@ WasmValueType = Wasm出力型（i32, f64, (ref null $N), (ref $N) ...）
 
 #### Layer 1: TypeId — 意味型
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct TypeId(i32)
@@ -113,7 +113,7 @@ nullability は `MirValueType` 側に持たせる。
 
 #### Layer 2: MirValueType — コンパイラ内部の値型
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct MirValueType {
@@ -142,7 +142,7 @@ enum Nullability {
 
 #### Layer 3: WasmValueType — Wasm出力型
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 enum WasmValueType {
@@ -167,7 +167,7 @@ lowering の入力は `MirValueType` とする。
 trait impl、generic instance、stdlib関数、host intrinsic、builtin methodを
 全部、名前文字列ではなく `FunctionId` で管理する。
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct FunctionId(i32)
@@ -205,7 +205,7 @@ enum AbiKind {
 
 ### D3: Typed MIR — MirInst/MirLocal の型必須化
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 pub struct MirInst {
@@ -242,7 +242,7 @@ pub struct MirLocal {
 
 ### D4: MonoInstanceTable — モノモーフ化の型情報保存
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct MonoInstanceId(i32)
@@ -269,7 +269,7 @@ struct MonoInstanceEntry {
 
 ### D5: GcLayoutTable — MirValueType から WasmValueType への lowering
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct GcLayoutId(i32)
@@ -311,7 +311,7 @@ emitter は `MirValueType` を `lower_mir_value_type` に渡すだけで
 
 ### D6: HostIntrinsicSpec — host境界のABI明示的定義
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct HostIntrinsicSpec {
@@ -342,7 +342,7 @@ emitter 側は呼び出し経路を区別する必要がない。
 
 固定indexに名前を付け、直接local番号を書く箇所を0にする。
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 // Phase 6a: symbolic alias の導入
@@ -358,7 +358,7 @@ const SCRATCH_GC_0: i32 = 16
 
 #### 最終段階: LocalAllocator
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 
 ```ark
 struct LocalAllocator {
@@ -472,5 +472,4 @@ instantiated_param_types / instantiated_return_types と一致する。
 3. **コンパイラの保守性向上**: 型推論の複雑さが MIR lowering に集約され、emitter が単純化
 4. **デバッグの容易化**: 型不明の場合に即 internal compiler error が出るため、問題の早期発見
 5. **スクラッチローカル追加の安全化**: LocalAllocator により index シフト問題が解消
-
 

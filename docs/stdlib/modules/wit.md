@@ -52,7 +52,7 @@ The scan module is kept separate from `mod.ark` to avoid pulling
 `std::wit::types` (which has recursive enums) into the bootstrap
 compiler's module loading chain.
 
-### Public API
+### `std::wit` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|

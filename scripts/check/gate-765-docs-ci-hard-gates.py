@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import re
 import sys
+from datetime import date
 from fnmatch import fnmatch
 from pathlib import Path
 
@@ -389,6 +390,39 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
                     failures.append(
                         f"structured skip-doc-check malformed in {entry['path']}: {attrs[:80]}"
                     )
+
+    if not require_structured:
+        return
+
+    for path in sorted((REPO / "docs").rglob("*.md")):
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            for match in SKIP_RE.finditer(line):
+                attrs = (match.group(1) or "").strip()
+                if not STRUCTURED_SKIP.fullmatch(attrs):
+                    failures.append(
+                        f"unstructured skip-doc-check in {rel(path)}:{line_number}: "
+                        "require reason/owner/kind/expires"
+                    )
+                    continue
+                owner_match = re.search(r'owner="([^"]+)"', attrs)
+                if not owner_match or not re.fullmatch(r"#\d+", owner_match.group(1)):
+                    failures.append(
+                        f"unknown skip-doc-check owner in {rel(path)}:{line_number}: "
+                        f"{owner_match.group(1) if owner_match else 'missing'}"
+                    )
+                expiry_match = re.search(r'expires="(\d{4}-\d{2}-\d{2})"', attrs)
+                if require_expires and not expiry_match:
+                    failures.append(f"skip-doc-check missing expires= in {rel(path)}:{line_number}")
+                elif expiry_match:
+                    try:
+                        expiry = date.fromisoformat(expiry_match.group(1))
+                    except ValueError:
+                        failures.append(f"invalid skip-doc-check expiry in {rel(path)}:{line_number}")
+                    else:
+                        if expiry < date.today():
+                            failures.append(
+                                f"expired skip-doc-check in {rel(path)}:{line_number}: {expiry}"
+                            )
 
 
 def check_target_contract_summary_generated(failures: list[str]) -> None:

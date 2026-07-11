@@ -23,7 +23,7 @@ Layer S is the source-language module import surface.
 
 Example:
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::host::stdio
 ```

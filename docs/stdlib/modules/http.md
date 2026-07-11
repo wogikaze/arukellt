@@ -47,7 +47,7 @@ current selfhost compile path — see
 When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 **HTTPS is not supported**.
 
-### Public API
+### `std::host::http` — Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
@@ -58,7 +58,7 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 | `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ✅ impl | - |
 | `response_status` | `(HttpResponse) -> i32` | `provisional` | ✅ impl | - |
 
-#### `request`
+#### `std::host::http::request`
 
 Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
@@ -72,7 +72,7 @@ _Example — POST JSON to an API endpoint:_
 let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
 ```
 
-#### `get`
+#### `std::host::http::get`
 
 Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
@@ -90,7 +90,7 @@ match body {
 }
 ```
 
-#### `serve`
+#### `std::host::http::serve`
 
 Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to the incoming-handler proxy-world bridge (#656).
 
@@ -107,16 +107,16 @@ match http::serve(8080, "hello") {
 }
 ```
 
-#### `read_body`
+#### `std::host::http::read_body`
 
 **Availability:** ⚠️ Not available on `wasm32` — Accessor for HttpResponse.body.
 
-#### `request_with_headers`
+#### `std::host::http::request_with_headers`
 
 Send HTTP with header vectors (provisional; headers not forwarded to bridge yet).
 
 **Availability:** ⚠️ Not available on `wasm32` — Whole-body bridge; header forwarding deferred.
 
-#### `response_status`
+#### `std::host::http::response_status`
 
 **Availability:** ⚠️ Not available on `wasm32` — Provisional status (200 on bridge Ok).

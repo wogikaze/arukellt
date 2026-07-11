@@ -18,7 +18,7 @@ python scripts/manager.py verify fixtures
 # 2. Verification gate
 python scripts/manager.py verify quick
 
-# 3. Full verification (optional, before stable releases)
+# 3. Full verification (required before every tagged release)
 python scripts/manager.py verify --full
 
 # 4. Determinism check
@@ -26,10 +26,8 @@ arukellt compile docs/examples/hello.ark --target wasm32-gc -o /tmp/h1.wasm
 arukellt compile docs/examples/hello.ark --target wasm32-gc -o /tmp/h2.wasm
 sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
 
-# 5. Panic audit (included in verify-harness.sh --quick)
-# no legacy Rust CLI crate remains; the audit root list is intentionally empty
-# until a shipped Rust entry point is introduced again.
-# (the former Rust entrypoint and support packages were removed during #529)
+# 5. Panic audit
+bash scripts/check/check-panic-audit.sh
 ```
 
 ## Guarantee Tiers
@@ -41,7 +39,7 @@ These things work and regressions are P1:
 - `arukellt compile <file> --target wasm32-gc` produces valid Wasm（CLI 既定も `wasm32-gc` / primary）
 - `arukellt compile <file> --target wasm32` produces valid Wasm（supported compatibility / AtCoder path）
 - `arukellt run <file>` executes the compiled output via wasmtime
-- Fixture harness passes for the current manifest-backed set
+- Fixture harness passes for the current observed harness snapshot; this is not the same unit as full manifest expansion
 - Compilation is deterministic (same input → same output bytes)
 - No panic on any user-reachable CLI path
 

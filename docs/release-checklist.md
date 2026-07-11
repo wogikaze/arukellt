@@ -11,6 +11,10 @@ release refs; items marked **Manual** require human verification.
 ## Pre-release
 
 - [ ] **CI** — `python3 scripts/manager.py verify` passes
+- [ ] **CI** — `arukellt compile docs/examples/hello.ark --target wasm32-gc` produces valid Wasm
+- [ ] **CI** — `arukellt compile docs/examples/hello.ark --target wasm32` produces valid Wasm
+- [ ] **CI** — `python3 scripts/manager.py verify fixtures` passes for the observed harness snapshot
+- [ ] **CI** — `bash scripts/check/check-panic-audit.sh` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost fixpoint` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost fixture-parity` passes
 - [ ] **CI** — `python3 scripts/manager.py selfhost parity --mode --cli` passes

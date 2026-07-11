@@ -2,7 +2,7 @@
 
 ## Stability Labels
 
-Every module and public API in the Arukellt standard library carries one of three stability labels.
+Every public API in the Arukellt standard library carries one of four lifecycle labels. `std/manifest.toml` owns the current label for every entry; this document defines their semantics.
 
 ### Stable
 
@@ -16,48 +16,21 @@ Every module and public API in the Arukellt standard library carries one of thre
 - Functionality is available but the interface is not yet finalized.
 - Marked with ⚠️ in documentation.
 
-### Internal
+### Provisional
 
-- Used by the compiler and runtime only.
-- No public API guarantee — may change or be removed at any time.
-- Not intended for user code.
+- API is broadly settled, but may change in minor versions with changelog notice.
+- Promotion to Stable requires the readiness checks below.
+
+### Deprecated
+
+- API remains callable during its migration window but is no longer recommended.
+- Every deprecated manifest entry names its replacement with `deprecated_by`.
 
 ---
 
-## Current Module Classification
+## Current Classification
 
-### Stable
-
-| Module | Description |
-|--------|-------------|
-| `prelude` | Auto-imported core functions |
-| `std::core` | Option, Result, math, type conversion, panic/assert |
-| `std::text` | String manipulation |
-| `std::bytes` | Binary data, ByteBuf, ByteCursor, LEB128, encoding |
-| `std::collections` | Vec, HashMap, HashSet, Deque (hash/linear/ordered) |
-| `std::seq` | Lazy sequence combinators |
-| `std::path` | Path manipulation (string-based) |
-| `std::time` | Pure duration arithmetic |
-| `std::random` | Deterministic seeded helpers |
-| `std::test` | Assertions and test utilities |
-| `std::host::stdio` | Standard output/error access |
-| `std::host::fs` | File read/write |
-| `std::host::process` | Process exit/abort |
-| `std::host::env` | Environment and CLI arguments |
-| `std::host::clock` | Monotonic host clock |
-| `std::host::random` | Host entropy |
-
-### Experimental
-
-| Module | Description |
-|--------|-------------|
-| `std::wasm` | Wasm binary types and builder |
-| `std::wit` | WIT type constants and naming |
-| `std::component` | Component Model ABI metadata |
-| `std::json` | JSON primitive stringify/parse |
-| `std::toml` | TOML line parser |
-| `std::csv` | CSV line splitter |
-| `std::collections::compiler` | Compiler-internal collection variants |
+Current module and API classifications are generated from `std/manifest.toml`; see [`reference.md`](reference.md) and the generated module pages. This policy intentionally does not duplicate those mutable tables.
 
 ---
 

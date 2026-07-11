@@ -37,8 +37,8 @@ let exists = hashmap_contains(map, 42)  // true
 ## `std::collections::compiler`
 
 - Source: [`../../../std/collections/compiler.ark`](../../../std/collections/compiler.ark)
-- Manifest-backed functions: 18
-- Stability: experimental 18
+- Manifest-backed functions: 14
+- Stability: experimental 14
 
 Experimental compiler-oriented collections.
 
@@ -51,36 +51,32 @@ in v4+.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Arena (bump allocator)
+### `std::collections::compiler` — Arena (bump allocator)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `arena_new` | `() -> Vec<i32>` | `experimental` | - |
-| `arena_new` | `() -> Vec<i32>` | `experimental` | - |
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 | `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `arena_len` | `(Vec<i32>) -> i32` | `experimental` | - |
 | `arena_len` | `(Vec<i32>) -> i32` | `experimental` | - |
 
-#### `arena_new`
+#### `std::collections::compiler::arena_new`
 
 Create a new Arena (bump allocator for stable i32 IDs).
 
-#### `arena_alloc`
+#### `std::collections::compiler::arena_alloc`
 
 Allocate a value in the Arena, returning a stable ArenaId.
 
-#### `arena_get`
+#### `std::collections::compiler::arena_get`
 
 Get the value at the given ArenaId.
 
-#### `arena_len`
+#### `std::collections::compiler::arena_len`
 
 Return the number of allocated entries in the Arena.
 
-### SlotMap (deletion-safe handle map, monomorphic i32 values)
+### `std::collections::compiler` — SlotMap (deletion-safe handle map, monomorphic i32 values)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -91,31 +87,31 @@ Return the number of allocated entries in the Arena.
 | `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
 | `slotmap_len` | `(Vec<i32>) -> i32` | `experimental` | - |
 
-#### `slotmap_new`
+#### `std::collections::compiler::slotmap_new`
 
 Create a new SlotMap (deletion-safe handle map for i32 values).
 
-#### `slotmap_insert`
+#### `std::collections::compiler::slotmap_insert`
 
 Insert a value into the SlotMap, returning a stable SlotKey.
 
-#### `slotmap_get`
+#### `std::collections::compiler::slotmap_get`
 
 Get the value at the given SlotKey, or None if removed.
 
-#### `slotmap_remove`
+#### `std::collections::compiler::slotmap_remove`
 
 Remove and return the value at the given SlotKey, or None if already removed.
 
-#### `slotmap_contains`
+#### `std::collections::compiler::slotmap_contains`
 
 Return true if the SlotKey is present and active.
 
-#### `slotmap_len`
+#### `std::collections::compiler::slotmap_len`
 
 Return the number of active entries in the SlotMap.
 
-### Interner (value <-> Symbol bidirectional map, String values)
+### `std::collections::compiler` — Interner (value <-> Symbol bidirectional map, String values)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -124,19 +120,19 @@ Return the number of active entries in the SlotMap.
 | `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `experimental` | - |
 | `interner_len` | `(Vec<String>) -> i32` | `experimental` | - |
 
-#### `interner_new`
+#### `std::collections::compiler::interner_new`
 
 Create a new Interner (value<->Symbol bidirectional map).
 
-#### `interner_intern`
+#### `std::collections::compiler::interner_intern`
 
 Intern a String, returning its stable Symbol (i32 ID). Deduplicates.
 
-#### `interner_lookup`
+#### `std::collections::compiler::interner_lookup`
 
 Look up the String for a given Symbol, or None if out of range.
 
-#### `interner_len`
+#### `std::collections::compiler::interner_len`
 
 Return the number of interned strings.
 
@@ -187,7 +183,7 @@ String-keyed hash map operations.
 `[capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]`,
 where flags are `0 = empty`, `1 = occupied`.
 
-### Public API
+### `std::collections::hash` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -234,35 +230,35 @@ where flags are `0 = empty`, `1 = occupied`.
 | `hashset_str_len` | `(Vec<String>) -> i32` | `stable` | - |
 | `hashset_str_is_empty` | `(Vec<String>) -> bool` | `stable` | - |
 
-#### `hashmap_extend`
+#### `std::collections::hash::hashmap_extend`
 
 Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritten by the source map. Mirrors Rust's HashMap::extend.
 
-#### `hashset_capacity`
+#### `std::collections::hash::hashset_capacity`
 
 Return the current bucket capacity of a HashSet<i32>.
 
-#### `hashset_reserve`
+#### `std::collections::hash::hashset_reserve`
 
 Ensure a HashSet<i32> can hold at least `additional` more elements without exceeding the load-factor threshold.
 
-#### `hashset_shrink_to_fit`
+#### `std::collections::hash::hashset_shrink_to_fit`
 
 Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant.
 
-#### `hashset_clear`
+#### `std::collections::hash::hashset_clear`
 
 Remove all elements from a HashSet<i32>, resetting size to 0.
 
-#### `hashset_extend`
+#### `std::collections::hash::hashset_extend`
 
 Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend.
 
 ## `std::collections::linear`
 
 - Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
-- Manifest-backed functions: 31
-- Stability: stable 31
+- Manifest-backed functions: 18
+- Stability: stable 18
 
 Linear collection helpers: deque and priority queue.
 
@@ -273,100 +269,87 @@ All current implementations are monomorphic `i32` containers backed by
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Deque (ring buffer)
+### `std::collections::linear` — Deque (ring buffer)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `deque_new` | `() -> Vec<i32>` | `stable` | - |
-| `deque_new` | `() -> Vec<i32>` | `stable` | - |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | - |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `deque_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
 | `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
 
-#### `deque_new`
+#### `std::collections::linear::deque_new`
 
 Create a new empty Deque backed by a ring buffer (i32, monomorphic).
 
-#### `deque_push_back`
+#### `std::collections::linear::deque_push_back`
 
 Append a value to the back of the deque.
 
-#### `deque_push_front`
+#### `std::collections::linear::deque_push_front`
 
 Prepend a value to the front of the deque.
 
-#### `deque_pop_front`
+#### `std::collections::linear::deque_pop_front`
 
 Remove and return the front element. Panics if empty.
 
-#### `deque_pop_back`
+#### `std::collections::linear::deque_pop_back`
 
 Remove and return the back element. Panics if empty.
 
-#### `deque_len`
+#### `std::collections::linear::deque_len`
 
 Return the number of elements in the deque.
 
-#### `deque_is_empty`
+#### `std::collections::linear::deque_is_empty`
 
 Return true if the deque contains no elements.
 
-### PriorityQueue (min-heap)
+### `std::collections::linear` — PriorityQueue (min-heap)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `pq_new` | `() -> Vec<i32>` | `stable` | - |
-| `pq_new` | `() -> Vec<i32>` | `stable` | - |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `pq_pop` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_pop` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_peek` | `(Vec<i32>) -> i32` | `stable` | - |
 | `pq_peek` | `(Vec<i32>) -> i32` | `stable` | - |
 | `pq_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
 | `pq_clear` | `(Vec<i32>) -> ()` | `stable` | - |
 
-#### `pq_new`
+#### `std::collections::linear::pq_new`
 
 Create a new empty PriorityQueue min-heap (i32, monomorphic).
 
-#### `pq_push`
+#### `std::collections::linear::pq_push`
 
 Insert a value into the priority queue.
 
-#### `pq_pop`
+#### `std::collections::linear::pq_pop`
 
 Remove and return the minimum element. Panics if empty.
 
-#### `pq_peek`
+#### `std::collections::linear::pq_peek`
 
 Return the minimum element without removing it. Panics if empty.
 
-#### `pq_len`
+#### `std::collections::linear::pq_len`
 
 Return the number of elements in the priority queue.
 
-#### `pq_is_empty`
+#### `std::collections::linear::pq_is_empty`
 
 Return true if the priority queue contains no elements.
 
-#### `pq_clear`
+#### `std::collections::linear::pq_clear`
 
 Reset the priority queue to empty (preserves allocated storage).
 
-### Additional Deque accessors
+### `std::collections::linear` — Additional Deque accessors
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -375,19 +358,19 @@ Reset the priority queue to empty (preserves allocated storage).
 | `deque_clear` | `(Vec<i32>) -> ()` | `stable` | Reset the deque to empty (preserves capacity). |
 | `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | Copy all deque elements (front to back) into a new Vec<i32>. |
 
-#### `deque_front`
+#### `std::collections::linear::deque_front`
 
 Peek at the front element without removing it. Returns 0 when empty.
 
-#### `deque_back`
+#### `std::collections::linear::deque_back`
 
 Peek at the back element without removing it. Returns 0 when empty.
 
-#### `deque_clear`
+#### `std::collections::linear::deque_clear`
 
 Reset the deque to empty (preserves allocated capacity).
 
-#### `deque_to_vec`
+#### `std::collections::linear::deque_to_vec`
 
 Copy all deque elements (front to back) into a new Vec<i32>.
 
@@ -408,7 +391,7 @@ all other APIs in this module are **experimental**.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Public API
+### `std::collections::ordered` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -419,7 +402,7 @@ all other APIs in this module are **experimental**.
 | `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
 
-### BTreeMap API (sorted-vector backed, i32 key, i32 value)
+### `std::collections::ordered` — BTreeMap API (sorted-vector backed, i32 key, i32 value)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -432,39 +415,39 @@ all other APIs in this module are **experimental**.
 | `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | - |
 | `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `experimental` | - |
 
-#### `btree_new`
+#### `std::collections::ordered::btree_new`
 
 Create a new BTreeMap<i32,i32> (sorted-vector backed).
 
-#### `btree_insert`
+#### `std::collections::ordered::btree_insert`
 
 Insert a key-value pair into a BTreeMap<i32,i32>.
 
-#### `btree_get`
+#### `std::collections::ordered::btree_get`
 
 Get a value from a BTreeMap<i32,i32>. Returns 0 if not found.
 
-#### `btree_remove`
+#### `std::collections::ordered::btree_remove`
 
 Remove a key from a BTreeMap<i32,i32>.
 
-#### `btree_contains_key`
+#### `std::collections::ordered::btree_contains_key`
 
 Check if a BTreeMap<i32,i32> contains a key.
 
-#### `btree_len`
+#### `std::collections::ordered::btree_len`
 
 Return the number of entries in a BTreeMap<i32,i32>.
 
-#### `btree_keys`
+#### `std::collections::ordered::btree_keys`
 
 Return all keys of a BTreeMap<i32,i32> in sorted order.
 
-#### `btree_range`
+#### `std::collections::ordered::btree_range`
 
 Return keys in [start, end) range from a BTreeMap<i32,i32>.
 
-### BTreeSet API (sorted unique values, i32)
+### `std::collections::ordered` — BTreeSet API (sorted unique values, i32)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -473,23 +456,23 @@ Return keys in [start, end) range from a BTreeMap<i32,i32>.
 | `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
 | `btree_set_len` | `(Vec<i32>) -> i32` | `experimental` | - |
 
-#### `btree_set_new`
+#### `std::collections::ordered::btree_set_new`
 
 Create a new BTreeSet<i32> (sorted unique values).
 
-#### `btree_set_insert`
+#### `std::collections::ordered::btree_set_insert`
 
 Insert into a BTreeSet<i32>. Returns true if the value was newly inserted.
 
-#### `btree_set_contains`
+#### `std::collections::ordered::btree_set_contains`
 
 Check if a BTreeSet<i32> contains a value.
 
-#### `btree_set_len`
+#### `std::collections::ordered::btree_set_len`
 
 Return the number of elements in a BTreeSet<i32>.
 
-### IndexMap API (insertion-order map, i32 key, i32 value)
+### `std::collections::ordered` — IndexMap API (insertion-order map, i32 key, i32 value)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -499,27 +482,27 @@ Return the number of elements in a BTreeSet<i32>.
 | `index_map_len` | `(Vec<i32>) -> i32` | `experimental` | - |
 | `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | - |
 
-#### `index_map_new`
+#### `std::collections::ordered::index_map_new`
 
 Create a new IndexMap<i32,i32> (insertion-order map).
 
-#### `index_map_insert`
+#### `std::collections::ordered::index_map_insert`
 
 Insert a key-value pair into an IndexMap<i32,i32>.
 
-#### `index_map_get`
+#### `std::collections::ordered::index_map_get`
 
 Get a value from an IndexMap<i32,i32>. Returns 0 if not found.
 
-#### `index_map_len`
+#### `std::collections::ordered::index_map_len`
 
 Return the number of entries in an IndexMap<i32,i32>.
 
-#### `index_map_keys`
+#### `std::collections::ordered::index_map_keys`
 
 Return all keys of an IndexMap<i32,i32> in insertion order.
 
-### IndexSet API (insertion-order unique values, i32)
+### `std::collections::ordered` — IndexSet API (insertion-order unique values, i32)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -528,23 +511,23 @@ Return all keys of an IndexMap<i32,i32> in insertion order.
 | `index_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
 | `index_set_len` | `(Vec<i32>) -> i32` | `experimental` | - |
 
-#### `index_set_new`
+#### `std::collections::ordered::index_set_new`
 
 Create a new IndexSet<i32> (insertion-order unique values).
 
-#### `index_set_contains`
+#### `std::collections::ordered::index_set_contains`
 
 Check if an IndexSet<i32> contains a value.
 
-#### `index_set_insert`
+#### `std::collections::ordered::index_set_insert`
 
 Insert into an IndexSet<i32>. Returns true if the value was newly inserted.
 
-#### `index_set_len`
+#### `std::collections::ordered::index_set_len`
 
 Return the number of elements in an IndexSet<i32>.
 
-### BitSet
+### `std::collections::ordered` — BitSet
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -559,26 +542,26 @@ Return the number of elements in an IndexSet<i32>.
 | `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
 | `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
 
-#### `bitset_set`
+#### `std::collections::ordered::bitset_set`
 
 Set a bit in a BitSet (alias for bitset_mark).
 
-#### `bitset_clear`
+#### `std::collections::ordered::bitset_clear`
 
 Clear a bit in a BitSet (alias for bitset_unmark).
 
-#### `bitset_with_capacity`
+#### `std::collections::ordered::bitset_with_capacity`
 
 Create a new BitSet with the given capacity in bits.
 
-#### `bitset_count`
+#### `std::collections::ordered::bitset_count`
 
 Return the number of set bits in a BitSet.
 
-#### `bitset_union`
+#### `std::collections::ordered::bitset_union`
 
 Return the union of two BitSets.
 
-#### `bitset_intersection`
+#### `std::collections::ordered::bitset_intersection`
 
 Return the intersection of two BitSets.

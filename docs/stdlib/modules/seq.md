@@ -52,7 +52,7 @@ Lazy generic `Seq<T>` pipelines are deferred to a future release.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Public API
+### `std::seq` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -70,22 +70,22 @@ Lazy generic `Seq<T>` pipelines are deferred to a future release.
 | `unique` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
 | `count_eq` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 
-#### `map_i32_i32`
+#### `std::seq::map_i32_i32`
 
 Apply f to every element of v and collect the results.
 
-#### `filter_i32`
+#### `std::seq::filter_i32`
 
 Keep only elements of v for which f returns true.
 
-#### `take_i32`
+#### `std::seq::take_i32`
 
 Return the first n elements of v.
 
-#### `skip_i32`
+#### `std::seq::skip_i32`
 
 Return all elements of v after skipping the first n.
 
-#### `fold_i32_i32`
+#### `std::seq::fold_i32_i32`
 
 Reduce v to a single value using f, starting from init.

@@ -59,7 +59,7 @@ that differ from a full Unicode segmentation library.
 - String building helpers (`StringBuilder`, rope) are utility
 surfaces, not a guaranteed-stable text-processing facade.
 
-### Public API
+### `std::text` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -86,7 +86,7 @@ surfaces, not a guaranteed-stable text-processing facade.
 | `lines` | `(String) -> Vec<String>` | `stable` | Splits the string on newlines and returns the resulting lines. |
 | `chars` | `(String) -> Vec<String>` | `stable` | Returns individual characters as single-byte strings. |
 
-### Pad
+### `std::text` — Pad
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|

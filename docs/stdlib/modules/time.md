@@ -53,7 +53,7 @@ clock and requires no host capability.
 - All inputs are caller-supplied `i64` timestamps; the semantics of
 those timestamps are the caller's responsibility.
 
-### Public API
+### `std::time` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|

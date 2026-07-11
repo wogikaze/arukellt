@@ -4,7 +4,7 @@ Arukellt supports two import syntaxes for bringing modules into scope.
 
 ## `import` (local modules)
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import math
 import utils as u
@@ -19,7 +19,7 @@ fn main() {
 
 ## `use` (namespaced modules)
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::core
 use std::text as t
@@ -46,7 +46,7 @@ For non-`std` paths, local directory is checked first, then `std/`.
 
 ### Module alias
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::core as c     // alias: c
 use std::core          // alias: core (last segment)
@@ -56,7 +56,7 @@ use std::core          // alias: core (last segment)
 
 Imported module functions are called with `module::function()` syntax:
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import math
 fn main() {

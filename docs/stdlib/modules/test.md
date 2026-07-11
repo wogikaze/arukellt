@@ -48,7 +48,7 @@ Testing utilities for fixture and example code.
 The current module provides typed assertions and expectation helpers for
 `Result` and `Option`.
 
-### Public API
+### `std::test` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -70,6 +70,6 @@ The current module provides typed assertions and expectation helpers for
 | `assert_msg` | `(bool, String) -> ()` | `stable` | Assert that a boolean condition holds, with a custom failure message. |
 | `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | Run f exactly iterations times and write a timing summary to stderr. |
 
-#### `bench`
+#### `std::test::bench`
 
 Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic.

@@ -238,7 +238,7 @@ std::error/                  (または std::core::error.ark に統合)
 prelude の free function は trait impl への delegate に切り替える。
 **関数名は維持** (破壊的変更を最小化) し、実装のみ trait dispatch 経由にする。
 
-<!-- skip-doc-check --><!-- 設計図示用の擬似コード。trait dispatch 未実装のためコンパイル不可 -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --><!-- 設計図示用の擬似コード。trait dispatch 未実装のためコンパイル不可 -->
 
 ```ark
 // prelude.ark (after)
@@ -281,7 +281,7 @@ pub fn i32_to_string(x: i32) -> String {
 
 ### 3.3 prelude に追加する型・trait
 
-<!-- skip-doc-check --><!-- 設計図示用。対象モジュールが未実装のためコンパイル不可 -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --><!-- 設計図示用。対象モジュールが未実装のためコンパイル不可 -->
 
 ```ark
 // prelude に暗黙インポートされる trait (after)

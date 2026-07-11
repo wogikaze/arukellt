@@ -96,7 +96,7 @@ see per-section notes in issues #089–#093 for GC-specific behavior.
 
 `tests/fixtures/hello/hello.ark`
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::stdio
 fn main() {

@@ -54,7 +54,7 @@ are complete.
 The correct replacement is **trait-based method syntax**, not the intermediate
 `std::text` / `std::seq` explicit-import style that was previously recommended.
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 // deprecated — monomorphic free functions
 let v: Vec<i32> = Vec_new_i32()
@@ -63,7 +63,7 @@ let s: String = concat("a", "b")
 let n: String = i32_to_string(42)
 ```
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 // preferred — trait-based method syntax (post-#688)
 let v: Vec<i32> = Vec::new()              // #697 generic Vec

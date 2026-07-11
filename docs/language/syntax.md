@@ -1,7 +1,7 @@
 # 構文仕様
 
 > **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
-> Behavior described here is verified by the fixture harness. Changes require spec review.
+> Content accuracy is manually reviewed unless a section links to a specific fixture or check ID.
 > For current verified state, see [../current-state.md](../current-state.md).
 
 このページは、現行ブランチで把握しやすい構文の **実用要約** です。

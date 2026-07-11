@@ -30,6 +30,7 @@ STATUS_LINE_RE = re.compile(
     re.IGNORECASE,
 )
 DATE_RE = re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b")
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 SUPERSEDES_RE = re.compile(
     r"(?i)(?:\*\*)?(?:Supersedes|廃止)\s*(?:\*\*)?\s*[:：]\s*(.+)"
 )
@@ -147,7 +148,8 @@ def main() -> int:
                 f"（docs/data/target-contract-summary.md へ）"
             )
 
-        for ym, mo, da in DATE_RE.findall(text):
+        date_text = HTML_COMMENT_RE.sub("", text)
+        for ym, mo, da in DATE_RE.findall(date_text):
             try:
                 d = date(int(ym), int(mo), int(da))
             except ValueError:

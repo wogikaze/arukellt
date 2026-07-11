@@ -43,7 +43,7 @@ parsers need. The full TOML parser with `pub enum TomlValue` lives
 in `std/toml/parser.ark` (loaded as `std::toml::parser`) to avoid
 the bootstrap compiler stubbing the entire module.
 
-### Public API
+### `std::toml` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -56,18 +56,18 @@ the bootstrap compiler stubbing the entire module.
 | `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | - |
 | `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | - |
 
-#### `toml_parse`
+#### `std::toml::toml_parse`
 
 Parse a TOML document (key=value pairs).
 
-#### `toml_stringify`
+#### `std::toml::toml_stringify`
 
 Serialize a TomlValue back to text.
 
-#### `toml_get`
+#### `std::toml::toml_get`
 
 Look up a key in a TOML table value.
 
-#### `toml_table_keys`
+#### `std::toml::toml_table_keys`
 
 Return all keys of a TOML table as a string vector.

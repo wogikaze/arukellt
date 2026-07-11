@@ -26,7 +26,7 @@
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: ACCEPTED — 実装見送り。heap pointer 初期化は単純定数で十分 |
 | [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | ステータス: ACCEPTED — host-boundなstdlib APIはstd::host::に隔離 |
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: wasm32-gc をプライマリターゲットとする | ステータス: ACCEPTED — wasm32-gc を唯一の primary とし、既定 host は WASI P2 |
-| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: 言語仕様と Stdlib API の安定性ラベル | ステータス: ACCEPTED — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用 |
+| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: 言語仕様と Stdlib API の安定性ラベル | ステータス: ACCEPTED — 言語仕様ラベルと stdlib API lifecycle ラベルを採用 |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: ユーザー到達パスの No-Panic 品質基準 | ステータス: ACCEPTED — ユーザー到達パスでのpanic禁止 |
 | [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground v1 Product Contract | ステータス: ACCEPTED — client-side hybrid（v1 にサーバー側 executor なし） |
 | [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: 言語ドキュメント分類 — Normative / Explanatory / Transitional | ステータス: ACCEPTED — 3つのドキュメントクラス（normative/explanatory/transitional）を採用 |

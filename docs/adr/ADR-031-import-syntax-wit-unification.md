@@ -57,7 +57,7 @@ world imports {
 
 すべての import について、Arukellt ソースの `::` パスを WIT の `namespace:package/module` 形式に置き換える。
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use arukellt:std/io           // stdlib import (was: use std::io)
 use wasi:cli/stdin            // WASI import
@@ -76,7 +76,7 @@ use wasi:cli/stdin            // WASI import
 
 Layer S（ソースレベルモジュール import）には `use` + `::` を維持。WIT 識別子は Layer C 境界データとして、文字列、属性、または外部 `.wit` + CLI フラグで表現。
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::io                   // Layer S -- stdlib module (unchanged)
 use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
@@ -102,7 +102,7 @@ use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 
 既存の `use`/`import` に加え、Layer C import 用の複合キーワードを導入:
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 use std::io                   // Layer S (unchanged)
 wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
@@ -122,7 +122,7 @@ wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
 
 `import <single-identifier>`（ローカルファイル import）を廃止して `use` に寄せ、`import` キーワードを Layer C（WIT）宣言に解放。
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 // 現行
 import math           // local file module

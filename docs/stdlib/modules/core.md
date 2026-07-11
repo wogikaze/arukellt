@@ -46,7 +46,7 @@ Fundamental types and helpers shared across the standard library.
 This module exposes foundational types (`Ordering`, `Range`) and helpers
 that other stdlib modules build upon.
 
-### Public Types
+### `std::core` — Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
@@ -54,7 +54,7 @@ that other stdlib modules build upon.
 | `Range` | `struct` | Half-open integer range [start, end). |
 | `RangeInclusive` | `struct` | Closed integer range [start, end]. |
 
-### Public API
+### `std::core` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -92,13 +92,13 @@ Existing `-1`-returning functions are kept only as backward-compatible
 adapters.  When adding new APIs, always provide a `try_*` / `Option`-first
 variant and document the legacy form as deprecated.
 
-### Public Types
+### `std::core::error` — Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
 | `Error` | `enum` | - |
 
-### Public API
+### `std::core::error` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
@@ -123,7 +123,7 @@ and provides reasonable distribution for hash table operations.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
-### Public API
+### `std::core::hash` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|

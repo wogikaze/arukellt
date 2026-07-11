@@ -45,7 +45,7 @@ current selfhost compile path — see
 
 Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 
-### Public API
+### `std::host::sockets` — Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
@@ -55,7 +55,7 @@ Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 | `listen` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ impl | Binds a TCP listener on the given host and port. Returns listener fd on success. |
 | `accept` | `(i32) -> Result<i32, String>` | `provisional` | ✅ impl | Accepts one inbound connection on a listener fd. Returns connected socket fd. |
 
-#### `connect`
+#### `std::host::sockets::connect`
 
 Open a TCP connection to the given hostname and port. Returns a socket descriptor on success.
 
@@ -70,7 +70,7 @@ let sock = sockets::connect("localhost", 8080)
 match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 ```
 
-#### `read`
+#### `std::host::sockets::read`
 
 Read up to max_len bytes from an open socket fd.
 
@@ -78,7 +78,7 @@ Read up to max_len bytes from an open socket fd.
 
 **Errors:** Err on invalid fd or I/O failure.
 
-#### `write`
+#### `std::host::sockets::write`
 
 Write byte values from a Vec to an open socket fd.
 
@@ -86,7 +86,7 @@ Write byte values from a Vec to an open socket fd.
 
 **Errors:** Err on invalid fd or I/O failure.
 
-#### `listen`
+#### `std::host::sockets::listen`
 
 Bind a TCP listener on the given hostname and port. Returns a listener fd on success.
 
@@ -94,7 +94,7 @@ Bind a TCP listener on the given hostname and port. Returns a listener fd on suc
 
 **Errors:** Err on bind failure or invalid port.
 
-#### `accept`
+#### `std::host::sockets::accept`
 
 Accept one inbound TCP connection on a listener fd. Returns connected socket fd.
 

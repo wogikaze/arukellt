@@ -7,7 +7,7 @@ Read a file, process its lines, and write output using `std::host::fs`, `std::ho
 
 ## Read a File and Print Its Contents
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs
 use std::host::stdio
@@ -21,7 +21,7 @@ match result {
 
 ## Process Lines
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs
 use std::host::stdio
@@ -47,7 +47,7 @@ match result {
 
 ## Filter and Write Output
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs
 use std::host::stdio
@@ -80,7 +80,7 @@ match result {
 
 ## Read, Transform, and Write (Pipeline Pattern)
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs
 use std::host::stdio

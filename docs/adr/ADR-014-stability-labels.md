@@ -1,6 +1,6 @@
 # ADR-014: 言語仕様と Stdlib API の安定性ラベル
 
-ステータス: **ACCEPTED** — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用  
+ステータス: **ACCEPTED** — 言語仕様ラベルと stdlib API lifecycle ラベルを採用
 日付: 2026-04-01  
 決定者: core team
 決定日: 2026-04-01
@@ -29,7 +29,8 @@ Arukellt の言語仕様と stdlib は拡大している。ユーザーは、本
 ### stdlib への適用
 
 - `std/manifest.toml` の各公開エントリに `stability` フィールドを持つ。
-- 許可値: `stable`, `provisional`, `experimental`。
+- 許可値: `stable`, `provisional`, `experimental`, `deprecated`。`deprecated` は callable な移行状態であり、`deprecated_by` を必須とする。
+- `unimplemented` は言語仕様の状態であり、公開 stdlib manifest entry の値には使わない。
 - `scripts/gen/generate-docs.py` が生成する stdlib リファレンスは、関数表に安定性ラベルを表示する。
 
 ## 帰結

@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T18:07:27+09:00
-> Source-Commit: `ff8cb226`
+> Generated-At: 2026-07-11T19:08:10+09:00
+> Source-Commit: `7d2b44c7`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 4 verification check failure(s)
@@ -264,7 +264,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 ## Component Model Status
 
-要約: `--emit component` / `wit` / `all` は `wasm32-gc` で利用可能（ADR-008 in-tree 契約。実装ギャップは ADR gaps）。
+要約: command component は pinned compiler で利用可能、library component は s2 compiler が必要、WIT emit は partial。正確な軸別状態は [`data/component-availability.md`](data/component-availability.md) を参照。
 詳細・制限・fixture 列挙は [`docs/state/component-model.md`](state/component-model.md)。
 
 Export boundary (summary; full tiers in `state/component-model.md`): unsupported shapes

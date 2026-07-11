@@ -53,18 +53,18 @@ These APIs are host-bound and require WASI process capability.
 
 **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI runtime.
 
-### Public API
+### `std::host::process` — Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
 | `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
-#### `exit`
+#### `std::host::process::exit`
 
 Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure.
 
-#### `abort`
+#### `std::host::process::abort`
 
 Abort the process immediately with an abnormal-termination signal (non-zero exit).
 
@@ -84,7 +84,7 @@ WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 **Availability:** All targets (`wasm32` + `wasm32-gc`). Environment variable access
 (`var`) requires WASI Preview 2 component model (not available on P1).
 
-### Public API
+### `std::host::env` — Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
@@ -94,19 +94,19 @@ WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
 | `has_flag` | `(String) -> bool` | `stable` | ✅ impl | Returns true when the argument vector contains the given flag. |
 
-#### `args`
+#### `std::host::env::args`
 
 Return the command-line arguments as a list of strings. The first element is the program name.
 
-#### `arg_count`
+#### `std::host::env::arg_count`
 
 Return the number of command-line arguments (including the program name).
 
-#### `arg_at`
+#### `std::host::env::arg_at`
 
 Return the command-line argument at the given zero-based index, or None if out of bounds.
 
-#### `var`
+#### `std::host::env::var`
 
 Look up an environment variable by name. Returns None if the variable is not set.
 
@@ -121,6 +121,6 @@ let home = env::var("HOME")
 match home { Some(p) => println(p), None => println("not set") }
 ```
 
-#### `has_flag`
+#### `std::host::env::has_flag`
 
 Return true if the given flag (e.g. "--verbose") was passed as a command-line argument.

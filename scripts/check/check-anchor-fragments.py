@@ -59,6 +59,18 @@ def build_anchor_set(content: str) -> set[str]:
     return anchors
 
 
+def duplicate_heading_slugs(content: str) -> set[str]:
+    """Return repeated base slugs; generated current references must avoid them."""
+    counts: dict[str, int] = {}
+    for match in HEADING_PATTERN.finditer(content):
+        heading = re.sub(r"<!--.*?-->", "", match.group(2)).strip()
+        heading = re.sub(r"\s+#+\s*$", "", heading).strip()
+        base = gfm_slug(heading)
+        if base:
+            counts[base] = counts.get(base, 0) + 1
+    return {slug for slug, count in counts.items() if count > 1}
+
+
 def load_allowlist() -> set[tuple[str, str]]:
     """Return allowlisted (relative-md-path, anchor) pairs."""
     allowed: set[tuple[str, str]] = set()
@@ -130,6 +142,12 @@ def check_file(md_file: Path, allowlist: set[tuple[str, str]]) -> None:
     rel_md = md_file.relative_to(ROOT).as_posix()
     content = md_file.read_text(encoding="utf-8")
     local_anchors = build_anchor_set(content)
+    if rel_md.startswith("docs/stdlib/modules/") or rel_md in {
+        "docs/stdlib/reference.md",
+        "docs/stdlib/stability-policy.md",
+    }:
+        for slug in sorted(duplicate_heading_slugs(content)):
+            errors.append(f"  DUPLICATE ANCHOR: {rel_md} -> #{slug}")
     anchor_cache: dict[Path, set[str]] = {md_file: local_anchors}
 
     for match in LINK_PATTERN.finditer(content):

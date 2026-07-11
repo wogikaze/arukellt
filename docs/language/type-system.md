@@ -1,7 +1,7 @@
 # 型システム
 
 > **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
-> Behavior described here is verified by the fixture harness. Changes require spec review.
+> This document is intended to describe implemented behavior. Content accuracy is manually reviewed unless a section links to a specific fixture or check ID.
 > For current verified state, see [../current-state.md](../current-state.md).
 
 このページは型システムの **実用ガイド** です。

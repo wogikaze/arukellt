@@ -737,7 +737,7 @@ An imported module is never referenced via qualified identifiers in the
 current file. Remove the import or prefix the alias with `_` to suppress
 this warning.
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::fs       // W0006 if no fs:: usage
 use std::math as _math  // suppressed by _ prefix
@@ -759,7 +759,7 @@ A `let` binding introduces a name that is never referenced in the enclosing
 function. Remove the binding or prefix the name with `_` to suppress this
 warning.
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let _unused = expensive()  // suppressed by _ prefix
 let x = 1                  // W0007 if x is never used
@@ -780,7 +780,7 @@ let x = 1                  // W0007 if x is never used
 A function marked as deprecated in `std/manifest.toml` is being used.
 The `deprecated_by` field indicates the recommended replacement.
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 // Vec_new_i32() is deprecated — use Vec::new() with type annotation
 let v = Vec_new_i32()  // W0008: deprecated API

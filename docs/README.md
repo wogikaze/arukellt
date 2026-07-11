@@ -11,7 +11,7 @@
 - Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `component_cli`=`provisional` — Living path may still use wasm-tools / Python wrap helpers for some packaging steps ([axes](data/component-availability.md))
 - Fixture harness: 654 passed, 4 failed, 29 skipped (observed harness: 687); registry: 2679 manifest entries
 - Verification: `python3 scripts/manager.py verify quick` — 169/173 checks pass
-- Stdlib manifest-backed public API: 772 functions
+- Stdlib manifest-backed public API: 755 functions
 
 - [Current state](current-state.md)
 - [Quickstart](quickstart.md)

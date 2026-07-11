@@ -41,7 +41,7 @@ Version constants live in this module; resource handle tables live in
 `std::component::handle` (SlotMap-backed, #473 phase 1). Canonical ABI
 lift/lower helpers are tracked by #054.
 
-### Public API
+### `std::component` — Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|

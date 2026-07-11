@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 746
+- **Canonical names:** 729
 - **Historical/deprecated names:** 26
-- **Total entries:** 772
+- **Total entries:** 755
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -50,12 +50,8 @@ Current public API names, sorted alphabetically.
 | `any_true` | `std::simd::v128` | `experimental` | Simd |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_get` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_get` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_len` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_len` | `std::collections::compiler` | `experimental` | Collections |
-| `arena_new` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_new` | `std::collections::compiler` | `experimental` | Collections |
 | `arg_at` | `std::host::env` | `stable` | Host Env |
 | `arg_at` | `std::env` | `stable` | Env |
@@ -185,18 +181,11 @@ Current public API names, sorted alphabetically.
 | `deque_clear` | `std::collections::linear` | `stable` | Collections |
 | `deque_front` | `std::collections::linear` | `stable` | Collections |
 | `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
-| `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
-| `deque_len` | `std::collections::linear` | `stable` | Collections |
 | `deque_len` | `std::collections::linear` | `stable` | Collections |
 | `deque_new` | `std::collections::linear` | `stable` | Collections |
-| `deque_new` | `std::collections::linear` | `stable` | Collections |
-| `deque_pop_back` | `std::collections::linear` | `stable` | Collections |
 | `deque_pop_back` | `std::collections::linear` | `stable` | Collections |
 | `deque_pop_front` | `std::collections::linear` | `stable` | Collections |
-| `deque_pop_front` | `std::collections::linear` | `stable` | Collections |
 | `deque_push_back` | `std::collections::linear` | `stable` | Collections |
-| `deque_push_back` | `std::collections::linear` | `stable` | Collections |
-| `deque_push_front` | `std::collections::linear` | `stable` | Collections |
 | `deque_push_front` | `std::collections::linear` | `stable` | Collections |
 | `deque_to_vec` | `std::collections::linear` | `stable` | Collections |
 | `div` | `std::simd::f32x4` | `experimental` | Simd |
@@ -496,16 +485,10 @@ Current public API names, sorted alphabetically.
 | `position` | `std::io` | `stable` | Io |
 | `pq_clear` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
-| `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
-| `pq_len` | `std::collections::linear` | `stable` | Collections |
 | `pq_len` | `std::collections::linear` | `stable` | Collections |
 | `pq_new` | `std::collections::linear` | `stable` | Collections |
-| `pq_new` | `std::collections::linear` | `stable` | Collections |
-| `pq_peek` | `std::collections::linear` | `stable` | Collections |
 | `pq_peek` | `std::collections::linear` | `stable` | Collections |
 | `pq_pop` | `std::collections::linear` | `stable` | Collections |
-| `pq_pop` | `std::collections::linear` | `stable` | Collections |
-| `pq_push` | `std::collections::linear` | `stable` | Collections |
 | `pq_push` | `std::collections::linear` | `stable` | Collections |
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
 | `print_bytes` | `std::io` | `stable` | Io |
@@ -840,12 +823,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `any_true` | ✅ `experimental` | `std::simd::v128` | Simd |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
-| `arena_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arg_at` | ✅ `stable` | `std::host::env` | Host Env |
 | `arg_at` | ✅ `stable` | `std::env` | Env |
@@ -976,18 +955,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `deque_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_front` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_len` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_len` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_new` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_new` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_pop_back` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_pop_back` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_pop_front` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_pop_front` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_push_back` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_push_back` | ✅ `stable` | `std::collections::linear` | Collections |
-| `deque_push_front` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_push_front` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_to_vec` | ✅ `stable` | `std::collections::linear` | Collections |
 | `div` | ✅ `experimental` | `std::simd::f32x4` | Simd |
@@ -1309,16 +1281,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `position` | ✅ `stable` | `std::io` | Io |
 | `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_new` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_new` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_peek` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_peek` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
-| `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |

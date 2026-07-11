@@ -1,7 +1,7 @@
 # エラー処理
 
 > **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
-> Behavior described here is verified by the fixture harness. Changes require spec review.
+> This document is intended to describe implemented behavior. Content accuracy is manually reviewed unless a section links to a specific fixture or check ID.
 > For current verified state, see [../current-state.md](../current-state.md).
 
 このページはエラー処理の **実用ガイド** です。基本的に `Result<T, E>` と `Option<T>` ベースです。
