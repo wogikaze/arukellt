@@ -1,4 +1,4 @@
-# ADR-022: Playground Deployment and Asset Caching Strategy
+# ADR-022: Playground のデプロイとアセットキャッシュ戦略
 
 ステータス: **ACCEPTED** — GitHub Pagesで静的ホスティング（Fastly CDN経由）
 作成日: 2026-06-12
@@ -6,53 +6,35 @@
 
 ---
 
-## Context
+## 背景
 
-ADR-017 established that the playground v1 is a **client-side-only static web
-application** — parse, format, check, and diagnostics via Wasm in the browser,
-with no server-side component. ADR-021 established that share URLs use
-**fragment-based encoding** (no server roundtrip). The Wasm module is the
-dominant asset at 247 KB after `wasm-opt` (from #379).
+ADR-017 は playground v1 を**クライアントサイドのみの静的 Web アプリケーション**と定めた — ブラウザ内 Wasm による parse、format、check、診断であり、サーバーサイドコンポーネントはない。ADR-021 は共有 URL が**フラグメントベースのエンコード**（サーバー往復なし）を使うと定めた。Wasm モジュールは `wasm-opt` 後 247 KB（#379 より）で支配的なアセットである。
 
-Before implementation begins, the project needs clear answers to:
+実装開始前に、プロジェクトは次について明確な答えが必要である:
 
-1. **Where is the playground hosted?** Static hosting options range from
-   GitHub Pages (free, integrated) to dedicated CDN platforms (Cloudflare
-   Pages, Netlify, Vercel). The choice affects cache control, preview
-   deployments, and operational overhead.
+1. **Playground はどこでホストするか？** 静的ホスティングの選択肢は GitHub Pages（無料、統合済み）から専用 CDN プラットフォーム（Cloudflare Pages、Netlify、Vercel）まで幅広い。選択はキャッシュ制御、プレビューデプロイ、運用オーバーヘッドに影響する。
 
-2. **How are assets cached?** The Wasm module is expensive to download
-   (247 KB raw, ~100 KB gzipped) and expensive to compile. Effective caching
-   is the single largest performance lever. The strategy must handle cache
-   invalidation without manual purges.
+2. **アセットはどうキャッシュするか？** Wasm モジュールはダウンロード（生 247 KB、gzip 約 100 KB）とコンパイルの両方が高コストである。効果的なキャッシュが最大の性能レバーである。戦略は手動パージなしでキャッシュ無効化を扱う必要がある。
 
-3. **How do preview environments work?** Contributors need to validate
-   playground changes before merge. PR preview deployments reduce the
-   feedback loop from "merge and hope" to "click and verify."
+3. **プレビュー環境はどう動くか？** コントリビュータはマージ前に playground の変更を検証する必要がある。PR プレビューデプロイはフィードバックループを「マージして祈る」から「クリックして確認」へ短縮する。
 
-4. **What is the performance budget?** Without an explicit budget, asset
-   sizes tend to grow unchecked. A CI-enforced budget prevents regressions.
+4. **パフォーマンス予算は何か？** 明示的な予算がなければアセットサイズは無制御に増える。CI で強制する予算が回帰を防ぐ。
 
 ---
 
-## Decision
+## 決定
 
-### D1: Host on GitHub Pages (production)
+### D1: GitHub Pages でホスト（本番）
 
-The playground is deployed as a static site to **GitHub Pages**, served from
-the `gh-pages` branch via GitHub's Fastly CDN.
+Playground は静的サイトとして **GitHub Pages** にデプロイし、`gh-pages` ブランチから GitHub の Fastly CDN 経由で配信する。
 
-**Rationale**: Zero operational cost, zero additional vendor accounts, and the
-project already uses GitHub for source hosting and CI. The playground has no
-server-side requirements — GitHub Pages' static-only model is the exact fit.
+**根拠**: 運用コストゼロ、追加ベンダーアカウント不要、プロジェクトはすでにソースホスティングと CI に GitHub を使用している。Playground にサーバー要件はない — GitHub Pages の静的のみモデルがぴったり合う。
 
-**Upgrade path**: If CDN performance proves insufficient (e.g., high latency
-in specific regions), migration to Cloudflare Pages requires only a CI
-target change and DNS CNAME update — no code changes.
+**アップグレード経路**: CDN 性能が不十分と判明した場合（例: 特定リージョンの高レイテンシ）、Cloudflare Pages への移行は CI ターゲット変更と DNS CNAME 更新のみで済む — コード変更は不要。
 
-### D2: Content-hashed filenames for all static assets
+### D2: すべての静的アセットにコンテンツハッシュ付きファイル名
 
-All assets except `index.html` use content-hashed filenames:
+`index.html` を除くすべてのアセットはコンテンツハッシュ付きファイル名を使う:
 
 ```
 playground-<hash>.js
@@ -62,124 +44,89 @@ worker-<hash>.js
 examples-<hash>.json
 ```
 
-The hash is derived from the file content (SHA-256, first 12 hex characters).
-`index.html` is the only mutable entry point; it references all other assets
-by their hashed names.
+ハッシュはファイル内容から導出する（SHA-256、先頭 12 文字の 16 進）。`index.html` のみが可変エントリポイントであり、他のすべてのアセットをハッシュ名で参照する。
 
-**Rationale**: Content-hashing provides **automatic cache invalidation** without
-explicit purges. When content changes, the hash changes, the filename changes,
-and browsers fetch the new version. When content does not change (e.g., a
-TS-only fix does not change the Wasm), browsers continue serving the cached
-Wasm — **independent invalidation** across asset types.
+**根拠**: コンテンツハッシュは明示的パージなしで**自動キャッシュ無効化**を提供する。内容が変わればハッシュが変わり、ファイル名が変わり、ブラウザは新バージョンを取得する。内容が変わらなければ（例: TS のみの修正で Wasm は変わらない）、ブラウザはキャッシュされた Wasm を配信し続ける — アセット種別ごとの**独立した無効化**。
 
-This strategy works within GitHub Pages' cache constraints (no custom
-`Cache-Control` headers) because the browser treats each unique URL as a
-distinct cacheable resource.
+この戦略は GitHub Pages のキャッシュ制約（カスタム `Cache-Control` ヘッダー不可）内で機能する。ブラウザは一意の URL を別個のキャッシュ可能リソースとして扱うためである。
 
-### D3: PR preview deployments via GitHub Actions
+### D3: GitHub Actions による PR プレビューデプロイ
 
-Every PR that modifies playground source (`playground/`)
-receives an automatic preview deployment. The CI bot comments on the PR with
-the preview URL and build time.
+Playground ソース（`playground/`）を変更するすべての PR が自動プレビューデプロイを受け取る。CI ボットが PR にプレビュー URL とビルド時刻をコメントする。
 
-Preview deployments are cleaned up when the PR is merged or closed.
+プレビューデプロイは PR がマージまたはクローズされたときにクリーンアップされる。
 
-**Rationale**: Pre-merge validation of playground changes reduces risk and
-enables visual review without local builds.
+**根拠**: マージ前の playground 変更検証はリスクを下げ、ローカルビルドなしのビジュアルレビューを可能にする。
 
-### D4: Performance budget with CI enforcement
+### D4: CI 強制のパフォーマンス予算
 
-| Metric | Budget |
+| 指標 | 予算 |
 |--------|--------|
-| Wasm module (raw) | ≤ 300 KB |
-| Total initial payload (gzipped) | ≤ 250 KB |
-| Time to Interactive (4G, mid-tier device) | ≤ 3.0 s |
-| Time to Interactive (broadband, desktop) | ≤ 1.0 s |
+| Wasm モジュール（生） | ≤ 300 KB |
+| 初期ペイロード合計（gzip） | ≤ 250 KB |
+| Time to Interactive（4G、中位デバイス） | ≤ 3.0 s |
+| Time to Interactive（ブロードバンド、デスクトップ） | ≤ 1.0 s |
 
-The Wasm size gate and total payload gate are enforced in CI as blocking checks.
-TTI is initially advisory (Lighthouse CI) and promoted to blocking once the
-baseline is stable.
+Wasm サイズゲートと合計ペイロードゲートは CI でブロッキングチェックとして強制される。TTI は当初はアドバイザリ（Lighthouse CI）で、ベースラインが安定したらブロッキングに昇格する。
 
-**Rationale**: The current Wasm module (247 KB) plus estimated JS/CSS/HTML
-totals ~140 KB gzipped, well within the 250 KB budget. The 300 KB Wasm
-ceiling provides ~20% headroom for feature growth while preventing
-unchecked bloat.
+**根拠**: 現行 Wasm モジュール（247 KB）に推定 JS/CSS/HTML を加えた合計は gzip 約 140 KB で、250 KB 予算内に十分収まる。300 KB の Wasm 上限は機能成長に約 20% の余裕を与えつつ、無制御の肥大化を防ぐ。
 
 ---
 
-## Consequences
+## 結果
 
-### Positive
+### 肯定的
 
-- **Zero hosting cost**: GitHub Pages is free for public repositories.
-- **Automatic cache invalidation**: Content-hashed filenames eliminate
-  manual cache purges and "clear your cache" support requests.
-- **Independent asset caching**: A CSS fix does not force re-download of
-  the 247 KB Wasm module.
-- **Pre-merge confidence**: PR previews catch visual and functional
-  regressions before merge.
-- **Enforced performance discipline**: CI gates prevent gradual size creep.
+- **ホスティングコストゼロ**: 公開リポジトリでは GitHub Pages は無料。
+- **自動キャッシュ無効化**: コンテンツハッシュ付きファイル名により手動キャッシュパージと「キャッシュをクリアしてください」サポート依頼を排除する。
+- **アセットごとの独立キャッシュ**: CSS 修正が 247 KB の Wasm モジュールの再ダウンロードを強制しない。
+- **マージ前の信頼**: PR プレビューがマージ前にビジュアル・機能回帰を検出する。
+- **強制される性能規律**: CI ゲートが段階的なサイズ肥大を防ぐ。
 
-### Negative
+### 否定的
 
-- **No custom `Cache-Control` headers**: GitHub Pages controls caching
-  headers. `index.html` has a ~10-minute TTL (not instant). This is
-  acceptable for a playground (not latency-critical content).
-- **Preview deployment complexity**: PR previews require CI workflow
-  configuration and artifact management.
-- **No server-side analytics**: Usage data requires a client-side
-  analytics solution (deferred to v2).
+- **カスタム `Cache-Control` ヘッダー不可**: GitHub Pages がキャッシュヘッダーを制御する。`index.html` は TTL 約 10 分（即時ではない）。Playground には許容できる（レイテンシクリティカルなコンテンツではない）。
+- **プレビューデプロイの複雑さ**: PR プレビューには CI ワークフロー設定とアーティファクト管理が必要。
+- **サーバーサイド分析なし**: 利用データにはクライアントサイド分析ソリューションが必要（v2 に延期）。
 
-### Neutral
+### 中立
 
-- **Rollback is git-based**: Reverting a bad deploy requires `git revert`
-  - CI redeploy (~15 minutes). Emergency rollback via force-push to
-  `gh-pages` is faster (< 1 minute + CDN propagation).
-- **Migration to another host is low-friction**: All assets are static
-  files with no platform-specific configuration.
+- **ロールバックは git ベース**: 悪いデプロイの巻き戻しは `git revert` — CI 再デプロイ（約 15 分）。緊急ロールバックは `gh-pages` への force-push がより速い（< 1 分 + CDN 伝播）。
+- **別ホストへの移行は低摩擦**: すべてのアセットは静的ファイルで、プラットフォーム固有設定はない。
 
 ---
 
-## Alternatives Rejected
+## 却下した代替案
 
-### A1: Cloudflare Pages as primary host
+### A1: プライマリホストとして Cloudflare Pages
 
-Cloudflare Pages offers superior CDN, custom headers, and native preview
-deployments. However, it introduces a separate vendor account, billing
-relationship, and operational surface. The project can migrate to Cloudflare
-Pages later if GitHub Pages performance proves insufficient.
+Cloudflare Pages は優れた CDN、カスタムヘッダー、ネイティブプレビューデプロイを提供する。しかし別ベンダーアカウント、請求関係、運用面を導入する。GitHub Pages の性能が不十分と判明すれば後から Cloudflare Pages に移行できる。
 
-### A2: Query-string cache busting (`?v=1.2.3`)
+### A2: クエリ文字列によるキャッシュバスティング（`?v=1.2.3`）
 
-Some projects use `app.js?v=1.2.3` for cache busting. This is fragile:
-some CDN configurations and proxies strip or ignore query strings for
-caching purposes. Content-hashed filenames are universally reliable.
+一部プロジェクトは `app.js?v=1.2.3` でキャッシュバスティングする。これは脆い: 一部の CDN 設定やプロキシはキャッシュ目的でクエリ文字列を除去または無視する。コンテンツハッシュ付きファイル名は普遍的に信頼できる。
 
-### A3: Service Worker for offline caching
+### A3: オフラインキャッシュ用 Service Worker
 
-A Service Worker could provide offline support and more aggressive caching.
-This adds complexity (SW lifecycle management, update flows) and is deferred
-to v2. Content-hashed filenames provide sufficient caching without a SW.
+Service Worker はオフライン対応とより積極的なキャッシュを提供できる。複雑さ（SW ライフサイクル管理、更新フロー）が増えるため v2 に延期。コンテンツハッシュ付きファイル名は SW なしで十分なキャッシュを提供する。
 
-### A4: No performance budget
+### A4: パフォーマンス予算なし
 
-Without a budget, the Wasm module could grow to 500+ KB as features are
-added. An explicit budget forces conscious trade-offs and prevents
-"death by a thousand cuts" size regression.
+予算がなければ Wasm モジュールは機能追加で 500 KB 超に成長しうる。明示的予算が意識的なトレードオフを強制し、「千切れに死ぬ」サイズ回帰を防ぐ。
 
 ---
 
-## Verification
+## 検証
 
-- `python scripts/manager.py verify quick` — all harness checks pass
-- `python3 scripts/check/check-docs-consistency.py` — docs consistency verified
-- Deployment strategy document: `docs/playground/deployment-strategy.md`
+- `python scripts/manager.py verify quick` — すべてのハーネスチェックがパス
+- `python3 scripts/check/check-docs-consistency.py` — ドキュメント一貫性を検証
+- デプロイ戦略ドキュメント: `docs/playground/deployment-strategy.md`
 
 ---
 
-## References
+## 参照
 
 - ADR-017: Playground Execution Model and v1 Product Contract
 - ADR-021: Playground Share URL Format
-- `docs/playground/deployment-strategy.md` — full operational detail
-- `playground/README.md` — architecture overview
+- `docs/playground/deployment-strategy.md` — 運用の詳細
+- `playground/README.md` — アーキテクチャ概要

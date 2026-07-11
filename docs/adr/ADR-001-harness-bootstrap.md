@@ -4,56 +4,56 @@
 日付: 2026-03-24
 決定者: Agent initialization
 
-## Context
+## 文脈
 
-This project requires a structured harness to support:
+本プロジェクトには、次を支える構造化された harness が必要である。
 
-- Agent-driven development workflows
-- Clear completion criteria
-- Reproducible local and CI environments
-- Documentation governance
-- Scalable task execution
+- エージェント駆動の開発ワークフロー
+- 明確な完了条件
+- 再現可能なローカル / CI 環境
+- ドキュメント統治
+- スケーラブルなタスク実行
 
-The choice is between following a single reference implementation or synthesizing from proven patterns across multiple projects.
+単一の参照実装に従うか、複数プロジェクトの実証済みパターンを合成するかが選択肢である。
 
-## Decision
+## 決定
 
-Adopt a synthesized baseline harness combining:
+次を組み合わせた合成ベースライン harness を採用する。
 
-1. **NEPLg2's explicit planning model** - `issues/open` queue with ADR-driven decisions
-2. **vibe-lang's command discoverability** - Focused task surface with clear verification gates
-3. **wado's environment discipline** - Bootstrap and artifact regeneration as first-class concerns
+1. **NEPLg2 の明示的計画モデル** — `issues/open` キューと ADR 駆動の判断
+2. **vibe-lang のコマンド発見性** — 焦点を絞ったタスク面と明確な検証ゲート
+3. **wado の環境規律** — ブートストラップと成果物再生成を第一級の関心として扱う
 
-This is the "minimum viable harness" from `harness/blueprint.md`.
+これは `harness/blueprint.md` の「最小実行可能な harness」である。
 
-## Rationale
+## 根拠
 
-- **Clarity**: Short pointer docs and explicit queues make status obvious
-- **Reproducibility**: Generated artifacts are committed with regeneration tasks
-- **Scalability**: Foundation supports adding semantic tools, hooks, and skills later
-- **Low ceremony**: Doesn't require full adoption of a task runner or `dprint` initially
+- **明瞭さ**: 短いポインタ文書と明示的キューで状態が分かる
+- **再現性**: 生成成果物をコミットし、再生成タスクと組にする
+- **拡張性**: 後からセマンティックツール・フック・スキルを足せる土台になる
+- **低儀式**: 当初からフルのタスクランナーや `dprint` を必須にしない
 
-## Implementation
+## 実装
 
-The minimum viable harness includes:
+最小実行可能な harness は次を含む。
 
-- `AGENTS.md` - Repository contract and verification boundaries
-- `docs/process/agent-harness.md` - Pointer document for developers
-- `docs/adr/` - Workflow and design decisions
-- `issues/open/` and `issues/done/` - Work queue
-- `scripts/manager.py` - Root completion gate
+- `AGENTS.md` — リポジトリ契約と検証境界
+- `docs/process/agent-harness.md` — 開発者向けポインタ文書
+- `docs/adr/` — ワークフローと設計判断
+- `issues/open/` と `issues/done/` — 作業キュー
+- `scripts/manager.py` — ルート完了ゲート
 
-Subsequent ADRs will address:
+後続 ADR で扱う予定:
 
-- Task runner selection (`just` vs direct `manager.py` commands)
-- Formatter and lint stack
-- CI pipeline structure
-- Optional agent extension layers
+- タスクランナー選定（`just` vs 直接の `manager.py` コマンド）
+- フォーマッタと lint スタック
+- CI パイプライン構造
+- 任意のエージェント拡張層
 
-## Consequences
+## 帰結
 
-- **Good**: Clear entry point for new contributors and agents
-- **Good**: Completion criteria are explicitly defined
-- **Good**: Can scale up incrementally without rework
-- **Caution**: Requires discipline to keep `issues/open` and `issues/done` synchronized
-- **Caution**: ADR archive must remain useful as decisions accumulate
+- **良い点**: 新規貢献者・エージェントの入口が明確
+- **良い点**: 完了条件が明示される
+- **良い点**: 作り直しなしに段階的に拡張できる
+- **注意**: `issues/open` と `issues/done` の同期に規律が必要
+- **注意**: 判断が増えても ADR アーカイブが有用であり続ける必要がある

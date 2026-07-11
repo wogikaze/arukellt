@@ -1,4 +1,4 @@
-# ADR-031: Import Syntax and WIT Package Identifier Unification
+# ADR-031: import 構文と WIT パッケージ識別子の統合
 
 ステータス: **ACCEPTED** — 二層分離を確定。`use` は Layer S、`import` は Layer C に予約
 日付: 2026-04-25
@@ -8,30 +8,23 @@ Issue: [#123](../../issues/done/123-import-syntax-unification.md)
 
 ---
 
-## Context
+## 背景
 
-Arukellt currently exposes two syntactically distinct "module reference" surfaces that risk
-conflation as the language targets Component Model output:
+Arukellt は現時点で、言語が Component Model 出力を目指すにつれ混同のリスクがある、構文的に異なる 2 つの「モジュール参照」表面を公開している:
 
-| Surface | Example | Separator | Where it appears |
+| 表面 | 例 | 区切り | 出現箇所 |
 |---------|---------|-----------|-----------------|
-| **Layer S — source import** | `use std::io` | `::` | `.ark` source files |
-| **Layer S — local file import** | `import math` | (single identifier) | `.ark` source files |
-| **Layer C — WIT package identifier** | `wasi:cli/stdin@0.2.10` | `:` `/` `@` | `.wit` files, CLI flags, manifests |
+| **Layer S — ソース import** | `use std::io` | `::` | `.ark` ソースファイル |
+| **Layer S — ローカルファイル import** | `import math` | （単一識別子） | `.ark` ソースファイル |
+| **Layer C — WIT パッケージ識別子** | `wasi:cli/stdin@0.2.10` | `:` `/` `@` | `.wit` ファイル、CLI フラグ、マニフェスト |
 
-These surfaces do not collide lexically today because WIT text lives in `.wit` files and
-tooling, not inside `use` paths. However, three problems emerge as Layer C declarations move
-closer to source:
+これらの表面は、WIT テキストが `.wit` とツールにあり `use` パス内にないため、現時点では字句的に衝突しない。しかし Layer C 宣言がソースに近づくにつれ 3 つの問題が浮かぶ:
 
-1. **Conceptual confusion** — LLMs and new contributors conflate `std::io` and `wasi:io/streams`
-   as equivalent concepts; they are not (`std::io` is an Arukellt stdlib module path;
-   `wasi:io/streams` is a WebAssembly Component Model package identifier).
-2. **Undefined syntax** — no source-level syntax exists yet for referencing an external WIT
-   interface from Arukellt source (needed for Component Model output, issue #124).
-3. **Two `import` surfaces** — `import math` (local file) and `use std::io` (stdlib path) coexist
-   with no clear rule for which to use, creating a "which keyword?" question for every new module.
+1. **概念的混乱** — LLM と新規コントリビュータが `std::io` と `wasi:io/streams` を同等概念と混同する。そうではない（`std::io` は Arukellt stdlib モジュールパス。`wasi:io/streams` は WebAssembly Component Model パッケージ識別子）。
+2. **未定義の構文** — Arukellt ソースから外部 WIT インターフェースを参照するソースレベル構文がまだない（Component Model 出力に必要、issue #124）。
+3. **2 つの `import` 表面** — `import math`（ローカルファイル）と `use std::io`（stdlib パス）が共存し、新規モジュールごとに「どちらのキーワード？」という疑問を生む。
 
-### Current parser state (v3)
+### 現行パーサ状態（v3）
 
 ```
 // src/compiler/parser.ark
@@ -40,13 +33,13 @@ closer to source:
 // TokenKind::Use         -> `use std::io::something` (:: separated path; stdlib)
 ```
 
-Both `import` and `use` are live keywords with separate parse paths.
+`import` と `use` はどちらも live キーワードで別パース経路を持つ。
 
 ---
 
-## WIT Package Identifier Syntax (reference)
+## WIT パッケージ識別子構文（参考）
 
-Per the WebAssembly Component Model / WIT specification:
+WebAssembly Component Model / WIT 仕様どおり:
 
 ```wit
 package wasi:clocks@0.2.10;            // namespace:name@version
@@ -59,20 +52,20 @@ world imports {
 }
 ```
 
-Structure: `namespace:package-name/interface-name@semver.{symbols}`
+構造: `namespace:package-name/interface-name@semver.{symbols}`
 
-- `:` — namespace / package separator
-- `/` — package / interface separator
-- `@` — version
-- `.{}` — symbol enumeration
+- `:` — 名前空間 / パッケージ区切り
+- `/` — パッケージ / インターフェース区切り
+- `@` — バージョン
+- `.{}` — シンボル列挙
 
 ---
 
-## Options Considered
+## 検討したオプション
 
-### Option A — Adopt WIT package identifier syntax wholesale
+### Option A — WIT パッケージ識別子構文を全面的に採用
 
-Replace Arukellt source `::` paths with the WIT `namespace:package/module` format for all imports.
+すべての import について、Arukellt ソースの `::` パスを WIT の `namespace:package/module` 形式に置き換える。
 
 <!-- skip-doc-check -->
 ```ark
@@ -80,22 +73,18 @@ use arukellt:std/io           // stdlib import (was: use std::io)
 use wasi:cli/stdin            // WASI import
 ```
 
-**Cons:**
-- **Breaking change to all 409 existing test fixtures** — every `use std::` path must be rewritten
-- `arukellt:std/io` is redundant and verbose (analogous to writing `rust:std/io` in Rust)
-- WIT `namespace:package` is designed for organisational/registry identity, not intra-language
-  module paths
-- Self-hosting readability degrades: the compiler itself uses `use std::host::stdio`; switching to
-  `arukellt:std/host/stdio` hurts clarity
-- Standard library functions become `arukellt:std/io::writeln_stdout()` — high learning overhead
+**欠点:**
+- **既存 409 テストフィクスチャすべてへの破壊的変更** — すべての `use std::` パスを書き換え必須
+- `arukellt:std/io` は冗長で長い（Rust で `rust:std/io` と書くのに似る）
+- WIT の `namespace:package` は組織/レジストリ identity 向けで、言語内モジュールパス向けではない
+- セルフホスティング可読性低下: コンパイラ自身は `use std::host::stdio` を使う。`arukellt:std/host/stdio` への切替は明瞭さを損なう
+- 標準ライブラリ関数が `arukellt:std/io::writeln_stdout()` になる — 学習コストが高い
 
-**Verdict**: **Rejected.** The WIT identifier format was designed for cross-organisation
-component identity, not for referencing items within a single language's standard library.
+**判定**: **Rejected.** WIT 識別子形式は組織横断 component identity 向けに設計され、単一言語の標準ライブラリ参照向けではない。
 
-### Option B — Define an Arukellt-native import syntax that maps to WIT IDs (two-layer split)
+### Option B — WIT ID にマップする Arukellt ネイティブ import 構文を定義（二層分離）
 
-Keep `use` + `::` for Layer S (source-level module imports). Treat WIT identifiers as Layer C
-boundary data expressed via strings, attributes, or external `.wit` + CLI flags.
+Layer S（ソースレベルモジュール import）には `use` + `::` を維持。WIT 識別子は Layer C 境界データとして、文字列、属性、または外部 `.wit` + CLI フラグで表現。
 
 <!-- skip-doc-check -->
 ```ark
@@ -106,24 +95,22 @@ use std::host::fs             // Layer S -- host-bound stdlib module (unchanged)
 //   #[wit_import("wasi:cli/stdin@0.2.10")]  (future attribute form, v4+)
 ```
 
-**Pros:**
-- Zero breaking change to existing code (409 fixtures unaffected)
-- Matches the approach taken by Rust, Go, Python, JavaScript, MoonBit (all separate source imports
-  from WIT boundary processing)
-- Visual distinction (`::` vs `:` + `/`) signals different abstraction layers to readers and tools
-- Self-hosting compatibility: the Arukellt compiler is written in Arukellt and reads cleanly
-- ADR-006 compliance: Layer 2A (raw Wasm ABI) and Layer 2B (WIT ABI) are already separated by
-  design; source syntax does not need to mirror binary format
+**利点:**
+- 既存コードへの破壊的変更ゼロ（409 フィクスチャ影響なし）
+- Rust、Go、Python、JavaScript、MoonBit と同様（すべてソース import と WIT 境界処理を分離）
+- 視覚的区別（`::` vs `:` + `/`）が読者とツールに異なる抽象レイヤーを示す
+- セルフホスティング互換: Arukellt コンパイラは Arukellt で書かれ、読みやすいまま
+- ADR-006 準拠: Layer 2A（生 Wasm ABI）と Layer 2B（WIT ABI）は設計上すでに分離。ソース構文がバイナリ形式を鏡映する必要はない
 
-**Cons:**
-- Two concepts ("Layer S" vs "Layer C") require documentation
-- Inline Component Model declarations in source still need a syntax decision (deferred to v4)
+**欠点:**
+- 2 概念（「Layer S」vs「Layer C」）のドキュメントが必要
+- ソース内のインライン Component Model 宣言には依然構文決定が必要（v4 に延期）
 
-**Verdict**: **Chosen** (see Decision section).
+**判定**: **Chosen**（決定節参照）。
 
-### Option C — `wit import` dedicated keyword
+### Option C — `wit import` 専用複合キーワード
 
-Introduce a compound keyword for Layer C imports alongside the existing `use`/`import` keywords:
+既存の `use`/`import` に加え、Layer C import 用の複合キーワードを導入:
 
 <!-- skip-doc-check -->
 ```ark
@@ -131,21 +118,19 @@ use std::io                   // Layer S (unchanged)
 wit import "wasi:cli/stdin"   // Layer C -- new compound keyword form
 ```
 
-**Pros:**
-- Fully explicit disambiguation of layers at the grammar level
-- LLMs and IDE tooling can unambiguously classify the statement
+**利点:**
+- 文法レベルでレイヤーの完全明示的曖昧さ解消
+- LLM と IDE ツールが文を明確に分類できる
 
-**Cons:**
-- New compound keyword surface area
-- Largely redundant with Option B attribute/string form — both solve the same problem at v4
+**欠点:**
+- 新しい複合キーワード表面
+- Option B の属性/文字列形式とほぼ重複 — v4 では同じ問題を解く
 
-**Verdict**: Partially folded into the chosen direction. Option B's v4 delivery path
-(`import "..."`) achieves the same disambiguation with a single keyword.
+**判定**: 選択方向に部分的に統合。Option B の v4 配信経路（`import "..."`）が単一キーワードで同じ曖昧さ解消を達成。
 
-### Option D — Unify `import`/`use` source keywords; reserve `import` for Layer C
+### Option D — ソースの `import`/`use` キーワードを統一し、`import` を Layer C に予約
 
-Deprecate `import <single-identifier>` (local file import) in favour of `use`, freeing the
-`import` keyword for Layer C (WIT) declarations.
+`import <single-identifier>`（ローカルファイル import）を廃止して `use` に寄せ、`import` キーワードを Layer C（WIT）宣言に解放。
 
 <!-- skip-doc-check -->
 ```ark
@@ -160,123 +145,106 @@ use std::io           // unchanged
 import "wasi:cli/stdin@0.2.10"   // WIT package import via freed keyword
 ```
 
-**Pros:**
-- Eliminates "two import keywords" confusion for ordinary modules
-- `import` keyword explicitly signals external/component boundary (distinct semantics)
-- No structural disruption to `use` paths
+**利点:**
+- 通常モジュールの「2 つの import キーワード」混乱を解消
+- `import` キーワードが外部/component 境界を明示（異なるセマンティクス）
+- `use` パスへの構造的破壊なし
 
-**Cons:**
-- Requires parser change and a deprecation diagnostic (W0101) in v4
-- `import <single-id>` users must migrate; impact is limited to local-file module imports
+**欠点:**
+- パーサ変更と v4 の廃止診断（W0101）が必要
+- `import <single-id>` 利用者は移行必須。影響はローカルファイルモジュール import に限定
 
-**Verdict**: **Adopted as the v4 migration path** (combined with Option B). The `import` keyword
-is reserved from v3 onwards for the Layer C surface.
-
----
-
-## Decision
-
-**Chosen direction: Option B + Option D combined.**
-
-1. **`use path::to::module` confirmed as Layer S source import syntax** — no change to existing
-   source files or fixtures.
-
-2. **`import <single-identifier>` deprecated in v4, removed in v5** — local file imports migrate
-   to `use <identifier>`. Deprecation diagnostic: W0101.
-
-3. **`import` keyword reserved for Layer C (WIT/Component Model) in v4** — specific syntax TBD
-   (string form `import "wasi:cli/stdin@0.2.10"` is the current candidate; see issue #124).
-
-4. **WIT package identifiers remain Layer C boundary data** — they appear in `.wit` files,
-   CLI flags, and manifests; they are **not** valid `use` path segments.
-
-5. **Layer naming is canonical**:
-   - **Layer S (Source)**: `use` + `::` separated paths
-   - **Layer C (Component)**: `import` + WIT identifier form (v4+)
+**判定**: **Adopted as the v4 migration path**（Option B と併用）。`import` キーワードは v3 から Layer C 表面用に予約。
 
 ---
 
-## Rationale
+## 決定
 
-The WIT `namespace:package/interface@version` format was designed for cross-organisation package
-identity in the WebAssembly Component Model ecosystem. Applying it to stdlib references would
-produce `arukellt:std/io::writeln_stdout()` — a form that conveys registry identity rather than
-module location, inconsistent with how every major Component Model language works:
+**選択方向: Option B + Option D の併用。**
 
-| Language | Source import | WIT boundary |
+1. **`use path::to::module` を Layer S ソース import 構文として確定** — 既存ソースファイルやフィクスチャへの変更なし。
+
+2. **`import <single-identifier>` を v4 で廃止、v5 で削除** — ローカルファイル import は `use <identifier>` に移行。廃止診断: W0101。
+
+3. **`import` キーワードを v4 で Layer C（WIT/Component Model）用に予約** — 具体構文は TBD（現候補は文字列形式 `import "wasi:cli/stdin@0.2.10"`。issue #124 参照）。
+
+4. **WIT パッケージ識別子は Layer C 境界データのまま** — `.wit`、CLI フラグ、マニフェストに現れる。`use` パスセグメントとしては**無効**。
+
+5. **レイヤー命名は正規**:
+   - **Layer S (Source)**: `use` + `::` 区切りパス
+   - **Layer C (Component)**: `import` + WIT 識別子形式（v4+）
+
+---
+
+## 根拠
+
+WIT の `namespace:package/interface@version` 形式は、WebAssembly Component Model エコシステムにおける組織横断パッケージ identity 向けに設計された。stdlib 参照に適用すると `arukellt:std/io::writeln_stdout()` となり、モジュール位置ではなくレジストリ identity を伝える — 主要な Component Model 言語のどれとも不一致:
+
+| 言語 | ソース import | WIT 境界 |
 |----------|--------------|--------------|
-| Rust (cargo-component) | `use crate::...` (`::`) | `wit-bindgen` generates code; WIT does not appear in source |
-| Go (WASI) | `import "path/to/pkg"` | WIT in external tooling |
-| Python (componentize-py) | `import module` | WIT in external files |
-| JavaScript (componentize-js) | ESM `import` | WIT in external `.wit` files |
+| Rust (cargo-component) | `use crate::...` (`::`) | `wit-bindgen` がコード生成。WIT はソースに現れない |
+| Go (WASI) | `import "path/to/pkg"` | WIT は外部ツール |
+| Python (componentize-py) | `import module` | WIT は外部ファイル |
+| JavaScript (componentize-js) | ESM `import` | WIT は外部 `.wit` ファイル |
 
-In every case the source-level import syntax is unchanged and WIT is treated as a binary-boundary
-tooling concern. Arukellt adopts the same separation.
+いずれもソースレベル import 構文は不変で、WIT はバイナリ境界のツールチェーン課題として扱われる。Arukellt も同じ分離を採用する。
 
-The `import` keyword unification (Option D) is a narrow quality-of-life cleanup that reduces
-beginner confusion ("should I write `import math` or `use math`?") without requiring any changes
-to stdlib paths.
+`import` キーワード統一（Option D）は、stdlib パスを変えずに初心者の「`import math` か `use math` か？」混乱を減らす狭い QoL 改善。
 
 ---
 
-## Migration Impact
+## 移行への影響
 
-### Existing code (v3)
+### 既存コード（v3）
 
-**No changes required.** All existing `use std::...` and `import <local>` source syntax continues
-to compile and pass diagnostics in v3.
+**変更不要。** 既存のすべての `use std::...` と `import <local>` ソース構文は v3 でコンパイル・診断パスを継続。
 
-### v4 migration path
+### v4 移行経路
 
-| Syntax | v4 behaviour | Affected scope |
+| 構文 | v4 の挙動 | 影響範囲 |
 |--------|-------------|----------------|
-| `use std::io` | Unchanged, no warning | All stdlib / host imports |
-| `use path::to::module` | Unchanged, no warning | All `use` path imports |
-| `import math` (local file) | W0101 deprecation warning; still compiles | Local file module imports only |
-| `import "wasi:cli/stdin"` | New Layer C syntax (gated on `--emit component`) | New code only |
+| `use std::io` | 不変、警告なし | すべての stdlib / host import |
+| `use path::to::module` | 不変、警告なし | すべての `use` パス import |
+| `import math` (local file) | W0101 廃止警告。依然コンパイル可 | ローカルファイルモジュール import のみ |
+| `import "wasi:cli/stdin"` | 新 Layer C 構文（`--emit component` でゲート） | 新規コードのみ |
 
-Estimated fixture impact for `import <single-id>` to `use` migration: **localised**. The stdlib
-uses `use` throughout; most `import <single-id>` patterns appear in specific test fixtures.
+`import <single-id>` から `use` への移行の推定フィクスチャ影響: **局所的**。stdlib は全体で `use` を使用。ほとんどの `import <single-id>` は特定テストフィクスチャに現れる。
 
 ### v5
 
-`import <single-identifier>` parse path removed. Any remaining occurrences are hard errors.
+`import <single-identifier>` パース経路を削除。残存はハードエラー。
 
 ---
 
-## Implementation Timeline
+## 実装タイムライン
 
-| Phase | Item | Tracking |
+| フェーズ | 項目 | 追跡 |
 |-------|------|---------|
-| v3 (immediate) | `docs/spec/import-system.md` documents Layer S / Layer C split | Done |
-| v3 (immediate) | `--wit <path>` CLI flag accepted (binding generation deferred) | Done (issue #124 Phase 1) |
-| v4 | W0101 deprecation warning for `import <single-identifier>` | issue #123 implementation work |
-| v4 | `import "namespace:package/interface@ver"` syntax design + parser support | issue #124 |
-| v4 | WIT-imported functions accessible via normal `use` in ARK source | issue #124 |
-| v5 | Remove `import <single-identifier>` parse path | post-v4 |
+| v3 (immediate) | `docs/spec/import-system.md` が Layer S / Layer C 分離を文書化 | Done |
+| v3 (immediate) | `--wit <path>` CLI フラグ受理（バインディング生成は延期） | Done (issue #124 Phase 1) |
+| v4 | `import <single-identifier>` の W0101 廃止警告 | issue #123 implementation work |
+| v4 | `import "namespace:package/interface@ver"` 構文設計 + パーササポート | issue #124 |
+| v4 | WIT import 関数を通常の `use` で ARK ソースから利用可能 | issue #124 |
+| v5 | `import <single-identifier>` パース経路削除 | post-v4 |
 
 ---
 
-## Consequences
+## 結果
 
-- `use` is the stable, permanent Arukellt source module import keyword. It will not be
-  redefined.
-- `import` will serve as the Component Model / WIT boundary keyword from v4 onward. Its
-  current `import <single-id>` semantics are a known migration target.
-- Tooling (IDE, LLM prompts, documentation) should describe `use` and `import` as distinct
-  layers, not synonyms.
-- The `std::` path prefix is an Arukellt source namespace, not a WIT namespace. It is not
-  equivalent to `wasi:` or `arukellt:` in WIT identity terms.
+- `use` は安定した永続の Arukellt ソースモジュール import キーワード。再定義されない。
+- `import` は v4 以降 Component Model / WIT 境界キーワードとなる。現行の `import <single-id>` セマンティクスは既知の移行対象。
+- ツール（IDE、LLM プロンプト、ドキュメント）は `use` と `import` を同義語ではなく別レイヤーとして説明すべき。
+- `std::` パスプレフィックスは Arukellt ソース名前空間であり、WIT 名前空間ではない。WIT identity 用語の `wasi:` や `arukellt:` と同等ではない。
 
 ---
 
-## Related
+## 関連
 
-- [ADR-009-import-syntax.md](ADR-009-import-syntax.md) — primary decision record (ACCEPTED); this ADR consolidates and expands that decision with English prose, a full options table, and explicit migration impact.
-- [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) — collision policy and syntax exploration (SUPERSEDED by this ADR).
-- [ADR-006-abi-policy.md](ADR-006-abi-policy.md) — ABI layers; does not require source syntax to mirror WIT text.
-- [ADR-007-targets.md](ADR-007-targets.md) — `wasm32-wasi-p2` as primary target.
-- [../spec/import-system.md](../spec/import-system.md) — normative Layer S / Layer C contract page.
-- [../module-resolution.md](../module-resolution.md) — Layer S resolution behaviour for `use` / `import`.
-- Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 native component output.
-- Issue [#124](../../issues/done/124-wit-component-import-syntax.md) — WIT component import syntax implementation.
+- [ADR-009-import-syntax.md](ADR-009-import-syntax.md) — 主要決定記録（ACCEPTED）。本 ADR は本文、完全なオプション表、明示的移行影響でその決定を統合・拡張。
+- [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) — 衝突ポリシーと構文探索（本 ADR により SUPERSEDED）。
+- [ADR-006-abi-policy.md](ADR-006-abi-policy.md) — ABI レイヤー。ソース構文が WIT テキストを鏡映する必要はない。
+- [ADR-007-targets.md](ADR-007-targets.md) — プライマリターゲット `wasm32-wasi-p2`。
+- [../spec/import-system.md](../spec/import-system.md) — 規範的 Layer S / Layer C 契約ページ。
+- [../module-resolution.md](../module-resolution.md) — `use` / `import` の Layer S 解決挙動。
+- Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 ネイティブ component 出力。
+- Issue [#124](../../issues/done/124-wit-component-import-syntax.md) — WIT component import 構文実装。

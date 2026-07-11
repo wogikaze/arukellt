@@ -1,4 +1,4 @@
-# ADR-004 P4: Method Syntax Evaluation
+# ADR-004 P4: メソッド構文の評価
 
 ステータス: **DEFERRED** — 評価保留（trigger待ち）
 日付: 2026-04-15
@@ -6,19 +6,18 @@
 
 ---
 
-## Context
+## 背景
 
-ADR-004 deferred traits from v0 and established a phased introduction plan:
-P1 (limited `for`), P2 (string interpolation), P3 (traits), **P4 (method syntax)**, P5 (operator overloading).
+ADR-004 は v0 から trait を延期し、段階的導入計画を定めた:
+P1（限定 `for`）、P2（文字列補間）、P3（trait）、**P4（メソッド構文）**、P5（演算子オーバーロード）。
 
-This document evaluates whether to introduce method syntax (e.g. `v.push(x)`)
-and records the decision.
+本ドキュメントは、メソッド構文（例: `v.push(x)`）を導入するかどうかを評価し、決定を記録する。
 
 ---
 
-## 1. Current State: Function-Centric Design
+## 1. 現状: 関数中心の設計
 
-Arukellt's stdlib uses free functions with the "subject" as the first argument:
+Arukellt の stdlib は、第1引数に「主語」を取る自由関数を用いる:
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -30,7 +29,7 @@ let lower: String = to_lower(s)
 let parts: Vec<String> = split(s, delim)
 ```
 
-Higher-order operations follow the same pattern:
+高階演算も同じパターンに従う:
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -39,53 +38,49 @@ let evens: Vec<i32> = filter_i32(v, |x| x % 2 == 0)
 let total: i32 = fold_i32_i32(v, 0, |acc, x| acc + x)
 ```
 
-There are no `impl` blocks in user code today. The spec reserves `trait` and
-`impl` as v1 keywords and defines method call syntax (`expr.method(args)`) but
-the compiler's stdlib surface is entirely function-based.
+現時点のユーザーコードには `impl` ブロックはない。仕様は `trait` と `impl` を v1 キーワードとして予約し、メソッド呼び出し構文（`expr.method(args)`）を定義しているが、コンパイラの stdlib 表面はすべて関数ベースである。
 
 ---
 
-## 2. Pros of Current Approach
+## 2. 現行アプローチの利点
 
-| Benefit | Detail |
+| 利点 | 詳細 |
 |---------|--------|
-| **Simpler parser** | No `.ident(args)` expression; call expressions are uniform `ident(args)`. |
-| **No vtable overhead** | All dispatch is static; no trait-object indirection. |
-| **Clear ownership** | The first argument is visibly passed; no hidden `self` semantics. |
-| **LLM-friendly** | Resolution rules are trivial — name lookup in scope, no impl search. |
-| **Flat namespace** | No ambiguity between field access and method call. |
-| **Easier error messages** | "function `push` not found" vs "no method `push` for type `T`". |
+| **パーサが単純** | `.ident(args)` 式が不要。呼び出し式は一律 `ident(args)`。 |
+| **vtable オーバーヘッドなし** | ディスパッチはすべて静的。trait オブジェクトによる間接参照がない。 |
+| **所有権が明確** | 第1引数が明示的に渡される。隠れた `self` セマンティクスがない。 |
+| **LLM に優しい** | 解決規則が単純 — スコープ内の名前解決のみ。impl 探索が不要。 |
+| **フラットな名前空間** | フィールドアクセスとメソッド呼び出しの曖昧さがない。 |
+| **エラーメッセージが分かりやすい** | 「function `push` not found」対「no method `push` for type `T`」。 |
 
 ---
 
-## 3. Cons of Current Approach
+## 3. 現行アプローチの欠点
 
-| Drawback | Detail |
+| 欠点 | 詳細 |
 |----------|--------|
-| **Verbose chaining** | `join(map_String_String(split(s, ","), trim), ";")` instead of `s.split(",").map(trim).join(";")`. |
-| **Unfamiliar to most programmers** | Developers from Rust/Python/JS/Go expect `v.push(x)`. |
-| **Type-suffixed names** | Without method resolution, HOFs require monomorphized names (`map_i32_i32`, `filter_String`). |
-| **Discoverability** | IDEs cannot offer `.`-completion on a value to list applicable operations. |
+| **チェーンが冗長** | `s.split(",").map(trim).join(";")` の代わりに `join(map_String_String(split(s, ","), trim), ";")`。 |
+| **多くのプログラマに馴染みが薄い** | Rust/Python/JS/Go 出身者は `v.push(x)` を期待する。 |
+| **型サフィックス付き名前** | メソッド解決がなければ、HOF は単相化名（`map_i32_i32`、`filter_String`）が必要。 |
+| **発見しやすさ** | IDE は値に対する `.` 補完で適用可能な操作を列挙できない。 |
 
 ---
 
-## 4. Minimal Method Syntax Proposal — UFCS
+## 4. 最小メソッド構文案 — UFCS
 
-**Uniform Function Call Syntax** (UFCS): `v.push(x)` desugars to `push(v, x)`.
+**Uniform Function Call Syntax**（UFCS）: `v.push(x)` は `push(v, x)` に脱糖される。
 
-### 4.1 Semantics
+### 4.1 セマンティクス
 
 ```
 expr.name(args…)  ≡  name(expr, args…)
 ```
 
-- The receiver `expr` becomes the first positional argument.
-- Resolution: look up `name` as a free function whose first parameter type
-  matches the type of `expr`. No `impl` block required.
-- If both a field and a function match, field access takes priority (consistent
-  with struct semantics).
+- レシーバ `expr` が第1の位置引数になる。
+- 解決: `name` を自由関数として検索し、第1パラメータの型が `expr` の型と一致することを確認する。`impl` ブロックは不要。
+- フィールドと関数の両方が一致する場合、フィールドアクセスが優先される（struct セマンティクスと整合）。
 
-### 4.2 Chaining Example
+### 4.2 チェーンの例
 
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -96,94 +91,78 @@ let result = join(map_String_String(split(s, ","), trim), ";")
 let result = s.split(",").map_String_String(trim).join(";")
 ```
 
-### 4.3 Interaction with Traits (P3)
+### 4.3 trait（P3）との相互作用
 
-If traits are later introduced, UFCS and trait methods coexist:
+後から trait が導入された場合、UFCS と trait メソッドは共存する:
 
-1. Trait methods (via `impl`) are resolved first.
-2. If no trait method matches, fall back to UFCS free-function lookup.
+1. trait メソッド（`impl` 経由）を先に解決する。
+2. trait メソッドが一致しなければ、UFCS の自由関数検索にフォールバックする。
 
-This ordering avoids breaking existing code when traits are added.
+この順序により、trait 追加時に既存コードを壊さない。
 
 ---
 
-## 5. Impact Analysis
+## 5. 影響分析
 
-| Compiler Phase | Change Required | Complexity |
+| コンパイラフェーズ | 必要な変更 | 複雑さ |
 |---------------|----------------|------------|
-| **Parser** | Add `.ident(args)` as a postfix expression. Parse as `MethodCall(receiver, name, args)`. | Low — one new expression variant. |
-| **Resolver** | Desugar `MethodCall` → `Call(name, [receiver, …args])`. Look up `name` in scope; verify first param type matches receiver. | Medium — new lookup path, potential ambiguity with fields. |
-| **Type checker** | Infer receiver type to drive function lookup. If overloaded by type-suffix (`push` for `Vec<i32>` vs `Vec<String>`), resolver must select the correct monomorphized variant. | Medium — requires type-directed name resolution, which the current checker does not do. |
-| **HIR / CoreHIR** | No structural change — desugared before lowering. | None. |
-| **Emitter (Wasm)** | No change — sees only `Call` nodes. | None. |
-| **Stdlib surface** | No change required. Existing `push`, `len`, `concat`, etc. work as-is. Optionally, HOF names could drop type suffixes if type-directed lookup is available. | None (immediate) / Medium (cleanup). |
-| **Docs / Migration** | Document UFCS rules. Update examples. | Low. |
+| **Parser** | `.ident(args)` を後置式として追加。`MethodCall(receiver, name, args)` としてパース。 | 低 — 新しい式バリアントが1つ。 |
+| **Resolver** | `MethodCall` → `Call(name, [receiver, …args])` に脱糖。スコープで `name` を検索。第1引数の型がレシーバと一致することを検証。 | 中 — 新しい検索経路。フィールドとの曖昧さの可能性。 |
+| **Type checker** | レシーバ型を推論して関数検索を駆動。型サフィックスによるオーバーロード（`Vec<i32>` 用 `push` vs `Vec<String>` 用）の場合、resolver が正しい単相化バリアントを選択する必要がある。 | 中 — 型指向の名前解決が必要。現行チェッカーは未対応。 |
+| **HIR / CoreHIR** | 構造的変更なし — lowering 前に脱糖される。 | なし。 |
+| **Emitter (Wasm)** | 変更なし — `Call` ノードのみを見る。 | なし。 |
+| **Stdlib surface** | 変更不要。既存の `push`、`len`、`concat` などはそのまま動作。型指向検索があれば、HOF 名から型サフィックスを外せる可能性がある。 | なし（即時）/ 中（クリーンアップ）。 |
+| **Docs / Migration** | UFCS 規則を文書化。例を更新。 | 低。 |
 
 ---
 
-## 6. Recommendation
+## 6. 推奨
 
-**Defer to post-v5.**
+**v5 以降に延期する。**
 
-Rationale:
+根拠:
 
-1. **Self-hosting first.** The v5 milestone targets self-hosting the compiler
-   in Arukellt. Introducing method syntax before self-hosting is stable adds
-   parser/resolver complexity that slows that goal.
+1. **セルフホスティング優先。** v5 マイルストーンはコンパイラの Arukellt によるセルフホスティングを目標とする。セルフホスティングが安定する前にメソッド構文を導入すると、parser/resolver の複雑さが増し、その目標を遅らせる。
 
-2. **Current API is consistent.** The function-centric stdlib works. All
-   operations are callable and composable. The verbosity cost is real but
-   manageable for a self-hosting compiler.
+2. **現行 API は一貫している。** 関数中心の stdlib は機能する。すべての操作は呼び出し可能で合成可能。冗長さのコストは実在するが、セルフホスティングコンパイラには管理可能。
 
-3. **Backward-compatible sugar.** UFCS is pure syntactic sugar. It can be added
-   at any time without breaking existing code or changing semantics.
+3. **後方互換の糖衣構文。** UFCS は純粋な構文糖。既存コードを壊さず、セマンティクスを変えずにいつでも追加できる。
 
-4. **Type-directed resolution is a prerequisite.** The current resolver does
-   name-only lookup. UFCS with monomorphized function names (`push` resolving
-   to the right type variant) requires type-directed resolution, which is a
-   non-trivial change best tackled after the type system is battle-tested by
-   self-hosting.
+4. **型指向解決が前提条件。** 現行 resolver は名前のみの検索。単相化関数名（`push` が正しい型バリアントに解決）を伴う UFCS には型指向解決が必要で、これはセルフホスティングで型システムが実戦投入された後に取り組むのが望ましい非自明な変更である。
 
-5. **Traits (P3) should land first.** Method syntax is most valuable when
-   combined with trait-based dispatch. Introducing UFCS before traits means
-   two separate method-resolution systems; introducing them together is
-   cleaner.
+5. **trait（P3）を先に着地させるべき。** メソッド構文は trait ベースのディスパッチと組み合わせたとき最も価値がある。trait より前に UFCS を導入すると、2つの別々のメソッド解決システムになる。まとめて導入する方がきれい。
 
 ---
 
-## 7. Formal Evaluation Decision
+## 7. 正式な評価決定
 
-**Decision: DEFERRED — evaluation deferred pending trigger**
+**決定: DEFERRED — 評価は trigger 待ちで延期**
 
-The ADR-004 P4 evaluation cannot begin until the trigger condition below is
-satisfied. Until that point no implementation or design commitment should be
-made. This section formalizes the trigger, scope, and decision tree so the
-evaluation can proceed without ambiguity when the trigger fires.
+ADR-004 P4 の評価は、下記の trigger 条件が満たされるまで開始できない。それまでは実装や設計のコミットを行わない。本節は trigger、スコープ、決定木を形式化し、trigger が発火したときに曖昧さなく評価を進められるようにする。
 
 ---
 
-### 7.1 Trigger Condition (Start Condition)
+### 7.1 Trigger 条件（開始条件）
 
-Evaluation begins when **all** of the following are true:
+評価は次の**すべて**が真のときに開始する:
 
-| # | Condition | Measurable criterion |
+| # | 条件 | 測定可能な基準 |
 |---|-----------|----------------------|
-| T1 | All MIR optimization passes are stable | Every issue with `Track: mir-opt` (or equivalent) is in `issues/done/`; the full verify-harness pass rate at `--opt-level 1` is ≥ baseline. |
-| T2 | Core v4 pass suite is regression-free for ≥ 2 consecutive CI runs | `python scripts/manager.py verify` exits 0 on two successive runs with MIR opt enabled. |
-| T3 | Stdlib API surface is stable | No issues with `Track: stdlib` open that plan name/signature changes to the methods in the evaluation scope. |
+| T1 | すべての MIR 最適化パスが安定 | `Track: mir-opt`（または同等）の issue がすべて `issues/done/` にある。`--opt-level 1` での full verify-harness 合格率がベースライン以上。 |
+| T2 | Core v4 パススイートが連続 2 回の CI で回帰なし | MIR opt 有効で `python scripts/manager.py verify` が連続 2 回 exit 0。 |
+| T3 | Stdlib API 表面が安定 | 評価スコープ内のメソッドの名前/シグネチャ変更を計画する `Track: stdlib` の open issue がない。 |
 
-**Current status (2026-04-15):** Trigger NOT met.
-- Issue #082 (mir-gc-hint) and #083 (mir-loop-unrolling) are still `Status: open`.
-- Evaluation must not begin until these and any other `mir-opt` v4-exit issues close.
+**現状（2026-04-15）:** Trigger 未達。
+- Issue #082 (mir-gc-hint) と #083 (mir-loop-unrolling) はまだ `Status: open`。
+- これらおよび他の `mir-opt` v4-exit issue がクローズするまで評価を開始してはならない。
 
 ---
 
-### 7.2 Evaluation Scope
+### 7.2 評価スコープ
 
-The evaluation is explicitly **limited** to the minimum method set. These are the
-only operations assessed for method-call syntax adoption in P4:
+評価は明示的に**最小メソッド集合**に限定される。P4 でメソッド呼び出し構文の採用を評価するのは次の操作のみである:
 
-| Method | Free-function equivalent | Priority |
+| メソッド | 自由関数相当 | 優先度 |
 |--------|--------------------------|----------|
 | `.push(x)` | `push(v, x)` — `Vec<T>` | High |
 | `.pop()` | `pop(v)` — `Vec<T>` | High |
@@ -194,12 +173,11 @@ only operations assessed for method-call syntax adoption in P4:
 | `.split(d)` | `split(s, d)` — `String` | Medium |
 | `.join(d)` | `join(parts, d)` — `Vec<String>` | Medium |
 
-Full trait system (`impl` blocks, trait objects, operator overloading) is **out
-of scope** for P4. P3 (traits) is evaluated separately.
+完全な trait システム（`impl` ブロック、trait オブジェクト、演算子オーバーロード）は P4 の**スコープ外**。P3（trait）は別途評価する。
 
 ---
 
-### 7.3 Entry/Exit Decision Tree
+### 7.3 入退場の決定木
 
 ```
 Trigger fires (T1+T2+T3 met)
@@ -223,31 +201,26 @@ Trigger fires (T1+T2+T3 met)
     └─ NO  ──→ Must resolve via one of the above paths.
 ```
 
-The outcome of this decision tree must be one of:
+この決定木の結果は次のいずれかでなければならない:
 
-- **`ADOPT-UFCS`**: implement the minimal desugaring described in §4. Record as
-  an ADR-004 amendment. File implementation issues against `src/compiler/parser.ark`,
-  `src/compiler/resolver.ark`, and `src/compiler/typechecker.ark`.
-- **`ADOPT-FULL`**: require `impl` blocks (depends on P3 landing). Only valid
-  if P3 has landed or has a firm schedule.
-- **`DEFER-AGAIN`**: complexity cost is too high; set a new explicit trigger and
-  update this document.
-- **`REJECT`**: document why the function-centric API is sufficient long-term.
-  Close this ADR as a final REJECTED decision.
+- **`ADOPT-UFCS`**: §4 で述べた最小脱糖を実装する。ADR-004 の修正として記録する。`src/compiler/parser.ark`、`src/compiler/resolver.ark`、`src/compiler/typechecker.ark` に対する実装 issue を起票する。
+- **`ADOPT-FULL`**: `impl` ブロックが必要（P3 の着地に依存）。P3 が着地済み、または確定スケジュールがある場合のみ有効。
+- **`DEFER-AGAIN`**: 複雑さのコストが高すぎる。新しい明示的 trigger を設定し、本ドキュメントを更新する。
+- **`REJECT`**: 関数中心 API が長期的に十分である理由を文書化する。本 ADR を最終的な REJECTED 決定としてクローズする。
 
 ---
 
-### 7.4 When to Re-open This ADR
+### 7.4 本 ADR を再オープンする条件
 
-Re-open (change status from `DEFERRED` to `IN REVIEW`) only when:
-- All trigger conditions in §7.1 are satisfied, **and**
-- A reviewer is assigned to drive the decision within one sprint.
+次の場合のみ再オープン（ステータスを `DEFERRED` から `IN REVIEW` に変更）する:
+- §7.1 のすべての trigger 条件が満たされ、**かつ**
+- 1 スプリント以内に決定を主導するレビュアがアサインされている。
 
 ---
 
-### 7.5 References
+### 7.5 参照
 
-- `docs/process/roadmap-v4.md` §6 item 9, §12 item 1 — mandate for this evaluation
-- `docs/language/spec.md` §2.8, §3.6 — trait/method syntax spec
-- `std/prelude.ark` — current function-centric stdlib
-- `issues/done/157-adr004-method-syntax-evaluation.md` — tracking issue (closed)
+- `docs/process/roadmap-v4.md` §6 item 9, §12 item 1 — 本評価のマンデート
+- `docs/language/spec.md` §2.8, §3.6 — trait/メソッド構文仕様
+- `std/prelude.ark` — 現行の関数中心 stdlib
+- `issues/done/157-adr004-method-syntax-evaluation.md` — 追跡 issue（クローズ済み）

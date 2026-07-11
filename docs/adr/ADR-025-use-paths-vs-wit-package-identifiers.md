@@ -1,75 +1,75 @@
-# ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration
+# ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索
 
 ステータス: **SUPERSEDED** — [ADR-031](ADR-031-import-syntax-wit-unification.md) に統合（探索メモ）
 日付: 2026-04-16
 トラック: language-design（issue #123）
 後継: [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md)
 
-## Context
+## 背景
 
-Arukellt today has two different naming surfaces that both look like “imports” to newcomers and to tooling:
+Arukellt には、新規参加者やツールから見てどちらも「import」に見える、異なる 2 つの命名表面がある:
 
-| Surface | Example | Role |
+| 表面 | 例 | 役割 |
 |---------|---------|------|
-| Layer S — source modules | `use std::host::stdio` | Resolve `.ark` modules and stdlib during compilation (`::` paths). |
-| Layer C — component / WIT | `wasi:cli/stdin@0.2.10` | Identify packages and interfaces at the Component Model binary boundary. |
+| Layer S — ソースモジュール | `use std::host::stdio` | コンパイル時に `.ark` モジュールと stdlib を解決（`::` パス）。 |
+| Layer C — component / WIT | `wasi:cli/stdin@0.2.10` | Component Model バイナリ境界でパッケージとインターフェースを識別。 |
 
-ADR-009 **decided** to keep these as **separate layers** with different syntax and keywords (`use` vs planned `import` for Layer C). This ADR does **not** reopen that split; it records **additional design candidates**, **collision-avoidance tactics**, a **non-binding syntax sketch** for future Layer C source forms, and **migration notes** so issue #123 has a single elaborated artifact beyond ADR-009.
+ADR-009 はこれらを**別レイヤー**として、異なる構文とキーワード（`use` と Layer C 向けに予約された `import`）で維持するよう**決定**した。本 ADR はその分離を**再オープンしない**。issue #123 向けに、ADR-009 を超える単一の詳細化アーティファクトとして、**追加の設計候補**、**衝突回避戦術**、将来の Layer C ソース形式の**非拘束の構文スケッチ**、**移行メモ**を記録する。
 
-## Decision candidates (summary)
+## 決定候補（要約）
 
-### Candidate A — Single format everywhere (`namespace:pkg/interface@ver` in source)
+### Candidate A — 単一形式を everywhere（ソースでも `namespace:pkg/interface@ver`）
 
-- **Idea**: Replace `::` source paths with WIT-style package IDs for stdlib and user code (e.g. `use arukellt:std/io`).
-- **Pros**: One mental model; close alignment with emitted component metadata.
-- **Cons**: Breaking change at massive scale; WIT IDs encode registry/organization semantics ill-suited to normal language modules; poor ergonomics for self-hosting and everyday code (see ADR-009 “Alternatives Considered A”).
-- **Verdict in this draft**: **Rejected** as a default; kept only as an explicit non-goal anchor.
+- **考え方**: ソースの `::` パスを WIT 風パッケージ ID に置き換える（例: `use arukellt:std/io`）。
+- **利点**: 単一のメンタルモデル。出力 component メタデータとの密接な整合。
+- **欠点**: 大規模な破壊的変更。WIT ID は通常の言語モジュールに不向きなレジストリ/組織セマンティクスをエンコード。セルフホスティングと日常コードの ergonomics が悪化（ADR-009「Alternatives Considered A」参照）。
+- **本ドラフトでの判定**: デフォルトとして **Rejected**。明示的な非目標のアンカーとしてのみ残す。
 
-### Candidate B — Two layers, distinct syntax (ADR-009 default)
+### Candidate B — 二層、異なる構文（ADR-009 デフォルト）
 
-- **Idea**: Layer S stays `use` + `::` paths; Layer C uses WIT strings / dedicated forms and never reuses `::` resolution rules.
-- **Pros**: Zero collision between path grammar and WIT grammar; matches common industry pattern (source imports vs external WIT tooling); preserves existing fixtures and stdlib layout.
-- **Cons**: Two concepts to teach; documentation must be explicit (this ADR + `docs/spec/import-system.md`).
-- **Verdict in this draft**: **Recommended default** — consistent with ADR-009 and current repo contract.
+- **考え方**: Layer S は `use` + `::` パス。Layer C は WIT 文字列 / 専用形式で、`::` 解決規則を再利用しない。
+- **利点**: パス文法と WIT 文法の衝突ゼロ。業界の一般的パターン（ソース import vs 外部 WIT ツール）に合う。既存フィクスチャと stdlib レイアウトを維持。
+- **欠点**: 教える概念が 2 つ。ドキュメントを明示的にする必要（本 ADR + `docs/spec/import-system.md`）。
+- **本ドラフトでの判定**: **Recommended default** — ADR-009 と現行リポジトリ契約と一致。
 
-### Candidate C — `wit` keyword or attribute bridge
+### Candidate C — `wit` キーワードまたは属性ブリッジ
 
-- **Idea**: `wit import "wasi:cli/stdin@0.2.10"` or `#[wit_import("…")]` on modules/items.
-- **Pros**: Visually unambiguous; optional if only build manifests carry WIT.
-- **Cons**: Extra surface area; ADR-009 chose to reserve bare `import` for Layer C instead of a compound keyword (partially considered there).
-- **Verdict**: **Optional variant** if implementers want stronger disambiguation than a string-literal `import`; not required for the two-layer default.
+- **考え方**: `wit import "wasi:cli/stdin@0.2.10"` またはモジュール/アイテムへの `#[wit_import("…")]`。
+- **利点**: 視覚的に明確。ビルドマニフェストのみに WIT を載せる場合は任意。
+- **欠点**: 表面積が増える。ADR-009 は複合キーワードの代わりに Layer C 向けに素の `import` を予約した（そこで一部検討）。
+- **判定**: 文字列リテラル `import` より強い曖昧さ解消が欲しい実装者向けの**任意バリアント**。二層デフォルトには不要。
 
-### Candidate D — WIT only outside source
+### Candidate D — ソース外のみ WIT
 
-- **Idea**: No WIT text in `.ark`; worlds/interfaces live in `.wit` and CLI flags (e.g. `--wit`), bindings generated or implied.
-- **Pros**: Minimal parser complexity; matches “WIT as toolchain input” workflows.
-- **Cons**: Less convenient for “single file defines component” examples; still need a story for generated symbol visibility into Layer S.
-- **Verdict**: **Valid delivery path** for early phases; compatible with Candidate B (Layer S unchanged).
+- **考え方**: `.ark` に WIT テキストなし。world/interface は `.wit` と CLI フラグ（例: `--wit`）にあり、バインディングは生成または暗黙。
+- **利点**: パーサ複雑さ最小。「WIT はツールチェーン入力」ワークフローに合う。
+- **欠点**: 「単一ファイルで component 定義」例は不便。Layer S への生成シンボル可視性の話は依然必要。
+- **判定**: 初期フェーズの**有効な配信経路**。Candidate B（Layer S 不変）と両立。
 
-## Namespace collision avoidance
+## 名前空間衝突の回避
 
-1. **Lexical shape**
-   - Layer S paths use **`::`** and (today) identifier segments; they do not use WIT’s **`ns:pkg`** colon pairing or **`/`** between package and interface in the same token stream pattern as WIT.
-   - WIT package IDs use **`:`** (namespace delimiter), **`/`** (interface), **`@`** (version), and optionally **`.{…}`** for symbol lists in WIT files — not Arukellt expression syntax.
+1. **字句的形状**
+   - Layer S パスは **`::`** と（現状）識別子セグメントを使う。WIT の **`ns:pkg`** コロン対や、WIT と同じトークン列パターンのパッケージ/インターフェース間 **`/`** は使わない。
+   - WIT パッケージ ID は **`:`**（名前空間区切り）、**`/`**（インターフェース）、**`@`**（バージョン）、WIT ファイルでは任意で **`.{…}`**（シンボル列挙） — Arukellt 式構文ではない。
 
-2. **Keyword separation**
-   - **`use`** — only Layer S in normative docs.
-   - **`import`** — legacy file import today; reserved for Layer C per ADR-009 once `import <id>` is retired from source modules.
+2. **キーワード分離**
+   - **`use`** — 規範ドキュメントでは Layer S のみ。
+   - **`import`** — 現状はレガシーファイル import。ADR-009 に従い `import <id>` がソースモジュールから退役したら Layer C 用に予約。
 
-3. **Planned Layer C source forms**
-   - Prefer **string literals** carrying the full WIT package/interface string (see sketch below) so the lexer never interprets `wasi:cli` as a path of identifiers.
-   - Avoid bare `import wasi:cli/...` without quoting until a dedicated grammar is specified; unquoted forms invite parser ambiguity with paths, generics, or future operators.
+3. **計画された Layer C ソース形式**
+   - 完全な WIT パッケージ/インターフェース文字列を載せる**文字列リテラル**を優先（下記スケッチ）し、字句解析器が `wasi:cli` を識別子のパスと解釈しないようにする。
+   - 専用文法が規定されるまで、引用なしの `import wasi:cli/...` は避ける。非引用形式はパス、ジェネリクス、将来の演算子とのパーサ曖昧さを招く。
 
-4. **Conceptual collision (not lexical)**
-   - **`std::io` is not a WIT package ID** and must not be documented as interchangeable with `wasi:io/…` without an explicit bridge (stdlib host facades vs raw WASI imports).
-   - Tooling SHOULD NOT silently map between layers; any mapping belongs in the compiler / manifest / binding generator with explicit configuration.
+4. **概念的衝突（字句的ではない）**
+   - **`std::io` は WIT パッケージ ID ではない**。明示的ブリッジ（stdlib host facade vs 生 WASI import）なしに `wasi:io/…` と interchangeable と文書化してはならない。
+   - ツールはレイヤー間を**黙って**マップしてはならない。マッピングはコンパイラ / マニフェスト / バインディング生成器の明示設定に属する。
 
-5. **Reserve org namespaces in WIT only**
-   - Follow WIT ecosystem convention: organization-owned namespaces (`wasi:`, vendor-specific prefixes). Arukellt language modules remain ordinary paths under `std::`, package roots, etc.
+5. **WIT のみで組織名前空間を予約**
+   - WIT エコシステム慣行に従う: 組織所有の名前空間（`wasi:`、ベンダー固有プレフィックス）。Arukellt 言語モジュールは `std::`、パッケージルートなど通常のパスのまま。
 
-## Non-binding syntax sketch (Layer C in source)
+## 非拘束の構文スケッチ（ソース内 Layer C）
 
-> **Non-normative.** Illustrative only; parser, keyword placement, and attribute forms are subject to future ADR/issue decisions.
+> **非規範。** 例示のみ。パーサ、キーワード配置、属性形式は将来の ADR/issue 決定の対象。
 
 <!-- skip-doc-check -->
 ```ark
@@ -83,32 +83,32 @@ import "wasi:cli/stdin@0.2.10"
 use std::host::stdio
 ```
 
-Bindings produced from Layer C would then appear as ordinary imported modules/types in Layer S (exact name resolution rules TBD in implementation issues).
+Layer C から生成されたバインディングは、Layer S では通常の import モジュール/型として現れる（正確な名前解決規則は実装 issue で TBD）。
 
-## Migration and compatibility
+## 移行と互換性
 
-| Phase | Layer S | Layer C / `import` keyword |
+| フェーズ | Layer S | Layer C / `import` キーワード |
 |-------|---------|-----------------------------|
-| Current | `use` + legacy `import foo` for sibling modules | WIT IDs appear in `.wit` / tooling; not yet first-class `import "…"` syntax in user `.ark` per `docs/current-state.md` |
-| v4 (planned) | Deprecate then remove `import <single_identifier>` in favor of `use` (ADR-009 timeline) | Repurpose `import` for Layer C declarations |
-| Ecosystem | Existing fixtures keep `::` paths | New syntax additive behind design in ADR-009 + implementation |
+| Current | `use` + レガシー `import foo`（兄弟モジュール） | WIT ID は `.wit` / ツールに現れる。`docs/current-state.md` どおりユーザ `.ark` ではまだ第一級 `import "…"` 構文ではない |
+| v4 (planned) | `import <single_identifier>` を廃止し `use` に（ADR-009 タイムライン） | `import` を Layer C 宣言に再利用 |
+| Ecosystem | 既存フィクスチャは `::` パスを維持 | 新構文は ADR-009 + 実装の設計の背後で additive |
 
-**Compatibility principles**
+**互換性の原則**
 
-- No automatic rewrite of `use std::…` into WIT strings.
-- Teach Layer S vs Layer C in docs (`docs/spec/import-system.md`) to prevent LLM/user conflation of `std::io` with `wasi:io/…`.
+- `use std::…` の WIT 文字列への自動書き換えはしない。
+- ドキュメント（`docs/spec/import-system.md`）で Layer S と Layer C を教え、`std::io` と `wasi:io/…` の LLM/ユーザー混同を防ぐ。
 
-## Recommended default (this draft)
+## 推奨デフォルト（本ドラフト）
 
-Adopt **Candidate B** as the continuing default: **do not unify** Arukellt source paths with WIT package identifier grammar; keep strict layer separation and use the collision-avoidance tactics above. Layer C surface may evolve (Candidate C/D) without changing this default.
+**Candidate B** を継続デフォルトとして採用: Arukellt ソースパスと WIT パッケージ識別子文法を**統一しない**。厳格なレイヤー分離と上記衝突回避戦術を維持する。Layer C 表面は（Candidate C/D）本デフォルトを変えずに進化しうる。
 
-## Relationship to other ADRs
+## 他 ADR との関係
 
-- **ADR-009**: Normative **ACCEPTED** split (`use` vs reserved `import` for WIT). This ADR is a **historical elaboration** for issue #123; it is superseded by ADR-031 where they overlap.
-- **ADR-006**: ABI layers — source semantics vs WIT ABI remain distinct.
-- **ADR-023**: Registry resolution applies to Layer S dependencies, not to rewriting module paths into WIT IDs.
+- **ADR-009**: 規範的 **ACCEPTED** 分離（WIT 向け `use` vs 予約 `import`）。本 ADR は issue #123 向けの**歴史的詳細化**。重複部分は ADR-031 に置き換えられる。
+- **ADR-006**: ABI レイヤー — ソースセマンティクスと WIT ABI は別のまま。
+- **ADR-023**: レジストリ解決は Layer S 依存に適用。モジュールパスを WIT ID に書き換えるものではない。
 
-## Related
+## 関連
 
 - [ADR-009-import-syntax.md](ADR-009-import-syntax.md)
 - [../spec/import-system.md](../spec/import-system.md)

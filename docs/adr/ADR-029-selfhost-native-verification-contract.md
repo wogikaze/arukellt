@@ -1,4 +1,4 @@
-# ADR-029 — Selfhost-native verification contract
+# ADR-029 — セルフホストネイティブ検証契約
 
 ステータス: **ACCEPTED**
 日付: 2026-04-22
@@ -6,59 +6,36 @@ Issue: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 解除する依存: #583, #560, #561, #562, #563, #564（Phase 5 Rust 退役）
 関連: ADR-024（selfhost MIR）
 
-## Context
+## 背景
 
-The four canonical selfhost gates implemented in
-`scripts/selfhost/checks.py` historically used the legacy Rust compiler
-binary (`target/debug/arukellt`) as the **trusted base** for every
-parity comparison:
+`scripts/selfhost/checks.py` に実装された 4 つの正規セルフホストゲートは、歴史的にレガシー Rust コンパイラバイナリ（`target/debug/arukellt`）をすべてのパリティ比較の**信頼できるベース**として使っていた:
 
-| Gate | Pre-585 baseline | Comparison |
+| ゲート | Pre-585 ベースライン | 比較 |
 |------|------------------|------------|
-| `selfhost fixpoint` | Rust binary compiles `src/compiler/main.ark` → `s1.wasm` | `sha256(s2) == sha256(s3)` (s2/s3 produced by selfhost) |
-| `selfhost fixture-parity` | Rust binary compiles each fixture | `wasmtime`-execution of Rust output vs selfhost output (string equality) |
-| `selfhost diag-parity` | Rust binary `check fixture.ark` produces the canonical diagnostic | Selfhost `check` output must contain the same `.diag` pattern |
-| `selfhost parity --cli` | Rust binary `--version`/`--help`/exit codes | Byte-equal selfhost `--version`/`--help`/non-zero exit codes |
+| `selfhost fixpoint` | Rust バイナリが `src/compiler/main.ark` をコンパイル → `s1.wasm` | `sha256(s2) == sha256(s3)`（s2/s3 はセルフホスト生成） |
+| `selfhost fixture-parity` | Rust バイナリが各フィクスチャをコンパイル | `wasmtime` で Rust 出力とセルフホスト出力を実行（文字列等価） |
+| `selfhost diag-parity` | Rust バイナリ `check fixture.ark` が正規診断を生成 | セルフホスト `check` 出力が同じ `.diag` パターンを含むこと |
+| `selfhost parity --cli` | Rust バイナリ `--version`/`--help`/終了コード | セルフホスト `--version`/`--help`/非ゼロ終了コードがバイト等価 |
 
-This contract blocks the Phase 5 Rust retirement chain (#583, #560–#564):
-the gates hard-fail if `_find_arukellt()` cannot locate
-`target/debug/arukellt`. As long as the Rust binary is the trusted base,
-the Rust crates cannot be deleted.
+この契約は Phase 5 Rust 退役チェーン（#583, #560–#564）をブロックする。`_find_arukellt()` が `target/debug/arukellt` を見つけられないとゲートはハードフェイルする。Rust バイナリが信頼ベースである限り、Rust crates は削除できない。
 
-The selfhost compiler reached fixpoint at #559: it bootstraps itself from
-its own wasm output (`s2 == s3`), and `scripts/run/arukellt-selfhost.sh`
-already runs the selfhost wasm as the user-facing default. The trusted
-base for verification can be moved off the Rust binary without losing
-behavioural coverage, provided we record a **byte-pinned** selfhost
-artifact whose provenance is reproducible.
+セルフホストコンパイラは #559 で fixpoint に到達した。自身の wasm 出力（`s2 == s3`）から自己ブートストラップし、`scripts/run/arukellt-selfhost.sh` はすでにセルフホスト wasm をユーザー向けデフォルトとして実行する。再現可能な由来を持つ**バイト固定**セルフホストアーティファクトを記録すれば、挙動カバレッジを失わずに検証の信頼ベースを Rust バイナリから移せる。
 
-## Decision
+## 決定
 
-Replace the legacy Rust-baseline contract with a **selfhost-native
-verification contract** anchored on a single committed pinned-reference
-wasm.
+レガシー Rust ベースライン契約を、単一のコミット済みピン留め参照 wasm に固定した**セルフホストネイティブ検証契約**に置き換える。
 
-### Trusted base: `bootstrap/arukellt-selfhost.wasm`
+### 信頼ベース: `bootstrap/arukellt-selfhost.wasm`
 
-A single wasm file, committed at `bootstrap/arukellt-selfhost.wasm`, is
-the trusted base for every selfhost gate. It is exempted from the
-repo-wide `*.wasm` `.gitignore` via an explicit allow-list. Provenance,
-sha256, size, and reproducibility recipe live in
-`bootstrap/PROVENANCE.md`. Refresh is explicit (`chore(bootstrap):
-refresh pinned selfhost wasm`), never automatic, and must enumerate every
-behavioural drift it introduces.
+`bootstrap/arukellt-selfhost.wasm` にコミットされた単一の wasm ファイルが、すべてのセルフホストゲートの信頼ベースである。リポジトリ全体の `*.wasm` `.gitignore` は明示 allow-list で本ファイルを除外する。由来、sha256、サイズ、再現レシピは `bootstrap/PROVENANCE.md` に記載する。更新は明示的（`chore(bootstrap): refresh pinned selfhost wasm`）で、自動ではない。導入するすべての挙動ドリフトを列挙する必要がある。
 
-The artifact is currently 524 KiB — well under a 10 MiB ceiling we adopt
-as a soft size budget. Future refreshes that approach the budget must be
-called out in the refresh commit message.
+アーティファクトは現状 524 KiB — 採用する 10 MiB 上限のソフトサイズ予算を十分下回る。将来の更新が予算に近づく場合は更新コミットメッセージで明記する。
 
-### Reframed gate semantics
+### 再定義されたゲートセマンティクス
 
-Every gate executes the selfhost compiler under `wasmtime`. None of them
-read or shell out to `target/{debug,release}/arukellt`. None of them
-require `cargo build`.
+すべてのゲートは `wasmtime` 下でセルフホストコンパイラを実行する。いずれも `target/{debug,release}/arukellt` を読んだりシェルアウトしたりしない。`cargo build` も不要。
 
-#### 1. `selfhost fixpoint` — bootstrap-from-pinned + Stage-3 fixpoint
+#### 1. `selfhost fixpoint` — ピン留めからのブートストラップ + Stage-3 fixpoint
 
 ```text
 pinned (bootstrap/arukellt-selfhost.wasm)  ──▶  s2.wasm
@@ -66,21 +43,15 @@ s2.wasm  ──▶  s3.wasm
 require: sha256(s2) == sha256(s3)
 ```
 
-What is preserved from the pre-585 contract:
-- The classical bootstrap fixpoint definition is unchanged
-  (`sha256(s2) == sha256(s3)`).
-- A drift in the selfhost compiler that breaks reproducibility
-  (e.g. nondeterministic codegen) still fails the gate.
+Pre-585 契約から維持されるもの:
+- 古典的ブートストラップ fixpoint 定義は不変（`sha256(s2) == sha256(s3)`）。
+- セルフホストコンパイラの再現性を壊すドリフト（例: 非決定的 codegen）は依然ゲート失敗。
 
-What changes:
-- **Stage 0 is the pinned wasm, not the Rust compiler.** The Rust
-  binary is no longer consulted.
-- **Stage-1 byte-equality with the previous baseline is no longer
-  asserted** as part of `fixpoint` — historically `s1` (Rust) and `s2`
-  (selfhost) used different encodings anyway, so the only meaningful
-  byte-pin was `s2 == s3`.
+変わるもの:
+- **Stage 0 はピン留め wasm であり Rust コンパイラではない。** Rust バイナリは参照されない。
+- **以前のベースラインとの Stage-1 バイト等価は `fixpoint` の一部としてはもはやアサートしない** — 歴史的に `s1`（Rust）と `s2`（セルフホスト）は別エンコーディングだったため、意味のあるバイト固定は `s2 == s3` のみだった。
 
-#### 2. `selfhost fixture-parity` — pinned-vs-current execution parity
+#### 2. `selfhost fixture-parity` — ピン留め対現行の実行パリティ
 
 ```text
 for each fixture in tests/fixtures/manifest.txt (run:):
@@ -89,37 +60,21 @@ for each fixture in tests/fixtures/manifest.txt (run:):
     run both wasms; require execution stdout/stderr/exit equal
 ```
 
-`current_selfhost` is the Stage-2 wasm produced by `run_fixpoint`
-(or rebuilt on demand from the pinned wasm + `src/compiler/main.ark`).
+`current_selfhost` は `run_fixpoint` が生成する Stage-2 wasm（またはピン留め wasm + `src/compiler/main.ark` からオンデマンド再ビルド）。
 
-What is preserved:
-- Behavioural coverage across the full `run:` fixture corpus
-  (≥ 350 fixtures); execution-output equality is the same comparison
-  the pre-585 contract used.
-- The `FIXTURE_PARITY_SKIP` allow-list is preserved verbatim — known
-  selfhost-only emitter shortcomings are still tracked, not silently
-  dropped.
-- `pass_count >= 10` floor is preserved (issue file requirement).
+維持されるもの:
+- `run:` フィクスチャコーパス全体の挙動カバレッジ（≥ 350 フィクスチャ）。実行出力等価は pre-585 契約と同じ比較。
+- `FIXTURE_PARITY_SKIP` allow-list はそのまま — 既知のセルフホスト専用 emitter 不足は追跡され、黙って落とされない。
+- `pass_count >= 10` 下限は維持（issue ファイル要件）。
 
-What changes:
-- The baseline is the pinned selfhost, not the Rust compiler. The gate
-  now detects **behavioural drift between the pinned baseline and the
-  current source tree** instead of selfhost-vs-Rust drift.
-- When `src/compiler/**` is unchanged, `current_selfhost == pinned`
-  byte-for-byte and the gate passes vacuously (this is intentional —
-  it is a regression detector, not a correctness oracle).
-- When `src/compiler/**` drifts intentionally and the drift is
-  behaviour-preserving, the gate still passes. When the drift is
-  behaviour-changing, the gate fails until the maintainer either fixes
-  the regression or refreshes the pinned wasm with a documented
-  drift list (`bootstrap/PROVENANCE.md` refresh policy).
+変わるもの:
+- ベースラインはピン留めセルフホストであり Rust コンパイラではない。ゲートは**ピン留めベースラインと現行ソースツリー間の挙動ドリフト**を検出し、セルフホスト対 Rust ドリフトではない。
+- `src/compiler/**` が不変なら `current_selfhost == pinned` がバイト等価でゲートは自明にパス（意図的 — 回帰検出器であり正しさのオラクルではない）。
+- `src/compiler/**` が意図的にドリフトし挙動保存ならゲートはパス。挙動変更ドリフトなら、回帰修正か、`bootstrap/PROVENANCE.md` 更新ポリシーに従ったピン留め wasm 更新とドリフト一覧が必要まで失敗。
 
-This is the strongest behaviour-preserving option of the two listed in
-the issue file (selfhost-only-determinism is a strict subset of
-pinned-vs-current parity, since the latter additionally detects
-intentional-but-undocumented semantic drift).
+これは issue ファイルに列挙された 2 案のうち、挙動保存に最も強い選択（セルフホストのみ決定性はピン留め対現行パリティの厳密部分集合。後者は意図的だが未文書化の意味ドリフトも検出する）。
 
-#### 3. `selfhost diag-parity` — pure selfhost diagnostic snapshot
+#### 3. `selfhost diag-parity` — 純セルフホスト診断スナップショット
 
 ```text
 for each fixture in tests/fixtures/manifest.txt (diag:):
@@ -128,23 +83,15 @@ for each fixture in tests/fixtures/manifest.txt (diag:):
     require: pattern in out
 ```
 
-What is preserved:
-- The committed `.diag` / `.selfhost.diag` golden files are the
-  contract — exactly the same files that pre-585 selfhost used.
-- The `DIAG_PARITY_SKIP` set is preserved verbatim.
-- `pass_count >= 10` floor is preserved.
+維持されるもの:
+- コミット済み `.diag` / `.selfhost.diag` ゴールデンが契約 — pre-585 セルフホストと同じファイル。
+- `DIAG_PARITY_SKIP` セットはそのまま。
+- `pass_count >= 10` 下限は維持。
 
-What changes:
-- The gate no longer cross-checks the Rust binary's diagnostic output.
-  Pre-585 fixtures that the Rust compiler classified "pattern not
-  found; test may be stale" became `skip`; in the new contract any
-  fixture whose `.diag` golden does not match the selfhost output is
-  a `FAIL` (or must be added to `DIAG_PARITY_SKIP` with a tracking
-  issue). This is a **strictly stronger** assertion in the long run,
-  but at the moment of the migration the live `pass_count` is the
-  same (≈ 11) because every previously passing fixture still passes.
+変わるもの:
+- ゲートは Rust バイナリの診断出力をクロスチェックしない。Pre-585 で Rust が「pattern not found; test may be stale」としたフィクスチャは `skip` になった。新契約では `.diag` ゴールデンがセルフホスト出力と一致しないフィクスチャは `FAIL`（または追跡 issue 付きで `DIAG_PARITY_SKIP` 追加）。長期的には**より強い**アサーションだが、移行時点の live `pass_count` は同じ（≈ 11）。以前パスしていたフィクスチャはすべて依然パス。
 
-#### 4. `selfhost parity --cli` — pure selfhost CLI snapshot
+#### 4. `selfhost parity --cli` — 純セルフホスト CLI スナップショット
 
 ```text
 require: wasmtime(current_selfhost, "--version") == tests/snapshots/selfhost/cli-version.txt
@@ -153,81 +100,55 @@ require: wasmtime(current_selfhost, "foobar_unknown_cmd").returncode != 0
 require: for cmd in {compile, check, run}: wasmtime(current_selfhost, cmd).returncode != 0
 ```
 
-What is preserved:
-- The "non-zero exit on unknown / no-args" assertions are unchanged.
-- The `--version` / `--help` text format is now a tracked snapshot
-  rather than an inter-implementation comparison.
+維持されるもの:
+- 未知コマンド / 引数なしでの非ゼロ終了アサーションは不変。
+- `--version` / `--help` テキスト形式は実装間比較ではなく追跡スナップショット。
 
-What changes:
-- Goldens live under `tests/snapshots/selfhost/`. Intentional CLI text
-  changes require updating the golden in the same commit.
+変わるもの:
+- ゴールデンは `tests/snapshots/selfhost/` 配下。意図的 CLI テキスト変更は同一コミットでゴールデン更新が必要。
 
-### What is explicitly NOT in scope
+### 明示的にスコープ外のもの
 
-- Deleting any Rust crate (`crates/**`) — that is #560–#564.
-- Removing `ARUKELLT_USE_RUST=1` opt-in from
-  `scripts/run/arukellt-selfhost.sh` — that is #583.
-- Changing any selfhost source (`src/compiler/**`) or fixture
-  (`tests/fixtures/**`).
-- Changing `scripts/manager.py` CLI surface — `selfhost
-  {fixpoint,fixture-parity,diag-parity,parity}` is preserved.
+- Rust crate（`crates/**`）の削除 — それは #560–#564。
+- `scripts/run/arukellt-selfhost.sh` から `ARUKELLT_USE_RUST=1` オプトインの削除 — それは #583。
+- セルフホストソース（`src/compiler/**`）やフィクスチャ（`tests/fixtures/**`）の変更。
+- `scripts/manager.py` CLI 表面の変更 — `selfhost {fixpoint,fixture-parity,diag-parity,parity}` は維持。
 
-## Baseline gate counts at adoption (commit `662c3f58`)
+## 採用時のベースラインゲート件数（コミット `662c3f58`）
 
-| Gate | Result | Notes |
+| ゲート | 結果 | 備考 |
 |------|--------|-------|
-| `selfhost fixpoint` | PASS | s2 sha256 = `c16e32ef…0cc` (built from pinned `3a035037…f2c`) |
-| `selfhost fixture-parity` | PASS | 321 PASS, 0 FAIL, 41 SKIP (16 selfhost wasm-trap, 23 selfhost-compile timeout under wasmtime, 2 explicit `FIXTURE_PARITY_SKIP`) |
+| `selfhost fixpoint` | PASS | s2 sha256 = `c16e32ef…0cc`（ピン留め `3a035037…f2c` からビルド） |
+| `selfhost fixture-parity` | PASS | 321 PASS, 0 FAIL, 41 SKIP（16 selfhost wasm-trap, 23 selfhost-compile timeout under wasmtime, 2 explicit `FIXTURE_PARITY_SKIP`) |
 | `selfhost diag-parity` | PASS | 12 PASS, 22 SKIP, 0 FAIL |
 | `selfhost parity --cli` | PASS | 6 PASS, 0 FAIL |
 
-These four lines are reproducible on a fresh clone with `cargo clean`
-and `target/debug/arukellt` removed (verified at adoption time —
-see #585 close note).
+この 4 行は `cargo clean` と `target/debug/arukellt` 削除後の新規クローンで再現可能（採用時に検証 — #585 クローズノート参照）。
 
-## Consequences
+## 結果
 
-### Positive
+### 肯定的
 
-- Phase 5 Rust retirement (#560–#564) is unblocked. `target/debug/arukellt`
-  is no longer a verification dependency.
-- Fresh clones can verify the selfhost compiler with only `wasmtime` and
-  `python3` installed — no Rust toolchain, no `cargo build`.
-- The trusted base is byte-pinned and reproducible from a git SHA.
-- Drift between intentional source changes and the pinned baseline
-  surfaces as gate failures, not silent regressions.
+- Phase 5 Rust 退役（#560–#564）のブロックが解除。`target/debug/arukellt` は検証依存ではなくなる。
+- 新規クローンは `wasmtime` と `python3` のみでセルフホストコンパイラを検証可能 — Rust ツールチェーン、`cargo build` 不要。
+- 信頼ベースはバイト固定で git SHA から再現可能。
+- 意図的ソース変更とピン留めベースラインのドリフトは黙った回帰ではなくゲート失敗として表面化。
 
-### Negative / accepted trade-offs
+### 否定的 / 受け入れたトレードオフ
 
-- Refreshing the pinned wasm becomes a maintenance ritual. Mitigation:
-  refresh policy documented in `bootstrap/PROVENANCE.md`.
-- The repository now carries a 524 KiB binary artifact in git. Mitigation:
-  artifact is small, refresh frequency is low (only on intentional
-  semantic changes), and the alternative (re-bootstrapping from a
-  pre-built blob fetched at CI time) introduces a network/availability
-  dependency that we judge worse.
-- `fixture-parity` no longer cross-checks an independent implementation.
-  Mitigation: the previous Rust-vs-selfhost comparison is being retired
-  anyway by Phase 5; a stronger oracle (e.g. spec-derived fixtures with
-  expected-output goldens) is tracked separately and out of scope here.
+- ピン留め wasm の更新が保守儀式になる。緩和: `bootstrap/PROVENANCE.md` に更新ポリシーを文書化。
+- リポジトリに 524 KiB のバイナリアーティファクトを載せる。緩和: 小さい、更新頻度は低い（意図的意味変更時のみ）。代替（CI 時に取得する事前ビルド blob）はネットワーク/可用性依存を導入し、より悪いと判断。
+- `fixture-parity` は独立実装とのクロスチェックをしなくなる。緩和: 以前の Rust 対セルフホスト比較は Phase 5 でいずれ退役。より強いオラクル（例: 仕様由来フィクスチャと期待出力ゴールデン）は別途追跡で本スコープ外。
 
-## Alternatives considered
+## 検討した代替案
 
-1. **Selfhost-only determinism** (compile each fixture twice, require
-   bit-identical wasm). Rejected: weaker than pinned-vs-current parity
-   and would not detect intentional-but-undocumented semantic drift.
-2. **Network-fetched pinned wasm** (download from a release asset
-   instead of committing the binary). Rejected: introduces an
-   availability dependency for verification on a fresh clone.
-3. **Generate fixture-output goldens at commit time** and compare
-   current selfhost runs against them. Rejected for this slice (would
-   require a much larger fixture-output corpus and changes under
-   `tests/fixtures/**` which is FORBIDDEN here); deferred to a
-   follow-on issue.
+1. **セルフホストのみ決定性**（各フィクスチャを 2 回コンパイルし wasm がビット同一）。却下: ピン留め対現行パリティより弱く、意図的だが未文書化の意味ドリフトを検出しない。
+2. **ネットワーク取得ピン留め wasm**（バイナリをコミットせずリリースアセットからダウンロード）。却下: 新規クローン検証に可用性依存。
+3. **コミット時にフィクスチャ出力ゴールデンを生成**し現行セルフホスト実行と比較。本スライスでは却下（はるかに大きなフィクスチャ出力コーパスと `tests/fixtures/**` 変更が必要でここでは FORBIDDEN）。フォローアップ issue に延期。
 
-## Verification
+## 検証
 
-Per #585 acceptance:
+#585 受け入れどおり:
 
 ```bash
 rm -f target/debug/arukellt
@@ -237,5 +158,4 @@ python3 scripts/manager.py selfhost diag-parity     # PASS
 python3 scripts/manager.py selfhost parity --mode --cli  # PASS
 ```
 
-The `cargo build --workspace --exclude ark-llvm` build still succeeds —
-this slice does not delete any Rust crate.
+`cargo build --workspace --exclude ark-llvm` ビルドは依然成功 — 本スライスは Rust crate を削除しない。

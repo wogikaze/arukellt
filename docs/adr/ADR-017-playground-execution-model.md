@@ -6,228 +6,192 @@
 
 ---
 
-## Context
+## 文脈
 
-The Arukellt web playground needs a concrete product contract before any
-implementation work begins.  Two constraints drive the decision:
+Arukellt の web playground は、実装作業の前に具体的な製品契約が必要である。判断を駆動する制約は二つ:
 
-1. **T2 (`wasm32-freestanding`) is not implemented.**
-   `src/compiler/driver.ark` registers the target with
-   `implemented: false` and `run_supported: false`.
-   [ADR-007: Targets](ADR-007-targets.md) states: "identifier is registered but nothing
-   downstream handles it."  Building a playground that runs user code in the
-   browser requires either T2 or an alternative approach.
+1. **T2（`wasm32-freestanding`）は未実装。**
+   `src/compiler/driver.ark` は `implemented: false` / `run_supported: false` で登録する。
+   [ADR-007: Targets](ADR-007-targets.md) は「識別子は登録されているが下流は何も扱わない」と述べる。
+   ブラウザでユーザーコードを実行する playground には T2 か代替手段が必要である。
 
-2. **T3 (`wasm32-wasi-p2`) requires wasmtime.**
-   The canonical, CI-verified target cannot execute in a browser context
-   directly.  Shipping a server-side executor for v1 introduces operational
-   cost, abuse-surface risk, and latency — and buys little value when the
-   primary user-facing benefit (instant feedback) can be achieved with
-   lighter-weight client-side tooling.
+2. **T3（`wasm32-wasi-p2`）は wasmtime を要する。**
+   CI 検証済みの正準ターゲットはブラウザ文脈で直接実行できない。
+v1 でサーバー側 executor を出すと運用コスト・悪用面・遅延が増え、
+主価値（即時フィードバック）はより軽いクライアント側ツールで得られる。
 
-The parser, formatter, and diagnostics engine are pure Rust with no WASI
-dependency.  They compile to `wasm32-unknown-unknown` today and can be
-packaged as a browser-safe Wasm bundle.
+parser / formatter / diagnostics は WASI 依存のない pure Rust で、
+今日 `wasm32-unknown-unknown` にコンパイルでき、ブラウザ安全な Wasm バンドルにできる。
 
-Issue 378 was opened to force this decision before any downstream work
-(issues 379, 382, 428) begins.
+Issue 378 は、下流作業（379, 382, 428）の前にこの判断を強制するために開かれた。
 
 ---
 
-## Decision
+## 決定
 
-### Execution model: **client-side hybrid** (no server-side executor in v1)
+### 実行モデル: **client-side hybrid**（v1 にサーバー側 executor なし）
 
-| Surface | Execution location | Wasm target | v1? |
-|---------|-------------------|-------------|-----|
-| Edit (Monaco/CodeMirror shell) | browser | n/a | ✅ yes |
+| 面 | 実行場所 | Wasm ターゲット | v1? |
+|----|----------|-----------------|-----|
+| Edit（Monaco/CodeMirror shell） | browser | n/a | ✅ yes |
 | Format | browser (Wasm) | `wasm32-unknown-unknown` | ✅ yes |
 | Parse | browser (Wasm) | `wasm32-unknown-unknown` | ✅ yes |
 | Check / typecheck | browser (Wasm) | `wasm32-unknown-unknown` | ✅ yes |
-| Diagnostics (structured) | browser (Wasm) | `wasm32-unknown-unknown` | ✅ yes |
-| Examples (curated set) | static / browser | n/a | ✅ yes |
+| Diagnostics（構造化） | browser (Wasm) | `wasm32-unknown-unknown` | ✅ yes |
+| Examples（キュレート集合） | static / browser | n/a | ✅ yes |
 | Share / permalink | browser + static host | n/a | ✅ yes |
-| Full compile (emit Wasm binary) | **not in v1** | — | ❌ v2+ |
-| Run (execute user program) | **not in v1** | — | ❌ v2+ |
+| Full compile（Wasm バイナリ emit） | **v1 ではなし** | — | ❌ v2+ |
+| Run（ユーザープログラム実行） | **v1 ではなし** | — | ❌ v2+ |
 
-**Rationale for no server-side executor in v1:**
+**v1 でサーバー側 executor を置かない根拠:**
 
-- Instant feedback (parse errors, type errors, formatting) is achievable
-  entirely client-side and covers the most common "try the language" use case.
-- A server-side executor would require sandboxing, rate-limiting, abuse
-  mitigation, and operational maintenance — all orthogonal to the v1 goal of
-  "make the language explorable."
-- Full execution is blocked by a real engineering dependency (T2 or wasmtime
-  in-browser); shipping a server workaround in v1 would create a maintenance
-  burden that disappears when T2 lands.
-- Deferring execution to v2 keeps the v1 surface small, auditable, and
-  shippable quickly.
+- 即時フィードバック（parse/type エラー、整形）は完全にクライアント側で達成でき、
+  「言語を試す」最頻ユースケースをカバーする。
+- サーバー側 executor はサンドボックス・レート制限・悪用対策・運用保守を要し、
+  v1 目標「言語を探索可能にする」と直交する。
+- 完全実行は実エンジニアリング依存（T2 またはブラウザ内 wasmtime）にブロックされる。
+  v1 でサーバー回避策を出すと、T2 着地後に消える保守負担を生む。
+- 実行を v2 へ延期すると v1 面が小さく、監査可能で、早く出荷できる。
 
-### v1 scope (explicit)
+### v1 スコープ（明示）
 
 > **v1 = edit + format + parse + check + diagnostics + examples + share**
 
-All six surfaces must be present for playground v1 to be considered complete.
-None of them require T2, a server executor, or wasmtime.
+playground v1 完了には上記 6 面がすべて必要。いずれも T2・サーバー executor・wasmtime を要しない。
 
-### v1 non-goals (explicit)
+### v1 非目標（明示）
 
-The following are explicitly **out of scope for v1**:
+次は v1 の明示的 **範囲外**:
 
-- Full compilation to Wasm binary (`--emit core-wasm`)
-- Running user programs (any target)
-- Server-side execution sandbox
-- T2 (`wasm32-freestanding`) implementation
-- Native (T4/LLVM) execution
+- Wasm バイナリへのフルコンパイル（`--emit core-wasm`）
+- ユーザープログラムの実行（任意ターゲット）
+- サーバー側実行サンドボックス
+- T2（`wasm32-freestanding`）実装
+- Native（T4/LLVM）実行
 - WASI P3 / async runtime
-- LSP integration in the browser editor (may come with editor shell work, not
-  a v1 gate)
-- Authenticated sessions, saved programs, or user accounts
+- ブラウザエディタ内の LSP 統合（エディタ shell 作業に付随しうるが v1 ゲートではない）
+- 認証セッション、保存プログラム、ユーザーアカウント
 
-### T2 timeline split from playground roadmap
+### T2 タイムラインと playground ロードマップの分離
 
-T2 (`wasm32-freestanding`) implementation is **tracked separately** from the
-playground roadmap.  Playground v1 does not require T2 and must not be blocked
-on it.  Playground v2 (full compile + run in browser) **may** use T2 once it
-is implemented, but that dependency is a v2 concern.
+T2 実装は playground ロードマップと**別追跡**する。playground v1 は T2 を要せず、
+T2 にブロックされてはならない。playground v2（ブラウザで compile + run）は
+T2 実装後に使ってよいが、その依存は v2 の関心事である。
 
-The playground Wasm bundle for v1 targets `wasm32-unknown-unknown` (no WASI),
-which is already supported by existing pure-Rust crates in the compiler
-frontend.  T2 would only become relevant if v2 needs to _run_ output inside
-the browser, not merely compile it.
+v1 の playground Wasm バンドルは `wasm32-unknown-unknown`（WASI なし）を対象とし、
+コンパイラフロントエンドの既存 pure-Rust クレートで既に支えられる。
+T2 が関係するのは v2 が出力をブラウザ内で_実行_するときであり、コンパイルのみではない。
 
 ---
 
-## Client-side surface detail
+## クライアント側サーフェス詳細
 
-The following compiler components run **entirely in the browser** via a
-`wasm32-unknown-unknown` bundle:
+次のコンパイラ部品は `wasm32-unknown-unknown` バンドル経由で**完全にブラウザ内**で動く:
 
-| Component | Crate(s) | Notes |
-|-----------|----------|-------|
-| Lexer | `src/compiler/lexer.ark` (or equivalent frontend crate) | No WASI dependency |
-| Parser | `src/compiler/parser.ark` (or equivalent frontend crate) | No WASI dependency |
-| Type checker (check-only path) | `src/compiler/typechecker.ark` / `ark-driver` check gate | No codegen needed |
-| Formatter | formatter surface | Pure transformation, no WASI |
-| Diagnostics renderer | `src/compiler/diagnostics.ark` | Structured output, no WASI |
+| 部品 | Crate(s) | 注記 |
+|------|----------|------|
+| Lexer | `src/compiler/lexer.ark`（または同等フロント） | WASI 依存なし |
+| Parser | `src/compiler/parser.ark`（または同等フロント） | WASI 依存なし |
+| Type checker（check-only） | `src/compiler/typechecker.ark` / `ark-driver` check gate | codegen 不要 |
+| Formatter | formatter surface | 純変換、WASI なし |
+| Diagnostics renderer | `src/compiler/diagnostics.ark` | 構造化出力、WASI なし |
 
-The backend (codegen, Wasm emit, wasmtime runner) is **not included** in the
-v1 browser bundle.
+バックエンド（codegen、Wasm emit、wasmtime runner）は v1 ブラウザバンドルに**含めない**。
 
 ---
 
-## Consequences
+## 帰結
 
-1. **Issue 379** (Wasm packaging for browser) may proceed targeting
-   `wasm32-unknown-unknown` for the frontend-only bundle.
+1. **Issue 379**（ブラウザ向け Wasm パッケージ）はフロントのみバンドル向けに
+   `wasm32-unknown-unknown` を対象として進めてよい。
 
-2. **Issue 382** (T2 freestanding implementation) is **decoupled** from the
-   playground roadmap.  It may proceed independently on its own schedule
-   without blocking playground v1 or v2 scoping.
+2. **Issue 382**（T2 freestanding）は playground ロードマップから**切り離す**。
+   playground v1/v2 のスコープを止めずに独自スケジュールで進めてよい。
 
-3. **Issue 428** (v1 contract ADR, follow-on) may reference this document as
-   the authoritative execution model decision.
+3. **Issue 428**（v1 契約 ADR の後続）は本文書を権威ある実行モデル判断として参照してよい。
 
-4. The share/permalink feature requires a static hosting solution (or a
-   minimal read-only permalink service); it does not require a code-execution
-   backend.
+4. share/permalink は静的ホスティング（または最小の読み取り専用 permalink サービス）を要し、
+   コード実行バックエンドは不要。
 
-5. [ADR-007: Targets](ADR-007-targets.md) is **not changed** by this ADR — T2 status
-   remains "not-started."  That document is updated only when T2 gains
-   codegen or test infrastructure.
+5. [ADR-007: Targets](ADR-007-targets.md) は本 ADR で**変更しない** — T2 は "not-started" のまま。
+   T2 に codegen やテスト基盤が付いたときだけ更新する。
 
-6. `docs/current-state.md` active work note is updated to reflect that
-   playground v1 ADR has been decided (see below).
+6. `docs/current-state.md` の active work 注記を、playground v1 ADR が決定済みである旨に更新する。
 
 ---
 
-## Alternatives considered
+## 検討した代替案
 
-### A: Server-side executor for v1
+### A: v1 向けサーバー側 executor
 
-Ship a sandbox server that compiles and runs user code.
+ユーザーコードをコンパイル・実行するサンドボックスサーバーを出す。
 
-**Rejected**: Operational complexity, abuse surface, and latency outweigh the
-benefit for v1.  The primary value prop of a playground ("try the syntax,
-see errors immediately") does not require execution.
+**却下**: 運用複雑さ・悪用面・遅延が v1 の便益を上回る。
+playground の主価値（構文を試し、エラーを即時に見る）は実行を要しない。
 
-### B: Block v1 on T2 landing
+### B: T2 着地まで v1 を止める
 
-Wait for T2 (`wasm32-freestanding`) to be implemented, then ship a playground
-that runs code in the browser.
+T2 実装を待ち、ブラウザでコード実行する playground を出す。
 
-**Rejected**: T2 has no codegen, no tests, and no timeline.  Blocking
-playground on T2 would indefinitely delay a useful v1.  T2 is a compiler
-backend concern; the playground's near-term value is in the editor + check
-feedback loop.
+**却下**: T2 に codegen・テスト・タイムラインがない。T2 待ちは有用な v1 を無期限に遅らせる。
+T2 はコンパイラバックエンドの関心事。playground の短期価値は editor + check のフィードバックループにある。
 
-### C: Compile-only v1 (emit Wasm, no run)
+### C: コンパイルのみの v1（Wasm emit、実行なし）
 
-Ship parse/check/diagnostics/format **plus** Wasm emit to binary, but no
-execution.
+parse/check/diagnostics/format に加え Wasm バイナリ emit を出すが実行はしない。
 
-**Rejected**: Emitting a binary requires the full codegen backend
-(`wasm32-unknown-unknown` or T2) which is not available without significant
-additional work.  The marginal utility of showing users a binary blob they
-cannot run is low.  This option can be revisited in v2 alongside execution.
+**却下**: バイナリ emit はフル codegen（`wasm32-unknown-unknown` または T2）を要し、
+追加作業が大きい。実行できないバイナリ blob を見せる限界効用は低い。
+v2 で実行と合わせて再検討できる。
 
-### D: Hybrid with optional server-side run
+### D: 任意のサーバー側 run 付きハイブリッド
 
-v1 ships client-side check/format, plus an optional server-side run button.
+v1 はクライアント側 check/format に加え、任意のサーバー側 run ボタンを出す。
 
-**Rejected**: "Optional" server infrastructure still requires the full
-operational setup.  Complexity is not reduced.  Deferred to v2.
+**却下**: 「任意」でもフル運用セットアップが必要で複雑さは減らない。v2 へ延期。
 
 ---
 
-## Connections to docs, tests, and examples
+## docs / tests / examples との接続
 
-### Docs connection points
+### Docs 接続点
 
-| Doc / page | Relationship to playground v1 |
-|-----------|-------------------------------|
-| `docs/current-state.md` | Must reflect playground v1 status once each surface ships; the "active work" block is updated per ADR consequence 6. |
-| [ADR-007: Targets](ADR-007-targets.md) | Read-only reference for T2/T3 status; playground v1 does **not** change it. |
-| `docs/adr/README.md` | This ADR (ADR-017) is listed there; issue 379 / 428 ADRs (if any) must also be listed on merge. |
-| Language reference / stdlib docs | The playground **editor shell** (issue 379) may link to relevant doc pages for each example snippet; no new doc pages are required for v1 launch. |
+| Doc / page | playground v1 との関係 |
+|-----------|------------------------|
+| `docs/current-state.md` | 各面の出荷に合わせて v1 状態を反映。active work は帰結 6 に従い更新。 |
+| [ADR-007: Targets](ADR-007-targets.md) | T2/T3 状態の読み取り専用参照。playground v1 は**変更しない**。 |
+| `docs/adr/README.md` | 本 ADR（ADR-017）を掲載。issue 379/428 の ADR があればマージ時に掲載。 |
+| Language / stdlib docs | エディタ shell（issue 379）が例スニペットから関連 docs へリンクしてよい。v1 起動に新規 doc ページは不要。 |
 
-### Test connection points
+### Test 接続点
 
-The v1 browser Wasm bundle (issue 379) is composed of pure-Rust crates.
-Existing Rust unit/integration tests for those crates are the primary test
-signal.  Playground-specific verification layers are:
+v1 ブラウザ Wasm バンドル（issue 379）は pure-Rust クレートで構成する。
+それらの既存 Rust 単体/統合テストが主信号。playground 固有の検証層:
 
-| Layer | Scope | Location |
-|-------|-------|----------|
-| Cargo unit tests | Each crate compiled into the bundle (lexer, parser, typecheck, diagnostics, formatter) | `crates/*/tests/` and `#[test]` blocks |
-| Harness smoke tests | `scripts/manager.py --quick` and `--cargo` must pass; the bundle is not gated by a separate browser test in v1 | `harness/`, `scripts/` |
-| Docs-consistency check | `python3 scripts/check/check-docs-consistency.py` must pass; playground additions must not break doc cross-references | `scripts/check/check-docs-consistency.py` |
-| Browser smoke test (v1 gate) | A minimal JS/HTML smoke test that imports the Wasm bundle and calls `parse()` is sufficient for v1; full browser integration tests are a v2 concern | Defined in issue 379 |
+| 層 | 範囲 | 場所 |
+|----|------|------|
+| Cargo unit tests | バンドルに入る各クレート | `crates/*/tests/` と `#[test]` |
+| Harness smoke | `scripts/manager.py --quick` / `--cargo` が通ること。v1 で別ブラウザ試験はゲートにしない | `harness/`, `scripts/` |
+| Docs-consistency | `check-docs-consistency.py` が通ること | `scripts/check/check-docs-consistency.py` |
+| Browser smoke（v1 ゲート） | Wasm を import して `parse()` を呼ぶ最小 JS/HTML で十分。フル統合は v2 | issue 379 で定義 |
 
-No new test infrastructure is required to close issue 428; the test contract
-above is the authoritative v1 requirement.
+issue 428 クローズに新規テスト基盤は不要。上記が権威ある v1 要件である。
 
-### Examples connection points
+### Examples 接続点
 
-The "Examples (curated set)" surface listed in the scope table is defined as:
+スコープ表の「Examples（キュレート集合）」は次と定義する:
 
-- A **static, version-controlled set** of `.ark` snippets, stored under
-  `std/examples/` or a dedicated `playground/examples/` directory (exact path
-  decided in issue 379 / editor shell work).
-- Each example must **compile-check cleanly** (parse + typecheck pass) as
-  verified by the harness; examples that exercise features not yet in the
-  type-checker are explicitly labelled or excluded from v1.
-- Examples are **not auto-generated** from stdlib tests; they are hand-curated
-  to illustrate idiomatic language usage and cover the six v1 surfaces.
-- The share/permalink surface (issue 379) uses the same example files as its
-  seed content; no separate example corpus is maintained.
+- `std/examples/` または専用 `playground/examples/` に置く**静的・版管理された** `.ark` スニペット集合（正確なパスは issue 379 / editor shell で決定）。
+- 各例は harness で **compile-check がクリーン**（parse + typecheck）であること。
+  型検査未対応機能を使う例は明示ラベルか v1 から除外。
+- 例は stdlib テストから**自動生成しない**。6 つの v1 面を示す手キュレート。
+- share/permalink（issue 379）は同じ例ファイルをシードに使う。別コーパスは維持しない。
 
-These connection rules ensure that playground examples stay in sync with the
-compiler's actual capabilities without requiring a separate CI pipeline.
+これにより、別 CI パイプラインなしに例がコンパイラ能力と同期する。
 
 ---
 
-## v2: Browser Compile + Run Model (integrated from ADR-032, 2026-07-10)
+## v2: ブラウザ Compile + Run モデル（ADR-032 から統合、2026-07-10）
 
 Playground v2 はブラウザでコンパイル + 実行を行う。TypeScript インタプリタは使わず、
 selfhost コンパイラ Wasm をブラウザで実行し、コンパイル結果をブラウザで実行する。
@@ -278,15 +242,15 @@ v2 の stdio import surface は WASI P2 経由（ADR-007 改訂に準拠）。
 
 ---
 
-## References
+## 参照
 
-- `src/compiler/driver.ark` — target registry (T2: `implemented: false`)
-- [ADR-007: Targets](ADR-007-targets.md) — T2 status: "not-started"
-- `docs/current-state.md` — authoritative implementation status
-- [ADR-007](ADR-007-targets.md) — target taxonomy (T1–T5)
-- [ADR-013](ADR-013-primary-target.md) — T3 as primary target
-- Issue 378 — this decision
-- Issue 379 — Wasm packaging (follows from this ADR)
-- Issue 382 — T2 freestanding (decoupled from playground)
-- Issue 428 — v1 contract follow-on (references this ADR)
-- Issue 632 — playground compiler Wasm build/run loop (v2, originally ADR-032)
+- `src/compiler/driver.ark` — ターゲット登録（T2: `implemented: false`）
+- [ADR-007: Targets](ADR-007-targets.md) — T2 状態: "not-started"
+- `docs/current-state.md` — 実装状況の正本
+- [ADR-007](ADR-007-targets.md) — ターゲット分類
+- [ADR-013](ADR-013-primary-target.md) — プライマリターゲット（`wasm32-wasi-p2`）
+- Issue 378 — 本決定
+- Issue 379 — Wasm パッケージング（本 ADR に続く）
+- Issue 382 — T2 freestanding（playground から切り離し）
+- Issue 428 — v1 契約の後続（本 ADR を参照）
+- Issue 632 — playground コンパイラ Wasm の build/run ループ（v2、旧 ADR-032）

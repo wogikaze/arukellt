@@ -1,4 +1,4 @@
-# ADR-019: Link-Check Coverage Policy
+# ADR-019: リンクチェックカバレッジポリシー
 
 ステータス: **ACCEPTED** — リンクチェックカバレッジポリシーを採用
 作成日: 2026-04-14
@@ -7,80 +7,80 @@
 
 ---
 
-## Context
+## 背景
 
-As the language documentation grows, internal links (`path.md#anchor`) and file references (`path/to/file.md`) can break when documents are moved, renamed, or reorganized. A link-check harness is needed to catch drift on CI and in `verify quick`.
+言語ドキュメントが増えるにつれ、内部リンク（`path.md#anchor`）やファイル参照（`path/to/file.md`）は、ドキュメントの移動・改名・再編成で壊れやすくなる。CI と `verify quick` でドリフトを検出するリンクチェックハーネスが必要である。
 
-This ADR covers **link-check coverage** — what the harness checks and what is out of scope.
+本 ADR は**リンクチェックカバレッジ** — ハーネスが何を検査し、何がスコープ外か — を扱う。
 
-> **Historical note:** This ADR originally also specified an anchor naming convention (S1/S2/S3 tiers, explicit `<a id="">` anchors) and a redirect/alias policy (Docsify aliases, stub files, `SPLIT_FROM`/`MERGED_FROM` comments). Those policies were not operationally enforced and have been removed. The GFM auto-anchor rules and explicit `<a id="">` anchors remain valid Markdown/Docsify behavior but are no longer mandated by this ADR.
+> **履歴メモ:** 本 ADR は当初、アンカー命名規則（S1/S2/S3 ティア、明示的 `<a id="">` アンカー）とリダイレクト/エイリアスポリシー（Docsify エイリアス、スタブファイル、`SPLIT_FROM`/`MERGED_FROM` コメント）も規定していた。それらのポリシーは運用上強制されておらず削除された。GFM 自動アンカー規則と明示的 `<a id="">` アンカーは引き続き有効な Markdown/Docsify の挙動だが、本 ADR によってはもはや義務付けられない。
 
 ---
 
-## Decision
+## 決定
 
-### 1. Existing coverage: `scripts/check/check-links.sh`
+### 1. 既存カバレッジ: `scripts/check/check-links.sh`
 
-A link-check script exists at `scripts/check/check-links.sh`. It:
+`scripts/check/check-links.sh` にリンクチェックスクリプトが存在する。これは次を行う:
 
-- Scans all Markdown files under `docs/` and `issues/`.
-- Validates that relative file references in `](path...)` link targets resolve to existing files.
-- **Intentionally skips** pure anchor-only references (`#anchor`) and anchors appended to file paths (`path.md#anchor`) — only the file existence is checked.
-- **Does not** check external URLs (`http://`, `https://`).
+- `docs/` と `issues/` 配下のすべての Markdown ファイルをスキャンする。
+- `](path...)` リンク先の相対ファイル参照が既存ファイルに解決されることを検証する。
+- **意図的にスキップ**するもの: 純粋なアンカーのみの参照（`#anchor`）と、ファイルパスに付加されたアンカー（`path.md#anchor`） — ファイルの存在のみを検査する。
+- 外部 URL（`http://`、`https://`）は**検査しない**。
 
-This script is the **v1 canonical link-checker**. Do not add a second link-checker unless the scope of this script is demonstrably insufficient for a specific assigned work order.
+このスクリプトが **v1 の正規リンクチェッカー**である。特定の作業指示で本スクリプトのスコープが明らかに不十分であることが示されない限り、第2のリンクチェッカーを追加しない。
 
-### 2. Anchor fragment checking (implemented)
+### 2. アンカーフラグメント検査（実装済み）
 
-Anchor fragment validation is implemented in `scripts/check/check-anchor-fragments.py` and wired into `python3 scripts/manager.py verify quick` (static pass, immediately after `scripts/check/check-links.sh`).
+アンカーフラグメントの検証は `scripts/check/check-anchor-fragments.py` に実装され、`python3 scripts/manager.py verify quick` に組み込まれている（静的パス、`scripts/check/check-links.sh` の直後）。
 
-The checker:
+チェッカーは次を行う:
 
-- Scans Markdown under `docs/` and `issues/`, plus `README.md` and `AGENTS.md`.
-- Validates relative links of the form `path.md#anchor` and same-file `#anchor` references.
-- Resolves targets using GFM heading slug rules plus explicit `<a id="">` anchors.
-- Skips external URLs (`http://`, `https://`, `mailto:`) and Docsify router paths (`#/...`).
-- Supports an optional allowlist at `scripts/check/anchor-allowlist.txt` for known exceptions.
+- `docs/` と `issues/` 配下の Markdown、および `README.md` と `AGENTS.md` をスキャンする。
+- `path.md#anchor` 形式の相対リンクと、同一ファイル内の `#anchor` 参照を検証する。
+- GFM 見出しスラッグ規則と明示的 `<a id="">` アンカーでターゲットを解決する。
+- 外部 URL（`http://`、`https://`、`mailto:`）と Docsify ルーターパス（`#/...`）をスキップする。
+- 既知の例外用に `scripts/check/anchor-allowlist.txt` のオプション allowlist をサポートする。
 
-Authors adding cross-document anchor links should still verify targets locally; the harness catches drift on CI and in `verify quick`.
+著者はドキュメント間のアンカーリンクを追加する際もローカルでターゲットを確認すべきである。ハーネスは CI と `verify quick` でドリフトを検出する。
 
-### 3. Summary of link-check guarantees
+### 3. リンクチェック保証の要約
 
-| Check | Tool | Status |
+| 検査 | ツール | ステータス |
 |-------|------|--------|
-| Internal file references (e.g. `path/to/file.md`) | `scripts/check/check-links.sh` | ✅ Covered |
-| Anchor fragments (e.g. `file.md#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
-| Pure in-page anchors (e.g. `#section-id`) | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
-| External URLs (`https://...`) | — | ❌ Out of scope |
+| 内部ファイル参照（例: `path/to/file.md`） | `scripts/check/check-links.sh` | ✅ Covered |
+| アンカーフラグメント（例: `file.md#section-id`） | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
+| ページ内純粋アンカー（例: `#section-id`） | `scripts/check/check-anchor-fragments.py` | ✅ Covered |
+| 外部 URL（`https://...`） | — | ❌ Out of scope |
 
 ---
 
-## Consequences
+## 結果
 
-- `scripts/check/check-links.sh` validates internal file references; `scripts/check/check-anchor-fragments.py` validates anchor fragments — both run in `verify quick`.
-- ADR-018 classification banners are orthogonal to this policy; both apply independently.
-- Document moves/renames/splits/merges do not require Docsify aliases, stub files, or `SPLIT_FROM`/`MERGED_FROM` comments (the previously mandated policies have been removed). Authors should update inbound links manually; the link-check harness will catch broken references.
-
----
-
-## Alternatives Considered
-
-**Embed redirect headers in Markdown front matter**
-Rejected: The docs site (Docsify) does not process YAML front matter for redirects.
-
-**Add anchor-fragment checking to `check-links.sh` now**
-Rejected: heading extraction and slug deduplication are easier to maintain in a dedicated `check-anchor-fragments.py` script (implemented in issue #644).
-
-**Use a separate `_redirects` file (Netlify-style)**
-Rejected: The project is not currently deployed to Netlify or any service that reads `_redirects`. Docsify aliases in `docs/index.html` are self-contained and do not require a hosting-specific feature.
+- `scripts/check/check-links.sh` は内部ファイル参照を検証する。`scripts/check/check-anchor-fragments.py` はアンカーフラグメントを検証する — 両方とも `verify quick` で実行される。
+- ADR-018 の分類バナーは本ポリシーと直交する。両方が独立に適用される。
+- ドキュメントの移動/改名/分割/統合に Docsify エイリアス、スタブファイル、`SPLIT_FROM`/`MERGED_FROM` コメントは不要（以前義務付けられていたポリシーは削除済み）。著者は受信リンクを手動で更新すべきである。リンクチェックハーネスが壊れた参照を検出する。
 
 ---
 
-## References
+## 検討した代替案
 
-- `docs/index.html` — Docsify configuration
-- `scripts/check/check-links.sh` — internal file reference checker
-- `scripts/check/check-anchor-fragments.py` — anchor fragment checker (GFM slugs + explicit ids)
+**Markdown フロントマターにリダイレクトヘッダーを埋め込む**
+却下: ドキュメントサイト（Docsify）はリダイレクト用の YAML フロントマターを処理しない。
+
+**今すぐ `check-links.sh` にアンカーフラグメント検査を追加する**
+却下: 見出し抽出とスラッグ重複排除は専用の `check-anchor-fragments.py` スクリプトの方が保守しやすい（issue #644 で実装）。
+
+**別途 `_redirects` ファイルを使う（Netlify 方式）**
+却下: プロジェクトは現時点で Netlify や `_redirects` を読むホスティングにデプロイしていない。`docs/index.html` の Docsify エイリアスは自己完結しており、ホスティング固有の機能を要しない。
+
+---
+
+## 参照
+
+- `docs/index.html` — Docsify 設定
+- `scripts/check/check-links.sh` — 内部ファイル参照チェッカー
+- `scripts/check/check-anchor-fragments.py` — アンカーフラグメントチェッカー（GFM スラッグ + 明示 id）
 - ADR-018: Language Docs Classification — Normative / Explanatory / Transitional
 - Issue #644: Docs anchor fragment link-check (ADR-019 v2 delivery)
 - Issue #412: Language Docs: 安定した anchor / permalink 体系を整える

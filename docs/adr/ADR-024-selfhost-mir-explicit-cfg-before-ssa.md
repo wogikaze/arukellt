@@ -1,102 +1,80 @@
-# ADR-024: Selfhost MIR uses an explicit CFG before SSA formation
+# ADR-024: Selfhost MIR は SSA 形成前に明示的 CFG を採用する
 
 ステータス: **ACCEPTED** — Selfhost MIRはSSA形成前に明示的なCFGを採用  
 作成日: 2026-04-15  
 範囲: selfhost MIR, SSA formation, lowering, codegen boundary
 
-## Context
+## 文脈
 
-Issue #494 assigns SSA formation for the selfhost MIR pipeline, including
-phi-node insertion at join points. The current MIR implementation does not yet
-provide the graph structure that SSA requires:
+Issue #494 は selfhost MIR パイプラインの SSA 形成（合流点での phi 挿入を含む）を担当する。
+現行 MIR は SSA が必要とするグラフ構造をまだ提供していない。
 
-- `src/compiler/mir.ark` defines `MirBlock` with `succ0` / `succ1` fields, but
-  HIR→MIR lowering never populates them.
-- `lower_expr` emits structured markers such as `MIR_IF`, `MIR_ELSE`,
-  `MIR_END`, `MIR_BLOCK`, `MIR_LOOP`, and `MIR_BR_IF` into a single lowered
-  block per function.
-- `issues/done/503-selfhost-mir-cfg-infrastructure.md` already documents the
-  missing predecessor lists, immediate dominators, dominance frontiers, and
-  phi-node support as the blocker for #494.
+- `src/compiler/mir.ark` は `MirBlock` に `succ0` / `succ1` を定義するが、
+  HIR→MIR lowering はそれらを埋めない。
+- `lower_expr` は `MIR_IF`、`MIR_ELSE`、`MIR_END`、`MIR_BLOCK`、`MIR_LOOP`、
+  `MIR_BR_IF` などの構造化マーカーを、関数あたり単一の lowered ブロックへ出す。
+- `issues/done/503-selfhost-mir-cfg-infrastructure.md` は、欠落している
+  predecessor リスト、即時支配子、支配フロンティア、phi サポートを #494 のブロッカーとして既に記録している。
 
-That means the current MIR is not just missing a pass; it lacks the explicit CFG
-representation that a standard SSA algorithm consumes.
+つまり現行 MIR はパスが足りないだけでなく、標準 SSA アルゴリズムが消費する
+明示的 CFG 表現そのものを欠いている。
 
-## Decision
+## 決定
 
-Selfhost MIR must move to an explicit control-flow graph before SSA formation.
+Selfhost MIR は SSA 形成の前に明示的制御フローグラフへ移行しなければならない。
 
-The canonical MIR representation for the selfhost pipeline will therefore be:
+selfhost パイプラインの正準 MIR 表現は次とする。
 
-- multiple basic blocks per function
-- explicit terminator edges for conditional and unconditional branches
-- populated successor and predecessor lists
-- block-level dominance information
-- dominance-frontier sets available to the SSA pass
-- a phi-node representation that is attached to join blocks
+- 関数あたり複数の基本ブロック
+- 条件分岐・無条件分岐の明示的 terminator 辺
+- 埋められた successor / predecessor リスト
+- ブロック単位の支配情報
+- SSA パスが使える支配フロンティア集合
+- 合流ブロックに付く phi 表現
 
-Structured control-flow markers may still exist as a temporary lowering aid or
-as a backend-specific re-structuring step, but they are not the canonical
-representation that the SSA pass should consume.
+構造化制御フローマーカーは一時的な lowering 補助、またはバックエンド固有の再構造化として
+残してよいが、SSA パスが消費する正準表現ではない。
 
-## Why this is required before #494
+## #494 の前に必要な理由
 
-SSA formation needs graph information that the current structured-only lowering
-does not provide:
+SSA 形成は、現行の構造化のみの lowering が提供しないグラフ情報を必要とする。
 
-1. Phi insertion requires predecessor lists for each join block.
-2. Dominator and dominance-frontier computation require a real CFG, not a single
-   instruction stream with nested `IF` / `ELSE` / `END` markers.
-3. Variable renaming for SSA must be anchored to explicit block boundaries and
-   join points.
+1. Phi 挿入は各合流ブロックの predecessor リストを要する。
+2. 支配子・支配フロンティア計算は、入れ子の `IF`/`ELSE`/`END` マーカー付き単一命令列ではなく、実 CFG を要する。
+3. SSA の変数リネームは明示的ブロック境界と合流点に錨を置く必要がある。
 
-If #494 tried to build SSA directly on the current structured MIR, it would
-first need to reconstruct a CFG from markers, then compute dominance, then
-insert phi nodes. That duplicates the same graph work inside the SSA pass and
-keeps the representation ambiguous for later analyses.
+#494 が現行の構造化 MIR 上に直接 SSA を組むと、まずマーカーから CFG を再構築し、
+支配を計算し、phi を入れることになる。同じグラフ作業を SSA パス内で重複させ、
+後続解析にとっても表現が曖昧なままになる。
 
-## Rationale
+## 根拠
 
-1. **Matches the algorithmic contract**: the standard SSA algorithm assumes a
-   CFG with predecessors, dominators, and dominance frontiers.
-2. **Removes representation ambiguity**: a block graph is easier to reason
-   about than nested structured markers when joins and backedges matter.
-3. **Keeps later passes honest**: once the MIR is explicit CFG, every analysis
-   pass sees the same control-flow structure that SSA uses.
-4. **Preserves backend flexibility**: Wasm codegen can still re-structure the
-   CFG into Wasm blocks/loops/ifs at emission time, but that is a codegen
-   concern rather than the MIR contract.
+1. **アルゴリズム契約に合う**: 標準 SSA は predecessor・支配子・支配フロンティア付き CFG を前提とする。
+2. **表現の曖昧さを除く**: 合流とバックエッジが重要なとき、入れ子マーカーよりブロックグラフの方が推論しやすい。
+3. **後続パスを正直にする**: MIR が明示 CFG なら、すべての解析パスが SSA と同じ制御フロー構造を見る。
+4. **バックエンドの柔軟性を保つ**: Wasm codegen は emit 時に CFG を Wasm の block/loop/if へ再構造化できる。それは codegen の関心であり MIR 契約ではない。
 
-## Consequences
+## 帰結
 
-- #494 remains blocked until #503 adds CFG construction, predecessor
-  computation, dominator data, dominance-frontier data, and phi support.
-- `src/compiler/mir.ark` must treat explicit block graph construction as part of
-  the selfhost MIR lowering contract, not as an optional optimization.
-- The Wasm backend remains free to emit structured Wasm from the CFG, but it
-  should no longer rely on the structured MIR markers as the primary
-  representation for SSA-related work.
+- #494 は、#503 が CFG 構築・predecessor・支配・支配フロンティア・phi を足すまでブロックされたまま。
+- `src/compiler/mir.ark` は明示ブロックグラフ構築を、任意最適化ではなく selfhost MIR lowering 契約の一部として扱う。
+- Wasm バックエンドは CFG から構造化 Wasm を emit してよいが、SSA 関連作業の主表現として構造化 MIR マーカーに頼ってはならない。
 
-## Alternatives considered
+## 検討した代替案
 
-### A. Keep structured MIR as the primary representation and infer CFG only in
+### A. 構造化 MIR を主表現のままにし、CFG は SSA パス内だけで推論する
 
-the SSA pass
+却下。同じグラフ再構築問題を #494 に押し込み、制御フロー論理を誤った層で重複させる。
 
-Rejected. This pushes the same graph reconstruction problem into #494 and
-duplicates control-flow logic in the wrong layer.
+### B. 構造化 MIR に ad hoc な phi 処理を足す
 
-### B. Extend structured MIR with ad hoc phi handling
+却下。Phi は依然として predecessor を意識した明示的合流点を要するため、名前を付けずに実質 CFG になる。
 
-Rejected. Phi nodes still require explicit predecessor-aware join points, so the
-representation would become a CFG in practice without naming it as such.
+### C. SSA を避け、構造化 MIR を永久に維持する
 
-### C. Avoid SSA entirely and keep structured MIR forever
+却下。#494 は明示的に SSA 形成に依存し、現行コードベースも支配フロンティア基盤を欠落前提条件として挙げている。
 
-Rejected. #494 explicitly depends on SSA formation, and the current codebase
-already calls out dominance-frontier infrastructure as the missing prerequisite.
-
-## References
+## 参照
 
 - `src/compiler/mir.ark`
 - `issues/done/503-selfhost-mir-cfg-infrastructure.md`

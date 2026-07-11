@@ -1,51 +1,49 @@
 # ADR-033: クロージャ呼び出しを call_ref に移行
 
-ステータス: **ACCEPTED** — phased migration; `call_indirect` remains baseline until table-free patterns land
+ステータス: **ACCEPTED** — 段階移行。table-free パターンが揃うまで `call_indirect` をベースラインとする
 日付: 2026-06-14
 トラック: wasm-feature
 Issue: [#069](../../issues/done/069-wasm-typed-func-ref.md)
-**Supersedes**: none (refines GC-native closure notes in issues #019, #025)
+廃止: なし（issue #019, #025 の GC-native クロージャ記述を精緻化）
 
 ---
 
-## Context
+## 文脈
 
-Arukellt closures and higher-order functions (HOF) currently lower to Wasm
-`call_indirect` with a function table (`docs/current-state.md` Closures row).
-The WebAssembly Typed Function References proposal adds `ref.func`, `call_ref`,
-`br_on_null`, and `br_on_non_null`, enabling table-free typed dispatch when the
-callee signature is known at compile time.
+Arukellt のクロージャと高階関数（HOF）は現在、関数テーブル付きの Wasm
+`call_indirect` に lower される（`docs/current-state.md` の Closures 行）。
+WebAssembly Typed Function References 提案は `ref.func`、`call_ref`、
+`br_on_null`、`br_on_non_null` を追加し、呼び出し先シグネチャがコンパイル時に
+分かる場合に table-free な型付きディスパッチを可能にする。
 
-> **2026-07 update**: Typed Function References is now Phase 5 shipped in
-> Wasm 3.0 (`typedFunctionReferences`). wasmtime 46 and V8 14.6 (Chrome 146 /
-> Node.js 26) enable it by default. See ADR-043 for the Post-MVP survey.
+> **2026-07 更新**: Typed Function References は Wasm 3.0 で Phase 5 shipped
+> （`typedFunctionReferences`）。wasmtime 46 と V8 14.6（Chrome 146 /
+> Node.js 26）はデフォルト有効。Post-MVP 調査は ADR-043 を参照。
 
-Historical issues (#019, #025, #024) planned a GC-native `call_ref` path; the
-selfhost emitter still uses `call_indirect` for generic HOF dispatch on the
-current T3 path. Issue #069 tracks closing the gap. Issue #722 tracks the
-detailed phase plan (emitter audit, nullable refs, benchmark gate).
+歴史的 issue（#019, #025, #024）は GC-native の `call_ref` パスを計画していたが、
+selfhost emitter は現行の T3 パスで汎用 HOF ディスパッチに依然 `call_indirect`
+を使う。ギャップ解消は issue #069、詳細フェーズ計画（emitter 監査、nullable refs、
+ベンチマークゲート）は issue #722 で追跡する。
 
-## Decision
+## 決定
 
-1. **Baseline (now)**: Keep `call_indirect` for generic closure/HOF dispatch.
-   No user-visible regression while migration is incremental.
-2. **Phased migration**: Move from `call_indirect` to `call_ref` in phases,
-   gated by benchmark results. The detailed phase plan (emitter audit,
-   nullable refs, benchmark gate) is tracked in **issue #722**.
-3. **Out of scope here**: `return_call_ref` tail calls (#492), eliminating all
-   `call_indirect` before v5, Table/Elem removal before escape analysis proves
-   table-free coverage.
+1. **ベースライン（現在）**: 汎用クロージャ / HOF ディスパッチは `call_indirect` を維持する。
+   移行が段階的でもユーザー可視の退行を起こさない。
+2. **段階移行**: `call_indirect` から `call_ref` へフェーズ分割で移す。
+   ベンチマーク結果でゲートする。詳細計画は **issue #722**。
+3. **本 ADR の範囲外**: `return_call_ref` テールコール（#492）、v5 前の
+   `call_indirect` 全廃、エスケープ解析で table-free が証明される前の Table/Elem 削除。
 
-## Consequences
+## 帰結
 
-- `docs/current-state.md` must qualify the Closures row: `call_indirect` is the
-  current default; `call_ref` adoption is phased per this ADR.
-- New emitter work lands behind fixtures that prove `call_ref` bytes in output
-  before claiming full HOF migration.
-- MIR may gain `FnRef`/`call_ref` lowering hooks without removing table-based
-  paths until Phase C benchmark gate passes.
+- `docs/current-state.md` の Closures 行は、現行デフォルトが `call_indirect`、
+  `call_ref` 採用が本 ADR に沿った段階移行であることを明記する。
+- 新しい emitter 作業は、完全な HOF 移行を主張する前に、出力に `call_ref`
+  バイトがあることを fixture で証明してから入れる。
+- MIR は Phase C のベンチマークゲート通過までテーブル経路を残したまま、
+  `FnRef` / `call_ref` の lowering フックを追加してよい。
 
-## References
+## 参照
 
 - `docs/spec/spec-3.0.0/proposals/function-references/Overview.md`
 - `issues/done/025-gc-native-closures.md`

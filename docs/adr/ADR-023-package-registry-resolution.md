@@ -1,33 +1,27 @@
-# ADR-023: Package Registry Resolution Design
+# ADR-023: パッケージレジストリ解決の設計
 
 ステータス: **ACCEPTED** — Registry lookupモデル（local > workspace > registry）を採用
 日付: 2026-04-14
 決定者: Module-system track (issue #487)
 
-## Context
+## 背景
 
-Arukellt's dependency resolution (documented in `docs/module-resolution.md` §5)
-currently supports only local path dependencies (`{ path = "..." }`). The
-manifest format already reserves a version-string syntax for registry
-dependencies (`some-pkg = "1.2.3"`), but no resolution logic exists for it.
+Arukellt の依存関係解決（`docs/module-resolution.md` §5 に文書化）は、現時点でローカルパス依存（`{ path = "..." }`）のみをサポートする。マニフェスト形式はすでにレジストリ依存用のバージョン文字列構文（`some-pkg = "1.2.3"`）を予約しているが、その解決ロジックは存在しない。
 
-Issue #487 tracks this gap. This ADR defines the lookup model, failure
-diagnostics, and explicit non-goals so that implementation can proceed from a
-stable design.
+Issue #487 がこのギャップを追跡する。本 ADR は lookup モデル、失敗時診断、明示的な非目標を定義し、安定した設計から実装を進められるようにする。
 
-### Current state
+### 現状
 
-- `ark.toml` `[dependencies]` accepts `path` keys only.
-- Resolution priority is documented as: local path > workspace member > registry.
-- No registry endpoint, protocol, or cache layout is defined.
-- ADR-009 separates source-level `use` from Component Model `import`; registry
-  resolution operates within the source-level (`use`) layer.
+- `ark.toml` の `[dependencies]` は `path` キーのみ受け付ける。
+- 解決優先度は文書化どおり: local path > workspace member > registry。
+- レジストリエンドポイント、プロトコル、キャッシュレイアウトは未定義。
+- ADR-009 はソースレベルの `use` と Component Model の `import` を分離する。レジストリ解決はソースレベル（`use`）レイヤー内で動作する。
 
-## Decision
+## 決定
 
-### 1. Registry lookup model
+### 1. レジストリ lookup モデル
 
-Registry resolution activates when a dependency entry is a bare version string:
+依存エントリが素のバージョン文字列のとき、レジストリ解決が有効になる:
 
 ```toml
 [dependencies]
@@ -35,17 +29,15 @@ foo = "1.2.3"          # registry dependency
 bar = { path = "../bar" }  # local — unchanged
 ```
 
-Resolution proceeds in this order (unchanged from the documented priority):
+解決は次の順序で進む（文書化された優先度は変更なし）:
 
-1. **Local path** — if `path` key is present, resolve relative to package root.
-2. **Workspace member** — if `workspace = true`, resolve within workspace.
-3. **Registry** — if the value is a version string, query the registry.
+1. **Local path** — `path` キーがあれば、パッケージルート相対で解決する。
+2. **Workspace member** — `workspace = true` なら、ワークスペース内で解決する。
+3. **Registry** — 値がバージョン文字列なら、レジストリに問い合わせる。
 
-#### Registry query contract
+#### レジストリ問い合わせ契約
 
-The resolver issues a lookup for `(package-name, version-constraint)` to a
-single configured registry endpoint. The endpoint URL is read from the
-project-level or user-level configuration:
+resolver は `(package-name, version-constraint)` の lookup を、設定された単一のレジストリエンドポイントに発行する。エンドポイント URL はプロジェクトレベルまたはユーザーレベル設定から読む:
 
 ```toml
 # ark.toml (project) or ~/.config/arukellt/config.toml (user)
@@ -53,102 +45,80 @@ project-level or user-level configuration:
 url = "https://registry.arukellt.dev/v1"
 ```
 
-If no `[registry]` section exists, the resolver uses a compiled-in default URL.
+`[registry]` セクションがなければ、resolver はコンパイル時デフォルト URL を使う。
 
-The query is an HTTP GET returning a JSON manifest that includes:
+問い合わせは JSON マニフェストを返す HTTP GET である。内容には次を含む:
 
-- `name` — package name (must match query)
-- `version` — resolved version
-- `checksum` — integrity hash (SHA-256)
-- `archive_url` — download URL for the package tarball
+- `name` — パッケージ名（問い合わせと一致必須）
+- `version` — 解決されたバージョン
+- `checksum` — 整合性ハッシュ（SHA-256）
+- `archive_url` — パッケージ tarball のダウンロード URL
 
-The resolver downloads and unpacks the archive into a per-user cache directory
-(`~/.cache/arukellt/registry/<name>/<version>/`). Subsequent builds reuse the
-cache unless the checksum changes.
+resolver はアーカイブをダウンロードし、ユーザーごとのキャッシュディレクトリ（`~/.cache/arukellt/registry/<name>/<version>/`）に展開する。以降のビルドは checksum が変わらない限りキャッシュを再利用する。
 
-#### Version constraint syntax
+#### バージョン制約構文
 
-v1 supports exact version strings only (`"1.2.3"`). Semver ranges and
-pre-release handling are deferred to a follow-up.
+v1 は完全一致バージョン文字列のみ（`"1.2.3"`）をサポートする。Semver 範囲と pre-release 処理はフォローアップに延期。
 
-### 2. Failure diagnostics
+### 2. 失敗時診断
 
-| Scenario | Error Code | Message pattern |
+| シナリオ | エラーコード | メッセージパターン |
 |----------|-----------|-----------------|
-| Registry unreachable (network / timeout) | E0120 | `registry unreachable: {url} ({reason})` |
-| Package not found in registry | E0121 | `package '{name}' not found in registry` |
-| Version not found | E0122 | `version '{version}' of '{name}' not found in registry` |
-| Checksum mismatch after download | E0123 | `integrity check failed for '{name}@{version}'` |
-| Registry not configured and no default | E0124 | `no registry configured; add [registry] to ark.toml` |
+| レジストリ到達不能（ネットワーク / タイムアウト） | E0120 | `registry unreachable: {url} ({reason})` |
+| レジストリにパッケージなし | E0121 | `package '{name}' not found in registry` |
+| バージョンなし | E0122 | `version '{version}' of '{name}' not found in registry` |
+| ダウンロード後の checksum 不一致 | E0123 | `integrity check failed for '{name}@{version}'` |
+| レジストリ未設定かつデフォルトなし | E0124 | `no registry configured; add [registry] to ark.toml` |
 
-All errors are compile-time diagnostics (the resolver runs before codegen).
-They follow the existing E01xx numbering block used by resolution errors.
+すべてのエラーはコンパイル時診断（resolver は codegen 前に実行）。既存の解決エラー用 E01xx 番号ブロックに従う。
 
-When the registry is unreachable but a cached version matching the constraint
-exists, the resolver emits a warning and uses the cache (offline-first
-fallback).
+レジストリに到達できないが、制約に一致するキャッシュ版がある場合、resolver は警告を出しキャッシュを使う（オフライン優先フォールバック）。
 
-### 3. Non-goals
+### 3. 非目標
 
-The following are explicitly **out of scope** for this design and the initial
-implementation:
+以下は本設計および初期実装で**明示的にスコープ外**である:
 
-- **Hosting a registry service** — the registry API contract is defined here,
-  but standing up a service is a separate infrastructure concern.
-- **Authentication and private registries** — follow-up work; the endpoint
-  contract is extensible but v1 assumes public unauthenticated access.
-- **Semver range resolution** — v1 accepts exact versions only.
-- **Lock file format** — dependency pinning and reproducible builds via a lock
-  file are tracked separately.
-- **Publishing workflow** — `arukellt publish` and package upload are not part
-  of this ADR.
-- **Mirroring and fallback registries** — single-endpoint only in v1.
+- **レジストリサービスのホスティング** — 本 ADR で API 契約は定義するが、サービス立ち上げは別のインフラ課題。
+- **認証とプライベートレジストリ** — フォローアップ。エンドポイント契約は拡張可能だが v1 は公開・非認証アクセスを仮定。
+- **Semver 範囲解決** — v1 は完全一致のみ。
+- **ロックファイル形式** — 依存のピン留めとロックファイルによる再現可能ビルドは別途追跡。
+- **公開ワークフロー** — `arukellt publish` とパッケージアップロードは本 ADR の対象外。
+- **ミラーリングとフォールバックレジストリ** — v1 は単一エンドポイントのみ。
 
-## Rationale
+## 根拠
 
-1. **Minimal surface**: Exact-version-only avoids semver solver complexity in
-   the initial implementation while still proving the registry path end-to-end.
-2. **Offline-first**: Caching with checksum gives deterministic builds when
-   the network is unavailable, matching user expectations from Cargo/npm.
-3. **Distinct error codes**: Each failure mode gets its own E01xx code so
-   diagnostics are actionable without ambiguity.
-4. **Config layering**: Project-level `ark.toml` overrides user-level config,
-   following the same precedence as other Arukellt settings.
-5. **ADR-009 alignment**: Registry packages are imported via `use`, consistent
-   with the Layer S (Source) / Layer C (Component) separation.
+1. **最小表面**: 完全一致のみにより初期実装の semver ソルバ複雑さを避けつつ、レジストリ経路を end-to-end で実証できる。
+2. **オフライン優先**: checksum 付きキャッシュはネットワーク不可時も決定的ビルドを与え、Cargo/npm のユーザー期待に合う。
+3. **明確なエラーコード**: 各失敗モードに専用 E01xx コードで、曖昧さなく actionable な診断になる。
+4. **設定のレイヤリング**: プロジェクトレベル `ark.toml` がユーザーレベル設定を上書きし、他の Arukellt 設定と同じ優先度。
+5. **ADR-009 整合**: レジストリパッケージは `use` で import し、Layer S（Source）/ Layer C（Component）分離と一致。
 
-## Alternatives Considered
+## 検討した代替案
 
-### A. Embed registry URL in each dependency entry
+### A. 各依存エントリにレジストリ URL を埋め込む
 
 ```toml
 [dependencies]
 foo = { version = "1.2.3", registry = "https://custom.example.com" }
 ```
 
-Rejected for v1 — adds per-dependency complexity. Can be revisited for
-multi-registry support later.
+v1 では却下 — 依存ごとの複雑さが増す。マルチレジストリは後で再検討可能。
 
-### B. Git-based dependency resolution (no registry)
+### B. Git ベース解決（レジストリなし）
 
-Allow `{ git = "https://...", tag = "v1.2.3" }` as the only remote source.
+`{ git = "https://...", tag = "v1.2.3" }` のみをリモートソースとする。
 
-Rejected as the sole mechanism — git dependencies don't provide namespace
-governance or integrity guarantees. May be added as a complementary source
-alongside registry.
+唯一の仕組みとしては却下 — git 依存は名前空間ガバナンスや整合性保証を提供しない。レジストリと併用の補完ソースとしては追加可能。
 
-### C. Vendoring as the only offline story
+### C. オフラインは vendoring のみ
 
-Require `arukellt vendor` to copy sources into the project tree.
+`arukellt vendor` でソースをプロジェクトツリーにコピーすることを必須とする。
 
-Rejected as the primary mechanism — the checksum-verified cache provides
-equivalent reproducibility with less source-tree pollution.
+主要手段としては却下 — checksum 検証キャッシュが同等の再現性を、ソースツリー汚染を少なく提供する。
 
-## Implementation Notes
+## 実装メモ
 
-- Error codes E0120–E0124 must be added to the error catalog.
-- `docs/module-resolution.md` §5 and §9 should be updated once the resolver
-  is wired.
-- The cache directory follows XDG conventions on Linux/macOS.
-- This ADR does not claim that implementation is complete; it defines the
-  target design for issue #487.
+- エラーコード E0120–E0124 をエラーカタログに追加する必要がある。
+- resolver が配線されたら `docs/module-resolution.md` §5 と §9 を更新すべき。
+- キャッシュディレクトリは Linux/macOS で XDG 規約に従う。
+- 本 ADR は実装完了を主張しない。issue #487 の目標設計を定義する。

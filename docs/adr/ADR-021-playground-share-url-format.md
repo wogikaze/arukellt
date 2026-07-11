@@ -6,79 +6,75 @@
 
 ---
 
-## Context
+## 文脈
 
-ADR-017 established the playground v1 product contract. Share/permalink is explicitly
-within v1 scope and must work with **static hosting only** — no server-side storage, no
-database, no authentication, no user accounts. The playground runs entirely client-side
-(parse, format, check, diagnostics via Wasm in browser), and sharing must follow the same
-constraint: all shared state must be encoded **in the URL itself**.
+ADR-017 は playground v1 の製品契約を定めた。Share/permalink は v1 の明示スコープであり、
+**静的ホスティングのみ**で動く必要がある — サーバー側ストレージ、DB、認証、ユーザーアカウントはなし。
+playground はクライアント側のみ（ブラウザ Wasm で parse/format/check/diagnostics）で動き、
+共有も同じ制約に従う: 共有状態はすべて **URL 自体に**符号化しなければならない。
 
-The playground needs shareable URLs that contain:
+共有 URL に含めるもの:
 
-- **Source code** — the user's Arukellt program text
-- **Compiler version** — the version of the Wasm-compiled frontend bundle
-- **Example ID** — optional reference to a curated example from the example set
-- **Feature flags** — optional playground-level settings (e.g., diagnostic verbosity)
+- **ソースコード** — ユーザーの Arukellt プログラム本文
+- **コンパイラ版** — Wasm コンパイル済みフロントエンドバンドルの版
+- **Example ID** — 任意。キュレート例への参照
+- **Feature flags** — 任意。playground 設定（診断の詳細度など）
 
-Comparable systems use various approaches:
+比較対象:
 
-| System | Approach | Tradeoffs |
-|--------|----------|-----------|
-| Rust Playground | Server-stored gist | Requires backend, rate limiting, abuse mitigation |
-| Go Playground | Server-stored snippet | Requires backend, storage infrastructure |
-| TypeScript Playground | URL hash + LZ-String | Client-only, URL length constrained, no backend |
-| Compiler Explorer | URL hash + base64 or short-link server | Hybrid; short links require backend |
+| システム | 方式 | トレードオフ |
+|----------|------|--------------|
+| Rust Playground | サーバー保存 gist | バックエンド・レート制限・悪用対策が必要 |
+| Go Playground | サーバー保存 snippet | バックエンド・ストレージが必要 |
+| TypeScript Playground | URL hash + LZ-String | クライアントのみ、URL 長制約、バックエンド不要 |
+| Compiler Explorer | URL hash + base64 または短縮リンク | ハイブリッド。短縮はバックエンド必須 |
 
-Since v1 has no backend (ADR-017), the TypeScript Playground approach — encoding all state
-in the URL fragment — is the natural fit. This ADR specifies the exact format, encoding
-pipeline, compression strategy, length limits, fallback behavior, and round-trip contract.
+v1 にバックエンドがない（ADR-017）ため、TypeScript Playground 方式 — 状態を URL fragment に
+すべて載せる — が自然である。本 ADR は形式、符号化パイプライン、圧縮、長さ上限、
+フォールバック、ラウンドトリップ契約を定める。
 
-### Design Constraints
+### 設計制約
 
-1. **No server required** — must work with any static file host (GitHub Pages, Netlify, S3).
-2. **Fragment-only** — shared state lives in the URL fragment (`#`), not query string (`?`),
-   so it is never sent to the server in HTTP requests (privacy by default).
-3. **Forward compatible** — the format must survive future schema additions without breaking
-   old URLs.
-4. **Round-trip lossless** — `decode(encode(state)) ≡ state` for all valid inputs.
-5. **Reasonable URL length** — must work in all major browsers and common sharing contexts
-   (chat, email, issue trackers).
+1. **サーバー不要** — 任意の静的ホスト（GitHub Pages、Netlify、S3）で動くこと。
+2. **Fragment のみ** — 共有状態は query（`?`）ではなく fragment（`#`）に置き、
+   HTTP リクエストでサーバーへ送られない（既定でプライバシー）。
+3. **前方互換** — 将来のスキーマ追加でも古い URL を壊さないこと。
+4. **ラウンドトリップ無損失** — 有効入力すべてで `decode(encode(state)) ≡ state`。
+5. **妥当な URL 長** — 主要ブラウザと一般的な共有文脈（チャット、メール、issue）で使えること。
 
 ---
 
-## Decision
+## 決定
 
-### 1. URL Structure
+### 1. URL 構造
 
-Share URLs use the fragment portion of the playground URL with a versioned path structure:
+共有 URL は playground URL の fragment に、版付きパス構造を使う:
 
 ```
 <base-url>/playground#share/<format-version>/<payload>
 ```
 
-**Example:**
+**例:**
 
 ```
 https://arukellt.dev/playground#share/1/eNpLSS0u0c1IzcnJVyjPL8pJUQQALLwF5Q
 ```
 
-Components:
+構成要素:
 
-| Component | Description |
-|-----------|-------------|
-| `<base-url>/playground` | Playground page URL (host-dependent) |
-| `#share/` | Fragment prefix identifying a share link |
-| `<format-version>` | Integer schema version (currently `1`) |
-| `<payload>` | Compressed and encoded state (see §2–§4) |
+| 要素 | 説明 |
+|------|------|
+| `<base-url>/playground` | playground ページ URL（ホスト依存） |
+| `#share/` | 共有リンクを示す fragment 接頭辞 |
+| `<format-version>` | 整数スキーマ版（現行 `1`） |
+| `<payload>` | 圧縮・符号化された状態（§2–§4） |
 
-The `#share/` prefix distinguishes share URLs from other fragment uses (e.g., `#example/hello`
-for loading a curated example by ID, or future fragment-based navigation). The playground
-router inspects the fragment prefix to determine the action.
+`#share/` 接頭辞は、他の fragment 用途（例: `#example/hello` でキュレート例を ID 読み込み、
+将来の fragment ナビ）と区別する。playground ルータは接頭辞を見て動作を決める。
 
-### 2. Payload Encoding Pipeline
+### 2. ペイロード符号化パイプライン
 
-The encoding pipeline transforms playground state into a URL-safe string:
+playground 状態を URL 安全な文字列へ変換する:
 
 ```
    PlaygroundState (object)
@@ -96,7 +92,7 @@ The encoding pipeline transforms playground state into a URL-safe string:
    Append to fragment        →  #share/1/<payload>
 ```
 
-Decoding is the exact reverse:
+復号は厳密な逆順:
 
 ```
    Fragment payload string
@@ -114,46 +110,44 @@ Decoding is the exact reverse:
    Validate against schema   →  Validated state or error
 ```
 
-#### 2.1 JSON Serialization
+#### 2.1 JSON 直列化
 
-Playground state is serialized as a JSON object. Keys are serialized in a **canonical order**
-(alphabetical) to ensure deterministic output — the same logical state always produces the
-same URL. Implementations MUST sort keys before serialization.
+playground 状態は JSON オブジェクトとして直列化する。キーは**正規順**（アルファベット順）で
+出し、決定的出力を保証する — 同じ論理状態は常に同じ URL になる。実装は直列化前に
+キーをソートしなければならない（MUST）。
 
-#### 2.2 Compression: Raw DEFLATE (RFC 1951)
+#### 2.2 圧縮: Raw DEFLATE（RFC 1951）
 
-Compression uses **raw DEFLATE** (RFC 1951) — the DEFLATE algorithm without any wrapper
-(no zlib header, no gzip header). This is the most compact representation and avoids the
-2–6 byte overhead of wrapper formats.
+圧縮は **raw DEFLATE**（RFC 1951）— ラッパなしの DEFLATE（zlib/gzip ヘッダなし）。
+最もコンパクトで、ラッパ形式の 2–6 バイトオーバーヘッドを避ける。
 
-**Rationale for DEFLATE over alternatives:**
+**DEFLATE を選ぶ根拠:**
 
-| Option | Pros | Cons | Decision |
-|--------|------|------|----------|
-| Raw DEFLATE + base64url | Standard algorithm, excellent browser support (pako, fflate), good compression on text, well-understood | Requires base64url wrapping (33% size expansion) | **✅ Chosen** |
-| LZ-String | Designed for URL storage, produces URL-safe output directly | Non-standard algorithm, single-maintainer JS library, no native browser API, compression ratio inferior to DEFLATE on structured text | ❌ Rejected |
-| Brotli | Best compression ratio | No `CompressionStream` in all target browsers as of 2026, larger decompressor library | ❌ Rejected for v1 |
-| No compression | Simplest | URLs become impractically long for any non-trivial program (>30 lines) | ❌ Rejected |
+| 選択肢 | 利点 | 欠点 | 判定 |
+|--------|------|------|------|
+| Raw DEFLATE + base64url | 標準、ブラウザ支援良好（pako, fflate）、テキスト圧縮良好 | base64url で約 33% 膨張 | **✅ 採用** |
+| LZ-String | URL 向け、URL 安全出力を直接生成 | 非標準、単一メンテナ JS、ネイティブ API なし、構造化テキストでは DEFLATE より劣る | ❌ 却下 |
+| Brotli | 最高圧縮率 | 2026 時点で全対象ブラウザに `CompressionStream` がない、展開器が大きい | ❌ v1 では却下 |
+| 無圧縮 | 最も単純 | 非自明なプログラム（>30 行）で URL が実用不能 | ❌ 却下 |
 
-**Implementation note:** In browsers, the `CompressionStream` / `DecompressionStream` API
-supports `"deflate-raw"` format (raw DEFLATE without wrapper). When unavailable, the `pako`
-or `fflate` library provides the same algorithm. Implementations MUST use raw DEFLATE
-(`deflate-raw` / `pako.deflateRaw` / `fflate.deflateSync`), NOT `deflate` (zlib-wrapped)
-or `gzip`.
+**実装注:** ブラウザの `CompressionStream` / `DecompressionStream` は `"deflate-raw"` を
+サポートする。無い場合は `pako` または `fflate` を使う。実装は raw DEFLATE
+（`deflate-raw` / `pako.deflateRaw` / `fflate.deflateSync`）を MUST とし、
+zlib ラップの `deflate` や `gzip` を使ってはならない。
 
-#### 2.3 Base64url Encoding (RFC 4648 §5)
+#### 2.3 Base64url 符号化（RFC 4648 §5）
 
-The compressed bytes are encoded using **base64url** (RFC 4648 §5):
+圧縮バイトは **base64url**（RFC 4648 §5）で符号化する:
 
-- Alphabet: `A-Z a-z 0-9 - _` (replacing `+` and `/` from standard base64)
-- **No padding** (`=` characters are omitted)
-- Result is URL-safe without percent-encoding
+- アルファベット: `A-Z a-z 0-9 - _`（標準 base64 の `+` `/` を置換）
+- **パディングなし**（`=` を省略）
+- percent-encoding なしで URL 安全
 
-This is the same encoding used by JWT, WebAuthn, and other URL-embedded binary data formats.
+JWT や WebAuthn など、URL 埋め込みバイナリと同じ符号化である。
 
-### 3. Payload Schema (Version 1)
+### 3. ペイロードスキーマ（版 1）
 
-The JSON payload for format version `1` has the following schema:
+形式版 `1` の JSON ペイロード:
 
 ```json
 {
@@ -164,202 +158,187 @@ The JSON payload for format version `1` has the following schema:
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `src` | string | **yes** | Source code text (UTF-8). May be empty string but must be present. |
-| `ver` | string | no | Compiler/frontend version that produced this share link (semver, e.g. `"0.1.0"`). |
-| `ex` | string | no | Example ID. If present, indicates the source was loaded from a curated example. Value matches the example's slug (e.g. `"hello-world"`, `"fibonacci"`). |
-| `f` | object | no | Feature flags. Keys are flag names (lowercase kebab-case), values are booleans or strings. Unknown flags are preserved on decode but ignored by the playground. |
+| フィールド | 型 | 必須 | 説明 |
+|------------|-----|------|------|
+| `src` | string | **yes** | ソース本文（UTF-8）。空文字は可だが必須。 |
+| `ver` | string | no | 共有リンクを作ったコンパイラ/フロント版（semver、例 `"0.1.0"`）。 |
+| `ex` | string | no | Example ID。ある場合、キュレート例から読み込んだことを示す。slug と一致（例 `"hello-world"`）。 |
+| `f` | object | no | Feature flags。キーは kebab-case、値は bool または string。未知フラグは復号時に保持し playground は無視。 |
 
-**Field name rationale:** Short field names (`src`, `ver`, `ex`, `f`) reduce JSON size
-before compression. Since these URLs are machine-generated and machine-parsed, readability
-of the raw JSON is not a priority.
+**短いフィールド名の理由:** `src`/`ver`/`ex`/`f` は圧縮前 JSON を小さくする。
+URL は機械生成・機械解析なので、生 JSON の可読性は優先しない。
 
-#### 3.1 Minimal Payload Example
+#### 3.1 最小ペイロード例
 
-The smallest valid share payload (empty program, no optional fields):
+最小の有効共有ペイロード（空プログラム、任意フィールドなし）:
 
 ```json
 {"src":""}
 ```
 
-Compressed and encoded, this produces a share URL fragment of approximately 20 characters.
+圧縮・符号化後の fragment はおおよそ 20 文字。
 
-#### 3.2 Typical Payload Example
+#### 3.2 典型ペイロード例
 
 ```json
 {"ex":"hello-world","f":{"diag-verbose":true},"src":"fn main() {\n  println(\"Hello, world!\")\n}","ver":"0.1.0"}
 ```
 
-Note: Keys are in alphabetical order (canonical form).
+注: キーはアルファベット順（正規形）。
 
-#### 3.3 Unknown Fields
+#### 3.3 未知フィールド
 
-Decoders MUST preserve unknown top-level fields when re-encoding. This allows future schema
-versions to add fields that older playground versions carry through without loss. Decoders
-MUST NOT reject payloads containing unknown fields.
+デコーダは再符号化時に未知のトップレベルフィールドを保持しなければならない（MUST）。
+将来版がフィールドを足しても、古い playground が損失なく運べる。未知フィールドを
+理由にペイロードを拒否してはならない（MUST NOT）。
 
-### 4. Version Pinning
+### 4. 版ピン留め
 
-The `ver` field records which version of the Arukellt frontend (parser, typechecker, formatter)
-generated the share link. This serves two purposes:
+`ver` は共有リンクを生成した Arukellt フロントエンド（parser / typechecker / formatter）の版を記録する。目的は二つ:
 
-1. **Diagnostic context** — when a user reports a bug via a share link, the version identifies
-   which compiler produced the diagnostics they saw.
-2. **Future compatibility** — if the language semantics change between versions, the playground
-   can display a notice: "This snippet was created with version X; you are running version Y."
+1. **診断コンテキスト** — 共有リンク経由のバグ報告で、どのコンパイラが出した診断か分かる。
+2. **将来互換** — 言語意味が版間で変わったとき、playground は
+   「この snippet は版 X、実行中は版 Y」と案内できる。
 
-#### 4.1 Version String Format
+#### 4.1 版文字列形式
 
-The `ver` field uses **semver** format (`MAJOR.MINOR.PATCH`, e.g. `"0.1.0"`), matching the
-version of the `src/compiler/parser.ark` / playground Wasm bundle. Pre-release suffixes (e.g. `"0.2.0-dev"`)
-are allowed.
+`ver` は **semver**（`MAJOR.MINOR.PATCH`、例 `"0.1.0"`）。
+`src/compiler/parser.ark` / playground Wasm バンドルの版に合わせる。
+プレリリース接尾辞（例 `"0.2.0-dev"`）は許容。
 
-#### 4.2 Version Mismatch Behavior
+#### 4.2 版不一致時の挙動
 
-When the playground decodes a share URL with a `ver` different from the running version:
+実行中の版と異なる `ver` を復号したとき:
 
-- The source code is loaded as-is (no transformation).
-- The playground MAY display an informational banner: _"This snippet was shared from
-  version X.Y.Z. You are viewing it with version A.B.C. Behavior may differ."_
-- The playground MUST NOT refuse to load the snippet.
-- Re-sharing the loaded snippet updates `ver` to the current version.
+- ソースは変換せずそのまま読み込む。
+- 情報バナーを出してよい（MAY）: _"この snippet は版 X.Y.Z から共有されました。表示中は版 A.B.C です。挙動が異なる場合があります。"_
+- 読み込みを拒否してはならない（MUST NOT）。
+- 再共有すると `ver` は現行版に更新される。
 
-#### 4.3 Absent Version
+#### 4.3 版なし
 
-If `ver` is omitted, the playground treats the snippet as version-unspecified. No banner is
-shown. This is the expected case for manually constructed or v1-era URLs.
+`ver` が無い場合は版未指定として扱い、バナーは出さない。手動構築や v1 初期 URL で想定される。
 
-### 5. URL Length Limits and Fallback Strategy
+### 5. URL 長上限とフォールバック
 
-#### 5.1 Target Length Budget
+#### 5.1 目標長バジェット
 
-| Component | Budget |
-|-----------|--------|
-| Base URL + path | ~40 characters |
-| Fragment prefix (`#share/1/`) | 9 characters |
-| Payload | remaining |
-| **Total URL target** | **≤ 8,192 characters** |
+| 要素 | バジェット |
+|------|------------|
+| Base URL + path | ~40 文字 |
+| Fragment 接頭辞（`#share/1/`） | 9 文字 |
+| Payload | 残り |
+| **合計 URL 目標** | **≤ 8,192 文字** |
 
-This leaves approximately **8,143 characters** for the base64url payload, which decodes to
-approximately **6,107 bytes** of compressed data. With DEFLATE achieving ~40–60% compression
-on typical source code, this supports roughly **10,000–15,000 characters** of source code.
+base64url ペイロードに約 **8,143 文字**、圧縮データ約 **6,107 バイト**。
+典型ソースで DEFLATE が ~40–60% なら、ソース約 **10,000–15,000 文字**を支えられる。
 
-#### 5.2 Browser and Platform Limits
+#### 5.2 ブラウザ / プラットフォーム上限
 
-| Platform | Practical URL limit | Status |
-|----------|-------------------|--------|
-| Chrome / Edge | ~2 MB in address bar | ✅ Well within budget |
-| Firefox | ~65,536 characters | ✅ Well within budget |
-| Safari | ~80,000 characters | ✅ Well within budget |
-| Twitter / X | URLs shortened, fragment preserved in expanded form | ✅ Works |
-| GitHub Issues / Markdown | No practical limit on link `href` | ✅ Works |
-| Slack | Truncates display at ~1,000 chars but preserves full URL in link | ⚠️ Display-truncated but functional |
-| Email clients | Varies; some wrap at 2,083 chars (legacy IE limit) | ⚠️ May break in some clients |
+| プラットフォーム | 実用上限 | 状態 |
+|------------------|----------|------|
+| Chrome / Edge | アドレスバー ~2 MB | ✅ 余裕 |
+| Firefox | ~65,536 文字 | ✅ 余裕 |
+| Safari | ~80,000 文字 | ✅ 余裕 |
+| Twitter / X | 短縮されるが展開で fragment 保持 | ✅ |
+| GitHub Issues / Markdown | `href` に実用上限なし | ✅ |
+| Slack | 表示は ~1,000 で切るがリンクは完全 URL | ⚠️ 表示短縮だが機能する |
+| メールクライアント | まちまち。一部は 2,083 で折り返し（旧 IE） | ⚠️ 一部で壊れる |
 
-The 8,192-character target ensures compatibility with nearly all sharing contexts.
+8,192 文字目標はほぼすべての共有文脈と両立する。
 
-#### 5.3 Fallback When URL Exceeds Limit
+#### 5.3 上限超過時のフォールバック
 
-When the encoded URL exceeds 8,192 characters (source code is very large):
+符号化 URL が 8,192 を超えるとき（ソースが非常に大きい）:
 
-1. **Warn the user** — display a message: _"This snippet is too large to share via URL
-   (N characters). Consider shortening the code."_
-2. **Still generate the URL** — the URL is produced and placed in the address bar. It will
-   work in most browsers but may fail in some sharing contexts.
-3. **Offer download** — provide a "Download as .ark file" button as an alternative sharing
-   mechanism. The downloaded file contains the raw source code; metadata (version, flags)
-   is included as a comment header.
-4. **Do NOT silently truncate** — the source code is never truncated to fit the URL budget.
-   The round-trip contract (§6) must hold or the URL must not be generated.
+1. **警告** — _"この snippet は URL 共有には大きすぎます（N 文字）。コードを短くしてください。"_
+2. **それでも URL を生成** — アドレスバーに置く。多くのブラウザでは動くが、一部共有文脈では失敗しうる。
+3. **ダウンロードを提供** — 「.ark としてダウンロード」を代替共有にする。本文は生ソース、メタデータはコメントヘッダ。
+4. **黙って切り詰めてはならない** — ソースを URL バジェットに合わせて切らない。
+   §6 のラウンドトリップが成り立たないなら URL を生成しない。
 
-#### 5.4 Hard Limit
+#### 5.4 硬上限
 
-URLs exceeding **65,536 characters** (Firefox's limit) MUST NOT be generated. The playground
-displays an error and offers only the file download fallback.
+**65,536 文字**（Firefox 上限）を超える URL は生成してはならない（MUST NOT）。
+エラーを出し、ファイルダウンロードのみを提示する。
 
-### 6. Round-Trip Contract
+### 6. ラウンドトリップ契約
 
-The fundamental invariant of the share format:
+共有形式の基本不変条件:
 
 ```
 ∀ state ∈ ValidPlaygroundState:
     decode(encode(state)) = state
 ```
 
-Formally:
+形式的には:
 
-1. **Encode** transforms a `PlaygroundState` into a URL fragment string.
-2. **Decode** transforms a URL fragment string back into a `PlaygroundState`.
-3. For any valid state, encoding and then decoding MUST produce a state that is
-   **semantically identical** to the original.
+1. **Encode** は `PlaygroundState` を URL fragment 文字列へ変換する。
+2. **Decode** は fragment 文字列を `PlaygroundState` へ戻す。
+3. 任意の有効状態について、符号化して復号した結果は元と**意味的に同一**でなければならない（MUST）。
 
-#### 6.1 Semantic Identity
+#### 6.1 意味的同一性
 
-Two states are semantically identical if and only if:
+次をすべて満たすときのみ意味的に同一:
 
-- `src` fields are byte-identical (UTF-8).
-- `ver` fields are identical strings, or both absent.
-- `ex` fields are identical strings, or both absent.
-- `f` fields contain the same key-value pairs (order-independent), or both absent/empty.
+- `src` がバイト同一（UTF-8）
+- `ver` が同一文字列、または両方欠如
+- `ex` が同一文字列、または両方欠如
+- `f` が同じキー値対（順不同）、または両方欠如/空
 
-#### 6.2 Canonical Encoding
+#### 6.2 正規符号化
 
-Because JSON keys are serialized in alphabetical order (§2.1), the encoding is
-**deterministic**: the same logical state always produces the same URL. This means:
+JSON キーをアルファベット順に出すため（§2.1）、符号化は**決定的**である:
 
 ```
 ∀ state: encode(state₁) = encode(state₂)  ⟺  state₁ = state₂
 ```
 
-This property enables URL comparison as a proxy for state comparison.
+URL 比較を状態比較の代理にできる。
 
-#### 6.3 Decode Error Handling
+#### 6.3 復号エラー処理
 
-If decoding fails at any stage (invalid base64url, decompression error, malformed JSON,
-missing required `src` field), the playground:
+いずれかの段階で失敗したら（不正 base64url、展開失敗、壊れた JSON、必須 `src` 欠如）:
 
-- Loads the default state (empty editor or default example).
-- Displays an error banner: _"Could not load shared snippet. The link may be corrupted
-  or from an incompatible version."_
-- Does NOT crash or show a blank page.
+- 既定状態（空エディタまたは既定例）を読み込む
+- エラーバナー: _"共有 snippet を読み込めませんでした。リンクが壊れているか、非互換の版の可能性があります。"_
+- クラッシュや白紙ページにしてはならない
 
-#### 6.4 Test Contract
+#### 6.4 テスト契約
 
-When the share feature is implemented, the following round-trip tests MUST pass:
+共有機能実装時、次のラウンドトリップ試験が MUST で通ること:
 
-| Test case | Input `src` | Validates |
-|-----------|-------------|-----------|
-| Empty string | `""` | Minimal payload |
-| ASCII-only | `"fn main() {}"` | Basic round-trip |
-| Unicode | `"// こんにちは\nfn main() {}"` | UTF-8 preservation |
-| Large program | 10,000 characters of valid Arukellt | Compression under URL limit |
-| All optional fields | `src` + `ver` + `ex` + `f` | Full schema round-trip |
-| Unknown fields | Payload with extra field `"x": 42` | Forward compatibility preservation |
-| Special JSON chars | Source with `"`, `\`, `\n`, `\t`, `\u0000` | JSON escaping correctness |
+| ケース | 入力 `src` | 検証内容 |
+|--------|------------|----------|
+| 空文字 | `""` | 最小ペイロード |
+| ASCII のみ | `"fn main() {}"` | 基本ラウンドトリップ |
+| Unicode | `"// こんにちは\nfn main() {}"` | UTF-8 保持 |
+| 大きなプログラム | 有効 Arukellt 10,000 文字 | URL 上限内の圧縮 |
+| 任意フィールド全部 | `src` + `ver` + `ex` + `f` | フルスキーマ |
+| 未知フィールド | 余分な `"x": 42` | 前方互換の保持 |
+| 特殊 JSON 文字 | `"`, `\`, `\n`, `\t`, `\u0000` | JSON エスケープ |
 
-These tests are specified here as a contract; implementation is a separate work order.
+ここは契約の指定であり、実装は別作業である。
 
-### 7. Forward Compatibility
+### 7. 前方互換
 
-#### 7.1 Format Version Progression
+#### 7.1 形式版の進行
 
-The `<format-version>` in the URL (`#share/<version>/...`) is incremented only when the
-encoding pipeline changes in a backward-incompatible way:
+URL の `<format-version>`（`#share/<version>/...`）は、符号化パイプラインが
+後方非互換に変わるときだけ上げる:
 
-| Change type | Version bump? | Example |
-|-------------|--------------|---------|
-| New optional JSON field | **No** (handled by §3.3) | Adding `"theme": "dark"` |
-| New required JSON field | **Yes** | Making `"ver"` mandatory |
-| Different compression algorithm | **Yes** | Switching from DEFLATE to Brotli |
-| Different base encoding | **Yes** | Switching from base64url to base45 |
-| Removing a field | **No** (decoders tolerate absent optional fields) | Removing `"ex"` |
+| 変更種別 | 版上げ? | 例 |
+|----------|---------|-----|
+| 新しい任意 JSON フィールド | **No**（§3.3） | `"theme": "dark"` 追加 |
+| 新しい必須 JSON フィールド | **Yes** | `"ver"` を必須化 |
+| 別圧縮アルゴリズム | **Yes** | DEFLATE → Brotli |
+| 別 base 符号化 | **Yes** | base64url → base45 |
+| フィールド削除 | **No**（任意欠如を許容） | `"ex"` 削除 |
 
-#### 7.2 Multi-Version Decode Support
+#### 7.2 複数版の復号
 
-The playground MUST support decoding **all prior format versions**. When the format version
-is incremented, the decoder retains the old version's decode path. The version integer in
-the URL makes dispatch trivial:
+playground は**過去の全形式版**の復号を MUST でサポートする。版を上げても旧 decode 経路を残す。
+URL 内の整数でディスパッチする:
 
 ```
 switch (version) {
@@ -369,108 +348,98 @@ switch (version) {
 }
 ```
 
-#### 7.3 Encoding Always Uses Latest Version
+#### 7.3 符号化は常に最新版
 
-The encoder always produces URLs with the **latest format version**. There is no mechanism
-to produce old-format URLs. Re-sharing a decoded old-format URL produces a new-format URL.
+エンコーダは常に**最新形式版**の URL を出す。旧形式を出す手段はない。
+旧形式を復号して再共有すると新形式 URL になる。
 
-### 8. Fragment Namespace
+### 8. Fragment 名前空間
 
-The playground URL fragment is partitioned by prefix:
+playground URL fragment は接頭辞で分割する:
 
-| Prefix | Purpose | Example |
-|--------|---------|---------|
-| `#share/<v>/` | Share/permalink (this ADR) | `#share/1/eNpLSS0u...` |
-| `#example/<id>` | Load curated example by ID | `#example/hello-world` |
-| _(no fragment)_ | Default state (empty editor) | `/playground` |
+| 接頭辞 | 用途 | 例 |
+|--------|------|-----|
+| `#share/<v>/` | 共有/permalink（本 ADR） | `#share/1/eNpLSS0u...` |
+| `#example/<id>` | キュレート例を ID で読み込み | `#example/hello-world` |
+| _(fragment なし)_ | 既定状態（空エディタ） | `/playground` |
 
-Future prefixes may be added (e.g., `#tutorial/`, `#diff/`). The playground router MUST
-treat any unrecognized prefix as a no-op (load default state) rather than an error.
-
----
-
-## Consequences
-
-1. Share/permalink works on **any static host** — no backend, no database, no API keys.
-2. URLs are **privacy-preserving** — the fragment is never sent to the server in HTTP requests.
-3. The format supports **~10,000–15,000 characters** of source code within the 8,192-character
-   URL budget, sufficient for playground-sized snippets.
-4. **Forward compatibility** is built in: new optional fields can be added to the payload
-   without incrementing the format version; old URLs remain decodable.
-5. **Version pinning** enables diagnostic context and future compatibility notices.
-6. The **round-trip contract** and test cases (§6.4) define acceptance criteria for the
-   implementation work order.
-7. Implementation requires a DEFLATE library in the browser bundle (e.g., `pako`, `fflate`,
-   or native `CompressionStream` with `"deflate-raw"`). Library choice is an implementation
-   decision, not specified by this ADR.
-8. `docs/adr/README.md` is regenerated by `python3 scripts/gen/generate-docs.py` to include
-   this entry.
+将来接頭辞（`#tutorial/`、`#diff/` など）を足してよい。未知接頭辞はエラーではなく
+no-op（既定状態読み込み）として扱う（MUST）。
 
 ---
 
-## Alternatives Considered
+## 帰結
 
-### A. Server-Stored Snippets (Gist / Database)
-
-**Approach:** POST source code to a server, receive a short ID, share URL contains only the ID.
-
-**Rejected for v1:**
-- ADR-017 explicitly requires no backend for v1.
-- Requires server infrastructure, rate limiting, abuse mitigation, storage costs.
-- Introduces a dependency on server availability for link resolution.
-- Can be added as an **optional enhancement in v2** alongside the URL-encoded format
-  (e.g., short URLs for large programs that exceed the URL length budget).
-
-### B. LZ-String Encoding
-
-**Approach:** Use the `lz-string` library's `compressToEncodedURIComponent()` function,
-which produces URL-safe output without separate base64url encoding.
-
-**Rejected:**
-- `lz-string` is a single-maintainer library with a non-standard compression algorithm.
-- No native browser API equivalent — always requires a JS library dependency.
-- Compression ratio is inferior to DEFLATE on structured text (typical source code).
-- DEFLATE has decades of standardization, multiple implementations, and native browser
-  support via `CompressionStream`.
-
-### C. Brotli Compression
-
-**Approach:** Use Brotli (RFC 7932) for better compression ratio than DEFLATE.
-
-**Rejected for v1:**
-- `CompressionStream("br")` is not available in all target browsers as of 2026-04.
-- Requires bundling a Brotli decompressor library (~30 KB), larger than DEFLATE libraries.
-- The compression ratio advantage (~10–15% better than DEFLATE) does not justify the
-  compatibility risk for v1.
-- Can be introduced as format version 2 when browser support is universal.
-
-### D. Query String Instead of Fragment
-
-**Approach:** Store share data in `?share=...` query parameter.
-
-**Rejected:**
-- Query strings are sent to the server in HTTP requests — leaks source code to access logs,
-  CDN logs, and analytics.
-- Some CDNs and proxies have lower URL length limits for the query string portion.
-- Fragment (`#`) is the standard location for client-only state in single-page applications.
-
-### E. Uncompressed Base64url
-
-**Approach:** Skip compression, encode JSON directly as base64url.
-
-**Rejected:**
-- A 100-line program (~2,000 characters of source) produces ~2,700 characters of base64url
-  without compression vs ~1,100 characters with DEFLATE. The 60% size reduction from
-  compression is essential for staying within URL length budgets.
+1. Share/permalink は**任意の静的ホスト**で動く — バックエンド・DB・API キー不要。
+2. URL は**プライバシー保護** — fragment は HTTP でサーバーへ送られない。
+3. 8,192 文字バジェット内でソース約 **10,000–15,000 文字**を支え、playground 規模の snippet に十分。
+4. **前方互換**を内蔵: 任意フィールド追加は形式版を上げずに可能。旧 URL は復号可能。
+5. **版ピン留め**で診断コンテキストと将来の互換案内が可能。
+6. **ラウンドトリップ契約**と試験ケース（§6.4）が実装作業の受入条件になる。
+7. 実装にはブラウザバンドル内の DEFLATE ライブラリ（`pako`、`fflate`、または
+   `CompressionStream("deflate-raw")`）が必要。ライブラリ選定は実装判断であり本 ADR では定めない。
+8. `docs/adr/README.md` は `python3 scripts/gen/generate-docs.py` で再生成し本エントリを含める。
 
 ---
 
-## References
+## 検討した代替案
 
-- [ADR-017: Playground Execution Model](ADR-017-playground-execution-model.md) — v1 product contract, share/permalink in scope
-- [ADR-019: Link-Check Coverage Policy](ADR-019-anchor-permalink-policy.md) — link-check harness for docs (orthogonal to this ADR)
+### A. サーバー保存 Snippet（Gist / DB）
+
+**方式:** ソースを POST し短い ID を受け取り、共有 URL は ID のみ。
+
+**v1 では却下:**
+- ADR-017 は v1 でバックエンドなしを要求。
+- サーバー基盤・レート制限・悪用対策・ストレージ費用が必要。
+- リンク解決がサーバー可用性に依存する。
+- URL 符号化形式と並ぶ **v2 の任意強化**として追加できる
+  （URL 長超過の大きなプログラム向け短縮 URL など）。
+
+### B. LZ-String 符号化
+
+**方式:** `lz-string` の `compressToEncodedURIComponent()` で URL 安全出力を直接得る。
+
+**却下:**
+- 単一メンテナ・非標準圧縮。
+- ネイティブブラウザ API がなく常に JS 依存。
+- 構造化テキストでは DEFLATE より圧縮率が劣る。
+- DEFLATE は長年の標準化、複数実装、`CompressionStream` によるネイティブ支援がある。
+
+### C. Brotli 圧縮
+
+**方式:** Brotli（RFC 7932）で DEFLATE より良い圧縮率。
+
+**v1 では却下:**
+- 2026-04 時点で `CompressionStream("br")` が全対象ブラウザにない。
+- Brotli 展開器の同梱（~30 KB）が DEFLATE より大きい。
+- 圧縮率の優位（DEFLATE より ~10–15%）は v1 の互換リスクに見合わない。
+- ブラウザ支援が普遍化したとき形式版 2 として導入できる。
+
+### D. Fragment ではなく Query String
+
+**方式:** `?share=...` に共有データを置く。
+
+**却下:**
+- Query は HTTP でサーバーへ送られ、アクセスログ・CDN・分析にソースが漏れる。
+- 一部 CDN/プロキシは query 部分の URL 長上限がより厳しい。
+- SPA のクライアント専用状態の標準位置は fragment（`#`）。
+
+### E. 無圧縮 Base64url
+
+**方式:** 圧縮せず JSON を直接 base64url。
+
+**却下:**
+- 100 行（~2,000 文字）で無圧縮 ~2,700 文字 vs DEFLATE ~1,100 文字。
+  約 60% の削減は URL 長バジェット維持に不可欠。
+
+---
+
+## 参照
+
+- [ADR-017: Playground Execution Model](ADR-017-playground-execution-model.md) — v1 製品契約、share/permalink がスコープ内
+- [ADR-019: Link-Check Coverage Policy](ADR-019-anchor-permalink-policy.md) — docs のリンク検査（本 ADR とは直交）
 - [RFC 1951: DEFLATE Compressed Data Format](https://datatracker.ietf.org/doc/html/rfc1951)
 - [RFC 4648 §5: Base64url Encoding](https://datatracker.ietf.org/doc/html/rfc4648#section-5)
-- [TypeScript Playground — URL sharing implementation](https://www.typescriptlang.org/play) (prior art)
-- [pako — zlib port to JavaScript](https://github.com/nicepkg/pako) (reference DEFLATE implementation)
-- [fflate — fast JS compression library](https://github.com/nicepkg/fflate) (alternative DEFLATE implementation)
+- [TypeScript Playground — URL sharing implementation](https://www.typescriptlang.org/play)（先行事例）
+- [pako — zlib port to JavaScript](https://github.com/nicepkg/pako)（DEFLATE 参照実装）
+- [fflate — fast JS compression library](https://github.com/nicepkg/fflate)（代替 DEFLATE 実装）

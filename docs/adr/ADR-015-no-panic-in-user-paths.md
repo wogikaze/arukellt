@@ -1,80 +1,80 @@
-# ADR-015: No-Panic Quality Standard for User-Facing Paths
+# ADR-015: ユーザー到達パスの No-Panic 品質基準
 
 ステータス: **ACCEPTED** — ユーザー到達パスでのpanic禁止  
 作成日: 2026-04-09  
 範囲: CLI, LSP, extension, manifest parsing
 
-## Context
+## 文脈
 
-When a user performs any normal operation — running `arukellt compile`, requesting
-hover in the LSP, or activating the VS Code extension — they should never encounter
-a Rust `panic!` or JavaScript-level crash. Panics produce confusing output with no
-actionable guidance. They are unacceptable on any user-reachable code path.
+ユーザーが通常操作（`arukellt compile` の実行、LSP の hover、VS Code 拡張の有効化など）を
+行うとき、Rust の `panic!` や JavaScript レベルのクラッシュに遭遇してはならない。
+panic は行動可能な案内のない混乱した出力を生み、ユーザー到達パスでは許容できない。
 
-## Decision
+## 決定
 
-### 1. Definition of "user-reachable path"
+### 1. 「ユーザー到達パス」の定義
 
-A code path is user-reachable if it can be triggered by:
+次のいずれかで起動できるコードパスをユーザー到達とする。
 
-- Any `arukellt` CLI subcommand with valid or invalid arguments
-- Any LSP request (hover, completion, diagnostics, etc.)
-- Any VS Code extension activation, command, task execution, or debug adapter request
-- Manifest parsing (`ark.toml`, `std/manifest.toml`, fixture manifests)
+- 有効・無効いずれの引数でも起動できる任意の `arukellt` CLI サブコマンド
+- 任意の LSP リクエスト（hover、completion、diagnostics など）
+- VS Code 拡張の有効化、コマンド、タスク実行、デバッグアダプタ要求
+- マニフェスト解析（`ark.toml`、`std/manifest.toml`、fixture マニフェスト）
 
-### 2. Banned patterns in user-reachable paths
+### 2. ユーザー到達パスで禁止するパターン
 
-- `panic!("...")` — use `anyhow::bail!` or return `Err(...)` instead
-- `.unwrap()` on `Option` or `Result` where `None`/`Err` is user-reachable
-- `.expect("...")` where the message is an internal programmer note, not a user message
-- `todo!()`, `unimplemented!()` — replace with proper stubs or feature gates
-- `unreachable!()` — only acceptable if logically unreachable by type invariant;
-  if reachable via user input, convert to an error
+- `panic!("...")` — 代わりに `anyhow::bail!` または `Err(...)` を返す
+- ユーザー到達で `None`/`Err` になりうる `Option`/`Result` への `.unwrap()`
+- ユーザー向けメッセージではなく内部メモである `.expect("...")`
+- `todo!()`、`unimplemented!()` — 適切なスタブまたは feature gate に置き換える
+- `unreachable!()` — 型不変条件により論理的に到達不能な場合のみ可。
+  ユーザー入力で到達しうるならエラーへ変換する
 
-### 3. Accepted patterns
+### 3. 許容するパターン
 
-- `.lock().unwrap()` on a `Mutex` — only panics if another thread already panicked;
-  this is acceptable (mutex poison = already a bug)
-- `.expect("invariant: ...")` where the invariant is verifiably upheld by the type
-  system or a compiler-checked assertion
-- `panic!` in `#[cfg(test)]` code
-- `panic!` in code only reachable via `--internal-*` developer flags
+- `Mutex` の `.lock().unwrap()` — 他スレッドが既に panic した場合のみ panic する。
+  許容（mutex poison = 既にバグ）
+- 型システムまたはコンパイラ検査済みアサーションで検証できる不変条件の
+  `.expect("invariant: ...")`
+- `#[cfg(test)]` 内の `panic!`
+- `--internal-*` 開発者フラグ経由でのみ到達するコード内の `panic!`
 
-### 4. Error output standard
+### 4. エラー出力の基準
 
-When a user-facing error occurs:
-- Print a clear human-readable message (no stack trace by default)
-- Include the relevant context (which file, which command, which field)
-- Exit with a non-zero code
-- Suggest a fix or point to documentation where possible
+ユーザー向けエラー発生時:
 
-### 5. New code rule
+- 明確で人間が読めるメッセージを出す（デフォルトでスタックトレースなし）
+- 関連コンテキスト（どのファイル、どのコマンド、どのフィールド）を含める
+- 非ゼロ終了コードで終了する
+- 可能なら修正案やドキュメントへの案内を付ける
 
-New PRs must not introduce `unwrap()`, `expect()`, `panic!()`, `todo!()`, or
-`unimplemented!()` in user-reachable paths. Reviewers must reject PRs that do so.
+### 5. 新規コードの規則
 
-## Current State (2026-04-09)
+新規 PR はユーザー到達パスに `unwrap()`、`expect()`、`panic!()`、`todo!()`、
+`unimplemented!()` を導入してはならない。導入する PR はレビューで却下する。
 
-Audit of user-facing crates:
+## 現状（2026-04-09）
 
-| Crate | Dangerous panics found |
-|-------|----------------------|
-| `crates/arukellt/src/` | None |
-| `crates/ark-lsp/src/` | None (all `lock().unwrap()` are mutex-only) |
-| `src/compiler/resolver.arksrc/` | None (manifest parsing migrated from `ark-manifest` in #580) |
-| ~~`crates/ark-manifest/src/`~~ | ~~None~~ (removed in #580) |
-| `crates/ark-driver/src/` | None |
-| `extensions/arukellt-all-in-one/src/` | None |
+ユーザー向けクレートの監査:
 
-The user-facing crates are clean as of this ADR.
+| Crate | 危険な panic |
+|-------|----------------|
+| `crates/arukellt/src/` | なし |
+| `crates/ark-lsp/src/` | なし（`lock().unwrap()` は mutex のみ） |
+| `src/compiler/resolver.arksrc/` | なし（マニフェスト解析は #580 で `ark-manifest` から移行） |
+| ~~`crates/ark-manifest/src/`~~ | ~~なし~~（#580 で削除） |
+| `crates/ark-driver/src/` | なし |
+| `extensions/arukellt-all-in-one/src/` | なし |
 
-## Enforcement
+本 ADR 時点でユーザー向けクレートはクリーンである。
 
-- `scripts/manager.py` includes a panic audit check: `--no-panic-audit`
-- CI runs this check in the `integration` layer
-- New violations are treated as `P1` bugs (immediate fix required)
+## 強制
 
-## References
+- `scripts/manager.py` に panic 監査チェック `--no-panic-audit` がある
+- CI は `integration` 層でこのチェックを実行する
+- 新規違反は `P1` バグ（即時修正必須）として扱う
+
+## 参照
 
 - `issues/done/243-no-panic-in-user-paths-quality-standard.md`
 - `docs/contributing.md`
