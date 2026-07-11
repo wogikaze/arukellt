@@ -3,7 +3,7 @@
 //! Provides process lifecycle operations: graceful exit and immediate abort.
 //! These APIs are host-bound and require WASI process capability.
 //!
-//! **Availability:** All targets (T1 + T3). Requires WASI runtime.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI runtime.
 
 /// Requests process termination with the given exit code.
 pub fn exit(code: i32) {

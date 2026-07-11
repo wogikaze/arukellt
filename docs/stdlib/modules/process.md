@@ -19,7 +19,7 @@ This page covers two closely related host modules: `std::host::process` for proc
 | `var(name)` | Look up an environment variable by name, returning `Option<String>`. |
 | `has_flag(flag)` | Check whether a flag is present in the argument vector. |
 
-**Target constraints:** All targets (T1 + T3). No host capability required.
+**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 **Typical usage:**
 
@@ -44,14 +44,14 @@ println("Running as: " + name)
 - Manifest-backed functions: 2
 - Stability: stable 2
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host process-control helpers.
 
 Provides process lifecycle operations: graceful exit and immediate abort.
 These APIs are host-bound and require WASI process capability.
 
-**Availability:** All targets (T1 + T3). Requires WASI runtime.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI runtime.
 
 ### Public API
 
@@ -74,14 +74,14 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 - Manifest-backed functions: 5
 - Stability: stable 5
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host environment helpers.
 
 Provides CLI argument access and environment variable lookup backed by
 WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 
-**Availability:** All targets (T1 + T3). Environment variable access
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Environment variable access
 (`var`) requires WASI Preview 2 component model (not available on P1).
 
 ### Public API
@@ -110,7 +110,7 @@ Return the command-line argument at the given zero-based index, or None if out o
 
 Look up an environment variable by name. Returns None if the variable is not set.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Environment variable access requires WASI Preview 2 component model.
+**Availability:** ⚠️ Not available on `wasm32` — Environment variable access requires WASI Preview 2 component model.
 
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 

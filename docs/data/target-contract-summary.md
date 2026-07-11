@@ -18,5 +18,5 @@
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
 | `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |
-| `wasm32-gc` + `--wasi p3` | not-started | unimplemented | unimplemented | No | Host profile on same language target; not a separate primary |
+| `wasm32-gc` + `--wasi p3` | not-started | unimplemented | — | No | Host profile on same language target; not a separate primary |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->

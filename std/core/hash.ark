@@ -9,7 +9,7 @@
 //! over the key representation.  This avoids policy drift between key types
 //! and provides reasonable distribution for hash table operations.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 /// Trait for types that can be hashed to an `i32` hash value.
 ///

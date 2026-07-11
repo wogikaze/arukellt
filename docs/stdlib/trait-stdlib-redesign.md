@@ -21,12 +21,15 @@ PartialOrd: PartialEq (#695) — 部分順序（f64 / F32x4 等）
  └─ Ord: Eq + PartialOrd (#695) — 全順序
 
   Hash (既存 #hash)     Clone (#692)       Default (#692)     Display (既存 #convert)
-                         │                                       │
-                       Copy: Clone                              Debug (#696)
+                         │                                       Debug (#696) — Display と独立
+                       Copy: Clone
                       (marker)
 
-  From<T> (#692) ──blanket──> Into<T> (#692)
-  TryFrom<T> (#692) ──blanket──> TryInto<T> (#692)
+  From<T> (#692)          Into<T> (#692)
+  TryFrom<T> (#692)       TryInto<T> (#692)
+  # blanket: Into<U> for T where U: From<T>
+  # blanket: TryInto<U> for T where U: TryFrom<T>
+  # （supertrait ではない。Self の向きが逆）
 
   Iterator (#691)        IntoIterator (#691)      FromIterator (#692連携)
 
@@ -49,9 +52,9 @@ PartialOrd: PartialEq (#695) — 部分順序（f64 / F32x4 等）
 | `PartialOrd` | `PartialEq` | #695 | 部分順序。`PartialOrd: Ord` は禁止 |
 | `Ord` | `Eq` + `PartialOrd` | #695 | 全順序 |
 | `Copy` | `Clone` | #692 | marker trait (メソッドなし) |
-| `Debug` | — | #696 | Display と並列 (supertrait なし、独立) |
-| `Into<T>` | — | #692 | `From<T>` から blanket impl で自動導出 |
-| `TryInto<T>` | — | #692 | `TryFrom<T>` から blanket impl |
+| `Debug` | — | #696 | Display と独立（supertrait なし） |
+| `Into<T>` | — | #692 | `From` からの blanket impl。supertrait ではない |
+| `TryInto<T>` | — | #692 | `TryFrom` からの blanket impl。supertrait ではない |
 | `BufRead` | `Read` | #693 | |
 | `Error` | `Display` | #694 | source() chaining |
 

@@ -3,7 +3,7 @@
 //! Provides cryptographically-secure random values from the host entropy source.
 //! Deterministic seeded utilities live in `std::random`.
 //!
-//! **Availability:** All targets (T1 + T3). Requires `--allow-random` capability.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires `--allow-random` capability.
 
 /// Returns a host-provided random `i32`.
 pub fn random_i32() -> i32 {

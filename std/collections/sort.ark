@@ -10,7 +10,7 @@
 //! All operations are generic over `T: Ord` and work in-place on `Vec<T>`.
 //! No temporary buffer allocation is needed — all algorithms are in-place.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::core
 

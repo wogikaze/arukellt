@@ -4,7 +4,7 @@
 //! Neg, Index, IndexMut, Deref) per ADR-038. Built-in scalar impls are
 //! provided for arithmetic operators.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 //!
 //! **Note:** Operator-to-trait resolution in the typechecker is tracked in
 //! #689. Until #689 is implemented, these traits are definable and implable

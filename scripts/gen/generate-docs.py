@@ -704,7 +704,7 @@ match body {
                 "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
                 "native WASI P2 sockets by "
                 "[#139](../../../issues/done/139-std-wasi-sockets-p2.md). "
-                "Importing this module on T1 (wasm32-wasi-p1) emits E0500."
+                "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500."
             ),
             "highlights": [
                 ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
@@ -737,14 +737,14 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
         "current selfhost compile path — see",
         "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
-        "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
+        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
     ],
     "std::host::udp": [
         "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
         "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
-        "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
+        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
     ],
 }
 
@@ -1128,14 +1128,14 @@ def format_host_module_badges(
                 target_list = fn_targets
                 break
     if not target_list:
-        target_list = ["wasm32-wasi-p2"]
+        target_list = ["wasm32-gc"]
 
-    target_str = f"`{', '.join(target_list)}`"
+    target_str = f"`{', '.join(_canonicalize_target_name(x) for x in target_list)}`"
 
     # Detect T3-only status from function availability data (manifest-driven).
     t3_only = _availability_t3_only(functions)
     unbacked = _availability_unbacked(functions)
-    t3_badge = " · ⚠️ **T3 only**" if t3_only and not unbacked else ""
+    t3_badge = " · ⚠️ **`wasm32-gc` only**" if t3_only and not unbacked else ""
     if unbacked:
         t3_badge = " · ⚠️ **Not user-reachable**"
 
@@ -2356,9 +2356,9 @@ def render_stdlib_module_page(
                 if fn_avail:
                     avail_parts: list[str] = []
                     if fn_avail.get("t1") is False:
-                        avail_parts.append("⚠️ Not available on wasm32-wasi-p1")
+                        avail_parts.append("⚠️ Not available on `wasm32`")
                     if fn_avail.get("t3") is False:
-                        avail_parts.append("⚠️ Not available on wasm32-wasi-p2")
+                        avail_parts.append("⚠️ Not available on `wasm32-gc`")
                     if fn_avail.get("note"):
                         avail_parts.append(fn_avail["note"])
                     if avail_parts:
@@ -2558,6 +2558,19 @@ def format_signature(params: list[str], returns: str) -> str:
 
 # ── Target-constraint helpers ────────────────────────────────────────────────
 
+
+def _canonicalize_target_name(name: str) -> str:
+    """Map legacy CLI/manifest target aliases to ADR-007 canonical names."""
+    aliases = {
+        "wasm32-wasi-p1": "wasm32",
+        "wasm32-wasi": "wasm32",
+        "wasm32-wasi-p2": "wasm32-gc",
+        "wasm-gc": "wasm32-gc",
+        "wasm-gc-wasi-p2": "wasm32-gc",
+    }
+    return aliases.get(name, name)
+
+
 def _availability_t3_only(funcs: list[dict]) -> bool:
     """Return True when all functions with ``availability`` data have ``t1 = false``.
 
@@ -2595,9 +2608,9 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
 
     Returns:
         A Markdown-friendly constraint string such as:
-        - ``"All targets (T1 + T3). No host capability required."``
-        - ``"⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."``
-        - ``"Targets: wasm32-wasi-p1, wasm32-wasi-p2."``
+        - ``"All targets (`wasm32` + `wasm32-gc`). No host capability required."``
+        - ``"⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."``
+        - ``"Targets: wasm32, wasm32-gc."``
     """
     fs_on_page = any(m in ("std::host::fs", "std::fs") for m in page_modules)
     fs_runtime = (
@@ -2613,7 +2626,7 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
             "#446 / #447 / #077 / #139."
         )
     if _availability_t3_only(funcs):
-        base = "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
+        base = "⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."
         return base + fs_runtime if fs_on_page else base
 
     # Fallback: collect explicit ``target`` lists from function entries.
@@ -2622,13 +2635,14 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
         t = f.get("target", [])
         if t:
             targets.update(t)
-    if not targets or targets == {"wasm32-wasi-p1", "wasm32-wasi-p2"}:
-        base = "All targets (T1 + T3)."
+    if not targets or targets in ({"wasm32-wasi-p1", "wasm32-wasi-p2"}, {"wasm32", "wasm32-gc"}):
+        base = "All targets (`wasm32` + `wasm32-gc`)."
         return base + fs_runtime if fs_on_page else base + " No host capability required."
-    if targets == {"wasm32-wasi-p2"}:
-        base = "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
+    if targets in ({"wasm32-wasi-p2"}, {"wasm32-gc"}):
+        base = "⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."
         return base + fs_runtime if fs_on_page else base
-    base = f"Targets: {', '.join(sorted(targets))}."
+    canon = sorted({_canonicalize_target_name(x) for x in targets})
+    base = f"Targets: {', '.join(canon)}."
     return base + fs_runtime if fs_on_page else base
 
 

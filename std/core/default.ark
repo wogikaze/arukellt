@@ -4,7 +4,7 @@
 //! Scalar types default to 0 / 0.0 / false. `String` defaults to the empty
 //! string.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 /// Trait for types that have a default (zero/empty) value.
 ///

@@ -3,7 +3,7 @@
 //! These APIs are explicitly host-bound. They are not part of the pure
 //! standard-library surface and must be imported from `std::host::stdio`.
 //!
-//! **Availability:** All targets (T1 + T3). Requires WASI stdout/stderr capability.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI stdout/stderr capability.
 
 /// Reads all available bytes from stdin into a string.
 pub fn read_stdin() -> String {

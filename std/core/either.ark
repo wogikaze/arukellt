@@ -5,7 +5,7 @@
 //! `Right` for the "success" or "second" case, but unlike `Result` there is no
 //! built-in error semantics — both sides are plain values.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 /// A value of one of two types.
 ///

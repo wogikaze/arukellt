@@ -18,7 +18,7 @@ Source-backed docs for explicit host filesystem operations.
 | `write_bytes(path, buf)` | Write a byte array to a file. |
 | `exists(path)` | Read probe: `true` when a full read succeeds; not a general path-existence check. |
 
-**Target constraints:** All targets (T1 + T3). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
+**Target constraints:** All targets (`wasm32` + `wasm32-gc`). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
 
 **Typical usage:**
 
@@ -42,7 +42,7 @@ write_string("output.txt", "hello")
 - Manifest-backed functions: 13
 - Stability: experimental 3, provisional 8, stable 2
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
@@ -53,7 +53,7 @@ smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
 This module is **not** a complete filesystem facade. Directory listing,
 structured metadata, and streaming I/O are not yet supported at the
 intrinsic level. The `fd_*` helpers are explicitly experimental and
-currently T1 (WASI P1) only.
+currently `wasm32` (WASI P1) only.
 
 ### Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
@@ -68,7 +68,7 @@ or stat-based metadata. These are API contracts awaiting backend support.
 `is_readable_file` and do **not** distinguish file types.
 - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
 descriptors and are experimental.
-- **T1** (WASI P1) and **T3** (WASI P2) both provide the three base intrinsics
+- **`wasm32`** (WASI P1) and **`wasm32-gc`** (WASI P2) both provide the three base intrinsics
 (`read_file`, `write_file`, `write_bytes`). Directory/metadata capabilities
 are future on both targets.
 
@@ -176,19 +176,19 @@ Structured metadata API contract. Always returns Err(IoError) on current targets
 
 Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
+**Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
 #### `fd_tell`
 
 Return the current file offset for an open file descriptor.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
+**Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
 #### `fd_fdstat_errno`
 
 Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
+**Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
 ## `std::fs`
 
@@ -218,8 +218,8 @@ checks: they succeed only when the same read operation as `read_string` succeeds
 They are not general path-existence or metadata queries. Directories, missing
 paths, and unreadable paths may return `false`.
 
-**T1/T3 availability**: The three base operations (`read_string`, `write_string`,
-`is_readable_file`) are available on both T1 (WASI P1) and T3 (WASI P2) targets.
+**`wasm32` / `wasm32-gc` availability**: The three base operations (`read_string`, `write_string`,
+`is_readable_file`) are available on both `wasm32` (WASI P1) and `wasm32-gc` (WASI P2) targets.
 Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
 supported on any target.
 

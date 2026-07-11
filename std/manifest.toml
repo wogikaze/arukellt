@@ -2276,7 +2276,7 @@ availability = { t1 = true, t3 = true, note = "Honest rejection." }
 name = "std::host::fs"
 stability = "stable"
 family = "host"
-doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. is_readable_file/exists are read-probes (NOT path-existence). is_dir always false; read_dir/metadata return honest Err until directory/metadata intrinsics land. fd_* helpers are experimental T1-only."
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. is_readable_file/exists are read-probes (NOT path-existence). is_dir always false; read_dir/metadata return honest Err until directory/metadata intrinsics land. fd_* helpers are experimental `wasm32`-only."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -2396,7 +2396,7 @@ returns = "i64"
 intrinsic = "__intrinsic_fd_seek"
 doc_category = "host_fs"
 doc = "Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset."
-availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+availability = { t1 = true, t3 = false, note = "`wasm32` / WASI P1 only." }
 
 [[functions]]
 name = "fd_tell"
@@ -2407,7 +2407,7 @@ returns = "i64"
 intrinsic = "__intrinsic_fd_tell"
 doc_category = "host_fs"
 doc = "Return the current file offset for an open file descriptor."
-availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+availability = { t1 = true, t3 = false, note = "`wasm32` / WASI P1 only." }
 
 [[functions]]
 name = "fd_fdstat_errno"
@@ -2418,7 +2418,7 @@ returns = "i32"
 intrinsic = "__intrinsic_fd_fdstat_get"
 doc_category = "host_fs"
 doc = "Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success)."
-availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+availability = { t1 = true, t3 = false, note = "`wasm32` / WASI P1 only." }
 
 # === std::host::stdio ===
 
@@ -2562,10 +2562,10 @@ availability = { t1 = true, t3 = true, note = "Requires the --allow-random capab
 
 [[modules]]
 name = "std::host::http"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
-doc = "HTTP client helpers (provisional). T3-only bridge via arukellt_host + wasi:http/outgoing-handler import (#655). Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). Host bindings tracked by #446; native WASI P2 HTTP by #077. When implemented: HTTP/1.1 over TCP only; HTTPS is not supported."
+doc = "HTTP client helpers (provisional). `wasm32-gc`-only bridge via arukellt_host + wasi:http/outgoing-handler import (#655). Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). Host bindings tracked by #446; native WASI P2 HTTP by #077. When implemented: HTTP/1.1 over TCP only; HTTPS is not supported."
 
 [[functions]]
 name = "request"
@@ -2574,12 +2574,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_http_request"
 params = ["String", "String", "String"]
 returns = "Result<String, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "T3 bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
 examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
 
 [[functions]]
@@ -2589,12 +2589,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_http_get"
 params = ["String"]
 returns = "Result<String, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "T3 bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
 
 [[functions]]
@@ -2604,12 +2604,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_http_serve"
 params = ["i32", "String"]
 returns = "Result<(), String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to the incoming-handler proxy-world bridge (#656)."
 errors = "Err on bind failure, accept timeout, or I/O error while serving the single request."
-availability = { t1 = false, t3 = true, note = "T3 bridge via arukellt_host + incoming-handler import (#656)." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` bridge via arukellt_host + incoming-handler import (#656)." }
 examples = [{code = "match http::serve(8080, \"hello\") {\n  Ok(()) => println(\"served\")\n  Err(e) => eprintln(e)\n}", description = "Handle one GET on port 8080"}]
 
 
@@ -2620,7 +2620,7 @@ module = "std::host::http"
 kind = "builtin"
 params = ["String", "String", "Vec<String>", "Vec<String>", "String"]
 returns = "Result<HttpResponse, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Send HTTP with header vectors (provisional; headers not forwarded to bridge yet)."
@@ -2632,7 +2632,7 @@ module = "std::host::http"
 kind = "builtin"
 params = ["HttpResponse"]
 returns = "String"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 availability = { t1 = false, t3 = true, note = "Accessor for HttpResponse.body." }
@@ -2643,7 +2643,7 @@ module = "std::host::http"
 kind = "builtin"
 params = ["HttpResponse"]
 returns = "i32"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 availability = { t1 = false, t3 = true, note = "Provisional status (200 on bridge Ok)." }
@@ -2652,10 +2652,10 @@ availability = { t1 = false, t3 = true, note = "Provisional status (200 on bridg
 
 [[modules]]
 name = "std::host::sockets"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
-doc = "TCP socket helpers (provisional). T3 connect/read/write via host-linker (#657); listen/accept (#658); native WASI P2 sockets by #139."
+doc = "TCP socket helpers (provisional). `wasm32-gc` connect/read/write via host-linker (#657); listen/accept (#658); native WASI P2 sockets by #139."
 
 [[functions]]
 name = "connect"
@@ -2664,12 +2664,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_sockets_connect"
 params = ["String", "i32"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
 [[functions]]
@@ -2679,12 +2679,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_sockets_read"
 params = ["i32", "i32"]
 returns = "Result<Vec<i32>, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Read up to max_len bytes from an open socket fd."
 errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "write"
@@ -2693,12 +2693,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_sockets_write"
 params = ["i32", "Vec<i32>"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Write byte values from a Vec to an open socket fd."
 errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#657). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "listen"
@@ -2707,12 +2707,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_sockets_listen"
 params = ["String", "i32"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Bind a TCP listener on the given hostname and port. Returns a listener fd on success."
 errors = "Err on bind failure or invalid port."
-availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#658). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "accept"
@@ -2721,16 +2721,16 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_sockets_accept"
 params = ["i32"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Accept one inbound TCP connection on a listener fd. Returns connected socket fd."
 errors = "Err on invalid listener fd or accept failure."
-availability = { t1 = false, t3 = true, note = "T3 host-linker sockets (#658). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500." }
 
 [[modules]]
 name = "std::host::udp"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
 doc = "UDP datagram helpers (provisional). Not user-reachable on the current selfhost compile path. Host bindings tracked by #447; native WASI P2 UDP by #139."
@@ -2742,18 +2742,18 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_udp_send"
 params = ["String", "i32", "String"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_udp"
 doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
 errors = "Err on DNS resolution failure, invalid port, or network unreachable."
-availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on `wasm32` emits E0500." }
 
 # === std::host::streams ===
 
 [[modules]]
 name = "std::host::streams"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
 doc = "WASI Preview 2 stream I/O helpers (provisional). Read/write/flush on input/output stream handles via host-linker (#474)."
@@ -2765,12 +2765,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_stream_read"
 params = ["i32", "i32"]
 returns = "Result<Vec<i32>, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_streams"
 doc = "Read up to max_len bytes from an input stream handle."
 errors = "Err on stream error or closed stream."
-availability = { t1 = false, t3 = true, note = "T3 host-linker streams (#474). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker streams (#474). Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "write"
@@ -2779,12 +2779,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_stream_write"
 params = ["i32", "Vec<i32>"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_streams"
 doc = "Write byte values to an output stream handle."
 errors = "Err on stream error or closed stream."
-availability = { t1 = false, t3 = true, note = "T3 host-linker streams (#474). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker streams (#474). Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "flush"
@@ -2793,12 +2793,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_stream_flush"
 params = ["i32"]
 returns = "Result<i32, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_streams"
 doc = "Flush an output stream handle."
 errors = "Err on stream error."
-availability = { t1 = false, t3 = true, note = "T3 host-linker streams (#474). Importing on T1 emits E0500." }
+availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker streams (#474). Importing on `wasm32` emits E0500." }
 
 # === std::bytes ===
 

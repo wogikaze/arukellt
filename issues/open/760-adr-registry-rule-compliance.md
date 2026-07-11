@@ -22,6 +22,7 @@ ADR-000 の規則に既存 ADR 群を追従させる残作業を追跡する。
 2026-07-11: ADR修復 → normative伝播 → 提案ADRの前提修正（038/039）・037 capabilities・
 current-state分割（history/）・鮮度メタ・リンク修正。
 
-2026-07-11 (92点再評価対応): ADR-036 の Eq/Ord 階層を標準形へ修正。ADR-037 で
-整数/浮動小数の Eq・`<` 禁止・any_true 分離・Mask API・D2 例外を確定。
+2026-07-11 (93点再評価対応): ADR-036 の From/Into を blanket impl 関係へ修正。
+ADR-037 に型 identity 所有・Mask API 整理・RFC-003 初期核を追加。
+Accepted/Proposed gaps 分離と generated stdlib の canonical target ラベル移行。
 

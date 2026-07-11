@@ -22,7 +22,7 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 | `std::host::clock` — `monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
 | `std::host::random` — `random_i32()` | Host-entropy random integer. |
 
-**Target constraints:** All targets (T1 + T3). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
+**Target constraints:** All targets (`wasm32` + `wasm32-gc`). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
 
 **Typical usage:**
 
@@ -49,14 +49,14 @@ match content {
 - Manifest-backed functions: 4
 - Stability: stable 4
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host standard I/O helpers backed by the current print intrinsics.
 
 These APIs are explicitly host-bound. They are not part of the pure
 standard-library surface and must be imported from `std::host::stdio`.
 
-**Availability:** All targets (T1 + T3). Requires WASI stdout/stderr capability.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI stdout/stderr capability.
 
 ### Public API
 
@@ -116,7 +116,7 @@ let input = read_to_string()
 - Manifest-backed functions: 13
 - Stability: experimental 3, provisional 8, stable 2
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
@@ -127,7 +127,7 @@ smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
 This module is **not** a complete filesystem facade. Directory listing,
 structured metadata, and streaming I/O are not yet supported at the
 intrinsic level. The `fd_*` helpers are explicitly experimental and
-currently T1 (WASI P1) only.
+currently `wasm32` (WASI P1) only.
 
 ### Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`)
 
@@ -142,7 +142,7 @@ or stat-based metadata. These are API contracts awaiting backend support.
 `is_readable_file` and do **not** distinguish file types.
 - `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
 descriptors and are experimental.
-- **T1** (WASI P1) and **T3** (WASI P2) both provide the three base intrinsics
+- **`wasm32`** (WASI P1) and **`wasm32-gc`** (WASI P2) both provide the three base intrinsics
 (`read_file`, `write_file`, `write_bytes`). Directory/metadata capabilities
 are future on both targets.
 
@@ -250,19 +250,19 @@ Structured metadata API contract. Always returns Err(IoError) on current targets
 
 Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
+**Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
 #### `fd_tell`
 
 Return the current file offset for an open file descriptor.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
+**Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
 #### `fd_fdstat_errno`
 
 Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p2 — T1/WASI P1 only.
+**Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
 ## `std::fs`
 
@@ -292,8 +292,8 @@ checks: they succeed only when the same read operation as `read_string` succeeds
 They are not general path-existence or metadata queries. Directories, missing
 paths, and unreadable paths may return `false`.
 
-**T1/T3 availability**: The three base operations (`read_string`, `write_string`,
-`is_readable_file`) are available on both T1 (WASI P1) and T3 (WASI P2) targets.
+**`wasm32` / `wasm32-gc` availability**: The three base operations (`read_string`, `write_string`,
+`is_readable_file`) are available on both `wasm32` (WASI P1) and `wasm32-gc` (WASI P2) targets.
 Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
 supported on any target.
 
@@ -377,7 +377,7 @@ Provides `join`, `normalize`, `parent`, `stem`, `extension`,
 `with_extension`, `file_name`, `is_absolute`, and `components`
 operations that work on plain strings without host I/O.
 
-**Availability:** All targets (T1 + T3). No host capability required.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### Public API
 
@@ -411,14 +411,14 @@ Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> 
 - Manifest-backed functions: 2
 - Stability: stable 2
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host process-control helpers.
 
 Provides process lifecycle operations: graceful exit and immediate abort.
 These APIs are host-bound and require WASI process capability.
 
-**Availability:** All targets (T1 + T3). Requires WASI runtime.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI runtime.
 
 ### Public API
 
@@ -441,14 +441,14 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 - Manifest-backed functions: 5
 - Stability: stable 5
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host environment helpers.
 
 Provides CLI argument access and environment variable lookup backed by
 WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 
-**Availability:** All targets (T1 + T3). Environment variable access
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Environment variable access
 (`var`) requires WASI Preview 2 component model (not available on P1).
 
 ### Public API
@@ -477,7 +477,7 @@ Return the command-line argument at the given zero-based index, or None if out o
 
 Look up an environment variable by name. Returns None if the variable is not set.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Environment variable access requires WASI Preview 2 component model.
+**Availability:** ⚠️ Not available on `wasm32` — Environment variable access requires WASI Preview 2 component model.
 
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
@@ -498,14 +498,14 @@ Return true if the given flag (e.g. "--verbose") was passed as a command-line ar
 - Manifest-backed functions: 2
 - Stability: stable 2
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host clock helpers.
 
 Provides monotonic and wall-clock time reads backed by WASI clock intrinsics.
 Clock reads are host-bound. Pure duration math lives in `std::time`.
 
-**Availability:** All targets (T1 + T3). Requires `--allow-clock` capability.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Requires `--allow-clock` capability.
 
 ### Public API
 
@@ -532,14 +532,14 @@ Return the current wall-clock time in milliseconds since the Unix epoch.
 - Manifest-backed functions: 4
 - Stability: stable 4
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
 
 Host random helpers backed by the current entropy intrinsic.
 
 Provides cryptographically-secure random values from the host entropy source.
 Deterministic seeded utilities live in `std::random`.
 
-**Availability:** All targets (T1 + T3). Requires `--allow-random` capability.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). Requires `--allow-random` capability.
 
 ### Public API
 

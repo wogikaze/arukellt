@@ -7,7 +7,7 @@
 //! `with_extension`, `file_name`, `is_absolute`, and `components`
 //! operations that work on plain strings without host I/O.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::text
 

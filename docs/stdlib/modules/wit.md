@@ -17,7 +17,7 @@ The `std::wit` module exposes WebAssembly Interface Types (WIT) primitive types 
 | `wit_type_id(ty)` / `wit_type_from_id(id)` | Explicit conversions between `WitType` and raw numeric IDs. |
 | `wit_type_name(ty)` | Map a `WitType` value back to its human-readable name. |
 
-**Target constraints:** All targets (T1 + T3). No host capability required.
+**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 **Typical usage:**
 

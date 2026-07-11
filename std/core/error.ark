@@ -5,7 +5,7 @@
 //! `IoError`, `NotFound`, `AlreadyExists`, `PermissionDenied`, `Timeout`,
 //! `WasmError`, and `ComponentError`.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 //!
 //! ## no-sentinel-i32 rule
 //!

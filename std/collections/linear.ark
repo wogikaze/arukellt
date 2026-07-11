@@ -5,7 +5,7 @@
 //! All current implementations are monomorphic `i32` containers backed by
 //! `Vec<i32>`.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 // --- Deque (ring buffer) ---
 pub fn deque_new() -> Vec<i32> {
     let cap: i32 = 16

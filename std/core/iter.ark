@@ -13,7 +13,7 @@
 //! and drained by `collect_i32`. Generic trait definitions are included to
 //! formalise the protocol and enable future generalisation.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 // ---------------------------------------------------------------------------
 // Trait definitions

@@ -16,7 +16,7 @@ The `std::toml` module provides minimal experimental helpers for a **bounded TOM
 | `toml_parse(doc)` | Parse a multi-line document in the supported subset; `Err` on unsupported or malformed lines. |
 | `toml_parse_line(line)` | Legacy single-line filter: pass through `key = value` lines; blank or `#` comment lines become `""`. |
 
-**Target constraints:** All targets (T1 + T3). No host capability required.
+**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 **Typical usage:**
 

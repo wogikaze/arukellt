@@ -115,12 +115,15 @@ Hash (既存)
 Clone (新設, #692)
  └─ Copy: Clone (新設, #692) — marker trait
 Default (新設, #692)
-Display (既存)
- └─ Debug (新設, #696)
-From<T> (新設, #692)
-Into<T>: From (新設, #692) — blanket impl
+Display (既存) — ユーザー向け表示。Debug の supertrait にはしない
+Debug (新設, #696) — 診断・開発者向け。Display と独立
+
+# 変換 trait は独立。Self の向きが逆のため supertrait にしない
+From<T> (新設, #692)   — impl From<Source> for Destination { from }
+Into<T> (新設, #692)   — impl Into<Destination> for Source { into }
 TryFrom<T> (新設, #692)
-TryInto<T>: TryFrom (新設, #692) — blanket impl
+TryInto<T> (新設, #692)
+
 Iterator (新設, #691)
 IntoIterator (新設, #691)
 FromIterator (新設, #691)
@@ -134,6 +137,24 @@ Add/Sub/Mul/Div/Neg/Index/Deref/... (新設, #689)
 
 包含関係を逆転させない（`PartialOrd: Ord` は禁止）。`f64` は `PartialEq` +
 `PartialOrd` のみで、`Eq` / `Ord` は実装しない。
+
+**Blanket implementation（変換）— supertrait ではない:**
+
+```text
+impl<T, U> Into<U> for T where U: From<T> {
+    fn into(self) -> U { U::from(self) }
+}
+
+impl<T, U> TryInto<U> for T where U: TryFrom<T> {
+    type Error = U::Error
+    fn try_into(self) -> Result<U, Self::Error> { U::try_from(self) }
+}
+```
+
+`Into<T>: From` / `TryInto<T>: TryFrom` という supertrait 表記は禁止
+（`From` は変換先、`Into` は変換元に付き、`Self` の向きが逆）。
+
+`Debug` と `Display` は独立。内部構造を出せてもユーザー向け表示を定義したくない型を許す。
 
 ### D5: prelude の thin wrapper 化
 

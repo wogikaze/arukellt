@@ -7,7 +7,7 @@
 //!
 //! Lazy generic `Seq<T>` pipelines are deferred to a future release.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 // ─── Transformation operations ──────────────────────────────────────────────
 /// Apply `f` to every element of `v` and collect the results.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {

@@ -7,7 +7,7 @@ Source-backed docs for TCP socket operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-The `std::host::sockets` module defines TCP socket helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#447](../../../issues/done/447-std-host-sockets-implementation.md) and native WASI P2 sockets by [#139](../../../issues/done/139-std-wasi-sockets-p2.md). Importing this module on T1 (wasm32-wasi-p1) emits E0500.
+The `std::host::sockets` module defines TCP socket helpers (provisional). It is **not user-reachable** on the current selfhost compile path — host bindings are tracked by [#447](../../../issues/done/447-std-host-sockets-implementation.md) and native WASI P2 sockets by [#139](../../../issues/done/139-std-wasi-sockets-p2.md). Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 
 **Recommended API highlights:**
 
@@ -15,7 +15,7 @@ The `std::host::sockets` module defines TCP socket helpers (provisional). It is 
 |-----|---------|
 | `connect(host, port)` | Open a TCP connection; returns `Ok(fd)` or `Err(message)`. |
 
-**Target constraints:** ⚠ **T3 only** — `wasm32-wasi-p2` (component model) required.
+**Target constraints:** ⚠ **`wasm32-gc` only** — WASI P2 / component host profile required.
 
 **Typical usage:**
 
@@ -37,13 +37,13 @@ match sock {
 - Manifest-backed functions: 5
 - Stability: provisional 5
 
-> 🎯 **Target:** `wasm32-wasi-p2` · ⚠️ **T3 only** · ✅ **Status:** implemented
+> 🎯 **Target:** `wasm32-gc` · ⚠️ **`wasm32-gc` only** · ✅ **Status:** implemented
 
 Host TCP socket helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
 [Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.
 
-Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
+Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 
 ### Public API
 
@@ -59,7 +59,7 @@ Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 
 Open a TCP connection to the given hostname and port. Returns a socket descriptor on success.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500.
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 
@@ -74,7 +74,7 @@ match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 
 Read up to max_len bytes from an open socket fd.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500.
 
 **Errors:** Err on invalid fd or I/O failure.
 
@@ -82,7 +82,7 @@ Read up to max_len bytes from an open socket fd.
 
 Write byte values from a Vec to an open socket fd.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#657). Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500.
 
 **Errors:** Err on invalid fd or I/O failure.
 
@@ -90,7 +90,7 @@ Write byte values from a Vec to an open socket fd.
 
 Bind a TCP listener on the given hostname and port. Returns a listener fd on success.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#658). Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500.
 
 **Errors:** Err on bind failure or invalid port.
 
@@ -98,6 +98,6 @@ Bind a TCP listener on the given hostname and port. Returns a listener fd on suc
 
 Accept one inbound TCP connection on a listener fd. Returns connected socket fd.
 
-**Availability:** ⚠️ Not available on wasm32-wasi-p1 — T3 host-linker sockets (#658). Importing on T1 emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500.
 
 **Errors:** Err on invalid listener fd or accept failure.

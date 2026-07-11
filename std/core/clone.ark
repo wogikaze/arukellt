@@ -4,7 +4,7 @@
 //! i64, f64, bool, char) are trivially clonable (copy semantics). `String`
 //! delegates to the existing `__intrinsic_string_clone` intrinsic.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 /// Trait for types that can be duplicated.
 ///

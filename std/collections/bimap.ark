@@ -7,7 +7,7 @@
 //!
 //! Implemented as two parallel hash maps (forward: key→value, reverse: value→key).
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 use std::collections::hash
 

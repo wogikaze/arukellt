@@ -19,7 +19,7 @@ The `std::collections` family provides the primary collection data structures fo
 | `sorted_map_insert` / `sorted_map_get` | Sorted-vector map for ordered iteration. |
 | `bitset_mark` / `bitset_test` | Compact bit-flag set backed by a `Vec<i32>`. |
 
-**Target constraints:** All targets (T1 + T3). No host capability required.
+**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 **Typical usage:**
 
@@ -49,7 +49,7 @@ toolchain use.
 **Stability:** All APIs in this module are **experimental** and may change
 in v4+.
 
-**Availability:** All targets (T1 + T3). No host capability required.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### Arena (bump allocator)
 
@@ -271,7 +271,7 @@ Provides a ring-buffer `Deque` (double-ended queue with `push_back`,
 All current implementations are monomorphic `i32` containers backed by
 `Vec<i32>`.
 
-**Availability:** All targets (T1 + T3). No host capability required.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### Deque (ring buffer)
 
@@ -406,7 +406,7 @@ and `BitSet` (compact bit-flag array).
 **Stability:** `sorted_map_*` and `bitset_new/mark/unmark/test` are stable;
 all other APIs in this module are **experimental**.
 
-**Availability:** All targets (T1 + T3). No host capability required.
+**Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 
 ### Public API
 

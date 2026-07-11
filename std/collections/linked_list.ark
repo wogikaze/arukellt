@@ -5,7 +5,7 @@
 //! node slots. This avoids GC pointer issues while providing true O(1)
 //! operations at both ends.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 //!
 //! ## Layout
 //!

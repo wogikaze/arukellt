@@ -7,7 +7,7 @@
 //! **Stability:** All APIs in this module are **experimental** and may change
 //! in v4+.
 //!
-//! **Availability:** All targets (T1 + T3). No host capability required.
+//! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 // --- Arena (bump allocator) ---
 //
 // Layout of backing Vec<i32>: [count, value_0, value_1, ...]
