@@ -47,9 +47,13 @@ match expr {
 
 `E_source != E_target` のとき:
 
-1. `From<E_source> for E_target` の impl を解決する
+1. canonical `SemanticTraitId::From` の impl を解決する（import 不要）
 2. `return Err(From::from(e))` に脱糖する
 3. impl が無ければ型エラー
+
+`expr?` は language syntax desugaring であり、method-call の trait import 規則に従わない
+（[RFC-004](../rfcs/004-trait-expressiveness.md) §6）。
+名前文字列 `"From"` では解決しない。
 
 `From` trait は #692。最小スコープとして必要な `From` impl のみ先行してもよい。
 

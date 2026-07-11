@@ -70,7 +70,7 @@
 | Section | Entry | Notes |
 |---------|-------|-------|
 | ADR | [adr](adr/README.md) | 設計判断の記録。現行 reality の正本ではない。 |
-| RFC | [rfcs](rfcs/README.md) | 詳細な設計提案・仕様草案。ADR の判断を支える長文。現行 reality の正本ではない。 |
+| RFC | [rfcs](rfcs/README.md) | 詳細な設計提案・仕様草案（design-proposal）。ADR の判断を支える長文。現行 reality の正本ではない。Status 列は各 RFC 文書の DRAFT/ACCEPTED/… を示す（セクション category の Archive とは別）。 |
 | 実装計画 | [plans](plans/README.md) | フェーズ・PR 分割・検証手順などの実装計画。現行 reality の正本ではない。 |
 | 調査メモ | [research](research/README.md) | 設計調査・比較検討。決定記録ではない。関連 ADR から参照する。 |
 | 履歴 | [history](history/README.md) | 過去の到達記録・実装ログ。現行 reality の正本ではない。 |

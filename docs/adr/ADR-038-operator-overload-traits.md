@@ -53,6 +53,12 @@ magic method 面を、#688 の trait method dispatch に基づく
 2. 組み込みスカラー演算（`i32 + i32` → Wasm `i32.add` 等）
 3. 型エラー
 
+演算子構文（`a + b` / `a == b` 等）の trait 解決は **import scope に依存しない**。
+compiler が canonical `SemanticTraitId`（例: `Add`, `PartialEq`）を直接参照する
+（[RFC-004](../rfcs/004-trait-expressiveness.md) §6）。
+`use std::core::ops::Add` の有無で `a + b` の意味が変わってはならない。
+比較演算は ADR-036 のメソッド契約に従い `PartialEq` / `PartialOrd` を参照する。
+
 ### D3: 借用なしの Index / Deref
 
 Arukellt に `&T` がないため、`Index::index` / `Deref::deref` は値返し。

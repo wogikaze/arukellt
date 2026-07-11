@@ -4,7 +4,7 @@
 > 対応 issue 群: #688-#697
 > ステータス: **DRAFT** — 688-697 完了後に実行
 
-本 doc は ADR-036 の決定 (静的ディスパッチ優先 + 大胆切り替え) に基づき、
+本 doc は ADR-036 の決定 (静的ディスパッチ優先 + ADR-014 stability に従う移行) に基づき、
 モジュール別の詳細設計・トレイト階層・移行計画を定義する。
 
 ---
@@ -248,9 +248,9 @@ pub fn clone(s: String) -> String {
     s.clone()   // Clone::clone via trait dispatch
 }
 
-/// String equality — delegates to Eq trait impl
+/// String equality — delegates to PartialEq trait impl
 pub fn eq(a: String, b: String) -> bool {
-    a.eq(b)     // Eq::eq via trait dispatch
+    a.eq(b)     // PartialEq::eq via trait dispatch
 }
 
 /// i32 to string — delegates to Display trait impl
@@ -259,20 +259,25 @@ pub fn i32_to_string(x: i32) -> String {
 }
 ```
 
-### 3.2 prelude から削除する関数 (大胆切り替え)
+### 3.2 prelude から段階削除する関数（ADR-036 D2）
 
-以下のモノモルフィック関数は prelude から **削除** する:
+以下のモノモルフィック関数は、manifest の stability に従って deprecate → 併存 → 削除する
+（stable は 1 リリース以上の deprecation 必須。experimental のみ直接削除可）:
 
 - `Vec_new_i32`, `Vec_new_i64`, `Vec_new_f64`, `Vec_new_String`
   → `Vec::new<T>()` (ジェネリック)
 - `Vec_new_i32_with_cap`, `Vec_new_i64_with_cap`, `Vec_new_f64_with_cap`
   → `Vec::with_capacity<T>(n)`
-- `sort_i32`, `sort_i64`, `sort_f64`, `sort_String`
+- `sort_i32`, `sort_i64`, `sort_String`
   → `v.sort()` (Vec method, Ord bound) または `v.sort_by(cmp)`
+- `sort_f64`
+  → `v.sort_by(total_cmp)`（`f64` は `Ord` ではないため `v.sort()` へ単純置換不可）
 - `map_i32_i32`, `filter_i32`, `fold_i32_i32`, `any_i32`, `find_i32`
   → `v.iter().map(f)...` (Iterator adapter)
 - `Vec_with_capacity_i32`, `Vec_with_capacity_String`
   → `Vec::with_capacity<T>(n)`
+
+既存 `Eq::eq` メソッドは `PartialEq::eq` へ移動する（ADR-036）。`Eq` は marker。
 
 ### 3.3 prelude に追加する型・trait
 
@@ -280,7 +285,7 @@ pub fn i32_to_string(x: i32) -> String {
 
 ```ark
 // prelude に暗黙インポートされる trait (after)
-use std::core::cmp::{Eq, Ord}
+use std::core::cmp::{PartialEq, Eq, PartialOrd, Ord}
 use std::core::clone::Clone
 use std::core::default::Default
 use std::core::convert::{Display, From, Into, TryFrom, TryInto}
@@ -290,9 +295,9 @@ use std::core::ops::{Add, Sub, Mul, Div, Index, Deref}
 use std::core::hash::Hash
 ```
 
-> **注意**: prelude への trait インポートは「trait をスコープに入れる」効果と
-> 「メソッド構文を有効化する」効果の両方を持つ。Arukellt の trait import semantics は
-> #688 で確定させる必要がある。
+> **注意**: prelude への trait インポートは method-call 解決用。
+> 演算子・`?` は canonical SemanticTraitId で解決し import に依存しない（RFC-004 §6）。
+> Arukellt の trait import semantics の詳細は #688 / RFC-004 で確定する。
 
 ---
 
@@ -303,11 +308,16 @@ use std::core::hash::Hash
 ```
 Phase A: 688-697 完了 (言語機能 + trait 定義)
   ↓
-Phase B: stdlib 再構築 (本 doc の設計に従って実装)
+Phase B: 新 trait API を追加 (本 doc の設計に従って実装)
   ↓
-Phase C: モノモルフィック API 削除 + 移行ガイド公開
+Phase C1: 旧 API ごとの stability を manifest から判定
+         stable へ deprecated_by / deprecated_since / remove_in を付与
   ↓
-Phase D: prelude 切り替え + ドキュメント再生成
+Phase C2: 1 リリース以上併存 + W0008 + migration fixture + docs/guide 更新
+  ↓
+Phase C3: remove_in 到達分だけ削除
+  ↓
+Phase D: prelude wrapper と docs を最終化
 ```
 
 ### 4.2 Phase B: stdlib 再構築の実装順序
@@ -318,7 +328,7 @@ trait 間の依存関係に従い、以下の順序で実装する:
 B1. std::core::clone (Clone/Copy)         — #692 trait 定義のみ
 B2. std::core::default (Default)          — #692
 B3. std::core::convert 拡張 (From/Into)   — #692
-B4. std::core::cmp 拡張 (Ord/PartialOrd)  — #695
+B4. std::core::cmp 拡張 (PartialEq/Eq/PartialOrd/Ord)  — #695
 B5. std::core::ops (Add/Index/Deref/...)  — #689
 B6. std::core::iter (Iterator 定義)       — #691
 B7. std::iter (adapter 型 + VecIter)      — #691
@@ -331,9 +341,9 @@ B13. std::io trait ベース再構築            — #693
 B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
 ```
 
-### 4.3 Phase C: 削除対象と [breaking] issue
+### 4.3 Phase C: deprecate → 削除対象と [breaking] issue
 
-以下の `[breaking]` issue を作成する必要がある:
+以下の `[breaking]` issue を作成する必要がある（削除は C3。C1 で deprecation メタデータを付与）:
 
 | 削除対象 | 影響範囲 | 移行先 |
 |---------|---------|--------|
@@ -341,8 +351,10 @@ B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
 | prelude `Vec_new_*` (4関数) | Vec コンストラクタ | `Vec::new<T>()` |
 | prelude `Vec_new_*_with_cap` (3関数) | Vec コンストラクタ | `Vec::with_capacity<T>(n)` |
 | prelude `Vec_with_capacity_*` (2関数) | Vec コンストラクタ | `Vec::with_capacity<T>(n)` |
-| prelude `sort_*` (4関数) | Vec sort | `v.sort()` / `v.sort_by()` |
+| prelude `sort_i32`/`sort_i64`/`sort_String` | Vec sort | `v.sort()` / `v.sort_by()` |
+| prelude `sort_f64` | Vec sort | `v.sort_by(total_cmp)`（`f64: Ord` 不可） |
 | prelude `map_i32_i32`/`filter_i32`/`fold_i32_i32`/`any_i32`/`find_i32` | 高階関数 | Iterator adapter |
+| `Eq::eq` メソッド所有 | 比較 API | `PartialEq::eq`（`Eq` は marker） |
 | `std::io` の `Vec<i32>` alias | Reader/Writer 型 | Read/Write trait + Cursor |
 | `std::core::error` の `Error` enum | error 型名 | `AppError` にリネーム |
 | `std::text::fmt` の `format_i32`/`format_f64`/`pad_left`/`pad_right` | フォーマット | `format!` マクロ |
@@ -355,11 +367,12 @@ B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
 2. **trait ベース API への移行** — before/after コード例
 3. **Vec コンストラクタ** — `Vec_new_i32()` → `Vec::new<i32>()`
 4. **イテレータ** — `map_i32_i32(v, f)` → `v.iter().map(f).collect()`
-5. **ソート** — `sort_i32(v)` → `v.sort()`
-6. **IO** — `reader_from_bytes` → `Cursor::new`
-7. **エラー** — `Error` enum → `AppError` + `Error` trait
-8. **フォーマット** — `format_i32(n)` → `format!("{}", n)`
-9. **prelude 関数の挙動変化** — thin wrapper 化による挙動は不変
+5. **ソート** — `sort_i32(v)` → `v.sort()` / `sort_f64(v)` → `v.sort_by(total_cmp)`
+6. **比較** — `Eq::eq` → `PartialEq::eq`
+7. **IO** — `reader_from_bytes` → `Cursor::new`
+8. **エラー** — `Error` enum → `AppError` + `Error` trait
+9. **フォーマット** — `format_i32(n)` → `format!("{}", n)`
+10. **prelude 関数の挙動変化** — thin wrapper 化による挙動は不変
 
 ---
 
@@ -367,16 +380,17 @@ B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
 
 `std/manifest.toml` の以下のセクションを更新する:
 
-### 5.1 deprecated → removed
+### 5.1 deprecated → remove_in 到達後に削除
 
 ```toml
-# 現在: stability = "deprecated", deprecated_by = "Vec::new<i32>"
-# 移行後: エントリごと削除
+# 現在: stability = "deprecated", deprecated_by = "...", remove_in = "..."
+# remove_in 到達後: エントリごと削除（一括削除しない）
 
-# Vec_new_i32, Vec_new_i64, Vec_new_f64, Vec_new_String — 削除
-# Vec_new_i32_with_cap, Vec_new_i64_with_cap, Vec_new_f64_with_cap — 削除
-# sort_i32, sort_i64, sort_f64, sort_String — 削除
-# map_i32_i32, filter_i32, fold_i32_i32, any_i32, find_i32 — 削除
+# Vec_new_i32, Vec_new_i64, Vec_new_f64, Vec_new_String — C3 で削除
+# Vec_new_i32_with_cap, Vec_new_i64_with_cap, Vec_new_f64_with_cap — C3 で削除
+# sort_i32, sort_i64, sort_String — C3 で削除（v.sort）
+# sort_f64 — C3 で削除（v.sort_by(total_cmp)）
+# map_i32_i32, filter_i32, fold_i32_i32, any_i32, find_i32 — C3 で削除
 ```
 
 ### 5.2 新設 trait エントリ

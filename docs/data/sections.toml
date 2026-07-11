@@ -92,7 +92,7 @@ snapshot = "archive"
 [[sections]]
 dir = "rfcs"
 title = "RFC"
-description = "詳細な設計提案・仕様草案。ADR の判断を支える長文。現行 reality の正本ではない。"
+description = "詳細な設計提案・仕様草案（design-proposal）。ADR の判断を支える長文。現行 reality の正本ではない。Status 列は各 RFC 文書の DRAFT/ACCEPTED/… を示す（セクション category の Archive とは別）。"
 category = "archive"
 snapshot = "archive"
 

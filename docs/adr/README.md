@@ -52,7 +52,7 @@
 |----------|----------|------|
 | [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | ステータス: PROPOSED — wasm32-gc 上の compiler-private GC 表現方針を提案 |
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | ステータス: PROPOSED — #688–#697 後に実行する stdlib 再設計の戦略 |
-| [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | ステータス: PROPOSED — 既存 experimental SIMD API を portable nominal 型と |
+| [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | ステータス: PROPOSED — 既存 experimental SIMD API を portable nominal 型と raw std::wasm::V128 へ再設計・移行する |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | ステータス: PROPOSED — 既存の magic method 面を std::core::ops trait 面へ置換する |
 | [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | ステータス: PROPOSED — 既存の Result ? を前提に、Option / From 拡張を提案 |
 | [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | ステータス: PROPOSED — intrinsic を 5 層に分離し emitter から stdlib 実装を除去する方針を提案 |

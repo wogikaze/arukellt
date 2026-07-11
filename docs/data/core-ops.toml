@@ -1,29 +1,68 @@
-# Core semantic operations registry (SSOT)
-
-ステータス: **scaffold** — ADR-042 D5 が選定した正本ファイル。  
-実装開始時に types / SemanticId / effects / lowering policy / fallback を埋める。
-
-生成物:
-
-- TypeTable 登録（compiler）
-- `std/manifest.toml` の公開 path / docs / stability（または参照）
-- docs / resolver / MIR の semantic 表
-
-手作業で compiler と manifest へ二重登録しない。
-
-```toml
-# Example shape (not yet authoritative entries):
-# [[types]]
-# id = "simd.i32x4"
-# kind = "Simd"
-# lane = "i32"
-# lanes = 4
-# public_path = "std::simd::I32x4"
+# Core semantic operations registry (SSOT) — ADR-042 D5
+# Human-readable overview: docs/compiler/core-ops-registry.md
 #
-# [[ops]]
-# id = "simd.i32x4.add"
-# semantic = "I32x4Add"
-# effect = "pure"
-# lowering = "native_or_scalar"
-# fallback = "std::simd::i32x4::add_scalar"
-```
+# Responsibility split:
+#   this file     — semantic ID, type meaning, effect, lowering, fallback symbol
+#   std/manifest.toml — public path, docs, stability, deprecation (via semantic_id)
+#
+# Fallback values are stable symbol paths (or DefKey after name resolution).
+# Do not store compile-local FunctionId here.
+
+schema_version = 1
+status = "scaffold"
+
+[registry]
+description = "Core semantic operations registry"
+generated_outputs = [
+  "compiler-type-table",
+  "compiler-semantic-ops",
+  "stdlib-manifest-validation",
+  "docs-semantic-table",
+]
+
+# Example scaffold entries (not yet authoritative for codegen).
+# Public paths live only in std/manifest.toml via semantic_id references.
+
+[[types]]
+id = "simd.i32x4"
+kind = "simd"
+lane_type = "i32"
+lanes = 4
+
+[[types]]
+id = "simd.f32x4"
+kind = "simd"
+lane_type = "f32"
+lanes = 4
+
+[[types]]
+id = "simd.mask4"
+kind = "mask"
+lanes = 4
+
+[[operations]]
+id = "simd.i32x4.add"
+effect = "pure"
+may_trap = false
+const_evaluable = true
+inline_policy = "hint"
+lowering_policy = "native_or_fallback"
+fallback_symbol = "std::simd::internal::i32x4_add_scalar"
+
+[[operations]]
+id = "simd.i32x4.sub"
+effect = "pure"
+may_trap = false
+const_evaluable = true
+inline_policy = "hint"
+lowering_policy = "native_or_fallback"
+fallback_symbol = "std::simd::internal::i32x4_sub_scalar"
+
+[[operations]]
+id = "simd.f32x4.add"
+effect = "pure"
+may_trap = false
+const_evaluable = true
+inline_policy = "hint"
+lowering_policy = "native_or_fallback"
+fallback_symbol = "std::simd::internal::f32x4_add_scalar"

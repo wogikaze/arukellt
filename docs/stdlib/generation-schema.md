@@ -41,9 +41,47 @@ These fields are mandatory regardless of role:
 | `module` | string | Fully-qualified module name (`std::core`, `std::host::http`, …). Required for module entries. |
 | `intrinsic` | string | Backing `__intrinsic_*` name. Expected when `kind` is `prelude_wrapper` or `intrinsic_wrapper`. |
 | `prelude` | bool | `true` if auto-imported without an explicit `import`. |
-| `target` | list of strings | Target triples this function is available on. **Must be a list** when present. Required for `host_stub`. |
+| `target` | list of strings | **Legacy single axis.** Prefer `targets` + `host_profiles` + `requires` + `[implementation]` below. When present alone, means language targets (canonical ids: `wasm32`, `wasm32-gc`). Not a target triple. Required for `host_stub` until the multi-axis fields are mandatory. |
+| `targets` | list of strings | Language targets (`wasm32`, `wasm32-gc`, …). Preferred over singular `target`. |
+| `host_profiles` | list of strings | Host profiles (`wasi-p1`, `wasi-p2`, …). Orthogonal to language target (ADR-007). |
+| `requires` | list of strings | Required host capabilities (e.g. `host.stdout`, `host.env`). |
+| `implementation` | table | Per-target coverage: `implemented` / `missing-adapter` / `unimplemented`. |
+| `semantic_id` | string | Reference into `docs/data/core-ops.toml` `[[operations]]` (ADR-042). Public path stays in manifest only. |
+| `type_id` | string | Reference into `docs/data/core-ops.toml` `[[types]]`. |
 | `deprecated_by` | string | Replacement identifier. Signals that this entry is superseded. |
+| `deprecated_since` | string | Release that started deprecation (W0008). |
+| `remove_in` | string | Earliest release that may delete the entry. |
 | `doc` | string | Inline documentation string for the function (currently unused by generator; reserved). |
+
+### Availability axes (design)
+
+Language target, host profile, required capability, and implementation coverage are
+**separate**. Do not encode “wasm32-gc + WASI P2” as a single fake target name.
+
+```toml
+# Example: stdout on both Wasm targets under either host profile
+targets = ["wasm32", "wasm32-gc"]
+host_profiles = ["wasi-p1", "wasi-p2"]
+requires = ["host.stdout"]
+
+[implementation]
+wasm32 = "implemented"
+wasm32-gc = "implemented"
+```
+
+```toml
+# Example: env::var — adapter missing on wasm32
+targets = ["wasm32", "wasm32-gc"]
+host_profiles = ["wasi-p1", "wasi-p2"]
+requires = ["host.env"]
+
+[implementation]
+wasm32 = "missing-adapter"
+wasm32-gc = "implemented"
+```
+
+Generated module pages should not emit a single Target badge for mixed modules.
+Use `Availability: mixed — see individual symbols` when symbols differ.
 
 ---
 
@@ -82,8 +120,10 @@ Enforced by `VALID_KIND_VALUES` in `scripts/gen/generate-docs.py`:
 Entries with `kind = "host_stub"` must additionally provide:
 
 - `module` — the `std::host::*` module they belong to.
-- `target` — a **list** of target triples on which the capability is available
-  (e.g., `["wasm32-gc"]`).
+- `target` **or** `targets` — a **list** of canonical language target ids
+  (e.g. `["wasm32-gc"]`). Prefer the multi-axis fields above when documenting
+  host-profile / capability differences; `target` alone is insufficient for
+  mixed modules.
 
 ---
 

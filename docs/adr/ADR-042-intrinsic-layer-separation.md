@@ -131,15 +131,22 @@ ADR-040 の SignatureEntry に以下を追加する:
 | const evaluable | 可否 |
 | inline policy | never, hint, always |
 | lowering policy | normal call, MIR op, runtime call, target intrinsic |
-| fallback body | Ark 関数の FunctionId |
+| fallback body | 安定 symbol path / DefKey（名前解決後に FunctionId へ変換。FunctionId は永続化しない） |
 
-**宣言の単一正本（SSOT）:** `docs/data/core-ops.toml`（新規。GHC `primops.txt.pp` 方式）。
+**宣言の単一正本（SSOT）:** `docs/data/core-ops.toml`（GHC `primops.txt.pp` 方式）。
+人間向け概要は [`docs/compiler/core-ops-registry.md`](../compiler/core-ops-registry.md)。
 
-- **core-ops.toml** が semantic types / SemanticId / effect / lowering policy / fallback body の正本。
-- **std/manifest.toml** は公開 path・docs・stability・deprecation を持ち、core-ops から生成または参照する。
-- resolver / typechecker / MIR / docs は core-ops（および生成物）から読む。手作業二重登録禁止。
+- **core-ops.toml** が semantic types / SemanticId / effect / lowering policy / fallback symbol の正本。
+- **std/manifest.toml** は公開 path・docs・stability・deprecation の正本であり、
+  `semantic_id` / `type_id` で core-ops を **参照**する（manifest 全体を core-ops から生成しない）。
+- 一つの semantic operation を複数の公開 API から参照してよい
+  （例: `i32.popcount()` と `std::bits::popcount(i32)` が同じ `bits.popcount.i32`）。
+- **public path を core-ops と manifest の両方に書かない。**
+- generator / checker は参照先の存在・signature 互換・effect/lowering 整合・
+  未参照 semantic op・重複 public binding を検査する。
+- resolver / typechecker / MIR / docs は core-ops（および検査済み参照）から読む。手作業二重登録禁止。
 
-移行中は既存 manifest を拡張してよいが、実装開始前に core-ops へ切り替える（本 ADR の D5 決定）。
+移行中は既存 manifest を拡張してよいが、実装開始前に core-ops 参照モデルへ切り替える（本 ADR の D5 決定）。
 
 resolver、typechecker、MIR、docs、runtime ABI 表は SSOT から生成する方針とする。
 現状 `std/manifest.toml` と resolver/typechecker 間に不一致があるため、
@@ -190,7 +197,7 @@ linear-memory 規則を直接露出する場合に限る。
   廃止と prelude 本体の backend 通過。型チェック専用スタブからの移行は
   破壊的変更を伴うため、専用 ADR / RFC が必要。
 - **sealed raw API のモジュール名と公開面**（D4 候補の最終決定）
-- **semantic 宣言 SSOT**: `docs/data/core-ops.toml`（D5 で決定）。manifest は公開面。
+- **semantic 宣言 SSOT**: `docs/data/core-ops.toml`（D5 で決定）。manifest は `semantic_id` で参照する公開面。
 
 ## 等価性検証
 

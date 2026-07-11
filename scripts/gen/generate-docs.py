@@ -1213,15 +1213,17 @@ def render_target_table(state: dict) -> str:
 
 def render_host_profile_table(state: dict) -> str:
     rows = [
-        "| Host profile | Targets | Support Tier | Implementation | Contract Stability | Notes |",
-        "|--------------|---------|--------------|----------------|--------------------|-------|",
+        "| Host profile | Targets | Planned | Support Tier | Implementation | Contract Stability | Notes |",
+        "|--------------|---------|---------|--------------|----------------|--------------------|-------|",
     ]
     for profile in state.get("host_profiles", []):
         targets = ", ".join(f"`{t}`" for t in profile.get("supported_targets", []))
+        planned = ", ".join(f"`{t}`" for t in profile.get("planned_targets", [])) or "—"
         rows.append(
-            "| `{}` | {} | {} | {} | {} | {} |".format(
+            "| `{}` | {} | {} | {} | {} | {} | {} |".format(
                 profile["id"],
                 targets,
+                planned,
                 profile["support_tier"],
                 profile["implementation_state"],
                 profile["contract_stability"],
@@ -1538,7 +1540,16 @@ def render_generic_section_readme(section: dict, entries: list[DocEntry], snapsh
     ]
     lines.extend(snapshot_lines or ["- Current source of truth: [../current-state.md](../current-state.md)"])
     is_archive = section.get("snapshot") == "archive"
-    if is_archive:
+    if section.get("dir") == "rfcs":
+        lines.extend(
+            ["", "## Documents", "", "| File | Title | Status | Summary |", "|------|-------|--------|---------|"]
+        )
+        for entry in entries:
+            status = _rfc_status_for_entry(entry)
+            lines.append(
+                f"| [{entry.rel_path}]({entry.rel_path}) | {escape_table(entry.title)} | {status} | {entry.summary} |"
+            )
+    elif is_archive:
         lines.extend(["", "## Documents", "", "| File | Title | Label | Summary |", "|------|-------|-------|---------|"])
         for entry in entries:
             lines.append(f"| [{entry.rel_path}]({entry.rel_path}) | {escape_table(entry.title)} | Archive | {entry.summary} |")
@@ -1551,6 +1562,10 @@ def render_generic_section_readme(section: dict, entries: list[DocEntry], snapsh
 
 _ADR_STATUS_RE = re.compile(
     r"(?:ステータス|\*\*Status\*\*|Status)\s*[:：]\s*\*?\*?([A-Za-z]+)",
+    re.IGNORECASE,
+)
+_RFC_STATUS_RE = re.compile(
+    r"(?:ステータス|\*\*Status\*\*|Status)\s*[:：]\s*\*?\*?([A-Za-z/_-]+)",
     re.IGNORECASE,
 )
 _ADR_STATUS_SECTIONS = (
@@ -1570,6 +1585,28 @@ def _adr_status_for_entry(entry: DocEntry) -> str:
         m = _ADR_STATUS_RE.search(line)
         if m:
             return m.group(1).upper()
+    return "UNKNOWN"
+
+
+def _rfc_status_for_entry(entry: DocEntry) -> str:
+    """RFC document status (DRAFT/ACCEPTED/...), not section Archive category."""
+    path = DOCS / "rfcs" / entry.rel_path
+    if not path.is_file():
+        return "UNKNOWN"
+    for line in path.read_text(encoding="utf-8").splitlines()[:30]:
+        if "ステータス" not in line and "Status" not in line and "status" not in line:
+            continue
+        for token in ("DRAFT", "ACCEPTED", "SUPERSEDED", "ARCHIVED", "REJECTED"):
+            if token.lower() in line.lower():
+                return token
+        # Japanese prose statuses used by older RFCs
+        if "運用メモ" in line:
+            return "NOTE"
+        if "仕様草案" in line:
+            return "DRAFT"
+        m = _RFC_STATUS_RE.search(line)
+        if m:
+            return m.group(1).upper().strip("*")
     return "UNKNOWN"
 
 

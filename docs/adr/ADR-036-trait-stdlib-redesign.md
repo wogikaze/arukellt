@@ -141,6 +141,45 @@ Add/Sub/Mul/Div/Neg/Index/Deref/... (新設, #689)
 包含関係を逆転させない（`PartialOrd: Ord` は禁止）。`f64` は `PartialEq` +
 `PartialOrd` のみで、`Eq` / `Ord` は実装しない。
 
+**比較 trait のメソッド契約（初期）:**
+
+```ark
+trait PartialEq {
+    fn eq(self, other: Self) -> bool
+
+    // default
+    fn ne(self, other: Self) -> bool {
+        !self.eq(other)
+    }
+}
+
+trait Eq: PartialEq {
+    // marker — メソッドなし
+}
+
+trait PartialOrd: PartialEq {
+    fn partial_cmp(self, other: Self) -> Option<Ordering>
+}
+
+trait Ord: Eq + PartialOrd {
+    fn cmp(self, other: Self) -> Ordering
+}
+```
+
+| 演算子 | 解決先 |
+|--------|--------|
+| `a == b` | `PartialEq::eq` |
+| `a != b` | `PartialEq::ne` |
+| `a < b` / `<=` / `>` / `>=` | `PartialOrd::partial_cmp` から判定 |
+
+これにより ADR-037 の「`F32x4`: PartialEq のみ / `I32x4`: PartialEq + Eq /
+SIMD は PartialOrd を実装しないので `<` 禁止」が自然に導ける。
+
+**破壊的移行（既存 `Eq::eq`）:** 現行 `std::core::cmp::Eq` は `eq` メソッドを持つ。
+本 redesign ではメソッドを `PartialEq` へ移し、`Eq` は marker とする。
+migration table（`docs/stdlib/monomorphic-deprecation.md` および本 redesign 詳細）に
+「`Eq::eq` → `PartialEq::eq`」を追加し、ADR-014 / D2 に従って deprecate → 削除する。
+
 **Blanket implementation（変換）— supertrait ではない:**
 
 ```text

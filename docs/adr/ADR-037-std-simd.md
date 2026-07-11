@@ -1,11 +1,9 @@
 # ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行
 
-ステータス: **PROPOSED** — 既存 experimental SIMD API を portable nominal 型と
-raw `std::wasm::V128` へ再設計・移行する
+ステータス: **PROPOSED** — 既存 experimental SIMD API を portable nominal 型と raw `std::wasm::V128` へ再設計・移行する
 
 提案日: 2026-06-26  
-改訂日: 2026-07-11 — 移行 ADR 化に加え、Eq/PartialEq 分離・`<` 禁止・any_true 分離・
-Mask API 名・ADR-036 D2 例外を確定
+改訂日: 2026-07-11 — 移行 ADR 化に加え、Eq/PartialEq 分離・`<` 禁止・any_true 分離・Mask API 名・ADR-036 D2 例外表現・core-ops 統一を確定
 
 ---
 
@@ -92,7 +90,8 @@ TypeKind::WasmV128                    // std::wasm::V128 のみ
   公開 path → TypeId 解決の後、MIR は TypeId / MirValueType のみを持つ。
 - **不変条件:** 同一の generated CoreTypeSpec（または同等の registry）から
   TypeTable 登録と stdlib 公開情報を生成し、手作業で二重登録しない。
-  ファイル名（`core-types.toml` 等）は ADR-042 / 実装計画で固定してよいが、SSOT は一つ。
+  型エントリの正本は [`docs/data/core-ops.toml`](../data/core-ops.toml) の `[[types]]`
+  （ADR-042 D5）。manifest は `type_id` で参照するのみ。
 
 #### 1.2 Well-formedness（初期 = 128-bit）
 
@@ -121,10 +120,10 @@ LaneBits(lane_type) × lanes = 128
 | raw load/store / relaxed / valtype | `std::wasm` に残置 | 維持（型名は `V128` へ寄せる） |
 | 無印 `v128` 型そのもの | `std::wasm::V128`（raw 専用） | portable 用途から撤退 |
 
-**互換期間（提案）— ADR-036 D2 bold cutover の例外:**
+**互換期間（提案）— ADR-036 D2 より厳しい個別移行:**
 
-本移行は ADR-036 D2 の「deprecated なし一括削除」の **例外** とする。
-SIMD は型 identity と名前空間を変更し、raw/portable の意味分割を伴うため、
+experimental API は直接削除可能という ADR-036 D2 の既定より **厳しい個別移行方針**
+を採用する。SIMD は型 identity と名前空間を変更し、raw/portable の意味分割を伴うため、
 少なくとも 1 リリースの deprecation 期間を設ける。
 
 1. ADR 採択後: 新 API を追加。旧 API に `deprecated_by`（W0008）
@@ -229,8 +228,13 @@ integer add/sub/mul（wrapping）
 bitwise / bit_select / select
 cmp_* → MaskN
 any / all / bitmask
-同幅 from_bits
+同幅 portable from_bits（例）:
+  F32x4::from_bits(I32x4) -> F32x4
+  F32x4::to_bits() -> I32x4
 ```
+
+`I32x4 ↔ V128` は portable reinterpret ではなく raw 境界なので、別の明示 raw cast API とする
+（`std::wasm` 側）。portable `from_bits` は同幅 nominal SIMD 同士に限定する。
 
 初期核に含めない（追加前に RFC-003 改訂が必要）: float min/max、narrowing/widening、
 saturating、shift count mask、float↔int convert、shuffle、relaxed。
@@ -298,7 +302,7 @@ raw 境界固定 + tests。
 8. portable 意味と raw `V128` 操作を型なしに同一 API へ混同しない
 9. const generics / 公開 `Simd<T,N>` を本 ADR で導入しない
 10. raw `V128` の Scalar emulation / WIT stable 公開をしない
-11. ADR-036 D2 を理由に SIMD 旧 API を deprecate なし削除しない
+11. experimental 直接削除の既定を理由に SIMD 旧 API を deprecate なし削除しない（本 ADR の個別移行方針に従う）
 
 ---
 
