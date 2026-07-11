@@ -17,6 +17,7 @@ Routes:
 """
 import argparse
 import http.server
+import json
 import os
 import socketserver
 import sys
@@ -32,6 +33,65 @@ class ViewerHandler(http.server.SimpleHTTPRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=VIEWER_DIR, **kwargs)
+
+    def do_GET(self):
+        path = self.path.split("?", 1)[0].split("#", 1)[0]
+        if path == "/api/tree":
+            self._serve_tree()
+            return
+        super().do_GET()
+
+    def _serve_tree(self):
+        """Return docs/ tree as JSON: [{name, type, path, children?}]."""
+        tree = self._build_tree(DOCS_DIR, "")
+        body = json.dumps(tree).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    # extensions to show in the tree
+    _SHOW_EXTS = {".md", ".html"}
+    # names to always hide
+    _HIDE = {".nojekyll", ".gitignore", "_sidebar.md", "_coverpage.md"}
+
+    def _build_tree(self, abs_dir, rel_prefix):
+        """Recursively build tree entries under abs_dir."""
+        entries = []
+        try:
+            names = sorted(os.listdir(abs_dir))
+        except OSError:
+            return entries
+        for name in names:
+            if name.startswith(".") and name not in self._SHOW_EXTS:
+                continue
+            if name in self._HIDE:
+                continue
+            abs_path = os.path.join(abs_dir, name)
+            rel_path = rel_prefix + name
+            if os.path.isdir(abs_path):
+                children = self._build_tree(abs_path, rel_path + "/")
+                # skip empty dirs
+                if not children:
+                    continue
+                entries.append({
+                    "name": name,
+                    "type": "dir",
+                    "path": rel_path,
+                    "children": children,
+                })
+            elif os.path.isfile(abs_path):
+                ext = os.path.splitext(name)[1].lower()
+                if ext not in self._SHOW_EXTS:
+                    continue
+                entries.append({
+                    "name": name,
+                    "type": "file",
+                    "path": rel_path,
+                })
+        return entries
 
     def translate_path(self, path):
         # Strip query string.

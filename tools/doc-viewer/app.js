@@ -4,18 +4,18 @@
  *   #/docs/<path-without-.md>  ->  fetch /docs/<path>.md  and render
  *   #/                          ->  /docs/README.md
  *
- * Sidebar: built from /docs/_sidebar.md (docsify-compatible link format
- *   like #/README, #/compiler/README) — rewritten to #/docs/<...>.
+ * Sidebar: built from /api/tree (server-side directory listing of docs/).
+ *   Directories are expandable/collapsible. Files (.md, .html) are links.
+ *   The active file is highlighted and its parent dirs auto-expanded.
  *
- * Search: lazily builds an in-memory index of all .md files referenced
- *   from the sidebar (plus their sub-links discovered by scanning the
- *   rendered content). Plain substring match on raw markdown text.
+ * Search: lazily builds an in-memory index of all .md files from the tree.
+ *   Plain substring match on raw markdown text.
  */
 (function () {
   "use strict";
 
   const DOCS_PREFIX = "/docs/";
-  const SIDEBAR_URL = DOCS_PREFIX + "_sidebar.md";
+  const TREE_URL = "/api/tree";
   const HOME_ROUTE = "/docs/README";
 
   const contentEl = document.getElementById("content");
@@ -25,8 +25,7 @@
   const sidebarEl = document.getElementById("sidebar");
   const menuToggle = document.getElementById("menu-toggle");
 
-  // Configure marked: GFM tables, line breaks.
-  // (headerIds/mangle were removed in marked v12; we assign ids manually.)
+  // Configure marked: GFM tables.
   marked.setOptions({ gfm: true, breaks: false });
 
   // ---------- route helpers ----------
@@ -37,25 +36,19 @@
   }
 
   function routeToUrl(route) {
-    // route like "/docs/compiler/README" -> "/docs/compiler/README.md"
     if (route.endsWith(".md")) return route;
+    if (route.endsWith(".html")) return route;
     return route + ".md";
   }
 
-  function navigate(route) {
-    if (window.location.hash !== "#/" + route) {
-      window.location.hash = "#/" + route;
-    } else {
-      renderRoute(route);
-    }
-  }
-
-  // ---------- sidebar ----------
-  let sidebarLoaded = false;
-  // all doc routes discovered from sidebar + content, for search
+  // ---------- state ----------
+  let treeData = null;
+  // all doc routes discovered from tree, for search
   const knownRoutes = new Set();
   // raw markdown cache: route -> text
   const mdCache = new Map();
+  // collapsed dirs: Set of dir paths
+  const collapsedDirs = new Set();
 
   async function fetchText(url) {
     const res = await fetch(url);
@@ -63,95 +56,229 @@
     return res.text();
   }
 
-  function rewriteSidebarLinks(root) {
-    // docsify sidebar links: #/README, #/compiler/README, #/overview.html
-    // -> #/docs/README, #/docs/compiler/README, #/docs/overview.html
-    root.querySelectorAll("a[href]").forEach((a) => {
-      const href = a.getAttribute("href") || "";
-      if (href.startsWith("#/")) {
-        const tail = href.slice(2);
-        a.setAttribute("href", "#/docs/" + tail);
-        const route = "/docs/" + tail.replace(/\.md$/, "");
+  async function fetchJson(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status + " for " + url);
+    return res.json();
+  }
+
+  // ---------- tree ----------
+  function collectRoutes(nodes) {
+    nodes.forEach((n) => {
+      if (n.type === "file") {
+        const route = "/docs/" + n.path.replace(/\.md$/, "");
         knownRoutes.add(route);
       }
-    });
-  }
-
-  function buildSidebarTree(sidebarHtml) {
-    // _sidebar.md uses bullet groups like:
-    //   - **Group**
-    //     - [Label](#/path)
-    // marked renders these as nested <ul><li><a>. We walk the top-level
-    // <ul> and detect group headers (bold text in <strong>).
-    const tmp = document.createElement("div");
-    tmp.innerHTML = sidebarHtml;
-    rewriteSidebarLinks(tmp);
-
-    sidebarNav.innerHTML = "";
-    const uls = tmp.querySelectorAll("ul");
-    if (uls.length === 0) {
-      sidebarNav.innerHTML = '<div style="padding:14px 18px;color:var(--muted)">サイドバーが空です</div>';
-      return;
-    }
-
-    const topUl = uls[0];
-    const out = document.createElement("ul");
-    topUl.childNodes.forEach((li) => {
-      if (li.nodeType !== 1) return;
-      if (li.tagName.toLowerCase() !== "li") return;
-      // group header: contains <strong> as direct text
-      const strong = li.querySelector(":scope > strong");
-      const anchor = li.querySelector(":scope > a");
-      if (strong && !anchor) {
-        const title = document.createElement("li");
-        title.className = "group-title";
-        title.textContent = strong.textContent;
-        out.appendChild(title);
-        // nested ul
-        const nested = li.querySelector(":scope > ul");
-        if (nested) {
-          nested.childNodes.forEach((sub) => {
-            if (sub.nodeType !== 1 || sub.tagName.toLowerCase() !== "li") return;
-            const a = sub.querySelector("a");
-            if (!a) return;
-            const wrap = document.createElement("li");
-            wrap.className = "indent";
-            wrap.appendChild(a.cloneNode(true));
-            out.appendChild(wrap);
-          });
-        }
-      } else if (anchor) {
-        const wrap = document.createElement("li");
-        wrap.appendChild(anchor.cloneNode(true));
-        out.appendChild(wrap);
+      if (n.type === "dir" && n.children) {
+        collectRoutes(n.children);
       }
     });
-    sidebarNav.appendChild(out);
   }
 
-  async function loadSidebar() {
-    if (sidebarLoaded) return;
+  function routeToFilePath(route) {
+    // route like "/docs/compiler/README" -> "compiler/README.md"
+    return route.replace(/^\/docs\//, "") + ".md";
+  }
+
+  function filePathToRoute(filePath) {
+    return "/docs/" + filePath.replace(/\.md$/, "");
+  }
+
+  function isAncestorDir(dirPath, filePath) {
+    // dirPath like "compiler", filePath like "compiler/README.md"
+    return filePath.startsWith(dirPath + "/");
+  }
+
+  function buildTreeHtml(nodes, level) {
+    const ul = document.createElement("ul");
+    ul.className = "tree-level-" + level;
+    nodes.forEach((n) => {
+      const li = document.createElement("li");
+      li.className = "tree-node";
+      if (n.type === "dir") {
+        const hasMdChild = hasMdInTree(n.children);
+        if (!hasMdChild) return; // skip dirs with no .md/.html
+
+        const row = document.createElement("div");
+        row.className = "tree-row tree-dir-row";
+        const chevron = document.createElement("span");
+        chevron.className = "tree-chevron";
+        chevron.textContent = "▶";
+        const label = document.createElement("span");
+        label.className = "tree-dir-label";
+        label.textContent = n.name;
+        row.appendChild(chevron);
+        row.appendChild(label);
+        li.appendChild(row);
+
+        const childUl = buildTreeHtml(n.children, level + 1);
+        childUl.style.display = "none"; // collapsed by default
+        li.appendChild(childUl);
+
+        row.addEventListener("click", () => {
+          const expanded = childUl.style.display !== "none";
+          childUl.style.display = expanded ? "none" : "";
+          chevron.classList.toggle("expanded", !expanded);
+          if (!expanded) {
+            collapsedDirs.delete(n.path);
+          } else {
+            collapsedDirs.add(n.path);
+          }
+        });
+      } else {
+        // file
+        const route = filePathToRoute(n.path);
+        const a = document.createElement("a");
+        a.className = "tree-row tree-file-row";
+        a.href = "#/" + route;
+        a.setAttribute("data-route", route);
+        const icon = document.createElement("span");
+        icon.className = "tree-file-icon";
+        icon.textContent = "📄";
+        const label = document.createElement("span");
+        label.className = "tree-file-label";
+        // strip .md extension for display
+        label.textContent = n.name.replace(/\.md$/, "");
+        a.appendChild(icon);
+        a.appendChild(label);
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  function hasMdInTree(nodes) {
+    if (!nodes) return false;
+    for (const n of nodes) {
+      if (n.type === "file") return true;
+      if (n.type === "dir" && hasMdInTree(n.children)) return true;
+    }
+    return false;
+  }
+
+  function autoExpandForRoute(route) {
+    // route like "/docs/compiler/README" -> filePath "compiler/README.md"
+    const filePath = routeToFilePath(route);
+    // walk tree, expand all ancestor dirs
+    function walk(nodes) {
+      let found = false;
+      nodes.forEach((n) => {
+        if (n.type === "dir") {
+          if (isAncestorDir(n.path, filePath) || n.path + "/" + "README.md" === filePath) {
+            found = true;
+          }
+          if (n.children && walk(n.children)) {
+            // expand this dir
+            found = true;
+          }
+        }
+        if (n.type === "file" && n.path === filePath) {
+          found = true;
+        }
+      });
+      return found;
+    }
+    // Actually simpler: just expand all dirs that are prefixes of filePath
+    function expandAncestors(nodes) {
+      nodes.forEach((n) => {
+        if (n.type === "dir") {
+          if (isAncestorDir(n.path, filePath)) {
+            collapsedDirs.delete(n.path);
+          }
+          if (n.children) expandAncestors(n.children);
+        }
+      });
+    }
+    expandAncestors(treeData);
+  }
+
+  function applyCollapseState(ul) {
+    // After building or rebuilding, hide collapsed dirs
+    ul.querySelectorAll(".tree-dir-row").forEach((row) => {
+      const li = row.parentElement;
+      const childUl = li.querySelector(":scope > ul");
+      if (!childUl) return;
+      // find dir path from the label
+      const label = row.querySelector(".tree-dir-label").textContent;
+      // we need the path — store it on the row
+    });
+  }
+
+  function renderSidebarTree() {
+    if (!treeData) return;
+    sidebarNav.innerHTML = "";
+    const tree = buildTreeHtml(treeData, 0);
+    sidebarNav.appendChild(tree);
+  }
+
+  function highlightActive(route) {
+    const target = "#/" + route;
+    sidebarNav.querySelectorAll(".tree-file-row").forEach((a) => {
+      const r = a.getAttribute("data-route");
+      a.classList.toggle("active", r === route);
+    });
+  }
+
+  function expandAncestorsInDom(route) {
+    // Walk DOM tree, expand all dirs that are ancestors of the active file
+    const filePath = routeToFilePath(route);
+    function walk(ul) {
+      ul.querySelectorAll(":scope > li").forEach((li) => {
+        const row = li.querySelector(":scope > .tree-dir-row");
+        if (!row) return;
+        const dirPath = row.getAttribute("data-path");
+        if (!dirPath) return;
+        const childUl = li.querySelector(":scope > ul");
+        if (!childUl) return;
+        if (isAncestorDir(dirPath, filePath)) {
+          childUl.style.display = "";
+          const chev = row.querySelector(".tree-chevron");
+          if (chev) chev.classList.add("expanded");
+        } else if (!collapsedDirs.has(dirPath)) {
+          // not an ancestor — respect collapsed state (default collapsed)
+        }
+        walk(childUl);
+      });
+    }
+    walk(sidebarNav);
+  }
+
+  async function loadTree() {
+    if (treeData) return;
     try {
-      const md = await fetchText(SIDEBAR_URL);
-      const html = marked.parse(md);
-      buildSidebarTree(html);
-      sidebarLoaded = true;
+      treeData = await fetchJson(TREE_URL);
+      collectRoutes(treeData);
+      renderSidebarTree();
+      // store dir paths on rows for later lookup
+      storeDirPaths(sidebarNav, treeData, "");
     } catch (e) {
       sidebarNav.innerHTML =
-        '<div style="padding:14px 18px;color:#b00020">サイドバー読み込み失敗: ' +
+        '<div style="padding:14px 18px;color:#b00020">ツリー読み込み失敗: ' +
         e.message + "</div>";
     }
   }
 
-  function highlightActive(route) {
-    const target = "#/docs/" + route.replace(/^\/docs\//, "").replace(/\.md$/, "");
-    sidebarNav.querySelectorAll("a").forEach((a) => {
-      const href = a.getAttribute("href") || "";
-      a.classList.toggle("active", href === target);
+  function storeDirPaths(root, nodes, parentPath) {
+    // Attach data-path to each dir row so expandAncestorsInDom can find them
+    const rows = root.querySelectorAll(":scope > li > .tree-dir-row");
+    let i = 0;
+    nodes.forEach((n) => {
+      if (n.type === "dir" && hasMdInTree(n.children)) {
+        const row = rows[i];
+        if (row) {
+          row.setAttribute("data-path", n.path);
+          const childUl = row.parentElement.querySelector(":scope > ul");
+          if (childUl && n.children) {
+            storeDirPaths(childUl, n.children, n.path);
+          }
+        }
+        i++;
+      }
     });
   }
 
-  // ---------- heading ids + page TOC ----------
+  // ---------- heading ids ----------
   function slugify(text) {
     return text.toLowerCase()
       .replace(/[^\w\s-]/g, "")
@@ -178,56 +305,14 @@
     });
   }
 
-  function clearPageToc() {
-    const existing = sidebarNav.querySelector(".page-toc");
-    if (existing) existing.remove();
-  }
-
-  function renderPageToc() {
-    clearPageToc();
-    const headings = contentEl.querySelectorAll("h2, h3");
-    if (headings.length === 0) return;
-
-    const toc = document.createElement("ul");
-    toc.className = "page-toc";
-
-    const title = document.createElement("li");
-    title.className = "group-title";
-    title.textContent = "このページの目次";
-    toc.appendChild(title);
-
-    headings.forEach((h) => {
-      const li = document.createElement("li");
-      li.className = "toc-item";
-      if (h.tagName === "H3") li.classList.add("toc-deep");
-      const a = document.createElement("a");
-      a.href = "#" + h.id;
-      a.textContent = h.textContent;
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        const target = document.getElementById(h.id);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      });
-      li.appendChild(a);
-      toc.appendChild(li);
-    });
-
-    // Insert at top of sidebar nav, before the section list.
-    sidebarNav.insertBefore(toc, sidebarNav.firstChild);
-  }
-
   // ---------- content rendering ----------
   function rewriteContentLinks(root, baseRoute) {
-    // Relative .md links inside content: resolve against baseRoute dir.
-    // e.g. in /docs/compiler/README, a link to "pipeline.md" -> #/docs/compiler/pipeline
     const baseDir = baseRoute.replace(/\/[^/]*$/, "/");
     root.querySelectorAll("a[href]").forEach((a) => {
       const href = a.getAttribute("href") || "";
       if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return; // external
       if (href.startsWith("#") && !href.startsWith("#/")) {
-        // in-page anchor: intercept to avoid hash-routing conflict
+        // in-page anchor
         a.addEventListener("click", (e) => {
           const id = href.slice(1);
           const target = document.getElementById(id);
@@ -239,7 +324,6 @@
         return;
       }
       if (href.startsWith("#/")) {
-        // docsify-style absolute hash link
         const tail = href.slice(2);
         a.setAttribute("href", "#/docs/" + tail);
         knownRoutes.add("/docs/" + tail.replace(/\.md$/, ""));
@@ -281,7 +365,7 @@
     addHeadingIds(contentEl);
     rewriteContentLinks(contentEl, route);
     highlightActive(route);
-    renderPageToc();
+    expandAncestorsInDom(route);
 
     // breadcrumb
     const bc = document.createElement("div");
@@ -299,16 +383,8 @@
     });
     contentEl.insertBefore(bc, contentEl.firstChild);
 
-    // scroll to top (or to anchor)
     document.querySelector(".main").scrollTop = 0;
-    if (window.location.hash.includes("#") && route.includes("#")) {
-      // in-page anchor handled by browser
-    }
-
-    // close mobile sidebar on navigation
     sidebarEl.classList.remove("open");
-
-    // register discovered sub-routes for search
     knownRoutes.add(route);
   }
 
@@ -319,24 +395,18 @@
   async function buildSearchIndex() {
     if (searchIndexBuilt || buildingIndex) return;
     buildingIndex = true;
-    // gather routes: sidebar already populated knownRoutes with top-level.
-    // Also scan each loaded doc for relative .md links to discover more.
     const queue = Array.from(knownRoutes);
     const seen = new Set();
     while (queue.length) {
       const r = queue.shift();
       if (seen.has(r)) continue;
       seen.add(r);
-      if (!r.endsWith(".md") && !r.endsWith(".html")) {
-        // fetch as .md
-      }
-      const url = r.endsWith(".md") ? DOCS_PREFIX + r.replace(/^\/docs\//, "") : routeToUrl(r);
+      const url = routeToUrl(r);
       try {
         if (!mdCache.has(r)) {
           const text = await fetchText(url);
           mdCache.set(r, text);
         }
-        // discover relative .md links in this text
         const linkRe = /\]\(([^)]+\.md)\)/g;
         let m;
         const baseDir = r.replace(/\/[^/]*$/, "/");
@@ -431,7 +501,6 @@
     sidebarEl.classList.toggle("open");
   });
 
-  // hash routing
   function onHashChange() {
     const route = currentRoute();
     renderRoute(route);
@@ -440,11 +509,8 @@
 
   // ---------- boot ----------
   (async function boot() {
-    await loadSidebar();
+    await loadTree();
     const route = currentRoute();
-    if (route === HOME_ROUTE && (window.location.hash === "" || window.location.hash === "#" || window.location.hash === "#/")) {
-      // ensure URL reflects home
-    }
     renderRoute(route);
   })();
 })();
