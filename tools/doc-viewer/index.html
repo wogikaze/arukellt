@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arukellt Docs Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <button class="menu-toggle" id="menu-toggle">☰ メニュー</button>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <span class="brand"><a href="#/docs/README">Arukellt Docs</a></span>
+      </div>
+      <div class="search-box">
+        <input type="search" id="search-input" placeholder="全文検索…" autocomplete="off">
+      </div>
+      <div class="search-results" id="search-results" style="display:none"></div>
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <div style="padding:14px 18px;color:var(--muted);font-size:13px">サイドバーを読み込み中…</div>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="content" id="content">
+        <div class="loading"></div>
+      </div>
+    </main>
+  </div>
+  <script src="vendor/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
