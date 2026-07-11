@@ -17,4 +17,3 @@
 | [abi-reference.md](abi-reference.md) | WIT 型マッピング対応表 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [abi.md](abi.md) | 公開 ABI 方針 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [target-runtime-and-surfaces.md](target-runtime-and-surfaces.md) | ターゲット実行面・検証・capability（現行） | ステータス: 現行挙動メモ（決定記録ではない） |
-| [wasi-resource-model.md](wasi-resource-model.md) | Archived WASI resource model | この文書は、過去に検討していた capability-first な WASI API 設計メモです。 |

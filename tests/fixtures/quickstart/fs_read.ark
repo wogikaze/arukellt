@@ -1,0 +1,10 @@
+use std::host::fs
+use std::host::stdio
+
+fn main() {
+    let r = fs::read_to_string("tests/fixtures/quickstart/fs_read_input.txt")
+    match r {
+        Ok(content) => stdio::print(content),
+        Err(e) => stdio::println(e),
+    }
+}

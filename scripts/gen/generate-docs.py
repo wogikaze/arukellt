@@ -47,6 +47,7 @@ FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
 FIXTURES_DIR = ROOT / "tests" / "fixtures"
 SCOREBOARD_LOW_COVERAGE_THRESHOLD = 50
 LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
+CLI_SURFACE_TOML = DATA / "cli-surface.toml"
 SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 MONOMORPHIC_DEPRECATION = ROOT / "docs" / "stdlib" / "monomorphic-deprecation.md"
@@ -77,7 +78,11 @@ VALID_KIND_VALUES: frozenset[str] = frozenset(
 
 # Extra required fields per `kind` value:
 FUNCTION_KIND_REQUIRED: dict[str, tuple[str, ...]] = {
-    "host_stub": ("module", "target"),
+    "host_stub": ("module",),
+}
+# Fields where at least one of the listed alternatives must be present:
+FUNCTION_KIND_REQUIRE_ONE_OF: dict[str, tuple[str, ...]] = {
+    "host_stub": ("target", "targets"),
 }
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -897,6 +902,13 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
                     violations.append(
                         f"{label}: kind='{kind}' requires field '{field}'"
                     )
+        # 5b. kind-specific require-one-of fields (e.g. target | targets)
+        if kind in FUNCTION_KIND_REQUIRE_ONE_OF:
+            alternatives = FUNCTION_KIND_REQUIRE_ONE_OF[kind]
+            if not any(alt in entry for alt in alternatives):
+                violations.append(
+                    f"{label}: kind='{kind}' requires at least one of: {', '.join(alternatives)}"
+                )
 
     return violations
 
@@ -1314,17 +1326,19 @@ def render_target_table(state: dict) -> str:
 
 def render_host_profile_table(state: dict) -> str:
     rows = [
-        "| Host profile | Targets | Planned | Support Tier | Implementation | Contract Stability | Notes |",
-        "|--------------|---------|---------|--------------|----------------|--------------------|-------|",
+        "| Host profile | Targets | Planned | Rejected | Support Tier | Implementation | Contract Stability | Notes |",
+        "|--------------|---------|---------|----------|--------------|----------------|--------------------|-------|",
     ]
     for profile in state.get("host_profiles", []):
         targets = ", ".join(f"`{t}`" for t in profile.get("supported_targets", []))
         planned = ", ".join(f"`{t}`" for t in profile.get("planned_targets", [])) or "—"
+        rejected = ", ".join(f"`{t}`" for t in profile.get("rejected_targets", [])) or "—"
         rows.append(
-            "| `{}` | {} | {} | {} | {} | {} | {} |".format(
+            "| `{}` | {} | {} | {} | {} | {} | {} | {} |".format(
                 profile["id"],
                 targets,
                 planned,
+                rejected,
                 profile["support_tier"],
                 profile["implementation_state"],
                 profile["contract_stability"],
@@ -1402,6 +1416,9 @@ def render_current_state_updated(state: dict) -> str:
     if full_only:
         blocking.append(f"{len(full_only)} additional full-verification blocker group(s)")
     blocking_line = ", ".join(blocking) if blocking else "none"
+    # Distinguish failing checks from distinct incidents
+    distinct_incidents = len(blockers)
+    failing_checks = distinct_incidents  # each blocker row is one incident
     return "\n".join(
         [
             f"> Updated: {updated}.",
@@ -1410,6 +1427,7 @@ def render_current_state_updated(state: dict) -> str:
             f"> Verification-Command: `{cmd}`",
             f"> Release-Readiness: **{readiness}**",
             f"> Blocking: {blocking_line}",
+            f"> Distinct incidents: {distinct_incidents} (each blocker row = one incident; multiple checks may track the same incident)",
         ]
     )
 
@@ -1518,6 +1536,49 @@ def render_current_state_diagnostics(state: dict) -> str:
             f"- `{diagnostic['code']}`: {diagnostic['summary']} ({diagnostic['severity']}, `{diagnostic['phase']}`)"
         )
     lines.append("- Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`")
+    return "\n".join(lines)
+
+
+def render_current_state_cli_surface() -> str:
+    """Render CLI command table from cli-surface.toml with all three axes."""
+    cli_data = tomllib.loads(CLI_SURFACE_TOML.read_text(encoding="utf-8"))
+    commands = cli_data.get("commands", [])
+    lines = [
+        "## CLI Command Surface",
+        "",
+        "The `arukellt` binary exposes the following subcommands.",
+        "Generated from [`data/cli-surface.toml`](data/cli-surface.toml).",
+        "",
+        "| Command | Description | Presence | Contract | Implementation |",
+        "|---------|-------------|:--------:|:--------:|:--------------:|",
+    ]
+    # Implementation state badges
+    impl_badge = {
+        "functional": "✅ functional",
+        "limited": "⚠️ limited",
+        "scaffold": "🔧 scaffold",
+        "unavailable": "🚫 unavailable",
+        "unknown": "❓ unknown",
+    }
+    contract_badge = {
+        "stable": "stable",
+        "provisional": "provisional",
+        "experimental": "experimental",
+    }
+    for cmd in commands:
+        if cmd.get("presence") != "present":
+            continue
+        impl = impl_badge.get(cmd.get("implementation_state", "unknown"), "❓ unknown")
+        contract = contract_badge.get(cmd.get("contract_stability", ""), cmd.get("contract_stability", ""))
+        lines.append(
+            f"| `arukellt {cmd['id']}` | {cmd.get('summary', '')} | present | {contract} | {impl} |"
+        )
+    lines.append("")
+    lines.append("> **Axis legend:** Presence = subcommand exists in binary. "
+                 "Contract = CLI contract maturity (stable/provisional/experimental). "
+                 "Implementation = runtime behavior (functional/limited/scaffold/unavailable).")
+    lines.append("> A `stable` contract with `unavailable` implementation means the command name "
+                 "is stable but the feature is not yet working.")
     return "\n".join(lines)
 
 
@@ -3679,6 +3740,7 @@ def main() -> int:
             "CURRENT_STATE_TEST_HEALTH": render_current_state_test_health(state, fixture_total),
             "CURRENT_STATE_PERF": render_current_state_perf(state),
             "CURRENT_STATE_DIAGNOSTICS": render_current_state_diagnostics(state),
+            "CURRENT_STATE_CLI_SURFACE": render_current_state_cli_surface(),
         },
         args.check,
         stale,

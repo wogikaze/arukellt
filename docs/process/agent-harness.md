@@ -12,20 +12,24 @@ This is a short pointer document for developers and agents working in this repos
 ## Verification Loop
 
 ```bash
-python3 scripts/manager.py verify --quick
+python3 scripts/manager.py verify quick
 ```
 
 All verification is routed through `scripts/manager.py`.
 
 ### Verify subcommands
 
+> **Canonical grammar:** positional subcommand (`verify quick`, `verify fixtures`).
+> Flag aliases (`verify --quick`, `verify --fixtures`) are accepted for backward
+> compatibility but the positional form is preferred in documentation.
+
 ```bash
-python3 scripts/manager.py verify --quick       # fast local gate (default)
-python3 scripts/manager.py verify --fixtures    # fixture harness
-python3 scripts/manager.py verify --size        # hello.wasm size gate
-python3 scripts/manager.py verify --wat         # WAT roundtrip
-python3 scripts/manager.py verify --component   # component interop
-python3 scripts/manager.py verify --full        # all of the above
+python3 scripts/manager.py verify quick       # fast local gate (default)
+python3 scripts/manager.py verify fixtures    # fixture harness
+python3 scripts/manager.py verify size        # hello.wasm size gate
+python3 scripts/manager.py verify wat         # WAT roundtrip
+python3 scripts/manager.py verify component   # component interop
+python3 scripts/manager.py verify --full      # all of the above
 ```
 
 ### Other domains

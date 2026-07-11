@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let s1 = String_from("hello")
+    let s2 = String_from(" world")
+    let s3 = concat(s1, s2)
+    stdio::println(s3)
+
+    let sub = slice(s3, 0, 5)
+    stdio::println(sub)
+}

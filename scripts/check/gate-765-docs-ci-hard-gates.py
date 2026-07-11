@@ -351,8 +351,14 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
     budgets = skip_cfg.get("budgets", [])
     require_structured = bool(skip_cfg.get("require_structured", False))
     require_expires = bool(skip_cfg.get("require_expires", False))
+    global_max = skip_cfg.get("global_max")
+    global_ratchet = skip_cfg.get("global_ratchet_max")
+    require_all_budgeted = bool(skip_cfg.get("require_all_budgeted", False))
+    budgeted_paths = set()
+    total_count = 0
     for entry in budgets:
         path = REPO / entry["path"]
+        budgeted_paths.add(entry["path"])
         max_n = int(entry["max"])
         ratchet = entry.get("ratchet_max")
         if ratchet is not None and max_n > int(ratchet):
@@ -366,6 +372,7 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
         text = path.read_text(encoding="utf-8")
         matches = list(SKIP_RE.finditer(text))
         n = len(matches)
+        total_count += n
         if n > max_n:
             failures.append(
                 f"skip-doc-check budget exceeded in {entry['path']}: {n} > {max_n}"
@@ -393,6 +400,29 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
 
     if not require_structured:
         return
+
+    # Global ceiling check
+    if global_max is not None and total_count > int(global_max):
+        failures.append(
+            f"skip-doc-check global ceiling exceeded: {total_count} > {global_max}"
+        )
+    if global_ratchet is not None and global_max is not None and int(global_max) > int(global_ratchet):
+        failures.append(
+            f"skip-doc-check global ratchet violated: global_max={global_max} > "
+            f"global_ratchet_max={global_ratchet} (ceiling may only decrease)"
+        )
+
+    # Unbudgeted file detection
+    if require_all_budgeted:
+        for path in sorted((REPO / "docs").rglob("*.md")):
+            rel_path = rel(path)
+            text = path.read_text(encoding="utf-8")
+            matches = list(SKIP_RE.finditer(text))
+            if matches and rel_path not in budgeted_paths:
+                failures.append(
+                    f"skip-doc-check in unbudgeted file: {rel_path} ({len(matches)} skips, "
+                    f"no budget entry in docs-gate-config.toml)"
+                )
 
     for path in sorted((REPO / "docs").rglob("*.md")):
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):

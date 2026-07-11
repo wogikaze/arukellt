@@ -2710,3 +2710,12 @@ t4-compile:t4/native_scaffold.ark
 # ADR-041 in-file test syntax fixtures
 t3-compile:test_syntax/basic.ark
 compile-error:test_syntax/body_type_error.ark
+
+# Quickstart fixtures (docs/quickstart.md)
+run:quickstart/hello.ark
+run:quickstart/basic_types.ark
+run:quickstart/vec_basic.ark
+run:quickstart/string_basic.ark
+run:quickstart/option_result.ark
+run:quickstart/fs_read.ark
+run:quickstart/clock_random.ark

@@ -34,29 +34,33 @@
 The release-blocker set is exactly the checks with `release_blocking = true` below.
 No supplemental lists.
 
-| Check ID | Guarantee | Blocking | In full | In quick | Current | Evidence | Affected | Last verified | Command |
-|----------|-----------|:--------:|:-------:|:--------:|---------|----------|---------:|---------------|---------|
-| `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
-| `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
-| `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
-| `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | `fixture-set` | 367 | `89eb5eb4` | `python3 scripts/manager.py verify fixtures` |
-| `check_determinism` | `determinism` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `bash scripts/check/check-release-determinism.sh` |
-| `check_no_panic` | `no_panic_user_paths` | 🔴 yes | ✓ | — | ✅ pass | `static-scan` | — | `a80b4181` | `bash scripts/check/check-panic-audit.sh` |
-| `check_cli_check` | `cli_check` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py check` |
-| `check_cli_init` | `cli_init` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `python3 scripts/check/check-init-templates.py` |
-| `check_cli_doc` | `cli_doc` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `python3 scripts/check/check-manifest-doc.py` |
-| `check_cli_help` | `cli_help` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py help` |
-| `check_close_gate_076` | — | 🔴 yes | — | ✓ | ❌ fail | `smoke` | 1 | `89eb5eb4` | `python3 scripts/check/check-false-done-close-gates.py` |
-| `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ❌ fail | `exhaustive` | 1 | `a80b4181` | `python3 scripts/manager.py selfhost fixpoint --build` |
-| `check_selfhost_fixture_parity` | — | 🔴 yes | ✓ | — | ❌ fail | `fixture-set` | 367 | `89eb5eb4` | `python3 scripts/manager.py selfhost fixture-parity` |
-| `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | `smoke` | 3 | `a80b4181` | `python3 scripts/manager.py selfhost parity --mode --cli` |
-| `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | `a80b4181` | `python3 scripts/manager.py selfhost diag-parity` |
-| `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ❌ fail | `smoke` | 1 | `a80b4181` | `bash scripts/run/wat-roundtrip.sh` |
-| `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | `fixture-set` | 103 | `a80b4181` | `python3 scripts/manager.py verify --full` |
-| `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | `smoke` | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
-| `check_binary_version` | — | no | — | — | ✅ pass | `smoke` | — | `a80b4181` | `arukellt --version` |
-| `check_emit_component` | `emit_component` | no | ✓ | — | ⏰ stale | `smoke` | — | `a80b4181` | `python3 scripts/manager.py verify --component` |
-| `check_lsp` | `lsp` | no | — | ✓ | ✅ pass | `smoke` | — | `a80b4181` | `python3 scripts/manager.py verify quick` |
-| `check_ark_toml` | `ark_toml` | no | — | — | ⏰ stale | `smoke` | — | `a80b4181` | `arukellt build` |
-| `check_dap` | `dap` | no | — | — | ⬜ not-run | `manual` | — | `—` | `manual / scaffold` |
-| `check_vscode_dap` | `vscode_dap` | no | — | — | ⏰ stale | `smoke` | — | `a80b4181` | `extension-tests (partial)` |
+**Checks vs incidents:** A check is an executable verification command.
+An incident is a distinct failure event. Multiple checks may track the
+same incident (linked via `incident_id`). Count blockers by distinct
+incidents, not by individual checks.
+
+| Check ID | Guarantee | Blocking | In full | In quick | Current | Evidence | Affected | Incident | Last verified | Command |
+|----------|-----------|:--------:|:-------:|:--------:|---------|----------|---------:|----------|---------------|---------|
+| `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
+| `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
+| `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
+| `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | `fixture-set` | 367 | `incident_fixture_parity_367` | `89eb5eb4` | `python3 scripts/manager.py verify fixtures` |
+| `check_determinism` | `determinism` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `bash scripts/check/check-release-determinism.sh` |
+| `check_no_panic` | `no_panic_user_paths` | 🔴 yes | ✓ | — | ✅ pass | `static-scan` | — | — | `a80b4181` | `bash scripts/check/check-panic-audit.sh` |
+| `check_cli_check` | `cli_check` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py check` |
+| `check_cli_init` | `cli_init` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-init-templates.py` |
+| `check_cli_doc` | `cli_doc` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-manifest-doc.py` |
+| `check_cli_help` | `cli_help` | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py help` |
+| `check_close_gate_076` | — | 🔴 yes | — | ✓ | ❌ fail | `smoke` | 1 | — | `89eb5eb4` | `python3 scripts/check/check-false-done-close-gates.py` |
+| `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ❌ fail | `exhaustive` | 1 | — | `a80b4181` | `python3 scripts/manager.py selfhost fixpoint --build` |
+| `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | `smoke` | 3 | — | `a80b4181` | `python3 scripts/manager.py selfhost parity --mode --cli` |
+| `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ✅ pass | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py selfhost diag-parity` |
+| `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ❌ fail | `smoke` | 1 | — | `a80b4181` | `bash scripts/run/wat-roundtrip.sh` |
+| `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | `fixture-set` | 103 | `incident_component_interop_103` | `a80b4181` | `python3 scripts/manager.py verify --component-interop` |
+| `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
+| `check_binary_version` | — | no | — | — | ✅ pass | `smoke` | — | — | `a80b4181` | `arukellt --version` |
+| `check_emit_component` | `emit_component` | no | ✓ | — | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify --component` |
+| `check_lsp` | `lsp` | no | — | ✓ | ✅ pass | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify quick` |
+| `check_ark_toml` | `ark_toml` | no | — | — | ⏰ stale | `smoke` | — | — | `a80b4181` | `arukellt build` |
+| `check_dap` | `dap` | no | — | — | ⬜ not-run | `manual` | — | — | `—` | `manual / scaffold` |
+| `check_vscode_dap` | `vscode_dap` | no | — | — | ⏰ stale | `smoke` | — | — | `a80b4181` | `extension-tests (partial)` |

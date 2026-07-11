@@ -170,7 +170,11 @@ VALID_KIND_VALUES = frozenset(
 )
 
 FUNCTION_KIND_REQUIRED = {
-    "host_stub": ("module", "target"),
+    "host_stub": ("module",),
+}
+
+FUNCTION_KIND_REQUIRE_ONE_OF = {
+    "host_stub": ("target", "targets"),
 }
 ```
 

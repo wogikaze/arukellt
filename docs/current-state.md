@@ -1,6 +1,7 @@
 # Arukellt — Current State
 
-> This document reflects the actual, verified state of the project.
+> This document reflects the current structured state of the project,
+> including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
@@ -9,6 +10,7 @@
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 367 fixture failure(s), 1 verification check failure(s), 4 additional full-verification blocker group(s)
+> Distinct incidents: 6 (each blocker row = one incident; multiple checks may track the same incident)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -74,11 +76,11 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 ### Host profiles
 
-| Host profile | Targets | Planned | Support Tier | Implementation | Contract Stability | Notes |
-|--------------|---------|---------|--------------|----------------|--------------------|-------|
-| `wasi-p1` | `wasm32` | `wasm32-gc` | supported | partial | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32 only; wasm32-gc+P1 rejected per ADR-007) |
-| `wasi-p2` | `wasm32-gc` | — | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
-| `wasi-p3` | `wasm32-gc` | — | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
+| Host profile | Targets | Planned | Rejected | Support Tier | Implementation | Contract Stability | Notes |
+|--------------|---------|---------|----------|--------------|----------------|--------------------|-------|
+| `wasi-p1` | `wasm32` | — | `wasm32-gc` | supported | partial | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32 only; wasm32-gc+P1 rejected per ADR-007) |
+| `wasi-p2` | `wasm32-gc` | — | — | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
+| `wasi-p3` | `wasm32-gc` | — | — | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
@@ -95,9 +97,9 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
-- Fixture registry: 2679 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1099 registry entries (not proof they fail)
-- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2679 is tests/fixtures/manifest.txt registry size. The 1099 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2686 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1106 registry entries (not proof they fail)
+- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2686 is tests/fixtures/manifest.txt registry size. The 1106 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **175/176 checks pass**
 
@@ -214,29 +216,35 @@ numbers into current contracts.
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 
+<!-- BEGIN GENERATED:CURRENT_STATE_CLI_SURFACE -->
 ## CLI Command Surface
 
-The `arukellt` binary exposes the following subcommands:
+The `arukellt` binary exposes the following subcommands.
+Generated from [`data/cli-surface.toml`](data/cli-surface.toml).
 
-| Command | Description |
-|---------|-------------|
-| `arukellt compile <file>` | Compile an `.ark` file to Wasm (`wasm32` or `wasm32-gc`) |
-| `arukellt run <file>` | Compile and run an `.ark` file |
-| `arukellt check <file>` | Type-check without compiling |
-| `arukellt build` | Build the project in the current directory (requires `ark.toml`) |
-| `arukellt fmt [file]` | Format `.ark` source files |
-| `arukellt test <file>` | Discover and type-check in-file `test` declarations (ADR-041) |
-| `arukellt lint <file>` | Run static analysis lints |
-| `arukellt targets` | List supported compilation targets |
-| `arukellt analyze` | Wasm binary analysis utilities |
-| `arukellt init [dir]` | Initialize a new Arukellt project (`--template minimal\|cli\|with-tests\|wasi-host`, `--list-templates`) |
-| `arukellt script` | Run scripts defined in `ark.toml` |
-| `arukellt doc <symbol>` | Look up stdlib documentation for a symbol or module |
-| `arukellt doc --html -o <file>` | Generate rich static stdlib HTML documentation |
-| `arukellt component build <file>` | Compile with `--emit component` (alias path; same as `compile --emit component`) |
-| `arukellt lsp` | Start the Language Server Protocol server |
-| `arukellt debug-adapter` | Start the Debug Adapter Protocol server |
-| `arukellt compose` | Compose Wasm component binaries (validates + `wac plug` delegation — #443 Phase 3) |
+| Command | Description | Presence | Contract | Implementation |
+|---------|-------------|:--------:|:--------:|:--------------:|
+| `arukellt compile` | Compile an .ark file to Wasm | present | stable | ✅ functional |
+| `arukellt run` | Compile and run an .ark file | present | stable | ✅ functional |
+| `arukellt check` | Type-check without compiling | present | stable | ✅ functional |
+| `arukellt build` | Build the project in the current directory (requires ark.toml) | present | stable | ⚠️ limited |
+| `arukellt fmt` | Format .ark source files | present | provisional | ✅ functional |
+| `arukellt test` | Discover and type-check in-file test declarations (ADR-041) | present | provisional | ✅ functional |
+| `arukellt lint` | Run static analysis lints | present | provisional | ✅ functional |
+| `arukellt targets` | List supported compilation targets | present | stable | 🚫 unavailable |
+| `arukellt analyze` | Analyze a compiled Wasm binary | present | provisional | ✅ functional |
+| `arukellt init` | Initialize a new Arukellt project | present | stable | ✅ functional |
+| `arukellt script` | Manage and run project scripts from ark.toml | present | provisional | ✅ functional |
+| `arukellt doc` | Look up stdlib documentation or generate HTML reference | present | stable | ✅ functional |
+| `arukellt component` | Build/inspect/validate components (build aliases compile --emit component) | present | provisional | ⚠️ limited |
+| `arukellt compose` | Validate and plan component linking; binary compose via wac plug (ADR-034) | present | provisional | ⚠️ limited |
+| `arukellt lsp` | Start the LSP server (stdio) | present | provisional | ✅ functional |
+| `arukellt debug-adapter` | Start the DAP debug adapter (scaffold) | present | experimental | 🔧 scaffold |
+| `arukellt help` | Print help | present | stable | ✅ functional |
+
+> **Axis legend:** Presence = subcommand exists in binary. Contract = CLI contract maturity (stable/provisional/experimental). Implementation = runtime behavior (functional/limited/scaffold/unavailable).
+> A `stable` contract with `unavailable` implementation means the command name is stable but the feature is not yet working.
+<!-- END GENERATED:CURRENT_STATE_CLI_SURFACE -->
 
 ### `arukellt doc`
 

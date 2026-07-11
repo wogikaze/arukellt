@@ -84,6 +84,13 @@ accepted_status_markers = [
 require_structured = true
 require_expires = true
 
+# Global ceiling: total skip-doc-check count across all files must not exceed this.
+# Current total: 251. Ratchet target: decrease over time.
+global_max = 251
+global_ratchet_max = 251
+# Require every file with skip-doc-check to have a budget entry.
+require_all_budgeted = true
+
 [[skip_doc_check.budgets]]
 path = "docs/language/spec.md"
 max = 43
@@ -120,6 +127,99 @@ ratchet_max = 11
 path = "docs/stdlib/migration-guidance.md"
 max = 16
 ratchet_max = 16
+[[skip_doc_check.budgets]]
+path = "docs/rfcs/002-semantic-type-spine.md"
+max = 10
+ratchet_max = 10
+[[skip_doc_check.budgets]]
+path = "docs/cookbook/testing-patterns.md"
+max = 9
+ratchet_max = 9
+[[skip_doc_check.budgets]]
+path = "docs/cookbook/wasm-binary.md"
+max = 6
+ratchet_max = 6
+[[skip_doc_check.budgets]]
+path = "docs/cookbook/collections-usage.md"
+max = 6
+ratchet_max = 6
+[[skip_doc_check.budgets]]
+path = "docs/cookbook/file-processing.md"
+max = 4
+ratchet_max = 4
+[[skip_doc_check.budgets]]
+path = "docs/cookbook/json-processing.md"
+max = 3
+ratchet_max = 3
+[[skip_doc_check.budgets]]
+path = "docs/stdlib/module-system.md"
+max = 4
+ratchet_max = 4
+[[skip_doc_check.budgets]]
+path = "docs/stdlib/trait-stdlib-redesign.md"
+max = 2
+ratchet_max = 2
+[[skip_doc_check.budgets]]
+path = "docs/stdlib/prelude.md"
+max = 2
+ratchet_max = 2
+[[skip_doc_check.budgets]]
+path = "docs/module-resolution.md"
+max = 2
+ratchet_max = 2
+[[skip_doc_check.budgets]]
+path = "docs/compiler/error-codes.md"
+max = 3
+ratchet_max = 3
+[[skip_doc_check.budgets]]
+path = "docs/design/lang-uplift-gap-ledger.md"
+max = 4
+ratchet_max = 4
+[[skip_doc_check.budgets]]
+path = "docs/spec/import-system.md"
+max = 1
+ratchet_max = 1
+[[skip_doc_check.budgets]]
+path = "docs/adr/ADR-011-wasi-host-layering.md"
+max = 4
+ratchet_max = 4
+[[skip_doc_check.budgets]]
+path = "docs/adr/ADR-025-use-paths-vs-wit-package-identifiers.md"
+max = 1
+ratchet_max = 1
+[[skip_doc_check.budgets]]
+path = "docs/adr/ADR-031-import-syntax-wit-unification.md"
+max = 4
+ratchet_max = 4
+[[skip_doc_check.budgets]]
+path = "docs/adr/ADR-036-trait-stdlib-redesign.md"
+max = 1
+ratchet_max = 1
+[[skip_doc_check.budgets]]
+path = "docs/adr/ADR-041-in-file-test-syntax.md"
+max = 1
+ratchet_max = 1
+# History files — frozen, no ratchet
+[[skip_doc_check.budgets]]
+path = "docs/history/language/syntax-v1-preview.md"
+max = 3
+ratchet_max = 3
+[[skip_doc_check.budgets]]
+path = "docs/history/platform/wasi-resource-model.md"
+max = 1
+ratchet_max = 1
+[[skip_doc_check.budgets]]
+path = "docs/history/process/wasm-size-reduction.md"
+max = 1
+ratchet_max = 1
+[[skip_doc_check.budgets]]
+path = "docs/history/reports/diagnostic-parity-rust-era.md"
+max = 7
+ratchet_max = 7
+[[skip_doc_check.budgets]]
+path = "docs/history/reports/docs-runtime-contract-audit-2026-06-17.md"
+max = 3
+ratchet_max = 3
 
 [orphan_current]
 # Root current/reference docs that must have ≥1 inbound Markdown link.

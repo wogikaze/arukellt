@@ -28,6 +28,12 @@ BLOCK_PATTERN = re.compile(r"```ark\n(.*?)```", re.DOTALL)
 SKIP_COMMENT_PATTERN = re.compile(
     r"<!--\s*skip-doc-check(?:\s+[^>]*)?\s*-->", re.IGNORECASE
 )
+# Fixture-backed examples are verified by the fixture harness, not the doc
+# example checker. A <!-- fixture: path.ark --> comment preceding a block
+# marks it as fixture-backed and skips doc-example compilation.
+FIXTURE_COMMENT_PATTERN = re.compile(
+    r"<!--\s*fixture:\s*[\w/.-]+\s*-->", re.IGNORECASE
+)
 
 # Files listed in .generated-files are auto-generated and must not have
 # <!-- skip-doc-check --> comments added by hand (they'd be overwritten).
@@ -87,7 +93,10 @@ def extract_blocks(md_path: Path) -> list[tuple[int, str, bool]]:
         # Strip trailing whitespace/newlines to find the last meaningful token.
         preceding_stripped = preceding.rstrip()
         # Structured skip attrs can exceed 200 chars; scan enough preceding text.
-        should_skip = bool(SKIP_COMMENT_PATTERN.search(preceding_stripped[-800:]))
+        should_skip = bool(
+            SKIP_COMMENT_PATTERN.search(preceding_stripped[-800:])
+            or FIXTURE_COMMENT_PATTERN.search(preceding_stripped[-800:])
+        )
 
         results.append((i, code, should_skip))
 

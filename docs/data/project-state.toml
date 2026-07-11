@@ -78,7 +78,8 @@ id = "wasi-p1"
 # ADR-007: wasm32-gc + --wasi p1 is a compile error today. Do not list wasm32-gc
 # in supported_targets until that contract changes.
 supported_targets = ["wasm32"]
-planned_targets = ["wasm32-gc"]
+planned_targets = []
+rejected_targets = ["wasm32-gc"]
 support_tier = "supported"
 # Host ABI adapter exists for wasm32; stdlib capability coverage is incomplete
 # (e.g. env::var). Keep partial until capability matrix is complete.
@@ -111,12 +112,12 @@ source_commit = "a80b4181"
 fixture_passed = 796
 fixture_skipped = 417
 fixture_failures = 367
-fixture_manifest_count = 2679
+fixture_manifest_count = 2686
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1580
-fixture_not_in_last_harness_snapshot = 1099
-fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2679 is tests/fixtures/manifest.txt registry size. The 1099 remainder were not part of that run (not proof they fail)."
+fixture_not_in_last_harness_snapshot = 1106
+fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2686 is tests/fixtures/manifest.txt registry size. The 1106 remainder were not part of that run (not proof they fail)."
 checks_passed = 175
 checks_total = 176
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"

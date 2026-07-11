@@ -1,0 +1,16 @@
+use std::host::stdio
+
+fn parse_positive(s: String) -> Result<i32, String> {
+    let n = parse_i32(s)?
+    if n < 0 {
+        return Err(String_from("negative value"))
+    }
+    Ok(n)
+}
+
+fn main() {
+    match parse_positive(String_from("42")) {
+        Ok(n) => stdio::println(to_string(n)),
+        Err(e) => stdio::println(e),
+    }
+}

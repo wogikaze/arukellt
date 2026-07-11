@@ -189,8 +189,9 @@ current_status = "fail"
 evidence_type = "fixture-set"
 last_verified_commit = "89eb5eb4"
 affected_count = 367
+incident_id = "incident_fixture_parity_367"
 platforms = ["linux"]
-note = "367 failures in observed harness snapshot (1580 outcomes from 2679 registry)"
+note = "367 failures in observed harness snapshot (1580 outcomes from 2679 registry). Same incident as selfhost fixture-parity — not double-counted."
 
 [[checks]]
 id = "check_determinism"
@@ -303,21 +304,6 @@ platforms = ["linux"]
 note = "Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached"
 
 [[checks]]
-id = "check_selfhost_fixture_parity"
-guarantee_id = ""
-command = "python3 scripts/manager.py selfhost fixture-parity"
-ci_job = "verification"
-release_blocking = true
-included_in_full = true
-included_in_quick = false
-current_status = "fail"
-evidence_type = "fixture-set"
-last_verified_commit = "89eb5eb4"
-affected_count = 367
-platforms = ["linux"]
-note = "Selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures"
-
-[[checks]]
 id = "check_selfhost_cli_parity"
 guarantee_id = ""
 command = "python3 scripts/manager.py selfhost parity --mode --cli"
@@ -363,7 +349,7 @@ note = "The wasm2wat/wat2wasm roundtrip gate fails"
 [[checks]]
 id = "check_component_interop_wasmtime"
 guarantee_id = "emit_component"
-command = "python3 scripts/manager.py verify --full"
+command = "python3 scripts/manager.py verify --component-interop"
 ci_job = "verification"
 release_blocking = true
 included_in_full = true
@@ -372,8 +358,9 @@ current_status = "fail"
 evidence_type = "fixture-set"
 last_verified_commit = "a80b4181"
 affected_count = 103
+incident_id = "incident_component_interop_103"
 platforms = ["linux"]
-note = "All 103 wasmtime component-interop cases fail in the current full verification run"
+note = "All 103 wasmtime component-interop cases fail. Dedicated command (not aggregate verify --full)."
 
 [[checks]]
 id = "check_opt_equivalence"

@@ -5,8 +5,8 @@
 
 ## Current source of truth
 
-- [../current-state.md](../current-state.md)
-- [../stdlib/io.md](../stdlib/io.md)
+- [../../current-state.md](../../current-state.md)
+- [../../stdlib/io.md](../../stdlib/io.md)
 
 ## なぜ archive 化したか
 
@@ -36,6 +36,6 @@ std::host::random::random_i32() -> i32
 
 ## いま見るべき文書
 
-- 実装の現在地: [../current-state.md](../current-state.md)
-- 現行 host API: [../stdlib/io.md](../stdlib/io.md)
-- `wasm32` / `wasm32-gc` の位置づけ: [ADR-007: Targets](../adr/ADR-007-targets.md)
+- 実装の現在地: [../../current-state.md](../../current-state.md)
+- 現行 host API: [../../stdlib/io.md](../../stdlib/io.md)
+- `wasm32` / `wasm32-gc` の位置づけ: [ADR-007: Targets](../../adr/ADR-007-targets.md)

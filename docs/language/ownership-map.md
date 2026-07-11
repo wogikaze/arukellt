@@ -35,11 +35,12 @@ Each document carries a classification per ADR-018 (normative / explanatory).
 | File | Class | Purpose | Stakeholder | CI check |
 |------|-------|---------|-------------|----------|
 | `spec.md` | normative | Frozen authoritative language specification | language team | `check_spec_guide_sync`, `check_spec_guide_feature_drift` |
-| `guide.md` | explanatory | Practical language walkthrough — stable/implemented features only | language team | `check_spec_guide_sync`, `check_spec_guide_feature_drift` |
+| `guide.md` | explanatory | Practical language walkthrough — stable features with provisional callouts | language team | `check_spec_guide_sync`, `check_spec_guide_feature_drift` |
 | `syntax.md` | normative | Complete syntax reference for implemented constructs | language team | — (manual review) |
 | `type-system.md` | normative | Type rules, generics, inference, and trait-like behavior | language team | — (manual review) |
 | `error-handling.md` | normative | Result, Option, `?` operator, and recovery patterns | language team | — (manual review) |
 | `memory-model.md` | normative | GC-native ownership, value semantics, and lifetime model | language team | — (manual review) |
+| `formatter.md` | explanatory | Code formatter usage and configuration | language team | — (manual review) |
 | `ownership-map.md` | — | This file — docs ownership and release gates | docs tooling maintainers | — (manual review) |
 
 ### Transitional Documents
@@ -117,7 +118,7 @@ or published. Items marked **CI** are automated in `check-docs-consistency.py` o
 | # | Check | Type | When required |
 |---|-------|------|---------------|
 | 5.1 | spec.md post-freeze changes have an ADR | **Manual** | On any edit to `spec.md` |
-| 5.2 | guide.md covers only stable/implemented features | **Manual** | On any edit to `guide.md` |
+| 5.2 | guide.md covers stable features with provisional callouts | **Manual** | On any edit to `guide.md` |
 | 5.3 | syntax.md matches implemented parser behavior | **Manual** | When parser changes land |
 | 5.4 | type-system.md matches implemented type checker | **Manual** | When type checker changes land |
 | 5.5 | error-handling.md reflects current Result/Option behavior | **Manual** | When error types change |

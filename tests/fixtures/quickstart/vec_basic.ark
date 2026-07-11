@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+
+    let first: Option<i32> = get(v, 0)
+    match first {
+        Some(x) => stdio::println(to_string(x)),
+        None => stdio::println(String_from("empty")),
+    }
+
+    stdio::println(to_string(len(v)))
+}

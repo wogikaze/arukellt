@@ -4717,7 +4717,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "Platform specification OK",
             "test -f docs/adr/ADR-007-targets.md && test -f docs/platform/abi.md "
-            "&& test -f docs/platform/wasi-resource-model.md",
+            "&& test -f docs/platform/target-runtime-and-surfaces.md",
         ),
         (
             "Stdlib specification OK",

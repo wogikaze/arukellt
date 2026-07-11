@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let n: i32 = 42
+    let b: bool = true
+    let s: String = String_from("hello")
+    stdio::println(to_string(n))
+    stdio::println(to_string(b))
+    stdio::println(s)
+}

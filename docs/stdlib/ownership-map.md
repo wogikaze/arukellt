@@ -7,12 +7,15 @@
 
 ## Ownership Tiers
 
+> Tiers follow the [shared schema](../governance/document-ownership.md):
+> `generated | curated | transitional | archive | product | internal`.
+> This section maps each tier to stdlib-specific edit policy.
+
 | Tier | Meaning | Edit policy |
 |------|---------|-------------|
 | **generated** | Auto-generated from `std/manifest.toml` via scripts | Regenerate with the listed generator; **do not hand-edit** |
-| **curated** | Human-authored content | Edit directly; requires review before merge |
-| **manifest-data** | Structured data files consumed by generators or CI checks | Edit directly; validated by `check-docs-consistency.py` |
-| **legacy** | Archived pages kept for backward-compatible URLs | Do not update; redirect readers to replacement pages |
+| **curated** | Human-authored content (including structured data files consumed by generators) | Edit directly; requires review before merge |
+| **archive** | Archived pages kept for backward-compatible URLs or historical reference | Do not update; redirect readers to replacement pages |
 
 ---
 
@@ -56,7 +59,7 @@ These files are authored and maintained by human contributors. Changes require r
 |------|---------|-------------|----------|
 | `cookbook.md` | Hands-on usage recipes with fixture links | stdlib maintainers | `check_cookbook_example_drift`, `check_recipe_fixture_links` |
 | `stability-policy.md` | Stability label definitions and tier change process | project leads | — (manual review) |
-| `std.md` | Comprehensive design rationale | stdlib architects | — (manual review) |
+| `std.md` | Comprehensive design rationale (historical, March 2026) | stdlib architects | — (manual review; see archive note below) |
 | `module-system.md` | Import syntax documentation | language team | — (manual review) |
 | `generation-schema.md` | Schema enforced by the docs generator | docs tooling maintainers | — (manual review) |
 | `expansion-policy.md` | Policy for which modules accept new APIs | project leads | — (manual review) |
@@ -65,20 +68,31 @@ These files are authored and maintained by human contributors. Changes require r
 | `monomorphic-deprecation.md` | Monomorphic API deprecation plan | stdlib maintainers | — (manual review) |
 | `prelude-dedup.md` | Prelude namespace deduplication rules | language team | — (manual review) |
 | `prelude-migration.md` | Historical v3 prelude migration record | — (archive) | — |
+| `prelude.md` | Prelude function reference and migration status | language team | — (manual review) |
 | `ownership-map.md` | This file — docs ownership and release gates | docs tooling maintainers | `check_ownership_map_completeness` |
-
-### Manifest Data
-
-| File | Purpose | Consumers | CI check |
-|------|---------|-----------|----------|
+| `trait-stdlib-redesign.md` | Trait-first stdlib redesign plan (ADR-036) | stdlib architects | — (manual review) |
+| `prelude-migration-inventory.md` | Prelude migration inventory | stdlib maintainers | — (manual review) |
 | `recipe-manifest.toml` | Maps cookbook recipes to test fixture files | `check-docs-consistency.py` | `check_recipe_fixture_links` |
+| `modernization/511-numeric-tag-inventory.md` | Numeric tag modernization inventory | stdlib maintainers | — (manual review) |
+| `modernization/514-parser-host-quality-audit.md` | Parser host quality audit | stdlib maintainers | — (manual review) |
+| `modernization/514-quality-audit-matrix.md` | Quality audit matrix | stdlib maintainers | — (manual review) |
 
-### Legacy / Archived Pages
+### Generated Module Pages (host modules)
+
+The following generated module pages are also tracked:
+
+| File | Generator | Source of truth | CI check |
+|------|-----------|-----------------|----------|
+| `modules/http.md` | `generate-docs.py` | `std/manifest.toml` + host badges | `check_host_badge_presence`, `check_cross_page_metadata_consistency` |
+| `modules/sockets.md` | `generate-docs.py` | `std/manifest.toml` + host badges | `check_host_badge_presence`, `check_cross_page_metadata_consistency` |
+
+### Archive Pages
 
 | File | Superseded by | Reason kept |
 |------|---------------|-------------|
 | `core.md` | `modules/core.md` | Backward-compatible URLs |
 | `io.md` | `modules/io.md` | Backward-compatible URLs |
+| `std.md` | Current API reference + ADRs | Historical design rationale (March 2026); not the current API contract |
 
 ---
 

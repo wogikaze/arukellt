@@ -7,7 +7,7 @@
 
 - Verification command: `python3 scripts/manager.py verify quick`
 - Current verification gate: 175/176 checks pass
-- Fixture registry: 2679 manifest entries (`docs/data/project-state.toml`)
+- Fixture registry: 2686 manifest entries (`docs/data/project-state.toml`)
 - Fixture harness (observed): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
 - Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.
 
@@ -20,7 +20,5 @@
 | [bootstrap-verification.md](bootstrap-verification.md) | Bootstrap Verification | Current-first. This page is a thin pointer to the ADR-029 verification |
 | [decision-guide.md](decision-guide.md) | 意思決定ガイド | この文書は、現行プロジェクトで判断に迷ったときの設計寄り参照先です。 |
 | [false-done-prevention.md](false-done-prevention.md) | False-Done 再発防止 | 監査オーケストレーター契約: prompts/research.md |
-| [parser-ark-evaluation.md](parser-ark-evaluation.md) | parser.ark 翻訳評価レポート | parser.rs (Gloss markup parser, 1028 行 Rust) → parser.ark (arukellt v0) の翻訳結果を分析し、言語の書きやすさと v1 改善候補を特定する。 |
 | [policy.md](policy.md) | Operational Policy | Current-first: this page describes the current operational contract, not aspirational design docs. |
-| [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |

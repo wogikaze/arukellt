@@ -334,16 +334,22 @@ def render_release_guarantees(data: dict) -> str:
         "The release-blocker set is exactly the checks with `release_blocking = true` below.",
         "No supplemental lists.",
         "",
-        "| Check ID | Guarantee | Blocking | In full | In quick | Current | Evidence | Affected | Last verified | Command |",
-        "|----------|-----------|:--------:|:-------:|:--------:|---------|----------|---------:|---------------|---------|",
+        "**Checks vs incidents:** A check is an executable verification command.",
+        "An incident is a distinct failure event. Multiple checks may track the",
+        "same incident (linked via `incident_id`). Count blockers by distinct",
+        "incidents, not by individual checks.",
+        "",
+        "| Check ID | Guarantee | Blocking | In full | In quick | Current | Evidence | Affected | Incident | Last verified | Command |",
+        "|----------|-----------|:--------:|:-------:|:--------:|---------|----------|---------:|----------|---------------|---------|",
     ])
     for ch in checks:
         blocking = "🔴 yes" if ch.get("release_blocking") else "no"
         in_full = "✓" if ch.get("included_in_full") else "—"
         in_quick = "✓" if ch.get("included_in_quick") else "—"
         affected = str(ch.get("affected_count", "—"))
+        incident = f"`{ch['incident_id']}`" if ch.get("incident_id") else "—"
         lines.append(
-            "| `{id}` | {gid} | {blocking} | {in_full} | {in_quick} | {current} | `{evidence}` | {affected} | `{lvc}` | `{cmd}` |".format(
+            "| `{id}` | {gid} | {blocking} | {in_full} | {in_quick} | {current} | `{evidence}` | {affected} | {incident} | `{lvc}` | `{cmd}` |".format(
                 id=ch["id"],
                 gid=f"`{ch['guarantee_id']}`" if ch.get("guarantee_id") else "—",
                 blocking=blocking,
@@ -352,6 +358,7 @@ def render_release_guarantees(data: dict) -> str:
                 current=_status_badge(ch.get("current_status", "not-run")),
                 evidence=ch.get("evidence_type", "manual"),
                 affected=affected,
+                incident=incident,
                 lvc=ch.get("last_verified_commit", "") or "—",
                 cmd=ch.get("command", ""),
             )

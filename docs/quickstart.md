@@ -3,9 +3,12 @@
 現在の実装でまず動く書き方だけに絞ったガイドです。
 詳細な実装状況は [current-state.md](current-state.md) を参照してください。
 
+> すべての Ark コード例は fixture として登録され、CI で compile / run されています。
+> fixture は `tests/fixtures/quickstart/` にあります。
+
 ## Hello World
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
+<!-- fixture: quickstart/hello.ark -->
 ```ark
 use std::host::stdio
 
@@ -20,7 +23,11 @@ arukellt run hello.ark
 
 ## Component Build
 
-WIT / Component Model output is available on the `wasm32-gc` (primary) target.
+> ⚠️ **Provisional / 103件失敗中**: Component Model output は `wasm32-gc` で一部利用可能ですが、
+> 現在 `verify --full` の component interop が 103/103 失敗中です。
+> Library exports は s2 wasm 条件付き、WIT coverage は partial です。
+> 詳細は [current-state.md](current-state.md) と
+> [data/release-guarantees.md](data/release-guarantees.md) の `emit_component` 行を参照してください。
 
 ```bash
 arukellt compile --target wasm32-gc --emit wit hello.ark
@@ -40,18 +47,26 @@ arukellt compile --target wasm32-gc --emit component app.ark --wit host.wit
 
 ## 基本型
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- fixture: quickstart/basic_types.ark -->
 ```ark
-let n: i32 = 42
-let big: i64 = 1000000
-let f: f64 = 3.14
-let b: bool = true
-let s: String = String_from("hello")
+use std::host::stdio
+
+fn main() {
+    let n: i32 = 42
+    let b: bool = true
+    let s: String = String_from("hello")
+    stdio::println(to_string(n))
+    stdio::println(to_string(b))
+    stdio::println(s)
+}
 ```
+
+> `i64` と `f64` は現行 selfhost で `to_string` 経由の出力に一部制約があります。
+> 詳細は [current-state.md](current-state.md) を参照してください。
 
 ## Vec
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
+<!-- fixture: quickstart/vec_basic.ark -->
 ```ark
 use std::host::stdio
 
@@ -74,7 +89,7 @@ fn main() {
 
 ## String
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
+<!-- fixture: quickstart/string_basic.ark -->
 ```ark
 use std::host::stdio
 
@@ -91,7 +106,7 @@ fn main() {
 
 ## Option / Result
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
+<!-- fixture: quickstart/option_result.ark -->
 ```ark
 use std::host::stdio
 
@@ -115,13 +130,13 @@ fn main() {
 
 現行実装では host access を `std::host::*` から明示 import します。
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
+<!-- fixture: quickstart/fs_read.ark -->
 ```ark
 use std::host::fs
 use std::host::stdio
 
 fn main() {
-    let r = fs::read_to_string("input.txt")
+    let r = fs::read_to_string("tests/fixtures/quickstart/fs_read_input.txt")
     match r {
         Ok(content) => stdio::print(content),
         Err(e) => stdio::println(e),
@@ -129,29 +144,36 @@ fn main() {
 }
 ```
 
-- `fs::read_to_string(path: String) -> Result<String, FsError>`
-- `fs::write_string(path: String, content: String) -> Result<(), FsError>`
+現行の Filesystem API signature（manifest-backed）:
 
-On error, match on `FsError` variants: `NotFound(String)`, `PermissionDenied(String)`,
-`Utf8Error`, `IoError(String)`. Use `fs::fs_error_message(err)` for a plain string message.
+- `fs::read_to_string(path: String) -> Result<String, String>`
+- `fs::write_string(path: String, content: String) -> Result<(), String>`
+
+エラーは `String` で返ります。`FsError` enum は同じ module に存在しますが、
+現行の `read_to_string` / `write_string` は typed error ではなく `String` を返します。
+`FsError` は `read_dir` / `metadata` 等の将来の typed fs API で使われます。
+
+> API signature の正本は [stdlib/modules/fs.md](stdlib/modules/fs.md)（manifest から生成）です。
 
 ## 文字列化
 
 `to_string(x)` を基準に使うのが一番安定です。`i32_to_string` などの型別 helper は互換用として残っています。
 
-## Clock / Random
+## Random
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
+<!-- fixture: quickstart/clock_random.ark -->
 ```ark
-use std::host::clock
-use std::host::random as host_random
+use std::random
 use std::host::stdio
 
 fn main() {
-    stdio::println(to_string(clock::monotonic_now()))
-    stdio::println(to_string(host_random::random_i32()))
+    let r = random::seeded_random(1)
+    stdio::println(to_string(r))
 }
 ```
+
+> `std::host::clock::monotonic_now()` は `i64` を返しますが、現行 selfhost で
+> `to_string` 経由の出力に制約があるため、この例では `std::random::seeded_random`（決定論的）のみ使用しています。
 
 ## v1 features
 
