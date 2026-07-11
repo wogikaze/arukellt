@@ -61,11 +61,6 @@ ADR-007 は当初 T1〜T5 の 5 ターゲット表記で整理していたが、
 - scaffold / not-started は CI から除外する。
 - ADR-007 の旧「実装優先度: T1 → T3 → T2 → T4 → T5」は歴史的な実装順の記録であり、この ADR の tier 割り当てと矛盾しない。
 
-## current-state.md への影響
-
-`docs/current-state.md` の target 表はこの ADR の tier を反映する。
-各 tier が CI 結果と一致しているか、`scripts/manager.py` 経由で確認できるようにする。
-
 ---
 
 ## 禁止事項

@@ -1,21 +1,6 @@
 # ADR-040: Semantic Type Spine — 意味情報を保存する背骨
 
-ステータス: **ACCEPTED** — Semantic Type Spine（SignatureRegistry / MonoInstanceTable）を MIR の正本とする。実装進捗は issue #724 で追跡。
-
-### PR-4 実施レーン（emit 境界で分割）
-
-| Lane | 目的 | emit変更 | 並列 |
-|------|------|----------|------|
-| A | registry vs legacy VT mismatch 分類・集計 | なし | 可 |
-| B | `legacy_vt_compat` 修正（semantic spine は維持、旧 emit ABI 互換のみ） | なし | 可 |
-| C | MonoInstanceTable subst/return_types 監査・修正 | なし | 可 |
-| D | 通常 CALL の一致分のみ registry 経由（`registry_return_switch.ark`） | **あり** | A/B 後・単独 |
-| E | trait/generic/host intrinsic 除外漏れ修正 | なし | 可 |
-| F | docs / ADR 更新 | なし | 可 |
-
-**PR-4-wide-audit**: Lane A–C,E を並列（fixture/callee カテゴリ分割可）。emit は原則不変。  
-**PR-4-switch**: Lane D のみ。一致率が十分になってから単独 PR。  
-**PR-4b-trait-generic**: trait/generic/mono の registry 切替。単独または少数 PR。
+ステータス: **ACCEPTED** — Semantic Type Spine（SignatureRegistry / MonoInstanceTable）を MIR の正本とする。
 
 決定日: 2026-07-03
 
@@ -23,10 +8,8 @@
 
 ## 文脈
 
-### 現状の崩壊
-
-T3 WASM validation が 376/441 まで改善したが、残り41件の validate-fail は
-局所修正の限界に出ている。Wave 6 では修正と新規失敗が相殺した。
+T3 WASM validation の残存 validate-fail は局所修正の限界に出ている。
+Wave 6 では修正と新規失敗が相殺した。
 
 根本原因は個別の型推論バグではなく、**コンパイルパイプラインの各段階で
 意味情報（型、シグネチャ、ABI）が失われていること**。その結果、Wasm emitter
@@ -439,8 +422,7 @@ TypeTable.name や type_name 文字列を substring/split/starts_with
 
 ```
 型不明の場合、i32 に fallback せず internal compiler error とする。
-ただし移行期間中は MIR verifier が warning を出すのみで
-fail しない（Phase 3 完了後に fail に切り替え）。
+移行期間は MIR verifier が warning のみとし、最終的には fail に切り替える。
 ```
 
 ### INV-6: result_types は命令の実際のスタック効果と一致する
@@ -478,7 +460,7 @@ instantiated_param_types / instantiated_return_types と一致する。
 
 ## 移行計画
 
-### フェーズ順序（修正版）
+### フェーズ順序
 
 ```
 Phase 1: TypeTable + SignatureRegistry 骨格 + HostIntrinsicSpec 型定義
@@ -502,183 +484,66 @@ Phase 7: host intrinsic adapter 実装
 Phase 1 で SignatureRegistry の骨格を作り、Phase 2 で MonoInstance の
 subst を保存し、Phase 3 で Typed MIR がそれを参照する。
 
-### 各フェーズの詳細と終了条件
+### 各フェーズの概要
 
 #### Phase 1: TypeTable + SignatureRegistry 骨格
 
-**作成するファイル**:
 - `src/compiler/corehir/type_table.ark` — TypeTable, TypeEntry, TypeId
 - `src/compiler/corehir/mir_value_type.ark` — MirValueType, ValueRepr, Nullability
 - `src/compiler/corehir/signature_registry.ark` — SignatureRegistry, SignatureEntry, FunctionId, AbiKind
 - `src/compiler/corehir/host_intrinsic_spec.ark` — HostIntrinsicSpec, HostAbiKind（型定義のみ）
-
-**修正するファイル**:
 - `src/compiler/corehir/type_contracts.ark` — TypedFn に param_types, trait_id, impl_id, abi_kind 追加
 - `src/compiler/typechecker.ark` — 型チェック結果を TypeTable と SignatureRegistry に登録
 
-**終了条件**:
-- 全既存 TypedFn が SignatureRegistry へ登録される
-- AbiKind::HostIntrinsic の SignatureEntry が最低限存在する（adapter実装は不要）
-- 既存テスト pass 数が悪化しない
-- semantic lookup で mangled_name を使う新規コードがない
-
 #### Phase 2: MonoInstanceTable
 
-**作成するファイル**:
 - `src/compiler/mir/lower/mono_instance_table.ark` — MonoInstanceTable, MonoInstanceEntry, MonoInstanceId
-
-**修正するファイル**:
 - `src/compiler/mir/lower/mono_param_subst.ark` — モノモーフ化時に subst マップを保存
 - `src/compiler/mir/lower/fn_index_mono.ark` — MonoInstanceTable に登録
 
-**終了条件**:
-- 全モノモーフ化インスタンスが MonoInstanceTable に登録される
-- subst マップが明示的に保存されている
-- 既存の名前逆引きコードはまだ並行動作（削除しない）
-- 既存テスト pass 数が悪化しない
-
 #### Phase 3: Typed MIR
 
-**修正するファイル**:
 - `src/compiler/mir/inst_record.ark` — MirInst に result_types, func_id 追加
 - `src/compiler/mir/local_record.ark` — MirLocal に value_type 追加
 - `src/compiler/mir/lower/*.ark` — MIR lowering 時に MirValueType を必ず設定
 - `src/compiler/mir/verify.ark`（新設）— MIR verifier: type 未設定箇所をログで報告
 
-**終了条件**:
-- 全 MirLocal に value_type が入る
-- 全 CALL 命令に func_id が付く
-- MIR verifier が type 未設定箇所を warning で報告（まだ fail しない）
-- emitter はまだ旧 val_type を読む（並行動作）
-- 既存テスト pass 数が悪化しない
-
 #### Phase 4: GcLayoutTable
 
-**作成するファイル**:
 - `src/compiler/wasm/gc_layout_table.ark` — GcLayoutTable, GcLayoutEntry, WasmRefType, WasmValueType
 - `src/compiler/wasm/lower_value_type.ark` — `lower_mir_value_type(MirValueType) -> WasmValueType`
-
-**修正するファイル**:
 - `src/compiler/wasm/sections_types_gc.ark` — 型セクションエミッション時に GcLayoutTable を参照
 - `src/compiler/wasm/ctx_gc_type.ark` — MirValueType から GcLayoutId をルックアップ
 
-**終了条件**:
-- `lower_mir_value_type` が全 MirValueType に対して WasmValueType を返す
-- 既存の ctx_gc_type の型判定が GcLayoutTable 経由に切り替わる
-- 既存テスト pass 数が悪化しない
-
 #### Phase 5: emitter から型推論を削除
 
-**削除する関数**:
+削除対象:
 - `code_ref_locals_infer.ark::find_stack_value_source`
 - `code_ref_locals_infer.ark::infer_ref_local_gc_type_depth`
 - `code_ref_locals.ark::infer_ref_local_gc_type`
 - `mono_return_vt.ark::mono_return_type_name` の名前逆引き部分
 
-**修正するファイル**:
+修正対象:
 - `src/compiler/wasm/code_locals.ark` — local型を `value_type` から直接取得
 - `src/compiler/wasm/call_fallback.ark` — callee型を `func_id` から直接取得
 - `src/compiler/mir/verify.ark` — warning を fail に切り替え（INV-5 完全執行）
 
-**終了条件**:
-- `find_stack_value_source` の呼び出し回数 = 0
-- `infer_ref_local_gc_type_depth` の呼び出し回数 = 0
-- `mono_return_type_name` の名前逆引き回数 = 0
-- 旧推論経路が呼ばれないことを確認
-- MIR verifier が type 未設定を fail にする（INV-5 完全執行）
-- CALL/local/result の型整合が MIR verifier で検査される（INV-8, INV-9）
-- T3 validate-fail の減少は副作用として扱う（目標ではなく結果）
-
 #### Phase 6a: Symbolic Alias
 
-**修正するファイル**:
 - `src/compiler/wasm/code_scratch_locals.ark` — 直接番号を symbolic alias に置き換え
 - `src/compiler/wasm/ctx_scratch.ark` — 同上
 - スクラッチローカル番号を直接書く全箇所
 
-**終了条件**:
-- `emit_leb128_u(w, 16)` のような直接番号記述が 0 件
-- 全て `emit_leb128_u(w, SCRATCH_GC_0)` のような alias 使用
-- 既存テスト pass 数が悪化しない
-
 #### Phase 6b: LocalAllocator
 
-**作成するファイル**:
 - `src/compiler/wasm/local_allocator.ark` — LocalAllocator, ScratchPool
-
-**修正するファイル**:
 - `src/compiler/wasm/code_scratch_locals.ark` — alias の実体を LocalAllocator に差し替え
 - `src/compiler/wasm/ctx_scratch.ark` — スクラッチをプールから借用
 
-**終了条件**:
-- スクラッチローカル追加で index シフトしない
-- 既存テスト pass 数が悪化しない
-
 #### Phase 7: host intrinsic adapter 実装
 
-**修正するファイル**:
 - `src/compiler/wasm/call_host.ark` — HostIntrinsicSpec に従ってABI変換
 - `src/compiler/wasm/code_body.ark` — host intrinsic のスタブ化を HostIntrinsicSpec で統一
-
-**終了条件**:
-- 全 host intrinsic が SignatureRegistry 経由で呼び出される
-- adapter 関数が i32 → GC ref 変換を行う
-- `func 12では対応済みだがfunc 28では別経路` のような経路依存が 0 件
-- T3 validate-fail の host intrinsic 系が 0 件
-
----
-
-## 実装の粒度 — 最初のPR
-
-**重要**: このADRを一度に全部実装しない。最初のPRは以下のみとする。
-
-### PR-1: 型定義追加 + registry 構築（emit経路には未使用）
-
-1. `TypeId`, `MirValueType`, `FunctionId`, `SignatureEntry` の型定義を追加
-2. 既存の型情報から SignatureRegistry を埋める
-3. **既存 emit 経路にはまだ使わせない**（並行して存在するだけ）
-
-### PR-2: MIR verifier 追加（ログのみ）
-
-1. MIR verifier を追加し、`type_id` 未設定箇所をログで数える
-2. **最初から fail にはしない**（warning のみ）
-
-### PR-3: CALL に func_id を付ける
-
-1. CALL命令のみ `func_id` を付ける
-2. まだ戻り値型は旧経路で取得
-
-### PR-4a: 通常関数 CALL の戻り値型取得を registry へ切り替え
-
-1. 通常関数（非trait・非generic）の CALL の戻り値型取得のみ
-   `func_id -> SignatureEntry.return_types` へ切り替え
-2. 旧経路（名前逆引き・val_type）はtrait/generic用に残す
-3. **通常関数でregistry経路が安定することを確認**
-
-### PR-4b: trait/generic call の戻り値型取得を registry へ切り替え
-
-1. trait/generic call の戻り値型取得を registry へ切り替え
-2. MonoInstanceTable の `instantiated_return_types` を使用
-3. **この段階で41件のうちかなり動くはず**
-
----
-
-## 健康指標
-
-pass数ではなく、以下を0に近づけることを目標とする:
-
-| 指標 | 現状 | 目標 |
-|------|------|------|
-| `find_stack_value_source` 呼び出し回数 | 1箇所 (128ステップ制限) | 0 |
-| `infer_ref_local_gc_type_depth` 呼び出し回数 | 1箇所 (深さ制限3) | 0 |
-| `mono_return_type_name` 名前逆引き回数 | 1箇所 (substring/split) | 0 |
-| `val_type` のみで型判定している箇所 | 多数 | 0 (MirValueTypeに置き換え) |
-| `type_name` 文字列パース回数 | 多数 | 0 |
-| FunctionIdなしのCALL命令 | 全CALL命令 | 0 |
-| nullability 未設定の MirLocal | 全MirLocal | 0 |
-| i32 default に落ちた local | 不明 | 0 (internal compiler error) |
-| mangled_name を semantic lookup に使う箇所 | 多数 | 0 |
-| 直接local番号を書く箇所 | 多数 | 0 (symbolic alias経由) |
 
 ---
 
@@ -710,16 +575,15 @@ Phase 6b で LocalAllocator に差し替える。2段階移行でリスクを分
 
 サブエージェントが巨大差分を作ってコンパイラを壊す可能性。
 
-**対策**: PRを小さく切る。PR-1は型定義のみ。PR-2はverifierログのみ。
-PR-3はCALLのfunc_idのみ。PR-4aで通常関数のemit経路に触れ、
-PR-4bでtrait/genericに拡張する。
+**対策**: PRを小さく切る。型定義追加 → verifierログ → CALLのfunc_id →
+通常関数のregistry切替 → trait/generic拡張、の順で段階的に進める。
 各PR後にselfhost fixpointを確認。
 
 ---
 
 ## 期待される効果
 
-1. **T3 validate-fail 41件 → 0**: emitter が正しい型情報を取得できるため
+1. **T3 validate-fail の解消**: emitter が正しい型情報を取得できるため
 2. **新規フィクスチャの追加時に型エラーが出ない**: パイプライン全体で型が保存されるため
 3. **コンパイラの保守性向上**: 型推論の複雑さが MIR lowering に集約され、emitter が単純化
 4. **デバッグの容易化**: 型不明の場合に即 internal compiler error が出るため、問題の早期発見

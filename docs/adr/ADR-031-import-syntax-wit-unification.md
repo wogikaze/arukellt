@@ -24,17 +24,6 @@ Arukellt は現時点で、言語が Component Model 出力を目指すにつれ
 2. **未定義の構文** — Arukellt ソースから外部 WIT インターフェースを参照するソースレベル構文がまだない（Component Model 出力に必要、issue #124）。
 3. **2 つの `import` 表面** — `import math`（ローカルファイル）と `use std::io`（stdlib パス）が共存し、新規モジュールごとに「どちらのキーワード？」という疑問を生む。
 
-### 現行パーサ状態（v3）
-
-```
-// src/compiler/parser.ark
-// TokenKind::ColonColon  -> path separator for `use`
-// TokenKind::Import      -> `import foo` (single identifier; local file)
-// TokenKind::Use         -> `use std::io::something` (:: separated path; stdlib)
-```
-
-`import` と `use` はどちらも live キーワードで別パース経路を持つ。
-
 ---
 
 ## WIT パッケージ識別子構文（参考）
@@ -216,23 +205,10 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 
 ---
 
-## 実装タイムライン
-
-| フェーズ | 項目 | 追跡 |
-|-------|------|---------|
-| v3 (immediate) | `docs/spec/import-system.md` が Layer S / Layer C 分離を文書化 | Done |
-| v3 (immediate) | `--wit <path>` CLI フラグ受理（バインディング生成は延期） | Done (issue #124 Phase 1) |
-| v4 | `import <single-identifier>` の W0101 廃止警告 | issue #123 implementation work |
-| v4 | `import "namespace:package/interface@ver"` 構文設計 + パーササポート | issue #124 |
-| v4 | WIT import 関数を通常の `use` で ARK ソースから利用可能 | issue #124 |
-| v5 | `import <single-identifier>` パース経路削除 | post-v4 |
-
----
-
 ## 結果
 
 - `use` は安定した永続の Arukellt ソースモジュール import キーワード。再定義されない。
-- `import` は v4 以降 Component Model / WIT 境界キーワードとなる。現行の `import <single-id>` セマンティクスは既知の移行対象。
+- `import` は v4 以降 Component Model / WIT 境界キーワードとなる。`import <single-id>` セマンティクスは移行対象。
 - ツール（IDE、LLM プロンプト、ドキュメント）は `use` と `import` を同義語ではなく別レイヤーとして説明すべき。
 - `std::` パスプレフィックスは Arukellt ソース名前空間であり、WIT 名前空間ではない。WIT identity 用語の `wasi:` や `arukellt:` と同等ではない。
 

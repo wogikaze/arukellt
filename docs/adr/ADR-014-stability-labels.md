@@ -31,17 +31,6 @@ Arukellt の言語仕様と stdlib は拡大している。ユーザーは、本
 - 許可値: `stable`, `provisional`, `experimental`。
 - `scripts/gen/generate-docs.py` が生成する stdlib リファレンスは、関数表に安定性ラベルを表示する。
 
-### 現行ベースライン（2026-04-01）
-
-**言語仕様:**
-- 節 1–6, 8, 10（字句・型・式・文・パターン・アイテム・演算子優先順位）: `stable`
-- 節 7（モジュールシステム）: `provisional`
-- 節 9（stdlib）: 各関数エントリを参照
-
-**Stdlib manifest:**
-- 公開関数 267 件すべてに明示的な stability フィールドがある。
-- 多数は `provisional`。`stable` はまだない（v1 凍結待ち）。現時点で `experimental` もない。
-
 ## 帰結
 
 - ユーザーは stdlib リファレンスを安定性レベルでフィルタできる。

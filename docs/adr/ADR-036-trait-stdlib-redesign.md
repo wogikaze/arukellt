@@ -1,6 +1,6 @@
 # ADR-036: Trait-based Stdlib Redesign Strategy
 
-ステータス: **PROPOSED** — 688-697 完了後に実行される stdlib 再設計の戦略 ADR
+ステータス: **PROPOSED** — #688–#697 後に実行する stdlib 再設計の戦略
 
 決定日: 2026-06-26
 

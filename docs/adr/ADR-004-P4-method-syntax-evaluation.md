@@ -152,10 +152,6 @@ ADR-004 P4 の評価は、下記の trigger 条件が満たされるまで開始
 | T2 | Core v4 パススイートが連続 2 回の CI で回帰なし | MIR opt 有効で `python scripts/manager.py verify` が連続 2 回 exit 0。 |
 | T3 | Stdlib API 表面が安定 | 評価スコープ内のメソッドの名前/シグネチャ変更を計画する `Track: stdlib` の open issue がない。 |
 
-**現状（2026-04-15）:** Trigger 未達。
-- Issue #082 (mir-gc-hint) と #083 (mir-loop-unrolling) はまだ `Status: open`。
-- これらおよび他の `mir-opt` v4-exit issue がクローズするまで評価を開始してはならない。
-
 ---
 
 ### 7.2 評価スコープ

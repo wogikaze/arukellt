@@ -142,4 +142,3 @@ let y = identity[String]("hi") // 明示指定
 - ADR-002: メモリモデル（Wasm GC 採用）
 - ADR-000: ADR には理想形を書き、暫定制限・現状報告を決定に混ぜない
 - `docs/language/type-system.md`: 型システム詳細
-- 現行挙動の正本: `docs/current-state.md`

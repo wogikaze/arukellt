@@ -68,7 +68,7 @@ ADR-014 は仕様の*節*と stdlib の*エントリ*に安定性ラベルを付
 
 （バナー本文は既存ツール・生成物との互換のため英語テンプレートを正とする。）
 
-### 現行言語 docs の分類
+### 言語 docs の分類
 
 | ファイル | クラス | 根拠 |
 |----------|--------|------|
@@ -78,14 +78,6 @@ ADR-014 は仕様の*節*と stdlib の*エントリ*に安定性ラベルを付
 | `memory-model.md` | normative | current-first メモリモデル。GC-native T3 実装を反映 |
 | `type-system.md` | normative | current-first 型システム。実装済み型検査を反映 |
 | `syntax-v1-preview.md` | transitional | 未 normative の v1 構文追加。`spec.md` 着地で退役 |
-
-### バナー適用（段階ロールアウト）
-
-本 ADR は分類とテンプレートを定義する。初回ですべてのページにバナーを付けない。適用は別作業:
-
-- **Phase 0（本 ADR）**: 分類・テンプレート・表を定義。`docs/language/README.md` の分類表を更新
-- **Phase 1（別 issue）**: 5 つの normative 文書にバナー適用
-- **Phase 2（別 issue）**: `syntax-v1-preview.md` に transitional バナーと `DONE_WHEN` を追加
 
 ---
 

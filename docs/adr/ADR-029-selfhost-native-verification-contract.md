@@ -29,7 +29,7 @@ Issue: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 
 `bootstrap/arukellt-selfhost.wasm` にコミットされた単一の wasm ファイルが、すべてのセルフホストゲートの信頼ベースである。リポジトリ全体の `*.wasm` `.gitignore` は明示 allow-list で本ファイルを除外する。由来、sha256、サイズ、再現レシピは `bootstrap/PROVENANCE.md` に記載する。更新は明示的（`chore(bootstrap): refresh pinned selfhost wasm`）で、自動ではない。導入するすべての挙動ドリフトを列挙する必要がある。
 
-アーティファクトは現状 524 KiB — 採用する 10 MiB 上限のソフトサイズ予算を十分下回る。将来の更新が予算に近づく場合は更新コミットメッセージで明記する。
+採用時点のアーティファクトは 524 KiB で、10 MiB 上限のソフトサイズ予算を十分下回る。将来の更新が予算に近づく場合は更新コミットメッセージで明記する。
 
 ### 再定義されたゲートセマンティクス
 
@@ -89,7 +89,7 @@ for each fixture in tests/fixtures/manifest.txt (diag:):
 - `pass_count >= 10` 下限は維持。
 
 変わるもの:
-- ゲートは Rust バイナリの診断出力をクロスチェックしない。Pre-585 で Rust が「pattern not found; test may be stale」としたフィクスチャは `skip` になった。新契約では `.diag` ゴールデンがセルフホスト出力と一致しないフィクスチャは `FAIL`（または追跡 issue 付きで `DIAG_PARITY_SKIP` 追加）。長期的には**より強い**アサーションだが、移行時点の live `pass_count` は同じ（≈ 11）。以前パスしていたフィクスチャはすべて依然パス。
+- ゲートは Rust バイナリの診断出力をクロスチェックしない。Pre-585 で Rust が「pattern not found; test may be stale」としたフィクスチャは `skip` になった。新契約では `.diag` ゴールデンがセルフホスト出力と一致しないフィクスチャは `FAIL`（または追跡 issue 付きで `DIAG_PARITY_SKIP` 追加）。長期的には**より強い**アサーション。
 
 #### 4. `selfhost parity --cli` — 純セルフホスト CLI スナップショット
 
@@ -113,17 +113,6 @@ require: for cmd in {compile, check, run}: wasmtime(current_selfhost, cmd).retur
 - `scripts/run/arukellt-selfhost.sh` から `ARUKELLT_USE_RUST=1` オプトインの削除 — それは #583。
 - セルフホストソース（`src/compiler/**`）やフィクスチャ（`tests/fixtures/**`）の変更。
 - `scripts/manager.py` CLI 表面の変更 — `selfhost {fixpoint,fixture-parity,diag-parity,parity}` は維持。
-
-## 採用時のベースラインゲート件数（コミット `662c3f58`）
-
-| ゲート | 結果 | 備考 |
-|------|--------|-------|
-| `selfhost fixpoint` | PASS | s2 sha256 = `c16e32ef…0cc`（ピン留め `3a035037…f2c` からビルド） |
-| `selfhost fixture-parity` | PASS | 321 PASS, 0 FAIL, 41 SKIP（16 selfhost wasm-trap, 23 selfhost-compile timeout under wasmtime, 2 explicit `FIXTURE_PARITY_SKIP`) |
-| `selfhost diag-parity` | PASS | 12 PASS, 22 SKIP, 0 FAIL |
-| `selfhost parity --cli` | PASS | 6 PASS, 0 FAIL |
-
-この 4 行は `cargo clean` と `target/debug/arukellt` 削除後の新規クローンで再現可能（採用時に検証 — #585 クローズノート参照）。
 
 ## 結果
 

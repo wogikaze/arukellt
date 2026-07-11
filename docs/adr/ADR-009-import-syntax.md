@@ -76,29 +76,14 @@ import "wasi:cli/stdin@0.2.10"
 - `wit import "wasi:cli/stdin"` のように新複合キーワードを追加
 - **部分採用**: `import` 単体を WIT 用に再利用する方針を採用し、`wit` 修飾子は不要とした
 
-## Implementation Timeline
-
-| フェーズ | タスク |
-|---------|--------|
-| 即時 (v3) | `docs/spec/import-system.md` に 2 層の構文を明記 |
-| v3 (issue #124) | `--wit <path>` CLI flag で WIT ファイルからの型バインディング生成 (Phase 1: stub/parse only) |
-| v4 | `import 単識別子` を `use` に統一 (`W0101` deprecation 警告; implemented as a non-breaking warning) |
-| v4 | `import "namespace:package/interface"` 構文の設計・実装 |
-| v4 (issue #124) | WIT-imported 関数を ARK ソースから通常の `use` import と同じパターンで参照可能に |
-| v5 | `import 単識別子` の完全除去 |
-
 ### WIT Component Import (Issue #124)
 
-The `--wit <path>` CLI flag is already accepted by the compiler (`arukellt compile --wit <path>`).
-Phase 1 (current): the flag validates that the WIT file exists and is only meaningful with
-`--emit component` or `--emit all`. The actual WIT-to-binding generation is not yet implemented.
+WIT import の想定ワークフロー:
 
-When fully wired, WIT imports will work as follows:
-
-1. The user passes `--wit my_interface.wit` at compile time
-2. The compiler reads the WIT file and generates type bindings
-3. ARK source references WIT-imported functions via normal `use` syntax
-4. The generated component embeds the correct WIT world and imports
+1. コンパイル時に `--wit my_interface.wit` を渡す
+2. コンパイラが WIT ファイルを読み、型バインディングを生成する
+3. ARK ソースは WIT 由来の関数を通常の `use` 構文で参照する
+4. 生成 component に正しい WIT world と import が埋め込まれる
 
 ## Consequences
 

@@ -1,8 +1,8 @@
 # ADR-008: Component Model ラッピング戦略
 
-ステータス: **ACCEPTED** — in-tree 実装により `wasm-tools` への依存を除去（前倒し完了）
+ステータス: **ACCEPTED** — component binary 生成は in-tree 実装とする
 
-決定日: 2026-03-28（2026-07-10 改訂: in-tree 化前倒し完了を反映）
+決定日: 2026-03-28
 
 ---
 
@@ -22,38 +22,24 @@ Component Model バイナリ (.component.wasm) に変換する方法を決定す
 **ツリー内実装により `wasm-tools` への依存を除去する。**
 
 当初の計画では v2/v3 は `wasm-tools component new` を外部 subprocess として使用し（一時的委譲）、
-v4/v5 で in-tree 実装に移行する予定だった。しかし、Component Model 仕様が Wasm 3.0 で
-安定化したことと、セルフホスト完結の優先度が高まったことから、**in-tree 化を前倒しして完了**した。
+v4/v5 で in-tree 実装に移行する予定だった。Component Model 仕様が Wasm 3.0 で
+安定化したことと、セルフホスト完結の優先度を踏まえ、**in-tree 実装を採用する**。
 
 理由:
 - Component binary format は複雑 (component sections, canonical options, type interning)
 - **Arukellt はセルフホスト言語であり、外部ツールへの恒久依存は設計上望ましくない**
 - Component Model 仕様が Wasm 3.0 で安定化したため、in-tree 化のリスクが低下した
-- in-tree 実装により、ビルド再現性とセルフホスト完結が同時に達成された
-
-### 移行タイムライン（実績）
-
-| フェーズ | wasm-tools 依存 | 備考 |
-|----------|----------------|------|
-| v2/v3（計画） | ✅ subprocess 呼出 | 当初の計画（一時的委譲） |
-| v3（実績） | ❌ in-tree 実装 | **前倒し完了** — `src/compiler/component/` 配下に ComponentWriter を実装 |
-
-### 現在の wasm-tools 使用箇所
-
-in-tree 化により、component binary 生成に `wasm-tools` は不要。残存する使用箇所:
-
-- `scripts/selfhost/p2_component_wrap.py` — WAT → Wasm コンパイルのフォールバック（bridge adapter 生成時のみ）
-- `src/compiler/main/component_cmd.ark` — `arukellt component wit` / `arukellt component validate` サブコマンドが `wasm-tools` を呼出（ユーティリティ機能、component 生成には非必須）
+- in-tree 実装により、ビルド再現性とセルフホスト完結を両立できる
 
 ---
 
 ## 代替案
 
-### ツリー内バイナリ生成 (採用・完了)
+### ツリー内バイナリ生成 (採用)
 
 - 利点: 外部依存なし、ビルド再現性向上、セルフホスト完結
 - 欠点: 仕様追従コスト大 — ただし Wasm 3.0 で仕様安定化済み
-- **v3 で前倒し実装し、`wasm-tools` への依存を component binary 生成から除去**
+- component binary 生成から `wasm-tools` への恒久依存を避ける
 
 ---
 
