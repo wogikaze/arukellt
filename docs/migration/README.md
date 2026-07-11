@@ -5,7 +5,7 @@
 
 ## Current Snapshot
 
-- CLI default target remains `wasm32`.
+- CLI default target remains `wasm32-gc`.
 - Canonical path for current docs is `wasm32-gc`.
 - Component emit lives on `wasm32-gc`.
 

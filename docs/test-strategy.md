@@ -8,8 +8,8 @@ their responsibilities, and how they map to the CI pipeline.
 | Category | Scope | Gate level | Runner |
 |----------|-------|-----------|--------|
 | **verification** | Selfhost compiler, manifest, docs, and policy checks | merge-blocking | `verification` job: `python3 scripts/manager.py verify` |
-| **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | mixed: T3 merge-blocking, T1 non-blocking | `fixture-primary` and `fixture-supported` jobs |
-| **target-contract** | Per-target behavior and CI/doc target drift | mixed: T3 merge-blocking, T1 non-blocking, drift merge-blocking | `fixture-primary`, `fixture-supported`, and `target-contract-drift-check` |
+| **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | mixed: wasm32-gc (primary) merge-blocking, wasm32 (supported) non-blocking | `fixture-primary` and `fixture-supported` jobs |
+| **target-contract** | Per-target behavior and CI/doc target drift | mixed: wasm32-gc (primary) merge-blocking, wasm32 (supported) non-blocking, drift merge-blocking | `fixture-primary`, `fixture-supported`, and `target-contract-drift-check` |
 | **component-interop** | Component Model emit + host interop | included in verification when available | `python3 scripts/manager.py verify --component` |
 | **package-workspace** | `ark.toml`, workspace resolution, manifest, script execution | local / targeted | `bash scripts/run/test-package-workspace.sh` |
 | **bootstrap** | Selfhost fixpoint and parity evidence | merge-blocking | `selfhost` job |
@@ -47,12 +47,12 @@ the failed category.
 ## Fixture kinds and their categories
 
 ```text
-run, module-run         → fixture (T1)
-diag, module-diag       → fixture (T1)
-t3-run                  → fixture (T3) / target-contract
-t3-compile              → target-contract (T3)
+run, module-run         → fixture (wasm32 / historical category)
+diag, module-diag       → fixture (wasm32 / historical category)
+t3-run                  → fixture (wasm32-gc; historical `t3-run:` prefix) / target-contract
+t3-compile              → target-contract (wasm32-gc; historical `t3-*` prefix)
 component-compile       → component-interop
-compile-error           → target-contract (T3)
+compile-error           → target-contract (wasm32-gc; historical `t3-*` prefix)
 bench                   → perf
 ```
 
@@ -92,7 +92,7 @@ When adding a feature:
 
 1. Add a `.ark` fixture with `.expected` or `.diag` in `tests/fixtures/`.
 2. Add the entry to `tests/fixtures/manifest.txt` with the correct kind prefix.
-3. If the feature is T3-specific, use `t3-run:` or `t3-compile:` prefix.
+3. If the feature is primary (`wasm32-gc`)-specific, use historical fixture prefixes `t3-run:` or `t3-compile:` (internal category names, not public target IDs).
 4. If it exercises component output, use `component-compile:` prefix.
 5. Run `python scripts/manager.py verify fixtures` to verify.
 
@@ -102,7 +102,7 @@ When adding a feature:
 |----------|-------|--------|
 | verification | selfhost and policy checks through `scripts/manager.py` | active |
 | fixture | 434 manifest entries | active |
-| target-contract | 247 (T1) + 182 (T3) via ARUKELLT_TARGET, plus drift enforcement in `target-contract-drift-check` | active |
+| target-contract | supported (`wasm32`) + primary (`wasm32-gc`) via ARUKELLT_TARGET, plus drift enforcement in `target-contract-drift-check` | active |
 | component-interop | 6 component-compile + 1 jco smoke | partial |
 | package-workspace | dedicated non-blocking `verification-package-workspace` alert lane for manifest discovery and script execution | partial |
 | bootstrap | `selfhost-bootstrap` enforces selfhost fixpoint; dedicated CLI/diagnostic parity jobs enforce parity | active |

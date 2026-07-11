@@ -42,10 +42,10 @@ fmt  = "..."
 
 ### `[targets]` *(optional)*
 
-Per-target build overrides. Keys are target IDs (e.g. `wasm32-wasi-p2`).
+Per-target build overrides. Keys are target IDs (e.g. `wasm32-gc`).
 
 ```toml
-[targets.wasm32-wasi-p2]
+[targets.wasm32-gc]
 opt_level = 2          # override --opt-level for this target
 output    = "out.wasm" # override default output path
 ```
@@ -130,7 +130,7 @@ path = "src/main.ark"
 [scripts]
 run = "arukellt compile src/main.ark && wasmtime hello.wasm"
 
-[targets.wasm32-wasi-p2]
+[targets.wasm32-gc]
 opt_level = 2
 ```
 
@@ -154,7 +154,7 @@ No `ark.toml` is needed. The compiler processes only the specified file.
 **Characteristics:**
 - No `ark.toml` required
 - Output defaults to `<file>.wasm` in the current directory (or `-o <output>` override)
-- Target defaults to `wasm32-wasi-p1` unless `--target` is specified
+- Target defaults to `wasm32-gc` (primary / CLI default) unless `--target` is specified
 - Import resolution is relative to the source file's directory
 - `arukellt run` compiles in memory and executes immediately
 - Suitable for scripts, experiments, and single-file programs
@@ -162,7 +162,7 @@ No `ark.toml` is needed. The compiler processes only the specified file.
 ```bash
 # single-file mode examples
 arukellt compile hello.ark
-arukellt compile hello.ark --target wasm32-wasi-p2 -o hello.wasm
+arukellt compile hello.ark --target wasm32-gc -o hello.wasm
 arukellt run hello.ark
 ```
 

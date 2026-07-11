@@ -20,11 +20,11 @@ arukellt run hello.ark
 
 ## Component Build
 
-WIT / Component Model output is available on the T3 target.
+WIT / Component Model output is available on the `wasm32-gc` (primary) target.
 
 ```bash
-arukellt compile --target wasm32-wasi-p2 --emit wit hello.ark
-arukellt compile --target wasm32-wasi-p2 --emit component hello.ark
+arukellt compile --target wasm32-gc --emit wit hello.ark
+arukellt compile --target wasm32-gc --emit component hello.ark
 ```
 
 Cross-language interop walkthroughs (Ark ↔ Rust ↔ JS, compose / WIT import):
@@ -33,7 +33,7 @@ see [`../examples/README.md`](../examples/README.md).
 To bind host imports from external WIT, pass one or more `--wit` files:
 
 ```bash
-arukellt compile --target wasm32-wasi-p2 --emit component app.ark --wit host.wit
+arukellt compile --target wasm32-gc --emit component app.ark --wit host.wit
 ```
 
 `--emit all` produces both `app.wasm` and `app.component.wasm`.

@@ -20,10 +20,13 @@ ADR-007 は canonical ターゲットを `wasm32` / `wasm32-gc` / `native-*` に
 ## 決定
 
 1. **`wasm32-gc` を唯一の primary target とする。**
-2. **既定の host profile は WASI P2 とする。** WASI P3 は同一言語ターゲット上の
+2. **CLI の既定ターゲットは primary に揃える（`wasm32-gc`）。**
+   実装が旧 alias 文字列（例: `wasm32-wasi-p2`）をまだ保持している場合は
+   current-state の実装ギャップとして追跡し、公開文書は canonical 名を使う。
+3. **既定の host profile は WASI P2 とする。** WASI P3 は同一言語ターゲット上の
    host profile であり、別の primary target とはしない。
-3. **`wasm32`（linear / AtCoder 向け）は supported** とし、primary と同等の CI ゲートは課さない。
-4. **native 系統は scaffold** とし、ABI・意味論は ADR-045 の再評価条件を満たし
+4. **`wasm32`（linear / AtCoder 向け）は supported** とし、primary と同等の CI ゲートは課さない。
+5. **native 系統は scaffold** とし、ABI・意味論は ADR-045 の再評価条件を満たし
    後継 ADR が採択されるまで固定しない。
 
 ### tier 語彙（定義のみ）

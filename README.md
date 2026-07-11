@@ -8,7 +8,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 ## Status
 
 - Updated: 2026-07-11
-- CLI default target: `wasm32`
+- CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component/WIT target: `wasm32-gc`
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`

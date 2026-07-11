@@ -59,7 +59,7 @@ and the responsible CI job/log pointer.
 
 **Acceptance Criteria**:
 - Each fixture has a `.expected` file defining expected output
-- Fixture passes on all supported targets (T1, T3)
+- Fixture passes on supported targets (`wasm32`, `wasm32-gc`)
 - Fixture manifest (`tests/fixtures/manifest.txt`) defines metadata
 - Negative fixtures verify error cases
 
@@ -98,24 +98,28 @@ and the responsible CI job/log pointer.
 
 ### target-contract
 
-**Responsibility**: Verify ABI contracts for each target tier (T1-T5).
+**Responsibility**: Verify ABI / capability contracts for each canonical target (ADR-007).
 
 **Scope**:
-- T1 (wasm32-wasi-p1): Core Wasm compatibility
-- T2 (wasm32-freestanding): Freestanding target
-- T3 (wasm32-wasi-p2): GC-native Wasm
-- T4 (native): LLVM native backend
-- T5 (wasm32-wasi-p3): Future target
+- `wasm32` (supported): linear-memory compatibility / AtCoder path
+- `wasm32-gc` (primary): Wasm GC + default WASI P2 host profile; component emit
+- `native-cpp` / `native-llvm` (scaffold): experimental; no wide guarantee
+- `wasm32-gc` + WASI P3 host profile: not a separate language target; not started
+
+Retired public names (must not appear as current contracts):
+- `wasm32-freestanding` — ADR-007 hard error
+- T1–T5 labels — historical only
 
 **Acceptance Criteria**:
-- Each target has a contract test suite
-- Tests verify target-specific ABI requirements
+- Each shipped target has a contract test suite
+- Tests verify target-specific ABI / host requirements
 - Tests validate runtime behavior on the target
 - Cross-target compatibility is verified where applicable
 
 **Naming Convention**:
-- Test files: `tests/target/<target>_<contract>.rs`
-- Target names: `t1`, `t2`, `t3`, `t4`, `t5`
+- Public docs / CLI: `wasm32`, `wasm32-gc`, `native-cpp`, `native-llvm`
+- Fixture category prefixes such as `t3-run:` / `t3-compile:` are **historical internal names**
+  for the primary (`wasm32-gc`) path; they are not public target IDs
 
 **CI Job**: `verification-target-contract`
 

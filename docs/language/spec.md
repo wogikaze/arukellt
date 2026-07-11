@@ -1337,7 +1337,7 @@ These functions are available via stdlib modules, not auto-imported.
 `u32_to_be_bytes(n: i32) -> Vec<i32>`,
 `u32_from_be_bytes(v: Vec<i32>) -> i32`
 
-**Linear Memory** (T1 target only):
+**Linear Memory** (`wasm32` target / linear lowering helpers):
 `memory_copy(dst: i32, src: i32, len: i32)`,
 `memory_fill(dst: i32, val: i32, len: i32)`,
 `leb128_encode_i32(n: i32) -> Vec<i32>`,
@@ -1596,15 +1596,22 @@ expr_list   = expr ("," expr)* ;
 
 ## Appendix B. Compilation Targets
 
-Per ADR-007, Arukellt supports five compilation targets:
+Per [ADR-007](../adr/ADR-007-targets.md) / [ADR-013](../adr/ADR-013-primary-target.md),
+canonical compilation targets are:
 
-| Target | Name | Notes |
+| Target | Tier | Notes |
 |--------|------|-------|
-| T1 | `wasm32-wasi-p1` | Linear memory (no GC). AtCoder compatibility. |
-| T2 | `wasm32-freestanding` | Wasm GC, Reference Types. Browser/embedded. |
-| T3 | `wasm32-wasi-p2` | Wasm GC, WASI Preview 2, Component Model. Primary target. |
-| T4 | `native-x86_64` | LLVM IR emission, Wasm semantics via library. |
-| T5 | `native-arm64` | LLVM IR emission, Wasm semantics via library. |
+| `wasm32-gc` | **primary** | Wasm GC value representation. Default host profile = WASI P2. Component emit (ADR-008). |
+| `wasm32` | supported | Same language semantics, linear-memory lowering. AtCoder / non-GC compatibility. |
+| `native-cpp` / `native-llvm` | scaffold | Experimental. ABI / semantics undecided (ADR-045). |
+
+Retired / not public contracts:
+
+- `wasm32-freestanding` — hard error as a public target name (ADR-007)
+- Old labels T1–T5 — historical only; do not use in new docs
+
+Legacy CLI aliases (`wasm32-wasi-p1` → `wasm32`, `wasm32-wasi-p2` → `wasm32-gc`, …)
+are defined in ADR-007; implementation migration status is in `docs/current-state.md`.
 
 ---
 
@@ -1612,12 +1619,14 @@ Per ADR-007, Arukellt supports five compilation targets:
 
 | ADR | Decision |
 |-----|----------|
-| ADR-002 | Wasm GC adopted as primary memory model |
+| ADR-002 | Wasm GC adopted as language memory semantics; `wasm32` is linear lowering |
 | ADR-003 | Limited monomorphisation for generics |
-| ADR-005 | LLVM backend role deferred (reopen after Wasm maturity) |
-| ADR-006 | 3-layer public ABI (internal / Wasm / native C) |
-| ADR-007 | Five compilation targets (T1–T5) |
-| ADR-008 | External `wasm-tools` for Component Model wrapping |
-| ADR-009 | `use` for source imports; `import` reserved for WIT (v4+) |
+| ADR-006 | Public ABI categories: compiler-private / stable WIT-canonical / experimental raw Wasm / reserved native |
+| ADR-007 | Canonical targets `wasm32` / `wasm32-gc` / `native-*` (T1–T5 retired) |
+| ADR-008 | `--emit component` is in-tree; `wasm-tools` is auxiliary only |
+| ADR-009 | `use` for source imports; `import` reserved for WIT |
 | ADR-011 | Host-bound APIs in `std::host::*`; pure APIs in `std::*` |
-| ADR-025 | Draft: Layer S paths vs WIT package IDs — collision policy and syntax exploration (#123) |
+| ADR-013 | Primary target = `wasm32-gc` (default host WASI P2) |
+| ADR-031 | Import / WIT package syntax unification (supersedes ADR-025/026 exploration) |
+| ADR-044 | Trait / method syntax adopted (supersedes ADR-004) |
+| ADR-045 | Old LLVM-as-required-backend policy withdrawn; native ABI undecided |

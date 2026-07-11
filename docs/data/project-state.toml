@@ -7,7 +7,7 @@ verification_command = "python3 scripts/manager.py verify quick"
 current_state_doc = "docs/current-state.md"
 
 [pipeline]
-current = ["Lexer", "Parser", "Resolver", "TypeChecker", "MIR", "Wasm"]
+current = ["Lexer", "Parser", "Resolver", "TypeChecker", "CoreHIR", "MIR", "Wasm"]
 refactor_target = [
   "Lex",
   "Parse",
@@ -27,13 +27,13 @@ session_entry = "ark-driver::Session"
 dump_phases = ["parse", "resolve", "corehir", "mir", "optimized-mir", "backend-plan"]
 
 [targets]
-cli_default = "wasm32"
+cli_default = "wasm32-gc"
 canonical = "wasm32-gc"
 component_target = "wasm32-gc"
 default_emit = "core-wasm"
 component_emit = true
 wit_emit = true
-component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps)"
+component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps). CLI default = primary (wasm32-gc); impl may still spell alias wasm32-wasi-p2 until parser migrates."
 
 [[target_profiles]]
 id = "wasm32"

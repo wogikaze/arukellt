@@ -58,14 +58,14 @@ ark component validate <file.wasm>
 
 The `build` subcommand is the default — `ark component <file.ark>` is equivalent
 to `ark component build <file.ark>`. It delegates to the compile pipeline with
-`--emit component --target wasm32-wasi-p2`.
+`--emit component --target wasm32-gc`.
 
 **Options:**
 
 | Option          | Description                          |
 |-----------------|--------------------------------------|
 | `-o <path>`     | Write output to `<path>`             |
-| `--target <t>`  | Set target (default: wasm32-wasi-p2) |
+| `--target <t>`  | Set target (default: `wasm32-gc` = primary; aliases per ADR-007) |
 | `--wit <path>`  | Add a WIT import file                |
 | `--json`        | Emit JSON diagnostics                |
 

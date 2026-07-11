@@ -18,8 +18,8 @@ python scripts/manager.py verify quick
 python scripts/manager.py verify --full
 
 # 4. Determinism check
-arukellt compile docs/examples/hello.ark --target wasm32-wasi-p2 -o /tmp/h1.wasm
-arukellt compile docs/examples/hello.ark --target wasm32-wasi-p2 -o /tmp/h2.wasm
+arukellt compile docs/examples/hello.ark --target wasm32-gc -o /tmp/h1.wasm
+arukellt compile docs/examples/hello.ark --target wasm32-gc -o /tmp/h2.wasm
 sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
 
 # 5. Panic audit (included in verify-harness.sh --quick)
@@ -34,7 +34,7 @@ sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
 
 These things work and regressions are P1:
 
-- `arukellt compile <file> --target wasm32-wasi-p2` produces valid Wasm
+- `arukellt compile <file> --target wasm32-gc` produces valid Wasm（CLI 既定も `wasm32-gc` / primary）
 - `arukellt run <file>` executes the compiled output via wasmtime
 - Fixture harness passes for the current manifest-backed set
 - Compilation is deterministic (same input → same output bytes)
@@ -50,15 +50,15 @@ These work but the API or behavior may change without a deprecation cycle:
 
 ### Experimental (may break)
 
-- `--target wasm32-wasi-p1` (T1 supported, but not the primary CI gate)
+- `--target wasm32` (supported compatibility / AtCoder path; not the primary CI gate)
 - `ark-dap` debug adapter (scaffold)
 - VS Code extension DAP wiring (stub)
 
 ### Not guaranteed
 
-- `--target wasm32-freestanding` (T2: scaffold)
-- `--target native` (T4: scaffold; ark-llvm removed in #586)
-- `--target wasm32-wasi-p3` (T5: not started)
+- `wasm32-freestanding` as a public target（ADR-007: retired / hard error）
+- `--target native-cpp` / `native-llvm`（scaffold; ABI undecided per ADR-045）
+- `--target wasm32-gc --wasi p3`（host profile on primary language target; not started as a separate product）
 
 ## Stability Policy
 

@@ -47,7 +47,7 @@ Arukellt が Component Model export で使用する WIT 型と、
 
 ### GC 参照型と canonical ABI の不整合
 
-Arukellt の T3 バックエンドは WasmGC proposal を使用し、struct / enum / Option / Result / String / Vec を
+Arukellt の `wasm32-gc` バックエンドは WasmGC proposal を使用し、struct / enum / Option / Result / String / Vec を
 GC 管理のヒープオブジェクト (ref 型) として表現する。Component Model の canonical ABI は
 linear memory 上の flat 表現を要求するため、GC ref を直接 export することはできない。
 

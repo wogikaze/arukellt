@@ -1504,6 +1504,49 @@ def _extract_generated_block(text: str, marker: str) -> str | None:
     return match.group(1) if match else None
 
 
+def check_normative_target_sync() -> int:
+    """Fail if normative language docs still advertise retired T1–T5 contracts."""
+    local = 0
+    checks = [
+        (
+            ROOT / "docs" / "language" / "spec.md",
+            [
+                ("| T1 |", "spec.md Appendix must not list T1 as a current target"),
+                ("Five compilation targets", "spec.md must not claim five T1–T5 targets"),
+                ("External `wasm-tools` for Component Model wrapping", "spec.md ADR-008 row is stale"),
+            ],
+        ),
+        (
+            ROOT / "docs" / "language" / "memory-model.md",
+            [
+                ("T1 (`wasm32-wasi-p1`) が production path", "memory-model.md must not claim T1 as production"),
+                ("no GC runtime in production", "memory-model.md must not claim no GC in production"),
+            ],
+        ),
+    ]
+    for path, needles in checks:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for needle, hint in needles:
+            if needle in text:
+                errors.append(f"{path.relative_to(ROOT)}: {hint} (found {needle!r})")
+                local += 1
+    spec = ROOT / "docs" / "language" / "spec.md"
+    if spec.is_file():
+        text = spec.read_text(encoding="utf-8")
+        if "`wasm32-gc`" not in text or "**primary**" not in text:
+            errors.append("docs/language/spec.md: Appendix B must list wasm32-gc as primary")
+            local += 1
+        # freestanding only allowed as retired
+        if "wasm32-freestanding" in text and "Retired" not in text and "hard error" not in text:
+            errors.append(
+                "docs/language/spec.md: wasm32-freestanding mentioned without retired/hard-error context"
+            )
+            local += 1
+    return local
+
+
 def check_current_state_adr_sync() -> int:
     """Fail on known stale current-state claims that contradict ACCEPTED ADRs / research."""
     path = ROOT / "docs" / "current-state.md"
@@ -1697,6 +1740,7 @@ def main() -> int:
     failed += check_manifest_availability_consistency()
     failed += check_manifest_example_integrity()
     failed += check_docsify_routing_config()
+    failed += check_normative_target_sync()
     failed += check_current_state_adr_sync()
     failed += check_docs_runtime_contract()
 

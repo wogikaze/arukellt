@@ -2,7 +2,7 @@
 
 ステータス: **PROPOSED** — #688–#697 後に実行する stdlib 再設計の戦略
 
-決定日: 2026-06-26
+提案日: 2026-06-26
 
 関連: [ADR-044](ADR-044-trait-method-syntax-adopted.md)（trait / メソッド構文の採択）
 
@@ -159,12 +159,9 @@ trait dispatch を vtable 暗黙パラメータ方式で実装する。
 
 ## 結果
 
-本 ADR の決定により以下が必要となる:
-
-- [ ] `docs/stdlib/trait-stdlib-redesign.md` — モジュール別詳細設計doc
-- [ ] 各モノモルフィック API 削除に対する `[breaking]` issue 作成
-- [ ] `docs/stdlib/expansion-policy.md` の family 分類更新
-- [ ] `docs/stdlib/monomorphic-deprecation.md` を「executed」ステータスに更新
+採択後の作業チェックリストは
+[`docs/plans/trait-stdlib-redesign.md`](../plans/trait-stdlib-redesign.md) に置く
+（本 ADR に進捗ダッシュボードを残さない）。
 
 ## 参照
 

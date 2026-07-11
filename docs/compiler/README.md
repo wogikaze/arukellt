@@ -5,7 +5,7 @@
 
 ## Current Snapshot
 
-- Current path: `Lexer -> Parser -> Resolver -> TypeChecker -> MIR -> Wasm`
+- Current path: `Lexer -> Parser -> Resolver -> TypeChecker -> CoreHIR -> MIR -> Wasm`
 - Refactor target: `Lex -> Parse -> Bind -> Load -> Analyze -> Resolve -> Check+BuildCoreHIR -> LowerToMIR -> MIRValidate -> MIROptimize -> BackendPlan -> WasmEmit / LLVMEmit -> BackendValidate`
 - Shared orchestration entry point: `ark-driver::Session`
 - Dump phases: `parse, resolve, corehir, mir, optimized-mir, backend-plan`

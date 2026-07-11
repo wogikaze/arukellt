@@ -5,7 +5,7 @@
 
 ## Current Snapshot
 
-- CLI default target: `wasm32`
+- CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component emit: available on `wasm32-gc`
 - Backend validation failure (`W0004`) is a hard error.

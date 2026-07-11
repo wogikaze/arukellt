@@ -21,7 +21,7 @@ note = "Current-first error handling reference; reflects implemented Result/Opti
 [[docs]]
 file = "memory-model.md"
 class = "normative"
-note = "Current-first memory model reference; reflects GC-native T3 implementation"
+note = "Current-first memory model; language semantics = GC (ADR-002); wasm32-gc primary with linear wasm32 compatibility"
 
 [[docs]]
 file = "type-system.md"

@@ -6,9 +6,9 @@
 ## Current Snapshot
 
 - Updated: 2026-07-11
-- CLI default target: `wasm32`
+- CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
-- Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps))
+- Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps). CLI default = primary (wasm32-gc); impl may still spell alias wasm32-wasi-p2 until parser migrates.)
 - Fixture harness: 654 passed, 29 skipped / 1199 entries
 - Verification: `python3 scripts/manager.py verify quick` — 162/168 checks pass
 - Stdlib manifest-backed public API: 772 functions
