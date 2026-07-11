@@ -341,7 +341,9 @@ bash scripts/perf/compare-linear-vs-gc.sh --runtimes wasmtime,node
 ```
 
 Results are written to `docs/process/linear-vs-gc-results.json` (machine-readable)
-and `docs/process/linear-vs-gc-report.md` (human-readable comparison table).
+and a caller-selected output directory's `linear-vs-gc-report.md`. The dated
+repository snapshot is archived at
+`docs/history/process/linear-vs-gc-report.md` and is not a live baseline.
 
 Prerequisites: `wasmtime-py`, Node.js v22+, `google-chrome`, and
 `puppeteer-core` (`cd scripts/perf && npm install`).

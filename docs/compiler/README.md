@@ -25,6 +25,4 @@
 | [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the MIR optimization pipeline. |
 | [panic-ice-policy.md](panic-ice-policy.md) | Panic / ICE Policy | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |
-| [t3-reachability.md](t3-reachability.md) | T3 Reachability Root Contract | Naming: 「T3」および CLI 旧名 wasm32-wasi-p2 は歴史的内部ラベル。 |
-| [t3-rmw-optimization.md](t3-rmw-optimization.md) | T3 Backend: Read-Modify-Write Optimization Analysis | Resolved: T3 backend already generates optimal RMW code for struct fields. |
 | [wit-resource-handles.md](wit-resource-handles.md) | WIT resource handles (resource, own<T>, borrow<T>) | Design for Tier 3 component emission of WIT resource types at the canonical ABI |

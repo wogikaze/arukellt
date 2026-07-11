@@ -53,10 +53,11 @@ fn main() {
 
 With an exit code:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
+use std::host::stdio
+
 fn main() -> i32 {
-    println(String_from("Hello, world!"))
+    stdio::println("Hello, world!")
     0
 }
 ```
@@ -70,7 +71,7 @@ Source files are UTF-8. Comments use `//` for line comments and `/* … */` for 
 Declare bindings with `let`. By default they are immutable:
 
 <!-- fixture: guide/variables.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="binding example awaits a dedicated fixture" owner="#461" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let x = 42
 let name = String_from("Alice")
@@ -536,7 +537,7 @@ specialised code. See [spec.md §2.7](spec.md#27-generics) for the normative def
 
 > **Note**: Traits and `impl` blocks (`trait Foo { … }` / `impl Foo for Bar { … }`) are
 > a v1 feature marked **provisional** and not covered in this guide. See
-> [spec.md §2.9](spec.md#29-traits-and-impl-blocks-v1) once you are ready to explore them.
+> [spec.md §2.9](spec.md#29-traits-and-impl-blocks) once you are ready to explore them.
 
 ---
 

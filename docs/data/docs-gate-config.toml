@@ -12,10 +12,7 @@ path_globs = [
   "docs/research/**",
   "docs/design/**",
   "docs/spec/**",
-  "docs/compiler/t3-*.md",
   "docs/process/benchmark-results.md",
-  "docs/process/wasm-size-reduction.md",
-  "docs/process/linear-vs-gc-report.md",
   "docs/process/false-done-prevention.md",
 ]
 
@@ -89,16 +86,16 @@ require_expires = true
 
 [[skip_doc_check.budgets]]
 path = "docs/language/spec.md"
-max = 44
-ratchet_max = 44
+max = 43
+ratchet_max = 43
 [[skip_doc_check.budgets]]
 path = "docs/language/syntax.md"
 max = 10
 ratchet_max = 10
 [[skip_doc_check.budgets]]
 path = "docs/language/guide.md"
-max = 44
-ratchet_max = 45
+max = 43
+ratchet_max = 43
 [[skip_doc_check.budgets]]
 path = "docs/language/error-handling.md"
 max = 3
@@ -113,8 +110,8 @@ max = 2
 ratchet_max = 2
 [[skip_doc_check.budgets]]
 path = "docs/stdlib/cookbook.md"
-max = 37
-ratchet_max = 38
+max = 36
+ratchet_max = 36
 [[skip_doc_check.budgets]]
 path = "docs/stdlib/std.md"
 max = 11

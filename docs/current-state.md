@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T20:45:58+09:00
-> Source-Commit: `89eb5eb4`
+> Generated-At: 2026-07-11T20:57:42+09:00
+> Source-Commit: `257efb36`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 367 fixture failure(s), 1 verification check failure(s)
@@ -190,9 +190,10 @@ python3 scripts/util/benchmark_runner.py --mode compare    # compare against sto
 | vec.ark | 2,382 B | 2,382 B | Vec ops, same target path |
 | closure.ark | n/a | n/a | Compile fails (ICE) — pre-existing, tracked in issue backlog |
 
-Size tracking for `hello.ark` at `--opt-level 2` lives in [`docs/process/wasm-size-reduction.md`](process/wasm-size-reduction.md)
-(current measured values there supersede any older 534 B / 918 B citations).
-Do not hand-copy size numbers into other current docs — regenerate or link.
+Historical size-attribution measurements live in
+[`history/process/wasm-size-reduction.md`](history/process/wasm-size-reduction.md).
+They are not a current benchmark baseline; do not copy their retired target-era
+numbers into current contracts.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation

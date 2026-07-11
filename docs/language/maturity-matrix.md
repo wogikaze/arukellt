@@ -92,8 +92,8 @@
 | 6.1.3 | Where Clauses | **provisional** | language uplift feature — interface may change before stable exit |
 | 6.2 | Struct Definition | stable | — |
 | 6.3 | Enum Definition | stable | — |
-| 6.4 | Trait Definition (v1) | **provisional** | version-gated feature — interface may change before stable exit |
-| 6.5 | Impl Block (v1) | **provisional** | version-gated feature — interface may change before stable exit |
+| 6.4 | Trait Definition | **provisional** | version-gated feature — interface may change before stable exit |
+| 6.5 | Impl Block | **provisional** | version-gated feature — interface may change before stable exit |
 | 7 | Module System | **provisional** | — |
 | 7.1 | Import Syntax | **provisional** | — |
 | 7.2 | Module Structure | **provisional** | — |

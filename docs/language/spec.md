@@ -5,9 +5,20 @@
 > For current verified state, see [../current-state.md](../current-state.md).
 
 This document is the authoritative reference for the Arukellt programming
-language as implemented on the `feature-arukellt-v1` branch. It is intended
+language as implemented on the current mainline compiler. It is intended
 to contain enough detail to re-implement the parser, type checker, and code
 generator from scratch.
+
+### Language version model
+
+Arukellt currently has one selectable language surface: the current project
+release. The CLI has no language-edition or parser-mode selector. Older labels
+such as “v0”, “v1”, and “v3” in historical material name development
+milestones; they are not editions that users can select and they do not define
+parallel compatibility modes. This specification therefore names features by
+capability rather than by those milestone numbers. Project releases use
+semantic versions (`0.1.0`); Wasm ABI and host-profile versions are separate
+axes documented under [Platform](../platform/README.md).
 
 > **New to Arukellt?** Start with the [Language Guide](guide.md) for a
 > practical introduction to stable, implemented features before reading this specification.
@@ -58,7 +69,7 @@ Source files are UTF-8 encoded. No BOM is required.
 
 ### 1.3 Keywords
 
-**Active (v0)**
+**Baseline keywords**
 
 ```
 fn   struct   enum   let   mut   if   else   match
@@ -66,13 +77,13 @@ while   loop   for   in   break   continue   return
 pub   import   as   where
 ```
 
-**Active (v1)**
+**Trait-system keywords**
 
 ```
 trait   impl
 ```
 
-**Active (v3)**
+**Path-import keyword**
 
 ```
 use
@@ -249,16 +260,15 @@ explicit conversion.
 
 Functions, structs, and enums may be parameterised by type variables:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
-```ark
+```text
 fn identity<T>(x: T) -> T { x }
 struct Pair<A, B> { first: A, second: B }
 enum Either<L, R> { Left(L), Right(R) }
 ```
 
-Type parameter bounds are supported (v1):
+Type parameter bounds are supported by the current trait system:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="bounded-generic example awaits fixture extraction" owner="#461" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn print_value<T: Display>(x: T) { … }
 ```
@@ -327,7 +337,7 @@ let s: String = id("hello")  // fresh t2, unified with String
 - TypeScheme is an internal compiler representation and does not appear
   in surface syntax.
 
-### 2.9 Traits and Impl Blocks (v1)
+### 2.9 Traits and Impl Blocks
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -340,7 +350,8 @@ impl Display for Point {
 }
 ```
 
-- Traits are **not** available in v0; they are a v1 feature.
+- Traits and impl blocks are part of the current parser/type-checker surface;
+  there is no edition flag that disables them.
 - Static dispatch only (no `dyn`).
 - Built-in traits planned: `Display`, `Eq`, `Hash`, `Into`/`From`.
 - Operator overloading via magic method names: `__add`, `__sub`, `__mul`,
@@ -928,7 +939,7 @@ Variant forms:
 - **Tuple**: `Variant(T1, T2, …)` — positional fields.
 - **Struct**: `Variant { field: T, … }` — named fields.
 
-### 6.4 Trait Definition (v1)
+### 6.4 Trait Definition
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
@@ -941,7 +952,7 @@ pub trait Name<T> {
 }
 ```
 
-### 6.5 Impl Block (v1)
+### 6.5 Impl Block
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -962,7 +973,7 @@ impl Trait for Name {
 
 Two keywords are used for different scopes:
 
-**`import`** — file-level module import (v0):
+**`import`** — legacy file-level module import syntax:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -973,7 +984,7 @@ import utils as u
 `import` loads a sibling `.ark` file. Qualified access via `math::add(…)`.
 Aliases rename the module locally.
 
-**`use`** — path-based import (v3):
+**`use`** — current path-based import syntax:
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark

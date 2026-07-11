@@ -97,7 +97,9 @@ so that hot fields get lower Wasm GC field indices, improving JIT locality.
 
 ### Dead code elimination at backend level (`reachability.rs`)
 
-The T3 emitter performs its own function-level reachability analysis:
+The `wasm32-gc` emitter performs function-level reachability analysis. The old
+internal name “T3” appears only in historical source/file names and archived
+analysis:
 
 - Entry point + exported (pub) functions are roots
 - Transitive call-graph walk determines reachable functions
@@ -107,8 +109,9 @@ The T3 emitter performs its own function-level reachability analysis:
 
 ### Read-modify-write code generation
 
-The T3 backend already generates optimal RMW sequences for struct field updates (6 instructions
-per field update — the minimum for a stack machine without `dup`). See [t3-rmw-optimization.md](t3-rmw-optimization.md) for the analysis.
+An older backend-specific RMW investigation is archived at
+[history/compiler/t3-rmw-optimization.md](../history/compiler/t3-rmw-optimization.md).
+It is evidence for that snapshot, not a timeless optimality guarantee.
 
 ## Binary Size Optimizations
 
@@ -116,11 +119,14 @@ Binary size reductions come from the combined effect of:
 
 1. **Dead function elimination** — stdlib functions not reachable from user code are removed
 2. **Backend reachability** — only reachable functions are emitted
-3. **GC-native representation** — T3 avoids linear-memory allocator overhead (no bump allocator, heap pointer, or GC runtime)
+3. **Representation selection** — supported `wasm32-gc` aggregate shapes use GC
+   references, while strings, vectors, enums, options/results, and generic
+   payloads may still use linear-memory or fixed-shape layouts
 4. **Conditional WASI imports** — filesystem-related imports are omitted when unused
 5. **Peephole `local.tee`** — reduces instruction count
 
-T3 GC-native binaries are 86–92% smaller than T1 equivalents for typical programs.
+Current size results must come from a dated benchmark artifact. Historical
+cross-target percentages are not a current release guarantee.
 
 ## Constant Folding / Propagation Status
 
@@ -142,7 +148,7 @@ Dead code elimination operates at three levels:
 | Block | `dead_block_elim` removes blocks with no predecessor path | O1+ |
 | Local | `dead_local_elim` removes unused local variables | O1+ |
 | Function (MIR) | `eliminate_dead_functions` removes unreachable functions | O1+ |
-| Function (backend) | T3 reachability analysis emits only reachable functions | Always |
+| Function (backend) | `wasm32-gc` reachability analysis emits only reachable functions | Always |
 
 ## Dump / Debugging Support
 
@@ -156,6 +162,6 @@ ARUKELLT_DUMP_PHASES=optimized-mir arukellt compile hello.ark
 ## Related
 
 - [pipeline.md](pipeline.md) — overall compilation pipeline
-- [t3-rmw-optimization.md](t3-rmw-optimization.md) — RMW pattern analysis
+- [../history/compiler/t3-rmw-optimization.md](../history/compiler/t3-rmw-optimization.md) — archived RMW snapshot
 - [ir-spec.md](ir-spec.md) — MIR specification
 - [../current-state.md](../current-state.md) — project status

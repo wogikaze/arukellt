@@ -43,8 +43,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_vec/vec_get.ark`](../../tests/fixtures/stdlib_vec/vec_get.ark)
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
-```ark
+```text
 use std::test
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
@@ -66,7 +65,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_vec/vec_pop.ark`](../../tests/fixtures/stdlib_vec/vec_pop.ark)
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="cookbook recipe awaits fixture extraction" owner="#461" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::test
 fn main() {

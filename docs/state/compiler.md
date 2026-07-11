@@ -15,7 +15,7 @@ MIR 最適化パイプラインは実装済みで有効。詳細は
 - **`--opt-level` 0/1/2** — 既定 O1（9 safe passes）
 - **Dead function elimination** — O1+。`wasm32-gc` は MIR reachability
   （wasm / component / wit emit）。`wasm32` は backend reachability
-  （[`t3-reachability.md`](../compiler/t3-reachability.md)）
+  （historical analysis: [`t3-reachability.md`](../history/compiler/t3-reachability.md)）
 - **`wasm32-gc` peephole** — `local.set`/`local.get` → `local.tee`（O1+）
 - **Struct field layout reorder** — hot-field-first（O2）
 - **Backend reachability** — 到達可能な関数と WASI import のみ emit

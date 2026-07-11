@@ -21,10 +21,8 @@
 | [bootstrap-verification.md](bootstrap-verification.md) | Bootstrap Verification | Current-first. This page is a thin pointer to the ADR-029 verification |
 | [decision-guide.md](decision-guide.md) | 意思決定ガイド | この文書は、現行プロジェクトで判断に迷ったときの設計寄り参照先です。 |
 | [false-done-prevention.md](false-done-prevention.md) | False-Done 再発防止 | 監査オーケストレーター契約: prompts/research.md |
-| [linear-vs-gc-report.md](linear-vs-gc-report.md) | Linear Memory vs Wasm GC — Performance Comparison | Generated: 2026-07-05T12:21:05+0900 |
 | [parser-ark-evaluation.md](parser-ark-evaluation.md) | parser.ark 翻訳評価レポート | parser.rs (Gloss markup parser, 1028 行 Rust) → parser.ark (arukellt v0) の翻訳結果を分析し、言語の書きやすさと v1 改善候補を特定する。 |
 | [policy.md](policy.md) | Operational Policy | Current-first: this page describes the current operational contract, not aspirational design docs. |
 | [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |
 | [std-task.md](std-task.md) | stdlib migration task board | Rust 実装中心の stdlib を、Arukellt 実装中心の std/.ark へ移していくための実行順タスクボード。 |
-| [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: achieved (fixture tests/fixtures/hello/hello.ark under 1 KB on wasm32 and wasm32-gc) |

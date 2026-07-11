@@ -12,8 +12,12 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
+| [compiler/t3-reachability.md](compiler/t3-reachability.md) | T3 Reachability Root Contract | Archive | Naming: 「T3」および CLI 旧名 wasm32-wasi-p2 は歴史的内部ラベル。 |
+| [compiler/t3-rmw-optimization.md](compiler/t3-rmw-optimization.md) | T3 Backend: Read-Modify-Write Optimization Analysis | Archive | Resolved: T3 backend already generates optimal RMW code for struct fields. |
 | [language/syntax-v1-preview.md](language/syntax-v1-preview.md) | v1 構文メモ | Archive | ARCHIVED / RETIRED 2026-07-11 (#770 Phase 4). |
 | [milestones.md](milestones.md) | 到達記録（historical milestones） | Archive | ステータス: 履歴メモ（現行正本ではない） |
+| [process/linear-vs-gc-report.md](process/linear-vs-gc-report.md) | Linear Memory vs Wasm GC — Performance Comparison | Archive | Generated: 2026-07-05T12:21:05+0900 |
+| [process/wasm-size-reduction.md](process/wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Archive | Status: achieved (fixture tests/fixtures/hello/hello.ark under 1 KB on wasm32 and wasm32-gc) |
 | [reports/bootstrap-rust-era-compiler-guide.md](reports/bootstrap-rust-era-compiler-guide.md) | bootstrap-rust-era-compiler-guide | Archive | ARCHIVED REPORT — Rust-era bootstrap narrative (pre ADR-029). Not current. See docs/adr/ADR-029-selfhost-native-verification-contract.md and docs/compiler/bootstrap.md. |
 | [reports/bootstrap-rust-era-verification.md](reports/bootstrap-rust-era-verification.md) | bootstrap-rust-era-verification | Archive | ARCHIVED REPORT — Rust-era bootstrap narrative (pre ADR-029). Not current. See docs/adr/ADR-029-selfhost-native-verification-contract.md and docs/compiler/bootstrap.md. |
 | [reports/diagnostic-parity-rust-era.md](reports/diagnostic-parity-rust-era.md) | diagnostic-parity-rust-era | Archive | ARCHIVED REPORT — Rust-vs-selfhost diagnostic comparison (Rust CLI retired). Current gate: python3 scripts/manager.py selfhost diag-parity. See docs/compiler/bootstrap.md. |

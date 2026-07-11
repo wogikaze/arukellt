@@ -368,13 +368,13 @@ stability = "stable"
 
 [[features]]
 id = "6.4"
-name = "Trait Definition (v1)"
+name = "Trait Definition"
 stability = "provisional"
 notes = "version-gated feature — interface may change before stable exit"
 
 [[features]]
 id = "6.5"
-name = "Impl Block (v1)"
+name = "Impl Block"
 stability = "provisional"
 notes = "version-gated feature — interface may change before stable exit"
 

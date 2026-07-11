@@ -344,7 +344,7 @@ def main() -> int:
     parser.add_argument("--warmups", type=int, default=2, help="Warmup iterations")
     parser.add_argument("--runtimes", default="wasmtime,node,browser",
                         help="Comma-separated runtimes to use")
-    parser.add_argument("--output-dir", default="docs/process",
+    parser.add_argument("--output-dir", default=".build/perf/linear-vs-gc",
                         help="Output directory for results")
     parser.add_argument("--no-compile", action="store_true",
                         help="Skip compilation, reuse existing wasm files")
