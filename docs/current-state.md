@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T18:01:28+09:00
-> Source-Commit: `5f46d62a`
+> Generated-At: 2026-07-11T18:07:27+09:00
+> Source-Commit: `ff8cb226`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 4 verification check failure(s)
@@ -243,7 +243,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 ## Known Limitations
 
-- `--deny-clock` and `--deny-random` are enforced at **compile time** via MIR scan (`mir_uses_capability`). Detection is transitive. These flags apply to the `run` subcommand; the `compile` subcommand does not accept them (compile only emits Wasm bytes, no runtime policy is applied).
+- `--deny-clock` / `--deny-random`: **intended** compile-time MIR scan on `run` (transitive; not on `compile`), but **not implemented** on the current selfhost CLI. Fixtures remain in `DIAG_PARITY_SKIP` (#459). See [`process/policy.md`](process/policy.md) and [`data/capabilities.toml`](data/capabilities.toml).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
 - `native-*` is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. Full selfhost-native lowering remains #529 Phase 7 follow-up.
 - some historical docs remain archived / historical and should not override current-state
@@ -266,6 +266,12 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 要約: `--emit component` / `wit` / `all` は `wasm32-gc` で利用可能（ADR-008 in-tree 契約。実装ギャップは ADR gaps）。
 詳細・制限・fixture 列挙は [`docs/state/component-model.md`](state/component-model.md)。
+
+Export boundary (summary; full tiers in `state/component-model.md`): unsupported shapes
+such as non-`Color` enums, non-`Shape` payload variants, and non-`Point` records
+(see `export_unsupported_record_rect`) are rejected with `E0401`. Broader f32 /
+Tier-2 general adapters are tracked via #659 / #660 (closed with explicit
+boundary under #648).
 
 ## MIR Optimization / Bootstrap
 

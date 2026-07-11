@@ -155,7 +155,7 @@ match value {
 - match guard / or-pattern / struct pattern
 - nested generics
 
-詳細は [syntax-v1-preview.md](syntax-v1-preview.md) を参照してください。
+詳細は退役済みメモ [../history/language/syntax-v1-preview.md](../history/language/syntax-v1-preview.md) を参照してください（現行の正は本ファイルと [spec.md](spec.md)）。
 
 ## 関連
 

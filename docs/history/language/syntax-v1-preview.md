@@ -76,6 +76,6 @@ impl Point {
 
 ## 関連
 
-- [syntax.md](syntax.md)
-- [type-system.md](type-system.md)
-- [../current-state.md](../current-state.md)
+- [syntax.md](../../language/syntax.md)
+- [type-system.md](../../language/type-system.md)
+- [../../current-state.md](../../current-state.md)

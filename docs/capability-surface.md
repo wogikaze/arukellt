@@ -26,18 +26,18 @@
 | `std::host::fs` | `std/host/fs.ark` | yes | yes | yes | yes | yes | yes | yes (--dir) | `wasm32`, `wasm32-gc` | Deny-by-default |
 | `std::host::env` | `std/host/env.ark` | yes | yes | yes | yes | yes | yes | no | `wasm32`, `wasm32-gc` |  |
 | `std::host::process` | `std/host/process.ark` | yes | yes | yes | yes | yes | yes | no | `wasm32`, `wasm32-gc` |  |
-| `std::host::clock` | `std/host/clock.ark` | yes | yes | yes | yes | yes | yes | deny flags | `wasm32`, `wasm32-gc` | --deny-clock hard error on run when referenced |
-| `std::host::random` | `std/host/random.ark` | yes | yes | yes | yes | yes | yes | deny flags | `wasm32`, `wasm32-gc` | --deny-random hard error on run when referenced |
+| `std::host::clock` | `std/host/clock.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-clock; fixtures in DIAG_PARITY_SKIP (#459). |
+| `std::host::random` | `std/host/random.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-random; fixtures in DIAG_PARITY_SKIP (#459). |
 | `std::host::http` | `std/host/http.ark` | yes | yes | partial | partial | no | **no** | n/a | — | host_http_user_reachable=false |
 | `std::host::sockets` | `std/host/sockets.ark` | yes | yes | partial | partial | no | **no** | n/a | — | E0500 on wasm32; not user-reachable |
 | `std::host::udp` | `std/host/udp.ark` | yes | yes | partial | partial | no | **no** | n/a | — | Same class as sockets |
 
 ## Deny enforcement (structured)
 
-| Module | Flag | Enforcement | Transitive | Applies to |
-|--------|------|-------------|:----------:|------------|
-| `std::host::clock` | `--deny-clock` | `compile_time_mir` | yes | `run` |
-| `std::host::random` | `--deny-random` | `compile_time_mir` | yes | `run` |
+| Module | Flag | Current enforcement | Intended | Transitive | Applies to |
+|--------|------|---------------------|----------|:----------:|------------|
+| `std::host::clock` | `--deny-clock` | `unimplemented` | `compile_time_mir` | yes | `run` |
+| `std::host::random` | `--deny-random` | `unimplemented` | `compile_time_mir` | yes | `run` |
 
 ## Runtime verification / evidence (not a reachability claim)
 

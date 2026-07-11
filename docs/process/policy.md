@@ -9,16 +9,22 @@
 |------------|----------------|----------------|-------------------|------------|
 | Standard I/O (stdin/stdout/stderr) | Allow | Cannot be denied | — | — |
 | Filesystem access | Deny unless granted | `--dir path:ro\|rw`, `--deny-fs` | Runtime grant / compile policy | n/a |
-| Clock/time | Allow | `--deny-clock` | **Compile-time** MIR scan (`mir_uses_capability`) on `run` | Yes |
-| Random numbers | Allow | `--deny-random` | **Compile-time** MIR scan on `run` | Yes |
+| Clock/time | Allow | `--deny-clock` (intended) | **Unimplemented** on selfhost CLI; intended: compile-time MIR scan on `run` | Yes (intended) |
+| Random numbers | Allow | `--deny-random` (intended) | **Unimplemented** on selfhost CLI; intended: compile-time MIR scan on `run` | Yes (intended) |
 
 Notes:
 
-- `--deny-clock` / `--deny-random` make the compile fail with a hard error when the
-  program (transitively) references the capability. They apply to `arukellt run`;
-  `arukellt compile` does not accept them (bytes-only emit).
-- These flags are **implemented** (compile-time MIR scan). Do not describe them as unimplemented.
+- **Intended contract** (Rust-era #291): `--deny-clock` / `--deny-random` hard-error at
+  compile time via transitive MIR scan (`mir_uses_capability`) on `arukellt run`
+  (not on `compile`).
+- **Current selfhost reality**: those flags are **not** accepted by the selfhost CLI
+  (`src/compiler/main/args_parse*.ark` has no `--deny-clock` / `--deny-random`).
+  Related fixtures (`deny_clock_compile.ark`, `deny_random_compile.ark`,
+  `stdlib_io/deny_clock.ark`, `stdlib_io/deny_random.ark`) are in
+  `DIAG_PARITY_SKIP` (#459). Do **not** claim they are implemented until the flags
+  exist and parity skips are removed.
 - Filesystem remains deny-by-default without `--dir`.
+- Structured SSOT: [`../data/capabilities.toml`](../data/capabilities.toml).
 
 ## Generated Artifacts
 

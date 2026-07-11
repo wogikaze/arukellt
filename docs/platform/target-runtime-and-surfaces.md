@@ -217,7 +217,7 @@ jco transpile app.component.wasm -o app.dist/
 | run (wasmtime) | guaranteed | stdout compared against `.expected` |
 | emit component | n/a | `wasm32-gc`-only |
 | emit WIT | n/a | `wasm32-gc`-only |
-| host capabilities | guaranteed | `--deny-clock`, `--deny-random` compile-time MIR hard errors on `run` |
+| host capabilities | partial | clock/random modules run; `--deny-clock`/`--deny-random` **not** in selfhost CLI (intended MIR deny; #459 skip) |
 | determinism | smoke | baselines spot-checked |
 | validator pass | guaranteed | `wasmparser` validation post-emit |
 
@@ -305,15 +305,16 @@ stdlib adapter 等）と進捗は `docs/current-state.md` に記録する。
 
 ### CLI capability flags
 
-| Flag | Scope | Enforcement | Effect |
-|------|-------|-------------|--------|
-| `--deny-fs` | Filesystem | Runtime (WASI) | Blocks all directory grants; overrides `--dir` |
-| `--deny-clock` | Clock | Compile-time (MIR scan) | Hard error if clock intrinsic referenced |
-| `--deny-random` | Random | Compile-time (MIR scan) | Hard error if random intrinsic referenced |
+| Flag | Scope | Current enforcement | Effect |
+|------|-------|---------------------|--------|
+| `--deny-fs` | Filesystem | Runtime (WASI) when supported | Blocks all directory grants; overrides `--dir` |
+| `--deny-clock` | Clock | **Unimplemented** on selfhost CLI | Intended: compile-time MIR hard error if clock referenced on `run` |
+| `--deny-random` | Random | **Unimplemented** on selfhost CLI | Intended: compile-time MIR hard error if random referenced on `run` |
 | `--dir PATH` | Filesystem | Runtime (WASI preopened) | Grants read-write access to `PATH` |
 | `--dir PATH:ro` | Filesystem | Runtime (WASI preopened) | Grants read-only access |
 
 Default policy: stdio **allow** (cannot be denied), filesystem **deny**, clock/random **allow**.
+Deny-flag SSOT: [`../data/capabilities.toml`](../data/capabilities.toml) / [`../capability-surface.md`](../capability-surface.md).
 
 ### Known limitations
 
@@ -323,6 +324,7 @@ Default policy: stdio **allow** (cannot be denied), filesystem **deny**, clock/r
 4. No per-function capability deny (module-level only)
 5. Filesystem deny-by-default but not compile-time scan (runtime failure without `--dir`)
 6. Node.js 実行時の stdin 非対応（`node:wasi` の制限）
+7. `--deny-clock` / `--deny-random` absent from selfhost CLI; diag-parity fixtures skipped (#459)
 
 ---
 

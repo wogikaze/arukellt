@@ -72,13 +72,14 @@ compiles = true
 links = true
 runs = true
 user_reachable = true
-grant_required = "deny flags"
+grant_required = "intended deny flags (not in selfhost CLI)"
 deny_flag = "--deny-clock"
-deny_enforcement = "compile_time_mir"
+deny_enforcement = "unimplemented"
+deny_intended_enforcement = "compile_time_mir"
 deny_transitive = true
 deny_applies_to = "run"
 verified_on = ["wasm32", "wasm32-gc"]
-notes = "--deny-clock hard error on run when referenced"
+notes = "Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-clock; fixtures in DIAG_PARITY_SKIP (#459)."
 
 [[modules]]
 id = "random"
@@ -90,13 +91,14 @@ compiles = true
 links = true
 runs = true
 user_reachable = true
-grant_required = "deny flags"
+grant_required = "intended deny flags (not in selfhost CLI)"
 deny_flag = "--deny-random"
-deny_enforcement = "compile_time_mir"
+deny_enforcement = "unimplemented"
+deny_intended_enforcement = "compile_time_mir"
 deny_transitive = true
 deny_applies_to = "run"
 verified_on = ["wasm32", "wasm32-gc"]
-notes = "--deny-random hard error on run when referenced"
+notes = "Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-random; fixtures in DIAG_PARITY_SKIP (#459)."
 
 [[modules]]
 id = "http"

@@ -65,7 +65,7 @@ CI gates（いずれも selfhost-native; job id = `selfhost`）:
 - `selfhost fixpoint`
 - `selfhost fixture-parity`
 - `selfhost diag-parity`
-- `selfhost parity --cli`
+- `selfhost parity --mode --cli`
 
 ### Selfhost 実行パス
 
@@ -75,8 +75,10 @@ Wrapper: [`scripts/run/arukellt-selfhost.sh`](../../scripts/run/arukellt-selfhos
 
 1. `$ARUKELLT_SELFHOST_WASM`
 2. `.build/selfhost/arukellt-s3.wasm`
-3. `.build/selfhost/arukellt-s2.wasm`
-4. `.bootstrap-build/arukellt-s2.wasm`
-5. `bootstrap/arukellt-selfhost.wasm`
+3. `.build/selfhost/arukellt-s2-runtime.wasm`
+4. `.build/selfhost/arukellt-s2.wasm`
+5. `.bootstrap-build/arukellt-s2.wasm`
+6. `.build/selfhost/arukellt-pinned-bootstrap.wasm`
+7. `bootstrap/arukellt-selfhost.wasm`
 
 `wasmtime` 不在または wasm 未発見時は hard-fail。`ARUKELLT_USE_RUST=1` は非ゼロ終了。

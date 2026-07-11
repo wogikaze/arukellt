@@ -19,16 +19,23 @@ BINDINGS_DIR="$FIXTURE_ROOT/bindings-cargo"
 OUT="$REPO_ROOT/.build/wit-roundtrip"
 ADAPTER="$OUT/wasi_snapshot_preview1.reactor.wasm"
 
-ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/target/release/arukellt}"
-if [[ ! -x "$ARUKELLT" ]] && [[ -f "$REPO_ROOT/scripts/run/arukellt-selfhost.sh" ]]; then
+# Prefer selfhost wrapper — Rust CLI is retired (ADR-029 / #583).
+# A stale `target/release/arukellt` must not shadow the pinned-wasm path.
+if [[ -n "${ARUKELLT_BIN:-}" ]]; then
+  ARUKELLT="$ARUKELLT_BIN"
+elif [[ -f "$REPO_ROOT/scripts/run/arukellt-selfhost.sh" ]]; then
   ARUKELLT="$REPO_ROOT/scripts/run/arukellt-selfhost.sh"
+elif [[ -x "$REPO_ROOT/target/release/arukellt" ]]; then
+  ARUKELLT="$REPO_ROOT/target/release/arukellt"
+else
+  ARUKELLT=""
 fi
 WASMTIME="${WASMTIME_BIN:-$(command -v wasmtime 2>/dev/null || echo "")}"
 WT="${WASM_TOOLS_BIN:-$HOME/.cargo/bin/wasm-tools}"
 
 cd "$REPO_ROOT"
 
-if [[ ! -x "$ARUKELLT" ]]; then
+if [[ -z "$ARUKELLT" ]] || { [[ ! -x "$ARUKELLT" ]] && [[ ! -f "$ARUKELLT" ]]; }; then
   echo "SKIP: arukellt missing"
   exit 0
 fi

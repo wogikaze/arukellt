@@ -30,7 +30,7 @@ Issue: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 
 `bootstrap/arukellt-selfhost.wasm` にコミットされた単一の wasm ファイルが、すべてのセルフホストゲートの信頼ベースである。リポジトリ全体の `*.wasm` `.gitignore` は明示 allow-list で本ファイルを除外する。由来、sha256、サイズ、再現レシピは `bootstrap/PROVENANCE.md` に記載する。更新は明示的（`chore(bootstrap): refresh pinned selfhost wasm`）で、自動ではない。導入するすべての挙動ドリフトを列挙する必要がある。
 
-採用時点のアーティファクトは 524 KiB で、10 MiB 上限のソフトサイズ予算を十分下回る。将来の更新が予算に近づく場合は更新コミットメッセージで明記する。
+採用時点のアーティファクトは約 524 KiB だった。現行の pinned サイズ・sha256・再現手順は `bootstrap/PROVENANCE.md` を正とする（執筆時点で約 1.88 MiB）。ソフトサイズ予算は 10 MiB。将来の更新が予算に近づく場合は更新コミットメッセージで明記する。
 
 ### 再定義されたゲートセマンティクス
 
@@ -127,7 +127,7 @@ require: for cmd in {compile, check, run}: wasmtime(current_selfhost, cmd).retur
 ### 否定的 / 受け入れたトレードオフ
 
 - ピン留め wasm の更新が保守儀式になる。緩和: `bootstrap/PROVENANCE.md` に更新ポリシーを文書化。
-- リポジトリに 524 KiB のバイナリアーティファクトを載せる。緩和: 小さい、更新頻度は低い（意図的意味変更時のみ）。代替（CI 時に取得する事前ビルド blob）はネットワーク/可用性依存を導入し、より悪いと判断。
+- リポジトリに pinned wasm バイナリを載せる（現行サイズは `bootstrap/PROVENANCE.md`）。緩和: 更新頻度は低い（意図的意味変更時のみ）。代替（CI 時に取得する事前ビルド blob）はネットワーク/可用性依存を導入し、より悪いと判断。
 - `fixture-parity` は独立実装とのクロスチェックをしなくなる。緩和: 以前の Rust 対セルフホスト比較は Phase 5 でいずれ退役。より強いオラクル（例: 仕様由来フィクスチャと期待出力ゴールデン）は別途追跡で本スコープ外。
 
 ## 検討した代替案

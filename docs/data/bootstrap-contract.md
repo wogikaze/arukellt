@@ -7,6 +7,15 @@
 - Entrypoint: `scripts/run/arukellt-selfhost.sh`
 - ADR: `docs/adr/ADR-029-selfhost-native-verification-contract.md`
 
+- Wasm resolution order:
+  1. `$ARUKELLT_SELFHOST_WASM`
+  2. `.build/selfhost/arukellt-s3.wasm`
+  3. `.build/selfhost/arukellt-s2-runtime.wasm`
+  4. `.build/selfhost/arukellt-s2.wasm`
+  5. `.bootstrap-build/arukellt-s2.wasm`
+  6. `.build/selfhost/arukellt-pinned-bootstrap.wasm`
+  7. `bootstrap/arukellt-selfhost.wasm`
+
 ## Stages
 
 | ID | Name | Description | Artifact | Comparison |

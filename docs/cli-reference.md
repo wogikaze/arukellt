@@ -34,7 +34,10 @@ arukellt doc --html -o docs/docs/std/index.html
 
 Build, inspect, and validate WebAssembly components.
 `component build` sets `--emit component` on the compile pipeline
-(`src/compiler/main/component_cmd.ark`). Equivalent core path:
+(`src/compiler/main/component_cmd.ark`). The command currently passes the
+legacy alias `wasm32-wasi-p2` (W0002); the public canonical target is
+`wasm32-gc`. Prefer the explicit form:
+
 `arukellt compile --target wasm32-gc --emit component`.
 
 ```bash
@@ -52,7 +55,7 @@ arukellt component validate <file.wasm>
 
 ```bash
 arukellt component build my_app.ark -o out/my_app.component.wasm
-# equivalent:
+# preferred public form:
 arukellt compile my_app.ark --target wasm32-gc --emit component -o out/my_app.component.wasm
 ```
 

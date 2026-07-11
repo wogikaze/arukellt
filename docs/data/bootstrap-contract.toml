@@ -7,6 +7,15 @@ provenance = "bootstrap/PROVENANCE.md"
 entrypoint = "scripts/run/arukellt-selfhost.sh"
 rust_stage0 = false
 adr = "docs/adr/ADR-029-selfhost-native-verification-contract.md"
+wasm_resolution_order = [
+  "$ARUKELLT_SELFHOST_WASM",
+  ".build/selfhost/arukellt-s3.wasm",
+  ".build/selfhost/arukellt-s2-runtime.wasm",
+  ".build/selfhost/arukellt-s2.wasm",
+  ".bootstrap-build/arukellt-s2.wasm",
+  ".build/selfhost/arukellt-pinned-bootstrap.wasm",
+  "bootstrap/arukellt-selfhost.wasm",
+]
 
 [[stages]]
 id = "0"

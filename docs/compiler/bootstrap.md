@@ -30,8 +30,11 @@ ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm \
   scripts/run/arukellt-selfhost.sh compile lib.ark --target wasm32-gc --emit component
 ```
 
-Resolution order (wrapper): `$ARUKELLT_SELFHOST_WASM` → `.build/selfhost/arukellt-s3.wasm` →
-`.build/selfhost/arukellt-s2.wasm` → … → `bootstrap/arukellt-selfhost.wasm`.
+Resolution order (wrapper `scripts/run/arukellt-selfhost.sh`):
+`$ARUKELLT_SELFHOST_WASM` → `.build/selfhost/arukellt-s3.wasm` →
+`.build/selfhost/arukellt-s2-runtime.wasm` → `.build/selfhost/arukellt-s2.wasm` →
+`.bootstrap-build/arukellt-s2.wasm` → `.build/selfhost/arukellt-pinned-bootstrap.wasm` →
+`bootstrap/arukellt-selfhost.wasm`.
 
 ## Retired paths
 

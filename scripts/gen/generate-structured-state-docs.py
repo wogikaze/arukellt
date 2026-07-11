@@ -88,16 +88,17 @@ def render_capabilities(data: dict) -> str:
             "",
             "## Deny enforcement (structured)",
             "",
-            "| Module | Flag | Enforcement | Transitive | Applies to |",
-            "|--------|------|-------------|:----------:|------------|",
+            "| Module | Flag | Current enforcement | Intended | Transitive | Applies to |",
+            "|--------|------|---------------------|----------|:----------:|------------|",
         ]
     )
     for m in data.get("modules", []):
         if not m.get("deny_flag"):
             continue
+        intended = m.get("deny_intended_enforcement") or m.get("deny_enforcement") or "—"
         lines.append(
             f"| `{m['module']}` | `{m['deny_flag']}` | `{m.get('deny_enforcement')}` | "
-            f"{yn(m.get('deny_transitive'))} | `{m.get('deny_applies_to')}` |"
+            f"`{intended}` | {yn(m.get('deny_transitive'))} | `{m.get('deny_applies_to')}` |"
         )
     lines.extend(
         [
@@ -189,11 +190,21 @@ def render_bootstrap_contract(data: dict) -> str:
         f"- Entrypoint: `{trust.get('entrypoint')}`",
         f"- ADR: `{trust.get('adr')}`",
         "",
-        "## Stages",
-        "",
-        "| ID | Name | Description | Artifact | Comparison |",
-        "|----|------|-------------|----------|------------|",
     ]
+    order = trust.get("wasm_resolution_order") or []
+    if order:
+        lines.append("- Wasm resolution order:")
+        for i, cand in enumerate(order, 1):
+            lines.append(f"  {i}. `{cand}`")
+        lines.append("")
+    lines.extend(
+        [
+            "## Stages",
+            "",
+            "| ID | Name | Description | Artifact | Comparison |",
+            "|----|------|-------------|----------|------------|",
+        ]
+    )
     for s in data.get("stages", []):
         lines.append(
             f"| `{s['id']}` | `{s['name']}` | {s['description']} | `{s.get('artifact', '')}` | `{s.get('comparison', '')}` |"

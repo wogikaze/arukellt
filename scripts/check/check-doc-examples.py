@@ -50,11 +50,18 @@ def load_generated_files() -> set[Path]:
 
 
 def find_arukellt() -> str:
-    """Locate the arukellt binary."""
+    """Locate the arukellt binary.
+
+    Prefer the selfhost wrapper after Rust CLI retirement (ADR-029 / #583).
+    A stale ``target/{debug,release}/arukellt`` must not shadow pinned wasm.
+    """
     import shutil
 
     if configured := os.environ.get("ARUKELLT_BIN"):
         return configured
+    selfhost_wrapper = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
+    if selfhost_wrapper.is_file() and selfhost_wrapper.stat().st_mode & 0o111:
+        return str(selfhost_wrapper)
     for candidate in [
         ROOT / "target" / "debug" / "arukellt",
         ROOT / "target" / "release" / "arukellt",
@@ -63,11 +70,6 @@ def find_arukellt() -> str:
             return str(candidate)
     if found := shutil.which("arukellt"):
         return found
-    # Fall back to the selfhost wrapper script (scripts/run/arukellt-selfhost.sh).
-    # This is the primary execution path after Rust CLI retirement (#583).
-    selfhost_wrapper = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
-    if selfhost_wrapper.is_file() and selfhost_wrapper.stat().st_mode & 0o111:
-        return str(selfhost_wrapper)
     return "arukellt"  # fall back; will produce a clear error
 
 
@@ -84,7 +86,8 @@ def extract_blocks(md_path: Path) -> list[tuple[int, str, bool]]:
         preceding = text[: m.start()]
         # Strip trailing whitespace/newlines to find the last meaningful token.
         preceding_stripped = preceding.rstrip()
-        should_skip = bool(SKIP_COMMENT_PATTERN.search(preceding_stripped[-200:]))
+        # Structured skip attrs can exceed 200 chars; scan enough preceding text.
+        should_skip = bool(SKIP_COMMENT_PATTERN.search(preceding_stripped[-800:]))
 
         results.append((i, code, should_skip))
 

@@ -143,6 +143,7 @@ Add/Sub/Mul/Div/Neg/Index/Deref/... (新設, #689)
 
 **比較 trait のメソッド契約（初期）:**
 
+<!-- skip-doc-check reason="ADR design sketch; not a runnable snippet" owner="#771" kind="pseudocode" expires="2026-12-31" -->
 ```ark
 trait PartialEq {
     fn eq(self, other: Self) -> bool

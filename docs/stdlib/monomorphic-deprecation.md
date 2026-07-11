@@ -98,4 +98,4 @@ Columns:
 
 - [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)
 - [trait-stdlib-redesign.md](trait-stdlib-redesign.md)
-- [ADR-014](../adr/ADR-014-stability.md)
+- [ADR-014](../adr/ADR-014-stability-labels.md)

@@ -159,5 +159,5 @@ fn main() {
 必要なら以下を参照してください。
 
 - [language/syntax.md](language/syntax.md)
-- [language/syntax-v1-preview.md](language/syntax-v1-preview.md)
+- [history/language/syntax-v1-preview.md](history/language/syntax-v1-preview.md)（退役メモ）
 - [current-state.md](current-state.md)
