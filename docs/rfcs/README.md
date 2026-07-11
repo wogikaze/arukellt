@@ -13,3 +13,5 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [000-writing-rfcs.md](000-writing-rfcs.md) | RFC の書き方 | Archive | ステータス: 運用メモ（決定記録ではない） |
+| [001-playground-share-url-format.md](001-playground-share-url-format.md) | RFC-001: Playground Share URL Format（wire format） | Archive | ステータス: 仕様草案（ADR-021 が採択した中核判断の詳細） |
+| [002-semantic-type-spine.md](002-semantic-type-spine.md) | RFC-002: Semantic Type Spine（詳細設計） | Archive | ステータス: 仕様草案（ADR-040 が採択した中核判断の詳細） |

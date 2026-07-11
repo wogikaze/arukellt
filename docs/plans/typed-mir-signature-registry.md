@@ -1,6 +1,6 @@
 # Semantic Type Spine 移行計画
 ステータス: 実装計画（決定記録ではない）
-関連 ADR: ADR-040
+関連 ADR: ADR-040 / [RFC-002](../rfcs/002-semantic-type-spine.md)
 
 ---
 

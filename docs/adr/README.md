@@ -28,18 +28,19 @@
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: wasm32-gc をプライマリターゲットとする | ステータス: ACCEPTED — wasm32-gc を唯一の primary とし、既定 host は WASI P2 |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: 言語仕様と Stdlib API の安定性ラベル | ステータス: ACCEPTED — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用 |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: ユーザー到達パスの No-Panic 品質基準 | ステータス: ACCEPTED — ユーザー到達パスでのpanic禁止 |
-| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1/v2 Product Contract | ステータス: ACCEPTED — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし、v2はブラウザでcompile+run） |
+| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground v1 Product Contract | ステータス: ACCEPTED — client-side hybrid（v1 にサーバー側 executor なし） |
 | [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: 言語ドキュメント分類 — Normative / Explanatory / Transitional | ステータス: ACCEPTED — 3つのドキュメントクラス（normative/explanatory/transitional）を採用 |
 | [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: リンクチェックカバレッジポリシー | ステータス: ACCEPTED — リンクチェックカバレッジポリシーを採用 |
-| [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format — Encoding, Versioning, and Round-Trip Contract | ステータス: ACCEPTED — fragmentベースのshare URL形式（versioned path structure） |
+| [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format | ステータス: ACCEPTED — fragment ベースの share URL（versioned path） |
 | [ADR-022-playground-deployment-and-caching.md](ADR-022-playground-deployment-and-caching.md) | ADR-022: Playground のデプロイとアセットキャッシュ戦略 | ステータス: ACCEPTED — GitHub Pagesで静的ホスティング（Fastly CDN経由） |
 | [ADR-023-package-registry-resolution.md](ADR-023-package-registry-resolution.md) | ADR-023: パッケージレジストリ解決の設計 | ステータス: ACCEPTED — Registry lookupモデル（local > workspace > registry）を採用 |
 | [ADR-024-selfhost-mir-explicit-cfg-before-ssa.md](ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) | ADR-024: Selfhost MIR は SSA 形成前に明示的 CFG を採用する | ステータス: ACCEPTED — Selfhost MIRはSSA形成前に明示的なCFGを採用 |
 | [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029: セルフホストネイティブ検証契約 | ステータス: ACCEPTED — セルフホスト検証の信頼ベースをピン留め wasm に移す |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: import 構文と WIT パッケージ識別子の統合 | ステータス: ACCEPTED — 二層分離を確定。use は Layer S、import は Layer C に予約 |
+| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | ステータス: ACCEPTED — ブラウザで compile + run（wasm32-gc component → jco） |
 | [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | ステータス: ACCEPTED — call_indirect をベースラインとし、call_ref へ段階移行する |
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | ステータス: ACCEPTED — Component 合成は wac plug に委譲する |
-| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine — 意味情報を保存する背骨 | ステータス: ACCEPTED — Semantic Type Spine（SignatureRegistry / MonoInstanceTable）を MIR の正本とする。 |
+| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine | ステータス: ACCEPTED — Semantic Type Spine（SignatureRegistry / MonoInstanceTable）を MIR の正本とする |
 | [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | ステータス: ACCEPTED — ファイル内 test 宣言構文を採択する |
 | [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | ステータス: ACCEPTED — Phase 0 の Wasm GC 拡張に言語仕様を依存させない |
 | [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | ステータス: ACCEPTED — trait / impl / メソッド呼び出しを言語の正規機能とする |
@@ -64,7 +65,6 @@
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: SUPERSEDED — 旧 LLVM 従属方針を撤回 |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | ステータス: SUPERSEDED — ADR-031 に統合（探索メモ） |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | ステータス: SUPERSEDED — ADR-031 に統合 |
-| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: プレイグラウンド v2 コンパイラ Wasm とブラウザ実行モデル | ステータス: SUPERSEDED — ADR-017 の v2 節へ統合 |
 
 ## その他
 

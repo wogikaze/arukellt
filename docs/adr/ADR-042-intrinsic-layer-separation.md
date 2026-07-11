@@ -192,7 +192,8 @@ differential test を置く。compiler 特殊化が std の意味から乖離す
 
 ## ADR-040 との関係
 
-本 ADR は ADR-040 の拡張である。ADR-040 は型情報の spine 化を行った。
+本 ADR は ADR-040 / [RFC-002](../rfcs/002-semantic-type-spine.md) の拡張である。
+ADR-040 は型情報の spine 化を行った。
 本 ADR はそれを呼び出し意味・effect・intrinsic lowering まで拡張する。
 実質的に ADR-040 を型情報だけで終わらせず、semantic spine を完成させる。
 
