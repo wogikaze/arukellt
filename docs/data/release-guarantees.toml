@@ -16,7 +16,7 @@
 #
 # Check axes (do not overload a single field):
 #   release_blocking  — bool: failure stops a tagged release
-#   included_in_full  — bool: part of `verify --full`
+#   included_in_full  — bool: part of `verify full`
 #   included_in_quick — bool: part of `verify quick`
 #   result            — pass | fail | partial | not-run (test outcome)
 #   freshness         — fresh | stale | unknown (evidence age; auto-derived from verified_at + stale_after_days)
