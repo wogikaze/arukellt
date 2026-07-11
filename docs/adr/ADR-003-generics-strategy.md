@@ -137,19 +137,9 @@ let y = identity[String]("hi") // 明示指定
 
 ---
 
-## 実装ギャップ（決定ではない）
-
-現行コンパイラがまだ理想形の一部を実装していない場合がある。
-それは **一時的な実装状態** であり、本 ADR の決定を狭めない。
-
-- 現行挙動: [`docs/current-state.md`](../current-state.md)
-- 型システムの説明: `docs/language/type-system.md`
-- 段階実装: `docs/plans/` / 関連 issue
-
----
-
 ## 関連
 
 - ADR-002: メモリモデル（Wasm GC 採用）
-- ADR-000: ADR には理想形を書き、暫定制限を決定にしない
+- ADR-000: ADR には理想形を書き、暫定制限・現状報告を決定に混ぜない
 - `docs/language/type-system.md`: 型システム詳細
+- 現行挙動の正本: `docs/current-state.md`

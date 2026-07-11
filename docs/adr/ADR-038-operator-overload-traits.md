@@ -70,9 +70,6 @@ trait IndexMut<Idx, Output> {
 
 `a[i] = v` は `IndexMut::index_set(a, i, v)` に脱糖する。
 
-generic trait が未実装の間の一時的なモノモーフィック署名は実装ギャップであり、
-本決定を狭めない（現行状態は `docs/current-state.md` / 関連 issue）。
-
 ### D4: `Deref` の戻り値型
 
 借用がないため、`Deref::deref` は値返し (`-> Target`) とする。`*a` は
@@ -80,7 +77,6 @@ generic trait が未実装の間の一時的なモノモーフィック署名は
 `*a = v` は `Target` 型の setter を経由する。
 
 **理想形（本 ADR の正）:** `Deref<Target>` / `DerefMut<Target>`。
-一時的なモノモーフィック署名は実装ギャップであり、決定ではない。
 
 ### D5: モジュール配置
 
@@ -103,7 +99,6 @@ std/core/ops.ark  — Add, Sub, Mul, Div, Rem, Neg, BitAnd, BitOr, BitXor,
 - `Deref`, `DerefMut` — デリファレンス
 
 スカラー型への組み込み impl と、ユーザー定義型への `impl` の両方を理想とする。
-どの trait がいま実装済みかは `docs/current-state.md` / issue #689 で追跡する。
 
 ## 代替案と却下理由
 
@@ -128,7 +123,6 @@ std/core/ops.ark  — Add, Sub, Mul, Div, Rem, Neg, BitAnd, BitOr, BitXor,
 ## 結果
 
 - 演算子は trait メソッドへマッピングされ、スカラーは組み込みフォールバックを持つ
-- 実装進捗・チェックリストは issue #689 / `docs/current-state.md` で追跡する（本 ADR に継ぎ足さない）
 
 ## 参照
 
