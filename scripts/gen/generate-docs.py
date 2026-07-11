@@ -284,6 +284,7 @@ write_string("output.txt", "hello")
         "path": "modules/io.md",
         "title": "std::host family",
         "description": "Source-backed docs for explicit host capabilities and adjacent path helpers.",
+        "overview_only": True,
         "modules": [
             "std::host::stdio",
             "std::host::fs",
@@ -293,6 +294,16 @@ write_string("output.txt", "hello")
             "std::host::env",
             "std::host::clock",
             "std::host::random",
+        ],
+        "module_pages": [
+            ("std::host::stdio", "../reference.md", "Manifest reference (no dedicated module page yet)"),
+            ("std::host::fs", "fs.md", "Host filesystem surface"),
+            ("std::fs", "fs.md", "Compatibility fs aliases"),
+            ("std::path", "path.md", "Pure path helpers"),
+            ("std::host::process", "process.md", "Process control"),
+            ("std::host::env", "process.md", "Environment (bundled with process docs)"),
+            ("std::host::clock", "time.md", "Pure time helpers; host clock APIs also in reference"),
+            ("std::host::random", "random.md", "Deterministic helpers; host entropy APIs in reference"),
         ],
         "overview": {
             "summary": (
@@ -1923,9 +1934,9 @@ def render_language_readme(
         "",
         "| Document | Purpose |",
         "|----------|---------|",
-        "| [syntax-v1-preview.md](syntax-v1-preview.md) | Planned v1 syntax additions (transitional — retires when items land in spec.md) |",
         "| [maturity-matrix.md](maturity-matrix.md) | Feature stability classification — see what's stable vs. experimental |",
         "| [spec.md](spec.md) | Stability labels per section mark which parts of the spec are provisional |",
+        "| [../history/language/syntax-v1-preview.md](../history/language/syntax-v1-preview.md) | Retired v1 syntax memo (landed items now live in spec/syntax) |",
     ])
 
     # Interactive playground cross-link
@@ -2307,7 +2318,7 @@ def render_stdlib_readme(
     return "\n".join(lines) + "\n"
 
 
-def render_curated_overview_section(overview: dict) -> list[str]:
+def render_curated_overview_section(overview: dict, *, overview_only: bool = False) -> list[str]:
     """Render a curated overview section for a module family page.
 
     The overview dict should contain:
@@ -2316,13 +2327,23 @@ def render_curated_overview_section(overview: dict) -> list[str]:
       target_constraints - target restriction note (string)
       typical_usage     - fenced code block as a string
     """
+    if overview_only:
+        vs_ref = (
+            "> **Overview vs Reference:** This page is a family overview with cross-links. "
+            "Per-module API tables live on the linked module pages and in "
+            "[`reference.md`](../reference.md)."
+        )
+    else:
+        vs_ref = (
+            "> **Overview vs Reference:** This section is curated prose — it explains when and "
+            "how to use this module family. The sections below are exhaustive generated reference "
+            "tables sourced directly from `std/manifest.toml` and source doc comments."
+        )
     lines: list[str] = [
         "",
         "## Overview",
         "",
-        "> **Overview vs Reference:** This section is curated prose — it explains when and "
-        "how to use this module family. The sections below are exhaustive generated reference "
-        "tables sourced directly from `std/manifest.toml` and source doc comments.",
+        vs_ref,
         "",
         overview["summary"],
     ]
@@ -2369,7 +2390,33 @@ def render_stdlib_module_page(
         # Build a copy of the overview with the dynamically-derived constraint
         overview_with_computed = dict(page["overview"])
         overview_with_computed["target_constraints"] = computed_constraints
-        lines.extend(render_curated_overview_section(overview_with_computed))
+        lines.extend(
+            render_curated_overview_section(
+                overview_with_computed,
+                overview_only=bool(page.get("overview_only")),
+            )
+        )
+
+    if page.get("overview_only"):
+        lines.extend(
+            [
+                "## Module pages",
+                "",
+                "| Module | Detail | Notes |",
+                "|--------|--------|-------|",
+            ]
+        )
+        for module_name, rel_page, notes in page.get("module_pages", []):
+            lines.append(f"| `{module_name}` | [{rel_page}]({rel_page}) | {notes} |")
+        lines.extend(
+            [
+                "",
+                "Also see [capability-surface.md](../../capability-surface.md) for reachability axes "
+                "and [reference.md](../reference.md) for the full manifest-backed API index.",
+                "",
+            ]
+        )
+        return "\n".join(lines) + "\n"
 
     for module_name in page["modules"]:
         source_module = source_modules[module_name]

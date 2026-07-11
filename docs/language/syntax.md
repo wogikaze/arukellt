@@ -12,13 +12,13 @@
 
 ## エントリポイント
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 fn main() {
 }
 ```
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 fn main() -> i32 {
     0
@@ -27,7 +27,7 @@ fn main() -> i32 {
 
 ## import
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import math
 import utils as u
@@ -42,7 +42,7 @@ import utils as u
 
 ## 変数と関数
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let x = 42
 let mut y = 0
@@ -61,7 +61,7 @@ fn add(a: i32, b: i32) -> i32 {
 型の一覧・構造体・enum の正規定義は [type-system.md](type-system.md) にあります。
 基本的な型アノテーションの書き方は以下の通りです:
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let n: i32 = 42
 let s: String = String_from("hello")
@@ -74,7 +74,7 @@ let s: String = String_from("hello")
 
 ### if
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let label = if x > 0 {
     String_from("positive")
@@ -85,7 +85,7 @@ let label = if x > 0 {
 
 ### while / loop
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 while x < 10 {
     x = x + 1
@@ -100,7 +100,7 @@ loop {
 
 ### for
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 for i in 0..10 {
     println(to_string(i))
@@ -117,7 +117,7 @@ for item in values(v) {
 
 共通で安全なのは関数呼び出し形式です。
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 push(v, 42)
 let n = len(v)
@@ -132,7 +132,7 @@ let text = to_string(n)
 
 パターンマッチの基本的な使い方:
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 match value {
     0 => String_from("zero"),

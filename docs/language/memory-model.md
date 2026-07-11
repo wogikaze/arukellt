@@ -36,7 +36,7 @@ Arukellt の言語意味論は **Wasm GC 前提**である（ADR-002）。
 値型はコピーされ、参照型は共有される（[spec.md §2.4](spec.md#24-value-vs-reference-semantics)）。
 利用者視点では、参照型は共有される前提で考えるのが安全である。
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let v1: Vec<i32> = Vec_new_i32()
 push(v1, 10)

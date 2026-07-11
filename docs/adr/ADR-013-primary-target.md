@@ -12,7 +12,7 @@
 ADR-007 は canonical ターゲットを `wasm32` / `wasm32-gc` / `native-*` に再構成した。
 出荷品質・CI ゲート・言語意味論の基準を 1 本に絞る必要がある。
 
-決定時点の実装・検証の中心は WASI P2 付き GC 経路（当時の文書名 `wasm32-wasi-p2`）だった。
+決定時点の実装・検証の中心は WASI P2 付き GC 経路（legacy alias / 旧文書名 `wasm32-wasi-p2`）だった。
 これは canonical 名では `wasm32-gc`（既定 host profile = WASI P2）に相当する。
 
 ---

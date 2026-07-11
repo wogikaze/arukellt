@@ -55,9 +55,9 @@ Choose the path that fits your goal.
 
 | Document | Purpose |
 |----------|---------|
-| [syntax-v1-preview.md](syntax-v1-preview.md) | Planned v1 syntax additions (transitional — retires when items land in spec.md) |
 | [maturity-matrix.md](maturity-matrix.md) | Feature stability classification — see what's stable vs. experimental |
 | [spec.md](spec.md) | Stability labels per section mark which parts of the spec are provisional |
+| [../history/language/syntax-v1-preview.md](../history/language/syntax-v1-preview.md) | Retired v1 syntax memo (landed items now live in spec/syntax) |
 
 ### 🎮 Playground
 
@@ -82,7 +82,6 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [memory-model.md](memory-model.md) | normative | Current-first memory model; language semantics = GC (ADR-002); wasm32-gc primary with linear wasm32 compatibility |
 | [ownership-map.md](ownership-map.md) | explanatory | Language docs ownership and release-gate map; governance companion to stdlib ownership-map |
 | [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
-| [syntax-v1-preview.md](syntax-v1-preview.md) | transitional | Describes planned v1 syntax additions; retires when all items land in spec.md |
 | [syntax.md](syntax.md) | normative | Current-first syntax reference; reflects implemented, tested behavior |
 | [type-system.md](type-system.md) | normative | Current-first type system reference; reflects implemented type checker behavior |
 
@@ -97,7 +96,6 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative memory-model contract for Arukellt. |
 | [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | explanatory | See also docs/governance/document-ownership.md |
 | [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
-| [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | transitional | Transitional: This document describes planned or in-progress changes to Arukellt. |
 | [syntax.md](syntax.md) | 構文仕様 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [type-system.md](type-system.md) | 型システム | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 

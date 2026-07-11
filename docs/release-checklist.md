@@ -1,5 +1,9 @@
 # Release Checklist
 
+> **Structured SSOT:** [`data/release-guarantees.toml`](data/release-guarantees.toml)
+> (generated matrix: [`data/release-guarantees.md`](data/release-guarantees.md)).
+> Normative tiers: [`release-criteria.md`](release-criteria.md).
+
 This checklist is executed before every tagged release.
 Items marked **CI** are automated; items marked **CI on tag** run for tagged
 release refs; items marked **Manual** require human verification.

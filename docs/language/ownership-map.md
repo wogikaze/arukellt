@@ -49,7 +49,7 @@ when all described items land in their target normative documents.
 
 | File | Target | Retirement condition | CI check |
 |------|--------|----------------------|----------|
-| `syntax-v1-preview.md` | `spec.md`, `syntax.md` | All v1 syntax items merged into spec.md and syntax.md | — (manual review at each release) |
+| `../history/language/syntax-v1-preview.md` (retired #770) | `spec.md`, `syntax.md` | All v1 syntax items merged into spec.md and syntax.md | — (manual review at each release) |
 
 ---
 
@@ -156,7 +156,7 @@ python3 scripts/manager.py verify --full        # All checks including heavy one
 | Link integrity | 2 CI checks (`check-links.sh` + `check-anchor-fragments.py`) | — | Both file references and anchor fragments covered |
 | Curated normative docs (`spec.md`, `syntax.md`, `type-system.md`, `error-handling.md`, `memory-model.md`) | — | 5 manual review items | No automated content-accuracy checks beyond spec↔guide sync |
 | Curated explanatory docs (`guide.md`) | — | 1 manual review item | Covered indirectly by spec↔guide sync CI |
-| Transitional docs (`syntax-v1-preview.md`) | — | 2 manual review items | Checked each release for retirement readiness |
+| Transitional docs (`../history/language/syntax-v1-preview.md` (retired #770)) | — | 2 manual review items | Checked each release for retirement readiness |
 | **Total** | **6 automated** | **8 manual** | |
 
 ---
@@ -180,7 +180,7 @@ cookbook example drift checking.
 
 ### Gap 2 — No automated staleness check for transitional documents
 
-**Files affected:** `syntax-v1-preview.md`
+**Files affected:** `../history/language/syntax-v1-preview.md` (retired #770)
 
 **Description:** When a planned syntax item lands in `spec.md`, no automated check
 detects that the transitional document should be updated or retired. The item
@@ -188,7 +188,7 @@ could remain listed as "planned" indefinitely after implementation.
 
 **Mitigation:** Gate 6 (manual review) checks transitional docs each release.
 A future `check_transitional_staleness` function could cross-reference
-`syntax-v1-preview.md` items against spec.md sections.
+`../history/language/syntax-v1-preview.md` (retired #770) items against spec.md sections.
 
 ### Gap 3 — Classification banner presence not enforced by CI
 

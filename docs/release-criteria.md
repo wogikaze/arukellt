@@ -1,5 +1,9 @@
 # Arukellt Release Criteria
 
+> **Structured SSOT:** [`data/release-guarantees.toml`](data/release-guarantees.toml)
+> (generated matrix: [`data/release-guarantees.md`](data/release-guarantees.md)).
+> This prose view and [`release-checklist.md`](release-checklist.md) must stay aligned with that TOML.
+
 This document defines what must be true before a tagged release.
 "Guarantee" means: CI verifies this on every merge; a regression is a P1 bug.
 

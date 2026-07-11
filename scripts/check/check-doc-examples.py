@@ -25,7 +25,9 @@ TMP_DIR = ROOT / "target" / "tmp" / "doc-examples"
 BOOTSTRAP_SELFHOST = ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 
 BLOCK_PATTERN = re.compile(r"```ark\n(.*?)```", re.DOTALL)
-SKIP_COMMENT_PATTERN = re.compile(r"<!--\s*skip-doc-check\s*-->")
+SKIP_COMMENT_PATTERN = re.compile(
+    r"<!--\s*skip-doc-check(?:\s+[^>]*)?\s*-->", re.IGNORECASE
+)
 
 # Files listed in .generated-files are auto-generated and must not have
 # <!-- skip-doc-check --> comments added by hand (they'd be overwritten).

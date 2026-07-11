@@ -5,7 +5,8 @@
 # Paths (repo-relative) skipped entirely for deprecated-target / T0–T5 scans.
 path_globs = [
   "docs/history/**",
-  "docs/adr/**",
+  # Accepted ADRs are NOT wholesale-excluded — see [accepted_adr] + gate logic.
+  # Non-accepted ADR statuses are skipped by check_deprecated_vocab.
   "docs/rfcs/**",
   "docs/plans/**",
   "docs/research/**",
@@ -66,38 +67,62 @@ strict_paths = [
   "docs/stdlib/generation-schema.md",
   "docs/stdlib/stability-policy.md",
   "docs/stdlib/scoreboard.md",
+  "docs/adr/ADR-*.md",
+]
+
+[accepted_adr]
+# Scan Accepted ADRs for deprecated vocab (#770 Phase 3).
+# Draft / Proposed / Superseded / Rejected ADRs remain excluded.
+require_accepted_scanned = true
+accepted_status_markers = [
+  "ステータス: **ACCEPTED**",
+  "Status: **ACCEPTED**",
+  "**Status:** Accepted",
+  "status: accepted",
 ]
 
 [skip_doc_check]
-# Ceiling counts — increasing beyond these fails the gate.
-# Prefer structured form: <!-- skip-doc-check reason="..." owner="..." kind="pseudocode|future|non-runnable" -->
+# Ceiling counts — increasing beyond ratchet_max fails the gate.
+# Prefer structured form: <!-- skip-doc-check reason="..." owner="..." kind="pseudocode|future|non-runnable" expires="YYYY-MM-DD" -->
+require_structured = true
+require_expires = true
+
 [[skip_doc_check.budgets]]
 path = "docs/language/spec.md"
 max = 44
+ratchet_max = 44
 [[skip_doc_check.budgets]]
 path = "docs/language/syntax.md"
 max = 10
+ratchet_max = 10
 [[skip_doc_check.budgets]]
 path = "docs/language/guide.md"
-max = 45
+max = 44
+ratchet_max = 45
 [[skip_doc_check.budgets]]
 path = "docs/language/error-handling.md"
 max = 3
+ratchet_max = 3
 [[skip_doc_check.budgets]]
 path = "docs/language/memory-model.md"
 max = 1
+ratchet_max = 1
 [[skip_doc_check.budgets]]
 path = "docs/language/type-system.md"
 max = 2
+ratchet_max = 2
 [[skip_doc_check.budgets]]
 path = "docs/stdlib/cookbook.md"
-max = 38
+max = 37
+ratchet_max = 38
 [[skip_doc_check.budgets]]
 path = "docs/stdlib/std.md"
 max = 11
+ratchet_max = 11
 [[skip_doc_check.budgets]]
 path = "docs/stdlib/migration-guidance.md"
 max = 16
+ratchet_max = 16
 
 [orphan_current]
 # Root current/reference docs that must have ≥1 inbound Markdown link.

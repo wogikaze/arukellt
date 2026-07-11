@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-11T09:00:30Z",
+  "generated_at": "2026-07-11T09:07:10Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -779,28 +779,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "770",
-      "path": "770-docs-reaudit-phase2-4.md",
-      "title": "770 — Docs re-audit Phase 2–4 (structured state + lifecycle)",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [
-        "766",
-        "767",
-        "768",
-        "769"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
       }
     },
     {

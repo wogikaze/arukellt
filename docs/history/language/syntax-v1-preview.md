@@ -1,12 +1,14 @@
 # v1 構文メモ
 
-> **Transitional**: This document describes planned or in-progress changes to Arukellt.
-> It will be promoted to normative, merged, or retired when the feature lands.
-> For current behavior, see [../current-state.md](../current-state.md) and [spec.md](spec.md).
-> DONE_WHEN: All listed v1 syntax items are verified in spec.md and the fixture harness.
+> **ARCHIVED / RETIRED 2026-07-11 (#770 Phase 4).**
+> All listed items have landed in [`docs/language/spec.md`](../../language/spec.md) /
+> [`docs/language/syntax.md`](../../language/syntax.md).
+> This file is retained for history only — do not treat it as current guidance.
+>
+> For current behavior, see [`docs/current-state.md`](../../current-state.md).
 
 このページは、v0 の関数呼び出し中心スタイルに対して、
-このブランチで入っている **v1 系の追加構文** をざっくり把握するためのメモです。
+当時ブランチに入っていた **v1 系の追加構文** をざっくり把握するためのメモだった。
 
 ## 既に入っている主な項目
 

@@ -26,7 +26,7 @@
 `expr?` は `Err` variant を自動的に伝搬します。
 囲んでいる関数は `Result<_, E>` を返す必要があります。
 
-<!-- skip-doc-check -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
 fn parse_twice(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
@@ -40,7 +40,7 @@ fn parse_twice(s: String) -> Result<i32, String> {
 
 ## panic
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 panic(String_from("unreachable"))
 ```
@@ -52,7 +52,7 @@ panic(String_from("unreachable"))
 
 現行 stdlib wrapper では、たとえば以下のような形が多いです。
 
-<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 Result<String, String>
 Result<(), String>

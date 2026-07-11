@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-11
 Updated: 2026-07-11
 ID: 770
@@ -31,15 +31,27 @@ manifest vs harness totals, and split huge manuals.
 - [x] Component availability split: command vs library vs active artifact (multi-axis; no flat `available`)
 - [x] Generated views via `scripts/gen/generate-structured-state-docs.py` (wired into `generate-docs.py` + verify)
 
-### Phase 3–4 (still open)
+### Phase 3 (lifecycle / gates) — done 2026-07-11
 
-- [ ] Accepted ADR not wholesale archive-excluded from vocab gates
-- [ ] Structured `skip-doc-check` migration + decreasing budget
-- [ ] `syntax-v1-preview.md` retired or reduced to unlanded items
-- [ ] Manual split plan connected + first chapter slices (`io.md` shrink)
+- [x] Accepted ADR not wholesale archive-excluded from vocab gates (`docs/adr/**` removed from allowlist; only Accepted scanned)
+- [x] Structured `skip-doc-check` required (`reason` / `owner` / `kind` / `expires`) on budgeted paths
+- [x] Budget decrease ratchet (`max` ≤ `ratchet_max`; guide 45→44, cookbook 38→37)
+
+### Phase 4 (dedupe / shrink) — done 2026-07-11 (first slices)
+
+- [x] `syntax-v1-preview.md` retired to `docs/history/language/`
+- [x] `stdlib/modules/io.md` overview-only (cross-links; no duplicated API dump)
+- [x] Manual split plan connected with owner/status/first slices (`docs/plans/docs-manual-split-plan.md`)
+- [x] Release criteria/checklist point at shared `release-guarantees.toml` SSOT
+
+### Follow-ups (tracked separately; not open acceptance)
+
+- Further manual splits: `spec.md` / `cookbook.md` / `ir-spec.md` chapter cuts
+- Continue skip budget decreases as #683 makes examples fixture-backed
+- Optional: generate release-criteria/checklist bodies fully from TOML
 
 ## References
 
 - Docs re-audit 2026-07-11 §9–§11
 - Generator: `scripts/gen/generate-structured-state-docs.py`
-- Gate: `scripts/check/gate-765-docs-ci-hard-gates.py` (`check_structured_state`)
+- Gate: `scripts/check/gate-765-docs-ci-hard-gates.py`

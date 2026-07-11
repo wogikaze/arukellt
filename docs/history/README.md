@@ -12,6 +12,7 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
+| [language/syntax-v1-preview.md](language/syntax-v1-preview.md) | v1 構文メモ | Archive | ARCHIVED / RETIRED 2026-07-11 (#770 Phase 4). |
 | [milestones.md](milestones.md) | 到達記録（historical milestones） | Archive | ステータス: 履歴メモ（現行正本ではない） |
 | [reports/bootstrap-rust-era-compiler-guide.md](reports/bootstrap-rust-era-compiler-guide.md) | bootstrap-rust-era-compiler-guide | Archive | ARCHIVED REPORT — Rust-era bootstrap narrative (pre ADR-029). Not current. See docs/adr/ADR-029-selfhost-native-verification-contract.md and docs/compiler/bootstrap.md. |
 | [reports/bootstrap-rust-era-verification.md](reports/bootstrap-rust-era-verification.md) | bootstrap-rust-era-verification | Archive | ARCHIVED REPORT — Rust-era bootstrap narrative (pre ADR-029). Not current. See docs/adr/ADR-029-selfhost-native-verification-contract.md and docs/compiler/bootstrap.md. |

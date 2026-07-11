@@ -41,6 +41,7 @@ DEPRECATED_TIER = re.compile(
 SKIP_RE = re.compile(r"<!--\s*skip-doc-check(?:\s+([^>]*))?-->", re.IGNORECASE)
 STRUCTURED_SKIP = re.compile(
     r'reason\s*=\s*"[^"]+"\s+owner\s*=\s*"[^"]+"\s+kind\s*=\s*"(?:pseudocode|future|non-runnable)"'
+    r'(?:\s+expires\s*=\s*"\d{4}-\d{2}-\d{2}")?'
 )
 
 
@@ -125,16 +126,36 @@ def check_numeric_consistency(state: dict, failures: list[str]) -> None:
                 failures.append(f"{rel(path)} must display registry size separately from harness")
 
 
+def adr_is_accepted(text: str, markers: list[str]) -> bool:
+    head = "\n".join(text.splitlines()[:60])
+    low = head.lower()
+    if "accepted" in low and ("ステータス" in head or "status" in low):
+        # Prefer explicit markers when provided
+        for m in markers:
+            if m.lower() in low or m in head:
+                return True
+        if re.search(r"\bACCEPTED\b", head):
+            return True
+    return False
+
+
 def check_deprecated_vocab(cfg: dict, failures: list[str]) -> None:
     dep = cfg.get("deprecated_vocab", {})
     globs = dep.get("path_globs", [])
     allow_sub = [s.lower() for s in dep.get("line_allow_substrings", [])]
     strict_patterns = dep.get("strict_paths", [])
     files = expand_globs(strict_patterns)
+    adr_cfg = cfg.get("accepted_adr", {})
+    markers = adr_cfg.get("accepted_status_markers", [])
     # Also include language/platform/state READMEs via globs already
     for path in sorted({p for p in files if p.is_file() and p.suffix == ".md"}):
         if path_allowed(path, globs):
             continue
+        # ADR special case: only Accepted ADRs are in scope (#770).
+        if "docs/adr/" in rel(path).replace("\\", "/"):
+            text_probe = path.read_text(encoding="utf-8")
+            if not adr_is_accepted(text_probe, markers):
+                continue
         text = path.read_text(encoding="utf-8")
         for i, line in enumerate(text.splitlines(), 1):
             low = line.lower()
@@ -325,10 +346,19 @@ def check_section_registry_parity(failures: list[str]) -> None:
 
 
 def check_skip_budget(cfg: dict, failures: list[str]) -> None:
-    budgets = cfg.get("skip_doc_check", {}).get("budgets", [])
+    skip_cfg = cfg.get("skip_doc_check", {})
+    budgets = skip_cfg.get("budgets", [])
+    require_structured = bool(skip_cfg.get("require_structured", False))
+    require_expires = bool(skip_cfg.get("require_expires", False))
     for entry in budgets:
         path = REPO / entry["path"]
         max_n = int(entry["max"])
+        ratchet = entry.get("ratchet_max")
+        if ratchet is not None and max_n > int(ratchet):
+            failures.append(
+                f"skip-doc-check budget ratchet violated in {entry['path']}: "
+                f"max={max_n} > ratchet_max={ratchet} (budgets may only decrease)"
+            )
         if not path.is_file():
             failures.append(f"skip budget path missing: {entry['path']}")
             continue
@@ -339,16 +369,26 @@ def check_skip_budget(cfg: dict, failures: list[str]) -> None:
             failures.append(
                 f"skip-doc-check budget exceeded in {entry['path']}: {n} > {max_n}"
             )
-        # New structured form is encouraged; unstructured still allowed within budget.
-        # If attrs present, require structured keys.
         for m in matches:
             attrs = (m.group(1) or "").strip()
-            if not attrs:
-                continue
-            if "reason=" in attrs and not STRUCTURED_SKIP.search(attrs):
-                failures.append(
-                    f"structured skip-doc-check malformed in {entry['path']}: {attrs[:80]}"
-                )
+            if require_structured:
+                if not attrs or not STRUCTURED_SKIP.search(attrs):
+                    failures.append(
+                        f"unstructured skip-doc-check in {entry['path']}: "
+                        f"require reason/owner/kind"
+                        + ("/expires" if require_expires else "")
+                    )
+                    break
+                if require_expires and "expires=" not in attrs:
+                    failures.append(
+                        f"skip-doc-check missing expires= in {entry['path']}"
+                    )
+                    break
+            elif attrs:
+                if "reason=" in attrs and not STRUCTURED_SKIP.search(attrs):
+                    failures.append(
+                        f"structured skip-doc-check malformed in {entry['path']}: {attrs[:80]}"
+                    )
 
 
 def check_target_contract_summary_generated(failures: list[str]) -> None:
