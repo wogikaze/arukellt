@@ -4745,6 +4745,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/gen/generate-structured-state-docs.py --check",
         ),
         (
+            "guaranteed CLI smoke contracts",
+            "python3 scripts/check/check-cli-guarantees.py all",
+        ),
+        (
             "stdlib manifest check",
             "bash scripts/check/check-stdlib-manifest.sh",
         ),

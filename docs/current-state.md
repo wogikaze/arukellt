@@ -4,11 +4,11 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T19:50:23+09:00
-> Source-Commit: `0a61ea6e`
+> Generated-At: 2026-07-11T20:45:58+09:00
+> Source-Commit: `89eb5eb4`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 4 fixture failure(s), 4 verification check failure(s)
+> Blocking: 367 fixture failure(s), 1 verification check failure(s)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -94,12 +94,21 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 ## Test Health
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
-- Fixture harness (observed snapshot): 654 passed, 4 failed, 29 skipped (observed harness: 687)
+- Fixture harness (observed snapshot): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
 - Fixture registry: 2679 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1992 registry entries (not proof they fail)
-- Accounting note: 654+4+29=687 observed harness outcomes from the last recorded snapshot; 2679 is tests/fixtures/manifest.txt registry size. The 1992 remainder were not part of that snapshot (not proof they fail).
+- Not in last harness snapshot: 1099 registry entries (not proof they fail)
+- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2679 is tests/fixtures/manifest.txt registry size. The 1099 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **169/173 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **174/175 checks pass**
+
+### Active blockers
+
+This table is generated from structured blocker records. Counts above must equal these rows.
+
+| ID | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |
+|----|----------|---------:|-----------------|---------|-------|-------|------------|---------------|
+| `selfhost_fixture_parity` | `fixture` | 367 | Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` |
+| `close_gate_076_p2_fs_output` | `verification` | 1 | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes. | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates

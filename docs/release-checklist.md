@@ -18,6 +18,10 @@ release refs; items marked **Manual** require human verification.
 - [ ] **CI `fixture_harness`** — `python3 scripts/manager.py verify fixtures` (job: `verification`)
 - [ ] **CI `determinism`** — `bash scripts/check/check-release-determinism.sh` (job: `verification`)
 - [ ] **CI `no_panic_user_paths`** — `bash scripts/check/check-panic-audit.sh` (job: `verification`)
+- [ ] **CI `cli_check`** — `python3 scripts/check/check-cli-guarantees.py check` (job: `verification`)
+- [ ] **CI `cli_init`** — `python3 scripts/check/check-init-templates.py` (job: `verification`)
+- [ ] **CI `cli_doc`** — `python3 scripts/check/check-manifest-doc.py` (job: `verification`)
+- [ ] **CI `cli_help`** — `python3 scripts/check/check-cli-guarantees.py help` (job: `verification`)
 <!-- END GENERATED:release-blockers -->
 
 ## Supplemental release checks
@@ -33,7 +37,6 @@ guarantee definitions. The generated blocker block above remains authoritative.
 - [ ] **CI** — Binary smoke: `arukellt --version` exits 0
 - [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
 - [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero
-- [ ] **CI** — Determinism: same source produces identical `.wasm` across two builds
 <!-- DEFERRED: legacy `bash scripts/run/verify-bootstrap.sh --stage1-only` uses the retired Rust bootstrap path and currently cannot parse the selfhost source surface. Current selfhost release coverage is `python scripts/manager.py verify fixtures` plus `python scripts/manager.py verify --selfhost-parity`. -->
 - [ ] **CI** — Selfhost LSP: `python scripts/manager.py verify quick` LSP gates (#568, #569) pass
   (Rust `ark-lsp` crate retired in #572; selfhost `src/compiler/lsp.ark` via `arukellt lsp` is the source of truth.)

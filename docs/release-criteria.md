@@ -9,39 +9,23 @@ This document defines what must be true before a tagged release.
 
 ## Pre-release Checklist
 
-Run before any tagged release:
+The exact guarantee commands, evidence scopes, CI jobs, and blocker status are
+owned by [`data/release-guarantees.toml`](data/release-guarantees.toml) and its
+generated [matrix](data/release-guarantees.md). Do not restate individual
+guarantee procedures here. Run the aggregate release gates before a tag:
 
 ```bash
-# 1. Full fixture harness
-python scripts/manager.py verify fixtures
-
-# 2. Verification gate
-python scripts/manager.py verify quick
-
-# 3. Full verification (required before every tagged release)
+# Full verification (required before every tagged release)
 python scripts/manager.py verify --full
-
-# 4. Determinism check
-arukellt compile docs/examples/hello.ark --target wasm32-gc -o /tmp/h1.wasm
-arukellt compile docs/examples/hello.ark --target wasm32-gc -o /tmp/h2.wasm
-sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
-
-# 5. Panic audit
-bash scripts/check/check-panic-audit.sh
 ```
 
 ## Guarantee Tiers
 
 ### Guaranteed (stable)
 
-These things work and regressions are P1:
-
-- `arukellt compile <file> --target wasm32-gc` produces valid Wasm（CLI 既定も `wasm32-gc` / primary）
-- `arukellt compile <file> --target wasm32` produces valid Wasm（supported compatibility / AtCoder path）
-- `arukellt run <file>` executes the compiled output via wasmtime
-- Fixture harness passes for the current observed harness snapshot; this is not the same unit as full manifest expansion
-- Compilation is deterministic (same input → same output bytes)
-- No panic on any user-reachable CLI path
+Each guaranteed row in the structured catalogue states its exact evidence
+scope. A passing smoke case guarantees only that declared scope; it is not an
+unqualified proof for all programs, targets, profiles, or inputs.
 
 ### Provisional (may change)
 

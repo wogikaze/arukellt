@@ -103,18 +103,40 @@ contract_stability = "experimental"
 role = "Future WASI Preview 3 host profile on wasm32-gc; not a separate language target"
 
 [verification]
-fixture_passed = 654
-fixture_skipped = 29
-fixture_failures = 4
+fixture_passed = 796
+fixture_skipped = 417
+fixture_failures = 367
 fixture_manifest_count = 2679
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
-fixture_harness_observed = 687
-fixture_not_in_last_harness_snapshot = 1992
-fixture_accounting_note = "654+4+29=687 observed harness outcomes from the last recorded snapshot; 2679 is tests/fixtures/manifest.txt registry size. The 1992 remainder were not part of that snapshot (not proof they fail)."
-checks_passed = 169
-checks_total = 173
+fixture_harness_observed = 1580
+fixture_not_in_last_harness_snapshot = 1099
+fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2679 is tests/fixtures/manifest.txt registry size. The 1099 remainder were not part of that run (not proof they fail)."
+checks_passed = 174
+checks_total = 175
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
+
+[[verification.blockers]]
+id = "selfhost_fixture_parity"
+category = "fixture"
+affected_count = 367
+summary = "Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason."
+command = "python3 scripts/manager.py verify fixtures"
+owner = "compiler/runtime"
+issue = "#287"
+first_seen_commit = "89eb5eb4"
+last_verified_commit = "89eb5eb4"
+
+[[verification.blockers]]
+id = "close_gate_076_p2_fs_output"
+category = "verification"
+affected_count = 1
+summary = "P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes."
+command = "python3 scripts/check/check-false-done-close-gates.py"
+owner = "WASI P2 filesystem"
+issue = "#076"
+first_seen_commit = "89eb5eb4"
+last_verified_commit = "89eb5eb4"
 
 [contract_audit]
 component_emit_tier = "smoke"

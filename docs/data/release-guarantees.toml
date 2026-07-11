@@ -15,6 +15,7 @@ ci_job = "verification"
 release_blocker = true
 platforms = ["linux"]
 known_limitation = ""
+coverage = ["docs/examples/hello.ark", "target:wasm32-gc", "wasm-validation"]
 
 [[guarantees]]
 id = "compile_wasm32"
@@ -25,6 +26,7 @@ ci_job = "verification"
 release_blocker = true
 platforms = ["linux"]
 known_limitation = "Not the primary CI emphasis; still contract-stable"
+coverage = ["docs/examples/hello.ark", "target:wasm32", "wasm-validation"]
 
 [[guarantees]]
 id = "run_wasmtime"
@@ -35,6 +37,7 @@ ci_job = "verification"
 release_blocker = true
 platforms = ["linux"]
 known_limitation = ""
+coverage = ["tests/fixtures/hello_world.ark", "default-target", "wasmtime"]
 
 [[guarantees]]
 id = "fixture_harness"
@@ -45,6 +48,7 @@ ci_job = "verification"
 release_blocker = true
 platforms = ["linux"]
 known_limitation = "See fixture accounting: observed harness ≠ full manifest expansion"
+coverage = ["tests/fixtures/manifest.txt", "registered-harness-cases"]
 
 [[guarantees]]
 id = "determinism"
@@ -55,6 +59,7 @@ ci_job = "verification"
 release_blocker = true
 platforms = ["linux"]
 known_limitation = "No dedicated top-level ci.yml job"
+coverage = ["scripts/check/check-release-determinism.sh::declared-corpus"]
 
 [[guarantees]]
 id = "no_panic_user_paths"
@@ -65,6 +70,51 @@ ci_job = "verification"
 release_blocker = true
 platforms = ["linux"]
 known_limitation = ""
+coverage = ["scripts/check/check-panic-audit.sh::user-reachable-scan"]
+
+[[guarantees]]
+id = "cli_check"
+tier = "guaranteed"
+summary = "The check command rejects an invalid source without producing Wasm"
+check = "python3 scripts/check/check-cli-guarantees.py check"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "Guarantee is command behavior, not acceptance of every valid program"
+coverage = ["tests/fixtures/diagnostics/type_mismatch.ark", "diagnostic-exit-status"]
+
+[[guarantees]]
+id = "cli_init"
+tier = "guaranteed"
+summary = "The init command generates every supported project template"
+check = "python3 scripts/check/check-init-templates.py"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "Template checks validate generated project structure and smoke behavior"
+coverage = ["minimal", "cli", "with-tests", "wasi-host"]
+
+[[guarantees]]
+id = "cli_doc"
+tier = "guaranteed"
+summary = "The doc command resolves manifest symbols and generates HTML reference"
+check = "python3 scripts/check/check-manifest-doc.py"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "Guarantee covers manifest lookup and generator contract"
+coverage = ["std/manifest.toml", "symbol-lookup", "html-generation"]
+
+[[guarantees]]
+id = "cli_help"
+tier = "guaranteed"
+summary = "The help command prints the canonical command surface"
+check = "python3 scripts/check/check-cli-guarantees.py help"
+ci_job = "verification"
+release_blocker = true
+platforms = ["linux"]
+known_limitation = "Help output is checked against the structured command catalogue"
+coverage = ["src/compiler/main/usage.ark", "docs/data/cli-surface.toml"]
 
 [[guarantees]]
 id = "emit_component"

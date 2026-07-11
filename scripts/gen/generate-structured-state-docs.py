@@ -167,12 +167,14 @@ def render_cli_surface(data: dict) -> str:
         f"> Binary: `{binary.get('name')}` — alias policy: `{binary.get('alias_policy')}`.",
         f"> Wrapper: `{binary.get('wrapper')}`. Usage source: `{binary.get('usage_source')}`.",
         "",
-        "| Command | Status | Guarantee tier | Summary |",
-        "|---------|--------|----------------|---------|",
+        "| Command | Status | Presence stability | Implementation | Release guarantee IDs | Summary |",
+        "|---------|--------|--------------------|----------------|-----------------------|---------|",
     ]
     for c in data.get("commands", []):
         lines.append(
-            f"| `arukellt {c['id']}` | `{c['status']}` | `{c['guarantee_tier']}` | {c['summary']} |"
+            f"| `arukellt {c['id']}` | `{c['status']}` | `{c['presence_stability']}` | "
+            f"`{c.get('implementation_state', 'functional')}` | "
+            f"{', '.join(f'`{gid}`' for gid in c.get('guarantee_ids', [])) or '—'} | {c['summary']} |"
         )
     lines.extend(["", "Human guide: [`../cli-reference.md`](../cli-reference.md).", ""])
     return "\n".join(lines)
@@ -245,15 +247,16 @@ def render_release_guarantees(data: dict) -> str:
         "> Normative prose: [`../release-criteria.md`](../release-criteria.md). "
         "Checklist: [`../release-checklist.md`](../release-checklist.md).",
         "",
-        "| ID | Tier | Summary | Check | CI job | Blocker | Known limitation |",
-        "|----|------|---------|-------|--------|:-------:|------------------|",
+        "| ID | Tier | Summary | Evidence scope | Check | CI job | Blocker | Known limitation |",
+        "|----|------|---------|----------------|-------|--------|:-------:|------------------|",
     ]
     for g in data.get("guarantees", []):
         lines.append(
-            "| `{id}` | `{tier}` | {summary} | `{check}` | `{job}` | {blocker} | {lim} |".format(
+            "| `{id}` | `{tier}` | {summary} | {coverage} | `{check}` | `{job}` | {blocker} | {lim} |".format(
                 id=g["id"],
                 tier=g["tier"],
                 summary=g["summary"],
+                coverage=", ".join(f"`{item}`" for item in g.get("coverage", [])) or "—",
                 check=g.get("check", ""),
                 job=g.get("ci_job", ""),
                 blocker="yes" if g.get("release_blocker") else "no",
@@ -291,6 +294,28 @@ def replace_block(path: Path, marker: str, content: str, check: bool, stale: lis
 def main() -> int:
     check = "--check" in sys.argv
     stale: list[Path] = []
+    cli_data = load("cli-surface.toml")
+    release_data = load("release-guarantees.toml")
+    guarantee_ids = {g["id"] for g in release_data.get("guarantees", [])}
+    contract_errors: list[str] = []
+    for command in cli_data.get("commands", []):
+        if "guarantee_tier" in command:
+            contract_errors.append(f"{command['id']}: obsolete guarantee_tier field")
+        for guarantee_id in command.get("guarantee_ids", []):
+            if guarantee_id not in guarantee_ids:
+                contract_errors.append(f"{command['id']}: unknown guarantee id {guarantee_id}")
+    for guarantee in release_data.get("guarantees", []):
+        if guarantee.get("tier") == "guaranteed" and not guarantee.get("coverage"):
+            contract_errors.append(f"{guarantee['id']}: guaranteed row lacks evidence coverage")
+        if guarantee.get("release_blocker") and (
+            not guarantee.get("check") or not guarantee.get("ci_job") or guarantee.get("ci_job") == "none"
+        ):
+            contract_errors.append(f"{guarantee['id']}: blocker lacks executable check/CI job")
+    if contract_errors:
+        for error in contract_errors:
+            print(f"structured contract error: {error}", file=sys.stderr)
+        return 1
+
     mapping = [
         ("capabilities.toml", ROOT / "docs" / "capability-surface.md", render_capabilities),
         ("component-availability.toml", DATA / "component-availability.md", render_component_availability),
@@ -301,7 +326,6 @@ def main() -> int:
     for toml_name, out, render in mapping:
         data = load(toml_name)
         write(out, render(data), check, stale)
-    release_data = load("release-guarantees.toml")
     replace_block(
         ROOT / "docs" / "release-checklist.md",
         "release-blockers",

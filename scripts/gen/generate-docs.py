@@ -1393,12 +1393,9 @@ def render_current_state_updated(state: dict) -> str:
     except Exception:
         pass
     verification = state.get("verification", {})
-    failures = int(verification.get("fixture_failures", 0) or 0)
-    checks_passed = verification.get("checks_passed")
-    checks_total = verification.get("checks_total")
-    check_gap = 0
-    if checks_passed is not None and checks_total is not None:
-        check_gap = int(checks_total) - int(checks_passed)
+    blockers = verification.get("blockers", [])
+    failures = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
+    check_gap = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
     ready = failures == 0 and check_gap == 0
     readiness = "READY" if ready else "NOT READY"
     blocking = []
@@ -1454,6 +1451,35 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
             f"**{verification['checks_passed']}/{verification['checks_total']} checks pass**",
         ]
     )
+    blockers = verification.get("blockers", [])
+    lines.extend(
+        [
+            "",
+            "### Active blockers",
+            "",
+            "This table is generated from structured blocker records. Counts above must equal these rows.",
+            "",
+            "| ID | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |",
+            "|----|----------|---------:|-----------------|---------|-------|-------|------------|---------------|",
+        ]
+    )
+    if blockers:
+        for blocker in blockers:
+            lines.append(
+                "| `{id}` | `{category}` | {count} | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}` |".format(
+                    id=blocker["id"],
+                    category=blocker["category"],
+                    count=blocker.get("affected_count", 1),
+                    summary=escape_table(blocker["summary"]),
+                    command=blocker["command"],
+                    owner=blocker["owner"],
+                    issue=blocker["issue"],
+                    first=blocker["first_seen_commit"],
+                    last=blocker["last_verified_commit"],
+                )
+            )
+    else:
+        lines.append("| — | — | 0 | No active blockers in the recorded verification run. | — | — | — | — | — |")
     return "\n".join(lines)
 
 
@@ -3472,6 +3498,34 @@ def main() -> int:
     failed = int(verification.get("fixture_failures", 0) or 0)
     skipped = int(verification.get("fixture_skipped", 0) or 0)
     observed_sum = passed + failed + skipped
+    blockers = verification.get("blockers", [])
+    required_blocker_fields = {
+        "id", "category", "summary", "command", "owner", "issue",
+        "first_seen_commit", "last_verified_commit",
+    }
+    blocker_errors: list[str] = []
+    seen_blocker_ids: set[str] = set()
+    for blocker in blockers:
+        missing = sorted(required_blocker_fields - blocker.keys())
+        if missing:
+            blocker_errors.append(f"{blocker.get('id', '<unnamed>')}: missing {missing}")
+        if blocker.get("id") in seen_blocker_ids:
+            blocker_errors.append(f"duplicate blocker id {blocker.get('id')}")
+        seen_blocker_ids.add(blocker.get("id"))
+        if blocker.get("category") not in {"fixture", "verification"}:
+            blocker_errors.append(f"{blocker.get('id')}: invalid category")
+    fixture_blockers = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
+    verification_blockers = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
+    check_gap = int(verification.get("checks_total", 0)) - int(verification.get("checks_passed", 0))
+    if fixture_blockers != failed:
+        blocker_errors.append(f"fixture_failures={failed} but {fixture_blockers} fixture blocker rows")
+    if verification_blockers != check_gap:
+        blocker_errors.append(f"verification check gap={check_gap} but {verification_blockers} verification blocker rows")
+    if blocker_errors:
+        print("project-state.toml blocker contract FAILED:", file=sys.stderr)
+        for error in blocker_errors:
+            print(f"  ✗ {error}", file=sys.stderr)
+        return 1
     stated_observed = verification.get("fixture_harness_observed")
     if stated_observed is not None and int(stated_observed) != observed_sum:
         print(
