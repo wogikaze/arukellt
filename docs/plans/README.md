@@ -14,6 +14,7 @@
 |------|-------|-------|---------|
 | [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | ステータス: 運用メモ（決定記録ではない） |
 | [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ステータス: 実装計画 / 現行挙動メモ（決定記録ではない） |
+| [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #765. Manual docs that are too coarse for review / LLM retrieval: |
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | ステータス: 実装計画（決定記録ではない） |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |

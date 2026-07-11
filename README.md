@@ -13,7 +13,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - Component/WIT target: `wasm32-gc`
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 654 passed, 4 failed, 29 skipped / 2679 entries
-- Verification: `python3 scripts/manager.py verify quick` — 168/172 checks pass
+- Verification: `python3 scripts/manager.py verify quick` — 169/173 checks pass
 - Stdlib manifest-backed public API: 772 functions
 <!-- END GENERATED:README_STATUS -->
 

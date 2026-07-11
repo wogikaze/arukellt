@@ -217,7 +217,7 @@ jco transpile app.component.wasm -o app.dist/
 | run (wasmtime) | guaranteed | stdout compared against `.expected` |
 | emit component | n/a | `wasm32-gc`-only |
 | emit WIT | n/a | `wasm32-gc`-only |
-| host capabilities | guaranteed | `--deny-clock`, `--deny-random` hard-error placeholders |
+| host capabilities | guaranteed | `--deny-clock`, `--deny-random` compile-time MIR hard errors on `run` |
 | determinism | smoke | baselines spot-checked |
 | validator pass | guaranteed | `wasmparser` validation post-emit |
 

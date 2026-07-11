@@ -13,5 +13,6 @@
 |------|-------|---------|
 | [feature-matrix.md](feature-matrix.md) | Benchmark Feature Matrix | Cross-reference of benchmarks against language features they exercise. |
 | [governance.md](governance.md) | Benchmark Governance | This document defines the naming conventions, result schema, execution modes, |
+| [runbook.md](runbook.md) | Benchmark Runbook | Operational commands for measuring and comparing Arukellt benchmarks. |
 | [scaling-methodology.md](scaling-methodology.md) | Scaling Curve Methodology | How input-size sweeps reveal algorithmic complexity and detect performance |
 | [variance-control.md](variance-control.md) | Benchmark Variance Control & Reproducibility | This document defines the variance-control strategy and reproducibility profile |

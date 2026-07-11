@@ -33,7 +33,7 @@ component_target = "wasm32-gc"
 default_emit = "core-wasm"
 component_emit = true
 wit_emit = true
-component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps). CLI default = primary (wasm32-gc); impl may still spell alias wasm32-wasi-p2 until parser migrates."
+component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components work on pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component."
 
 [[target_profiles]]
 id = "wasm32"
@@ -75,11 +75,16 @@ note = "ADR-007 retired (hard error as public target); leftover driver/emitter c
 # Host profiles are NOT targets (ADR-007/013). Keep separate from [[target_profiles]].
 [[host_profiles]]
 id = "wasi-p1"
-supported_targets = ["wasm32", "wasm32-gc"]
+# ADR-007: wasm32-gc + --wasi p1 is a compile error today. Do not list wasm32-gc
+# in supported_targets until that contract changes.
+supported_targets = ["wasm32"]
+planned_targets = ["wasm32-gc"]
 support_tier = "supported"
-implementation_state = "complete"
+# Host ABI adapter exists for wasm32; stdlib capability coverage is incomplete
+# (e.g. env::var). Keep partial until capability matrix is complete.
+implementation_state = "partial"
 contract_stability = "stable"
-role = "WASI Preview 1 host profile (AtCoder / linear path on wasm32; also usable on wasm32-gc)"
+role = "WASI Preview 1 host profile (AtCoder / linear path on wasm32 only; wasm32-gc+P1 rejected per ADR-007)"
 
 [[host_profiles]]
 id = "wasi-p2"
@@ -102,8 +107,8 @@ fixture_passed = 654
 fixture_skipped = 29
 fixture_failures = 4
 fixture_manifest_count = 2679
-checks_passed = 168
-checks_total = 172
+checks_passed = 169
+checks_total = 173
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
 [contract_audit]

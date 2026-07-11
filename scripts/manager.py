@@ -4737,6 +4737,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/gate-765-docs-ci-hard-gates.py",
         ),
         (
+            "CI jobs doc freshness (#769)",
+            "python3 scripts/gen/generate-ci-jobs-doc.py --check",
+        ),
+        (
             "stdlib manifest check",
             "bash scripts/check/check-stdlib-manifest.sh",
         ),

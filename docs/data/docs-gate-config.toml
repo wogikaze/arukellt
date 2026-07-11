@@ -144,3 +144,65 @@ must_be_hand_ssot = [
   "docs/data/sections.toml",
   "docs/data/language-doc-classifications.toml",
 ]
+
+[bootstrap]
+forbid_substrings = [
+  "Stage 0 (Rust)",
+  "trusted base (Rust compiler)",
+  "Trusted base: Rust",
+  "Rust compiler is correct, the output is correct",
+  "Compile selfhost sources with the Rust compiler",
+]
+scan_paths = [
+  "docs/compiler/bootstrap.md",
+  "docs/process/bootstrap-verification.md",
+  "docs/state/compiler.md",
+  "docs/testing/test-categories.md",
+]
+
+[cli]
+forbid_patterns = [
+  "`ark ",
+  "ark doc ",
+  "ark component ",
+  "ark compose ",
+  "ark build",
+]
+scan_paths = [
+  "docs/cli-reference.md",
+  "docs/ark-toml.md",
+  "docs/quickstart.md",
+  "docs/current-state.md",
+]
+
+[ci_jobs]
+generated_doc = "docs/data/ci-jobs.md"
+workflow = ".github/workflows/ci.yml"
+forbidden_job_ids = [
+  "fixture-primary",
+  "fixture-supported",
+  "target-contract-drift-check",
+  "verification-bootstrap",
+  "verification-harness-quick",
+  "verification-harness-full",
+  "verification-package-workspace",
+  "verification-editor-tooling",
+  "verification-unit",
+  "verification-integration",
+  "verification-target-contract",
+  "verification-component-interop",
+  "verification-perf",
+  "verification-determinism",
+  "selfhost-bootstrap",
+]
+scan_paths = [
+  "docs/test-strategy.md",
+  "docs/testing/test-categories.md",
+  "docs/release-checklist.md",
+]
+
+[capability_policy]
+path = "docs/process/policy.md"
+forbid_substrings = [
+  "future enforcement",
+]

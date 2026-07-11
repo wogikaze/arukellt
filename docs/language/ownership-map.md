@@ -135,14 +135,14 @@ or published. Items marked **CI** are automated in `check-docs-consistency.py` o
 ```bash
 # Run all automated gates (required before merge):
 python3 scripts/check/check-docs-consistency.py    # Gates 1–2 (automated checks)
-python scripts/manager.py verify quick       # Includes docs consistency + harness checks
+python3 scripts/manager.py verify quick       # Includes docs consistency + harness checks
 
 # If generated source inputs changed:
 python3 scripts/gen/generate-docs.py             # Regenerate README.md + maturity-matrix.md
 python3 scripts/gen/generate-docs.py --check     # Verify freshness (Gate 1.1)
 
 # Full verification (before releases):
-bash scripts/manager.py --full        # All checks including heavy ones
+python3 scripts/manager.py verify --full        # All checks including heavy ones
 ```
 
 ---

@@ -8,9 +8,9 @@
 - Updated: 2026-07-11
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
-- Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps). CLI default = primary (wasm32-gc); impl may still spell alias wasm32-wasi-p2 until parser migrates.)
+- Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components work on pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component.)
 - Fixture harness: 654 passed, 4 failed, 29 skipped / 2679 entries
-- Verification: `python3 scripts/manager.py verify quick` — 168/172 checks pass
+- Verification: `python3 scripts/manager.py verify quick` — 169/173 checks pass
 - Stdlib manifest-backed public API: 772 functions
 
 - [Current state](current-state.md)

@@ -13,6 +13,9 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [milestones.md](milestones.md) | 到達記録（historical milestones） | Archive | ステータス: 履歴メモ（現行正本ではない） |
+| [reports/bootstrap-rust-era-compiler-guide.md](reports/bootstrap-rust-era-compiler-guide.md) | bootstrap-rust-era-compiler-guide | Archive | ARCHIVED REPORT — Rust-era bootstrap narrative (pre ADR-029). Not current. See docs/adr/ADR-029-selfhost-native-verification-contract.md and docs/compiler/bootstrap.md. |
+| [reports/bootstrap-rust-era-verification.md](reports/bootstrap-rust-era-verification.md) | bootstrap-rust-era-verification | Archive | ARCHIVED REPORT — Rust-era bootstrap narrative (pre ADR-029). Not current. See docs/adr/ADR-029-selfhost-native-verification-contract.md and docs/compiler/bootstrap.md. |
+| [reports/diagnostic-parity-rust-era.md](reports/diagnostic-parity-rust-era.md) | diagnostic-parity-rust-era | Archive | ARCHIVED REPORT — Rust-vs-selfhost diagnostic comparison (Rust CLI retired). Current gate: python3 scripts/manager.py selfhost diag-parity. See docs/compiler/bootstrap.md. |
 | [reports/docs-runtime-contract-audit-2026-06-17.md](reports/docs-runtime-contract-audit-2026-06-17.md) | docs-runtime-contract-audit-2026-06-17 | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
 | [reports/false-done-audit-2026-06-12.md](reports/false-done-audit-2026-06-12.md) | false-done-audit-2026-06-12 | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
 | [reports/false-done-audit-orchestration-plan.md](reports/false-done-audit-orchestration-plan.md) | false-done-audit-orchestration-plan | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |

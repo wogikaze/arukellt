@@ -339,6 +339,103 @@ def check_target_contract_summary_generated(failures: list[str]) -> None:
         failures.append("target-contract-summary.md must declare Generated from project-state.toml")
 
 
+def check_bootstrap_contract(cfg: dict, failures: list[str]) -> None:
+    boot = cfg.get("bootstrap", {})
+    forbids = boot.get("forbid_substrings", [])
+    for rel_path in boot.get("scan_paths", []):
+        path = REPO / rel_path
+        if not path.is_file():
+            failures.append(f"missing bootstrap scan path {rel_path}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        for needle in forbids:
+            if needle in text:
+                failures.append(f"Rust-era bootstrap wording in {rel_path}: {needle!r}")
+
+
+def check_cli_binary_name(cfg: dict, failures: list[str]) -> None:
+    cli = cfg.get("cli", {})
+    patterns = cli.get("forbid_patterns", [])
+    for rel_path in cli.get("scan_paths", []):
+        path = REPO / rel_path
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for pat in patterns:
+            if pat in text:
+                failures.append(
+                    f"undefined `ark` CLI alias in {rel_path}: found {pat!r} (use arukellt)"
+                )
+
+
+def check_ci_job_ids(cfg: dict, failures: list[str]) -> None:
+    ci = cfg.get("ci_jobs", {})
+    gen_rel = ci.get("generated_doc", "docs/data/ci-jobs.md")
+    gen_path = REPO / gen_rel
+    wf_path = REPO / ci.get("workflow", ".github/workflows/ci.yml")
+    if not wf_path.is_file():
+        failures.append("missing ci.yml for job taxonomy")
+        return
+    body = wf_path.read_text(encoding="utf-8").split("jobs:", 1)[-1]
+    real_jobs = set(re.findall(r"^  ([A-Za-z0-9_-]+):\s*$", body, re.M))
+    if gen_path.is_file():
+        gen_text = gen_path.read_text(encoding="utf-8")
+        for job in sorted(real_jobs):
+            if f"`{job}`" not in gen_text:
+                failures.append(f"{gen_rel} missing job id `{job}` — regenerate ci-jobs doc")
+    else:
+        failures.append(f"missing {gen_rel}; run scripts/gen/generate-ci-jobs-doc.py")
+    forbidden = ci.get("forbidden_job_ids", [])
+    for rel_path in ci.get("scan_paths", []):
+        path = REPO / rel_path
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        # Skip multi-line "do not invent / historical names" blocks.
+        skip_block = False
+        for i, line in enumerate(text.splitlines(), 1):
+            low = line.lower()
+            if "do **not** invent" in low or "do not invent" in low or "historical / incorrect" in low:
+                skip_block = True
+            if skip_block:
+                if line.strip() == "" or line.startswith("##"):
+                    skip_block = False
+                else:
+                    continue
+            for job in forbidden:
+                if not re.search(rf"`{re.escape(job)}`", line):
+                    continue
+                if any(
+                    k in low
+                    for k in (
+                        "must not",
+                        "incorrect",
+                        "historical",
+                        "not a top-level",
+                        "no dedicated",
+                        "unknown",
+                        "not** a",
+                        "include:",
+                    )
+                ):
+                    continue
+                failures.append(
+                    f"unknown/historical CI job id `{job}` in {rel_path}:{i}: {line.strip()[:100]}"
+                )
+
+
+def check_capability_policy(cfg: dict, failures: list[str]) -> None:
+    pol = cfg.get("capability_policy", {})
+    path = REPO / pol.get("path", "docs/process/policy.md")
+    if not path.is_file():
+        failures.append("missing process/policy.md")
+        return
+    text = path.read_text(encoding="utf-8")
+    for needle in pol.get("forbid_substrings", []):
+        if needle in text:
+            failures.append(f"stale capability policy wording in {rel(path)}: {needle!r}")
+
+
 def main() -> int:
     failures: list[str] = []
     if not CONFIG.is_file():
@@ -362,6 +459,10 @@ def main() -> int:
     check_section_registry_parity(failures)
     check_skip_budget(cfg, failures)
     check_target_contract_summary_generated(failures)
+    check_bootstrap_contract(cfg, failures)
+    check_cli_binary_name(cfg, failures)
+    check_ci_job_ids(cfg, failures)
+    check_capability_policy(cfg, failures)
 
     if failures:
         print("gate-765-docs-ci-hard-gates: FAIL", file=sys.stderr)

@@ -5,12 +5,20 @@
 
 ## Capability Defaults
 
-| Capability | Default | Override |
-|------------|---------|----------|
-| Standard I/O (stdin/stdout/stderr) | Allow | Cannot be denied |
-| Filesystem access | Deny by default unless granted | `--dir path:ro`, `--dir path:rw`, `--deny-fs` |
-| Clock/time | Runtime provides access; `--deny-clock` is a hard error | future enforcement |
-| Random numbers | Runtime provides access; `--deny-random` is a hard error | future enforcement |
+| Capability | Default access | Deny mechanism | Enforcement phase | Transitive |
+|------------|----------------|----------------|-------------------|------------|
+| Standard I/O (stdin/stdout/stderr) | Allow | Cannot be denied | — | — |
+| Filesystem access | Deny unless granted | `--dir path:ro\|rw`, `--deny-fs` | Runtime grant / compile policy | n/a |
+| Clock/time | Allow | `--deny-clock` | **Compile-time** MIR scan (`mir_uses_capability`) on `run` | Yes |
+| Random numbers | Allow | `--deny-random` | **Compile-time** MIR scan on `run` | Yes |
+
+Notes:
+
+- `--deny-clock` / `--deny-random` make the compile fail with a hard error when the
+  program (transitively) references the capability. They apply to `arukellt run`;
+  `arukellt compile` does not accept them (bytes-only emit).
+- These flags are **implemented** (compile-time MIR scan). Do not describe them as unimplemented.
+- Filesystem remains deny-by-default without `--dir`.
 
 ## Generated Artifacts
 

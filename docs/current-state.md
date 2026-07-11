@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T17:07:35+09:00
-> Source-Commit: `157f180a`
+> Generated-At: 2026-07-11T17:13:30+09:00
+> Source-Commit: `23e65c11`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 4 verification check failure(s)
@@ -76,7 +76,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | Host profile | Targets | Support Tier | Implementation | Contract Stability | Notes |
 |--------------|---------|--------------|----------------|--------------------|-------|
-| `wasi-p1` | `wasm32`, `wasm32-gc` | supported | complete | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32; also usable on wasm32-gc) |
+| `wasi-p1` | `wasm32` | supported | partial | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32 only; wasm32-gc+P1 rejected per ADR-007) |
 | `wasi-p2` | `wasm32-gc` | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
 | `wasi-p3` | `wasm32-gc` | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
@@ -97,7 +97,7 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 - Fixture harness: 654 passed, 4 failed, 29 skipped (manifest-driven)
 - Fixture manifest: 2679 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **168/172 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **169/173 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
@@ -217,6 +217,7 @@ The `arukellt` binary exposes the following subcommands:
 | `arukellt script` | Run scripts defined in `ark.toml` |
 | `arukellt doc <symbol>` | Look up stdlib documentation for a symbol or module |
 | `arukellt doc --html -o <file>` | Generate rich static stdlib HTML documentation |
+| `arukellt component build <file>` | Compile with `--emit component` (alias path; same as `compile --emit component`) |
 | `arukellt lsp` | Start the Language Server Protocol server |
 | `arukellt debug-adapter` | Start the Debug Adapter Protocol server |
 | `arukellt compose` | Compose Wasm component binaries (validates + `wac plug` delegation — #443 Phase 3) |

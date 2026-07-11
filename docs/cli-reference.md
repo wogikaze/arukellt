@@ -1,5 +1,10 @@
 # Arukellt CLI Reference
 
+> Binary name: **`arukellt`** (see `src/compiler/main/usage.ark`).  
+> There is no documented `ark` alias. Wrapper: `scripts/run/arukellt-selfhost.sh`.
+
+Full command list and release status also appear in [`current-state.md`](current-state.md).
+
 ## Subcommands
 
 ### `doc`
@@ -7,14 +12,10 @@
 Look up standard library metadata from `std/manifest.toml` or generate the
 static standard library reference used by GitHub Pages.
 
-**Usage:**
-
+```bash
+arukellt doc <symbol> [--json] [--target <target>]
+arukellt doc --html -o <output.html>
 ```
-ark doc <symbol> [--json] [--target <target>]
-ark doc --html -o <output.html>
-```
-
-**Options:**
 
 | Option | Description |
 |--------|-------------|
@@ -23,100 +24,55 @@ ark doc --html -o <output.html>
 | `--html` | Generate a rich static HTML stdlib reference |
 | `-o`, `--output <path>` | HTML output path for `--html` |
 
-**Examples:**
-
 ```bash
-# Look up one function
-ark doc println
-
-# Show JSON for tooling
-ark doc --json std::host::http::get
-
-# Generate the Pages stdlib reference
-ark doc --html -o docs/docs/std/index.html
+arukellt doc println
+arukellt doc --json std::host::http::get
+arukellt doc --html -o docs/docs/std/index.html
 ```
 
 ### `component`
 
 Build, inspect, and validate WebAssembly components.
-
-**Usage:**
-
-```
-ark component build <file.ark> [options]
-ark component inspect <file.wasm>
-ark component validate <file.wasm>
-```
-
-**Subcommands:**
-
-| Subcommand  | Description                                        | Status         |
-|-------------|----------------------------------------------------|----------------|
-| `build`     | Compile an `.ark` file to a `.component.wasm`      | Implemented    |
-| `inspect`   | Print the WIT interface of a component             | Not implemented (use `wasm-tools component wit`) |
-| `validate`  | Validate a `.component.wasm` against its WIT world | Not implemented (use `wasm-tools validate`)       |
-
-The `build` subcommand is the default — `ark component <file.ark>` is equivalent
-to `ark component build <file.ark>`. It delegates to the compile pipeline with
-`--emit component --target wasm32-gc`.
-
-**Options:**
-
-| Option          | Description                          |
-|-----------------|--------------------------------------|
-| `-o <path>`     | Write output to `<path>`             |
-| `--target <t>`  | Set target (default: `wasm32-gc` = primary; aliases per ADR-007) |
-| `--wit <path>`  | Add a WIT import file                |
-| `--json`        | Emit JSON diagnostics                |
-
-**Examples:**
+`component build` sets `--emit component` on the compile pipeline
+(`src/compiler/main/component_cmd.ark`). Equivalent core path:
+`arukellt compile --target wasm32-gc --emit component`.
 
 ```bash
-# Build a component from source
-ark component build my_app.ark
-
-# Build with shorthand (build is the default)
-ark component my_app.ark
-
-# Specify output path
-ark component build my_app.ark -o out/my_app.component.wasm
-
-# Inspect a component (requires wasm-tools)
-wasm-tools component wit my_app.component.wasm
-
-# Validate a component (requires wasm-tools)
-wasm-tools validate my_app.component.wasm
+arukellt component build <file.ark> [options]
+arukellt component <file.ark>          # build is the default
+arukellt component inspect <file.wasm> # not implemented — use wasm-tools
+arukellt component validate <file.wasm>
 ```
+
+| Subcommand | Status |
+|------------|--------|
+| `build` | Implemented (delegates to compile + `--emit component`) |
+| `inspect` | Not implemented (`wasm-tools component wit`) |
+| `validate` | Not implemented (`wasm-tools validate`) |
+
+```bash
+arukellt component build my_app.ark -o out/my_app.component.wasm
+# equivalent:
+arukellt compile my_app.ark --target wasm32-gc --emit component -o out/my_app.component.wasm
+```
+
+**Known limitation:** the pinned bootstrap wasm may return empty / non-invokable
+library components for `pub fn` exports. Use a built s2 artifact
+(`ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm`) for library component
+work — see [`current-state.md`](current-state.md).
 
 ### `compose`
 
-Validate and plan linking of multiple Wasm components into one composed artifact.
-
-**Usage:**
-
-```
-ark compose --plug <provider.component.wasm> <socket.component.wasm> -o <output.component.wasm>
-ark compose --validate --plug <provider> <socket> -o <output>
-```
-
-**Status:** Phase 3 (#443) — validates paths and WIT sidecars, prints a dependency graph,
-and delegates binary composition to `wac plug` via `arukellt-selfhost.sh` (ADR-034 Phase 3).
-Native in-tree linking is not implemented yet.
-
-| Flag / option | Description |
-|---------------|-------------|
-| `--plug <provider> <socket>` | Provider component to plug into the socket (consumer) component |
-| `-o`, `--output <path>` | Output composed `.component.wasm` path |
-| `--validate` | Validate the plan only (no binary output) |
-
-**Examples:**
+Validate and plan linking of multiple Wasm components (ADR-034 Phase 3).
+Delegates binary composition to `wac plug` via the selfhost wrapper.
 
 ```bash
-# Validate a two-component plug plan (no binary output)
-ark compose --validate --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
-
-# Validate + run wac plug to produce composed artifact (requires wac in PATH)
-ark compose --plug math-lib.component.wasm runner.component.wasm -o app.component.wasm
+arukellt compose --plug <provider.component.wasm> <socket.component.wasm> -o <output.component.wasm>
+arukellt compose --validate --plug <provider> <socket> -o <output>
 ```
 
-See [adr/ADR-034-component-composition-linking.md](adr/ADR-034-component-composition-linking.md).
+### Other commands
+
+See [`current-state.md`](current-state.md) for `compile`, `run`, `check`, `build`,
+`fmt`, `test`, `lint`, `targets`, `analyze`, `init`, `script`, `lsp`, and
+`debug-adapter`.

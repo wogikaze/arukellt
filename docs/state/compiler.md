@@ -42,20 +42,25 @@ MIR に永続化済み。残作業は #724。
 
 ## Self-Hosting Bootstrap Status
 
-完了条件: `scripts/run/verify-bootstrap.sh` が 0（SKIP なし）**かつ**
-`python scripts/manager.py selfhost parity` が 0。
+完了条件（ADR-029）:
+
+1. `python3 scripts/manager.py selfhost fixpoint` が fixpoint に到達（または CI の selfhost job 相当が緑）
+2. `python3 scripts/manager.py selfhost fixture-parity` / `parity --mode --cli` / `diag-parity` が緑
+
 詳細は [`../compiler/bootstrap.md`](../compiler/bootstrap.md)。
+`scripts/run/verify-bootstrap.sh` の Rust Stage 0 経路は **退役**（履歴:
+[`../history/reports/bootstrap-rust-era-verification.md`](../history/reports/bootstrap-rust-era-verification.md)）。
 
 | Stage | Description | Status |
 |-------|-------------|--------|
 | **Stage 0** | Pinned wasm `bootstrap/arukellt-selfhost.wasm`（ADR-029） | ✅ Committed |
-| **Stage 2** | pinned が現行 `src/compiler/main.ark` → `s2.wasm` | ✅ `sha256(s2) == sha256(pinned)` |
-| **Stage 3** | `sha256(s2) == sha256(s3)` fixpoint | ✅ Reached |
-| **Fixture / CLI / diag parity** | ADR-029 gates | ✅ Reached |
+| **Build s2** | pinned が現行 `src/compiler/main.ark` → `s2.wasm` | ✅ via `selfhost fixpoint --build` |
+| **Fixpoint** | `sha256(s2) == sha256(s3)` | ✅ Reached when gate is green |
+| **Fixture / CLI / diag parity** | ADR-029 gates | ✅ Reached when gates are green |
 
 信頼ベースは pinned selfhost wasm。Rust CLI フォールバックは廃止（#583）。
 
-CI gates（いずれも selfhost-native）:
+CI gates（いずれも selfhost-native; job id = `selfhost`）:
 
 - `selfhost fixpoint`
 - `selfhost fixture-parity`
@@ -69,8 +74,9 @@ Wrapper: [`scripts/run/arukellt-selfhost.sh`](../../scripts/run/arukellt-selfhos
 解決順:
 
 1. `$ARUKELLT_SELFHOST_WASM`
-2. `.build/selfhost/arukellt-s2.wasm`
-3. `.bootstrap-build/arukellt-s2.wasm`
-4. `bootstrap/arukellt-selfhost.wasm`
+2. `.build/selfhost/arukellt-s3.wasm`
+3. `.build/selfhost/arukellt-s2.wasm`
+4. `.bootstrap-build/arukellt-s2.wasm`
+5. `bootstrap/arukellt-selfhost.wasm`
 
 `wasmtime` 不在または wasm 未発見時は hard-fail。`ARUKELLT_USE_RUST=1` は非ゼロ終了。

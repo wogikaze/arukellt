@@ -42,7 +42,7 @@ and the responsible CI job/log pointer.
 - Test files: `tests/unit/<module>_test.rs` or `<module>.test.ark`
 - Test functions: `test_<function_name>` or `test_<scenario>`
 
-**CI Job**: `verification-unit`
+**CI Job**: `verification` (no separate unit-tests job in ci.yml)
 
 ---
 
@@ -68,7 +68,7 @@ and the responsible CI job/log pointer.
 - Expected output: `tests/fixtures/<category>/<name>.expected`
 - Diagnostics: `tests/fixtures/<category>/<name>.diag`
 
-**CI Job**: `verification-harness-quick` (subset), `verification-harness-full` (full)
+**CI Job**: `verification` (`manager.py verify` / verify modes)
 
 ---
 
@@ -92,7 +92,7 @@ and the responsible CI job/log pointer.
 - Test files: `tests/integration/<scenario>.rs` or `<scenario>.test.ark`
 - Test directories: `tests/integration/<scenario>/` (for multi-file tests)
 
-**CI Job**: `verification-integration`
+**CI Job**: `verification`
 
 ---
 
@@ -121,7 +121,7 @@ Retired public names (must not appear as current contracts):
 - Fixture category prefixes such as `t3-run:` / `t3-compile:` are **historical internal names**
   for the primary (`wasm32-gc`) path; they are not public target IDs
 
-**CI Job**: `verification-target-contract`
+**CI Job**: `verification` (target-contract checks inside harness)
 
 ---
 
@@ -147,7 +147,7 @@ Retired public names (must not appear as current contracts):
 - Component outputs: `tests/component-interop/<scenario>.component.wasm`
 - WIT outputs: `tests/component-interop/<scenario>.wit`
 
-**CI Job**: `verification-component-interop`
+**CI Job**: `verification` when `--component` / component gates run
 
 ---
 
@@ -175,31 +175,29 @@ Retired public names (must not appear as current contracts):
 - Manifest files: `tests/package-workspace/<scenario>/ark.toml`
 - Shell integration tests: `scripts/run/test-package-workspace.sh`
 
-**CI Job**: `verification-package-workspace`
+**CI Job**: local script lane — **not** a top-level ci.yml job
 
 ---
 
 ### bootstrap
 
-**Responsibility**: Verify self-hosted compiler bootstrap process.
+**Responsibility**: Verify self-hosted compiler bootstrap (ADR-029).
 
 **Scope**:
-- Stage 0 (Rust) → Stage 1 (Arukellt) compilation
-- Stage 1 → Stage 2 fixpoint
-- Bootstrap script correctness
-- Bootstrap parity verification
+- Pinned wasm trust base (`bootstrap/arukellt-selfhost.wasm`)
+- `python3 scripts/manager.py selfhost fixpoint` (`sha256(s2)==sha256(s3)`)
+- Fixture / CLI / diagnostic parity lanes
 
 **Acceptance Criteria**:
-- `scripts/run/verify-bootstrap.sh` passes all stages
-- Stage 2 produces identical output to Stage 1 (fixpoint)
-- Bootstrap is deterministic
-- Parity with Rust implementation is verified
+- `selfhost` CI job is green
+- Fixpoint and parity commands in [`../compiler/bootstrap.md`](../compiler/bootstrap.md) pass
+- No Rust Stage 0 / `ARUKELLT_USE_RUST` path
 
 **Naming Convention**:
-- Test files: `tests/bootstrap/<stage>.rs`
-- Bootstrap sources: `src/compiler/*.ark`
+- Bootstrap sources: `src/compiler/**/*.ark`
+- Pinned artifact: `bootstrap/arukellt-selfhost.wasm`
 
-**CI Job**: `verification-bootstrap`
+**CI Job**: `selfhost`
 
 ---
 
@@ -225,7 +223,7 @@ Retired public names (must not appear as current contracts):
 - Test files: `tests/editor-tooling/<feature>.test.ts` (for VS Code extension)
 - LSP tests: `tests/editor-tooling/lsp_<feature>.rs`
 
-**CI Job**: `verification-editor-tooling`
+**CI Job**: `extension-tests` (+ LSP/DAP checks in verification)
 
 ---
 
@@ -250,7 +248,7 @@ Retired public names (must not appear as current contracts):
 - Benchmark files: `benchmarks/<name>.ark`
 - Baseline files: `tests/baselines/perf/<name>.json`
 
-**CI Job**: `verification-perf` (separate from correctness gate)
+**CI Job**: local / targeted — **not** a top-level ci.yml job
 
 ---
 
@@ -271,7 +269,7 @@ Retired public names (must not appear as current contracts):
 **Naming Convention**:
 - Test files: `tests/determinism/<scenario>.rs`
 
-**CI Job**: `verification-determinism`
+**CI Job**: harness / checklist — **not** a top-level ci.yml job
 
 ---
 

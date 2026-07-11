@@ -20,9 +20,9 @@ authors = ["Alice"]    # optional; list of author strings
 description = "..."    # optional; one-line project description
 ```
 
-### `[bin]` *(required for `ark build`)*
+### `[bin]` *(required for `arukellt build`)*
 
-Identifies the entry-point source file for `ark build`.
+Identifies the entry-point source file for `arukellt build`.
 
 ```toml
 [bin]
@@ -103,7 +103,7 @@ Schema violations produce actionable error messages:
 |-----------|---------|
 | `ark.toml` not found | `error: ark.toml not found in current directory or any parent` + hint to run `init` |
 | TOML parse error | `error: failed to parse ark.toml: <detail>` |
-| Missing `[bin]` on `ark build` | `error: ark.toml must contain a [bin] section` + field hint |
+| Missing `[bin]` on `arukellt build` | `error: ark.toml must contain a [bin] section` + field hint |
 
 ## Single-file vs project mode
 

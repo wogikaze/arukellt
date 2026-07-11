@@ -22,7 +22,7 @@
 <!-- BEGIN GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->
 | Host profile | Targets | Support Tier | Implementation | Contract Stability | Notes |
 |--------------|---------|--------------|----------------|--------------------|-------|
-| `wasi-p1` | `wasm32`, `wasm32-gc` | supported | complete | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32; also usable on wasm32-gc) |
+| `wasi-p1` | `wasm32` | supported | partial | stable | WASI Preview 1 host profile (AtCoder / linear path on wasm32 only; wasm32-gc+P1 rejected per ADR-007) |
 | `wasi-p2` | `wasm32-gc` | primary | partial | stable | Default host profile for primary target wasm32-gc (ADR-013) |
 | `wasi-p3` | `wasm32-gc` | not-started | unimplemented | experimental | Future WASI Preview 3 host profile on wasm32-gc; not a separate language target |
 <!-- END GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->

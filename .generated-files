@@ -68,3 +68,4 @@ docs/process/benchmark-results.md | scripts/gen/generate-docs.py | python3 scrip
 issues/open/index.md | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
 issues/open/dependency-graph.md | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
 issues/open/index-meta.json | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py
+docs/data/ci-jobs.md | scripts/gen/generate-ci-jobs-doc.py | python3 scripts/gen/generate-ci-jobs-doc.py

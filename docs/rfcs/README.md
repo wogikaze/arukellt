@@ -16,4 +16,4 @@
 | [001-playground-share-url-format.md](001-playground-share-url-format.md) | RFC-001: Playground Share URL Format（wire format） | Archive | ステータス: 仕様草案（ADR-021 が採択した中核判断の詳細） |
 | [002-semantic-type-spine.md](002-semantic-type-spine.md) | RFC-002: Semantic Type Spine（詳細設計） | Archive | ステータス: 仕様草案（ADR-040 が採択した中核判断の詳細） |
 | [003-portable-simd-semantics.md](003-portable-simd-semantics.md) | RFC-003: Portable SIMD operation semantics（NativeSimd ↔ Scalar） | Archive | ステータス: DRAFT |
-| [004-trait-expressiveness.md](004-trait-expressiveness.md) | RFC-004: Trait expressiveness（Self・型引数・blanket） | Archive | ステータス: DRAFT |
+| [004-trait-expressiveness.md](004-trait-expressiveness.md) | RFC-004: Trait expressiveness（Self・型引数・associated function・coherence） | Archive | ステータス: DRAFT |

@@ -14,9 +14,10 @@
 
 | File | Title | Summary |
 |------|-------|---------|
-| [bootstrap.md](bootstrap.md) | Bootstrap Guide | Self-hosting verification for the Arukellt compiler. |
+| [bootstrap.md](bootstrap.md) | Selfhost Bootstrap (ADR-029) | Current contract. Trusted base is the pinned selfhost wasm, not a Rust |
+| [core-ops-registry.md](core-ops-registry.md) | Core Ops Registry | SSOT file: docs/data/core-ops.toml |
 | [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output |
-| [diagnostic-parity.md](diagnostic-parity.md) | Diagnostic Parity: Rust Compiler vs Selfhost Compiler | Comparison of error diagnostic output between the Rust-hosted compiler |
+| [diagnostic-parity.md](diagnostic-parity.md) | Diagnostic Parity (current) | Current verification is selfhost diag-parity under ADR-029 — not a Rust CLI comparison. |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [error-codes.md](error-codes.md) | Error Code Reference | Canonical listing of every diagnostic code emitted by the Arukellt compiler. |
 | [incremental-parse-design.md](incremental-parse-design.md) | Incremental Parse Design | The fundamental unit of incremental parsing is the file (module). When a file changes, the entire file is re-parsed. Fine-grained incremental parsing at the declaration or function level is considered out of scope for Phase 1 to limit complexity. |
