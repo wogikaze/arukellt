@@ -3,6 +3,7 @@
 ステータス: **ACCEPTED** — host-boundなstdlib APIは`std::host::*`に隔離
 
 決定日: 2026-03-29
+改訂日: 2026-07-11 — ADR-007/013 整合（`wasm32` / `wasm32-gc` ターゲット名）
 
 ---
 
@@ -10,8 +11,8 @@
 
 Arukellt は少なくとも 2 つの実用ターゲットを持つ。
 
-- T1: `wasm32-wasi-p1` — compatibility path
-- T3: `wasm32-wasi-p2` — canonical path
+- `wasm32` — linear memory、WASI P1（AtCoder 等 compatibility path）
+- `wasm32-gc` — GC + Component Model、WASI P2 デフォルト（canonical / primary path）
 
 従来は `std::io`, `std::fs`, `std::env`, `std::process`, `std::time`, `std::random`
 のような名前で host-bound API を提供してきた。しかし実際には、
@@ -20,7 +21,7 @@ Arukellt は少なくとも 2 つの実用ターゲットを持つ。
 この状態には 3 つの問題がある。
 
 1. `std::io` という名前が pure/portable な抽象に見える
-2. T1/T3 で使える範囲の差が API 名から読めない
+2. `wasm32` / `wasm32-gc` で使える範囲の差が API 名から読めない
 3. LLM と人間の両方が `std::*` と `import "wasi:..."` を混同しやすい
 
 また ADR-009 により、Arukellt ソースの `use std::...` と、
@@ -85,9 +86,10 @@ module 名に `p1/p2` を埋め込まず support matrix で表す。
 
 例:
 
-- T1 で `use std::host::http` → compile-time error
-- T1 で `use std::host::sockets` → compile-time error
-- T3 で `std::host::stdio/fs/env/process/clock/random` → 実行可能
+- `wasm32` で `use std::host::http` → compile-time error
+- `wasm32` で `use std::host::sockets` → compile-time error
+- `wasm32-gc`（WASI P2 デフォルト）で `std::host::stdio/fs/env/process/clock/random` → 実行可能
+- `wasm32-gc` + WASI P3 host profile（`--wasi p3`）で P3-only capability → 実行可能
 
 ### 5. raw WIT / Component 境界は引き続き `import "wasi:..."` で表現する
 
@@ -103,7 +105,7 @@ raw interface/world を直接使う場合は、ADR-009 に従い
 1. **名前が責務を正しく表す**
    `std::host::fs` は host filesystem だと一目で分かるが、`std::fs` は pure/path-like に誤読されやすい。
 
-2. **T1/T3 の非対称性を自然に表現できる**
+2. **`wasm32` / `wasm32-gc` の非対称性を自然に表現できる**
    shared host surface と P2-only capability を同じ設計で扱える。
 
 3. **LLM にとって誤用しにくい**
@@ -161,7 +163,7 @@ use std::host::http
 let response = http::get("https://example.com")?
 ```
 
-これは T3/T5 系では有効だが、T1 では compile-time error になる。
+これは `wasm32-gc`（WASI P2 以上）では有効だが、`wasm32` では compile-time error になる。
 
 ### Direct WIT boundary
 

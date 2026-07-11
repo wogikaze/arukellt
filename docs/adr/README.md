@@ -21,7 +21,7 @@
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: ACCEPTED — Monomorphization（型ごとのコード生成）を採用する |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | ステータス: ACCEPTED — 公開 ABI は最大 3 層（Layer 3 native は予約・詳細未決定） |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: ACCEPTED — ターゲットを3系統に確定（wasm32 / wasm32-gc / native） |
-| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: ACCEPTED — component binary 生成は in-tree 実装とする |
+| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: ACCEPTED — --emit component は in-tree で生成する |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | ステータス: ACCEPTED — use std::host::stdioの::-separated形式をソースモジュール参照として確定 |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: ACCEPTED — 実装見送り。heap pointer 初期化は単純定数で十分 |
 | [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | ステータス: ACCEPTED — host-boundなstdlib APIはstd::host::に隔離 |

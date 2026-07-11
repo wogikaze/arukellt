@@ -226,79 +226,41 @@ linear が 1.5x 以上高速なケース = 1（binary_tree のみ）。採用基
 - 特定の hot path のみ linear memory に最適化
 - 将来 hybrid approach を検討
 
-## 補足決定（2026-03-25）: AtCoder コンパイルターゲット追加
+## 補足決定（2026-03-25）: AtCoder 向け `wasm32` ターゲット
 
 ### 背景
 
-AtCoder は wabt 1.0.34 + iwasm 2.4.1 を実行環境として使用する。
-これらのランタイムは Wasm GC 命令セット（`ref struct`, `array` 等）に非対応。
-競技プログラミングの提出先として AtCoder を目標環境に含めるため、対応を要件とする。
-
-### 主決定との関係
-
-主決定（言語セマンティクス = Wasm GC ベース）は変更しない。
-「両対応は許されない」は **言語仕様レベル** の方針であり、コンパイラの出力ターゲット追加はこれに抵触しない。
+AtCoder 等の非 GC ランタイム向けに、同一言語意味論を linear memory へ lowering する
+バックエンド（`wasm32`）を許可する。主決定（言語セマンティクス = Wasm GC）は変えない。
 
 - 禁止: 言語設計に ownership / borrow checker を組み込む「二重設計」
-- 許可: GC セマンティクスを linear memory に lowering して出力する「コンパイラバックエンドの追加」
+- 許可: GC セマンティクスを linear memory に lowering するコンパイラバックエンド
 
-### コンパイルターゲット一覧
+### ターゲット
 
-| ターゲット | フラグ | 対応ランタイム | メモリ管理 |
-|-----------|--------|--------------|----------|
-| `wasm-gc` | デフォルト | wasmtime / V8 / SpiderMonkey | ホスト GC |
-| `wasm32` | `--target wasm32` | wabt 1.0.34 / iwasm 2.4.1 / 非GC 環境 | arena + RC hybrid |
+| ターゲット | 役割 | メモリ |
+|-----------|------|--------|
+| `wasm32-gc` | primary（ADR-013）。ホスト GC | Wasm GC |
+| `wasm32` | supported。AtCoder / 非 GC | linear lowering（実装計画は plans） |
 
-### wasm32 プロファイル: メモリ管理モデル
+### 言語機能とターゲット能力（2026-07-11 改訂）
 
-「arena ベース + escape/共有のみ RC」の hybrid モデルを採用する。
-pure arena と pure RC の二者択一より、これが最も実用的。
+言語仕様は **Wasm GC を正**とする。次は言語から削除しない。
 
-#### arena（デフォルト）
+| 機能 | `wasm32-gc` | `wasm32` |
+|------|-------------|----------|
+| 循環参照グラフ | 許可（ホスト GC） | **target capability error**（未対応） |
+| `Weak<T>` / 弱参照 | 許可（実装は別 issue） | **unsupported** |
+| finalizer 意味論 | 許可（実装は別 issue） | **unsupported** |
 
-- 実行単位ごとに region を確保（典型: main 全体で 1 arena）
-- オプション: 「関数内一時領域 + 昇格領域」の二層構成
-- 対象: 短命な値・AST 的な木・文字列・配列・小オブジェクト
-- プログラム終了時に一括解放（解放コード不要）
-- AtCoder 本番提出の標準
+AtCoder 向けサブターゲットの都合で、primary 言語仕様からこれらの機能を削らない。
+`wasm32` で使えない機能はコンパイル時にターゲット能力エラーとする。
 
-#### RC: escape / 共有値のみ
+`wasm32` の arena + RC hybrid 等の **実装手順**は
+[`docs/plans/wasm32-linear-memory-lowering.md`](../plans/wasm32-linear-memory-lowering.md) に置く。
 
-| 対象 | 判定 |
-|------|------|
-| 関数外へ escape する値 | RC に昇格 |
-| 複数箇所から共有される値 | RC に昇格 |
-| クロージャ環境（キャプチャ変数） | RC に昇格 |
-| 上記以外 | arena に留まる |
+## 関連
 
-循環参照: コンパイル時 reject（当面禁止。将来 `Weak<T>` で解決）。
-
-#### 実装順序
-
-1. **arena のみ**（先行）: linear memory 版を最小構成で成立させる
-2. **arena + RC hybrid**（次段）: escape 解析でオブジェクトを arena / RC に分類
-
-### wasm32 プロファイルが課す言語設計制約
-
-以下は GC 依存かつ lowering 不可能なため、言語仕様から除外する:
-
-| 除外機能 | 理由 |
-|---------|------|
-| finalizer の実行タイミング保証 | arena では解放タイミングが不定 |
-| 弱参照（`Weak<T>`） | GC の到達可能性に依存（当面禁止、将来追加予定） |
-| 循環参照グラフのユーザー作成 | RC ではリークが発生 |
-
----
-
-## 結果
-
-以下のドキュメントを更新する（決定採択時の作業記録）:
-
-- [x] `docs/language/memory-model.md` — メモリモデル詳細仕様
-- [x] `docs/language/type-system.md` — ADR-002 待ちセクション更新
-- [x] [ADR-007: Targets](ADR-007-targets.md) — reference types / Wasm GC を Layer 1 に
-- [x] `docs/stdlib/core.md` — String / Vec の実装方針を GC 前提で記載
-- [x] `docs/process/benchmark-results.md` — 実測値と判定根拠を記録
-- [x] `docs/process/linear-vs-gc-report.md` — クロスランタイム再計測結果（2026-07-05、wasmtime/Node/browser）
-- [x] [ADR-007: Targets](ADR-007-targets.md) — wasm32 ターゲット層を追記
-- [x] `docs/language/memory-model.md` — wasm32 lowering モデルを追記
+- [ADR-007](ADR-007-targets.md)
+- [`docs/plans/wasm32-linear-memory-lowering.md`](../plans/wasm32-linear-memory-lowering.md)
+- `docs/process/benchmark-results.md` — 採択時の実測根拠

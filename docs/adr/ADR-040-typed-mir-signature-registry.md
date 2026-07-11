@@ -8,7 +8,7 @@
 
 ## 文脈
 
-T3 WASM validation の残存 validate-fail は局所修正の限界に出ている。
+`wasm32-gc` WASM validation の残存 validate-fail は局所修正の限界に出ている。
 Wave 6 では修正と新規失敗が相殺した。
 
 根本原因は個別の型推論バグではなく、**コンパイルパイプラインの各段階で
@@ -462,7 +462,7 @@ instantiated_param_types / instantiated_return_types と一致する。
 
 ## 期待される効果
 
-1. **T3 validate-fail の解消**: emitter が正しい型情報を取得できるため
+1. **`wasm32-gc` validate-fail の解消**: emitter が正しい型情報を取得できるため
 2. **新規フィクスチャの追加時に型エラーが出ない**: パイプライン全体で型が保存されるため
 3. **コンパイラの保守性向上**: 型推論の複雑さが MIR lowering に集約され、emitter が単純化
 4. **デバッグの容易化**: 型不明の場合に即 internal compiler error が出るため、問題の早期発見
