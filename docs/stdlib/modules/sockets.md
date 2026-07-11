@@ -15,7 +15,7 @@ The `std::host::sockets` module defines TCP socket helpers (provisional). It is 
 |-----|---------|
 | `connect(host, port)` | Open a TCP connection; returns `Ok(fd)` or `Err(message)`. |
 
-**Target constraints:** ⚠ **`wasm32-gc` only** — WASI P2 / component host profile required.
+**Target constraints:** ⚠ **`wasm32-gc` only** — WASI P2 / component host profile required. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
@@ -59,7 +59,7 @@ Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 
 Open a TCP connection to the given hostname and port. Returns a socket descriptor on success.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500.
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 
@@ -74,7 +74,7 @@ match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 
 Read up to max_len bytes from an open socket fd.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500.
 
 **Errors:** Err on invalid fd or I/O failure.
 
@@ -82,7 +82,7 @@ Read up to max_len bytes from an open socket fd.
 
 Write byte values from a Vec to an open socket fd.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500.
 
 **Errors:** Err on invalid fd or I/O failure.
 
@@ -90,7 +90,7 @@ Write byte values from a Vec to an open socket fd.
 
 Bind a TCP listener on the given hostname and port. Returns a listener fd on success.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500.
 
 **Errors:** Err on bind failure or invalid port.
 
@@ -98,6 +98,6 @@ Bind a TCP listener on the given hostname and port. Returns a listener fd on suc
 
 Accept one inbound TCP connection on a listener fd. Returns connected socket fd.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500.
 
 **Errors:** Err on invalid listener fd or accept failure.

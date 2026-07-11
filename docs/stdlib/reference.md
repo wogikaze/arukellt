@@ -513,7 +513,7 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 | `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 | `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `builtin (wasm32-gc)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
 | `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `builtin (wasm32-gc)` | no | - | - |
-| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to the incomin… |
+| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to capability … |
 
 ### `get` — `std::host::http`
 
@@ -698,20 +698,20 @@ let input = read_to_string()
 | `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the total number of bytes available in a memory buffer (#693). |
+| `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the total number of bytes available in an io.traits memory buffer. |
 | `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `builtin` | no | - | Create a FileHandle from a raw file descriptor (#693). |
-| `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Read bytes from a FileHandle into buf (#693). |
-| `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Write buf bytes to a FileHandle (#693). |
-| `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Fill the internal buffer of a BufRead source (#693). |
+| `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `builtin` | no | - | Create an io.traits FileHandle from a raw file descriptor. |
+| `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Read bytes from an io.traits FileHandle into a buffer. |
+| `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Write buffer bytes to an io.traits FileHandle. |
+| `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Fill the internal buffer of an io.traits BufRead source. |
 | `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Create a new memory buffer for trait-based Read/Write (#693). |
-| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the current cursor position of a memory buffer (#693). |
+| `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Create a new memory buffer for capability io.traits. |
+| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the current cursor position of an io.traits memory buffer. |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `builtin` | no | - | - |
-| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Read up to n bytes from a memory buffer via Read trait dispatch (#693). |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Read up to n bytes from a memory buffer via io.traits Read dispatch. |
 | `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
@@ -719,12 +719,12 @@ let input = read_to_string()
 | `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `builtin` | no | - | Seek to absolute position in a memory buffer via Seek trait dispatch (#693). |
+| `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `builtin` | no | - | Seek to an absolute position via io.traits Seek dispatch. |
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `builtin` | no | - | Write byte values into a memory buffer via Write trait dispatch (#693). |
+| `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `builtin` | no | - | Write byte values into a memory buffer via io.traits Write dispatch. |
 | `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |

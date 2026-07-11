@@ -127,7 +127,7 @@ All 20 module pages carry curated overviews.
 | File | Summary |
 |------|---------|
 | [expansion-policy.md](expansion-policy.md) | Defines which module families accept new APIs, under what conditions, |
-| [monomorphic-deprecation.md](monomorphic-deprecation.md) | Monomorphic (type-suffixed) APIs are being phased out in favor of generic / trait equivalents. |
+| [monomorphic-deprecation.md](monomorphic-deprecation.md) | Generated from std/manifest.toml by scripts/gen/generate-docs.py. |
 | [prelude-dedup.md](prelude-dedup.md) | Defines which stdlib names are prelude-only, which are module-only, |
 | [prelude-migration-inventory.md](prelude-migration-inventory.md) | Working note for #513: |
 | [prelude-migration.md](prelude-migration.md) | Historical migration note: this document records the v3 prelude migration strategy and compatibility story. |

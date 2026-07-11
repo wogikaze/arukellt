@@ -67,6 +67,42 @@ def check_maturity_matrix_freshness() -> int:
     return 0
 
 
+def check_lifecycle_axis_contract() -> int:
+    """Prove that every published stdlib lifecycle owner uses ADR-014's set."""
+    expected = ("stable", "provisional", "experimental", "deprecated")
+    generator = (ROOT / "scripts" / "gen" / "generate-docs.py").read_text(encoding="utf-8")
+    match = re.search(r"PUBLIC_API_STABILITY_LABELS\s*=\s*\(([^\n]+)\)", generator)
+    generator_labels = tuple(re.findall(r'"([a-z-]+)"', match.group(1))) if match else ()
+
+    state = _tomllib.loads((ROOT / "docs" / "data" / "project-state.toml").read_text(encoding="utf-8"))
+    state_labels = tuple(state.get("stdlib_api_lifecycle", {}).get("labels", []))
+
+    schema = (ROOT / "docs" / "stdlib" / "generation-schema.md").read_text(encoding="utf-8")
+    schema_section = schema.split("## Valid Stability Labels", 1)[1].split("## Valid Kind Values", 1)[0]
+    schema_labels = tuple(re.findall(r"^\| `([a-z-]+)` \|", schema_section, re.MULTILINE))
+
+    adr = (ROOT / "docs" / "adr" / "ADR-014-stability-labels.md").read_text(encoding="utf-8")
+    adr_contract = "許可値: `stable`, `provisional`, `experimental`, `deprecated`"
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    manifest_labels = {entry.get("stability") for entry in manifest.get("functions", [])}
+    failures: list[str] = []
+    if generator_labels != expected:
+        failures.append(f"generator={generator_labels}")
+    if state_labels != expected:
+        failures.append(f"project-state={state_labels}")
+    if schema_labels != expected:
+        failures.append(f"generation-schema={schema_labels}")
+    if adr_contract not in adr:
+        failures.append("ADR-014 exact public label contract missing")
+    if not manifest_labels <= set(expected):
+        failures.append(f"manifest invalid labels={sorted(manifest_labels - set(expected))}")
+    if failures:
+        errors.append("stdlib lifecycle axis drift: " + "; ".join(failures))
+        return 1
+    return 0
+
+
 def check_generated_docs() -> int:
     """Run generate-docs.py --check."""
     cmd = [sys.executable, str(ROOT / "scripts" / "gen" / "generate-docs.py"), "--check"]
@@ -1767,6 +1803,7 @@ def check_docs_runtime_contract() -> int:
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
+    failed += check_lifecycle_axis_contract()
     failed += check_generated_docs()
     failed += check_capability_state()
     failed += check_host_badge_presence()

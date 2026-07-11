@@ -19,6 +19,14 @@
 [metadata]
 version = "0.1.0"
 
+[deprecation_policy]
+# Defaults apply to legacy deprecated entries that predate per-entry lifecycle
+# metadata. New deprecations should override deprecated_since/remove_in when
+# their window differs.
+default_since = "0.1.0"
+default_remove_in = "1.0.0"
+minimum_complete_releases = 1
+
 # ─────────────────────────────────────────────
 # Prelude types (auto-imported)
 # ─────────────────────────────────────────────
@@ -2566,7 +2574,8 @@ name = "std::host::http"
 target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
-doc = "HTTP client helpers (provisional). `wasm32-gc`-only bridge via arukellt_host + wasi:http/outgoing-handler import (#655). Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). Host bindings tracked by #446; native WASI P2 HTTP by #077. When implemented: HTTP/1.1 over TCP only; HTTPS is not supported."
+capability_id = "host.http"
+doc = "HTTP client helpers (provisional). `wasm32-gc`-only bridge via arukellt_host + wasi:http/outgoing-handler import. Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). See capability `host.http`. When implemented: HTTP/1.1 over TCP only; HTTPS is not supported."
 
 [[functions]]
 name = "request"
@@ -2580,7 +2589,7 @@ stability = "provisional"
 doc_category = "host_http"
 doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
+availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported." }
 examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
 
 [[functions]]
@@ -2595,7 +2604,7 @@ stability = "provisional"
 doc_category = "host_http"
 doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported." }
+availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
 
 [[functions]]
@@ -2608,9 +2617,9 @@ returns = "Result<(), String>"
 target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
-doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to the incoming-handler proxy-world bridge (#656)."
+doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to capability `host.http.incoming` through the incoming-handler proxy-world bridge."
 errors = "Err on bind failure, accept timeout, or I/O error while serving the single request."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` bridge via arukellt_host + incoming-handler import (#656)." }
+availability = { t1 = false, t3 = true, note = "Capability `host.http.incoming`: `wasm32-gc` bridge via arukellt_host + incoming-handler import." }
 examples = [{code = "match http::serve(8080, \"hello\") {\n  Ok(()) => println(\"served\")\n  Err(e) => eprintln(e)\n}", description = "Handle one GET on port 8080"}]
 
 
@@ -2656,7 +2665,8 @@ name = "std::host::sockets"
 target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
-doc = "TCP socket helpers (provisional). `wasm32-gc` connect/read/write via host-linker (#657); listen/accept (#658); native WASI P2 sockets by #139."
+capability_id = "host.sockets.tcp"
+doc = "TCP socket helpers (provisional). `wasm32-gc` connect/read/write and listen/accept use the host linker. See capability `host.sockets.tcp`."
 
 [[functions]]
 name = "connect"
@@ -2670,7 +2680,7 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
 [[functions]]
@@ -2685,7 +2695,7 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Read up to max_len bytes from an open socket fd."
 errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "write"
@@ -2699,7 +2709,7 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Write byte values from a Vec to an open socket fd."
 errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#657). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "listen"
@@ -2713,7 +2723,7 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Bind a TCP listener on the given hostname and port. Returns a listener fd on success."
 errors = "Err on bind failure or invalid port."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "accept"
@@ -2727,14 +2737,15 @@ stability = "provisional"
 doc_category = "host_sockets"
 doc = "Accept one inbound TCP connection on a listener fd. Returns connected socket fd."
 errors = "Err on invalid listener fd or accept failure."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker sockets (#658). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
 [[modules]]
 name = "std::host::udp"
 target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
-doc = "UDP datagram helpers (provisional). Not user-reachable on the current selfhost compile path. Host bindings tracked by #447; native WASI P2 UDP by #139."
+capability_id = "host.sockets.udp"
+doc = "UDP datagram helpers (provisional). Capability `host.sockets.udp` is not user-reachable on the current selfhost compile path."
 
 [[functions]]
 name = "send"
@@ -2748,7 +2759,7 @@ stability = "provisional"
 doc_category = "host_udp"
 doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
 errors = "Err on DNS resolution failure, invalid port, or network unreachable."
-availability = { t1 = false, t3 = false, note = "Not user-reachable on selfhost path (#633). Host bindings: #447 / #139. Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = false, note = "Capability `host.sockets.udp` is not user-reachable on the selfhost path. Importing on `wasm32` emits E0500." }
 
 # === std::host::streams ===
 
@@ -2757,7 +2768,8 @@ name = "std::host::streams"
 target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
-doc = "WASI Preview 2 stream I/O helpers (provisional). Read/write/flush on input/output stream handles via host-linker (#474)."
+capability_id = "host.streams"
+doc = "WASI Preview 2 stream I/O helpers (provisional). Capability `host.streams` provides read/write/flush on input/output stream handles via the host linker."
 
 [[functions]]
 name = "read"
@@ -2771,7 +2783,7 @@ stability = "provisional"
 doc_category = "host_streams"
 doc = "Read up to max_len bytes from an input stream handle."
 errors = "Err on stream error or closed stream."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker streams (#474). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.streams`: `wasm32-gc` host-linker streams. Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "write"
@@ -2785,7 +2797,7 @@ stability = "provisional"
 doc_category = "host_streams"
 doc = "Write byte values to an output stream handle."
 errors = "Err on stream error or closed stream."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker streams (#474). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.streams`: `wasm32-gc` host-linker streams. Importing on `wasm32` emits E0500." }
 
 [[functions]]
 name = "flush"
@@ -2799,7 +2811,7 @@ stability = "provisional"
 doc_category = "host_streams"
 doc = "Flush an output stream handle."
 errors = "Err on stream error."
-availability = { t1 = false, t3 = true, note = "`wasm32-gc` host-linker streams (#474). Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.streams`: `wasm32-gc` host-linker streams. Importing on `wasm32` emits E0500." }
 
 # === std::bytes ===
 
@@ -4877,7 +4889,7 @@ doc_category = "io"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
-doc = "Create a new memory buffer for trait-based Read/Write (#693)."
+doc = "Create a new memory buffer for capability `io.traits`."
 
 [[functions]]
 name = "write_bytes"
@@ -4886,7 +4898,7 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "i32"
-doc = "Write byte values into a memory buffer via Write trait dispatch (#693)."
+doc = "Write byte values into a memory buffer via `io.traits` Write dispatch."
 
 [[functions]]
 name = "read_bytes"
@@ -4895,7 +4907,7 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
-doc = "Read up to n bytes from a memory buffer via Read trait dispatch (#693)."
+doc = "Read up to n bytes from a memory buffer via `io.traits` Read dispatch."
 
 [[functions]]
 name = "seek_to"
@@ -4904,7 +4916,7 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "i64"]
 returns = "i64"
-doc = "Seek to absolute position in a memory buffer via Seek trait dispatch (#693)."
+doc = "Seek to an absolute position via `io.traits` Seek dispatch."
 
 [[functions]]
 name = "position"
@@ -4913,7 +4925,7 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i64"
-doc = "Return the current cursor position of a memory buffer (#693)."
+doc = "Return the current cursor position of an `io.traits` memory buffer."
 
 [[functions]]
 name = "buffer_len"
@@ -4922,7 +4934,7 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i64"
-doc = "Return the total number of bytes available in a memory buffer (#693)."
+doc = "Return the total number of bytes available in an `io.traits` memory buffer."
 
 [[functions]]
 name = "fill_buffer"
@@ -4931,7 +4943,7 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
-doc = "Fill the internal buffer of a BufRead source (#693)."
+doc = "Fill the internal buffer of an `io.traits` BufRead source."
 
 [[functions]]
 name = "file_from_fd"
@@ -4940,7 +4952,7 @@ doc_category = "io"
 stability = "experimental"
 params = ["i32"]
 returns = "Vec<i32>"
-doc = "Create a FileHandle from a raw file descriptor (#693)."
+doc = "Create an `io.traits` FileHandle from a raw file descriptor."
 
 [[functions]]
 name = "file_read"
@@ -4949,7 +4961,7 @@ doc_category = "io"
 stability = "experimental"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "i32"
-doc = "Read bytes from a FileHandle into buf (#693)."
+doc = "Read bytes from an `io.traits` FileHandle into a buffer."
 
 [[functions]]
 name = "file_write"
@@ -4958,7 +4970,7 @@ doc_category = "io"
 stability = "experimental"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "i32"
-doc = "Write buf bytes to a FileHandle (#693)."
+doc = "Write buffer bytes to an `io.traits` FileHandle."
 
 # ── std::collections::linear (Deque and PriorityQueue, i32 monomorphic) ──────
 # Generics not yet available; these are i32-only per STOP_IF in issue #045.

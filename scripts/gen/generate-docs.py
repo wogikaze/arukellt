@@ -49,6 +49,7 @@ SCOREBOARD_LOW_COVERAGE_THRESHOLD = 50
 LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
 SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
+MONOMORPHIC_DEPRECATION = ROOT / "docs" / "stdlib" / "monomorphic-deprecation.md"
 
 # Lifecycle axes are intentionally distinct. Public stdlib APIs follow ADR-014;
 # language features may additionally be specified-but-unimplemented.
@@ -835,6 +836,13 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
     """
     violations: list[str] = []
     functions = manifest.get("functions", [])
+    deprecation_policy = manifest.get("deprecation_policy", {})
+    if not deprecation_policy.get("default_since"):
+        violations.append("deprecation_policy: missing default_since")
+    if not deprecation_policy.get("default_remove_in"):
+        violations.append("deprecation_policy: missing default_remove_in")
+    if int(deprecation_policy.get("minimum_complete_releases", 0)) < 1:
+        violations.append("deprecation_policy: minimum_complete_releases must be >= 1")
 
     for entry in functions:
         fn_name = entry.get("name", "<unnamed>")
@@ -2867,21 +2875,33 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
         - ``"Targets: wasm32, wasm32-gc."``
     """
     fs_on_page = any(m in ("std::host::fs", "std::fs") for m in page_modules)
-    fs_runtime = (
-        " **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access "
-        "(`--dir`, or equivalent); see each function's **Availability**."
+    host_dependent = any(m.startswith("std::host::") for m in page_modules)
+    explicit_permission = (
+        "`--dir` (or equivalent) for file I/O"
+        if fs_on_page
+        else "none beyond providing the documented host profile"
+    )
+    axes = (
+        f"Host dependency: {'yes' if host_dependent else 'no'}. "
+        f"Explicit runtime permission: {explicit_permission}."
     )
 
     # Primary signal: availability.t1 / availability.t3 tier flags from manifest.
     if _availability_unbacked(funcs):
         return (
             "⚠ **Not user-reachable** on the current selfhost compile/run path. "
-            "See [Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues "
-            "#446 / #447 / #077 / #139."
+            "See [Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface). "
+            + axes
         )
+    availability_shapes = {
+        (f.get("availability", {}).get("t1"), f.get("availability", {}).get("t3"))
+        for f in funcs if f.get("availability")
+    }
+    if len(availability_shapes) > 1:
+        return "Target/profile availability: mixed — see individual symbols. " + axes
     if _availability_t3_only(funcs):
         base = "⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."
-        return base + fs_runtime if fs_on_page else base
+        return base + " " + axes
 
     # Fallback: collect explicit ``target`` lists from function entries.
     targets: set[str] = set()
@@ -2890,14 +2910,14 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
         if t:
             targets.update(t)
     if not targets or targets in ({"wasm32-wasi-p1", "wasm32-wasi-p2"}, {"wasm32", "wasm32-gc"}):
-        base = "All targets (`wasm32` + `wasm32-gc`)."
-        return base + fs_runtime if fs_on_page else base + " No host capability required."
+        base = "Target availability: `wasm32` and `wasm32-gc`."
+        return base + " " + axes
     if targets in ({"wasm32-wasi-p2"}, {"wasm32-gc"}):
         base = "⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."
-        return base + fs_runtime if fs_on_page else base
+        return base + " " + axes
     canon = sorted({_canonicalize_target_name(x) for x in targets})
     base = f"Targets: {', '.join(canon)}."
-    return base + fs_runtime if fs_on_page else base
+    return base + " " + axes
 
 
 # ── Deprecation helpers ──────────────────────────────────────────────────────
@@ -3025,6 +3045,42 @@ _STABILITY_TIER_DESCRIPTIONS = {
     "provisional": "API is usable but may change in minor versions based on feedback.",
     "experimental": "API may change without notice. Functionality is available but not finalized.",
 }
+
+
+def render_deprecation_table(manifest: dict) -> str:
+    """Generate the lifecycle table directly from manifest deprecation fields."""
+    entries = sorted(
+        (entry for entry in manifest.get("functions", []) if entry.get("stability") == "deprecated"),
+        key=lambda entry: (entry.get("module", "prelude"), entry["name"]),
+    )
+    policy = manifest.get("deprecation_policy", {})
+    lines = [
+        "# Deprecated API Migration Table",
+        "",
+        "> Generated from `std/manifest.toml` by `scripts/gen/generate-docs.py`.",
+        "> Lifecycle state and replacement are never maintained separately here.",
+        "",
+        "Deprecated APIs remain callable for the policy window in",
+        "[stability-policy.md](stability-policy.md). Monomorphic compatibility",
+        "helpers are included alongside any other deprecated public entry.",
+        "",
+        "| API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |",
+        "|-----|--------|-----------|-------------|------------------|------------------|--------|",
+    ]
+    for entry in entries:
+        lines.append(
+            "| `{name}` | `{module}` | `{stability}` | `{replacement}` | `{since}` | `{remove}` | {reason} |".format(
+                name=entry["name"],
+                module=entry.get("module", "prelude"),
+                stability=entry["stability"],
+                replacement=entry["deprecated_by"],
+                since=entry.get("deprecated_since", policy["default_since"]),
+                remove=entry.get("remove_in", policy["default_remove_in"]),
+                reason=escape_table(entry.get("deprecated_reason", entry.get("doc", "Superseded API"))),
+            )
+        )
+    lines.extend(["", f"Total deprecated public entries: **{len(entries)}**.", ""])
+    return "\n".join(lines)
 
 
 def render_stdlib_reference(manifest: dict) -> str:
@@ -3626,6 +3682,7 @@ def main() -> int:
     write_file(DOCS / "stdlib" / "reference.md", render_stdlib_reference(manifest), args.check, stale)
     write_file(DOCS / "stdlib" / "name-index.md", render_name_index(manifest), args.check, stale)
     write_file(DOCS / "stdlib" / "scoreboard.md", render_scoreboard(manifest), args.check, stale)
+    write_file(MONOMORPHIC_DEPRECATION, render_deprecation_table(manifest), args.check, stale)
     for page in STDLIB_MODULE_PAGES:
         write_file(
             DOCS / "stdlib" / page["path"],

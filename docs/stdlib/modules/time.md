@@ -17,7 +17,7 @@ The `std::time` module provides pure duration arithmetic over caller-supplied ti
 | `duration_us(start, end)` | Elapsed time in microseconds. |
 | `duration_ns(start, end)` | Elapsed time in nanoseconds (identity: `end - start`). |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

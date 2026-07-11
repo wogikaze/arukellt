@@ -1,101 +1,40 @@
-# Monomorphic API Deprecation Table
+# Deprecated API Migration Table
 
-> Monomorphic (type-suffixed) APIs are being phased out in favor of generic / trait equivalents.
-> Deprecated names continue to work but will emit W0008 warnings when the resolver is wired.
-> Migration follows ADR-036 D2 / ADR-014: stable APIs remain through the next major-version boundary and for at least one complete release before removal.
+> Generated from `std/manifest.toml` by `scripts/gen/generate-docs.py`.
+> Lifecycle state and replacement are never maintained separately here.
 
-Columns:
+Deprecated APIs remain callable for the policy window in
+[stability-policy.md](stability-policy.md). Monomorphic compatibility
+helpers are included alongside any other deprecated public entry.
 
-| Column | Meaning |
-|--------|---------|
-| Stability | Current (or intended) manifest stability |
-| Replacement | Preferred API |
-| Deprecated since | Release that started W0008 (TBD until C1) |
-| Remove in | Earliest release that may delete the entry |
-| Status | Tracking state |
+| API | Module | Stability | Replacement | Deprecated since | Earliest removal | Reason |
+|-----|--------|-----------|-------------|------------------|------------------|--------|
+| `HashMap_String_String_contains_key` | `prelude` | `deprecated` | `hashmap_str_str_contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_String_get` | `prelude` | `deprecated` | `hashmap_str_str_get` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_String_insert` | `prelude` | `deprecated` | `hashmap_str_str_insert` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_String_len` | `prelude` | `deprecated` | `hashmap_str_str_len` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_i32_contains_key` | `prelude` | `deprecated` | `hashmap_str_i32_contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_i32_get` | `prelude` | `deprecated` | `hashmap_str_i32_get` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_i32_insert` | `prelude` | `deprecated` | `hashmap_str_i32_insert` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_String_i32_len` | `prelude` | `deprecated` | `hashmap_str_i32_len` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_String_contains_key` | `prelude` | `deprecated` | `hashmap_i32_str_contains` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_String_get` | `prelude` | `deprecated` | `hashmap_i32_str_get` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_String_insert` | `prelude` | `deprecated` | `hashmap_i32_str_insert` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_String_len` | `prelude` | `deprecated` | `hashmap_i32_str_len` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_i32_contains_key` | `prelude` | `deprecated` | `std::collections::hash_map` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_i32_get` | `prelude` | `deprecated` | `std::collections::hash_map` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_i32_insert` | `prelude` | `deprecated` | `hashmap_i32_i32_insert` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_i32_len` | `prelude` | `deprecated` | `std::collections::hash_map` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_i32_i32_new` | `prelude` | `deprecated` | `hashmap_i32_i32_new` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_new_String_String` | `prelude` | `deprecated` | `hashmap_str_str_new` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_new_String_i32` | `prelude` | `deprecated` | `hashmap_str_i32_new` | `0.1.0` | `1.0.0` | Superseded API |
+| `HashMap_new_i32_String` | `prelude` | `deprecated` | `hashmap_i32_str_new` | `0.1.0` | `1.0.0` | Superseded API |
+| `Vec_new_i32` | `prelude` | `deprecated` | `Vec::new<i32>` | `0.1.0` | `1.0.0` | Superseded API |
+| `Vec_new_i64` | `prelude` | `deprecated` | `Vec::new<i64>` | `0.1.0` | `1.0.0` | Superseded API |
+| `Vec_new_v128` | `prelude` | `deprecated` | `Vec::new<v128>` | `0.1.0` | `1.0.0` | Superseded API |
+| `concat` | `prelude` | `deprecated` | `std::text::concat` | `0.1.0` | `1.0.0` | Concatenate two strings and return the result. |
+| `filter_i32` | `prelude` | `deprecated` | `filter<i32>` | `0.1.0` | `1.0.0` | Superseded API |
+| `get_var` | `std::env` | `deprecated` | `var` | `0.1.0` | `1.0.0` | Alias for env::var. Use var instead. |
+| `exists` | `std::host::fs` | `deprecated` | `is_readable_file` | `0.1.0` | `1.0.0` | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query. |
 
-## Vec Constructors
-
-| API | Stability | Replacement | Deprecated since | Remove in | Status |
-|-----|-----------|-------------|------------------|-----------|--------|
-| `Vec_new_i32()` | stable | `Vec::new<i32>()` | TBD | TBD | deprecated_by in manifest |
-| `Vec_new_i64()` | stable | `Vec::new<i64>()` | TBD | TBD | deprecated_by in manifest |
-| `Vec_new_f64()` | stable | `Vec::new<f64>()` | TBD | TBD | planned |
-| `Vec_new_String()` | stable | `Vec::new<String>()` | TBD | TBD | planned |
-| `Vec_new_i32_with_cap(n)` | stable | `Vec::with_capacity<i32>(n)` | TBD | TBD | planned |
-| `Vec_new_i64_with_cap(n)` | stable | `Vec::with_capacity<i64>(n)` | TBD | TBD | planned |
-| `Vec_new_f64_with_cap(n)` | stable | `Vec::with_capacity<f64>(n)` | TBD | TBD | planned |
-
-## Sort
-
-| API | Stability | Replacement | Deprecated since | Remove in | Status |
-|-----|-----------|-------------|------------------|-----------|--------|
-| `sort_i32(v)` | stable | `v.sort()` (`Ord`) | TBD | TBD | planned |
-| `sort_i64(v)` | stable | `v.sort()` (`Ord`) | TBD | TBD | planned |
-| `sort_f64(v)` | stable | `v.sort_by(total_cmp)` | TBD | TBD | planned — `f64` is not `Ord` |
-| `sort_String(v)` | stable | `v.sort()` (`Ord`) | TBD | TBD | planned |
-
-## Collection Operations
-
-| API | Stability | Replacement | Deprecated since | Remove in | Status |
-|-----|-----------|-------------|------------------|-----------|--------|
-| `map_i32_i32(v, f)` | stable | `v.iter().map(f)...` | TBD | TBD | planned |
-| `map_i64_i64(v, f)` | stable | `v.iter().map(f)...` | TBD | TBD | planned |
-| `map_f64_f64(v, f)` | stable | `v.iter().map(f)...` | TBD | TBD | planned |
-| `map_String_String(v, f)` | stable | `v.iter().map(f)...` | TBD | TBD | planned |
-| `filter_i32(v, f)` | stable | `v.iter().filter(f)...` | TBD | TBD | deprecated_by in manifest |
-| `filter_i64(v, f)` | stable | `v.iter().filter(f)...` | TBD | TBD | planned |
-| `filter_f64(v, f)` | stable | `v.iter().filter(f)...` | TBD | TBD | planned |
-| `filter_String(v, f)` | stable | `v.iter().filter(f)...` | TBD | TBD | planned |
-| `fold_i32_i32(v, init, f)` | stable | `v.iter().fold(init, f)` | TBD | TBD | planned |
-| `fold_i64_i64(v, init, f)` | stable | `v.iter().fold(init, f)` | TBD | TBD | planned |
-| `fold_f64_f64(v, init, f)` | stable | `v.iter().fold(init, f)` | TBD | TBD | planned |
-| `contains_i32(v, x)` | stable | `v.contains(x)` | TBD | TBD | planned |
-| `contains_String(v, x)` | stable | `v.contains(x)` | TBD | TBD | planned |
-| `reverse_i32(v)` | stable | `v.reverse()` | TBD | TBD | planned |
-| `reverse_String(v)` | stable | `v.reverse()` | TBD | TBD | planned |
-| `remove_i32(v, idx)` | stable | `v.remove(idx)` | TBD | TBD | planned |
-| `sum_i32(v)` | stable | `v.iter().sum()` | TBD | TBD | planned |
-| `sum_i64(v)` | stable | `v.iter().sum()` | TBD | TBD | planned |
-| `sum_f64(v)` | stable | `v.iter().sum()` | TBD | TBD | planned |
-| `product_i32(v)` | stable | `v.iter().product()` | TBD | TBD | planned |
-| `product_i64(v)` | stable | `v.iter().product()` | TBD | TBD | planned |
-| `product_f64(v)` | stable | `v.iter().product()` | TBD | TBD | planned |
-| `any_i32(v, f)` | stable | `v.iter().any(f)` | TBD | TBD | planned |
-| `any_String(v, f)` | stable | `v.iter().any(f)` | TBD | TBD | planned |
-| `find_i32(v, f)` | stable | `v.iter().find(f)` | TBD | TBD | planned |
-| `find_String(v, f)` | stable | `v.iter().find(f)` | TBD | TBD | planned |
-
-## HashMap Constructors
-
-| API | Stability | Replacement | Deprecated since | Remove in | Status |
-|-----|-----------|-------------|------------------|-----------|--------|
-| `HashMap_new_i32_i32()` | stable | `HashMap::new<i32, i32>()` | TBD | TBD | planned |
-| `HashMap_new_i32_String()` | stable | `HashMap::new<i32, String>()` | TBD | TBD | planned |
-| `HashMap_new_String_i32()` | stable | `HashMap::new<String, i32>()` | TBD | TBD | planned |
-| `HashMap_new_String_String()` | stable | `HashMap::new<String, String>()` | TBD | TBD | planned |
-| `HashMap_i32_i32_new()` | stable | `HashMap::new<i32, i32>()` | TBD | TBD | planned |
-| `HashMap_i32_i32_insert(m, k, v)` | stable | `m.insert(k, v)` | TBD | TBD | planned |
-| `HashMap_i32_i32_get(m, k)` | stable | `m.get(k)` | TBD | TBD | planned |
-| `HashMap_i32_i32_contains_key(m, k)` | stable | `m.contains_key(k)` | TBD | TBD | planned |
-| `HashMap_i32_i32_len(m)` | stable | `m.len()` | TBD | TBD | planned |
-
-## Option/Result Map
-
-| API | Stability | Replacement | Deprecated since | Remove in | Status |
-|-----|-----------|-------------|------------------|-----------|--------|
-| `map_option_i32_i32(o, f)` | stable | `o.map(f)` | TBD | TBD | planned |
-| `map_option_String_String(o, f)` | stable | `o.map(f)` | TBD | TBD | planned |
-| `map_result_i32_i32(r, f)` | stable | `r.map(f)` | TBD | TBD | planned |
-
-## Comparison trait migration
-
-| API | Stability | Replacement | Deprecated since | Remove in | Status |
-|-----|-----------|-------------|------------------|-----------|--------|
-| `Eq::eq` method ownership | stable | `PartialEq::eq` (`Eq` becomes marker) | TBD | TBD | planned (ADR-036) |
-
-## See Also
-
-- [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)
-- [trait-stdlib-redesign.md](trait-stdlib-redesign.md)
-- [ADR-014](../adr/ADR-014-stability-labels.md)
+Total deprecated public entries: **27**.

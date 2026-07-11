@@ -18,7 +18,7 @@ Source-backed docs for explicit host filesystem operations.
 | `write_bytes(path, buf)` | Write a byte array to a file. |
 | `exists(path)` | Read probe: `true` when a full read succeeds; not a general path-existence check. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
+**Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
 
 **Typical usage:**
 

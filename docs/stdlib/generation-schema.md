@@ -102,6 +102,11 @@ Defined by ADR-014 and enforced by `PUBLIC_API_STABILITY_LABELS` in
 value for a public `std/manifest.toml` entry. Planned APIs must not be published
 as public entries merely to reserve a name.
 
+Deprecated entries require `deprecated_by`. Their lifecycle dates resolve from
+per-entry `deprecated_since` / `remove_in` fields or the manifest's required
+`[deprecation_policy]` defaults. The policy also requires at least one complete
+release before removal; generation fails if that minimum is less than one.
+
 ---
 
 ## Valid Kind Values

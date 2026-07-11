@@ -16,7 +16,7 @@ The `std::host::http` module defines HTTP/1.1 client helpers (provisional). It i
 | `request(method, url, body)` | Send an HTTP request with an explicit method, URL, and body. |
 | `get(url)` | Send an HTTP GET request and return the response body as a string. |
 
-**Target constraints:** ⚠ **`wasm32-gc` only** — WASI P2 / component host profile required.
+**Target constraints:** ⚠ **`wasm32-gc` only** — WASI P2 / component host profile required. Host dependency: yes. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
@@ -62,7 +62,7 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 
 Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported.
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
@@ -76,7 +76,7 @@ let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\
 
 Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` bridge via arukellt_host + outgoing-handler import (#655). HTTPS not supported.
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported.
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
@@ -92,9 +92,9 @@ match body {
 
 #### `std::host::http::serve`
 
-Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to the incoming-handler proxy-world bridge (#656).
+Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to capability `host.http.incoming` through the incoming-handler proxy-world bridge.
 
-**Availability:** ⚠️ Not available on `wasm32` — `wasm32-gc` bridge via arukellt_host + incoming-handler import (#656).
+**Availability:** ⚠️ Not available on `wasm32` — Capability `host.http.incoming`: `wasm32-gc` bridge via arukellt_host + incoming-handler import.
 
 **Errors:** Err on bind failure, accept timeout, or I/O error while serving the single request.
 

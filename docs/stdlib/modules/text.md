@@ -20,7 +20,7 @@ The `std::text` module extends the prelude's built-in string type with inspectio
 | `format_i32(n)` / `format_f64(n)` | Format numeric values as decimal strings. |
 | `pad_left(s, width, fill)` / `pad_right(s, width, fill)` | Fixed-width string padding. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

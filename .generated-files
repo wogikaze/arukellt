@@ -60,6 +60,7 @@ docs/stdlib/modules/time.md | scripts/gen/generate-docs.py | python3 scripts/gen
 docs/stdlib/modules/toml.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/wasm.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/wit.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/stdlib/monomorphic-deprecation.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 
 # process docs (generate-docs.py)
 docs/process/benchmark-results.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py

@@ -17,7 +17,7 @@ The `std::random` module provides deterministic pseudo-random helpers that take 
 | `seeded_range(seed, lo, hi)` | Generate a pseudo-random value in `[lo, hi)`. |
 | `shuffle_i32(vec, seed)` | Return a shuffled copy of a `Vec<i32>`. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

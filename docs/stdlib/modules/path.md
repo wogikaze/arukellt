@@ -19,7 +19,7 @@ The `std::path` module provides pure string-based path manipulation helpers. Pat
 | `parent(path)` | Returns the parent directory path. |
 | `is_absolute(path)` | Returns `true` when the path starts with `/`. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

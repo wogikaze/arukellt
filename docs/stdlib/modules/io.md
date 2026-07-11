@@ -22,7 +22,7 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 | `std::host::clock` — `monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
 | `std::host::random` — `random_i32()` | Host-entropy random integer. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). **`std::host::fs` / `std::fs`:** file I/O requires runtime directory access (`--dir`, or equivalent); see each function's **Availability**.
+**Target constraints:** Target/profile availability: mixed — see individual symbols. Host dependency: yes. Explicit runtime permission: `--dir` (or equivalent) for file I/O.
 
 **Typical usage:**
 

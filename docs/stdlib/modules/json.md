@@ -18,7 +18,7 @@ The `std::json` module provides experimental JSON stringify and parse helpers fo
 | `json_parse_i32(s)` / `json_parse_bool(s)` | Parse a JSON primitive back to a typed value. |
 | `json_null()` | Returns the JSON `null` literal. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

@@ -20,7 +20,7 @@ The `std::test` module provides typed assertion and expectation helpers for fixt
 | `assert_contains(haystack, needle)` | Assert that a string contains a substring. |
 | `assert_eq_snapshot(actual, expected)` | Line-by-line string comparison with diff on failure. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

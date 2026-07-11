@@ -19,7 +19,7 @@ The `std::core` family provides the fundamental building blocks shared across th
 | `error_message(e)` | Convert a stdlib `Error` variant to a human-readable string. |
 | `hash_i32(n)` | Hash an `i32` to a stable non-negative integer. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 

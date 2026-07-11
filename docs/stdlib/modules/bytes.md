@@ -20,7 +20,7 @@ The `std::bytes` module provides binary data helpers built on `Vec<i32>`. Each e
 | `bytes_slice(buf, start, end)` | Extract a sub-range of bytes as a new buffer. |
 | `bytes_concat(a, b)` | Concatenate two byte buffers into a new one. |
 
-**Target constraints:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
+**Target constraints:** Target availability: `wasm32` and `wasm32-gc`. Host dependency: no. Explicit runtime permission: none beyond providing the documented host profile.
 
 **Typical usage:**
 
