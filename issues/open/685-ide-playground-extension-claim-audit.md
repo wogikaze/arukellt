@@ -46,4 +46,4 @@ hover, codeAction）を持つが、WIT import や component 等の **compiler-ba
 
 - `extensions/arukellt-all-in-one/README.md`
 - `issues/open/669-wit-import-ide-formatter.md`
-- `docs/process/false-done-audit-2026-06-12.md`
+- `docs/history/reports/false-done-audit-2026-06-12.md`

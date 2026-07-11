@@ -53,7 +53,7 @@ Child tracks: 678
 ## References
 
 - `docs/process/false-done-prevention.md`
-- `docs/process/false-done-audit-2026-06-12.md`
+- `docs/history/reports/false-done-audit-2026-06-12.md`
 - `scripts/check/check-false-done-close-gates.py`
 - `scripts/check/check-false-done-hygiene.py`
 - `issues/open/678-verification-gates-docs-release.md`
