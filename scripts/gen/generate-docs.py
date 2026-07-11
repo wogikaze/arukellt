@@ -1404,13 +1404,16 @@ def render_current_state_updated(state: dict) -> str:
     blockers = verification.get("blockers", [])
     failures = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
     check_gap = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
-    ready = failures == 0 and check_gap == 0
+    ready = not blockers
     readiness = "READY" if ready else "NOT READY"
     blocking = []
     if failures:
         blocking.append(f"{failures} fixture failure(s)")
     if check_gap:
         blocking.append(f"{check_gap} verification check failure(s)")
+    full_only = [blocker for blocker in blockers if blocker.get("category") not in {"fixture", "verification"}]
+    if full_only:
+        blocking.append(f"{len(full_only)} additional full-verification blocker group(s)")
     blocking_line = ", ".join(blocking) if blocking else "none"
     return "\n".join(
         [
@@ -1467,16 +1470,17 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
             "",
             "This table is generated from structured blocker records. Counts above must equal these rows.",
             "",
-            "| ID | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |",
-            "|----|----------|---------:|-----------------|---------|-------|-------|------------|---------------|",
+            "| ID | Scope | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |",
+            "|----|-------|----------|---------:|-----------------|---------|-------|-------|------------|---------------|",
         ]
     )
     if blockers:
         for blocker in blockers:
             lines.append(
-                "| `{id}` | `{category}` | {count} | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}` |".format(
+                "| `{id}` | `{scope}` | `{category}` | {count} | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}` |".format(
                     id=blocker["id"],
                     category=blocker["category"],
+                    scope=blocker["scope"],
                     count=blocker.get("affected_count", 1),
                     summary=escape_table(blocker["summary"]),
                     command=blocker["command"],
@@ -1487,7 +1491,7 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
                 )
             )
     else:
-        lines.append("| — | — | 0 | No active blockers in the recorded verification run. | — | — | — | — | — |")
+        lines.append("| — | — | — | 0 | No active blockers in the recorded verification run. | — | — | — | — | — |")
     return "\n".join(lines)
 
 
@@ -2978,13 +2982,15 @@ def _render_reference_function_row(entry: dict) -> str:
     # Include manifest doc text (truncated for table legibility)
     doc_text = entry.get("doc", "") or ""
     doc_cell = escape_table(doc_text[:100] + ("…" if len(doc_text) > 100 else "")) if doc_text else "-"
+    implementation = _function_semantic_status(entry)
     return (
-        "| {name}{deprecated} | `{signature}` | {module_name} | `{stability}` | `{kind}` | {prelude} | {intrinsic} | {doc} |".format(
+        "| {name}{deprecated} | `{signature}` | {module_name} | `{stability}` | `{implementation}` | `{kind}` | {prelude} | {intrinsic} | {doc} |".format(
             name=name_display,
             deprecated=deprecated_note,
             signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
             module_name=module_name,
             stability=entry.get("stability", "unknown"),
+            implementation=implementation,
             kind=kind_display,
             prelude="yes" if entry.get("prelude") else "no",
             intrinsic=intrinsic,
@@ -3027,8 +3033,8 @@ def _render_reference_function_details(entry: dict) -> list[str]:
 
 
 _REFERENCE_TABLE_HEADER = [
-    "| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |",
-    "|------|-----------|--------|-----------|------|---------|-----------|-------------|",
+    "| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |",
+    "|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|",
 ]
 
 # Stability tiers rendered as sections, in display order.
@@ -3556,7 +3562,7 @@ def main() -> int:
     observed_sum = passed + failed + skipped
     blockers = verification.get("blockers", [])
     required_blocker_fields = {
-        "id", "category", "summary", "command", "owner", "issue",
+        "id", "scope", "category", "summary", "command", "owner", "issue",
         "first_seen_commit", "last_verified_commit",
     }
     blocker_errors: list[str] = []
@@ -3568,8 +3574,10 @@ def main() -> int:
         if blocker.get("id") in seen_blocker_ids:
             blocker_errors.append(f"duplicate blocker id {blocker.get('id')}")
         seen_blocker_ids.add(blocker.get("id"))
-        if blocker.get("category") not in {"fixture", "verification"}:
+        if blocker.get("category") not in {"fixture", "verification", "target-contract", "component-interop", "bootstrap"}:
             blocker_errors.append(f"{blocker.get('id')}: invalid category")
+        if blocker.get("scope") not in {"quick", "full"}:
+            blocker_errors.append(f"{blocker.get('id')}: invalid scope")
     fixture_blockers = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
     verification_blockers = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
     check_gap = int(verification.get("checks_total", 0)) - int(verification.get("checks_passed", 0))

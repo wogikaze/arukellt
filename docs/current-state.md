@@ -4,11 +4,11 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T21:04:54+09:00
-> Source-Commit: `785613ce`
+> Generated-At: 2026-07-11T21:10:14+09:00
+> Source-Commit: `a80b4181`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 367 fixture failure(s), 1 verification check failure(s)
+> Blocking: 367 fixture failure(s), 1 verification check failure(s), 4 additional full-verification blocker group(s)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -99,16 +99,20 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 - Not in last harness snapshot: 1099 registry entries (not proof they fail)
 - Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2679 is tests/fixtures/manifest.txt registry size. The 1099 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **174/175 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **175/176 checks pass**
 
 ### Active blockers
 
 This table is generated from structured blocker records. Counts above must equal these rows.
 
-| ID | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |
-|----|----------|---------:|-----------------|---------|-------|-------|------------|---------------|
-| `selfhost_fixture_parity` | `fixture` | 367 | Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` |
-| `close_gate_076_p2_fs_output` | `verification` | 1 | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes. | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` |
+| ID | Scope | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |
+|----|-------|----------|---------:|-----------------|---------|-------|-------|------------|---------------|
+| `selfhost_fixture_parity` | `full` | `fixture` | 367 | Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` |
+| `close_gate_076_p2_fs_output` | `quick` | `verification` | 1 | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes. | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` |
+| `wat_roundtrip` | `full` | `target-contract` | 1 | The wasm2wat/wat2wasm roundtrip gate fails. | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` |
+| `component_interop_wasmtime` | `full` | `component-interop` | 103 | All 103 wasmtime component-interop cases fail in the current full verification run. | `python3 scripts/manager.py verify --full` | component model | #074 | `a80b4181` | `a80b4181` |
+| `selfhost_cli_parity` | `full` | `bootstrap` | 3 | CLI parity drifts for --help, lint, and compose --validate. | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` |
+| `selfhost_fixpoint` | `full` | `bootstrap` | 1 | Stage 2 and Stage 3 compiler hashes differ; fixpoint is not reached. | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates

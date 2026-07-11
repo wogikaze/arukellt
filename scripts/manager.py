@@ -4749,6 +4749,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-cli-guarantees.py all",
         ),
         (
+            "documentation publication contract",
+            "python3 scripts/check/check-documentation-publication-contract.py",
+        ),
+        (
             "stdlib manifest check",
             "bash scripts/check/check-stdlib-manifest.sh",
         ),

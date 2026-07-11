@@ -44,266 +44,266 @@
 
 ## Assert
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `assert` | `(bool) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert` | - |
-| `assert_eq` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` | - |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` | - |
-| `assert_eq_str` | `(String, String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` | - |
-| `assert_ne` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `assert` | `(bool) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert` | - |
+| `assert_eq` | `(i32, i32) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` | - |
+| `assert_eq_str` | `(String, String) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` | - |
+| `assert_ne` | `(i32, i32) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` | - |
 
 ## Box
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
 ## Bytes
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `base64_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
-| `base64_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
-| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
-| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
-| `buf_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
-| `buf_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
-| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
-| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
-| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
-| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
-| `buf_with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
-| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
-| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
-| `cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
-| `cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
-| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
-| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
-| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
-| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
-| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
-| `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
-| `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
-| `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
-| `read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
-| `read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
-| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
-| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `base64_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
+| `base64_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
+| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
+| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
+| `buf_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
+| `buf_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
+| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
+| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
+| `buf_with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
+| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
+| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
+| `cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
+| `cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
+| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
+| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
+| `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
+| `read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
+| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Cli
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `arg_at` | `(i32) -> Option<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the argument at index, or None when out of range. |
-| `arg_count` | `() -> i32` | `std::cli` | `stable` | `builtin` | no | - | Return the number of process arguments. |
-| `flag` | `(Vec<String>, String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when args contains name verbatim. |
-| `has_flag` | `(String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when the process argument vector contains the flag verbatim. |
-| `option` | `(Vec<String>, String) -> Option<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the value associated with the named option, or None. |
-| `parse_args` | `() -> Vec<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the full process argument vector. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `arg_at` | `(i32) -> Option<String>` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the argument at index, or None when out of range. |
+| `arg_count` | `() -> i32` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the number of process arguments. |
+| `flag` | `(Vec<String>, String) -> bool` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return true when args contains name verbatim. |
+| `has_flag` | `(String) -> bool` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return true when the process argument vector contains the flag verbatim. |
+| `option` | `(Vec<String>, String) -> Option<String>` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the value associated with the named option, or None. |
+| `parse_args` | `() -> Vec<String>` | `std::cli` | `stable` | `functional` | `builtin` | no | - | Return the full process argument vector. |
 
 ## Collections
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| ~~`HashMap_String_String_contains_key`~~ ⚠️ Deprecated → `hashmap_str_str_contains` | `(HashMap<String, String>, String) -> bool` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_String_get`~~ ⚠️ Deprecated → `hashmap_str_str_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_String_insert`~~ ⚠️ Deprecated → `hashmap_str_str_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_String_len`~~ ⚠️ Deprecated → `hashmap_str_str_len` | `(HashMap<String, String>) -> i32` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_contains_key`~~ ⚠️ Deprecated → `hashmap_str_i32_contains` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_get`~~ ⚠️ Deprecated → `hashmap_str_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_insert`~~ ⚠️ Deprecated → `hashmap_str_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_len`~~ ⚠️ Deprecated → `hashmap_str_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_contains_key`~~ ⚠️ Deprecated → `hashmap_i32_str_contains` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_get`~~ ⚠️ Deprecated → `hashmap_i32_str_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_insert`~~ ⚠️ Deprecated → `hashmap_i32_str_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_len`~~ ⚠️ Deprecated → `hashmap_i32_str_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_contains_key`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_get`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_insert`~~ ⚠️ Deprecated → `hashmap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_len`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>) -> i32` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_new`~~ ⚠️ Deprecated → `hashmap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_new_String_String`~~ ⚠️ Deprecated → `hashmap_str_str_new` | `() -> HashMap<String, String>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_new_String_i32`~~ ⚠️ Deprecated → `hashmap_str_i32_new` | `() -> HashMap<String, i32>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| ~~`HashMap_new_i32_String`~~ ⚠️ Deprecated → `hashmap_i32_str_new` | `() -> HashMap<i32, String>` | `prelude` | `deprecated` | `builtin` | yes | - | - |
-| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
-| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
-| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
-| ~~`Vec_new_i32`~~ ⚠️ Deprecated → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
-| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
-| ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
-| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
-| ~~`Vec_new_v128`~~ ⚠️ Deprecated → `Vec::new<v128>` | `() -> Vec<v128>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
-| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
-| `any_f64` | `(Vec<f64>, fn(f64) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_f64` | - |
-| `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
-| `any_i64` | `(Vec<i64>, fn(i64) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i64` | - |
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Allocate a value in the Arena, returning a stable ArenaId. |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Get the value at the given ArenaId. |
-| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
-| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new Arena (bump allocator for stable i32 IDs). |
-| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
-| `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of set bits in a BitSet. |
-| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the intersection of two BitSets. |
-| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `bitset_set` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Set a bit in a BitSet (alias for bitset_mark). |
-| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the union of two BitSets. |
-| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BitSet with the given capacity in bits. |
-| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if a BTreeMap<i32,i32> contains a key. |
-| `btree_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from a BTreeMap<i32,i32>. Returns 0 if not found. |
-| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into a BTreeMap<i32,i32>. |
-| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of a BTreeMap<i32,i32> in sorted order. |
-| `btree_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of entries in a BTreeMap<i32,i32>. |
-| `btree_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BTreeMap<i32,i32> (sorted-vector backed). |
-| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return keys in [start, end) range from a BTreeMap<i32,i32>. |
-| `btree_remove` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Remove a key from a BTreeMap<i32,i32>. |
-| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if a BTreeSet<i32> contains a value. |
-| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into a BTreeSet<i32>. Returns true if the value was newly inserted. |
-| `btree_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in a BTreeSet<i32>. |
-| `btree_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BTreeSet<i32> (sorted unique values). |
-| `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
-| `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
-| `deque_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
-| `deque_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
-| `deque_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | Return true if the deque contains no elements. |
-| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the number of elements in the deque. |
-| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Append a value to the back of the deque. |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Prepend a value to the front of the deque. |
-| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
-| `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
-| `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
-| ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
-| `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
-| `find_String` | `(Vec<String>, fn(String) -> bool) -> Option<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_String` | - |
-| `find_f64` | `(Vec<f64>, fn(f64) -> bool) -> Option<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_f64` | - |
-| `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
-| `find_i64` | `(Vec<i64>, fn(i64) -> bool) -> Option<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i64` | - |
-| `fold_f64_f64` | `(Vec<f64>, f64, fn(f64, f64) -> f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_f64_f64` | - |
-| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
-| `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
-| `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `hashmap_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritt… |
-| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
-| `hashset_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
-| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
-| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
-| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
-| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_str_len` | `(Vec<String>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_str_new` | `() -> Vec<String>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
-| `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
-| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
-| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
-| `index_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of entries in an IndexMap<i32,i32>. |
-| `index_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexMap<i32,i32> (insertion-order map). |
-| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if an IndexSet<i32> contains a value. |
-| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
-| `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
-| `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
-| `interner_intern` | `(Vec<String>, String) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Intern a String, returning its stable Symbol (i32 ID). Deduplicates. |
-| `interner_len` | `(Vec<String>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of interned strings. |
-| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Look up the String for a given Symbol, or None if out of range. |
-| `interner_new` | `() -> Vec<String>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new Interner (value<->Symbol bidirectional map). |
-| `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
-| `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
-| `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
-| `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
-| `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
-| `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | Return true if the priority queue contains no elements. |
-| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the number of elements in the priority queue. |
-| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
-| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
-| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Insert a value into the priority queue. |
-| `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
-| `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
-| `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
-| `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
-| `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
-| `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return true if the SlotKey is present and active. |
-| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Get the value at the given SlotKey, or None if removed. |
-| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Insert a value into the SlotMap, returning a stable SlotKey. |
-| `slotmap_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of active entries in the SlotMap. |
-| `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
-| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
-| `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
-| `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
-| `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
-| `sort_i64` | `(Vec<i64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` | - |
-| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
-| `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
-| `values` | `(Vec<i32>) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_values` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| ~~`HashMap_String_String_contains_key`~~ ⚠️ Deprecated → `hashmap_str_str_contains` | `(HashMap<String, String>, String) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_String_get`~~ ⚠️ Deprecated → `hashmap_str_str_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_String_insert`~~ ⚠️ Deprecated → `hashmap_str_str_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_String_len`~~ ⚠️ Deprecated → `hashmap_str_str_len` | `(HashMap<String, String>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_i32_contains_key`~~ ⚠️ Deprecated → `hashmap_str_i32_contains` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_i32_get`~~ ⚠️ Deprecated → `hashmap_str_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_i32_insert`~~ ⚠️ Deprecated → `hashmap_str_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_String_i32_len`~~ ⚠️ Deprecated → `hashmap_str_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_String_contains_key`~~ ⚠️ Deprecated → `hashmap_i32_str_contains` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_String_get`~~ ⚠️ Deprecated → `hashmap_i32_str_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_String_insert`~~ ⚠️ Deprecated → `hashmap_i32_str_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_String_len`~~ ⚠️ Deprecated → `hashmap_i32_str_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_i32_contains_key`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_i32_get`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_i32_insert`~~ ⚠️ Deprecated → `hashmap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_i32_len`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_i32_i32_new`~~ ⚠️ Deprecated → `hashmap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_new_String_String`~~ ⚠️ Deprecated → `hashmap_str_str_new` | `() -> HashMap<String, String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_new_String_i32`~~ ⚠️ Deprecated → `hashmap_str_i32_new` | `() -> HashMap<String, i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| ~~`HashMap_new_i32_String`~~ ⚠️ Deprecated → `hashmap_i32_str_new` | `() -> HashMap<i32, String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
+| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
+| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
+| ~~`Vec_new_i32`~~ ⚠️ Deprecated → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
+| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
+| ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
+| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
+| ~~`Vec_new_v128`~~ ⚠️ Deprecated → `Vec::new<v128>` | `() -> Vec<v128>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
+| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
+| `any_f64` | `(Vec<f64>, fn(f64) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_f64` | - |
+| `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
+| `any_i64` | `(Vec<i64>, fn(i64) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_i64` | - |
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Allocate a value in the Arena, returning a stable ArenaId. |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given ArenaId. |
+| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
+| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new Arena (bump allocator for stable i32 IDs). |
+| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
+| `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of set bits in a BitSet. |
+| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the intersection of two BitSets. |
+| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `bitset_set` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Set a bit in a BitSet (alias for bitset_mark). |
+| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the union of two BitSets. |
+| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BitSet with the given capacity in bits. |
+| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Check if a BTreeMap<i32,i32> contains a key. |
+| `btree_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Get a value from a BTreeMap<i32,i32>. Returns 0 if not found. |
+| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert a key-value pair into a BTreeMap<i32,i32>. |
+| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return all keys of a BTreeMap<i32,i32> in sorted order. |
+| `btree_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of entries in a BTreeMap<i32,i32>. |
+| `btree_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BTreeMap<i32,i32> (sorted-vector backed). |
+| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return keys in [start, end) range from a BTreeMap<i32,i32>. |
+| `btree_remove` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Remove a key from a BTreeMap<i32,i32>. |
+| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Check if a BTreeSet<i32> contains a value. |
+| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert into a BTreeSet<i32>. Returns true if the value was newly inserted. |
+| `btree_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of elements in a BTreeSet<i32>. |
+| `btree_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new BTreeSet<i32> (sorted unique values). |
+| `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
+| `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
+| `deque_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
+| `deque_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
+| `deque_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return true if the deque contains no elements. |
+| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the number of elements in the deque. |
+| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Append a value to the back of the deque. |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Prepend a value to the front of the deque. |
+| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
+| `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
+| `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
+| ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
+| `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
+| `find_String` | `(Vec<String>, fn(String) -> bool) -> Option<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_String` | - |
+| `find_f64` | `(Vec<f64>, fn(f64) -> bool) -> Option<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_f64` | - |
+| `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
+| `find_i64` | `(Vec<i64>, fn(i64) -> bool) -> Option<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_i64` | - |
+| `fold_f64_f64` | `(Vec<f64>, f64, fn(f64, f64) -> f64) -> f64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_fold_f64_f64` | - |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
+| `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
+| `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `hashmap_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Extend a raw i32->i32 HashMap with all key/value pairs from another map. Existing keys are overwritt… |
+| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_capacity` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Return the current bucket capacity of a HashSet<i32>. |
+| `hashset_clear` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Remove all elements from a HashSet<i32>, resetting size to 0. |
+| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend. |
+| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_is_empty` | `(Vec<i32>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_len` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Ensure a HashSet<i32> can hold at least additional more elements without exceeding the load-factor… |
+| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | Shrink a HashSet<i32> to the minimum capacity preserving the load-factor invariant. |
+| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_str_len` | `(Vec<String>) -> i32` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_str_new` | `() -> Vec<String>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
+| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
+| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
+| `index_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of entries in an IndexMap<i32,i32>. |
+| `index_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new IndexMap<i32,i32> (insertion-order map). |
+| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Check if an IndexSet<i32> contains a value. |
+| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
+| `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
+| `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `functional` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
+| `interner_intern` | `(Vec<String>, String) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Intern a String, returning its stable Symbol (i32 ID). Deduplicates. |
+| `interner_len` | `(Vec<String>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of interned strings. |
+| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Look up the String for a given Symbol, or None if out of range. |
+| `interner_new` | `() -> Vec<String>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new Interner (value<->Symbol bidirectional map). |
+| `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `functional` | `builtin` | yes | - | Return the number of elements in a Vec. |
+| `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
+| `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
+| `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
+| `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return true if the priority queue contains no elements. |
+| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the number of elements in the priority queue. |
+| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
+| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
+| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Insert a value into the priority queue. |
+| `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
+| `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
+| `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
+| `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
+| `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
+| `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return true if the SlotKey is present and active. |
+| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Get the value at the given SlotKey, or None if removed. |
+| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Insert a value into the SlotMap, returning a stable SlotKey. |
+| `slotmap_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Return the number of active entries in the SlotMap. |
+| `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
+| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `functional` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
+| `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
+| `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
+| `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
+| `sort_i64` | `(Vec<i64>) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` | - |
+| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `functional` | `builtin` | no | - | - |
+| `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
+| `values` | `(Vec<i32>) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_values` | - |
 
 ### `len` — `prelude`
 
@@ -329,32 +329,32 @@ push(v, 2)
 
 ## Component
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
-| `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
-| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Drop a handle and return its value, if still live. |
-| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Look up a live handle without removing it. |
-| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `builtin` | no | - | Return the number of live handles in the table. |
-| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
-| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
+| `component_model_version` | `() -> String` | `std::component` | `experimental` | `functional` | `builtin` | no | - | - |
+| `handle_drop` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Drop a handle and return its value, if still live. |
+| `handle_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Look up a live handle without removing it. |
+| `handle_len` | `(Vec<i32>) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Return the number of live handles in the table. |
+| `handle_new` | `(Vec<i32>, i32) -> i32` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Insert a value and return a stable opaque handle index. |
+| `handle_table_new` | `() -> Vec<i32>` | `std::component::handle` | `experimental` | `functional` | `builtin` | no | - | Create an empty Component Model handle table (SlotMap-backed storage). |
 
 ## Control
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `panic` | `(String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_panic` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `panic` | `(String) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_panic` | - |
 
 ## Conversion
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
-| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
-| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
-| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
-| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
-| `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
+| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `functional` | `builtin` | no | - | - |
+| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
+| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
+| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
+| `to_string` | `(any) -> String` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
 ### `parse_i32` — `prelude`
 
@@ -370,58 +370,58 @@ Expected output: `42`
 
 ## Convert
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `i32_to_u32` | `(i32) -> u32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `i32_to_u32` | `(i32) -> u32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u32` | - |
 
 ## Core
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `builtin` | no | - | - |
-| `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
-| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
-| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
-| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
-| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `builtin` | no | - | - |
-| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
-| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
+| `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `functional` | `builtin` | no | - | - |
+| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `functional` | `builtin` | no | - | - |
+| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
+| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
+| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
+| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
+| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Csv
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `csv_count_rows` | `(String) -> i32` | `std::csv` | `experimental` | `builtin` | no | - | Count the number of non-empty lines in a CSV string. |
-| `csv_get_row_raw` | `(String, i32) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Return the raw text of row at row_index (0-based, skipping empty lines). |
-| `csv_parse_row` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a single CSV line into fields (handles RFC 4180 quoting). |
-| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse row at row_index from a multi-row CSV string. |
-| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a CSV document and return the header row fields. |
-| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
-| `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `csv_count_rows` | `(String) -> i32` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Count the number of non-empty lines in a CSV string. |
+| `csv_get_row_raw` | `(String, i32) -> String` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Return the raw text of row at row_index (0-based, skipping empty lines). |
+| `csv_parse_row` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Parse a single CSV line into fields (handles RFC 4180 quoting). |
+| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Parse row at row_index from a multi-row CSV string. |
+| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Parse a CSV document and return the header row fields. |
+| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | - |
+| `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `functional` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
 
 ## Env
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `arg_at` | `(i32) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Return the argument at the given index, or None when out of range. |
-| `arg_count` | `() -> i32` | `std::env` | `stable` | `builtin` | no | - | Return the number of process arguments (excluding argv[0]). |
-| `args` | `() -> Vec<String>` | `std::env` | `stable` | `builtin` | no | - | Return the process argument vector (excluding argv[0]). |
-| ~~`get_var`~~ ⚠️ Deprecated → `var` | `(String) -> Option<String>` | `std::env` | `deprecated` | `builtin` | no | - | Alias for env::var. Use var instead. |
-| `var` | `(String) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Look up an environment variable by name. |
-| `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `arg_at` | `(i32) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the argument at the given index, or None when out of range. |
+| `arg_count` | `() -> i32` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the number of process arguments (excluding argv[0]). |
+| `args` | `() -> Vec<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the process argument vector (excluding argv[0]). |
+| ~~`get_var`~~ ⚠️ Deprecated → `var` | `(String) -> Option<String>` | `std::env` | `deprecated` | `functional` | `builtin` | no | - | Alias for env::var. Use var instead. |
+| `var` | `(String) -> Option<String>` | `std::env` | `stable` | `functional` | `builtin` | no | - | Look up an environment variable by name. |
+| `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `functional` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 
 ## Fs
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
-| `is_dir` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Always false on current targets (honest stub until metadata intrinsics land). |
-| `is_file` | `(String) -> bool` | `std::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. |
-| `is_readable_file` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
-| `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
-| `read_dir` | `(String) -> Result<Vec<String>, String>` | `std::fs` | `provisional` | `builtin` | no | - | Always Err on current targets — directory listing not yet supported. |
-| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `exists` | `(String) -> bool` | `std::fs` | `stable` | `functional` | `builtin` | no | - | Read probe / readable-file check: true when a full read succeeds (same intrinsic as read_string); no… |
+| `is_dir` | `(String) -> bool` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets (honest stub until metadata intrinsics land). |
+| `is_file` | `(String) -> bool` | `std::fs` | `provisional` | `functional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. |
+| `is_readable_file` | `(String) -> bool` | `std::fs` | `stable` | `functional` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
+| `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
+| `read_dir` | `(String) -> Result<Vec<String>, String>` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always Err on current targets — directory listing not yet supported. |
+| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 
 ### `read_string` — `std::fs`
 
@@ -433,20 +433,20 @@ Expected output: `42`
 
 ## Host Clock
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
-| `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `functional` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
+| `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `functional` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
 
 ## Host Env
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
-| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
-| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
-| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
-| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
+| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
+| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
+| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `functional` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
+| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
 
 ### `var` — `std::host::env`
 
@@ -461,21 +461,21 @@ match home { Some(p) => println(p), None => println("not set") }
 
 ## Host Fs
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `std::host::fs` | `deprecated` | `builtin` | no | - | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence quer… |
-| `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
-| `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
-| `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
-| `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
-| `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
-| `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
-| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs… |
-| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
-| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `std::host::fs` | `provisional` | `builtin` | no | - | Directory listing API contract. Always returns Err(IoError) on current targets because WASI director… |
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `std::host::fs` | `deprecated` | `functional` | `builtin` | no | - | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence quer… |
+| `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
+| `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
+| `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `functional` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
+| `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
+| `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
+| `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
+| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs… |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Directory listing API contract. Always returns Err(IoError) on current targets because WASI director… |
+| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 
 ### `metadata` — `std::host::fs`
 
@@ -506,14 +506,14 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 
 ## Host Http
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
-| `read_body` | `(HttpResponse) -> String` | `std::host::http` | `provisional` | `builtin (wasm32-gc)` | no | - | - |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
-| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `builtin (wasm32-gc)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
-| `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `builtin (wasm32-gc)` | no | - | - |
-| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to capability … |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
+| `read_body` | `(HttpResponse) -> String` | `std::host::http` | `provisional` | `functional` | `builtin (wasm32-gc)` | no | - | - |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
+| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `functional` | `builtin (wasm32-gc)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
+| `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `functional` | `builtin (wasm32-gc)` | no | - | - |
+| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to capability … |
 
 ### `get` — `std::host::http`
 
@@ -554,19 +554,19 @@ match http::serve(8080, "hello") {
 
 ## Host Process
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 
 ## Host Random
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
-| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random boolean value with equal probability of true and false. |
-| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
-| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
+| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_i32` | Return a random boolean value with equal probability of true and false. |
+| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
+| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
 
 ### `random_i32_range` — `std::host::random`
 
@@ -580,13 +580,13 @@ let n = random::random_i32_range(1, 7)
 
 ## Host Sockets
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
-| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_read` | Read up to max_len bytes from an open socket fd. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_write` | Write byte values from a Vec to an open socket fd. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
+| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
+| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_read` | Read up to max_len bytes from an open socket fd. |
+| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_write` | Write byte values from a Vec to an open socket fd. |
 
 ### `accept` — `std::host::sockets`
 
@@ -617,12 +617,12 @@ match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 
 ## Host Stdio
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
-| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
-| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
-| `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
+| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
+| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
+| `read_to_string` | `() -> String` | `std::host::stdio` | `stable` | `functional` | `builtin` | no | `__intrinsic_stdin_read_to_string` | Read all available bytes from standard input into a string. |
 
 ### `eprintln` — `std::host::stdio`
 
@@ -661,11 +661,11 @@ let input = read_to_string()
 
 ## Host Streams
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `flush` | `(i32) -> Result<i32, String>` | `std::host::streams` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_flush` | Flush an output stream handle. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::streams` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_read` | Read up to max_len bytes from an input stream handle. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::streams` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_write` | Write byte values to an output stream handle. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `flush` | `(i32) -> Result<i32, String>` | `std::host::streams` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_flush` | Flush an output stream handle. |
+| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::streams` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_read` | Read up to max_len bytes from an input stream handle. |
+| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::streams` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_stream_write` | Write byte values to an output stream handle. |
 
 ### `flush` — `std::host::streams`
 
@@ -681,9 +681,9 @@ let input = read_to_string()
 
 ## Host Udp
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `functional` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |
 
 ### `send` — `std::host::udp`
 
@@ -691,331 +691,331 @@ let input = read_to_string()
 
 ## Io
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `buf_reader_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buf_reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the total number of bytes available in an io.traits memory buffer. |
-| `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `builtin` | no | - | Create an io.traits FileHandle from a raw file descriptor. |
-| `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Read bytes from an io.traits FileHandle into a buffer. |
-| `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `builtin` | no | - | Write buffer bytes to an io.traits FileHandle. |
-| `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Fill the internal buffer of an io.traits BufRead source. |
-| `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Create a new memory buffer for capability io.traits. |
-| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `builtin` | no | - | Return the current cursor position of an io.traits memory buffer. |
-| `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `builtin` | no | - | - |
-| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | Read up to n bytes from a memory buffer via io.traits Read dispatch. |
-| `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `builtin` | no | - | - |
-| `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `reader_read` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `builtin` | no | - | Seek to an absolute position via io.traits Seek dispatch. |
-| `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `builtin` | no | - | Write byte values into a memory buffer via io.traits Write dispatch. |
-| `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `writer_to_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `writer_write` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
-| `writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `buf_reader_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buffer_len` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Return the total number of bytes available in an io.traits memory buffer. |
+| `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `file_from_fd` | `(i32) -> Vec<i32>` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Create an io.traits FileHandle from a raw file descriptor. |
+| `file_read` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Read bytes from an io.traits FileHandle into a buffer. |
+| `file_write` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `experimental` | `functional` | `builtin` | no | - | Write buffer bytes to an io.traits FileHandle. |
+| `fill_buffer` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Fill the internal buffer of an io.traits BufRead source. |
+| `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `new_memory_buffer` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Create a new memory buffer for capability io.traits. |
+| `position` | `(Vec<i32>) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Return the current cursor position of an io.traits memory buffer. |
+| `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | Read up to n bytes from a memory buffer via io.traits Read dispatch. |
+| `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `seek_to` | `(Vec<i32>, i64) -> i64` | `std::io` | `stable` | `functional` | `builtin` | no | - | Seek to an absolute position via io.traits Seek dispatch. |
+| `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `write_bytes` | `(Vec<i32>, Vec<i32>) -> i32` | `std::io` | `stable` | `functional` | `builtin` | no | - | Write byte values into a memory buffer via io.traits Write dispatch. |
+| `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_to_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_write` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
+| `writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Json
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `is_number` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `is_object` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `is_string` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_as_bool` | `(JsonValue) -> Option<bool>` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
-| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `builtin` | no | - | Look up a named field in a JSON object value. |
-| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `builtin` | no | - | Return the element at index in a JSON array value. |
-| `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
-| `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `is_number` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `is_object` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `is_string` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_as_bool` | `(JsonValue) -> Option<bool>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
+| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Look up a named field in a JSON object value. |
+| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Return the element at index in a JSON array value. |
+| `json_null` | `() -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
+| `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 
 ## Math
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
-| `gcd` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_gcd` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | - | - |
+| `gcd` | `(i32, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_gcd` | - |
 
 ## Numeric
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
-| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
+| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
 
 ## Option Result
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
-| `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
+| `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 
 ## Path
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `components` | `(String) -> Vec<String>` | `std::path` | `stable` | `builtin` | no | - | Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"]. |
-| `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
-| `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
-| `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - | - |
-| `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
-| `normalize` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Resolves . and .. components and collapses redundant / separators. |
-| `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
-| `stem` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello". |
-| `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `components` | `(String) -> Vec<String>` | `std::path` | `stable` | `functional` | `builtin` | no | - | Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"]. |
+| `extension` | `(String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | - |
+| `file_name` | `(String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | - |
+| `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `functional` | `builtin` | no | - | - |
+| `join` | `(String, String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | - |
+| `normalize` | `(String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | Resolves . and .. components and collapses redundant / separators. |
+| `parent` | `(String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | - |
+| `stem` | `(String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello". |
+| `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Process
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `abort` | `() -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process immediately (exit code 134, SIGABRT convention). |
-| `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `abort` | `() -> ()` | `std::process` | `stable` | `functional` | `builtin` | no | - | Terminate the process immediately (exit code 134, SIGABRT convention). |
+| `exit` | `(i32) -> ()` | `std::process` | `stable` | `functional` | `builtin` | no | - | Terminate the process with the given exit code. |
 
 ## Random
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
-| `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
-| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `functional` | `builtin` | no | - | - |
+| `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `functional` | `builtin` | no | - | - |
+| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Scalar Conversion
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `f32_to_f64` | `(f32) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f32_to_f64` | - |
-| `f64_to_f32` | `(f64) -> f32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_f32` | - |
-| `i16_to_i32` | `(i16) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i16_to_i32` | - |
-| `i32_to_i16` | `(i32) -> i16` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i16` | - |
-| `i32_to_i64` | `(i32) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i64` | - |
-| `i32_to_i8` | `(i32) -> i8` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i8` | - |
-| `i32_to_u16` | `(i32) -> u16` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u16` | - |
-| `i32_to_u8` | `(i32) -> u8` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u8` | - |
-| `i64_to_i32` | `(i64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_i32` | - |
-| `i8_to_i32` | `(i8) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
-| `u16_to_i32` | `(u16) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u16_to_i32` | - |
-| `u32_to_u64` | `(u32) -> u64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u32_to_u64` | - |
-| `u64_to_u32` | `(u64) -> u32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
-| `u8_to_i32` | `(u8) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u8_to_i32` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `f32_to_f64` | `(f32) -> f64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f32_to_f64` | - |
+| `f64_to_f32` | `(f64) -> f32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_f64_to_f32` | - |
+| `i16_to_i32` | `(i16) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i16_to_i32` | - |
+| `i32_to_i16` | `(i32) -> i16` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i16` | - |
+| `i32_to_i64` | `(i32) -> i64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i64` | - |
+| `i32_to_i8` | `(i32) -> i8` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i8` | - |
+| `i32_to_u16` | `(i32) -> u16` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u16` | - |
+| `i32_to_u8` | `(i32) -> u8` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u8` | - |
+| `i64_to_i32` | `(i64) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i64_to_i32` | - |
+| `i8_to_i32` | `(i8) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
+| `u16_to_i32` | `(u16) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u16_to_i32` | - |
+| `u32_to_u64` | `(u32) -> u64` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u32_to_u64` | - |
+| `u64_to_u32` | `(u64) -> u32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
+| `u8_to_i32` | `(u8) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_u8_to_i32` | - |
 
 ## Seq
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Keep only elements of v for which f returns true. |
-| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | Reduce v to a single value using f, starting from init. |
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Apply f to every element of v and collect the results. |
-| `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Return all elements of v after skipping the first n. |
-| `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
-| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Return the first n elements of v. |
-| `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `stable` | `functional` | `builtin` | no | - | Keep only elements of v for which f returns true. |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `stable` | `functional` | `builtin` | no | - | Reduce v to a single value using f, starting from init. |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `stable` | `functional` | `builtin` | no | - | Apply f to every element of v and collect the results. |
+| `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `functional` | `builtin` | no | - | Return all elements of v after skipping the first n. |
+| `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
+| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `functional` | `builtin` | no | - | Return the first n elements of v. |
+| `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Signal
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `clone_f64` | `(Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `pi` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `tau` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
-| `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `clone_f64` | `(Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `pi` | `() -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `tau` | `() -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
+| `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Simd
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `abs` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `abs` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `builtin` | no | - | - |
-| `add` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `builtin` | no | - | - |
-| `all_true` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `and` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `andnot` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `any_true` | `(v128) -> i32` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `bitmask` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `bitselect` | `(v128, v128, v128) -> v128` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `ceil` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `div` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `div` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `eq` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `eq` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> f32` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> i32` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> f64` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `extract_lane` | `(v128, i32) -> i64` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `extract_lane_s` | `(v128, i32) -> i32` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `extract_lane_s` | `(v128, i32) -> i32` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `extract_lane_u` | `(v128, i32) -> i32` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `extract_lane_u` | `(v128, i32) -> i32` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `ge` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `gt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `le` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `lt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `max` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `max` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `min` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `min` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `mul` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `ne` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `ne` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `nearest` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `neg` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `new` | `(f32, f32, f32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `new` | `(i32, i32, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `new` | `(f64, f64) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `new` | `(i64, i64) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `not` | `(v128) -> v128` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `or` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, f64) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i64) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `shl` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `shr_s` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `shr_u` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(f32) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(f64) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i64) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::u8x16` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::u16x8` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i32) -> v128` | `std::simd::u32x4` | `experimental` | `builtin` | no | - | - |
-| `splat` | `(i64) -> v128` | `std::simd::u64x2` | `experimental` | `builtin` | no | - | - |
-| `sqrt` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `sqrt` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `builtin` | no | - | - |
-| `sub` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `builtin` | no | - | - |
-| `trunc` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `xor` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::f32x4` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i32x4` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::f64x2` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i64x2` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i8x16` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::i16x8` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u8x16` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u16x8` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u32x4` | `experimental` | `builtin` | no | - | - |
-| `zero` | `() -> v128` | `std::simd::u64x2` | `experimental` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `abs` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `abs` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `add` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `all_true` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `and` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `andnot` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `any_true` | `(v128) -> i32` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `bitmask` | `(v128) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `bitselect` | `(v128, v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ceil` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `div` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `div` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `eq` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `eq` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> f32` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> i32` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> f64` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane` | `(v128, i32) -> i64` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane_s` | `(v128, i32) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane_s` | `(v128, i32) -> i32` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane_u` | `(v128, i32) -> i32` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `extract_lane_u` | `(v128, i32) -> i32` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `floor` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ge` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `gt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `le` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `lt` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `max` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `max` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `min` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `min` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `mul` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ne` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `ne` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `nearest` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `neg` | `(v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(f32, f32, f32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(i32, i32, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(f64, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `new` | `(i64, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `not` | `(v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `or` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `replace_lane` | `(v128, i32, i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `shl` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `shr_s` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `shr_u` | `(v128, i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(f32) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(f64) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i64) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i32) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `splat` | `(i64) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sqrt` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sqrt` | `(v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `sub` | `(v128, v128) -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `trunc` | `(v128) -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `xor` | `(v128, v128) -> v128` | `std::simd::v128` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::f32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::f64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i64x2` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::i16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::u8x16` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::u16x8` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::u32x4` | `experimental` | `functional` | `builtin` | no | - | - |
+| `zero` | `() -> v128` | `std::simd::u64x2` | `experimental` | `functional` | `builtin` | no | - | - |
 
 ## String
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
-| `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
-| `byte_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_byte_at` | - |
-| `byte_len` | `(String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_byte_len` | - |
-| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_at` | - |
-| `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
-| ~~`concat`~~ ⚠️ Deprecated → `std::text::concat` | `(String, String) -> String` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
-| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
-| `contains_string` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
-| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
-| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
-| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
-| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
-| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_push_char` | - |
-| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
-| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
-| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
-| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
-| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
-| `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
-| `to_lowercase` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
-| `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
-| `to_uppercase` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
-| `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `String_from` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
+| `String_new` | `() -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
+| `byte_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_at` | - |
+| `byte_len` | `(String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_byte_len` | - |
+| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_char_at` | - |
+| `clone` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
+| ~~`concat`~~ ⚠️ Deprecated → `std::text::concat` | `(String, String) -> String` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
+| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
+| `contains_string` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
+| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
+| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
+| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
+| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
+| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
+| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_push_char` | - |
+| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
+| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
+| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
+| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
+| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
+| `to_lower` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
+| `to_lowercase` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
+| `to_upper` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
+| `to_uppercase` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
+| `trim` | `(String) -> String` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
 
 ### `concat` — `prelude`
 
@@ -1029,198 +1029,198 @@ Expected output: `hello world`
 
 ## Test
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `bench` | `(String, i32, fn() -> ()) -> ()` | `std::test` | `experimental` | `builtin` | no | - | Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout… |
-| `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - | - |
-| `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
-| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
-| `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `bench` | `(String, i32, fn() -> ()) -> ()` | `std::test` | `experimental` | `functional` | `builtin` | no | - | Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout… |
+| `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Text
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `builder_build` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `builder_len` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
-| `builder_new` | `() -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
-| `concat` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_concat` | - |
-| `contains` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_contains` | - |
-| `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_ends_with` | - |
-| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` | - |
-| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - | - |
-| `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_join` | - |
-| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
-| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
-| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
-| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
-| `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a Rope from an existing String. |
-| `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
-| `rope_len` | `(String) -> i32` | `std::text::rope` | `experimental` | `builtin` | no | - | Return the byte length of the Rope. |
-| `rope_line_count` | `(String) -> i32` | `std::text::rope` | `experimental` | `builtin` | no | - | Count the number of lines (newlines + 1) in the Rope. |
-| `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a new empty Rope. |
-| `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
-| `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Convert the Rope to a String. |
-| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | `__intrinsic_split` | - |
-| `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_starts_with` | - |
-| `to_lower` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_lower` | - |
-| `to_upper` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_upper` | - |
-| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `builtin` | no | - | - |
-| `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
-| `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `builder_build` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `builder_len` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `builder_new` | `() -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `concat` | `(String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_concat` | - |
+| `contains` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_contains` | - |
+| `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_ends_with` | - |
+| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `functional` | `builtin` | no | - | - |
+| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_index_of` | - |
+| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_join` | - |
+| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
+| `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a Rope from an existing String. |
+| `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
+| `rope_len` | `(String) -> i32` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Return the byte length of the Rope. |
+| `rope_line_count` | `(String) -> i32` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Count the number of lines (newlines + 1) in the Rope. |
+| `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Create a new empty Rope. |
+| `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
+| `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `functional` | `builtin` | no | - | Convert the Rope to a String. |
+| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_split` | - |
+| `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_starts_with` | - |
+| `to_lower` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_lower` | - |
+| `to_upper` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | `__intrinsic_to_upper` | - |
+| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `functional` | `builtin` | no | - | - |
+| `trim` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `trim_end` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
+| `trim_start` | `(String) -> String` | `std::text` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Time
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
-| `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
-| `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `functional` | `builtin` | no | - | - |
+| `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `functional` | `builtin` | no | - | - |
+| `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `functional` | `builtin` | no | - | - |
 
 ## Toml
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `builtin` | no | - | - |
-| `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `builtin` | no | - | - |
-| `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `builtin` | no | - | - |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `builtin` | no | - | Look up a key in a TOML table value. |
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `builtin` | no | - | Parse a TOML document (key=value pairs). |
-| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
-| `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `builtin` | no | - | Serialize a TomlValue back to text. |
-| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Look up a key in a TOML table value. |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML document (key=value pairs). |
+| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
+| `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
+| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
 
 ## Wasm
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |
-| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th result of a FuncType. |
-| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants). |
-| `functype_param_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of parameter types in a FuncType. |
-| `functype_result_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of result types in a FuncType. |
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>. |
-| `leb128_size_u32` | `(i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of bytes needed to encode x as unsigned LEB128. |
-| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a Limits with both minimum and maximum. |
-| `limits_has_max` | `(Vec<i32>) -> bool` | `std::wasm` | `experimental` | `builtin` | no | - | Return true if this Limits has a maximum. |
-| `limits_max` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the maximum of a Limits (only valid if limits_has_max is true). |
-| `limits_min` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the minimum of a Limits. |
-| `limits_unbounded` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a Limits with only a minimum (no maximum). |
-| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
-| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
-| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `std::wasm` | `experimental` | `builtin` | no | - | Add a function export to the module. |
-| `module_add_func` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Add a function with the given type index to the module. Returns its function index. |
-| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Add a memory with the given Limits to the module. Returns its memory index. |
-| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Register a FuncType in the module type section. Returns its index. |
-| `module_encode_header` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Return the Wasm binary magic+version header (8 bytes). |
-| `module_export_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of exports added to the module builder. |
-| `module_func_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of functions added to the module builder. |
-| `module_mem_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of memories added to the module builder. |
-| `module_new` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Create a new empty WasmModuleBuilder. |
-| `module_type_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of registered types in the module builder. |
-| `op_call` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: call (0x10). |
-| `op_end` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: end (0x0b). |
-| `op_i32_add` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.add (0x6a). |
-| `op_i32_const` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.const (0x41). |
-| `op_i32_eq` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.eq (0x46). |
-| `op_i32_eqz` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.eqz (0x45). |
-| `op_i32_mul` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.mul (0x6c). |
-| `op_i32_sub` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.sub (0x6b). |
-| `op_i64_const` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i64.const (0x42). |
-| `op_local_get` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.get (0x20). |
-| `op_local_set` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.set (0x21). |
-| `op_local_tee` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.tee (0x22). |
-| `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: nop (0x01). |
-| `op_return` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: return (0x0f). |
-| `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
-| `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for externref. |
-| `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for funcref. |
-| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `v128_and` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Bitwise AND of two v128 vectors. |
-| `v128_andnot` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
-| `v128_any_true` | `(v128) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return 1 if any bit in the v128 is set, 0 otherwise. |
-| `v128_bitselect` | `(v128, v128, v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Bitwise select: for each bit, choose a if c bit is 1 else b. |
-| `v128_load` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Load a v128 from linear memory at ptr + offset. |
-| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Load a single lane from linear memory into a v128 vector. |
-| `v128_load_splat` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Load a single byte from linear memory and splat it to all 16 lanes. |
-| `v128_not` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Bitwise NOT of a v128 vector. |
-| `v128_or` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Bitwise OR of two v128 vectors. |
-| `v128_reinterpret_f32x4` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Reinterpret v128 as f32x4 (no-op, same bits). |
-| `v128_reinterpret_f64x2` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Reinterpret v128 as f64x2 (no-op, same bits). |
-| `v128_reinterpret_i16x8` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Reinterpret v128 as i16x8 (no-op, same bits). |
-| `v128_reinterpret_i32x4` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Reinterpret v128 as i32x4 (no-op, same bits). |
-| `v128_reinterpret_i64x2` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Reinterpret v128 as i64x2 (no-op, same bits). |
-| `v128_reinterpret_i8x16` | `(v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Reinterpret v128 as i8x16 (no-op, same bits). |
-| `v128_store` | `(i32, i32, v128) -> ()` | `std::wasm` | `experimental` | `builtin` | no | - | Store a v128 to linear memory at ptr + offset. |
-| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `std::wasm` | `experimental` | `builtin` | no | - | Store a single lane from a v128 vector to linear memory. |
-| `v128_xor` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `builtin` | no | - | Bitwise XOR of two v128 vectors. |
-| `valtype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for externref (0x6f). Reference-types proposal. |
-| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `valtype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for funcref (0x70). Reference-types proposal. |
-| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `valtype_v128` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for SIMD v128 (0x7b). Requires SIMD proposal. |
-| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
-| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |
+| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the valtype constant for the i-th result of a FuncType. |
+| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants). |
+| `functype_param_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the number of parameter types in a FuncType. |
+| `functype_result_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the number of result types in a FuncType. |
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>. |
+| `leb128_size_u32` | `(i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the number of bytes needed to encode x as unsigned LEB128. |
+| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a Limits with both minimum and maximum. |
+| `limits_has_max` | `(Vec<i32>) -> bool` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return true if this Limits has a maximum. |
+| `limits_max` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the maximum of a Limits (only valid if limits_has_max is true). |
+| `limits_min` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the minimum of a Limits. |
+| `limits_unbounded` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Construct a Limits with only a minimum (no maximum). |
+| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
+| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
+| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a function export to the module. |
+| `module_add_func` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a function with the given type index to the module. Returns its function index. |
+| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Add a memory with the given Limits to the module. Returns its memory index. |
+| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Register a FuncType in the module type section. Returns its index. |
+| `module_encode_header` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return the Wasm binary magic+version header (8 bytes). |
+| `module_export_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of exports added to the module builder. |
+| `module_func_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of functions added to the module builder. |
+| `module_mem_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of memories added to the module builder. |
+| `module_new` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Create a new empty WasmModuleBuilder. |
+| `module_type_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Get the number of registered types in the module builder. |
+| `op_call` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: call (0x10). |
+| `op_end` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: end (0x0b). |
+| `op_i32_add` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.add (0x6a). |
+| `op_i32_const` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.const (0x41). |
+| `op_i32_eq` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.eq (0x46). |
+| `op_i32_eqz` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.eqz (0x45). |
+| `op_i32_mul` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.mul (0x6c). |
+| `op_i32_sub` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i32.sub (0x6b). |
+| `op_i64_const` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: i64.const (0x42). |
+| `op_local_get` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: local.get (0x20). |
+| `op_local_set` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: local.set (0x21). |
+| `op_local_tee` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: local.tee (0x22). |
+| `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: nop (0x01). |
+| `op_return` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: return (0x0f). |
+| `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
+| `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reference type byte for externref. |
+| `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reference type byte for funcref. |
+| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `v128_and` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise AND of two v128 vectors. |
+| `v128_andnot` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
+| `v128_any_true` | `(v128) -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Return 1 if any bit in the v128 is set, 0 otherwise. |
+| `v128_bitselect` | `(v128, v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise select: for each bit, choose a if c bit is 1 else b. |
+| `v128_load` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a v128 from linear memory at ptr + offset. |
+| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a single lane from linear memory into a v128 vector. |
+| `v128_load_splat` | `(i32, i32) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Load a single byte from linear memory and splat it to all 16 lanes. |
+| `v128_not` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise NOT of a v128 vector. |
+| `v128_or` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise OR of two v128 vectors. |
+| `v128_reinterpret_f32x4` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as f32x4 (no-op, same bits). |
+| `v128_reinterpret_f64x2` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as f64x2 (no-op, same bits). |
+| `v128_reinterpret_i16x8` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i16x8 (no-op, same bits). |
+| `v128_reinterpret_i32x4` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i32x4 (no-op, same bits). |
+| `v128_reinterpret_i64x2` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i64x2 (no-op, same bits). |
+| `v128_reinterpret_i8x16` | `(v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Reinterpret v128 as i8x16 (no-op, same bits). |
+| `v128_store` | `(i32, i32, v128) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Store a v128 to linear memory at ptr + offset. |
+| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Store a single lane from a v128 vector to linear memory. |
+| `v128_xor` | `(v128, v128) -> v128` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Bitwise XOR of two v128 vectors. |
+| `valtype_externref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for externref (0x6f). Reference-types proposal. |
+| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `valtype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for funcref (0x70). Reference-types proposal. |
+| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `valtype_v128` | `() -> i32` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | Value type byte for SIMD v128 (0x7b). Requires SIMD proposal. |
+| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `functional` | `builtin` | no | - | - |
 
 ## Wit
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
-|------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `wit_type_bool` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_char` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_f32` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_f64` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_from_id` | `(i32) -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_id` | `(WitType) -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_name` | `(WitType) -> String` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_s16` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_s32` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_s64` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_s8` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_string` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_u16` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_u32` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_u64` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
-| `wit_type_u8` | `() -> WitType` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `wit_type_bool` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_char` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_f32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_f64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_from_id` | `(i32) -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_id` | `(WitType) -> i32` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_name` | `(WitType) -> String` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s16` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_s8` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_string` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u16` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u32` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u64` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
+| `wit_type_u8` | `() -> WitType` | `std::wit` | `experimental` | `functional` | `builtin` | no | - | - |
 
 ## Deprecated APIs
 

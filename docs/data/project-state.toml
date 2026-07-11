@@ -112,13 +112,14 @@ fixture_manifest_count = 2679
 fixture_harness_observed = 1580
 fixture_not_in_last_harness_snapshot = 1099
 fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2679 is tests/fixtures/manifest.txt registry size. The 1099 remainder were not part of that run (not proof they fail)."
-checks_passed = 174
-checks_total = 175
+checks_passed = 175
+checks_total = 176
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
 [[verification.blockers]]
 id = "selfhost_fixture_parity"
 category = "fixture"
+scope = "full"
 affected_count = 367
 summary = "Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason."
 command = "python3 scripts/manager.py verify fixtures"
@@ -130,6 +131,7 @@ last_verified_commit = "89eb5eb4"
 [[verification.blockers]]
 id = "close_gate_076_p2_fs_output"
 category = "verification"
+scope = "quick"
 affected_count = 1
 summary = "P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes."
 command = "python3 scripts/check/check-false-done-close-gates.py"
@@ -137,6 +139,54 @@ owner = "WASI P2 filesystem"
 issue = "#076"
 first_seen_commit = "89eb5eb4"
 last_verified_commit = "89eb5eb4"
+
+[[verification.blockers]]
+id = "wat_roundtrip"
+category = "target-contract"
+scope = "full"
+affected_count = 1
+summary = "The wasm2wat/wat2wasm roundtrip gate fails."
+command = "bash scripts/run/wat-roundtrip.sh"
+owner = "Wasm backend"
+issue = "unfiled"
+first_seen_commit = "a80b4181"
+last_verified_commit = "a80b4181"
+
+[[verification.blockers]]
+id = "component_interop_wasmtime"
+category = "component-interop"
+scope = "full"
+affected_count = 103
+summary = "All 103 wasmtime component-interop cases fail in the current full verification run."
+command = "python3 scripts/manager.py verify --full"
+owner = "component model"
+issue = "#074"
+first_seen_commit = "a80b4181"
+last_verified_commit = "a80b4181"
+
+[[verification.blockers]]
+id = "selfhost_cli_parity"
+category = "bootstrap"
+scope = "full"
+affected_count = 3
+summary = "CLI parity drifts for --help, lint, and compose --validate."
+command = "python3 scripts/manager.py selfhost parity --mode --cli"
+owner = "selfhost CLI"
+issue = "#530"
+first_seen_commit = "a80b4181"
+last_verified_commit = "a80b4181"
+
+[[verification.blockers]]
+id = "selfhost_fixpoint"
+category = "bootstrap"
+scope = "full"
+affected_count = 1
+summary = "Stage 2 and Stage 3 compiler hashes differ; fixpoint is not reached."
+command = "python3 scripts/manager.py selfhost fixpoint --build"
+owner = "selfhost compiler"
+issue = "#459"
+first_seen_commit = "a80b4181"
+last_verified_commit = "a80b4181"
 
 [contract_audit]
 component_emit_tier = "smoke"
