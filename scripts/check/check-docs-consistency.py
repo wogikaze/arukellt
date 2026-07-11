@@ -1504,6 +1504,50 @@ def _extract_generated_block(text: str, marker: str) -> str | None:
     return match.group(1) if match else None
 
 
+def check_current_state_adr_sync() -> int:
+    """Fail on known stale current-state claims that contradict ACCEPTED ADRs / research."""
+    path = ROOT / "docs" / "current-state.md"
+    if not path.is_file():
+        return 0
+    text = path.read_text(encoding="utf-8")
+    local = 0
+    forbidden = [
+        (
+            "jco browser-facing flow remains blocked upstream",
+            "jco GC transpile blocker (#037) is cleared; use research verification status instead",
+        ),
+        (
+            "wasm32-freestanding` is **implemented for compile-only**",
+            "ADR-007 retired freestanding; describe leftover code as an implementation gap only",
+        ),
+    ]
+    for needle, hint in forbidden:
+        if needle in text:
+            errors.append(f"current-state.md stale claim {needle!r}: {hint}")
+            local += 1
+    # Require explicit ADR gap section after ADR-007 slimdown
+    if "ADR contract gaps" not in text and "実装ギャップ" not in text:
+        errors.append(
+            "current-state.md missing ADR contract gaps / 実装ギャップ section "
+            "(required after ADR living-state delegation)"
+        )
+        local += 1
+    # freestanding must not be presented as a normal public target without gap language nearby
+    if "wasm32-freestanding" in text:
+        # allow mentions that include 廃止 / ギャップ / retired / deletion
+        idx = text.find("wasm32-freestanding")
+        window = text[max(0, idx - 200) : idx + 400]
+        if not any(
+            k in window
+            for k in ("実装ギャップ", "廃止", "retired", "削除対象", "ハードエラー", "legacy-gap")
+        ):
+            errors.append(
+                "current-state.md mentions wasm32-freestanding without nearby ADR-007 gap language"
+            )
+            local += 1
+    return local
+
+
 def check_docs_runtime_contract() -> int:
     """Compare README/current-state generated markers to project-state.toml contract."""
     ps_path = ROOT / "docs" / "data" / "project-state.toml"
@@ -1653,6 +1697,7 @@ def main() -> int:
     failed += check_manifest_availability_consistency()
     failed += check_manifest_example_integrity()
     failed += check_docsify_routing_config()
+    failed += check_current_state_adr_sync()
     failed += check_docs_runtime_contract()
 
     if errors:

@@ -3,6 +3,7 @@
 ステータス: **ACCEPTED** — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用
 日付: 2026-03-24
 決定者: Agent initialization
+決定日: 2026-03-24
 
 ## 文脈
 

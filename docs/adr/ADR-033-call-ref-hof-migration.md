@@ -5,6 +5,7 @@
 トラック: wasm-feature
 Issue: [#069](../../issues/done/069-wasm-typed-func-ref.md)
 廃止: なし（issue #019, #025 の GC-native クロージャ記述を精緻化）
+決定日: 2026-06-14
 
 ---
 

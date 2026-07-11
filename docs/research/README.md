@@ -12,5 +12,6 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
+| [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | ステータス: 調査メモ（決定記録ではない） |
 | [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ステータス: 調査メモ（決定記録ではない） |
 | [wasm-gc-post-mvp.md](wasm-gc-post-mvp.md) | WasmGC Post-MVP 拡張機能 — 設計調査 | Archive | ステータス: 調査メモ（決定記録ではない） |

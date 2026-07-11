@@ -4,6 +4,7 @@
 作成日: 2026-03-31（2026-07-10 改訂: ADR-032 を統合）
 改訂日: 2026-07-11 — 理想契約と一時実装を分離（Rust bundle は current-state）
 範囲: Playground (web), target roadmap, docs contract
+決定日: 2026-03-31
 
 ---
 

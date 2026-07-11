@@ -1,6 +1,7 @@
 # ADR-032: プレイグラウンド v2 コンパイラ Wasm とブラウザ実行モデル
 
 ステータス: **SUPERSEDED** — [ADR-017](ADR-017-playground-execution-model.md) の v2 節へ統合
+決定日: 2026-05-17
 
 後継: [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md)  
 日付: 2026-05-17  

@@ -3,7 +3,7 @@
 > This document reflects the actual, verified state of the project.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-06-17.
+> Updated: 2026-07-11.
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -11,9 +11,23 @@
 The **corehir** path is the only pipeline for all CLI commands (`compile`, `build`, `run`, `check`).
 
 - **corehir** (only path): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
-- Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed → wasm-tools component new` (default wrap passes `--adapt wasi_snapshot_preview1=…` to `component new` when a Preview 1 adapter module is discoverable; see [ADR-007: Targets](adr/ADR-007-targets.md#emit-surface))
+- Component path (v2):
+  - **ADR-008 契約**: `--emit component` は in-tree（`wasm-tools component new` への恒久依存なし）
+  - **現行実装ギャップ**: 一部経路はまだ `WIT generation → wasm-tools component embed/new` や
+    Python wrap helper（例: `p2_component_wrap.py`）を使う。理想と現状の差であり、
+    公開契約は ADR-008。詳細は下記「ADR contract gaps」
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
+
+### ADR contract gaps（2026-07-11）
+
+ADR / research と食い違う現行コード・記述は、ここで差分として明示する（公開契約ではない）:
+
+| 項目 | ADR / research | 現行 |
+|------|----------------|------|
+| `wasm32-freestanding` | ADR-007: 廃止。公開名はハードエラー | driver/emitter に旧 compile-only 実装が残存 → **削除対象** |
+| Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
+| jco browser | research: Node E2E 済み（パッチ要）。Chrome jco component E2E は **未検証** | 旧「#037 blocked」記述は誤り。#037 transpile ブロッカーは解消済み |
 
 ### CoreHIR boundary and driver responsibilities
 
@@ -38,15 +52,14 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | `wasm32-gc` + `--wasi p3` | — | not-started | not-started | No | Host profile on same language target; not a separate primary |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
-### `wasm32-freestanding` (T2)
+### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
-`wasm32-freestanding` is **implemented for compile-only** in `src/compiler/driver.ark`
-(`implemented: true`, `run_supported: false`). The minimal core Wasm scaffold
-(linear memory plus empty `_start`, no WASI imports) is emitted by the
-selfhost emitter (`src/compiler/emitter.ark`). Regression proof:
-`tests/fixtures/t2/t2_scaffold.ark` exercised through the selfhost gates with
-`wasmparser` validation. Full target
-verification contract and roadmap context: [ADR-007: Targets](adr/ADR-007-targets.md).
+**ADR-007 では廃止済み**（公開ターゲット名はハードエラー。alias にもしない）。
+
+実装ギャップ: 旧 T2 相当の compile-only コードが `src/compiler/driver.ark` /
+emitter にまだ残っている場合がある。これは公開契約ではなく **削除対象のレガシー**である。
+検証・ドキュメント・CLI 案内では現行ターゲットとして扱わない。
+正本のターゲット表は上記生成ブロックおよび [ADR-007](adr/ADR-007-targets.md)。
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health
@@ -67,17 +80,15 @@ verification contract and roadmap context: [ADR-007: Targets](adr/ADR-007-target
 
 ## Data Model (all Wasm targets)
 
-**Important:** The T1 (`wasm32-wasi-p1`) compatibility path still uses the
-linear-memory data model. GC targets (`wasm32-freestanding`, `wasm32-wasi-p2`,
-and `wasm32-wasi-p3`) now emit initial Wasm GC reference locals/types and
-`struct.*` / `array.*` instructions for the current `i32` aggregate lowering
+**Important:** The `wasm32` compatibility path still uses the
+linear-memory data model. `wasm32-gc` emits Wasm GC reference locals/types and
+`struct.*` / `array.*` instructions for the current aggregate lowering
 shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
-locals, params, and struct/enum returns, and current-source T3 outputs validate
-top-level `i32`-field struct parameter/return signatures as `(ref null ...)`.
-This is a Phase 1 implementation slice for issue #686, not the complete
-GC-native data model: f64/i64 aggregate shapes, strings, Vec, enums,
-options/results, and generic payloads still use the existing linear-memory or
-fixed-shape representation.
+locals, params, and struct/enum returns. This is an implementation slice, not the
+complete GC-native data model: strings, Vec, enums, options/results, and generic
+payloads may still use linear-memory or fixed-shape representation in places.
+Layout policy (compiler-private) is proposed in ADR-035; phases live in
+`docs/plans/wasm-gc-implementation.md`.
 
 The data model across all targets:
 
@@ -88,16 +99,16 @@ The data model across all targets:
 | `f64` | `f64` |
 | `String` | `i32` pointer to heap-allocated length-prefixed bytes |
 | `Vec<T>` | `i32` pointer to heap-allocated buffer with length/capacity |
-| Structs | T1: `i32` pointer to heap-allocated struct; GC targets: initial GC struct references for `i32` field shapes |
-| Enums / Option / Result | Discriminated union in linear memory |
+| Structs | `wasm32`: `i32` pointer to heap-allocated struct; `wasm32-gc`: GC struct references for supported field shapes |
+| Enums / Option / Result | Discriminated union in linear memory (GC layout migration in progress; ADR-035) |
 | Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
 
-The T3 target (`wasm32-wasi-p2`) now differs from T1 both in its WASI import
-signatures/component model output support and in this initial GC aggregate
-emission path. T1 remains the linear-memory compatibility backend.
+`wasm32-gc` differs from `wasm32` both in WASI/host profile / component emit and in
+this GC aggregate emission path. `wasm32` remains the linear-memory compatibility backend.
 
 **Future:** Completing the Wasm GC backend remains tracked by issue #686 and
-ADR-035, including GC strings, Vec/enum representations, cast-based dispatch,
+ADR-035 / `docs/plans/wasm-gc-implementation.md`, including GC strings, Vec/enum
+representations, cast-based dispatch,
 full fixture coverage, and T1/T3 parity gates.
 
 ## Performance Snapshot
@@ -174,7 +185,7 @@ Canonical hello.ark sizes at opt-level 2 from [`docs/process/wasm-size-reduction
 - `W0004`: generated Wasm failed backend validation (error, `backend-validate`)
 - `W0005`: non-exportable function skipped from component exports (warning, `component`)
 - `W0101`: deprecated `import <name>` syntax; use `use <name>` (warning, `parse`)
-- `E0500`: module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`) (error, `resolve`)
+- `E0500`: module requires a different target (e.g. `std::host::sockets` on wasm32 emits E0500; use `--target wasm32-gc`) (error, `resolve`)
 - `E0501`: symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module) (error, `typecheck`)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
@@ -237,7 +248,8 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 ## Component Model Status
 
-1. **Component emit**: `--emit component` produces `.component.wasm` outputs on the supported `wasm32-wasi-p2` path.
+1. **Component emit**: `--emit component` produces `.component.wasm` on `wasm32-gc`
+   (ADR-008: in-tree が契約。現行の一部経路は wrap helper / `wasm-tools` を併用 — ADR gaps 参照)。
 2. **WIT generation**: `--emit wit` generates WIT from source-level export type annotations for the supported export surface, including bool, char, string, list, option, result, tuple, record, enum, and variant shapes used by the component fixture surface.
 3. **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
   `--wit` paths are accepted, validated, and threaded through CLI → `DriverConfig` → resolver/typecheck/MIR → Wasm import section (Phase 1 slices [#652](../issues/done/652-wit-import-parser-grammar.md)–[#654](../issues/done/654-wit-import-component-emit.md)).
@@ -249,20 +261,19 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
   WIT `flags` types are supported for import and export round-trip
   fixtures ([#651](../issues/done/651-wit-flags-type-support.md)).
 4. **Current export behavior**: non-exportable functions surface `W0005` warnings.
-5. **Core Wasm paths**: T1/T3 core Wasm flows remain available alongside component emit.
+5. **Core Wasm paths**: `wasm32` / `wasm32-gc` core Wasm flows remain available alongside component emit.
 
 ### Known Component Model limitations
 
-- The current selfhost `--emit component` path emits a direct Component Model wrapper around the core Wasm module. With `--wasi-version p1` (default for non-`-p2` targets), it injects a minimal WASI Preview 1 stub instance so the core module's `wasi_snapshot_preview1` imports can instantiate.
-- With `--wasi-version p2` on `wasm32-wasi-p2`, the T3 emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../issues/done/510-t3-p2-import-table-switch.md)). The post-compile `p2_component_wrap.py` helper builds a `wasi:cli/command` component via `wasm-tools component embed/new` (~5.3KB, no P1 adapter): stdout is adapted through host `get-stdout` + `blocking-write-and-flush`, guest core wasm is patched for canonical ABI `write(ret, ptr, len, 0)`, and `gate_074` proves `wasm-tools validate` + wasmtime prints `hello p2` ([issue 074](../issues/done/074-wasi-p2-native-component.md)).
-- Component output is still T3-only: use `--target wasm32-wasi-p2` for `--emit component`, `--emit wit`, and `--emit all`
+- The current selfhost `--emit component` path emits a Component Model wrapper around the core Wasm module. With Preview 1 host profiles it may inject a minimal WASI Preview 1 stub instance so the core module's `wasi_snapshot_preview1` imports can instantiate.
+- On `wasm32-gc` with WASI P2, the emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../issues/done/510-t3-p2-import-table-switch.md)). Living wrap helpers (e.g. `p2_component_wrap.py`) may still build a `wasi:cli/command` component via `wasm-tools component embed/new` (~5.3KB, no P1 adapter) while in-tree emit (ADR-008) is completed: stdout is adapted through host `get-stdout` + `blocking-write-and-flush`, guest core wasm is patched for canonical ABI `write(ret, ptr, len, 0)`, and `gate_074` proves `wasm-tools validate` + wasmtime prints `hello p2` ([issue 074](../issues/done/074-wasi-p2-native-component.md)). Canonical scratch limits: [`docs/plans/component-canonical-memory.md`](plans/component-canonical-memory.md).
+- Component output is `wasm32-gc`-oriented: use `--target wasm32-gc` for `--emit component`, `--emit wit`, and `--emit all` (legacy alias `wasm32-wasi-p2` may still appear in older fixtures).
 - The selfhost component interop gate currently passes 103/103 fixtures (`bool-logic`, `bool-renamed`, `calculator`, `char-renamed`, `enum-color-code`, `enum-color-code-renamed`, `enum-colors`, `enum-colors-renamed`, `enum-roundtrip`, `enum-roundtrip-renamed`, `f32-binary`, `f32-multi`, `f32-param-i32`, `f32-renamed`, `f32-result-i32`, `f32-square`, `f64-renamed`, `i16-renamed`, `i32-renamed`, `i64-renamed`, `i8-renamed`, `int-widths`, `list-first`, `list-renamed`, `list-return`, `list-return-renamed`, `list-roundtrip`, `list-roundtrip-renamed`, `metadata-names`, `metadata-scalars`, `multi-type-exports`, `option-bool`, `option-i64`, `option-i64-param`, `option-maybe`, `option-param`, `option-param-renamed`, `option-renamed`, `option-roundtrip`, `option-roundtrip-renamed`, `primitives-float`, `record-add`, `record-add-renamed`, `record-distance`, `record-distance-renamed`, `record-point`, `record-point-renamed`, `record-roundtrip`, `record-roundtrip-renamed`, `result-bool`, `result-param`, `result-param-renamed`, `result-renamed`, `result-roundtrip`, `result-roundtrip-renamed`, `result-safe-div`, `result-string-param`, `string-byte`, `string-byte-renamed`, `string-char`, `string-char-renamed`, `string-count16`, `string-count16-renamed`, `string-count32`, `string-count32-renamed`, `string-count64`, `string-count64-renamed`, `string-countu64`, `string-countu64-renamed`, `string-empty`, `string-empty-renamed`, `string-greet`, `string-len`, `string-len-renamed`, `string-multi`, `string-renamed`, `string-return`, `string-return-renamed`, `string-score`, `string-score-renamed`, `string-score32`, `string-score32-renamed`, `string-signed16`, `string-signed16-renamed`, `string-signed8`, `string-signed8-renamed`, `tuple-bool-param`, `tuple-i64-result`, `tuple-mixed-param`, `tuple-param`, `tuple-param-renamed`, `tuple-renamed`, `tuple-roundtrip`, `tuple-roundtrip-renamed`, `tuple-swap`, `u16-renamed`, `u32-renamed`, `u64-renamed`, `u8-renamed`, `variant-roundtrip`, `variant-roundtrip-renamed`, `variant-shape-area`, `variant-shape-area-renamed`).
 - Callable scalar WIT function imports (`import "test:host/math" as host` + `--wit host_math.wit`) typecheck and lower to `MIR_WIT_CALL` with core Wasm import entries ([#034](../issues/done/034-wit-cli-integration.md)). WIT `resource` / `own<T>` / `borrow<T>` fixture shapes compile via name-independent adapters ([#473](../issues/done/473-wit-resource-handles.md)); `stream<T>` / `future<T>` async resource shapes are still rejected with `E0402`.
 - Nested or otherwise unsupported component export shapes such as mixed-type multi-export f32 (f32 exports alongside non-f32-scalar exports), mixed-type multi-export string (`String -> String` alongside `String -> i32` or other non-unary string shapes), extra exports next to single-export string/list/option/result adapter shapes, non-`Color` enums (see `export_unsupported_enum_status.ark`), non-`Point` records (see `export_unsupported_record_rect.ark`), non-`Shape` payload variants (see `export_unsupported_variant_payload_i32.ark`), `Option<String>`, `Option<Vec<i32>>`, `Result<i32, bool>`, `Result<i64, i64>`, `Result<String, i32>`, `Result<String, String>`, `Result<Vec<i32>, String>` parameters, `Vec<bool>`, `Vec<u8>`, `Vec<i64>`, `Vec<Option<i32>>`, `Vec<String>`, `tuple<String, String>`, and 3-element tuples are rejected with `E0401` before backend emission.
 - general string/general list/general option/result/general enum/general record/complex canonical ABI lift-lower coverage is not complete for every case
 - async Component Model features: WIT `future<T>` / `stream<T>` type mapping and import parsing are supported (#474 Phase 4); async function declaration (`async fn`), `await` expression, and full async component export lowering are deferred to #474 later phases
-- jco browser-facing flow remains blocked upstream (`issues/blocked/037`)
-
+- **jco**: transpile of GC components works on jco 1.25.2 (old #037 blocker cleared). Node.js E2E verified with a local `arguments` reserved-word patch. **Chrome jco component E2E (HTTP → ESM import → WASI shim → run) is not yet verified** — see [`docs/research/target-runtime-verification.md`](research/target-runtime-verification.md). Do not describe jco as “blocked upstream” for GC transpile.
 ### Component export type tiers
 
 The compiler enforces type-tier restrictions on component exports at compile time:

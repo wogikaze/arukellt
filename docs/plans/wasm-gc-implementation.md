@@ -74,7 +74,7 @@ Phase 4: 最適化・検証・移行
 
 ## Phase 2: 文字列の GC 表現
 
-- 文字列: `(ref null (array (mut i8)))` — GC バイト配列（ADR-002 合意済み）
+- 文字列: `(ref null (array (mut i8)))` — GC バイト配列（ADR-035 提案の layout 方針）
 - `string_gc_helpers.ark`: GC array 操作の共通ヘルパー
 - `intrinsic_string_basic.ark`:
   - `emit_len`: GC target で `emit_gc_array_len` を使用

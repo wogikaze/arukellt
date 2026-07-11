@@ -3,6 +3,7 @@
 ステータス: **ACCEPTED** — 4段階の安定性ラベル（stable/provisional/experimental/unimplemented）を採用  
 日付: 2026-04-01  
 決定者: core team
+決定日: 2026-04-01
 
 ## 文脈
 

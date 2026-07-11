@@ -5,9 +5,9 @@
 
 ## Current Snapshot
 
-- CLI default target: `wasm32-wasi-p1`
-- Canonical target: `wasm32-wasi-p2`
-- Component emit: available on `wasm32-wasi-p2`
+- CLI default target: `wasm32`
+- Canonical target: `wasm32-gc`
+- Component emit: available on `wasm32-gc`
 - Backend validation failure (`W0004`) is a hard error.
 
 ## Documents
@@ -16,4 +16,5 @@
 |------|-------|---------|
 | [abi-reference.md](abi-reference.md) | WIT 型マッピング対応表 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [abi.md](abi.md) | 公開 ABI 方針 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
+| [target-runtime-and-surfaces.md](target-runtime-and-surfaces.md) | ターゲット実行面・検証・capability（現行） | ステータス: 現行挙動メモ（決定記録ではない） |
 | [wasi-resource-model.md](wasi-resource-model.md) | Archived WASI resource model | この文書は、過去に検討していた capability-first な WASI API 設計メモです。 |

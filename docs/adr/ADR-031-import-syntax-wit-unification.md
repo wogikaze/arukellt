@@ -5,6 +5,7 @@
 トラック: language-design
 Issue: [#123](../../issues/done/123-import-syntax-unification.md)
 廃止: [ADR-026](ADR-026-import-vs-wit-package-syntax.md)（統合）; [ADR-025](ADR-025-use-paths-vs-wit-package-identifiers.md) も廃止; [ADR-009](ADR-009-import-syntax.md) を精緻化
+決定日: 2026-04-25
 
 ---
 

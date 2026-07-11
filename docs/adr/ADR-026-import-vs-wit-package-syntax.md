@@ -1,6 +1,7 @@
 # ADR-026: ソース import と WIT パッケージ構文 — 決定記録
 
 ステータス: **SUPERSEDED** — [ADR-031](ADR-031-import-syntax-wit-unification.md) に統合
+決定日: 2026-04-18
 
 後継: [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md)  
 日付: 2026-04-18  

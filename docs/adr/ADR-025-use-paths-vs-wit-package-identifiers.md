@@ -4,6 +4,7 @@
 日付: 2026-04-16
 トラック: language-design（issue #123）
 後継: [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md)
+決定日: 2026-04-16
 
 ## 背景
 

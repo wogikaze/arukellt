@@ -2,7 +2,7 @@
 name = "Arukellt"
 version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-06-17"
+updated = "2026-07-11"
 verification_command = "python3 scripts/manager.py verify quick"
 current_state_doc = "docs/current-state.md"
 
@@ -27,53 +27,53 @@ session_entry = "ark-driver::Session"
 dump_phases = ["parse", "resolve", "corehir", "mir", "optimized-mir", "backend-plan"]
 
 [targets]
-cli_default = "wasm32-wasi-p1"
-canonical = "wasm32-wasi-p2"
-component_target = "wasm32-wasi-p2"
+cli_default = "wasm32"
+canonical = "wasm32-gc"
+component_target = "wasm32-gc"
 default_emit = "core-wasm"
 component_emit = true
 wit_emit = true
-component_note = "requires external `wasm-tools` binary and WASI adapter module"
+component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps)"
 
 [[target_profiles]]
-id = "wasm32-wasi-p1"
-tier = "T1"
+id = "wasm32"
+tier = "—"
 adr_tier = "supported"
 status = "stable"
 run_supported = true
-role = "Supported: full fixture coverage, AtCoder/competition target"
+role = "Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1)"
 
 [[target_profiles]]
-id = "wasm32-freestanding"
-tier = "T2"
-adr_tier = "not-started"
-status = "unimplemented"
-run_supported = false
-role = "Not started: no codegen, no tests"
-
-[[target_profiles]]
-id = "wasm32-wasi-p2"
-tier = "T3"
+id = "wasm32-gc"
+tier = "—"
 adr_tier = "primary"
 status = "stable"
 run_supported = true
-role = "Primary (ADR-013): canonical GC-native path, all CI gates apply"
+role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile"
 
 [[target_profiles]]
-id = "native"
-tier = "T4"
+id = "native-cpp"
+tier = "—"
 adr_tier = "scaffold"
 status = "scaffold"
 run_supported = false
-role = "Scaffold: selfhost-native asm stub (#641); compile-only, run_supported=false"
+role = "Scaffold C99 emit path"
 
 [[target_profiles]]
-id = "wasm32-wasi-p3"
-tier = "T5"
-adr_tier = "not-started"
-status = "unimplemented"
+id = "native-llvm"
+tier = "—"
+adr_tier = "scaffold"
+status = "scaffold"
 run_supported = false
-role = "Not started: WASI p3 spec not finalized"
+role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
+
+[[target_profiles]]
+id = "wasm32-freestanding"
+tier = "—"
+adr_tier = "retired"
+status = "legacy-gap"
+run_supported = false
+role = "ADR-007 retired (hard error as public target); leftover driver/emitter code is deletion backlog, not a public contract"
 
 [verification]
 fixture_passed = 654
@@ -135,7 +135,7 @@ summary = "deprecated `import <name>` syntax; use `use <name>`"
 code = "E0500"
 severity = "error"
 phase = "resolve"
-summary = "module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`)"
+summary = "module requires a different target (e.g. `std::host::sockets` on wasm32 emits E0500; use `--target wasm32-gc`)"
 
 [[diagnostics]]
 code = "E0501"
@@ -144,7 +144,7 @@ phase = "typecheck"
 summary = "symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module)"
 
 [component]
-status = "Implemented in v2 on `wasm32-wasi-p2` for supported WIT-compatible exports"
+status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-008 in-tree ideal; wrap helpers may still call wasm-tools)"
 summary = "Only user `pub fn` with WIT-compatible types are exported"
 
 # Lifecycle status labels used across docs, issues, and target-contract.md.

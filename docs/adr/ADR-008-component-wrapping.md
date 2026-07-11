@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — `--emit component` は in-tree で生成する
 
 決定日: 2026-03-28  
-改訂日: 2026-07-11 — ADR-007 との矛盾を解消（理想形は in-tree）
+改訂日: 2026-07-11 — 1 ページ scratch 上限を plan へ移す
 
 ---
 
@@ -28,6 +28,9 @@ Component Model 対応にあたり、core Wasm モジュールを `.component.wa
 3. **複数 component の合成**は ADR-034（`wac plug` 委譲）の範囲であり、本 ADR の
    単体 wrapping とは分離する。
 4. **ブラウザ向け ESM 化**（`jco transpile`）はコンパイラ外のパッケージング手順である。
+5. **canonical ABI 用の一時領域と再確保契約は in-tree 実装が管理する。**
+   具体的なページ数・offset・bump 戦略は実装詳細であり、本 ADR では固定しない
+   （現行値は [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md)）。
 
 理由:
 - Arukellt はセルフホスト言語であり、component 生成を外部ツールに鎖しない
@@ -48,15 +51,11 @@ Component Model 対応にあたり、core Wasm モジュールを `.component.wa
 - 利点: 仕様追従を上流に任せられる
 - 欠点: PATH / 版ピン / セルフホスト非完結。`--emit component` が外部依存になる
 
-### Canonical ABI メモリ予算（付随決定）
-
-- Linear memory 1 page のうち offset 256–65535 を canonical ABI スクラッチに使用
-- Per-call bump（呼び出し毎リセット）。大きな文字列・リストは上限に注意
-
 ---
 
 ## 関連
 
 - [ADR-007](ADR-007-targets.md) — emit surface（component は in-tree）
 - [ADR-034](ADR-034-component-composition-linking.md) — 合成は `wac plug`
+- [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md) — scratch 現行値
 - `docs/current-state.md` — 実装・fixture の現行挙動

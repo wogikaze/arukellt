@@ -5,9 +5,9 @@
 
 ## Current Snapshot
 
-- CLI default target remains `wasm32-wasi-p1`.
-- Canonical path for current docs is `wasm32-wasi-p2`.
-- Component emit lives on `wasm32-wasi-p2`.
+- CLI default target remains `wasm32`.
+- Canonical path for current docs is `wasm32-gc`.
+- Component emit lives on `wasm32-gc`.
 
 ## Documents
 

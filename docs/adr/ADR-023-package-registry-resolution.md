@@ -3,6 +3,7 @@
 ステータス: **ACCEPTED** — Registry lookupモデル（local > workspace > registry）を採用
 日付: 2026-04-14
 決定者: Module-system track (issue #487)
+決定日: 2026-04-14
 
 ## 背景
 

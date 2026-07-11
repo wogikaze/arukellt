@@ -3,6 +3,7 @@
 ステータス: **ACCEPTED** — `use std::host::stdio`の`::`-separated形式をソースモジュール参照として確定
 日付: 2026-03-28
 決定者: Language-design track (issue #123)
+決定日: 2026-03-28
 
 ## Context
 
@@ -57,7 +58,7 @@ import "wasi:cli/stdin@0.2.10"
 
 ## Rationale
 
-1. **既存コードへの影響ゼロ** — 409 件のテスト fixture を一切変更しない
+1. **既存コードへの影響ゼロ** — 採択時点（2026-03）の既存テスト fixture を一切変更しない
 2. **主要言語の実績に準拠** — Rust, Go, Python, JS のすべてがソース import と Component 境界を分離
 3. **LLM フレンドリ** — keyword が異なる (`use` vs `import`) ため、LLM が 2 層を区別しやすい
 4. **セルフホスト適性** — コンパイラ自身が `use std::host::stdio` のような明示 import で書けて可読性が高い
@@ -68,7 +69,7 @@ import "wasi:cli/stdin@0.2.10"
 ### A. `namespace:package/module` 形式を全面採用 (不採用)
 
 - `use arukellt:std/io` のように WIT 識別子フォーマットに統一
-- **却下理由**: 全既存 fixture の破壊的変更 (409 件)、`arukellt:std/io` は冗長、
+- **却下理由**: 全既存 fixture の破壊的変更（採択時点で多数）、`arukellt:std/io` は冗長、
   WIT の `namespace:package` は組織・レジストリの概念であり 1 言語の内部モジュールに使う設計ではない
 
 ### B. `wit import` 別 keyword 化 (部分採用)
