@@ -42,7 +42,7 @@ match body {
 
 Host HTTP client helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
-[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #446 / #077.
+[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #446 / #077.
 
 When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 **HTTPS is not supported**.

@@ -87,13 +87,11 @@ WASI 非依存の旧 freestanding は提供しない。
 
 ### 7. Capability error の原則
 
-<a id="capability-surface"></a>
-
 ターゲットが対応しない言語機能・host API を使う場合は **コンパイルエラー**
 （または明示の target capability error）。実装未了は「仕様上無い」と混同しない
 （例: `env::var` と WASI P1 — platform / current-state）。
 
-現行の host 到達可能性・関数別対応表は
+現行の host 到達可能性・関数別対応表（Capability surface）は
 [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md#capability-surface)。
 
 ### 8. Support tier 語彙
@@ -105,6 +103,20 @@ WASI 非依存の旧 freestanding は提供しない。
 | scaffold | 試験のみ。広域保証なし |
 
 現行のどの surface が guaranteed/smoke かは platform / current-state。
+
+### 9. Target profile の軸（project-state）
+
+`docs/data/project-state.toml` の target 行は次を混同しない:
+
+| フィールド | 意味 | 根拠 |
+|------------|------|------|
+| `support_tier` | primary / supported / scaffold / not-started | 本 ADR §8 / ADR-013 |
+| `implementation_state` | complete / partial / scaffold / unimplemented | 実装の完成度（living） |
+| `contract_stability` | CLI 名・公開 target 契約の安定度 | 本節。ADR-014 の API stability ではない |
+
+`contract_stability = stable` は「target 識別子と CLI 契約が安定」を意味し、
+`implementation_state = partial` と両立しうる（例: `wasm32-gc`）。
+言語機能・stdlib API のラベルは引き続き ADR-014。
 
 ---
 

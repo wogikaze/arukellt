@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T15:23:34+09:00
-> Source-Commit: `bf4a04fc`
+> Generated-At: 2026-07-11T15:38:55+09:00
+> Source-Commit: `abf7b79f`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 6 verification check failure(s)
@@ -50,7 +50,7 @@ ADR / research と食い違う現行コード・記述は、ここで差分と�
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
-| Target | Support Tier | Implementation | API Stability | Run | Notes |
+| Target | Support Tier | Implementation | Contract Stability | Run | Notes |
 |--------|--------------|----------------|---------------|-----|-------|
 | `wasm32` | supported | complete | stable | Yes | AtCoder / linear-memory competition path (canonical; was wasm32-wasi-p1) |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
@@ -218,7 +218,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
 - `native-*` is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. Full selfhost-native lowering remains #529 Phase 7 follow-up.
 - some historical docs remain archived / historical and should not override current-state
-- **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [ADR-007: Targets](adr/ADR-007-targets.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on `wasm32` still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
+- **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [Capability surface](platform/target-runtime-and-surfaces.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on `wasm32` still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
 - **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.
 - **Library vs command component worlds (#666)**: on `wasm32-gc` with default WASI P2 host profile, modules that export component-compatible `pub fn` surfaces compile through the **library export** path (generic or specialized canonical ABI adapters). Modules with no exportable `pub fn` and no explicit `--world` use the **P2 command** wrapper (`wasi:cli/run`). When both `pub fn` exports and `fn main` are present, exports take precedence: the artifact is a library component with callable exports; `main` remains in core wasm but is not exported as `wasi:cli/run`. For a command-only program, omit exportable `pub fn` declarations or pass `--world wasi:cli/command`.
 

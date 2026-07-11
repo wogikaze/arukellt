@@ -22,8 +22,7 @@ ADR-000 の規則に既存 ADR 群を追従させる残作業を追跡する。
 2026-07-11: ADR修復 → normative伝播 → 提案ADRの前提修正（038/039）・037 capabilities・
 current-state分割（history/）・鮮度メタ・リンク修正。
 
-2026-07-11 (91点再評価対応): ADR-037 を ADR-042 と整合（`Simd<T,N>` vs `std::wasm::V128`、
-bitselect/reinterpret は `std::simd`）。現行詳細を `docs/state/` へ移し `history/` は
-milestones のみ。target 軸を support_tier / implementation_state / api_stability に分離し、
-`wasm32-freestanding` を `[[legacy_gaps]]` へ。
+2026-07-11 (92点再評価対応): ADR-037 を nominal SIMD（`I32x4`/`F32x4`/`Mask4`、
+const generics 非導入）へ確定。select/bit_select・capability 軸分離。ADR-042 D1 修正。
+`contract_stability` 語彙（ADR-007 §9）。`docs/state/` 履歴整理とリンク修正。
 

@@ -727,7 +727,7 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
     "std::host::http": [
         "Host HTTP client helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
-        "[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #446 / #077.",
+        "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #446 / #077.",
         "",
         "When implemented, only plaintext HTTP/1.1 over TCP is in scope;",
         "**HTTPS is not supported**.",
@@ -735,14 +735,14 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
     "std::host::sockets": [
         "Host TCP socket helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
-        "[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #447 / #139.",
+        "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
         "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
     ],
     "std::host::udp": [
         "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
-        "[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #447 / #139.",
+        "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
         "Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.",
     ],
@@ -1164,7 +1164,7 @@ def join_pipeline(parts: list[str]) -> str:
 
 def render_target_table(state: dict) -> str:
     rows = [
-        "| Target | Support Tier | Implementation | API Stability | Run | Notes |",
+        "| Target | Support Tier | Implementation | Contract Stability | Run | Notes |",
         "|--------|--------------|----------------|---------------|-----|-------|",
     ]
     for profile in load_target_contract_summary():
@@ -1173,7 +1173,7 @@ def render_target_table(state: dict) -> str:
                 profile["Target"].strip("`"),
                 profile["Support Tier"],
                 profile["Implementation"],
-                profile["API Stability"],
+                profile["Contract Stability"],
                 profile["Run"],
                 escape_table(profile["Notes"]),
             )
@@ -1207,7 +1207,7 @@ def load_target_contract_summary() -> list[dict[str, str]]:
         "Target",
         "Support Tier",
         "Implementation",
-        "API Stability",
+        "Contract Stability",
         "Run",
         "Notes",
     ]
@@ -2609,7 +2609,7 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
     if _availability_unbacked(funcs):
         return (
             "⚠ **Not user-reachable** on the current selfhost compile/run path. "
-            "See [ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues "
+            "See [Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues "
             "#446 / #447 / #077 / #139."
         )
     if _availability_t3_only(funcs):

@@ -41,7 +41,7 @@ match sock {
 
 Host TCP socket helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
-[ADR-007: Capability surface](../../adr/ADR-007-targets.md#capability-surface) and issues #447 / #139.
+[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.
 
 Importing this module on T1 (`wasm32-wasi-p1`) emits E0500.
 

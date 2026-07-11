@@ -39,7 +39,7 @@ component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools
 id = "wasm32"
 support_tier = "supported"
 implementation_state = "complete"
-api_stability = "stable"
+contract_stability = "stable"
 run_supported = true
 role = "Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1)"
 
@@ -47,7 +47,7 @@ role = "Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1)
 id = "wasm32-gc"
 support_tier = "primary"
 implementation_state = "partial"
-api_stability = "stable"
+contract_stability = "stable"
 run_supported = true
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
 
@@ -55,7 +55,7 @@ role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering s
 id = "native-cpp"
 support_tier = "scaffold"
 implementation_state = "scaffold"
-api_stability = "experimental"
+contract_stability = "experimental"
 run_supported = false
 role = "Scaffold C99 emit path"
 
@@ -63,7 +63,7 @@ role = "Scaffold C99 emit path"
 id = "native-llvm"
 support_tier = "scaffold"
 implementation_state = "scaffold"
-api_stability = "experimental"
+contract_stability = "experimental"
 run_supported = false
 role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
 
@@ -148,7 +148,7 @@ summary = "Only user `pub fn` with WIT-compatible types are exported"
 # Every feature / target surface should use one of these labels.
 # Axis separation (do not overload a single `status` field):
 # - support_tier: primary | supported | scaffold | not-started  (ADR-007/013)
-# - api_stability: stable | provisional | experimental | unimplemented  (ADR-014)
+# - contract_stability: stable | provisional | experimental  (ADR-007 §9; CLI/target contract, NOT ADR-014 API)
 # - implementation_state: complete | partial | scaffold | unimplemented
 # - legacy_gaps: retired surfaces awaiting deletion (not target_profiles)
 
