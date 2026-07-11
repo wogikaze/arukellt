@@ -12,7 +12,7 @@ path_globs = [
   "docs/research/**",
   "docs/design/**",
   "docs/spec/**",
-  "docs/process/benchmark-results.md",
+  "docs/history/benchmarks/benchmark-results.md",
   "docs/process/false-done-prevention.md",
 ]
 

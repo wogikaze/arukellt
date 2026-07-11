@@ -194,7 +194,7 @@ LEB128, endian, byte cursor, WIT, component resource handle まで標準に含�
 
 ### 5.1 正準 import 例
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::prelude
 use std::text::string
@@ -239,7 +239,7 @@ Arukellt stdlib の成功は、関数数より型設計で決まる。特に `St
 
 ### 6.2 Error の正準形
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub enum Error {
     InvalidArgument(String),
@@ -287,7 +287,7 @@ Wasm/WIT/binary utilities を真面目に扱うなら、`u8`, `u16`, `u32`, `u64
 
 ### 7.2 Vec / Deque
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn new<T>() -> Vec<T>
 pub fn with_capacity<T>(cap: i32) -> Vec<T>
@@ -310,7 +310,7 @@ pub fn deque_pop_back<T>(d: Deque<T>) -> Option<T>
 
 ### 7.3 HashMap / HashSet / IndexMap
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn new<K, V>() -> HashMap<K, V>
 pub fn insert<K, V>(m: HashMap<K, V>, key: K, value: V) -> Option<V>
@@ -326,7 +326,7 @@ pub fn index_map_iter<K, V>(m: IndexMap<K, V>) -> Seq<(K, V)>
 
 ### 7.4 Arena / SlotMap / Interner
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn arena_new<T>() -> Arena<T>
 pub fn arena_alloc<T>(a: Arena<T>, value: T) -> ArenaId<T>
@@ -365,7 +365,7 @@ Arena/SlotMap/Interner を stdlib に含めることに違和感があるかも�
 
 ### 8.2 Bytes 系 API 草案
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn bytes_new() -> Bytes
 pub fn bytes_from_array(xs: Vec<u8>) -> Bytes
@@ -388,7 +388,7 @@ pub fn write_var_u32(c: ByteCursor, x: u32) -> Result<(), Error>
 
 ### 8.3 String 系 API 草案
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn new() -> String
 pub fn from_utf8(bytes: Bytes) -> Result<String, Error>
@@ -413,7 +413,7 @@ Vec に何でも詰め込むと API が膨れ上がる。そこで Arukellt で�
 
 ### 9.1 `Seq<T>` API 草案
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn from_vec<T>(v: Vec<T>) -> Seq<T>
 pub fn range_i32(start: i32, end: i32) -> Seq<i32>
@@ -471,7 +471,7 @@ Arukellt は Wasm 主体であっても、CLI・ファイル入出力・パス�
 
 ### 10.2 基本 API 草案
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn duration_ms(start: i64, end: i64) -> i64
 pub fn seeded_random(seed: i32) -> i32
@@ -506,7 +506,7 @@ Arukellt の標準ライブラリで最も差別化すべき箇所がここで�
 
 ### 11.2 `std::wasm` API 草案
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub fn module_builder() -> WasmModuleBuilder
 pub fn add_type(m: WasmModuleBuilder, ty: FuncType) -> TypeId
@@ -521,7 +521,7 @@ pub fn write_var_i64(c: ByteCursor, x: i64) -> Result<(), Error>
 
 ### 11.3 `std::wit` / `std::component` API 草案
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 pub enum WitType {
     Bool,

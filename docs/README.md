@@ -101,7 +101,7 @@ Do not edit generated files manually — changes will be overwritten on the next
 | `docs/current-state.md` | marker-updated |
 | `docs/data/target-contract-summary.md` | generated |
 | section `*/README.md` under `docs/` | generated |
-| `docs/process/benchmark-results.md` | generated (benchmark runner) |
+| `docs/history/benchmarks/benchmark-results.md` | historical (benchmark runner) |
 | `docs/data/project-state.toml` | hand-written SSOT (input) |
 | `docs/data/sections.toml` | hand-written SSOT (input) |
 | other hand-written `docs/**/*.md` | hand-written |

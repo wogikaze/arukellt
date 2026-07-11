@@ -1230,16 +1230,25 @@ def format_host_module_badges(
     else:
         availability = "🎯 **Availability:** `wasm32` and `wasm32-gc`"
 
-    # Determine implementation status from function ``kind`` fields.
+    # Determine implementation status from function ``kind`` fields and
+    # explicit ``implementation_status`` annotations.
     stub_count = sum(1 for fn in functions if fn.get("kind") == "host_stub")
-    limited_count = sum(1 for fn in functions if _function_semantic_status(fn) != "functional")
+    unreachable_count = sum(1 for fn in functions if _function_semantic_status(fn) == "unreachable")
+    limited_count = sum(1 for fn in functions if _function_semantic_status(fn) not in ("functional", "unreachable"))
     total = len(functions) if functions else 0
-    if unbacked:
+    if unbacked or (total > 0 and unreachable_count == total):
         status = "⚠️ **Status:** not user-reachable on selfhost path"
     elif total > 0 and stub_count == total:
         status = "⚠️ **Status:** stub — not yet implemented"
-    elif stub_count > 0:
-        status = f"⚠️ **Status:** mixed — {stub_count}/{total} stub"
+    elif unreachable_count > 0 and unreachable_count == total:
+        status = "⚠️ **Status:** not user-reachable on selfhost path"
+    elif stub_count > 0 or unreachable_count > 0:
+        mixed_parts = []
+        if stub_count > 0:
+            mixed_parts.append(f"{stub_count}/{total} stub")
+        if unreachable_count > 0:
+            mixed_parts.append(f"{unreachable_count}/{total} unreachable")
+        status = f"⚠️ **Status:** mixed — {', '.join(mixed_parts)}"
     elif limited_count > 0:
         status = f"⚠️ **Status:** partial — {limited_count}/{total} APIs have limited or placeholder semantics"
     else:
@@ -1377,7 +1386,7 @@ def render_current_state_updated(state: dict) -> str:
     updated = state["project"]["updated"]
     cmd = state["project"].get("verification_command", "python3 scripts/manager.py verify quick")
     verification = state.get("verification", {})
-    source_commit = verification.get("last_verified_commit", "not-recorded")
+    source_commit = verification.get("source_commit", verification.get("last_verified_commit", "not-recorded"))
     generated_at = verification.get("last_verified_at", updated)
     blockers = verification.get("blockers", [])
     failures = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
@@ -1441,6 +1450,7 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
         ]
     )
     blockers = verification.get("blockers", [])
+    source_commit = verification.get("source_commit", "")
     lines.extend(
         [
             "",
@@ -1454,8 +1464,10 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
     )
     if blockers:
         for blocker in blockers:
+            last_vc = blocker["last_verified_commit"]
+            stale_tag = " ⏰STALE" if (source_commit and last_vc and last_vc != source_commit) else ""
             lines.append(
-                "| `{id}` | `{scope}` | `{category}` | {count} | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}` |".format(
+                "| `{id}` | `{scope}` | `{category}` | {count} | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}`{stale} |".format(
                     id=blocker["id"],
                     category=blocker["category"],
                     scope=blocker["scope"],
@@ -1465,7 +1477,8 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
                     owner=blocker["owner"],
                     issue=blocker["issue"],
                     first=blocker["first_seen_commit"],
-                    last=blocker["last_verified_commit"],
+                    last=last_vc,
+                    stale=stale_tag,
                 )
             )
     else:
@@ -1618,7 +1631,7 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         "| `docs/current-state.md` | marker-updated |",
         "| `docs/data/target-contract-summary.md` | generated |",
         "| section `*/README.md` under `docs/` | generated |",
-        "| `docs/process/benchmark-results.md` | generated (benchmark runner) |",
+        "| `docs/history/benchmarks/benchmark-results.md` | historical (benchmark runner) |",
         "| `docs/data/project-state.toml` | hand-written SSOT (input) |",
         "| `docs/data/sections.toml` | hand-written SSOT (input) |",
         "| other hand-written `docs/**/*.md` | hand-written |",
@@ -2736,11 +2749,18 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
             f"- Dump phases: `{', '.join(state['pipeline']['dump_phases'])}`",
         ]
     if snapshot == "language":
-        return [
+        v = state.get("verification", {})
+        lines = [
             "- Current user-visible behavior is described by [../current-state.md](../current-state.md).",
-            f"- Fixture-backed verification covers {manifest_count} manifest entries (`docs/data/project-state.toml`).",
+            f"- Fixture registry: {manifest_count} manifest entries (`docs/data/project-state.toml`).",
+            f"- Last observed harness: {v.get('fixture_harness_observed', 'n/a')} outcomes "
+            f"(passed: {v.get('fixture_passed', 'n/a')}, failed: {v.get('fixture_failures', 'n/a')}, "
+            f"skipped: {v.get('fixture_skipped', 'n/a')}).",
+            f"- Not included in last snapshot: {v.get('fixture_not_in_last_harness_snapshot', 'n/a')} "
+            f"registry entries (not proof they fail).",
             f"- Canonical target for current docs: `{state['targets']['canonical']}`",
         ]
+        return lines
     if snapshot == "platform":
         return [
             f"- CLI default target: `{state['targets']['cli_default']}`",
@@ -3084,7 +3104,8 @@ def render_stdlib_reference(manifest: dict) -> str:
         "# stdlib API Reference",
         "",
         "> This file is generated by `python3 scripts/gen/generate-docs.py` from [`../../std/manifest.toml`](../../std/manifest.toml).",
-        "> It reflects the current implemented public API, not roadmap-only or archived design notes.",
+        "> It reflects the manifest-backed declared public API surface, not roadmap-only or archived design notes.",
+        "> Some APIs may be `unreachable`, `limited`, or `stub` — check the Implementation column.",
         "",
         "## Stability Overview",
         "",

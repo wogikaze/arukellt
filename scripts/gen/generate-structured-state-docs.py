@@ -14,6 +14,14 @@ except ImportError:
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "docs" / "data"
 
+# Valid enum values — generators must reject unknown values.
+CLI_PRESENCE_VALUES = ("present", "absent")
+CLI_CONTRACT_STABILITY_VALUES = ("stable", "provisional", "experimental")
+CLI_IMPLEMENTATION_STATE_VALUES = ("functional", "limited", "scaffold", "unavailable", "unknown")
+CHECK_CURRENT_STATUS_VALUES = ("pass", "fail", "stale", "not-run")
+CHECK_EVIDENCE_TYPE_VALUES = ("smoke", "static-scan", "fixture-set", "exhaustive", "manual")
+GUARANTEE_TIER_VALUES = ("guaranteed", "provisional", "experimental", "not_guaranteed")
+
 
 def load(name: str) -> dict:
     return tomllib.loads((DATA / name).read_text(encoding="utf-8"))
@@ -167,13 +175,21 @@ def render_cli_surface(data: dict) -> str:
         f"> Binary: `{binary.get('name')}` — alias policy: `{binary.get('alias_policy')}`.",
         f"> Wrapper: `{binary.get('wrapper')}`. Usage source: `{binary.get('usage_source')}`.",
         "",
-        "| Command | Status | Presence stability | Implementation | Release guarantee IDs | Summary |",
-        "|---------|--------|--------------------|----------------|-----------------------|---------|",
+        "> Axes (do not overload a single `status` field):",
+        "> - **Presence**: `present` | `absent` — whether the subcommand exists in the binary",
+        "> - **Contract stability**: `stable` | `provisional` | `experimental` — CLI contract maturity",
+        "> - **Implementation**: `functional` | `limited` | `scaffold` | `unavailable` | `unknown` — runtime behavior",
+        "",
+        "| Command | Presence | Contract stability | Implementation | Guarantee IDs | Summary |",
+        "|---------|----------|--------------------|----------------|---------------|---------|",
     ]
     for c in data.get("commands", []):
+        presence = c.get("presence", "present")
+        contract = c.get("contract_stability", "unknown")
+        impl = c.get("implementation_state", "unknown")
         lines.append(
-            f"| `arukellt {c['id']}` | `{c['status']}` | `{c['presence_stability']}` | "
-            f"`{c.get('implementation_state', 'functional')}` | "
+            f"| `arukellt {c['id']}` | `{presence}` | `{contract}` | "
+            f"`{impl}` | "
             f"{', '.join(f'`{gid}`' for gid in c.get('guarantee_ids', [])) or '—'} | {c['summary']} |"
         )
     lines.extend(["", "Human guide: [`../cli-reference.md`](../cli-reference.md).", ""])
@@ -239,7 +255,26 @@ def render_bootstrap_contract(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _status_badge(status: str) -> str:
+    if status == "pass":
+        return "✅ pass"
+    if status == "fail":
+        return "❌ fail"
+    if status == "stale":
+        return "⏰ stale"
+    if status == "not-run":
+        return "⬜ not-run"
+    return status
+
+
 def render_release_guarantees(data: dict) -> str:
+    guarantees = data.get("guarantees", [])
+    checks = data.get("checks", [])
+    checks_by_guarantee: dict[str, list[dict]] = {}
+    for ch in checks:
+        gid = ch.get("guarantee_id", "")
+        checks_by_guarantee.setdefault(gid, []).append(ch)
+
     lines = [
         "# Release guarantees (structured)",
         "",
@@ -247,20 +282,78 @@ def render_release_guarantees(data: dict) -> str:
         "> Normative prose: [`../release-criteria.md`](../release-criteria.md). "
         "Checklist: [`../release-checklist.md`](../release-checklist.md).",
         "",
-        "| ID | Tier | Summary | Evidence scope | Check | CI job | Blocker | Known limitation |",
-        "|----|------|---------|----------------|-------|--------|:-------:|------------------|",
+        "> **Contract vs current state:** A guarantee is a release-time contract.",
+        "> `current_status` shows the latest observed verification result, which may be `fail`.",
+        "> A `fail` status means the guarantee is not yet met — it does not remove the guarantee.",
+        "",
+        "## Guarantee matrix",
+        "",
+        "| ID | Tier | Summary | Evidence scope | Current status | Evidence type | Last verified | Known limitation |",
+        "|----|------|---------|----------------|----------------|---------------|---------------|------------------|",
     ]
-    for g in data.get("guarantees", []):
+    for g in guarantees:
+        g_checks = checks_by_guarantee.get(g["id"], [])
+        if g_checks:
+            # Aggregate current status: fail dominates stale dominates pass
+            statuses = [ch.get("current_status", "not-run") for ch in g_checks]
+            if "fail" in statuses:
+                current = "fail"
+            elif "stale" in statuses:
+                current = "stale"
+            elif "not-run" in statuses:
+                current = "not-run"
+            elif "pass" in statuses:
+                current = "pass"
+            else:
+                current = "not-run"
+            evidence_types = sorted({ch.get("evidence_type", "manual") for ch in g_checks})
+            evidence = ", ".join(evidence_types)
+            last_commits = sorted({ch.get("last_verified_commit", "") for ch in g_checks if ch.get("last_verified_commit")})
+            last_verified = ", ".join(f"`{c}`" for c in last_commits) if last_commits else "—"
+        else:
+            current = "not-run"
+            evidence = "—"
+            last_verified = "—"
         lines.append(
-            "| `{id}` | `{tier}` | {summary} | {coverage} | `{check}` | `{job}` | {blocker} | {lim} |".format(
+            "| `{id}` | `{tier}` | {summary} | {coverage} | {current} | {evidence} | {last_verified} | {lim} |".format(
                 id=g["id"],
                 tier=g["tier"],
                 summary=g["summary"],
                 coverage=", ".join(f"`{item}`" for item in g.get("coverage", [])) or "—",
-                check=g.get("check", ""),
-                job=g.get("ci_job", ""),
-                blocker="yes" if g.get("release_blocker") else "no",
+                current=_status_badge(current),
+                evidence=evidence,
+                last_verified=last_verified,
                 lim=g.get("known_limitation", "") or "—",
+            )
+        )
+
+    lines.extend([
+        "",
+        "## Check catalogue",
+        "",
+        "The release-blocker set is exactly the checks with `release_blocking = true` below.",
+        "No supplemental lists.",
+        "",
+        "| Check ID | Guarantee | Blocking | In full | In quick | Current | Evidence | Affected | Last verified | Command |",
+        "|----------|-----------|:--------:|:-------:|:--------:|---------|----------|---------:|---------------|---------|",
+    ])
+    for ch in checks:
+        blocking = "🔴 yes" if ch.get("release_blocking") else "no"
+        in_full = "✓" if ch.get("included_in_full") else "—"
+        in_quick = "✓" if ch.get("included_in_quick") else "—"
+        affected = str(ch.get("affected_count", "—"))
+        lines.append(
+            "| `{id}` | {gid} | {blocking} | {in_full} | {in_quick} | {current} | `{evidence}` | {affected} | `{lvc}` | `{cmd}` |".format(
+                id=ch["id"],
+                gid=f"`{ch['guarantee_id']}`" if ch.get("guarantee_id") else "—",
+                blocking=blocking,
+                in_full=in_full,
+                in_quick=in_quick,
+                current=_status_badge(ch.get("current_status", "not-run")),
+                evidence=ch.get("evidence_type", "manual"),
+                affected=affected,
+                lvc=ch.get("last_verified_commit", "") or "—",
+                cmd=ch.get("command", ""),
             )
         )
     lines.append("")
@@ -268,13 +361,15 @@ def render_release_guarantees(data: dict) -> str:
 
 
 def render_release_blockers(data: dict) -> str:
+    """Generate the release-checklist.md blocker block from checks with release_blocking=true."""
     lines = ["<!-- Generated from docs/data/release-guarantees.toml; do not edit this block. -->"]
-    for guarantee in data.get("guarantees", []):
-        if not guarantee.get("release_blocker"):
+    for ch in data.get("checks", []):
+        if not ch.get("release_blocking"):
             continue
+        status_tag = f" [FAIL]" if ch.get("current_status") == "fail" else ""
         lines.append(
-            f"- [ ] **CI `{guarantee['id']}`** — `{guarantee['check']}` "
-            f"(job: `{guarantee['ci_job']}`)"
+            f"- [ ] **CI `{ch['id']}`**{status_tag} — `{ch.get('command', '')}` "
+            f"(job: `{ch.get('ci_job', 'none')}`)"
         )
     return "\n".join(lines)
 
@@ -291,26 +386,73 @@ def replace_block(path: Path, marker: str, content: str, check: bool, stale: lis
     write(path, updated, check, stale)
 
 
+def validate_cli_surface(cli_data: dict) -> list[str]:
+    errors: list[str] = []
+    for c in cli_data.get("commands", []):
+        cid = c.get("id", "<unknown>")
+        presence = c.get("presence")
+        if presence is not None and presence not in CLI_PRESENCE_VALUES:
+            errors.append(f"{cid}: invalid presence '{presence}'; must be one of {list(CLI_PRESENCE_VALUES)}")
+        contract = c.get("contract_stability")
+        if contract is not None and contract not in CLI_CONTRACT_STABILITY_VALUES:
+            errors.append(f"{cid}: invalid contract_stability '{contract}'; must be one of {list(CLI_CONTRACT_STABILITY_VALUES)}")
+        impl = c.get("implementation_state")
+        if impl is not None and impl not in CLI_IMPLEMENTATION_STATE_VALUES:
+            errors.append(f"{cid}: invalid implementation_state '{impl}'; must be one of {list(CLI_IMPLEMENTATION_STATE_VALUES)}")
+        # Reject legacy fields
+        if "status" in c:
+            errors.append(f"{cid}: obsolete 'status' field — use presence + contract_stability")
+        if "presence_stability" in c:
+            errors.append(f"{cid}: obsolete 'presence_stability' field — use contract_stability")
+    return errors
+
+
+def validate_release_guarantees(release_data: dict) -> list[str]:
+    errors: list[str] = []
+    guarantee_ids = {g["id"] for g in release_data.get("guarantees", [])}
+    for g in release_data.get("guarantees", []):
+        if g.get("tier") not in GUARANTEE_TIER_VALUES:
+            errors.append(f"guarantee {g['id']}: invalid tier '{g.get('tier')}'")
+        if g.get("tier") == "guaranteed" and not g.get("coverage"):
+            errors.append(f"guarantee {g['id']}: guaranteed row lacks evidence coverage")
+    for ch in release_data.get("checks", []):
+        cid = ch.get("id", "<unknown>")
+        gid = ch.get("guarantee_id", "")
+        if gid and gid not in guarantee_ids:
+            errors.append(f"check {cid}: unknown guarantee_id '{gid}'")
+        status = ch.get("current_status")
+        if status is not None and status not in CHECK_CURRENT_STATUS_VALUES:
+            errors.append(f"check {cid}: invalid current_status '{status}'; must be one of {list(CHECK_CURRENT_STATUS_VALUES)}")
+        etype = ch.get("evidence_type")
+        if etype is not None and etype not in CHECK_EVIDENCE_TYPE_VALUES:
+            errors.append(f"check {cid}: invalid evidence_type '{etype}'; must be one of {list(CHECK_EVIDENCE_TYPE_VALUES)}")
+        if ch.get("release_blocking") and (not ch.get("command") or ch.get("ci_job") == "none"):
+            errors.append(f"check {cid}: release-blocking check lacks executable command/CI job")
+    return errors
+
+
 def main() -> int:
     check = "--check" in sys.argv
     stale: list[Path] = []
     cli_data = load("cli-surface.toml")
     release_data = load("release-guarantees.toml")
     guarantee_ids = {g["id"] for g in release_data.get("guarantees", [])}
+
     contract_errors: list[str] = []
+    # CLI surface validation
     for command in cli_data.get("commands", []):
         if "guarantee_tier" in command:
             contract_errors.append(f"{command['id']}: obsolete guarantee_tier field")
+        if "status" in command:
+            contract_errors.append(f"{command['id']}: obsolete 'status' field — use presence + contract_stability")
+        if "presence_stability" in command:
+            contract_errors.append(f"{command['id']}: obsolete 'presence_stability' field — use contract_stability")
         for guarantee_id in command.get("guarantee_ids", []):
             if guarantee_id not in guarantee_ids:
                 contract_errors.append(f"{command['id']}: unknown guarantee id {guarantee_id}")
-    for guarantee in release_data.get("guarantees", []):
-        if guarantee.get("tier") == "guaranteed" and not guarantee.get("coverage"):
-            contract_errors.append(f"{guarantee['id']}: guaranteed row lacks evidence coverage")
-        if guarantee.get("release_blocker") and (
-            not guarantee.get("check") or not guarantee.get("ci_job") or guarantee.get("ci_job") == "none"
-        ):
-            contract_errors.append(f"{guarantee['id']}: blocker lacks executable check/CI job")
+    contract_errors.extend(validate_cli_surface(cli_data))
+    contract_errors.extend(validate_release_guarantees(release_data))
+
     if contract_errors:
         for error in contract_errors:
             print(f"structured contract error: {error}", file=sys.stderr)

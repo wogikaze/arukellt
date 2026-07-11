@@ -3,7 +3,7 @@
 //! **Status: experimental — recursive `JsonValue` enum DOM (#045) plus
 //! streaming scanner utilities (#704).**
 //!
-//! ## Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+//! ## Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 //!
 //! - The `JsonValue` DOM surface (`parse`, `stringify`, `stringify_pretty`,
 //!   type predicates, accessors) is stable for well-formed JSON.

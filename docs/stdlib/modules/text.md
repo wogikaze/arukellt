@@ -48,7 +48,7 @@ This module provides string inspection, trimming, replacement, line
 splitting, padding, formatting, string building, and relocated
 prelude string functions.
 
-### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 
 - Operations here are largely **byte / ASCII oriented**. They are
 not full Unicode-aware text routines: indices, lengths, and

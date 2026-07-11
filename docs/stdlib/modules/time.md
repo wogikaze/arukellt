@@ -45,7 +45,7 @@ This module is intentionally **pure**: it only provides arithmetic
 over timestamps supplied by the caller. It does not read the host
 clock and requires no host capability.
 
-### Honesty caveats (`docs/stdlib/604-contract-honesty-gap-ledger.md`)
+### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 
 - Host clock reads live in `std::host::clock` and are deliberately
 *not* re-exported from this module.

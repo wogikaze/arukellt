@@ -14,7 +14,7 @@
 #
 # Output:
 #   tests/baselines/perf/baselines.json   (updated in-place)
-#   docs/process/benchmark-results.md     (updated in-place)
+#   docs/history/benchmarks/benchmark-results.md     (updated in-place)
 
 set -euo pipefail
 
@@ -39,7 +39,7 @@ done
 
 BASELINE="$ROOT/tests/baselines/perf/baselines.json"
 OUTPUT_JSON="$ROOT/tests/baselines/perf/current.json"
-OUTPUT_MD="$ROOT/docs/process/benchmark-results.md"
+OUTPUT_MD="$ROOT/docs/history/benchmarks/benchmark-results.md"
 
 if [ "$DRY_RUN" = true ]; then
     echo "[dry-run] Would run benchmark_runner.py --mode update-baseline"

@@ -31,7 +31,7 @@ note = "Current-first type system reference; reflects implemented type checker b
 [[docs]]
 file = "guide.md"
 class = "explanatory"
-note = "Current-first language guide; stable/implemented features only; recommended first reading"
+note = "Current-first language guide; stable features with provisional callouts; recommended first reading"
 
 [[docs]]
 file = "maturity-matrix.md"
@@ -51,7 +51,7 @@ note = "Language docs ownership and release-gate map; governance companion to st
 
 # ── Feature maturity classifications ─────────────────────────────────────────
 # Source of truth for docs/language/maturity-matrix.md (generated).
-# Stability labels: stable | provisional | experimental | unimplemented | deprecated
+# Stability labels: stable | provisional | experimental | unimplemented
 #
 # Workflow:  edit features below → run `python3 scripts/gen/generate-docs.py` → commit
 # CI guard:  `python3 scripts/check/check-docs-consistency.py` detects stale matrix

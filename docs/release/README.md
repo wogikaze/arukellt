@@ -11,4 +11,4 @@
 
 | File | Title | Summary |
 |------|-------|---------|
-| [entry.md](entry.md) | Release entry | Current readiness: ../current-state.md / |
+| [entry.md](entry.md) | Release entry | Release readiness entry point: normative criteria, executable checklist, and structured guarantee SSOT. |

@@ -75,7 +75,7 @@
 | `scripts/perf/wasi-shim.mjs` | WASI P1/P2 import shim（Node/browser 共用） |
 | `scripts/perf/run-node-bench.mjs` | Node.js 計測アダプタ |
 | `scripts/perf/run-browser-bench.mjs` | ブラウザ計測アダプタ（puppeteer-core + Chrome headless） |
-| `docs/process/linear-vs-gc-results.json` | 計測結果 JSON |
+| `docs/history/benchmarks/linear-vs-gc-results.json` | 計測結果 JSON |
 | `docs/history/process/linear-vs-gc-report.md` | 当時の計測結果 Markdown スナップショット |
 
 実行方法: `bash scripts/perf/compare-linear-vs-gc.sh --iterations 10 --warmups 2`

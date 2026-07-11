@@ -1,5 +1,7 @@
 # Release entry
 
+Release readiness entry point: normative criteria, executable checklist, and structured guarantee SSOT.
+
 | Document | Role |
 |----------|------|
 | [../release-criteria.md](../release-criteria.md) | Normative guarantee tiers (prose) |

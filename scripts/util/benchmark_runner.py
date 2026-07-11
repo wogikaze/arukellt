@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_TARGET = "wasm32-wasi-p1"
 DEFAULT_CURRENT_RESULTS = ROOT / "tests" / "baselines" / "perf" / "current.json"
 DEFAULT_BASELINE_RESULTS = ROOT / "tests" / "baselines" / "perf" / "baselines.json"
-DEFAULT_RESULTS_MARKDOWN = ROOT / "docs" / "process" / "benchmark-results.md"
+DEFAULT_RESULTS_MARKDOWN = ROOT / "docs" / "history" / "benchmarks" / "benchmark-results.md"
 SCHEMA_VERSION = "arukellt-bench-v1"
 # Preserved across `render_markdown` regenerations when `compare-benchmarks.sh` embeds a table.
 CROSS_LANG_COMPARE_START = "<!-- arukellt:cross-lang-compare:start -->"
@@ -1573,7 +1573,7 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("```bash")
     lines.append("bash scripts/compare-benchmarks.sh")
     lines.append("# equivalent:")
-    lines.append("python3 scripts/util/benchmark_runner.py --mode compare --output-md docs/process/benchmark-results.md")
+    lines.append("python3 scripts/util/benchmark_runner.py --mode compare --output-md docs/history/benchmarks/benchmark-results.md")
     lines.append("```")
     lines.append("")
     lines.append(

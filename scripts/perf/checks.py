@@ -25,7 +25,7 @@ def run_gate(root: Path, dry_run: bool, update: bool = False) -> tuple[int, str]
         "--mode", mode,
         "--baseline", "tests/baselines/perf/baselines.json",
         "--output-json", "tests/baselines/perf/current.json",
-        "--output-md", "docs/process/benchmark-results.md",
+        "--output-md", "docs/history/benchmarks/benchmark-results.md",
     ]
     return _exec(cmd, root, dry_run)
 
@@ -42,6 +42,6 @@ def run_benchmarks(root: Path, dry_run: bool, quick: bool = True) -> tuple[int, 
         "scripts/util/benchmark_runner.py",
         "--mode", mode,
         "--output-json", "tests/baselines/perf/current.json",
-        "--output-md", "docs/process/benchmark-results.md",
+        "--output-md", "docs/history/benchmarks/benchmark-results.md",
     ]
     return _exec(cmd, root, dry_run)

@@ -4,9 +4,10 @@
 > It is not the authoritative specification. For normative behavior, see [spec.md](spec.md)
 > and [../current-state.md](../current-state.md).
 
-This guide covers the **stable, implemented** features of the Arukellt programming language.
+This guide covers the **stable, implemented** features of the Arukellt programming language,
+with explicit callouts where a **provisional** surface is needed for practical use.
 It is written for readers who want a practical introduction before diving into the full
-[spec.md](spec.md). Features that are provisional, experimental, or unimplemented are
+[spec.md](spec.md). Features that are experimental or unimplemented are
 not covered here — consult the [Feature Maturity Matrix](maturity-matrix.md) for the
 complete stability picture.
 
@@ -79,7 +80,7 @@ let name = String_from("Alice")
 
 Use `mut` to allow reassignment:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let mut counter = 0
 counter = counter + 1
@@ -87,7 +88,7 @@ counter = counter + 1
 
 Type annotations are optional when the type can be inferred:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let n: i32 = 10
 let s: String = String_from("hello")
@@ -95,7 +96,7 @@ let s: String = String_from("hello")
 
 Destructuring in `let`:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let (a, b) = (1, 2)
 ```
@@ -128,7 +129,7 @@ Semicolons are optional statement terminators. The last expression in a block (w
 
 When operands of an arithmetic expression differ in type, the narrower type is implicitly widened:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let x: i32 = 1
 let y: i64 = 2i64
@@ -142,7 +143,7 @@ No implicit narrowing is ever performed — use an explicit conversion function.
 ## 4. Functions
 
 <!-- fixture: guide/fn_add.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -156,7 +157,7 @@ fn add(a: i32, b: i32) -> i32 {
 
 Generic functions (see also §12):
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn identity<T>(x: T) -> T {
     x
@@ -171,7 +172,7 @@ fn identity<T>(x: T) -> T {
 
 ### if / else
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 if x > 0 {
     println(String_from("positive"))
@@ -184,14 +185,14 @@ if x > 0 {
 
 `if` is an expression — both branches must produce the same type when the value is used:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let label = if x > 0 { String_from("pos") } else { String_from("neg") }
 ```
 
 ### while
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 while n > 0 {
     n = n - 1
@@ -200,7 +201,7 @@ while n > 0 {
 
 ### loop
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 loop {
     if done { break }
@@ -209,7 +210,7 @@ loop {
 
 `loop` can return a value via `break expr`:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let result = loop {
     if condition { break 42 }
@@ -221,7 +222,7 @@ let result = loop {
 Range iteration (half-open `[start, end)`):
 
 <!-- fixture: for_loops/for_range.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 for i in 0..10 {
     println(to_string(i))
@@ -230,7 +231,7 @@ for i in 0..10 {
 
 Iterate over a `Vec`:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 for item in values(v) {
     println(to_string(item))
@@ -248,7 +249,7 @@ for item in values(v) {
 Define a named product type:
 
 <!-- fixture: structs/basic_struct.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 struct Point {
     x: i32,
@@ -258,7 +259,7 @@ struct Point {
 
 Create and access:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let p = Point { x: 3, y: 4 }
 println(to_string(p.x))
@@ -266,7 +267,7 @@ println(to_string(p.x))
 
 Struct update syntax (copy all fields from `base`, override selected ones):
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let p2 = Point { x: 10, ..p }
 ```
@@ -286,7 +287,7 @@ pub struct Pair<A, B> {
 
 Enums define a tagged union. Variants can carry data:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 enum Direction {
     North,
@@ -304,7 +305,7 @@ enum Shape {
 
 Construct a variant:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let d = Direction::North
 let s = Shape::Circle(5)
@@ -312,7 +313,7 @@ let s = Shape::Circle(5)
 
 The built-in `Option<T>` and `Result<T, E>` follow the same rules:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let maybe: Option<i32> = Some(42)
 let ok: Result<i32, String> = Ok(1)
@@ -330,7 +331,7 @@ let err: Result<i32, String> = Err(String_from("bad"))
 `match` exhaustively tests a value against a sequence of patterns:
 
 <!-- fixture: control/match_enum.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 match direction {
     Direction::North => println(String_from("north")),
@@ -341,7 +342,7 @@ match direction {
 
 Match arms can include optional guards:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 match x {
     n if n > 0 => println(String_from("positive")),
@@ -376,7 +377,7 @@ There is no exception mechanism.
 
 ### Result
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 fn parse_positive(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
@@ -389,7 +390,7 @@ fn parse_positive(s: String) -> Result<i32, String> {
 
 Consume the result:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 match parse_positive(String_from("42")) {
     Ok(n)  => println(to_string(n)),
@@ -399,7 +400,7 @@ match parse_positive(String_from("42")) {
 
 ### Option
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 match vec_get(v, 0) {
     Some(val) => println(to_string(val)),
@@ -412,7 +413,7 @@ match vec_get(v, 0) {
 `expr?` propagates the `Err` variant automatically. The enclosing function must
 return `Result<_, E>` where `E` is compatible:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 fn double_parse(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?   // returns Err early if parsing fails
@@ -424,7 +425,7 @@ fn double_parse(s: String) -> Result<i32, String> {
 
 For unrecoverable situations (programming errors, assertion failures):
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 panic(String_from("unreachable state"))
 ```
@@ -440,7 +441,7 @@ for ordinary control flow.
 
 Dynamic arrays. Use typed constructors:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let v: Vec<i32> = Vec_new_i32()
 vec_push(v, 1)
@@ -468,7 +469,7 @@ Common operations (all prelude):
 Fixed-size arrays (stack-allocated value type):
 
 <!-- fixture: arrays/array_literal.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let arr: [i32; 3] = [1, 2, 3]
 let repeated: [i32; 5] = [0; 5]
@@ -479,7 +480,7 @@ let second = arr[1]   // 2
 
 Monomorphic hash map (`i32 → i32` by default):
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import std::collections::hash
 
@@ -494,7 +495,7 @@ let val = hashmap_get(map, 1)   // 100
 
 Closures capture variables from the surrounding scope:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let threshold = 5
 let above = vec_filter(numbers, |x| x > threshold)
@@ -502,7 +503,7 @@ let above = vec_filter(numbers, |x| x > threshold)
 
 With type annotations:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let add = |a: i32, b: i32| -> i32 { a + b }
 let result = add(3, 4)   // 7
@@ -516,7 +517,7 @@ let result = add(3, 4)   // 7
 
 Functions, structs, and enums can be parameterised by type variables:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn first<T>(v: Vec<T>) -> Option<T> {
     vec_get(v, 0)
@@ -547,7 +548,7 @@ specialised code. See [spec.md §2.7](spec.md#27-generics) for the normative def
 
 Each `.ark` file is a module. Use `import` to load a sibling file:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 import math
 import utils as u
@@ -558,7 +559,7 @@ let val = u::compute(10)
 
 Standard library modules use `use`:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::stdio
 use std::collections::hash
@@ -579,7 +580,7 @@ The prelude (available in every module without import):
 ### Strings
 
 <!-- fixture: guide/string_ops.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let s = String_from("hello")
 let t = concat(s, String_from(" world"))
@@ -599,7 +600,7 @@ let trimmed = trim(String_from("  hi  "))
 It accepts `i32`, `i64`, `f64`, `bool`, and `String` (pass-through).
 
 <!-- fixture: stdlib_core/to_string_i32.ark -->
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 use std::host::stdio
 
@@ -612,7 +613,7 @@ fn main() {
 
 Works the same for other scalar types:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 to_string(3.14)   // f64  → "3.14"
 to_string(true)   // bool → "true"
@@ -622,14 +623,14 @@ to_string(9001_i64)  // i64 → "9001"
 
 Combine with `concat` to build strings from mixed values:
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark
 let msg = concat(String_from("count: "), to_string(n))
 ```
 
 #### Other numeric conversions
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let s = to_string(42)        // i32 → String
 let n = parse_i32(s)?        // String → Result<i32, String>
@@ -640,7 +641,7 @@ let b = i32_to_bool(1)
 
 ### Math
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let abs_val = abs(x)
 let sq = sqrt(2.0)
@@ -653,7 +654,7 @@ let cl = ceil(3.2)
 
 ### I/O (prelude)
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 println(String_from("line"))    // print with newline
 print(String_from("no newline"))
@@ -661,7 +662,7 @@ print(String_from("no newline"))
 
 ### Assertions
 
-<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 assert(x > 0, String_from("x must be positive"))
 assert_eq(actual, expected, String_from("values differ"))

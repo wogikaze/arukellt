@@ -38,7 +38,7 @@ match body {
 - Manifest-backed functions: 6
 - Stability: provisional 6
 
-> 🎯 **Availability:** `wasm32-gc` only · ✅ **Status:** implemented
+> 🎯 **Availability:** `wasm32-gc` only · ⚠️ **Status:** not user-reachable on selfhost path
 
 Host HTTP client helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
@@ -51,12 +51,12 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ functional | Sends an HTTP request with the given method, URL, and body. |
-| `get` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | Sends an HTTP GET request to the given URL. |
-| `serve` | `(i32, String) -> Result<(), String>` | `provisional` | ✅ functional | Serves one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). |
-| `read_body` | `(HttpResponse) -> String` | `provisional` | ✅ functional | - |
-| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ✅ functional | - |
-| `response_status` | `(HttpResponse) -> i32` | `provisional` | ✅ functional | - |
+| `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ⛔ unreachable | Sends an HTTP request with the given method, URL, and body. |
+| `get` | `(String) -> Result<String, String>` | `provisional` | ⛔ unreachable | Sends an HTTP GET request to the given URL. |
+| `serve` | `(i32, String) -> Result<(), String>` | `provisional` | ⛔ unreachable | Serves one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). |
+| `read_body` | `(HttpResponse) -> String` | `provisional` | ⛔ unreachable | - |
+| `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `provisional` | ⛔ unreachable | - |
+| `response_status` | `(HttpResponse) -> i32` | `provisional` | ⛔ unreachable | - |
 
 #### `std::host::http::request`
 

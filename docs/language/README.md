@@ -6,7 +6,9 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture-backed verification covers 2679 manifest entries (`docs/data/project-state.toml`).
+- Fixture registry: 2679 manifest entries (`docs/data/project-state.toml`).
+- Last observed harness: 1580 outcomes (passed: 796, failed: 367, skipped: 417).
+- Not included in last snapshot: 1099 registry entries (not proof they fail).
 - Canonical target for current docs: `wasm32-gc`
 
 ## Reading Paths
@@ -77,7 +79,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 |------|-------|------|
 | [error-handling.md](error-handling.md) | normative | Current-first error handling reference; reflects implemented Result/Option behavior |
 | [formatter.md](formatter.md) | explanatory | Formatter / fmt CLI and LSP formatting surface; mirrors implemented selfhost formatter |
-| [guide.md](guide.md) | explanatory | Current-first language guide; stable/implemented features only; recommended first reading |
+| [guide.md](guide.md) | explanatory | Current-first language guide; stable features with provisional callouts; recommended first reading |
 | [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model; language semantics = GC (ADR-002); wasm32-gc primary with linear wasm32 compatibility |
 | [ownership-map.md](ownership-map.md) | explanatory | Language docs ownership and release-gate map; governance companion to stdlib ownership-map |

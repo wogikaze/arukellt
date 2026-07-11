@@ -11,10 +11,10 @@
 ## 全体アーキテクチャ
 
 ```
-T1 (wasm32-wasi-p1): linear memory (bump allocator + i32 load/store) — 従来パス、変更なし
-T2 (wasm32-freestanding): Wasm GC — struct.new/array.new など、WASI なし
-T3 (wasm32-wasi-p2): Wasm GC + WASI P2 imports — メインターゲット
-T5 (wasm32-wasi-p3): Wasm GC + WASI P3 imports — 将来
+T1 (wasm32): linear memory (bump allocator + i32 load/store) — 従来パス、変更なし
+T2 (wasm32-freestanding): Wasm GC — struct.new/array.new など、WASI なし (ADR-007 retired)
+T3 (wasm32-gc): Wasm GC + WASI P2 imports — メインターゲット
+T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 ```
 
 **値表現の移行**: `i32-as-pointer` → `(ref null T)` GC reference
@@ -134,7 +134,7 @@ T5 (wasm32-wasi-p3): Wasm GC + WASI P3 imports — 将来
    - パターン: `array.new_default A_i32 8` → `struct.new_default vec_type` → `struct.set vec_type 0`
    - **Verify (コンパイラ再ビルド後):**
      ```
-     arukeit compile tests/fixtures/stdlib_vec/vec_new.ark -o /tmp/p3_vec_new.wasm --target wasm32-wasi-p2
+     arukeit compile tests/fixtures/stdlib_vec/vec_new.ark -o /tmp/p3_vec_new.wasm --target wasm32-gc
      wasm-tools validate --features gc /tmp/p3_vec_new.wasm
      wasm-tools dump /tmp/p3_vec_new.wasm 2>&1 | grep -E 'struct.new.*10|array.new_default'
      ```
@@ -148,7 +148,7 @@ T5 (wasm32-wasi-p3): Wasm GC + WASI P3 imports — 将来
    - パターン: `struct.get vec_type 0` → `array.get A_i32`
    - **Verify (コンパイラ再ビルド後):**
      ```
-     arukeit compile tests/fixtures/stdlib_vec/vec_get.ark -o /tmp/p3_vec_get.wasm --target wasm32-wasi-p2
+     arukeit compile tests/fixtures/stdlib_vec/vec_get.ark -o /tmp/p3_vec_get.wasm --target wasm32-gc
      wasm-tools validate --features gc /tmp/p3_vec_get.wasm
      wasm-tools dump /tmp/p3_vec_get.wasm 2>&1 | grep 'array.get'
      ```
@@ -156,7 +156,7 @@ T5 (wasm32-wasi-p3): Wasm GC + WASI P3 imports — 将来
 7. ⏳ `emit_vec_push_gc`: array.set + growth logic
    - **Verify (実装後):**
      ```
-     arukeit compile tests/fixtures/stdlib_vec/vec_push.ark -o /tmp/p3_vec_push.wasm --target wasm32-wasi-p2
+     arukeit compile tests/fixtures/stdlib_vec/vec_push.ark -o /tmp/p3_vec_push.wasm --target wasm32-gc
      wasm-tools validate --features gc /tmp/p3_vec_push.wasm
      wasm-tools dump /tmp/p3_vec_push.wasm 2>&1 | grep 'array.set'
      ```
@@ -174,18 +174,18 @@ T5 (wasm32-wasi-p3): Wasm GC + WASI P3 imports — 将来
 
 | チェック | Verify | 結果 |
 |---------|--------|------|
-| GC array smoke gate | `arukellt run tests/fixtures/t3/array_gc.ark --target wasm32-wasi-p2` | ✅ |
-| GC string compile | `arukellt compile tests/fixtures/t3/string_gc.ark -o /dev/null --target wasm32-wasi-p2` | ✅ compiler valid |
-| GC string runtime | `arukellt run tests/fixtures/t3/string_gc.ark --target wasm32-wasi-p2` → 出力: `arukellt\narukellt rocks` | ✅ |
-| `emit_to_string` (i32) GC パス | `arukellt run tests/fixtures/stdlib_io/i32_to_string.ark --target wasm32-wasi-p2` | ✅ |
-| `emit_to_string` (i64) GC パス | `arukellt run tests/fixtures/stdlib_io/f64_to_string.ark --target wasm32-wasi-p2` | ✅ |
-| `emit_to_string` (f64) GC パス | `arukellt run tests/fixtures/stdlib_io/f64_to_string.ark --target wasm32-wasi-p2` | ✅ |
+| GC array smoke gate | `arukellt run tests/fixtures/t3/array_gc.ark --target wasm32-gc` | ✅ |
+| GC string compile | `arukellt compile tests/fixtures/t3/string_gc.ark -o /dev/null --target wasm32-gc` | ✅ compiler valid |
+| GC string runtime | `arukellt run tests/fixtures/t3/string_gc.ark --target wasm32-gc` → 出力: `arukellt\narukellt rocks` | ✅ |
+| `emit_to_string` (i32) GC パス | `arukellt run tests/fixtures/stdlib_io/i32_to_string.ark --target wasm32-gc` | ✅ |
+| `emit_to_string` (i64) GC パス | `arukellt run tests/fixtures/stdlib_io/f64_to_string.ark --target wasm32-gc` | ✅ |
+| `emit_to_string` (f64) GC パス | `arukellt run tests/fixtures/stdlib_io/f64_to_string.ark --target wasm32-gc` | ✅ |
 | T1 退行チェック | `python3 scripts/manager.py verify quick 2>&1 \| grep -E 'FAIL\|T1\|p1'` | ✅ 全パス（docs drift 3件を除く） |
 | コンパイラ import fan-out | `grep -r '^use ' src/compiler/wasm/intrinsic_string_*.ark \| wc -l` | ✅ 13件以内 |
 | コンパイラ line limits | `wc -l src/compiler/wasm/intrinsic_string_*.ark src/compiler/wasm/string_gc_helpers.ark` | ✅ 249行以内 |
 | GC 全フィクスチャ通過 | `python3 scripts/manager.py verify --full 2>&1 \| tail -5` | ⏳ 未達 |
 | T1 パス維持 (定期) | `python3 scripts/manager.py verify quick 2>&1 \| tail -5` | 🟡 定期確認 |
-| gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-wasi-p2 -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ⏳ 未着手 |
+| gc_hint custom section | `arukellt compile docs/examples/hello.ark -o /tmp/hint.wasm --target wasm32-gc -O2 && wasm-tools dump /tmp/hint.wasm 2>&1 \| grep 'gc_hint'` | ⏳ 未着手 |
 | Benchmark 比較 | `python3 scripts/util/benchmark_runner.py --mode full && python3 scripts/util/benchmark_runner.py --mode compare` | ⏳ 未着手 |
 
 ## 主要な修正点

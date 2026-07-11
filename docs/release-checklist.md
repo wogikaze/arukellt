@@ -5,41 +5,40 @@
 > Normative tiers: [`release-criteria.md`](release-criteria.md).
 
 This checklist is executed before every tagged release.
-Items marked **CI** are automated; items marked **CI on tag** run for tagged
-release refs; items marked **Manual** require human verification.
+The release-blocker set is generated solely from `release-guarantees.toml`
+checks with `release_blocking = true`. No supplemental lists.
 
-## Pre-release
+## Release-blocking checks
 
 <!-- BEGIN GENERATED:release-blockers -->
 <!-- Generated from docs/data/release-guarantees.toml; do not edit this block. -->
-- [ ] **CI `compile_wasm32_gc`** — `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` (job: `verification`)
-- [ ] **CI `compile_wasm32`** — `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` (job: `verification`)
-- [ ] **CI `run_wasmtime`** — `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` (job: `verification`)
-- [ ] **CI `fixture_harness`** — `python3 scripts/manager.py verify fixtures` (job: `verification`)
-- [ ] **CI `determinism`** — `bash scripts/check/check-release-determinism.sh` (job: `verification`)
-- [ ] **CI `no_panic_user_paths`** — `bash scripts/check/check-panic-audit.sh` (job: `verification`)
-- [ ] **CI `cli_check`** — `python3 scripts/check/check-cli-guarantees.py check` (job: `verification`)
-- [ ] **CI `cli_init`** — `python3 scripts/check/check-init-templates.py` (job: `verification`)
-- [ ] **CI `cli_doc`** — `python3 scripts/check/check-manifest-doc.py` (job: `verification`)
-- [ ] **CI `cli_help`** — `python3 scripts/check/check-cli-guarantees.py help` (job: `verification`)
+- [ ] **CI `check_compile_wasm32_gc`** — `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` (job: `verification`)
+- [ ] **CI `check_compile_wasm32`** — `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` (job: `verification`)
+- [ ] **CI `check_run_wasmtime`** — `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` (job: `verification`)
+- [ ] **CI `check_fixture_harness`** [FAIL] — `python3 scripts/manager.py verify fixtures` (job: `verification`)
+- [ ] **CI `check_determinism`** — `bash scripts/check/check-release-determinism.sh` (job: `verification`)
+- [ ] **CI `check_no_panic`** — `bash scripts/check/check-panic-audit.sh` (job: `verification`)
+- [ ] **CI `check_cli_check`** — `python3 scripts/check/check-cli-guarantees.py check` (job: `verification`)
+- [ ] **CI `check_cli_init`** — `python3 scripts/check/check-init-templates.py` (job: `verification`)
+- [ ] **CI `check_cli_doc`** — `python3 scripts/check/check-manifest-doc.py` (job: `verification`)
+- [ ] **CI `check_cli_help`** — `python3 scripts/check/check-cli-guarantees.py help` (job: `verification`)
+- [ ] **CI `check_close_gate_076`** [FAIL] — `python3 scripts/check/check-false-done-close-gates.py` (job: `verification`)
+- [ ] **CI `check_selfhost_fixpoint`** [FAIL] — `python3 scripts/manager.py selfhost fixpoint --build` (job: `verification`)
+- [ ] **CI `check_selfhost_fixture_parity`** [FAIL] — `python3 scripts/manager.py selfhost fixture-parity` (job: `verification`)
+- [ ] **CI `check_selfhost_cli_parity`** [FAIL] — `python3 scripts/manager.py selfhost parity --mode --cli` (job: `verification`)
+- [ ] **CI `check_selfhost_diag_parity`** — `python3 scripts/manager.py selfhost diag-parity` (job: `verification`)
+- [ ] **CI `check_wat_roundtrip`** [FAIL] — `bash scripts/run/wat-roundtrip.sh` (job: `verification`)
+- [ ] **CI `check_component_interop_wasmtime`** [FAIL] — `python3 scripts/manager.py verify --full` (job: `verification`)
 <!-- END GENERATED:release-blockers -->
 
-## Supplemental release checks
+## Non-blocking informational checks
 
-These checks validate distribution and integration quality but are not additional
-guarantee definitions. The generated blocker block above remains authoritative.
+These checks run in CI but do not block a tagged release. See the full
+check catalogue in [`data/release-guarantees.md`](data/release-guarantees.md)
+for `release_blocking = false` entries (opt-equivalence, binary smoke,
+LSP, ark.toml, DAP, VS Code DAP).
 
-- [ ] **CI** — `python3 scripts/manager.py selfhost fixpoint` passes
-- [ ] **CI** — `python3 scripts/manager.py selfhost fixture-parity` passes
-- [ ] **CI** — `python3 scripts/manager.py selfhost parity --mode --cli` passes
-- [ ] **CI** — `python3 scripts/manager.py selfhost diag-parity` passes
-- [ ] **CI** — opt-equivalence (O0 == O1): `bash scripts/run/test-opt-equivalence.sh --quick` passes
-- [ ] **CI** — Binary smoke: `arukellt --version` exits 0
-- [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
-- [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero
 <!-- DEFERRED: legacy `bash scripts/run/verify-bootstrap.sh --stage1-only` uses the retired Rust bootstrap path and currently cannot parse the selfhost source surface. Current selfhost release coverage is `python scripts/manager.py verify fixtures` plus `python scripts/manager.py verify --selfhost-parity`. -->
-- [ ] **CI** — Selfhost LSP: `python scripts/manager.py verify quick` LSP gates (#568, #569) pass
-  (Rust `ark-lsp` crate retired in #572; selfhost `src/compiler/lsp.ark` via `arukellt lsp` is the source of truth.)
 
 ## Binary distribution
 

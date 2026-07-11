@@ -5,7 +5,7 @@
 
 ## Hello World
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::host::stdio
 
@@ -40,7 +40,7 @@ arukellt compile --target wasm32-gc --emit component app.ark --wit host.wit
 
 ## 基本型
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let n: i32 = 42
 let big: i64 = 1000000
@@ -51,7 +51,7 @@ let s: String = String_from("hello")
 
 ## Vec
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::host::stdio
 
@@ -74,7 +74,7 @@ fn main() {
 
 ## String
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::host::stdio
 
@@ -91,7 +91,7 @@ fn main() {
 
 ## Option / Result
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::host::stdio
 
@@ -115,7 +115,7 @@ fn main() {
 
 現行実装では host access を `std::host::*` から明示 import します。
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::host::fs
 use std::host::stdio
@@ -141,7 +141,7 @@ On error, match on `FsError` variants: `NotFound(String)`, `PermissionDenied(Str
 
 ## Clock / Random
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" -->
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-11-30" -->
 ```ark
 use std::host::clock
 use std::host::random as host_random

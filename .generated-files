@@ -63,7 +63,7 @@ docs/stdlib/modules/wit.md | scripts/gen/generate-docs.py | python3 scripts/gen/
 docs/stdlib/monomorphic-deprecation.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 
 # process docs (generate-docs.py)
-docs/process/benchmark-results.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/history/benchmarks/benchmark-results.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 
 # issue indexes (generate-issue-index.py)
 issues/open/index.md | scripts/gen/generate-issue-index.py | python3 scripts/gen/generate-issue-index.py

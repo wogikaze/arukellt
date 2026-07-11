@@ -2588,6 +2588,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
+implementation_status = "unreachable"
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
 availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported." }
 examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
@@ -2603,6 +2604,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
+implementation_status = "unreachable"
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
 availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
@@ -2618,6 +2620,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to capability `host.http.incoming` through the incoming-handler proxy-world bridge."
+implementation_status = "unreachable"
 errors = "Err on bind failure, accept timeout, or I/O error while serving the single request."
 availability = { t1 = false, t3 = true, note = "Capability `host.http.incoming`: `wasm32-gc` bridge via arukellt_host + incoming-handler import." }
 examples = [{code = "match http::serve(8080, \"hello\") {\n  Ok(()) => println(\"served\")\n  Err(e) => eprintln(e)\n}", description = "Handle one GET on port 8080"}]
@@ -2634,6 +2637,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
 doc = "Send HTTP with header vectors (provisional; headers not forwarded to bridge yet)."
+implementation_status = "unreachable"
 availability = { t1 = false, t3 = true, note = "Whole-body bridge; header forwarding deferred." }
 
 [[functions]]
@@ -2645,6 +2649,7 @@ returns = "String"
 target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
+implementation_status = "unreachable"
 availability = { t1 = false, t3 = true, note = "Accessor for HttpResponse.body." }
 
 [[functions]]
@@ -2656,6 +2661,7 @@ returns = "i32"
 target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_http"
+implementation_status = "unreachable"
 availability = { t1 = false, t3 = true, note = "Provisional status (200 on bridge Ok)." }
 
 # === std::host::sockets ===
@@ -2679,6 +2685,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
+implementation_status = "unreachable"
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
 availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
@@ -2694,6 +2701,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Read up to max_len bytes from an open socket fd."
+implementation_status = "unreachable"
 errors = "Err on invalid fd or I/O failure."
 availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
@@ -2708,6 +2716,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Write byte values from a Vec to an open socket fd."
+implementation_status = "unreachable"
 errors = "Err on invalid fd or I/O failure."
 availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
@@ -2722,6 +2731,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Bind a TCP listener on the given hostname and port. Returns a listener fd on success."
+implementation_status = "unreachable"
 errors = "Err on bind failure or invalid port."
 availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
@@ -2736,6 +2746,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_sockets"
 doc = "Accept one inbound TCP connection on a listener fd. Returns connected socket fd."
+implementation_status = "unreachable"
 errors = "Err on invalid listener fd or accept failure."
 availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
 
@@ -2758,6 +2769,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 doc_category = "host_udp"
 doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
+implementation_status = "unreachable"
 errors = "Err on DNS resolution failure, invalid port, or network unreachable."
 availability = { t1 = false, t3 = false, note = "Capability `host.sockets.udp` is not user-reachable on the selfhost path. Importing on `wasm32` emits E0500." }
 

@@ -2,7 +2,7 @@
 # Benchmark comparison helper for Arukellt benchmark suite.
 #
 # This wrapper runs the canonical benchmark runner in compare mode and writes
-# the markdown report to docs/process/benchmark-results.md.
+# the markdown report to docs/history/benchmarks/benchmark-results.md.
 #
 # Usage:
 #   bash scripts/compare-benchmarks.sh
@@ -21,7 +21,7 @@ usage() {
 Usage: compare-benchmarks.sh [OPTIONS]
 
 Run the Arukellt benchmark runner in compare mode and update
-docs/process/benchmark-results.md.
+docs/history/benchmarks/benchmark-results.md.
 
 Options:
   --quick                 Low iteration counts for a fast sanity run
@@ -81,5 +81,5 @@ fi
 
 exec python3 "$ROOT/scripts/util/benchmark_runner.py" \
   --mode "$MODE" \
-  --output-md "$ROOT/docs/process/benchmark-results.md" \
+  --output-md "$ROOT/docs/history/benchmarks/benchmark-results.md" \
   "${EXTRA_ARGS[@]}"

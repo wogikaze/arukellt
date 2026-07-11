@@ -107,8 +107,8 @@ This table is generated from structured blocker records. Counts above must equal
 
 | ID | Scope | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |
 |----|-------|----------|---------:|-----------------|---------|-------|-------|------------|---------------|
-| `selfhost_fixture_parity` | `full` | `fixture` | 367 | Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` |
-| `close_gate_076_p2_fs_output` | `quick` | `verification` | 1 | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes. | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` |
+| `selfhost_fixture_parity` | `full` | `fixture` | 367 | Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
+| `close_gate_076_p2_fs_output` | `quick` | `verification` | 1 | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes. | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
 | `wat_roundtrip` | `full` | `target-contract` | 1 | The wasm2wat/wat2wasm roundtrip gate fails. | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` |
 | `component_interop_wasmtime` | `full` | `component-interop` | 103 | All 103 wasmtime component-interop cases fail in the current full verification run. | `python3 scripts/manager.py verify --full` | component model | #074 | `a80b4181` | `a80b4181` |
 | `selfhost_cli_parity` | `full` | `bootstrap` | 3 | CLI parity drifts for --help, lint, and compose --validate. | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` |
@@ -157,8 +157,8 @@ full fixture coverage, and `wasm32` / `wasm32-gc` parity gates.
 
 ## Performance Snapshot
 
-> **INVALID / NO CURRENT MEASUREMENTS.**  
-> [`docs/process/benchmark-results.md`](process/benchmark-results.md) の Current Run
+> **INVALID / NO CURRENT MEASUREMENTS.**
+> [`docs/history/benchmarks/benchmark-results.md`](history/benchmarks/benchmark-results.md) の Current Run
 > （2026-06-09, target `wasm32-wasi-p1`）は全件 skipped であり、現行 performance evidence ではない。
 > 有効な計測が再取得されるまで、この節をリリース判断や最適化根拠に使わないこと。
 
@@ -169,7 +169,7 @@ python3 scripts/util/benchmark_runner.py --mode full            # full measureme
 python3 scripts/util/benchmark_runner.py --mode compare    # compare against stored baseline
 ```
 
-詳細な計測表・履歴は [`docs/process/benchmark-results.md`](process/benchmark-results.md) および生成ブロックを参照（現状は invalid artifact）。
+詳細な計測表・履歴は [`docs/history/benchmarks/benchmark-results.md`](history/benchmarks/benchmark-results.md) を参照（現状は invalid artifact）。有効測定がない場合は current process側には再実行commandのみを置く。
 
 <!-- BEGIN GENERATED:CURRENT_STATE_PERF -->
 ## Baseline and Perf Gates

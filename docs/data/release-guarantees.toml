@@ -1,187 +1,472 @@
 # Release guarantees SSOT (#770 Phase 2)
-# Views: docs/release-criteria.md (normative), docs/release-checklist.md (executable)
+# Views: docs/release-criteria.md (normative), docs/release-checklist.md (executable),
+#        docs/data/release-guarantees.md (generated matrix)
+#
+# Structure:
+#   [[guarantees]] — contract definitions (what we promise at release time)
+#   [[checks]]     — executable verification items (what we run to verify)
+#
+# A guarantee may be backed by one or more checks. A check may be
+# release-blocking or informational. The release-blocker set is defined
+# solely by checks with release_blocking = true — no supplemental lists.
+#
+# Check axes (do not overload a single field):
+#   release_blocking  — bool: failure stops a tagged release
+#   included_in_full  — bool: part of `verify --full`
+#   included_in_quick — bool: part of `verify quick`
+#   current_status    — pass | fail | stale | not-run
+#   evidence_type     — smoke | static-scan | fixture-set | exhaustive | manual
+#   last_verified_commit — git SHA of the commit where current_status was observed
 
 [meta]
 criteria_view = "docs/release-criteria.md"
 checklist_view = "docs/release-checklist.md"
 entry_view = "docs/release/entry.md"
 
+# ── Guarantees (contract definitions) ─────────────────────────────────────────
+
 [[guarantees]]
 id = "compile_wasm32_gc"
 tier = "guaranteed"
 summary = "arukellt compile --target wasm32-gc produces valid Wasm (CLI default)"
-check = "scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = ""
 coverage = ["docs/examples/hello.ark", "target:wasm32-gc", "wasm-validation"]
 
 [[guarantees]]
 id = "compile_wasm32"
 tier = "guaranteed"
 summary = "arukellt compile --target wasm32 produces valid Wasm (supported / AtCoder path)"
-check = "scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "Not the primary CI emphasis; still contract-stable"
 coverage = ["docs/examples/hello.ark", "target:wasm32", "wasm-validation"]
+known_limitation = "Not the primary CI emphasis; still contract-stable"
 
 [[guarantees]]
 id = "run_wasmtime"
 tier = "guaranteed"
 summary = "arukellt run executes via wasmtime"
-check = "scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = ""
 coverage = ["tests/fixtures/hello_world.ark", "default-target", "wasmtime"]
 
 [[guarantees]]
 id = "fixture_harness"
 tier = "guaranteed"
 summary = "Fixture harness passes for the current observed harness snapshot"
-check = "python3 scripts/manager.py verify fixtures"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "See fixture accounting: observed harness ≠ full manifest expansion"
 coverage = ["tests/fixtures/manifest.txt", "registered-harness-cases"]
+known_limitation = "See fixture accounting: observed harness ≠ full manifest expansion"
 
 [[guarantees]]
 id = "determinism"
 tier = "guaranteed"
 summary = "Same input → identical Wasm bytes"
-check = "bash scripts/check/check-release-determinism.sh"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "No dedicated top-level ci.yml job"
 coverage = ["scripts/check/check-release-determinism.sh::declared-corpus"]
 
 [[guarantees]]
 id = "no_panic_user_paths"
 tier = "guaranteed"
 summary = "No panic on user-reachable CLI paths"
-check = "bash scripts/check/check-panic-audit.sh"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = ""
 coverage = ["scripts/check/check-panic-audit.sh::user-reachable-scan"]
 
 [[guarantees]]
 id = "cli_check"
 tier = "guaranteed"
 summary = "The check command rejects an invalid source without producing Wasm"
-check = "python3 scripts/check/check-cli-guarantees.py check"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "Guarantee is command behavior, not acceptance of every valid program"
 coverage = ["tests/fixtures/diagnostics/type_mismatch.ark", "diagnostic-exit-status"]
+known_limitation = "Guarantee is command behavior, not acceptance of every valid program"
 
 [[guarantees]]
 id = "cli_init"
 tier = "guaranteed"
 summary = "The init command generates every supported project template"
-check = "python3 scripts/check/check-init-templates.py"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "Template checks validate generated project structure and smoke behavior"
 coverage = ["minimal", "cli", "with-tests", "wasi-host"]
+known_limitation = "Template checks validate generated project structure and smoke behavior"
 
 [[guarantees]]
 id = "cli_doc"
 tier = "guaranteed"
 summary = "The doc command resolves manifest symbols and generates HTML reference"
-check = "python3 scripts/check/check-manifest-doc.py"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "Guarantee covers manifest lookup and generator contract"
 coverage = ["std/manifest.toml", "symbol-lookup", "html-generation"]
+known_limitation = "Guarantee covers manifest lookup and generator contract"
 
 [[guarantees]]
 id = "cli_help"
 tier = "guaranteed"
 summary = "The help command prints the canonical command surface"
-check = "python3 scripts/check/check-cli-guarantees.py help"
-ci_job = "verification"
-release_blocker = true
-platforms = ["linux"]
-known_limitation = "Help output is checked against the structured command catalogue"
 coverage = ["src/compiler/main/usage.ark", "docs/data/cli-surface.toml"]
+known_limitation = "Help output is checked against the structured command catalogue"
 
 [[guarantees]]
 id = "emit_component"
 tier = "provisional"
 summary = "compile --emit component / component build"
-check = "python3 scripts/manager.py verify --component"
-ci_job = "verification"
-release_blocker = false
-platforms = ["linux"]
+coverage = ["component-emit", "wasm32-gc"]
 known_limitation = "Library exports need s2 wasm; ABI coverage incomplete; may use wasm-tools helpers"
 
 [[guarantees]]
 id = "lsp"
 tier = "provisional"
 summary = "LSP hover/completion/diagnostics"
-check = "python3 scripts/manager.py verify quick (LSP gates)"
-ci_job = "verification"
-release_blocker = false
-platforms = ["linux"]
 known_limitation = "Feature set still evolving"
 
 [[guarantees]]
 id = "ark_toml"
 tier = "provisional"
 summary = "ark.toml project schema"
-check = "arukellt build"
-ci_job = "verification"
-release_blocker = false
-platforms = ["linux"]
 known_limitation = "Schema fields continue to grow"
 
 [[guarantees]]
 id = "dap"
 tier = "experimental"
 summary = "ark-dap / debug-adapter"
-check = "manual / scaffold"
-ci_job = "none"
-release_blocker = false
-platforms = ["linux"]
 known_limitation = "Scaffold only"
 
 [[guarantees]]
 id = "vscode_dap"
 tier = "experimental"
 summary = "VS Code extension DAP wiring"
-check = "extension-tests (partial)"
-ci_job = "extension-tests"
-release_blocker = false
-platforms = ["linux"]
 known_limitation = "Stub / evolving"
 
 [[guarantees]]
 id = "freestanding"
 tier = "not_guaranteed"
 summary = "wasm32-freestanding public target"
-check = "n/a"
-ci_job = "none"
-release_blocker = false
-platforms = []
 known_limitation = "ADR-007 retired / hard error"
 
 [[guarantees]]
 id = "native_targets"
 tier = "not_guaranteed"
 summary = "native-cpp / native-llvm"
-check = "n/a"
-ci_job = "none"
-release_blocker = false
-platforms = []
 known_limitation = "Scaffold; ABI undecided (ADR-045)"
+
+# ── Checks (executable verification items) ────────────────────────────────────
+# The release-blocker set is exactly {check | release_blocking = true}.
+# No supplemental lists — release-checklist.md is generated from these entries.
+
+[[checks]]
+id = "check_compile_wasm32_gc"
+guarantee_id = "compile_wasm32_gc"
+command = "scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_compile_wasm32"
+guarantee_id = "compile_wasm32"
+command = "scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_run_wasmtime"
+guarantee_id = "run_wasmtime"
+command = "scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_fixture_harness"
+guarantee_id = "fixture_harness"
+command = "python3 scripts/manager.py verify fixtures"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "fail"
+evidence_type = "fixture-set"
+last_verified_commit = "89eb5eb4"
+affected_count = 367
+platforms = ["linux"]
+note = "367 failures in observed harness snapshot (1580 outcomes from 2679 registry)"
+
+[[checks]]
+id = "check_determinism"
+guarantee_id = "determinism"
+command = "bash scripts/check/check-release-determinism.sh"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_no_panic"
+guarantee_id = "no_panic_user_paths"
+command = "bash scripts/check/check-panic-audit.sh"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "static-scan"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_cli_check"
+guarantee_id = "cli_check"
+command = "python3 scripts/check/check-cli-guarantees.py check"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_cli_init"
+guarantee_id = "cli_init"
+command = "python3 scripts/check/check-init-templates.py"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_cli_doc"
+guarantee_id = "cli_doc"
+command = "python3 scripts/check/check-manifest-doc.py"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_cli_help"
+guarantee_id = "cli_help"
+command = "python3 scripts/check/check-cli-guarantees.py help"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_close_gate_076"
+guarantee_id = ""
+command = "python3 scripts/check/check-false-done-close-gates.py"
+ci_job = "verification"
+release_blocking = true
+included_in_full = false
+included_in_quick = true
+current_status = "fail"
+evidence_type = "smoke"
+last_verified_commit = "89eb5eb4"
+affected_count = 1
+platforms = ["linux"]
+note = "P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes"
+
+# ── Full-verification checks (supplemental, previously in release-checklist.md) ──
+
+[[checks]]
+id = "check_selfhost_fixpoint"
+guarantee_id = ""
+command = "python3 scripts/manager.py selfhost fixpoint --build"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "fail"
+evidence_type = "exhaustive"
+last_verified_commit = "a80b4181"
+affected_count = 1
+platforms = ["linux"]
+note = "Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached"
+
+[[checks]]
+id = "check_selfhost_fixture_parity"
+guarantee_id = ""
+command = "python3 scripts/manager.py selfhost fixture-parity"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "fail"
+evidence_type = "fixture-set"
+last_verified_commit = "89eb5eb4"
+affected_count = 367
+platforms = ["linux"]
+note = "Selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures"
+
+[[checks]]
+id = "check_selfhost_cli_parity"
+guarantee_id = ""
+command = "python3 scripts/manager.py selfhost parity --mode --cli"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "fail"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+affected_count = 3
+platforms = ["linux"]
+note = "CLI parity drifts for --help, lint, and compose --validate"
+
+[[checks]]
+id = "check_selfhost_diag_parity"
+guarantee_id = ""
+command = "python3 scripts/manager.py selfhost diag-parity"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_wat_roundtrip"
+guarantee_id = ""
+command = "bash scripts/run/wat-roundtrip.sh"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "fail"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+affected_count = 1
+platforms = ["linux"]
+note = "The wasm2wat/wat2wasm roundtrip gate fails"
+
+[[checks]]
+id = "check_component_interop_wasmtime"
+guarantee_id = "emit_component"
+command = "python3 scripts/manager.py verify --full"
+ci_job = "verification"
+release_blocking = true
+included_in_full = true
+included_in_quick = false
+current_status = "fail"
+evidence_type = "fixture-set"
+last_verified_commit = "a80b4181"
+affected_count = 103
+platforms = ["linux"]
+note = "All 103 wasmtime component-interop cases fail in the current full verification run"
+
+[[checks]]
+id = "check_opt_equivalence"
+guarantee_id = ""
+command = "bash scripts/run/test-opt-equivalence.sh --quick"
+ci_job = "verification"
+release_blocking = false
+included_in_full = false
+included_in_quick = true
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+note = "O0 == O1 equivalence"
+
+[[checks]]
+id = "check_binary_version"
+guarantee_id = ""
+command = "arukellt --version"
+ci_job = "verification"
+release_blocking = false
+included_in_full = false
+included_in_quick = false
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+note = "Binary smoke: --version exits 0"
+
+# ── Non-blocking provisional checks ───────────────────────────────────────────
+
+[[checks]]
+id = "check_emit_component"
+guarantee_id = "emit_component"
+command = "python3 scripts/manager.py verify --component"
+ci_job = "verification"
+release_blocking = false
+included_in_full = true
+included_in_quick = false
+current_status = "stale"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_lsp"
+guarantee_id = "lsp"
+command = "python3 scripts/manager.py verify quick"
+ci_job = "verification"
+release_blocking = false
+included_in_full = false
+included_in_quick = true
+current_status = "pass"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+note = "LSP gates within verify quick"
+
+[[checks]]
+id = "check_ark_toml"
+guarantee_id = "ark_toml"
+command = "arukellt build"
+ci_job = "verification"
+release_blocking = false
+included_in_full = false
+included_in_quick = false
+current_status = "stale"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]
+
+[[checks]]
+id = "check_dap"
+guarantee_id = "dap"
+command = "manual / scaffold"
+ci_job = "none"
+release_blocking = false
+included_in_full = false
+included_in_quick = false
+current_status = "not-run"
+evidence_type = "manual"
+last_verified_commit = ""
+platforms = ["linux"]
+
+[[checks]]
+id = "check_vscode_dap"
+guarantee_id = "vscode_dap"
+command = "extension-tests (partial)"
+ci_job = "extension-tests"
+release_blocking = false
+included_in_full = false
+included_in_quick = false
+current_status = "stale"
+evidence_type = "smoke"
+last_verified_commit = "a80b4181"
+platforms = ["linux"]

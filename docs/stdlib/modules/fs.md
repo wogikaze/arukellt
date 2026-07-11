@@ -55,7 +55,7 @@ structured metadata, and streaming I/O are not yet supported at the
 intrinsic level. The `fd_*` helpers are explicitly experimental and
 currently `wasm32` (WASI P1) only.
 
-### Honesty caveats (see `docs/stdlib/604-contract-honesty-gap-ledger.md`)
+### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
 
 - `is_readable_file(path)` (formerly `exists`) is a **read probe /
 readable-file check**, not a general path-existence query. It is

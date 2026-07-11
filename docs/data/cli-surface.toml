@@ -1,6 +1,13 @@
 # CLI surface SSOT (#770 Phase 2)
 # Consumers: generate-docs / cli-reference / current-state / gate-765
 # Binary name is always arukellt. There is no documented `ark` alias.
+#
+# Axis separation (do not overload a single `status` field):
+#   presence             — present | absent: whether the subcommand exists in the binary
+#   contract_stability   — stable | provisional | experimental: CLI contract maturity
+#   implementation_state — functional | limited | scaffold | unavailable | unknown: runtime behavior
+#
+# Unspecified implementation_state defaults to `unknown` (never optimistic `functional`).
 
 [binary]
 name = "arukellt"
@@ -10,111 +17,126 @@ alias_policy = "none"
 
 [[commands]]
 id = "compile"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
+implementation_state = "functional"
 guarantee_ids = ["compile_wasm32_gc", "compile_wasm32"]
 summary = "Compile an .ark file to Wasm"
 
 [[commands]]
 id = "run"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
+implementation_state = "functional"
 guarantee_ids = ["run_wasmtime"]
 summary = "Compile and run an .ark file"
 
 [[commands]]
 id = "check"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
+implementation_state = "functional"
 guarantee_ids = ["cli_check"]
 summary = "Type-check without compiling"
 
 [[commands]]
 id = "build"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
 implementation_state = "limited"
 summary = "Build the project in the current directory (requires ark.toml)"
 
 [[commands]]
 id = "fmt"
-status = "stable"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "functional"
 summary = "Format .ark source files"
 
 [[commands]]
 id = "test"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "functional"
 summary = "Discover and type-check in-file test declarations (ADR-041)"
 
 [[commands]]
 id = "lint"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "functional"
 summary = "Run static analysis lints"
 
 [[commands]]
 id = "targets"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
 implementation_state = "unavailable"
 summary = "List supported compilation targets"
 
 [[commands]]
 id = "analyze"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "functional"
 summary = "Analyze a compiled Wasm binary"
 
 [[commands]]
 id = "init"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
+implementation_state = "functional"
 guarantee_ids = ["cli_init"]
 summary = "Initialize a new Arukellt project"
 
 [[commands]]
 id = "script"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "functional"
 summary = "Manage and run project scripts from ark.toml"
 
 [[commands]]
 id = "doc"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
+implementation_state = "functional"
 guarantee_ids = ["cli_doc"]
 summary = "Look up stdlib documentation or generate HTML reference"
 
 [[commands]]
 id = "component"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "limited"
 summary = "Build/inspect/validate components (build aliases compile --emit component)"
 notes = "inspect/validate not implemented; use wasm-tools. Library exports need s2 wasm — see component-availability.toml"
 
 [[commands]]
 id = "compose"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "limited"
 summary = "Validate and plan component linking; binary compose via wac plug (ADR-034)"
 
 [[commands]]
 id = "lsp"
-status = "provisional"
-presence_stability = "provisional"
+presence = "present"
+contract_stability = "provisional"
+implementation_state = "functional"
 summary = "Start the LSP server (stdio)"
 
 [[commands]]
 id = "debug-adapter"
-status = "experimental"
-presence_stability = "experimental"
+presence = "present"
+contract_stability = "experimental"
+implementation_state = "scaffold"
 summary = "Start the DAP debug adapter (scaffold)"
 
 [[commands]]
 id = "help"
-status = "stable"
-presence_stability = "stable"
+presence = "present"
+contract_stability = "stable"
+implementation_state = "functional"
 guarantee_ids = ["cli_help"]
 summary = "Print help"

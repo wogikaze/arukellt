@@ -28,7 +28,7 @@ CLASSIFICATIONS = REPO / "docs" / "data" / "language-doc-classifications.toml"
 OVERVIEW = REPO / "docs" / "overview.html"
 INDEX_HTML = REPO / "docs" / "index.html"
 CAPABILITY = REPO / "docs" / "capability-surface.md"
-BENCHMARK_RESULTS = REPO / "docs" / "process" / "benchmark-results.md"
+BENCHMARK_RESULTS = REPO / "docs" / "history" / "benchmarks" / "benchmark-results.md"
 OWNERSHIP = REPO / "docs" / "directory-ownership.md"
 GENERATED_MANIFEST = REPO / ".generated-files"
 
@@ -221,7 +221,7 @@ def check_ownership(cfg: dict, failures: list[str]) -> None:
 
 def check_benchmark_validity(failures: list[str]) -> None:
     if not BENCHMARK_RESULTS.is_file():
-        failures.append("missing process/benchmark-results.md")
+        failures.append("missing history/benchmarks/benchmark-results.md")
         return
     text = BENCHMARK_RESULTS.read_text(encoding="utf-8")
     head = "\n".join(text.splitlines()[:20]).lower()

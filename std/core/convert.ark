@@ -153,7 +153,7 @@ impl Debug for char {
 /// `Debug` impl for `String` — quoted with double quotes (Rust `{:?}` parity).
 ///
 /// NOTE: Inner quotes / control characters are not escaped; this is a
-/// best-effort scalar impl (see `docs/stdlib/604-contract-honesty-gap-ledger.md`).
+/// best-effort scalar impl (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md).
 impl Debug for String {
     fn fmt_debug(self: String) -> String {
         __intrinsic_concat("\"", __intrinsic_concat(self, "\""))

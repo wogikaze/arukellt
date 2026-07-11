@@ -62,7 +62,7 @@ class TestCommands(unittest.TestCase):
             "--mode", "ci",
             "--baseline", "tests/baselines/perf/baselines.json",
             "--output-json", "tests/baselines/perf/current.json",
-            "--output-md", "docs/process/benchmark-results.md",
+            "--output-md", "docs/history/benchmarks/benchmark-results.md",
         ])
 
     def test_gate_cmd_update(self):
@@ -72,7 +72,7 @@ class TestCommands(unittest.TestCase):
             "--mode", "update-baseline",
             "--baseline", "tests/baselines/perf/baselines.json",
             "--output-json", "tests/baselines/perf/current.json",
-            "--output-md", "docs/process/benchmark-results.md",
+            "--output-md", "docs/history/benchmarks/benchmark-results.md",
         ])
 
     def test_baseline_cmd(self):
@@ -85,7 +85,7 @@ class TestCommands(unittest.TestCase):
             sys.executable, "scripts/util/benchmark_runner.py",
             "--mode", "quick",
             "--output-json", "tests/baselines/perf/current.json",
-            "--output-md", "docs/process/benchmark-results.md",
+            "--output-md", "docs/history/benchmarks/benchmark-results.md",
         ])
 
     def test_benchmarks_cmd_no_quick(self):
@@ -94,7 +94,7 @@ class TestCommands(unittest.TestCase):
             sys.executable, "scripts/util/benchmark_runner.py",
             "--mode", "full",
             "--output-json", "tests/baselines/perf/current.json",
-            "--output-md", "docs/process/benchmark-results.md",
+            "--output-md", "docs/history/benchmarks/benchmark-results.md",
         ])
 
 

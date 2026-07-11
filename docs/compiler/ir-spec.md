@@ -1407,7 +1407,7 @@ struct MirValidationError {
 <a id="9-mir--wasm-mapping"></a>
 ## 9. MIR → Wasm Mapping
 
-The T3 backend (selfhost emitter, `src/compiler/emitter.ark`) emits Wasm GC instructions.
+The `wasm32-gc` backend (selfhost emitter, `src/compiler/emitter.ark`) emits Wasm GC instructions.
 Linear memory (1 page) is reserved exclusively for WASI I/O marshaling.
 
 ### 9.1 Type Mapping

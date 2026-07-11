@@ -17,7 +17,7 @@ bash scripts/compare-benchmarks.sh                                    # cross-la
 
 ## Output
 
-Generated Markdown lands in [`../process/benchmark-results.md`](../process/benchmark-results.md).
+Generated Markdown lands in [`../history/benchmarks/benchmark-results.md`](../history/benchmarks/benchmark-results.md).
 If that file’s Current Run is all-skipped or uses a deprecated target id, treat it as
 **INVALID** — do not cite it as current performance evidence (#765).
 

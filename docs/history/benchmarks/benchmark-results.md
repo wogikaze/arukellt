@@ -26,7 +26,7 @@ Native reference programs (C, Rust, Go) are built with each toolchain’s releas
 ```bash
 bash scripts/compare-benchmarks.sh
 # equivalent:
-python3 scripts/util/benchmark_runner.py --mode compare --output-md docs/process/benchmark-results.md
+python3 scripts/util/benchmark_runner.py --mode compare --output-md docs/history/benchmarks/benchmark-results.md
 ```
 
 Roadmap C-ratio targets (fib ≤1.5× vs C, vec_ops ≤2.0× vs C) are enforced when using `--compare-c-ratio-gate` (on by default via `compare-benchmarks.sh`). **Grain** (Wasm GC) is optional: `benchmarks/fib.grain` plus `bash scripts/compare-benchmarks.sh --compare-lang grain` when the `grain` CLI is installed; otherwise the hook skips gracefully (issue #643).

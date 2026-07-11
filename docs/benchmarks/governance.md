@@ -57,7 +57,7 @@ The authoritative JSON Schema is [`benchmarks/schema.json`](../../benchmarks/sch
 | `generated_at`   | string   | ISO 8601 UTC timestamp                          |
 | `mode`           | string   | Execution mode (`quick`, `full`, `compare`, `ci`, `update-baseline`) |
 | `mode_description` | string | Human-readable mode summary                     |
-| `target`         | string   | Compilation target (e.g. `wasm32-wasi-p1`)      |
+| `target`         | string   | Compilation target (e.g. `wasm32` or `wasm32-gc`) |
 | `thresholds`     | object   | Regression thresholds (% allowed increase)      |
 | `compiler`       | object   | `{ "path": "<relative path>" }`                |
 | `environment`    | object   | Platform, Python version, machine, kernel        |

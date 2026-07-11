@@ -32,7 +32,7 @@ definition; downstream tooling **must** honour these semantics.
 - `ci` **must** exit non-zero on threshold regression (see §2).
 - `update-baseline` **must** write `baselines.json` and **must not** compare against the old baseline.
 - All modes write `tests/baselines/perf/current.json` and overwrite
-  `docs/process/benchmark-results.md`.
+  `docs/history/benchmarks/benchmark-results.md`.
 
 ### CI gate wiring
 

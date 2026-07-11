@@ -102,7 +102,7 @@ Phase 4: 最適化・検証・移行
 
 ## Phase 4: 最適化・検証・移行
 
-- t3 fixture が `wasm32-wasi-p2` target でコンパイル＆
+- t3 fixture が `wasm32-gc` target でコンパイル＆
   `wasm-tools validate --features gc` で検証
 - `check-t3-wasm-validate.py` で検証ゲート
 - `--target wasm32` は従来の linear memory パスを維持
