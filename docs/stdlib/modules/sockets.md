@@ -31,13 +31,13 @@ match sock {
 
 ---
 
-## `std::host::sockets`
+## Module `std::host::sockets`
 
 - Source: [`../../../std/host/sockets.ark`](../../../std/host/sockets.ark)
 - Manifest-backed functions: 5
 - Stability: provisional 5
 
-> 🎯 **Target:** `wasm32-gc` · ⚠️ **`wasm32-gc` only** · ✅ **Status:** implemented
+> 🎯 **Availability:** `wasm32-gc` only · ✅ **Status:** implemented
 
 Host TCP socket helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
@@ -47,8 +47,8 @@ Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.
 
 ### `std::host::sockets` — Public API
 
-| Name | Signature | Stability | Status | Summary |
-|------|-----------|-----------|--------|---------|
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
 | `connect` | `(String, i32) -> Result<i32, String>` | `provisional` | ✅ functional | Opens a TCP connection to the given host and port. |
 | `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `provisional` | ✅ functional | Reads up to max_len bytes from an open socket. |
 | `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `provisional` | ✅ functional | Writes byte values from bytes to an open socket. |

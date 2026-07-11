@@ -32,13 +32,13 @@ match body {
 
 ---
 
-## `std::host::http`
+## Module `std::host::http`
 
 - Source: [`../../../std/host/http.ark`](../../../std/host/http.ark)
 - Manifest-backed functions: 6
 - Stability: provisional 6
 
-> 🎯 **Target:** `wasm32-gc` · ⚠️ **`wasm32-gc` only** · ✅ **Status:** implemented
+> 🎯 **Availability:** `wasm32-gc` only · ✅ **Status:** implemented
 
 Host HTTP client helpers (provisional). **Not user-reachable** on the
 current selfhost compile path — see
@@ -49,8 +49,8 @@ When implemented, only plaintext HTTP/1.1 over TCP is in scope;
 
 ### `std::host::http` — Public API
 
-| Name | Signature | Stability | Status | Summary |
-|------|-----------|-----------|--------|---------|
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
 | `request` | `(String, String, String) -> Result<String, String>` | `provisional` | ✅ functional | Sends an HTTP request with the given method, URL, and body. |
 | `get` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | Sends an HTTP GET request to the given URL. |
 | `serve` | `(i32, String) -> Result<(), String>` | `provisional` | ✅ functional | Serves one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). |

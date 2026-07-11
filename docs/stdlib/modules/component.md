@@ -29,7 +29,7 @@ let ver = component_model_version()     // e.g. "0.2"
 
 ---
 
-## `std::component`
+## Module `std::component`
 
 - Source: [`../../../std/component/mod.ark`](../../../std/component/mod.ark)
 - Manifest-backed functions: 2
@@ -43,7 +43,7 @@ lift/lower helpers are tracked by #054.
 
 ### `std::component` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `canonical_abi_version` | `() -> i32` | `experimental` | - |
-| `component_model_version` | `() -> String` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `canonical_abi_version` | `() -> i32` | `experimental` | ✅ functional | - |
+| `component_model_version` | `() -> String` | `experimental` | ✅ functional | - |

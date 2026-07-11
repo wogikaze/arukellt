@@ -33,7 +33,7 @@ let parsed = json_parse_i32("42")    // 42
 
 ---
 
-## `std::json`
+## Module `std::json`
 
 - Source: [`../../../std/json.ark`](../../../std/json.ark)
 - Manifest-backed functions: 22
@@ -53,30 +53,30 @@ The full JSON parser with `pub enum JsonValue` lives in
 
 ### `std::json` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | - |
-| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
-| `stringify` | `(JsonValue) -> String` | `experimental` | - |
-| `is_array` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_bool` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_null` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_number` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_object` | `(JsonValue) -> bool` | `experimental` | - |
-| `is_string` | `(JsonValue) -> bool` | `experimental` | - |
-| `json_as_bool` | `(JsonValue) -> Option<bool>` | `experimental` | - |
-| `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | - |
-| `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | - |
-| `json_encode_string` | `(String) -> String` | `experimental` | - |
-| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | - |
-| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | - |
-| `json_null` | `() -> String` | `experimental` | - |
-| `json_parse_bool` | `(String) -> bool` | `experimental` | - |
-| `json_parse_i32` | `(String) -> i32` | `experimental` | - |
-| `json_stringify_bool` | `(bool) -> String` | `experimental` | - |
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | - |
-| `json_stringify_string` | `(String) -> String` | `experimental` | - |
-| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | ✅ functional | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | ✅ functional | - |
+| `stringify` | `(JsonValue) -> String` | `experimental` | ✅ functional | - |
+| `is_array` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
+| `is_bool` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
+| `is_null` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
+| `is_number` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
+| `is_object` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
+| `is_string` | `(JsonValue) -> bool` | `experimental` | ✅ functional | - |
+| `json_as_bool` | `(JsonValue) -> Option<bool>` | `experimental` | ✅ functional | - |
+| `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | ✅ functional | - |
+| `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | ✅ functional | - |
+| `json_encode_string` | `(String) -> String` | `experimental` | ✅ functional | - |
+| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | ✅ functional | - |
+| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | ✅ functional | - |
+| `json_null` | `() -> String` | `experimental` | ✅ functional | - |
+| `json_parse_bool` | `(String) -> bool` | `experimental` | ✅ functional | - |
+| `json_parse_i32` | `(String) -> i32` | `experimental` | ✅ functional | - |
+| `json_stringify_bool` | `(bool) -> String` | `experimental` | ✅ functional | - |
+| `json_stringify_i32` | `(i32) -> String` | `experimental` | ✅ functional | - |
+| `json_stringify_string` | `(String) -> String` | `experimental` | ✅ functional | - |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | ✅ functional | - |
 
 #### `std::json::parse`
 

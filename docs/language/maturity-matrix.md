@@ -22,11 +22,10 @@
 
 | Stability | Count |
 |-----------|-------|
-| stable | 80 |
+| stable | 58 |
 | provisional | 12 |
 | experimental | 0 |
 | unimplemented | 0 |
-| deprecated | 0 |
 
 ## Feature Classification
 
@@ -101,26 +100,4 @@
 | 7.3 | Visibility | **provisional** | — |
 | 7.4 | Prelude | **provisional** | — |
 | 8 | Operator Precedence | stable | — |
-| 9 | Standard Library API | stable | See subsections for individual stability |
-| 9.1 | String — Construction & Operations (prelude) | stable | — |
-| 9.2 | Type Conversions (prelude) | stable | — |
-| 9.3 | Math (prelude) | stable | — |
-| 9.4 | Control (prelude) | stable | — |
-| 9.5 | Vec — Constructors (prelude) | stable | — |
-| 9.6 | Vec — Operations (prelude) | stable | — |
-| 9.7 | Vec — Sorting (prelude) | stable | — |
-| 9.8 | Vec — Higher-Order Functions (prelude) | stable | — |
-| 9.9 | Vec — Aggregation & Mutation (prelude) | stable | — |
-| 9.10 | Option (prelude) | stable | — |
-| 9.11 | Result (prelude) | stable | — |
-| 9.12 | Box (prelude) | stable | — |
-| 9.13 | Assertions (prelude) | stable | — |
-| 9.14 | HashMap (prelude, monomorphic) | stable | — |
-| 9.15 | Host — Standard I/O (std::host::stdio) | stable | — |
-| 9.16 | Host — File System (std::host::fs) | stable | — |
-| 9.17 | Host — Environment (std::host::env) | stable | — |
-| 9.18 | Host — Process (std::host::process) | stable | — |
-| 9.19 | Host — Clock (std::host::clock) | stable | — |
-| 9.20 | Host — Random (std::host::random) | stable | — |
-| 9.21 | Pure Library Functions (non-prelude) | stable | — |
 | 10 | Error Codes | stable | — |

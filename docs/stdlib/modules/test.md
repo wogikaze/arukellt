@@ -37,7 +37,7 @@ let value = expect_ok_i32(result)  // 42
 
 ---
 
-## `std::test`
+## Module `std::test`
 
 - Source: [`../../../std/test/mod.ark`](../../../std/test/mod.ark)
 - Manifest-backed functions: 17
@@ -50,25 +50,25 @@ The current module provides typed assertions and expectation helpers for
 
 ### `std::test` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `assert_true` | `(bool) -> ()` | `stable` | - |
-| `assert_false` | `(bool) -> ()` | `stable` | - |
-| `assert_eq_i32` | `(i32, i32) -> ()` | `stable` | - |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `stable` | - |
-| `assert_eq_f64` | `(f64, f64) -> ()` | `stable` | - |
-| `assert_eq_string` | `(String, String) -> ()` | `stable` | - |
-| `assert_eq_bool` | `(bool, bool) -> ()` | `stable` | - |
-| `assert_ne_i32` | `(i32, i32) -> ()` | `stable` | - |
-| `assert_ne_string` | `(String, String) -> ()` | `stable` | - |
-| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `stable` | - |
-| `expect_err_string` | `(Result<i32, String>) -> String` | `stable` | - |
-| `expect_some_i32` | `(Option<i32>) -> i32` | `stable` | - |
-| `expect_none_i32` | `(Option<i32>) -> ()` | `stable` | - |
-| `assert_contains` | `(String, String) -> ()` | `stable` | Assert that a string contains a given substring. |
-| `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | Assert that two strings are equal, showing expected and actual blocks on failure. |
-| `assert_msg` | `(bool, String) -> ()` | `stable` | Assert that a boolean condition holds, with a custom failure message. |
-| `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | Run f exactly iterations times and write a timing summary to stderr. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `assert_true` | `(bool) -> ()` | `stable` | ✅ functional | - |
+| `assert_false` | `(bool) -> ()` | `stable` | ✅ functional | - |
+| `assert_eq_i32` | `(i32, i32) -> ()` | `stable` | ✅ functional | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `stable` | ✅ functional | - |
+| `assert_eq_f64` | `(f64, f64) -> ()` | `stable` | ✅ functional | - |
+| `assert_eq_string` | `(String, String) -> ()` | `stable` | ✅ functional | - |
+| `assert_eq_bool` | `(bool, bool) -> ()` | `stable` | ✅ functional | - |
+| `assert_ne_i32` | `(i32, i32) -> ()` | `stable` | ✅ functional | - |
+| `assert_ne_string` | `(String, String) -> ()` | `stable` | ✅ functional | - |
+| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `stable` | ✅ functional | - |
+| `expect_err_string` | `(Result<i32, String>) -> String` | `stable` | ✅ functional | - |
+| `expect_some_i32` | `(Option<i32>) -> i32` | `stable` | ✅ functional | - |
+| `expect_none_i32` | `(Option<i32>) -> ()` | `stable` | ✅ functional | - |
+| `assert_contains` | `(String, String) -> ()` | `stable` | ✅ functional | Assert that a string contains a given substring. |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | ✅ functional | Assert that two strings are equal, showing expected and actual blocks on failure. |
+| `assert_msg` | `(bool, String) -> ()` | `stable` | ✅ functional | Assert that a boolean condition holds, with a custom failure message. |
+| `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | ✅ functional | Run f exactly iterations times and write a timing summary to stderr. |
 
 #### `std::test::bench`
 

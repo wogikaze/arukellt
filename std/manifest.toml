@@ -2057,7 +2057,7 @@ params = []
 returns = "Vec<String>"
 intrinsic = "__intrinsic_args"
 doc_category = "host_env"
-doc = "Return the command-line arguments as a list of strings. The first element is the program name."
+doc = "Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument."
 availability = { t1 = true, t3 = true }
 
 [[functions]]
@@ -2081,7 +2081,7 @@ params = []
 returns = "i32"
 intrinsic = "__intrinsic_arg_count"
 doc_category = "host_env"
-doc = "Return the number of command-line arguments (including the program name)."
+doc = "Return the number of user-supplied command-line arguments, excluding argv[0]."
 availability = { t1 = true, t3 = true }
 
 [[functions]]
@@ -2319,11 +2319,12 @@ availability = { t1 = true, t3 = true, note = "Requires the --dir capability fla
 [[functions]]
 name = "exists"
 module = "std::host::fs"
-stability = "stable"
+stability = "deprecated"
+deprecated_by = "is_readable_file"
 params = ["String"]
 returns = "bool"
 doc_category = "host_fs"
-doc = "@deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence query."
+doc = "Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]

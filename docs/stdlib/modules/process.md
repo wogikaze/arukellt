@@ -38,13 +38,13 @@ println("Running as: " + name)
 
 ---
 
-## `std::host::process`
+## Module `std::host::process`
 
 - Source: [`../../../std/host/process.ark`](../../../std/host/process.ark)
 - Manifest-backed functions: 2
 - Stability: stable 2
 
-> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
+> 🎯 **Availability:** `wasm32` and `wasm32-gc` · ✅ **Status:** implemented
 
 Host process-control helpers.
 
@@ -55,8 +55,8 @@ These APIs are host-bound and require WASI process capability.
 
 ### `std::host::process` — Public API
 
-| Name | Signature | Stability | Status | Summary |
-|------|-----------|-----------|--------|---------|
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
 | `exit` | `(i32) -> ()` | `stable` | ✅ functional | Requests process termination with the given exit code. |
 | `abort` | `() -> ()` | `stable` | ✅ functional | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
@@ -68,13 +68,13 @@ Terminate the process with the given exit code. 0 indicates success; non-zero in
 
 Abort the process immediately with an abnormal-termination signal (non-zero exit).
 
-## `std::host::env`
+## Module `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
 - Manifest-backed functions: 5
 - Stability: stable 5
 
-> 🎯 **Target:** `wasm32-gc` · ✅ **Status:** implemented
+> ⚠️ **Availability:** mixed — see individual symbols · ✅ **Status:** implemented
 
 Host environment helpers.
 
@@ -86,8 +86,8 @@ WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 
 ### `std::host::env` — Public API
 
-| Name | Signature | Stability | Status | Summary |
-|------|-----------|-----------|--------|---------|
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
 | `args` | `() -> Vec<String>` | `stable` | ✅ functional | Returns the process argument vector (excluding argv[0]). |
 | `arg_count` | `() -> i32` | `stable` | ✅ functional | Returns the number of process arguments (excluding argv[0]). |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | Returns the argument at the given index when in range. |
@@ -96,11 +96,11 @@ WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
 
 #### `std::host::env::args`
 
-Return the command-line arguments as a list of strings. The first element is the program name.
+Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument.
 
 #### `std::host::env::arg_count`
 
-Return the number of command-line arguments (including the program name).
+Return the number of user-supplied command-line arguments, excluding argv[0].
 
 #### `std::host::env::arg_at`
 

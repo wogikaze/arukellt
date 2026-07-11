@@ -187,12 +187,15 @@ summary = "Only user `pub fn` with WIT-compatible types are exported"
 # - implementation_state: complete | partial | scaffold | unimplemented
 # - legacy_gaps: retired surfaces awaiting deletion (not target_profiles)
 
-[lifecycle]
+[stdlib_api_lifecycle]
 # API stability labels (ADR-014). support_tier / implementation_state / legacy_gaps
 # use their own fields — do not overload this list.
 labels = [
   "stable",
   "provisional",
   "experimental",
-  "unimplemented",
+  "deprecated",
 ]
+
+[language_feature_maturity]
+labels = ["stable", "provisional", "experimental", "unimplemented"]

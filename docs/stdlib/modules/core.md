@@ -35,7 +35,7 @@ let len = range_len(r)  // 10
 
 ---
 
-## `std::core`
+## Module `std::core`
 
 - Source: [`../../../std/core/mod.ark`](../../../std/core/mod.ark)
 - Manifest-backed functions: 6
@@ -56,16 +56,16 @@ that other stdlib modules build upon.
 
 ### `std::core` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `range_new` | `(i32, i32) -> Range` | `stable` | Builds a half-open range [start, end). |
-| `range_contains` | `(Range, i32) -> bool` | `stable` | Returns true when value lies inside the half-open range. |
-| `range_len` | `(Range) -> i32` | `stable` | Returns the non-negative length of the half-open range. |
-| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `stable` | - |
-| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `stable` | - |
-| `cmp_i32` | `(i32, i32) -> Ordering` | `stable` | Compares two integers and returns their ordering relationship. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `range_new` | `(i32, i32) -> Range` | `stable` | ✅ functional | Builds a half-open range [start, end). |
+| `range_contains` | `(Range, i32) -> bool` | `stable` | ✅ functional | Returns true when value lies inside the half-open range. |
+| `range_len` | `(Range) -> i32` | `stable` | ✅ functional | Returns the non-negative length of the half-open range. |
+| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `stable` | ✅ functional | - |
+| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `stable` | ✅ functional | - |
+| `cmp_i32` | `(i32, i32) -> Ordering` | `stable` | ✅ functional | Compares two integers and returns their ordering relationship. |
 
-## `std::core::error`
+## Module `std::core::error`
 
 - Source: [`../../../std/core/error.ark`](../../../std/core/error.ark)
 - Manifest-backed functions: 1
@@ -100,11 +100,11 @@ variant and document the legacy form as deprecated.
 
 ### `std::core::error` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `error_message` | `(Error) -> String` | `stable` | Converts an Error value into a human-readable message. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `error_message` | `(Error) -> String` | `stable` | ✅ functional | Converts an Error value into a human-readable message. |
 
-## `std::core::hash`
+## Module `std::core::hash`
 
 - Source: [`../../../std/core/hash.ark`](../../../std/core/hash.ark)
 - Manifest-backed functions: 1
@@ -125,6 +125,6 @@ and provides reasonable distribution for hash table operations.
 
 ### `std::core::hash` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `combine` | `(i32, i32) -> i32` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `combine` | `(i32, i32) -> i32` | `stable` | ✅ functional | - |

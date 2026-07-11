@@ -36,13 +36,13 @@ write_string("output.txt", "hello")
 
 ---
 
-## `std::host::fs`
+## Module `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
 - Manifest-backed functions: 13
-- Stability: experimental 3, provisional 8, stable 2
+- Stability: deprecated 1, experimental 3, provisional 8, stable 1
 
-> 🎯 **Target:** `wasm32-gc` · ⚠️ **Status:** partial — 4/13 APIs have limited or placeholder semantics
+> ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 4/13 APIs have limited or placeholder semantics
 
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
@@ -81,14 +81,14 @@ are future on both targets.
 
 ### `std::host::fs` — Public API
 
-| Name | Signature | Stability | Status | Summary |
-|------|-----------|-----------|--------|---------|
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
 | `fs_error_message` | `(FsError) -> String` | `provisional` | ✅ functional | - |
 | `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | Writes a byte array to a file, replacing any existing contents. |
 | `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | Read-probe semantics — not a general path-existence query. |
-| `exists` | `(String) -> bool` | `stable` | ✅ functional | @deprecated Use is_readable_file instead. This function has the same |
+| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | @deprecated Use is_readable_file instead. This function has the same |
 | `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns true when the path is a readable file (same semantics as |
 | `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns false unconditionally on current targets. |
 | `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ⚠️ limited semantics | List the entries in a directory. |
@@ -140,7 +140,7 @@ Read-probe / readable-file check via __intrinsic_fs_read_file. False does not di
 
 #### `std::host::fs::exists`
 
-@deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence query.
+Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
@@ -190,7 +190,9 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 
 **Availability:** ⚠️ Not available on `wasm32-gc` — `wasm32` / WASI P1 only.
 
-## `std::fs`
+> ⚠️ **1 deprecated API(s)** in this module. See [../migration-guidance.md](../migration-guidance.md) for replacement examples and migration steps.
+
+## Module `std::fs`
 
 - Source: [`../../../std/fs/mod.ark`](../../../std/fs/mod.ark)
 - Manifest-backed functions: 8
@@ -225,16 +227,16 @@ supported on any target.
 
 ### `std::fs` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
-| `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
-| `exists` | `(String) -> bool` | `stable` | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
-| `is_readable_file` | `(String) -> bool` | `stable` | Read probe — the new recommended name for the probe check. |
-| `is_file` | `(String) -> bool` | `provisional` | Returns true when the path is a readable file. |
-| `is_dir` | `(String) -> bool` | `provisional` | Returns false unconditionally on current targets. |
-| `read_dir` | `(String) -> Result<Vec<String>, String>` | `provisional` | List the entries in a directory. |
-| `metadata` | `(String) -> Result<String, String>` | `provisional` | Query file metadata for a given path. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `read_string` | `(String) -> Result<String, String>` | `stable` | ✅ functional | Reads the entire contents of a file into a UTF-8 string. |
+| `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ functional | Writes a UTF-8 string to a file, creating or truncating it. |
+| `exists` | `(String) -> bool` | `stable` | ✅ functional | Read probe / readable-file check: true when a full read succeeds; not a path-existence query. |
+| `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | Read probe — the new recommended name for the probe check. |
+| `is_file` | `(String) -> bool` | `provisional` | ✅ functional | Returns true when the path is a readable file. |
+| `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns false unconditionally on current targets. |
+| `read_dir` | `(String) -> Result<Vec<String>, String>` | `provisional` | ⚠️ limited semantics | List the entries in a directory. |
+| `metadata` | `(String) -> Result<String, String>` | `provisional` | ⚠️ limited semantics | Query file metadata for a given path. |
 
 #### `std::fs::read_string`
 

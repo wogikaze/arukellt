@@ -29,7 +29,7 @@ let value = toml_parse_line("name = \"arukellt\"")
 
 ---
 
-## `std::toml`
+## Module `std::toml`
 
 - Source: [`../../../std/toml.ark`](../../../std/toml.ark)
 - Manifest-backed functions: 8
@@ -45,16 +45,16 @@ the bootstrap compiler stubbing the entire module.
 
 ### `std::toml` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `toml_parse_line` | `(String) -> String` | `experimental` | Filter a single TOML source line: returns the line unchanged for key=value |
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | - |
-| `toml_stringify` | `(TomlValue) -> String` | `experimental` | - |
-| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
-| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
-| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | - |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | - |
-| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `toml_parse_line` | `(String) -> String` | `experimental` | ✅ functional | Filter a single TOML source line: returns the line unchanged for key=value |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | ✅ functional | - |
+| `toml_stringify` | `(TomlValue) -> String` | `experimental` | ✅ functional | - |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | ✅ functional | - |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | ✅ functional | - |
+| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | ✅ functional | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | ✅ functional | - |
+| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | ✅ functional | - |
 
 #### `std::toml::toml_parse`
 

@@ -35,7 +35,7 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 
 ---
 
-## `std::seq`
+## Module `std::seq`
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)
 - Manifest-backed functions: 13
@@ -54,21 +54,21 @@ Lazy generic `Seq<T>` pipelines are deferred to a future release.
 
 ### `std::seq` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | Apply f to every element of v and collect the results. |
-| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `stable` | Keep only elements of v for which f returns true. |
-| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return the first n elements of v. |
-| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return all elements of v after skipping the first n. |
-| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `stable` | Reduce v to a single value using f, starting from init. |
-| `binary_search` | `(Vec<i32>, i32) -> i32` | `stable` | - |
-| `min_i32` | `(Vec<i32>) -> i32` | `stable` | - |
-| `max_i32` | `(Vec<i32>) -> i32` | `stable` | - |
-| `sum_i32` | `(Vec<i32>) -> i32` | `stable` | - |
-| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
-| `seq_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
-| `unique` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
-| `count_eq` | `(Vec<i32>, i32) -> i32` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | ✅ functional | Apply f to every element of v and collect the results. |
+| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `stable` | ✅ functional | Keep only elements of v for which f returns true. |
+| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return the first n elements of v. |
+| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return all elements of v after skipping the first n. |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `stable` | ✅ functional | Reduce v to a single value using f, starting from init. |
+| `binary_search` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
+| `min_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `max_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `sum_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `seq_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
+| `unique` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `count_eq` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
 
 #### `std::seq::map_i32_i32`
 

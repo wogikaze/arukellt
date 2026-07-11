@@ -50,8 +50,12 @@ LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
 SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 
-# Stability labels as defined in spec.md (ADR-013 §Stability)
-STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented", "deprecated")
+# Lifecycle axes are intentionally distinct. Public stdlib APIs follow ADR-014;
+# language features may additionally be specified-but-unimplemented.
+PUBLIC_API_STABILITY_LABELS = ("stable", "provisional", "experimental", "deprecated")
+LANGUAGE_FEATURE_STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented")
+STABILITY_LABELS = PUBLIC_API_STABILITY_LABELS
+IMPLEMENTATION_STATUSES = ("functional", "limited", "stub", "unreachable")
 
 # ── Manifest schema ──────────────────────────────────────────────────────────
 # Enforced by validate_manifest_schema(); see docs/stdlib/generation-schema.md
@@ -849,6 +853,20 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
                 f"must be one of {list(STABILITY_LABELS)}"
             )
 
+        implementation_status = entry.get("implementation_status")
+        if implementation_status is not None and implementation_status not in IMPLEMENTATION_STATUSES:
+            violations.append(
+                f"{label}: invalid implementation_status '{implementation_status}'; "
+                f"must be one of {list(IMPLEMENTATION_STATUSES)}"
+            )
+
+        deprecated_by = entry.get("deprecated_by")
+        prose_deprecated = "@deprecated" in str(entry.get("doc", "")).lower()
+        if (deprecated_by or prose_deprecated) and stability != "deprecated":
+            violations.append(f"{label}: deprecation metadata/prose requires stability='deprecated'")
+        if stability == "deprecated" and not deprecated_by:
+            violations.append(f"{label}: stability='deprecated' requires deprecated_by")
+
         # 3. kind must be a known value when present
         kind = entry.get("kind")
         if kind is not None and kind not in VALID_KIND_VALUES:
@@ -1187,27 +1205,22 @@ def format_host_module_badges(
     if not module_name.startswith("std::host::"):
         return []
 
-    # Determine target constraint from manifest [[modules]] entry first,
-    # then from individual function targets, falling back to the default.
-    module_meta = manifest_modules.get(module_name, {})
-    target_list: list[str] = module_meta.get("target", [])
-    if not target_list:
-        for fn in functions:
-            fn_targets = fn.get("target", [])
-            if fn_targets:
-                target_list = fn_targets
-                break
-    if not target_list:
-        target_list = ["wasm32-gc"]
-
-    target_str = f"`{', '.join(_canonicalize_target_name(x) for x in target_list)}`"
-
-    # Detect T3-only status from function availability data (manifest-driven).
+    # Availability is per-symbol. A module with different symbol coverage must
+    # not be flattened to a single target badge.
     t3_only = _availability_t3_only(functions)
     unbacked = _availability_unbacked(functions)
-    t3_badge = " · ⚠️ **`wasm32-gc` only**" if t3_only and not unbacked else ""
-    if unbacked:
-        t3_badge = " · ⚠️ **Not user-reachable**"
+    availability_shapes = {
+        (fn.get("availability", {}).get("t1"), fn.get("availability", {}).get("t3"))
+        for fn in functions
+    }
+    if len(availability_shapes) > 1:
+        availability = "⚠️ **Availability:** mixed — see individual symbols"
+    elif unbacked:
+        availability = "⚠️ **Availability:** not user-reachable"
+    elif t3_only:
+        availability = "🎯 **Availability:** `wasm32-gc` only"
+    else:
+        availability = "🎯 **Availability:** `wasm32` and `wasm32-gc`"
 
     # Determine implementation status from function ``kind`` fields.
     stub_count = sum(1 for fn in functions if fn.get("kind") == "host_stub")
@@ -1226,13 +1239,16 @@ def format_host_module_badges(
 
     return [
         "",
-        f"> 🎯 **Target:** {target_str}{t3_badge} · {status}",
+        f"> {availability} · {status}",
         "",
     ]
 
 
 def _function_semantic_status(entry: dict) -> str:
     """Classify manifest-described runtime semantics without equating presence with function."""
+    explicit = entry.get("implementation_status")
+    if explicit:
+        return explicit
     if entry.get("kind") == "host_stub":
         return "stub"
     evidence = " ".join(
@@ -1848,7 +1864,7 @@ def render_maturity_matrix(sections: list[dict]) -> str:
         "| Stability | Count |",
         "|-----------|-------|",
     ]
-    for label in STABILITY_LABELS:
+    for label in LANGUAGE_FEATURE_STABILITY_LABELS:
         lines.append(f"| {label} | {stability_counts.get(label, 0)} |")
 
     lines.extend([
@@ -2177,7 +2193,6 @@ def render_stdlib_readme(
         "| [**reference.md**](reference.md) | Complete manifest-backed API reference (all functions, types, stability tiers) |",
         "| [migration-guidance.md](migration-guidance.md) | Deprecated API migration paths and replacement patterns |",
         "| [stability-policy.md](stability-policy.md) | What stable / provisional / experimental mean for your code |",
-        "| [std.md](std.md) | Historical March 2026 design rationale — not the current API contract |",
         "",
         "## Reading Guide",
         "",
@@ -2454,7 +2469,7 @@ def render_stdlib_module_page(
         lines.extend(
             [
                 "",
-                f"## `{module_name}`",
+                f"## Module `{module_name}`",
                 "",
                 f"- Source: [`{source_link}`]({source_link})",
                 f"- Manifest-backed functions: {len(functions)}",
@@ -2517,65 +2532,41 @@ def render_stdlib_module_page(
                 section_order.append(label)
             grouped[label].append(entry)
 
-        # Determine if any function in this module is a host_stub — if so,
-        # render a Status column so users see per-function availability.
-        is_host_module = module_name.startswith("std::host::")
-
         for section_name in section_order:
             scoped_section_name = f"`{module_name}` — {section_name}"
-            if is_host_module:
-                lines.extend(
-                    [
-                        "",
-                        f"### {scoped_section_name}",
-                        "",
-                        "| Name | Signature | Stability | Status | Summary |",
-                        "|------|-----------|-----------|--------|---------|",
-                    ]
-                )
-            else:
-                lines.extend(
-                    [
-                        "",
-                        f"### {scoped_section_name}",
-                        "",
-                        "| Name | Signature | Stability | Summary |",
-                        "|------|-----------|-----------|---------|",
-                    ]
-                )
+            lines.extend(
+                [
+                    "",
+                    f"### {scoped_section_name}",
+                    "",
+                    "| Name | Signature | Stability | Implementation | Summary |",
+                    "|------|-----------|-----------|----------------|---------|",
+                ]
+            )
             for entry in grouped[section_name]:
                 item = items_by_name.get(entry["name"])
                 deprecated = _is_deprecated(entry)
                 name_display = f"~~`{entry['name']}`~~" if deprecated else f"`{entry['name']}`"
                 dep_inline = _format_deprecated_inline(entry) if deprecated else ""
-                if is_host_module:
-                    semantic_status = _function_semantic_status(entry)
-                    if semantic_status == "stub":
-                        fn_status = "⚠️ stub"
-                    elif semantic_status == "limited":
-                        fn_status = "⚠️ limited semantics"
-                    else:
-                        fn_status = "✅ functional"
-                    lines.append(
-                        "| {name}{dep} | `{signature}` | `{stability}` | {status} | {summary} |".format(
-                            name=name_display,
-                            dep=dep_inline,
-                            signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
-                            stability=entry.get("stability", "unknown"),
-                            status=fn_status,
-                            summary=source_doc_summary(item.docs if item else []),
-                        )
-                    )
+                semantic_status = _function_semantic_status(entry)
+                if semantic_status == "stub":
+                    fn_status = "⚠️ stub"
+                elif semantic_status == "limited":
+                    fn_status = "⚠️ limited semantics"
+                elif semantic_status == "unreachable":
+                    fn_status = "⛔ unreachable"
                 else:
-                    lines.append(
-                        "| {name}{dep} | `{signature}` | `{stability}` | {summary} |".format(
-                            name=name_display,
-                            dep=dep_inline,
-                            signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
-                            stability=entry.get("stability", "unknown"),
-                            summary=source_doc_summary(item.docs if item else []),
-                        )
+                    fn_status = "✅ functional"
+                lines.append(
+                    "| {name}{dep} | `{signature}` | `{stability}` | {status} | {summary} |".format(
+                        name=name_display,
+                        dep=dep_inline,
+                        signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
+                        stability=entry.get("stability", "unknown"),
+                        status=fn_status,
+                        summary=source_doc_summary(item.docs if item else []),
                     )
+                )
 
             # After the table, emit per-function detail blocks (manifest doc + errors + examples)
             for entry in grouped[section_name]:

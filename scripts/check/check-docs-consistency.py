@@ -217,31 +217,55 @@ def check_issue_index_freshness() -> int:
 
 
 def check_host_badge_presence() -> int:
-    """Verify that host module pages contain target/status badges.
+    """Verify that host module pages contain availability/status badges.
 
     Every generated module page that includes a ``std::host::*`` module section
-    must contain the unified badge pattern (``🎯 **Target:**``) produced by
+    must contain the unified badge pattern (``**Availability:**``) produced by
     ``format_host_module_badges()`` in the generator.
     """
     modules_dir = ROOT / "docs" / "stdlib" / "modules"
     if not modules_dir.exists():
         return 0
 
-    badge_pattern = re.compile(r"🎯 \*\*Target:\*\*")
+    badge_pattern = re.compile(r"\*\*Availability:\*\*")
     missing: list[str] = []
     for md_file in sorted(modules_dir.glob("*.md")):
         content = md_file.read_text()
         # Only check pages that contain std::host:: module sections
-        if "## `std::host::" in content and not badge_pattern.search(content):
+        if "## Module `std::host::" in content and not badge_pattern.search(content):
             missing.append(md_file.name)
 
     if missing:
         errors.append(
             f"host badge drift: {', '.join(missing)} contain std::host:: modules "
-            f"but lack target/status badges; regenerate with `python3 scripts/gen/generate-docs.py`"
+            f"but lack availability/status badges; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
+    return 0
+
+
+def _github_heading_slug(text: str) -> str:
+    """Approximate GitHub/docsify heading IDs for duplicate detection."""
+    text = re.sub(r"[`*_~]", "", text.strip().lower())
+    text = re.sub(r"[^\w\-\s]", "", text, flags=re.UNICODE)
+    return re.sub(r"[\s]+", "-", text).strip("-")
+
+
+def check_duplicate_generated_heading_slugs() -> int:
+    """Reject ambiguous heading IDs in current generated module pages."""
+    modules_dir = ROOT / "docs" / "stdlib" / "modules"
+    duplicates: list[str] = []
+    for path in sorted(modules_dir.glob("*.md")):
+        seen: set[str] = set()
+        for heading in re.findall(r"^#{1,6}\s+(.+?)\s*$", path.read_text(encoding="utf-8"), re.MULTILINE):
+            slug = _github_heading_slug(heading)
+            if slug in seen:
+                duplicates.append(f"{path.name}#{slug}")
+            seen.add(slug)
+    if duplicates:
+        errors.append("duplicate generated heading slug(s): " + ", ".join(duplicates))
+        return 1
     return 0
 
 
@@ -748,9 +772,8 @@ def check_cross_page_metadata_consistency() -> int:
 
     For each module page under ``docs/stdlib/modules/``, extracts function
     names and their stability from the generated tables, then cross-checks
-    against the manifest source of truth.  Also verifies that host module
-    pages display ``🎯 **Target:**`` badges consistent with the manifest
-    ``[[modules]]`` target metadata.
+    against the manifest source of truth. Also verifies that mixed host
+    modules retain per-symbol availability instead of a flattened target.
     """
     if not MANIFEST.exists():
         return 0
@@ -784,8 +807,6 @@ def check_cross_page_metadata_consistency() -> int:
         r"^\| `([^`]+)` \| [^|]+ \| `([^`]+)` \|"
     )
 
-    badge_pattern = re.compile(r"🎯 \*\*Target:\*\* `([^`]+)`")
-
     for md_file in sorted(modules_dir.glob("*.md")):
         content = md_file.read_text(encoding="utf-8")
         page_name = md_file.name
@@ -804,20 +825,20 @@ def check_cross_page_metadata_consistency() -> int:
                     f"page='{page_stability}', manifest='{expected_stability}'"
                 )
 
-        # ── 2. Cross-check host module target badges vs manifest modules ──
-        # Find all module headings (## `std::host::*`) and their badge lines
+        # ── 2. Mixed host modules must use the mixed availability badge ──
         module_heading_pattern = re.compile(
-            r'^## `(std::host::[^`]+)`', re.MULTILINE
+            r'^## Module `(std::host::[^`]+)`', re.MULTILINE
         )
         for heading_match in module_heading_pattern.finditer(content):
             mod_name = heading_match.group(1)
-            mod_meta = mod_lookup.get(mod_name)
-            if mod_meta is None:
-                continue
-
-            manifest_targets = mod_meta.get("target", [])
-            if not manifest_targets:
-                continue
+            module_functions = [
+                fn for fn in manifest.get("functions", [])
+                if fn.get("module") == mod_name
+            ]
+            shapes = {
+                (fn.get("availability", {}).get("t1"), fn.get("availability", {}).get("t3"))
+                for fn in module_functions
+            }
 
             # Search for badge in the region after this heading (up to next heading)
             heading_end = heading_match.end()
@@ -825,20 +846,10 @@ def check_cross_page_metadata_consistency() -> int:
             section_end = heading_end + next_heading.start() if next_heading else len(content)
             section_text = content[heading_end:section_end]
 
-            badge_match = badge_pattern.search(section_text)
-            if badge_match is None:
+            if len(shapes) > 1 and "**Availability:** mixed — see individual symbols" not in section_text:
                 inconsistencies.append(
-                    f"{page_name}/{mod_name}: manifest has target "
-                    f"{manifest_targets} but module page section lacks 🎯 Target badge"
+                    f"{page_name}/{mod_name}: mixed per-symbol availability was flattened"
                 )
-            else:
-                badge_target = badge_match.group(1)
-                for expected_target in manifest_targets:
-                    if expected_target not in badge_target:
-                        inconsistencies.append(
-                            f"{page_name}/{mod_name}: target mismatch — "
-                            f"manifest='{expected_target}', badge='{badge_target}'"
-                        )
 
     if inconsistencies:
         errors.append(
@@ -1759,6 +1770,7 @@ def main() -> int:
     failed += check_generated_docs()
     failed += check_capability_state()
     failed += check_host_badge_presence()
+    failed += check_duplicate_generated_heading_slugs()
     failed += check_deprecated_badge_presence()
     failed += check_fixture_count_freshness()
     failed += check_issue_index_freshness()

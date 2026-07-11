@@ -31,7 +31,7 @@ let name = wit_type_name(t)   // "u32"
 
 ---
 
-## `std::wit`
+## Module `std::wit`
 
 - Source: [`../../../std/wit/mod.ark`](../../../std/wit/mod.ark)
 - Manifest-backed functions: 16
@@ -54,21 +54,21 @@ compiler's module loading chain.
 
 ### `std::wit` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `wit_type_bool` | `() -> WitType` | `experimental` | - |
-| `wit_type_u8` | `() -> WitType` | `experimental` | - |
-| `wit_type_u16` | `() -> WitType` | `experimental` | - |
-| `wit_type_u32` | `() -> WitType` | `experimental` | - |
-| `wit_type_u64` | `() -> WitType` | `experimental` | - |
-| `wit_type_s8` | `() -> WitType` | `experimental` | - |
-| `wit_type_s16` | `() -> WitType` | `experimental` | - |
-| `wit_type_s32` | `() -> WitType` | `experimental` | - |
-| `wit_type_s64` | `() -> WitType` | `experimental` | - |
-| `wit_type_f32` | `() -> WitType` | `experimental` | - |
-| `wit_type_f64` | `() -> WitType` | `experimental` | - |
-| `wit_type_char` | `() -> WitType` | `experimental` | - |
-| `wit_type_string` | `() -> WitType` | `experimental` | - |
-| `wit_type_id` | `(WitType) -> i32` | `experimental` | - |
-| `wit_type_from_id` | `(i32) -> WitType` | `experimental` | - |
-| `wit_type_name` | `(WitType) -> String` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `wit_type_bool` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_u8` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_u16` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_u32` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_u64` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_s8` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_s16` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_s32` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_s64` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_f32` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_f64` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_char` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_string` | `() -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_id` | `(WitType) -> i32` | `experimental` | ✅ functional | - |
+| `wit_type_from_id` | `(i32) -> WitType` | `experimental` | ✅ functional | - |
+| `wit_type_name` | `(WitType) -> String` | `experimental` | ✅ functional | - |

@@ -34,7 +34,7 @@ let exists = hashmap_contains(map, 42)  // true
 
 ---
 
-## `std::collections::compiler`
+## Module `std::collections::compiler`
 
 - Source: [`../../../std/collections/compiler.ark`](../../../std/collections/compiler.ark)
 - Manifest-backed functions: 14
@@ -53,12 +53,12 @@ in v4+.
 
 ### `std::collections::compiler` — Arena (bump allocator)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `arena_new` | `() -> Vec<i32>` | `experimental` | - |
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `arena_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `arena_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `arena_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::collections::compiler::arena_new`
 
@@ -78,14 +78,14 @@ Return the number of allocated entries in the Arena.
 
 ### `std::collections::compiler` — SlotMap (deletion-safe handle map, monomorphic i32 values)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `slotmap_new` | `() -> Vec<i32>` | `experimental` | - |
-| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | - |
-| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | - |
-| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
-| `slotmap_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `slotmap_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | ✅ functional | - |
+| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | ✅ functional | - |
+| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
+| `slotmap_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::collections::compiler::slotmap_new`
 
@@ -113,12 +113,12 @@ Return the number of active entries in the SlotMap.
 
 ### `std::collections::compiler` — Interner (value <-> Symbol bidirectional map, String values)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `interner_new` | `() -> Vec<String>` | `experimental` | - |
-| `interner_intern` | `(Vec<String>, String) -> i32` | `experimental` | - |
-| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `experimental` | - |
-| `interner_len` | `(Vec<String>) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `interner_new` | `() -> Vec<String>` | `experimental` | ✅ functional | - |
+| `interner_intern` | `(Vec<String>, String) -> i32` | `experimental` | ✅ functional | - |
+| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `experimental` | ✅ functional | - |
+| `interner_len` | `(Vec<String>) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::collections::compiler::interner_new`
 
@@ -136,7 +136,7 @@ Look up the String for a given Symbol, or None if out of range.
 
 Return the number of interned strings.
 
-## `std::collections::hash`
+## Module `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
 - Manifest-backed functions: 42
@@ -185,50 +185,50 @@ where flags are `0 = empty`, `1 = occupied`.
 
 ### `std::collections::hash` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `hashmap_new` | `() -> Vec<i32>` | `stable` | - |
-| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
-| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | Insert or update a key. Returns true when the value was stored. |
-| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `stable` | Insert or update a key and return the previous value, matching Rust's |
-| `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | - |
-| `hashmap_capacity` | `(Vec<i32>) -> i32` | `stable` | Return the current bucket capacity. |
-| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Create a new HashMap with a specific initial capacity. |
-| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | Ensure the map can hold at least additional more inserted keys without |
-| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `stable` | Fallible reserve facade. The current Vec-backed implementation has no |
-| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | Shrink buckets to the minimum capacity that preserves the load-factor |
-| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Look up a key and return Some(value) or None. |
-| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `stable` | Return true if the map contains no entries. |
-| `hashmap_clear` | `(Vec<i32>) -> ()` | `stable` | Remove all entries from the map, resetting size to 0. |
-| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a Vec<i32> of all keys currently in the map. |
-| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a Vec<i32> of all values currently in the map. |
-| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a flat Vec<i32> snapshot of key/value pairs: |
-| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return all entries as flat key/value pairs and clear the map. |
-| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Remove a key from the map and return its previous value, or None if absent. |
-| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
-| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | Extend a map with all key/value pairs from another map (other). |
-| `hashset_new` | `() -> Vec<i32>` | `stable` | Create a new empty HashSet. |
-| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `stable` | Insert a value into the set. Returns true if the value was newly added, |
-| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `stable` | Return true if the set contains the given value. |
-| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `stable` | Remove a value from the set. Returns true if the value was present, false otherwise. |
-| `hashset_len` | `(Vec<i32>) -> i32` | `stable` | Return the number of elements in the set. |
-| `hashset_is_empty` | `(Vec<i32>) -> bool` | `stable` | Return true if the set is empty. |
-| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return all elements of the set as a Vec<i32>. |
-| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the union of two sets (all elements present in a or b). |
-| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the intersection of two sets (elements present in both a and b). |
-| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the difference a - b (elements in a that are not in b). |
-| `hashset_capacity` | `(Vec<i32>) -> i32` | `stable` | Return the current bucket capacity of the set. |
-| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | Ensure the set can hold at least additional more elements without |
-| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | Shrink the set to the minimum capacity preserving the load-factor invariant. |
-| `hashset_clear` | `(Vec<i32>) -> ()` | `stable` | Remove all elements from the set, resetting size to 0. |
-| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | Extend a set with all elements from another set (other). |
-| `hashset_str_new` | `() -> Vec<String>` | `stable` | - |
-| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `stable` | - |
-| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `stable` | - |
-| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `stable` | - |
-| `hashset_str_len` | `(Vec<String>) -> i32` | `stable` | - |
-| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `hashmap_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
+| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> bool` | `stable` | ✅ functional | Insert or update a key. Returns true when the value was stored. |
+| `hashmap_insert` | `(Vec<i32>, i32, i32) -> Option<i32>` | `stable` | ✅ functional | Insert or update a key and return the previous value, matching Rust's |
+| `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `hashmap_capacity` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Return the current bucket capacity. |
+| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | Create a new HashMap with a specific initial capacity. |
+| `hashmap_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | Ensure the map can hold at least additional more inserted keys without |
+| `hashmap_try_reserve` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | Fallible reserve facade. The current Vec-backed implementation has no |
+| `hashmap_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Shrink buckets to the minimum capacity that preserves the load-factor |
+| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | ✅ functional | Look up a key and return Some(value) or None. |
+| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | Return true if the map contains no entries. |
+| `hashmap_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Remove all entries from the map, resetting size to 0. |
+| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return a Vec<i32> of all keys currently in the map. |
+| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return a Vec<i32> of all values currently in the map. |
+| `hashmap_entries` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return a flat Vec<i32> snapshot of key/value pairs: |
+| `hashmap_drain` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return all entries as flat key/value pairs and clear the map. |
+| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | ✅ functional | Remove a key from the map and return its previous value, or None if absent. |
+| `hashmap_remove_entry` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Remove a key and return a flat [key, value] pair, or an empty Vec if absent. |
+| `hashmap_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | ✅ functional | Extend a map with all key/value pairs from another map (other). |
+| `hashset_new` | `() -> Vec<i32>` | `stable` | ✅ functional | Create a new empty HashSet. |
+| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | Insert a value into the set. Returns true if the value was newly added, |
+| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | Return true if the set contains the given value. |
+| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | Remove a value from the set. Returns true if the value was present, false otherwise. |
+| `hashset_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Return the number of elements in the set. |
+| `hashset_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | Return true if the set is empty. |
+| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return all elements of the set as a Vec<i32>. |
+| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return the union of two sets (all elements present in a or b). |
+| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return the intersection of two sets (elements present in both a and b). |
+| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Return the difference a - b (elements in a that are not in b). |
+| `hashset_capacity` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Return the current bucket capacity of the set. |
+| `hashset_reserve` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | Ensure the set can hold at least additional more elements without |
+| `hashset_shrink_to_fit` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Shrink the set to the minimum capacity preserving the load-factor invariant. |
+| `hashset_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Remove all elements from the set, resetting size to 0. |
+| `hashset_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | ✅ functional | Extend a set with all elements from another set (other). |
+| `hashset_str_new` | `() -> Vec<String>` | `stable` | ✅ functional | - |
+| `hashset_str_insert` | `(Vec<String>, String) -> bool` | `stable` | ✅ functional | - |
+| `hashset_str_contains` | `(Vec<String>, String) -> bool` | `stable` | ✅ functional | - |
+| `hashset_str_remove` | `(Vec<String>, String) -> bool` | `stable` | ✅ functional | - |
+| `hashset_str_len` | `(Vec<String>) -> i32` | `stable` | ✅ functional | - |
+| `hashset_str_is_empty` | `(Vec<String>) -> bool` | `stable` | ✅ functional | - |
 
 #### `std::collections::hash::hashmap_extend`
 
@@ -254,7 +254,7 @@ Remove all elements from a HashSet<i32>, resetting size to 0.
 
 Extend a HashSet<i32> with all elements from another set. Mirrors Rust's HashSet::extend.
 
-## `std::collections::linear`
+## Module `std::collections::linear`
 
 - Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
 - Manifest-backed functions: 18
@@ -271,15 +271,15 @@ All current implementations are monomorphic `i32` containers backed by
 
 ### `std::collections::linear` — Deque (ring buffer)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `deque_new` | `() -> Vec<i32>` | `stable` | - |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | - |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | - |
-| `deque_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `deque_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `deque_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | - |
 
 #### `std::collections::linear::deque_new`
 
@@ -311,15 +311,15 @@ Return true if the deque contains no elements.
 
 ### `std::collections::linear` — PriorityQueue (min-heap)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `pq_new` | `() -> Vec<i32>` | `stable` | - |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `pq_pop` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_peek` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
-| `pq_clear` | `(Vec<i32>) -> ()` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `pq_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `pq_pop` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `pq_peek` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `pq_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | ✅ functional | - |
+| `pq_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | - |
 
 #### `std::collections::linear::pq_new`
 
@@ -351,12 +351,12 @@ Reset the priority queue to empty (preserves allocated storage).
 
 ### `std::collections::linear` — Additional Deque accessors
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `deque_front` | `(Vec<i32>) -> i32` | `stable` | Peek at the front element without removing it. |
-| `deque_back` | `(Vec<i32>) -> i32` | `stable` | Peek at the back element without removing it. |
-| `deque_clear` | `(Vec<i32>) -> ()` | `stable` | Reset the deque to empty (preserves capacity). |
-| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | Copy all deque elements (front to back) into a new Vec<i32>. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `deque_front` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Peek at the front element without removing it. |
+| `deque_back` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Peek at the back element without removing it. |
+| `deque_clear` | `(Vec<i32>) -> ()` | `stable` | ✅ functional | Reset the deque to empty (preserves capacity). |
+| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Copy all deque elements (front to back) into a new Vec<i32>. |
 
 #### `std::collections::linear::deque_front`
 
@@ -374,7 +374,7 @@ Reset the deque to empty (preserves allocated capacity).
 
 Copy all deque elements (front to back) into a new Vec<i32>.
 
-## `std::collections::ordered`
+## Module `std::collections::ordered`
 
 - Source: [`../../../std/collections/ordered.ark`](../../../std/collections/ordered.ark)
 - Manifest-backed functions: 37
@@ -393,27 +393,27 @@ all other APIs in this module are **experimental**.
 
 ### `std::collections::ordered` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `sorted_map_new` | `() -> Vec<i32>` | `stable` | - |
-| `sorted_map_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `stable` | - |
-| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
-| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
-| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `sorted_map_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `sorted_map_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
+| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
+| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
+| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `stable` | ✅ functional | - |
 
 ### `std::collections::ordered` — BTreeMap API (sorted-vector backed, i32 key, i32 value)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `btree_new` | `() -> Vec<i32>` | `experimental` | - |
-| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | - |
-| `btree_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `btree_remove` | `(Vec<i32>, i32) -> ()` | `experimental` | - |
-| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
-| `btree_len` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | - |
-| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `btree_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | ✅ functional | - |
+| `btree_get` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `btree_remove` | `(Vec<i32>, i32) -> ()` | `experimental` | ✅ functional | - |
+| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
+| `btree_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
 
 #### `std::collections::ordered::btree_new`
 
@@ -449,12 +449,12 @@ Return keys in [start, end) range from a BTreeMap<i32,i32>.
 
 ### `std::collections::ordered` — BTreeSet API (sorted unique values, i32)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `btree_set_new` | `() -> Vec<i32>` | `experimental` | - |
-| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
-| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
-| `btree_set_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `btree_set_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
+| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
+| `btree_set_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::collections::ordered::btree_set_new`
 
@@ -474,13 +474,13 @@ Return the number of elements in a BTreeSet<i32>.
 
 ### `std::collections::ordered` — IndexMap API (insertion-order map, i32 key, i32 value)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `index_map_new` | `() -> Vec<i32>` | `experimental` | - |
-| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | - |
-| `index_map_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `index_map_len` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `index_map_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | ✅ functional | - |
+| `index_map_get` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `index_map_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
 
 #### `std::collections::ordered::index_map_new`
 
@@ -504,12 +504,12 @@ Return all keys of an IndexMap<i32,i32> in insertion order.
 
 ### `std::collections::ordered` — IndexSet API (insertion-order unique values, i32)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `index_set_new` | `() -> Vec<i32>` | `experimental` | - |
-| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
-| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
-| `index_set_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `index_set_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
+| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | ✅ functional | - |
+| `index_set_len` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::collections::ordered::index_set_new`
 
@@ -529,18 +529,18 @@ Return the number of elements in an IndexSet<i32>.
 
 ### `std::collections::ordered` — BitSet
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `bitset_new` | `() -> Vec<i32>` | `stable` | - |
-| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `bitset_test` | `(Vec<i32>, i32) -> bool` | `stable` | - |
-| `bitset_set` | `(Vec<i32>, i32) -> ()` | `experimental` | - |
-| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `experimental` | - |
-| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `experimental` | - |
-| `bitset_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
-| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `bitset_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `bitset_test` | `(Vec<i32>, i32) -> bool` | `stable` | ✅ functional | - |
+| `bitset_set` | `(Vec<i32>, i32) -> ()` | `experimental` | ✅ functional | - |
+| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `experimental` | ✅ functional | - |
+| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `bitset_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
 
 #### `std::collections::ordered::bitset_set`
 

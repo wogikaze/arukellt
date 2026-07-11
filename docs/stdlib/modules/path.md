@@ -34,7 +34,7 @@ let dir  = parent(p)                    // "/home/user"
 
 ---
 
-## `std::path`
+## Module `std::path`
 
 - Source: [`../../../std/path/mod.ark`](../../../std/path/mod.ark)
 - Manifest-backed functions: 9
@@ -53,17 +53,17 @@ operations that work on plain strings without host I/O.
 
 ### `std::path` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `join` | `(String, String) -> String` | `stable` | Joins two path segments with a single / separator. |
-| `file_name` | `(String) -> String` | `stable` | Returns the final path segment after the last /. |
-| `extension` | `(String) -> String` | `stable` | Returns the extension without the leading .. |
-| `with_extension` | `(String, String) -> String` | `stable` | Replaces the current extension, or appends one when missing. |
-| `is_absolute` | `(String) -> bool` | `stable` | Returns true when the path starts with /. |
-| `parent` | `(String) -> String` | `stable` | Returns the parent directory path, or an empty string at the root. |
-| `stem` | `(String) -> String` | `stable` | Returns the file stem (the file name without the final extension). |
-| `normalize` | `(String) -> String` | `stable` | Resolves . and .. components and collapses redundant / separators. |
-| `components` | `(String) -> Vec<String>` | `stable` | Returns the non-empty path segments split by /. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `join` | `(String, String) -> String` | `stable` | ✅ functional | Joins two path segments with a single / separator. |
+| `file_name` | `(String) -> String` | `stable` | ✅ functional | Returns the final path segment after the last /. |
+| `extension` | `(String) -> String` | `stable` | ✅ functional | Returns the extension without the leading .. |
+| `with_extension` | `(String, String) -> String` | `stable` | ✅ functional | Replaces the current extension, or appends one when missing. |
+| `is_absolute` | `(String) -> bool` | `stable` | ✅ functional | Returns true when the path starts with /. |
+| `parent` | `(String) -> String` | `stable` | ✅ functional | Returns the parent directory path, or an empty string at the root. |
+| `stem` | `(String) -> String` | `stable` | ✅ functional | Returns the file stem (the file name without the final extension). |
+| `normalize` | `(String) -> String` | `stable` | ✅ functional | Resolves . and .. components and collapses redundant / separators. |
+| `components` | `(String) -> Vec<String>` | `stable` | ✅ functional | Returns the non-empty path segments split by /. |
 
 #### `std::path::stem`
 

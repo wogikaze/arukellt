@@ -35,7 +35,7 @@ let s = string_from_bytes(back)  // "hello"
 
 ---
 
-## `std::bytes`
+## Module `std::bytes`
 
 - Source: [`../../../std/bytes/mod.ark`](../../../std/bytes/mod.ark)
 - Manifest-backed functions: 45
@@ -61,68 +61,68 @@ Vec<u8> is unavailable; Vec<i32> is used throughout.
 
 ### `std::bytes` — Byte buffer creation
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `bytes_new` | `() -> Vec<i32>` | `stable` | - |
-| `bytes_from_string` | `(String) -> Vec<i32>` | `stable` | Create a byte buffer from the raw bytes of a UTF-8 string. |
-| `string_from_bytes` | `(Vec<i32>) -> String` | `stable` | Interpret a byte buffer as a UTF-8 string (best-effort, one byte = one char). |
-| `bytes_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `bytes_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
-| `bytes_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `stable` | - |
-| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Concatenate two byte buffers into a new one. |
-| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `stable` | Extract a sub-range of bytes as a new buffer. |
-| `byte_length` | `(String) -> i32` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `bytes_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `bytes_from_string` | `(String) -> Vec<i32>` | `stable` | ✅ functional | Create a byte buffer from the raw bytes of a UTF-8 string. |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `stable` | ✅ functional | Interpret a byte buffer as a UTF-8 string (best-effort, one byte = one char). |
+| `bytes_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `bytes_get` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
+| `bytes_push` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `stable` | ✅ functional | - |
+| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Concatenate two byte buffers into a new one. |
+| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `stable` | ✅ functional | Extract a sub-range of bytes as a new buffer. |
+| `byte_length` | `(String) -> i32` | `stable` | ✅ functional | - |
 
 ### `std::bytes` — Hex encoding
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `hex_encode` | `(Vec<i32>) -> String` | `stable` | - |
-| `hex_decode` | `(String) -> Vec<i32>` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `hex_encode` | `(Vec<i32>) -> String` | `stable` | ✅ functional | - |
+| `hex_decode` | `(String) -> Vec<i32>` | `stable` | ✅ functional | - |
 
 ### `std::bytes` — LEB128 encoding
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `stable` | - |
-| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | - |
 
 ### `std::bytes` — Endian utilities
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `stable` | - |
-| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `stable` | - |
-| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `stable` | - |
-| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `stable` | - |
-| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `stable` | - |
-| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `stable` | - |
-| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
-| `buf_new` | `() -> Vec<i32>` | `stable` | - |
-| `buf_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Allocate a ByteBuf with a preallocated capacity hint. |
-| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `stable` | - |
-| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `stable` | Push a 64-bit little-endian value. |
-| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | - |
-| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `stable` | Freeze a ByteBuf into an immutable Bytes value. |
-| `buf_len` | `(Vec<i32>) -> i32` | `stable` | - |
-| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
-| `cursor_pos` | `(Vec<i32>) -> i32` | `stable` | - |
-| `cursor_remaining` | `(Vec<i32>) -> i32` | `stable` | - |
-| `read_u8` | `(Vec<i32>) -> i32` | `stable` | Read one byte from the cursor and advance its position. |
-| `read_u16_le` | `(Vec<i32>) -> i32` | `stable` | Read two bytes little-endian from the cursor. |
-| `read_u32_le` | `(Vec<i32>) -> i32` | `stable` | Read four bytes little-endian from the cursor. |
-| `read_u64_le` | `(Vec<i32>) -> i64` | `stable` | Read eight bytes little-endian from the cursor as i64. |
-| `read_u32_be` | `(Vec<i32>) -> i32` | `stable` | Read four bytes big-endian from the cursor. |
-| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Read n bytes from the cursor into a new byte buffer. |
-| `base64_encode` | `(Vec<i32>) -> String` | `stable` | - |
-| `base64_decode` | `(String) -> Vec<i32>` | `stable` | - |
-| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `stable` | Decode an unsigned LEB128 u32 from a ByteCursor. |
-| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `stable` | Decode a signed LEB128 i32 from a ByteCursor. |
-| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `stable` | - |
-| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `stable` | Decode an unsigned LEB128 u64 from a ByteCursor. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `buf_new` | `() -> Vec<i32>` | `stable` | ✅ functional | - |
+| `buf_with_capacity` | `(i32) -> Vec<i32>` | `stable` | ✅ functional | Allocate a ByteBuf with a preallocated capacity hint. |
+| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `stable` | ✅ functional | - |
+| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `stable` | ✅ functional | Push a 64-bit little-endian value. |
+| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | ✅ functional | - |
+| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | Freeze a ByteBuf into an immutable Bytes value. |
+| `buf_len` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `cursor_pos` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `cursor_remaining` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |
+| `read_u8` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Read one byte from the cursor and advance its position. |
+| `read_u16_le` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Read two bytes little-endian from the cursor. |
+| `read_u32_le` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Read four bytes little-endian from the cursor. |
+| `read_u64_le` | `(Vec<i32>) -> i64` | `stable` | ✅ functional | Read eight bytes little-endian from the cursor as i64. |
+| `read_u32_be` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Read four bytes big-endian from the cursor. |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Read n bytes from the cursor into a new byte buffer. |
+| `base64_encode` | `(Vec<i32>) -> String` | `stable` | ✅ functional | - |
+| `base64_decode` | `(String) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Decode an unsigned LEB128 u32 from a ByteCursor. |
+| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | Decode a signed LEB128 i32 from a ByteCursor. |
+| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `stable` | ✅ functional | Decode an unsigned LEB128 u64 from a ByteCursor. |
 
 #### `std::bytes::bytes_from_array`
 

@@ -33,7 +33,7 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
 
 ---
 
-## `std::time`
+## Module `std::time`
 
 - Source: [`../../../std/time/mod.ark`](../../../std/time/mod.ark)
 - Manifest-backed functions: 3
@@ -55,8 +55,8 @@ those timestamps are the caller's responsibility.
 
 ### `std::time` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `duration_ms` | `(i64, i64) -> i64` | `stable` | - |
-| `duration_us` | `(i64, i64) -> i64` | `stable` | - |
-| `duration_ns` | `(i64, i64) -> i64` | `stable` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `duration_ms` | `(i64, i64) -> i64` | `stable` | ✅ functional | - |
+| `duration_us` | `(i64, i64) -> i64` | `stable` | ✅ functional | - |
+| `duration_ns` | `(i64, i64) -> i64` | `stable` | ✅ functional | - |

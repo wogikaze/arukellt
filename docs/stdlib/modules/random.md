@@ -31,7 +31,7 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
 
 ---
 
-## `std::random`
+## Module `std::random`
 
 - Source: [`../../../std/random/mod.ark`](../../../std/random/mod.ark)
 - Manifest-backed functions: 3
@@ -44,8 +44,8 @@ seeded helpers so callers can reason about reproducibility.
 
 ### `std::random` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `seeded_random` | `(i32) -> i32` | `stable` | Generate the next deterministic pseudo-random value from a seed. |
-| `seeded_range` | `(i32, i32, i32) -> i32` | `stable` | Map a seed to a deterministic value in [lo, hi). |
-| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return a shuffled copy of v using the deterministic seeded RNG. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `seeded_random` | `(i32) -> i32` | `stable` | ✅ functional | Generate the next deterministic pseudo-random value from a seed. |
+| `seeded_range` | `(i32, i32, i32) -> i32` | `stable` | ✅ functional | Map a seed to a deterministic value in [lo, hi). |
+| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return a shuffled copy of v using the deterministic seeded RNG. |

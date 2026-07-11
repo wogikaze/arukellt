@@ -28,7 +28,7 @@ let fields = csv_split_line("name,age,city")
 
 ---
 
-## `std::csv`
+## Module `std::csv`
 
 - Source: [`../../../std/csv/mod.ark`](../../../std/csv/mod.ark)
 - Manifest-backed functions: 7
@@ -40,15 +40,15 @@ Supports RFC 4180 quoted fields and basic multi-row documents.
 
 ### `std::csv` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | Split a single CSV line on commas (no quote handling). |
-| `csv_parse_row` | `(String) -> Vec<String>` | `experimental` | Parse a single CSV line into fields, handling RFC 4180 quoted fields. |
-| `csv_stringify_row` | `(Vec<String>) -> String` | `experimental` | Serialize a row of fields back to a CSV line. |
-| `csv_count_rows` | `(String) -> i32` | `experimental` | Count the number of non-empty lines in a CSV string. |
-| `csv_get_row_raw` | `(String, i32) -> String` | `experimental` | Return the raw text of row row_index (0-based, skipping empty lines). |
-| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `experimental` | Parse row row_index from a multi-row CSV string. |
-| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `experimental` | Parse a CSV document with a header row. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Split a single CSV line on commas (no quote handling). |
+| `csv_parse_row` | `(String) -> Vec<String>` | `experimental` | ✅ functional | Parse a single CSV line into fields, handling RFC 4180 quoted fields. |
+| `csv_stringify_row` | `(Vec<String>) -> String` | `experimental` | ✅ functional | Serialize a row of fields back to a CSV line. |
+| `csv_count_rows` | `(String) -> i32` | `experimental` | ✅ functional | Count the number of non-empty lines in a CSV string. |
+| `csv_get_row_raw` | `(String, i32) -> String` | `experimental` | ✅ functional | Return the raw text of row row_index (0-based, skipping empty lines). |
+| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `experimental` | ✅ functional | Parse row row_index from a multi-row CSV string. |
+| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `experimental` | ✅ functional | Parse a CSV document with a header row. |
 
 #### `std::csv::csv_parse_row`
 

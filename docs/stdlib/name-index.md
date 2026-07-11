@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 729
-- **Historical/deprecated names:** 26
+- **Canonical names:** 728
+- **Historical/deprecated names:** 27
 - **Total entries:** 755
 
 Related:
@@ -202,7 +202,6 @@ Current public API names, sorted alphabetically.
 | `err` | `prelude` | `stable` | Option Result |
 | `error_message` | `std::core::error` | `stable` | Core |
 | `exists` | `std::fs` | `stable` | Fs |
-| `exists` | `std::host::fs` | `stable` | Host Fs |
 | `exit` | `std::host::process` | `stable` | Host Process |
 | `exit` | `std::process` | `stable` | Process |
 | `expect` | `prelude` | `stable` | Option Result |
@@ -760,6 +759,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 | Old Name | Replacement | Category | Migration Guide |
 |----------|-------------|----------|-----------------|
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
+| ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `filter<i32>` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
 | ~~`HashMap_i32_i32_contains_key`~~ | `std::collections::hash_map` | Collections | [migration-guidance.md](migration-guidance.md) |
@@ -976,7 +976,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `err` | ✅ `stable` | `prelude` | Option Result |
 | `error_message` | ✅ `stable` | `std::core::error` | Core |
 | `exists` | ✅ `stable` | `std::fs` | Fs |
-| `exists` | ✅ `stable` | `std::host::fs` | Host Fs |
+| ~~`exists`~~ | ⚠️ deprecated | `std::host::fs` | → `is_readable_file` · [migration guide](migration-guidance.md) |
 | `exit` | ✅ `stable` | `std::host::process` | Host Process |
 | `exit` | ✅ `stable` | `std::process` | Process |
 | `expect` | ✅ `stable` | `prelude` | Option Result |

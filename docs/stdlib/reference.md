@@ -7,10 +7,10 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 396 | Backward-compatible within a major version. Safe for production use. |
+| `stable` | 395 | Backward-compatible within a major version. Safe for production use. |
 | `provisional` | 28 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 26 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 27 | Superseded — see migration guidance. |
 
 ## Prelude Types
 
@@ -443,8 +443,8 @@ Expected output: `42`
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
-| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of command-line arguments (including the program name). |
-| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return the command-line arguments as a list of strings. The first element is the program name. |
+| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
+| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
 
@@ -463,7 +463,7 @@ match home { Some(p) => println(p), None => println("not set") }
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `exists` | `(String) -> bool` | `std::host::fs` | `stable` | `builtin` | no | - | @deprecated Use is_readable_file instead. Same read-probe semantics — NOT a general path-existence q… |
+| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `std::host::fs` | `deprecated` | `builtin` | no | - | Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence quer… |
 | `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
 | `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
 | `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
@@ -1224,7 +1224,7 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **26 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **27 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
@@ -1252,5 +1252,6 @@ Expected output: `hello world`
 | ~~`Vec_new_i64`~~ | `Vec::new<i64>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`Vec_new_v128`~~ | `Vec::new<v128>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
+| ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
 | ~~`filter_i32`~~ | `filter<i32>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |

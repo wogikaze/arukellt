@@ -34,7 +34,7 @@ let i32_type = valtype_i32()       // 0x7f
 
 ---
 
-## `std::wasm`
+## Module `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)
 - Manifest-backed functions: 79
@@ -50,30 +50,30 @@ All APIs are Experimental and may change in v4+.
 
 ### `std::wasm` — Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `wasm_magic` | `() -> Vec<i32>` | `experimental` | - |
-| `wasm_version` | `() -> Vec<i32>` | `experimental` | - |
-| `section_type` | `() -> i32` | `experimental` | - |
-| `section_import` | `() -> i32` | `experimental` | - |
-| `section_function` | `() -> i32` | `experimental` | - |
-| `section_table` | `() -> i32` | `experimental` | - |
-| `section_memory` | `() -> i32` | `experimental` | - |
-| `section_global` | `() -> i32` | `experimental` | - |
-| `section_export` | `() -> i32` | `experimental` | - |
-| `section_start` | `() -> i32` | `experimental` | - |
-| `section_element` | `() -> i32` | `experimental` | - |
-| `section_code` | `() -> i32` | `experimental` | - |
-| `section_data` | `() -> i32` | `experimental` | - |
-| `valtype_i32` | `() -> i32` | `experimental` | - |
-| `valtype_i64` | `() -> i32` | `experimental` | - |
-| `valtype_f32` | `() -> i32` | `experimental` | - |
-| `valtype_f64` | `() -> i32` | `experimental` | - |
-| `valtype_v128` | `() -> i32` | `experimental` | - |
-| `valtype_funcref` | `() -> i32` | `experimental` | - |
-| `valtype_externref` | `() -> i32` | `experimental` | - |
-| `reftype_funcref` | `() -> i32` | `experimental` | - |
-| `reftype_externref` | `() -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `wasm_magic` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `wasm_version` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `section_type` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_import` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_function` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_table` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_memory` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_global` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_export` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_start` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_element` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_code` | `() -> i32` | `experimental` | ✅ functional | - |
+| `section_data` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_i32` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_i64` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_f32` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_f64` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_v128` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_funcref` | `() -> i32` | `experimental` | ✅ functional | - |
+| `valtype_externref` | `() -> i32` | `experimental` | ✅ functional | - |
+| `reftype_funcref` | `() -> i32` | `experimental` | ✅ functional | - |
+| `reftype_externref` | `() -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::wasm::valtype_v128`
 
@@ -97,13 +97,13 @@ Reference type byte for externref.
 
 ### `std::wasm` — FuncType
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
-| `functype_param_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `functype_result_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `functype_param_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `functype_result_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::wasm::functype_new`
 
@@ -127,13 +127,13 @@ Get the valtype constant for the i-th result of a FuncType.
 
 ### `std::wasm` — Limits
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `limits_unbounded` | `(i32) -> Vec<i32>` | `experimental` | - |
-| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `experimental` | - |
-| `limits_min` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `limits_has_max` | `(Vec<i32>) -> bool` | `experimental` | - |
-| `limits_max` | `(Vec<i32>) -> i32` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `limits_unbounded` | `(i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `limits_min` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `limits_has_max` | `(Vec<i32>) -> bool` | `experimental` | ✅ functional | - |
+| `limits_max` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::wasm::limits_unbounded`
 
@@ -157,18 +157,18 @@ Get the maximum of a Limits (only valid if limits_has_max is true).
 
 ### `std::wasm` — WasmModuleBuilder
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `module_new` | `() -> Vec<i32>` | `experimental` | - |
-| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `experimental` | - |
-| `module_add_func` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
-| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `experimental` | - |
-| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `experimental` | - |
-| `module_type_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `module_func_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `module_mem_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `module_export_count` | `(Vec<i32>) -> i32` | `experimental` | - |
-| `module_encode_header` | `() -> Vec<i32>` | `experimental` | Encode the module to a Wasm binary header (magic + version). |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `module_new` | `() -> Vec<i32>` | `experimental` | ✅ functional | - |
+| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `module_add_func` | `(Vec<i32>, i32) -> i32` | `experimental` | ✅ functional | - |
+| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `experimental` | ✅ functional | - |
+| `module_type_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `module_func_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `module_mem_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `module_export_count` | `(Vec<i32>) -> i32` | `experimental` | ✅ functional | - |
+| `module_encode_header` | `() -> Vec<i32>` | `experimental` | ✅ functional | Encode the module to a Wasm binary header (magic + version). |
 
 #### `std::wasm::module_new`
 
@@ -212,10 +212,10 @@ Return the Wasm binary magic+version header (8 bytes).
 
 ### `std::wasm` — LEB128 encoding
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `experimental` | Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes. |
-| `leb128_size_u32` | `(i32) -> i32` | `experimental` | Return the number of bytes needed to encode x as unsigned LEB128. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `experimental` | ✅ functional | Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes. |
+| `leb128_size_u32` | `(i32) -> i32` | `experimental` | ✅ functional | Return the number of bytes needed to encode x as unsigned LEB128. |
 
 #### `std::wasm::leb128_encode_u32`
 
@@ -227,25 +227,25 @@ Return the number of bytes needed to encode x as unsigned LEB128.
 
 ### `std::wasm` — Opcode constants (Wasm MVP subset)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `op_unreachable` | `() -> i32` | `experimental` | - |
-| `op_nop` | `() -> i32` | `experimental` | - |
-| `op_end` | `() -> i32` | `experimental` | - |
-| `op_return` | `() -> i32` | `experimental` | - |
-| `op_call` | `() -> i32` | `experimental` | - |
-| `op_local_get` | `() -> i32` | `experimental` | - |
-| `op_local_set` | `() -> i32` | `experimental` | - |
-| `op_local_tee` | `() -> i32` | `experimental` | - |
-| `op_i32_const` | `() -> i32` | `experimental` | - |
-| `op_i64_const` | `() -> i32` | `experimental` | - |
-| `op_i32_eqz` | `() -> i32` | `experimental` | - |
-| `op_i32_eq` | `() -> i32` | `experimental` | - |
-| `op_i32_add` | `() -> i32` | `experimental` | - |
-| `op_i32_sub` | `() -> i32` | `experimental` | - |
-| `op_i32_mul` | `() -> i32` | `experimental` | - |
-| `memory_copy` | `(i32, i32, i32) -> ()` | `experimental` | - |
-| `memory_fill` | `(i32, i32, i32) -> ()` | `experimental` | - |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `op_unreachable` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_nop` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_end` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_return` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_call` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_local_get` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_local_set` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_local_tee` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i32_const` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i64_const` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i32_eqz` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i32_eq` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i32_add` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i32_sub` | `() -> i32` | `experimental` | ✅ functional | - |
+| `op_i32_mul` | `() -> i32` | `experimental` | ✅ functional | - |
+| `memory_copy` | `(i32, i32, i32) -> ()` | `experimental` | ✅ functional | - |
+| `memory_fill` | `(i32, i32, i32) -> ()` | `experimental` | ✅ functional | - |
 
 #### `std::wasm::op_unreachable`
 
@@ -309,20 +309,20 @@ Wasm opcode: i32.mul (0x6c).
 
 ### `std::wasm` — v128 intrinsics (ADR-037 §10-11, issue #698 Phase 3)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `v128_load` | `(i32, i32) -> v128` | `experimental` | Load a v128 from linear memory at ptr + offset. |
-| `v128_store` | `(i32, i32, v128) -> ()` | `experimental` | Store a v128 to linear memory at ptr + offset. |
-| `v128_load_splat` | `(i32, i32) -> v128` | `experimental` | Load a single byte and splat to all 16 lanes. |
-| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `experimental` | Load a single lane from linear memory. |
-| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `experimental` | Store a single lane to linear memory. |
-| `v128_and` | `(v128, v128) -> v128` | `experimental` | Bitwise AND of two v128 vectors. |
-| `v128_or` | `(v128, v128) -> v128` | `experimental` | Bitwise OR of two v128 vectors. |
-| `v128_xor` | `(v128, v128) -> v128` | `experimental` | Bitwise XOR of two v128 vectors. |
-| `v128_not` | `(v128) -> v128` | `experimental` | Bitwise NOT of a v128 vector. |
-| `v128_andnot` | `(v128, v128) -> v128` | `experimental` | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
-| `v128_bitselect` | `(v128, v128, v128) -> v128` | `experimental` | Bitwise select: for each bit, choose a if c bit is 1 else b. |
-| `v128_any_true` | `(v128) -> i32` | `experimental` | Return 1 if any bit in the v128 is set, 0 otherwise. |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `v128_load` | `(i32, i32) -> v128` | `experimental` | ✅ functional | Load a v128 from linear memory at ptr + offset. |
+| `v128_store` | `(i32, i32, v128) -> ()` | `experimental` | ✅ functional | Store a v128 to linear memory at ptr + offset. |
+| `v128_load_splat` | `(i32, i32) -> v128` | `experimental` | ✅ functional | Load a single byte and splat to all 16 lanes. |
+| `v128_load_lane` | `(i32, i32, v128, i32) -> v128` | `experimental` | ✅ functional | Load a single lane from linear memory. |
+| `v128_store_lane` | `(i32, i32, v128, i32) -> ()` | `experimental` | ✅ functional | Store a single lane to linear memory. |
+| `v128_and` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise AND of two v128 vectors. |
+| `v128_or` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise OR of two v128 vectors. |
+| `v128_xor` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise XOR of two v128 vectors. |
+| `v128_not` | `(v128) -> v128` | `experimental` | ✅ functional | Bitwise NOT of a v128 vector. |
+| `v128_andnot` | `(v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise ANDNOT (a & ~b) of two v128 vectors. |
+| `v128_bitselect` | `(v128, v128, v128) -> v128` | `experimental` | ✅ functional | Bitwise select: for each bit, choose a if c bit is 1 else b. |
+| `v128_any_true` | `(v128) -> i32` | `experimental` | ✅ functional | Return 1 if any bit in the v128 is set, 0 otherwise. |
 
 #### `std::wasm::v128_load`
 
@@ -374,14 +374,14 @@ Return 1 if any bit in the v128 is set, 0 otherwise.
 
 ### `std::wasm` — v128 reinterpret family (no-op at v128 level, just type casting)
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `v128_reinterpret_i8x16` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i8x16 (no-op, same bits). |
-| `v128_reinterpret_i16x8` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i16x8 (no-op, same bits). |
-| `v128_reinterpret_i32x4` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i32x4 (no-op, same bits). |
-| `v128_reinterpret_i64x2` | `(v128) -> v128` | `experimental` | Reinterpret v128 as i64x2 (no-op, same bits). |
-| `v128_reinterpret_f32x4` | `(v128) -> v128` | `experimental` | Reinterpret v128 as f32x4 (no-op, same bits). |
-| `v128_reinterpret_f64x2` | `(v128) -> v128` | `experimental` | Reinterpret v128 as f64x2 (no-op, same bits). |
+| Name | Signature | Stability | Implementation | Summary |
+|------|-----------|-----------|----------------|---------|
+| `v128_reinterpret_i8x16` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i8x16 (no-op, same bits). |
+| `v128_reinterpret_i16x8` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i16x8 (no-op, same bits). |
+| `v128_reinterpret_i32x4` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i32x4 (no-op, same bits). |
+| `v128_reinterpret_i64x2` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as i64x2 (no-op, same bits). |
+| `v128_reinterpret_f32x4` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as f32x4 (no-op, same bits). |
+| `v128_reinterpret_f64x2` | `(v128) -> v128` | `experimental` | ✅ functional | Reinterpret v128 as f64x2 (no-op, same bits). |
 
 #### `std::wasm::v128_reinterpret_i8x16`
 

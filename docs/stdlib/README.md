@@ -11,7 +11,6 @@ manifest-backed な公開 API と利用ガイド。
 | [**reference.md**](reference.md) | Complete manifest-backed API reference (all functions, types, stability tiers) |
 | [migration-guidance.md](migration-guidance.md) | Deprecated API migration paths and replacement patterns |
 | [stability-policy.md](stability-policy.md) | What stable / provisional / experimental mean for your code |
-| [std.md](std.md) | Historical March 2026 design rationale — not the current API contract |
 
 ## Reading Guide
 

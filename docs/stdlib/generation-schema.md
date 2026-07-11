@@ -46,6 +46,7 @@ These fields are mandatory regardless of role:
 | `host_profiles` | list of strings | Host profiles (`wasi-p1`, `wasi-p2`, …). Orthogonal to language target (ADR-007). |
 | `requires` | list of strings | Required host capabilities (e.g. `host.stdout`, `host.env`). |
 | `implementation` | table | Per-target coverage: `implemented` / `missing-adapter` / `unimplemented`. |
+| `implementation_status` | string | Semantic completeness: `functional`, `limited`, `stub`, or `unreachable`. If omitted, the generator derives a conservative status from kind and documented limitations. This axis is displayed separately from lifecycle stability for every public API. |
 | `semantic_id` | string | Reference into `docs/data/core-ops.toml` `[[operations]]` (ADR-042). Public path stays in manifest only. |
 | `type_id` | string | Reference into `docs/data/core-ops.toml` `[[types]]`. |
 | `deprecated_by` | string | Replacement identifier. Signals that this entry is superseded. |
@@ -87,7 +88,7 @@ Use `Availability: mixed — see individual symbols` when symbols differ.
 
 ## Valid Stability Labels
 
-Defined in `spec.md` (ADR-013 §Stability) and enforced by `STABILITY_LABELS` in
+Defined by ADR-014 and enforced by `PUBLIC_API_STABILITY_LABELS` in
 `scripts/gen/generate-docs.py`:
 
 | Label | Meaning |
@@ -95,7 +96,11 @@ Defined in `spec.md` (ADR-013 §Stability) and enforced by `STABILITY_LABELS` in
 | `stable` | Public API; breaking changes require a deprecation cycle. |
 | `provisional` | API shape is mostly settled but may change without a full deprecation. |
 | `experimental` | Subject to change; do not depend on in production code. |
-| `unimplemented` | Documented as planned; not yet available. |
+| `deprecated` | Still callable during its removal window; a replacement is named by `deprecated_by`. |
+
+`unimplemented` is a language-feature maturity value, not a valid lifecycle
+value for a public `std/manifest.toml` entry. Planned APIs must not be published
+as public entries merely to reserve a name.
 
 ---
 
@@ -150,6 +155,9 @@ A violation in `std/manifest.toml` will:
 The authoritative schema constants live in `scripts/gen/generate-docs.py`:
 
 ```python
+PUBLIC_API_STABILITY_LABELS = ("stable", "provisional", "experimental", "deprecated")
+LANGUAGE_FEATURE_STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented")
+
 FUNCTION_REQUIRED_FIELDS = ("name", "params", "returns", "stability", "doc_category")
 
 VALID_KIND_VALUES = frozenset(
@@ -161,5 +169,5 @@ FUNCTION_KIND_REQUIRED = {
 }
 ```
 
-This document is manually maintained alongside those constants. If the constants
-change, update this file in the same commit.
+The consistency gate verifies this table against the generator constants; a
+label-set mismatch fails documentation verification.
