@@ -2,10 +2,10 @@
 - **Arukellt**
   - [ホーム](#/)
   - [Docs Overview](#/README)
-  - [見取り図 (HTML)](#/overview.html)
   - [Current state](#/current-state)
   - [クイックスタート](#/quickstart)
   - [Contributing](#/contributing)
+  - [見取り図 HTML（アーカイブ）](#/overview.html)
 
 - **Current Docs**
   - [コンパイラ](#/compiler/README)

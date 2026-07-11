@@ -106,7 +106,7 @@
 | `wasm32` | `wat` | `<input>.wat` | |
 | `wasm32-gc` | `core-wasm` (default) | `<input>.wasm` | |
 | `wasm32-gc` | `wat` | `<input>.wat` | |
-| `wasm32-gc` | `component` | `<input>.component.wasm` | in-tree（ADR-008） |
+| `wasm32-gc` | `component` | `<input>.component.wasm` | public contract: in-tree (ADR-008); living path may still use helpers |
 | `wasm32-gc` | `wit` | `<input>.wit` | WIT export surface |
 | `wasm32-gc` | `all` | `<input>.wasm` + `<input>.component.wasm` | core + component |
 
@@ -153,9 +153,9 @@ jco transpile app.component.wasm -o app.dist/
 |-----------|----------|-------------|------------|-------|
 | `core-wasm` | Yes | Yes | — | 既定の core Wasm |
 | `wat` | Yes | Yes | — | WAT テキスト |
-| `component` | No | Yes | — | **in-tree**（ADR-008）。`wasm-tools` 不要 |
+| `component` | No | Yes | — | **Public contract (ADR-008):** in-tree. **Implementation:** living path may still use `wasm-tools` / Python helpers — see `current-state.md` |
 | `wit` | No | Yes | — | WIT export surface |
-| `all` | No | Yes | — | core + component（いずれもコンパイラ内） |
+| `all` | No | Yes | — | core + component（契約はコンパイラ内; 実装ギャップは current-state） |
 | native emits | — | — | scaffold | 形式・ABI は未決定（ADR-045）。現状は current-state |
 
 複数コンポーネントのリンクは ADR-034（`wac plug`）。ブラウザ向けは上記 jco。

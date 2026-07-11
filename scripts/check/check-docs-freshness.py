@@ -52,20 +52,28 @@ def main() -> int:
         except ValueError:
             errors.append(f"project-state.toml updated date is not ISO format: {updated}")
 
-    # Check fixture count consistency
+    # Check fixture count consistency against fixture_manifest_count (SSOT key).
     if MANIFEST_FILE.exists():
         actual_count = count_manifest_entries(MANIFEST_FILE)
-        toml_count_str = read_toml_value(state, "fixture_count")
+        toml_count_str = read_toml_value(state, "fixture_manifest_count")
+        if toml_count_str is None:
+            toml_count_str = read_toml_value(state, "fixture_count")
         if toml_count_str:
             try:
                 toml_count = int(toml_count_str)
                 if toml_count != actual_count:
                     errors.append(
-                        f"project-state.toml fixture_count={toml_count} "
+                        f"project-state.toml fixture_manifest_count={toml_count} "
                         f"but manifest.txt has {actual_count} entries"
                     )
             except ValueError:
-                errors.append(f"project-state.toml fixture_count is not an integer: {toml_count_str}")
+                errors.append(
+                    f"project-state.toml fixture_manifest_count is not an integer: {toml_count_str}"
+                )
+        else:
+            errors.append(
+                "project-state.toml missing fixture_manifest_count under [verification]"
+            )
 
     if errors:
         for e in errors:

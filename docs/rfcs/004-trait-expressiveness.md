@@ -1,7 +1,7 @@
 # RFC-004: Trait expressiveness（Self・型引数・blanket）
 
 ステータス: **DRAFT**  
-関連: [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)、[ADR-038](../adr/ADR-038-operator-overload-traits.md)、[ADR-039](../adr/ADR-039-try-operator.md)  
+関連: [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)、[ADR-038](../adr/ADR-038-operator-overload-traits.md)、[ADR-039](../adr/ADR-039-question-mark-operator.md)
 提案日: 2026-07-11
 
 ---

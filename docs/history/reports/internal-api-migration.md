@@ -1,3 +1,5 @@
+> **ARCHIVED REPORT** — historical snapshot. Not current policy. See `docs/current-state.md`.
+
 # Internal API Migration Notes
 
 > Internal consumer guidance for the T3 promotion and pipeline refactor.

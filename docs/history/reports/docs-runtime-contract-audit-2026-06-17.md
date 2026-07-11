@@ -1,3 +1,5 @@
+> **ARCHIVED REPORT** — historical snapshot. Not current policy. See `docs/current-state.md`.
+
 # Docs-to-Runtime Contract Audit — 2026-06-17
 
 Audit orchestrator: issue **#679** (docs-audit umbrella)  
@@ -35,12 +37,12 @@ Evidence baseline (2026-06-17):
 
 | # | Check | Verdict | Evidence | Tracking |
 |---|-------|---------|----------|----------|
-| 1 | README `Wasm-first` backed through component/host/interop | **gap** | README status block lists targets only; `target-contract.md` L158–162: component-compile **smoke**, skip-on-CI when `wasm-tools` absent; no CI wasm-tools install | [#682](../../issues/open/682-component-wit-product-claim-audit.md) |
-| 2 | README `Component/WIT target` CI-guaranteed | **gap** | `docs/target-contract.md` L61–62, L158–162: emit component = **smoke**; fixtures skipped without `wasm-tools` | [#682](../../issues/open/682-component-wit-product-claim-audit.md) |
+| 1 | README `Wasm-first` backed through component/host/interop | **gap** | README status block lists targets only; `target-contract.md` L158–162: component-compile **smoke**, skip-on-CI when `wasm-tools` absent; no CI wasm-tools install | [#682](../../../issues/open/682-component-wit-product-claim-audit.md) |
+| 2 | README `Component/WIT target` CI-guaranteed | **gap** | `docs/target-contract.md` L61–62, L158–162: emit component = **smoke**; fixtures skipped without `wasm-tools` | [#682](../../../issues/open/682-component-wit-product-claim-audit.md) |
 | 3 | README status block ↔ `current-state.md` | **OK** | `docs/data/project-state.toml` `[verification]` updated 2026-06-17; `generate-docs.py` regenerates `README_STATUS` + `CURRENT_STATE_*`; `check_docs_runtime_contract()` enforces parity | fixed in **#679** |
-| 4 | `current-state.md` ↔ `target-contract.md` (P2 native / component tier) | **gap** | `current-state.md` Component Model: gate_074 green, P2 native path described; `target-contract.md` L151–155: P2 native **deferred to v5+** | [#680](../../issues/open/680-target-tier-honesty-audit.md), [#668](../../issues/open/668-p2-native-component-polish.md) |
-| 5 | `current-state.md` ↔ `capability-surface.md` (host reachability) | **gap** | `capability-surface.md`: `std::host::http|sockets|udp` **not user-reachable**; `src/compiler/wasm/call_host.ark` dispatches `call_host_network.ark` | [#675](../../issues/open/675-host-capability-reachability-flags.md), [#681](../../issues/open/681-stdlib-manifest-reachability-audit.md) |
-| 6 | Generated stdlib docs ↔ `std/manifest.toml` availability | **gap** | `std/manifest.toml` lists `std::host::http` (6 fns), `sockets` (5), `udp` (1); generated reference has reachability badges but summary table weak vs manifest | [#681](../../issues/open/681-stdlib-manifest-reachability-audit.md) |
+| 4 | `current-state.md` ↔ `target-contract.md` (P2 native / component tier) | **gap** | `current-state.md` Component Model: gate_074 green, P2 native path described; `target-contract.md` L151–155: P2 native **deferred to v5+** | [#680](../../../issues/open/680-target-tier-honesty-audit.md), [#668](../../../issues/open/668-p2-native-component-polish.md) |
+| 5 | `current-state.md` ↔ `capability-surface.md` (host reachability) | **gap** | `capability-surface.md`: `std::host::http|sockets|udp` **not user-reachable**; `src/compiler/wasm/call_host.ark` dispatches `call_host_network.ark` | [#675](../../../issues/open/675-host-capability-reachability-flags.md), [#681](../../../issues/open/681-stdlib-manifest-reachability-audit.md) |
+| 6 | Generated stdlib docs ↔ `std/manifest.toml` availability | **gap** | `std/manifest.toml` lists `std::host::http` (6 fns), `sockets` (5), `udp` (1); generated reference has reachability badges but summary table weak vs manifest | [#681](../../../issues/open/681-stdlib-manifest-reachability-audit.md) |
 | 7 | Legacy / archived docs do not mislead from README | **OK** | `rg` on root `README.md`: no `docs/migration/` or `docs/archive/` links; archived content reachable only via explicit doc paths | inventory in **#679**; follow-up **#685** |
 | 8 | `false-done-prevention.md` vs landing claims | **OK** | `check-false-done-hygiene.py` PASS; verify quick 166/166; no FD-03/FD-04 violation detected on README status claims in this pass | ongoing monitor **#684** |
 
@@ -59,14 +61,14 @@ Evidence baseline (2026-06-17):
 
 | Gap ID | Description | Owner issue | Gate / fix status |
 |--------|-------------|-------------|-------------------|
-| G-679-01 | Wasm-first / component-host interop not CI-guaranteed | [#682](../../issues/open/682-component-wit-product-claim-audit.md) | open audit |
-| G-679-02 | Component/WIT target not blocking CI | [#682](../../issues/open/682-component-wit-product-claim-audit.md) | wasm-tools CI → **#682** |
-| G-679-03 | P2 native tier docs split (current-state vs target-contract) | [#680](../../issues/open/680-target-tier-honesty-audit.md), [#668](../../issues/open/668-p2-native-component-polish.md) | deferred text intentionally not fixed in #679 |
-| G-679-04 | Host http/sockets/udp reachability docs vs runtime | [#675](../../issues/open/675-host-capability-reachability-flags.md) | implementation |
-| G-679-05 | Stdlib manifest reachability / generated docs | [#681](../../issues/open/681-stdlib-manifest-reachability-audit.md) | audit |
-| G-679-06 | Quickstart / skip-doc-check executable examples | [#683](../../issues/open/683-user-facing-executable-example-audit.md) | audit |
-| G-679-07 | IDE/playground/extension claim cross-check | [#685](../../issues/open/685-ide-playground-extension-claim-audit.md) | audit |
-| G-679-08 | False-done limited-scope re-audit program | [#684](../../issues/open/684-false-done-limited-scope-reaudit.md) | monitor |
+| G-679-01 | Wasm-first / component-host interop not CI-guaranteed | [#682](../../../issues/open/682-component-wit-product-claim-audit.md) | open audit |
+| G-679-02 | Component/WIT target not blocking CI | [#682](../../../issues/open/682-component-wit-product-claim-audit.md) | wasm-tools CI → **#682** |
+| G-679-03 | P2 native tier docs split (current-state vs target-contract) | [#680](../../../issues/open/680-target-tier-honesty-audit.md), [#668](../../../issues/open/668-p2-native-component-polish.md) | deferred text intentionally not fixed in #679 |
+| G-679-04 | Host http/sockets/udp reachability docs vs runtime | [#675](../../../issues/open/675-host-capability-reachability-flags.md) | implementation |
+| G-679-05 | Stdlib manifest reachability / generated docs | [#681](../../../issues/open/681-stdlib-manifest-reachability-audit.md) | audit |
+| G-679-06 | Quickstart / skip-doc-check executable examples | [#683](../../../issues/open/683-user-facing-executable-example-audit.md) | audit |
+| G-679-07 | IDE/playground/extension claim cross-check | [#685](../../../issues/open/685-ide-playground-extension-claim-audit.md) | audit |
+| G-679-08 | False-done limited-scope re-audit program | [#684](../../../issues/open/684-false-done-limited-scope-reaudit.md) | monitor |
 
 All checklist rows (§1) map to OK verdict or a row above. **Unmapped gaps: 0.**
 

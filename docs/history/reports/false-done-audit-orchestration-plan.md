@@ -1,8 +1,10 @@
+> **ARCHIVED REPORT** — historical snapshot. Not current policy. See `docs/current-state.md`.
+
 # False-Done 全件監査 — オーケストレーション計画
 
 > For cloud `/orchestrate` root planner.  
 > Contract: `prompts/research.md`, prevention: `docs/process/false-done-prevention.md`  
-> **Status: complete (2026-06-12)** — see `docs/process/false-done-audit-2026-06-12.md`
+> **Status: complete (2026-06-12)** — see `docs/history/reports/false-done-audit-2026-06-12.md`
 
 ## ゴール
 
@@ -54,7 +56,7 @@ Verify at close: `python3 scripts/manager.py verify quick` → **149/149**.
 5. python3 scripts/gen/generate-issue-index.py
 6. python3 scripts/manager.py verify quick
 7. Commit orchestration-state only
-8. Append to docs/process/false-done-audit-2026-06-12.md
+8. Append to docs/history/reports/false-done-audit-2026-06-12.md
 ```
 
 ## Worker タスクテンプレート（close-gate test）

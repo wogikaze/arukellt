@@ -1,10 +1,12 @@
+> **ARCHIVED REPORT** — historical snapshot. Not current policy. See `docs/current-state.md`.
+
 # Archived LLM readiness plan
 
 この文書は過去の計画メモです。現在の active plan ではありません。
 
 ## Current source of truth
 
-- [../current-state.md](../current-state.md)
+- [../current-state.md](../../current-state.md)
 
 ## なぜ archive 化したか
 
@@ -20,7 +22,7 @@
 
 ## いま見るべき文書
 
-- diagnostics: [../compiler/diagnostics.md](../compiler/diagnostics.md)
-- quickstart: [../quickstart.md](../quickstart.md)
-- cookbook: [../stdlib/cookbook.md](../stdlib/cookbook.md)
-- current state: [../current-state.md](../current-state.md)
+- diagnostics: [../compiler/diagnostics.md](../../compiler/diagnostics.md)
+- quickstart: [../quickstart.md](../../quickstart.md)
+- cookbook: [../stdlib/cookbook.md](../../stdlib/cookbook.md)
+- current state: [../current-state.md](../../current-state.md)

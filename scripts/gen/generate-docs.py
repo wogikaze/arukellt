@@ -864,11 +864,40 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
 
 
 def fixture_count() -> int:
+    """Count non-comment entries in tests/fixtures/manifest.txt.
+
+    Prefer ``state['verification']['fixture_manifest_count']`` for published
+    docs numbers. This helper is for freshness / drift checks only.
+    """
     return sum(
         1
         for line in FIXTURE_MANIFEST.read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.strip().startswith("#")
     )
+
+
+def format_fixture_harness(verification: dict, *, with_manifest: bool = True) -> str:
+    """Canonical harness line: passed / failed / skipped [/ manifest entries]."""
+    passed = verification.get("fixture_passed", 0)
+    failed = verification.get("fixture_failures", 0)
+    skipped = verification.get("fixture_skipped", 0)
+    base = f"{passed} passed, {failed} failed, {skipped} skipped"
+    if not with_manifest:
+        return base
+    manifest_count = verification.get("fixture_manifest_count")
+    if manifest_count is None:
+        return base
+    return f"{base} / {manifest_count} entries"
+
+
+def fixture_manifest_count_from_state(state: dict, fallback: int | None = None) -> int:
+    """Published fixture total must come from project-state.toml, not a re-count."""
+    count = state.get("verification", {}).get("fixture_manifest_count")
+    if count is not None:
+        return int(count)
+    if fallback is not None:
+        return int(fallback)
+    return fixture_count()
 
 
 def escape_table(text: str) -> str:
@@ -1306,15 +1335,13 @@ def render_current_state_updated(state: dict) -> str:
 
 def render_current_state_test_health(state: dict, fixture_total: int) -> str:
     verification = state["verification"]
-    passed = verification.get("fixture_passed", fixture_total)
-    skipped = verification.get("fixture_skipped", 0)
-    manifest_count = verification.get("fixture_manifest_count", fixture_total)
+    manifest_count = fixture_manifest_count_from_state(state, fixture_total)
     return "\n".join(
         [
             "## Test Health",
             "",
             f"- Unit tests: {verification['unit_tests_note']}",
-            f"- Fixture harness: {passed} passed, {verification['fixture_failures']} failed, {skipped} skipped (manifest-driven)",
+            f"- Fixture harness: {format_fixture_harness(verification, with_manifest=False)} (manifest-driven)",
             f"- Fixture manifest: {manifest_count} entries",
             "- Wasm validation is a hard error (W0004)",
             f"- Verification entry point: `{state['project']['verification_command']}` — **{verification['checks_passed']}/{verification['checks_total']} checks pass**",
@@ -1360,10 +1387,7 @@ def render_current_state_diagnostics(state: dict) -> str:
 def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) -> str:
     verification = state["verification"]
     targets = state["targets"]
-    passed = verification.get("fixture_passed", fixture_total)
-    skipped = verification.get("fixture_skipped", 0)
-    manifest_count = verification.get("fixture_manifest_count", fixture_total)
-    harness_str = f"{passed} passed, {skipped} skipped / {manifest_count} entries" if skipped else f"{passed} passed / {manifest_count} entries"
+    harness_str = format_fixture_harness(verification)
     return "\n".join(
         [
             "## Status",
@@ -1381,10 +1405,7 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
 
 
 def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: int, manifest_stats: dict) -> str:
-    _passed = state["verification"].get("fixture_passed", fixture_total)
-    _skipped = state["verification"].get("fixture_skipped", 0)
-    _manifest_count = state["verification"].get("fixture_manifest_count", fixture_total)
-    _harness = f"{_passed} passed, {_skipped} skipped / {_manifest_count} entries" if _skipped else f"{_passed} passed / {_manifest_count} entries"
+    _harness = format_fixture_harness(state["verification"])
     lines = [
         "# Arukellt Documentation",
         "",
@@ -1401,12 +1422,30 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         f"- Verification: `{state['project']['verification_command']}` — {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
         f"- Stdlib manifest-backed public API: {len(manifest_stats['public_functions'])} functions",
         "",
-        "- [見取り図 (HTML)](overview.html) — 初見向けの全体マップ",
         "- [Current state](current-state.md)",
         "- [Quickstart](quickstart.md)",
         "- [コンパイラ](compiler/README.md)",
         "- [標準ライブラリ](stdlib/README.md)",
         "- [Contributing](contributing.md)",
+        "",
+        "## Root reference docs",
+        "",
+        "| Doc | Role |",
+        "|-----|------|",
+        "| [cli-reference.md](cli-reference.md) | CLI surface reference |",
+        "| [cli-startup-contract.md](cli-startup-contract.md) | CLI startup / env contract |",
+        "| [ark-toml.md](ark-toml.md) | `ark.toml` schema |",
+        "| [test-strategy.md](test-strategy.md) | Test category strategy |",
+        "| [release-criteria.md](release-criteria.md) | Release guarantee tiers |",
+        "| [release-checklist.md](release-checklist.md) | Executable release checklist |",
+        "| [retention-policy.md](retention-policy.md) | Docs retention / archive zones |",
+        "| [debug-support.md](debug-support.md) | Debug / DAP support status |",
+        "| [capability-surface.md](capability-surface.md) | Host capability reachability matrix |",
+        "| [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |",
+        "| [directory-ownership.md](directory-ownership.md) | Directory ownership map |",
+        "",
+        "> [overview.html](overview.html) is an **archived** visual map (pre-canonical target rename).",
+        "> Do not treat it as current behavior — use [current-state.md](current-state.md).",
     ]
     category_labels = {
         "current": "Current Docs",
@@ -1447,7 +1486,12 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         "| `docs/stdlib/README.md` | generated |",
         "| `README.md` (repo root) | marker-updated |",
         "| `docs/current-state.md` | marker-updated |",
-        "| all other `docs/*.md` | hand-written |",
+        "| `docs/data/target-contract-summary.md` | generated |",
+        "| section `*/README.md` under `docs/` | generated |",
+        "| `docs/process/benchmark-results.md` | generated (benchmark runner) |",
+        "| `docs/data/project-state.toml` | hand-written SSOT (input) |",
+        "| `docs/data/sections.toml` | hand-written SSOT (input) |",
+        "| other hand-written `docs/**/*.md` | hand-written |",
     ])
     return "\n".join(lines) + "\n"
 
@@ -1463,10 +1507,10 @@ def render_sidebar(sections: list[dict]) -> str:
         "- **Arukellt**",
         "  - [ホーム](#/)",
         "  - [Docs Overview](#/README)",
-        "  - [見取り図 (HTML)](#/overview.html)",
         "  - [Current state](#/current-state)",
         "  - [クイックスタート](#/quickstart)",
         "  - [Contributing](#/contributing)",
+        "  - [見取り図 HTML（アーカイブ）](#/overview.html)",
     ]
     for category in ("current", "supporting", "archive"):
         category_sections = [section for section in sections if section["category"] == category]
@@ -2496,6 +2540,7 @@ def render_archive_snapshot() -> list[str]:
 
 def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_stats: dict, examples: list[dict]) -> list[str]:
     snapshot = section["snapshot"]
+    manifest_count = fixture_manifest_count_from_state(state, fixture_total)
     if snapshot == "compiler":
         return [
             f"- Current path: `{join_pipeline(state['pipeline']['current'])}`",
@@ -2506,7 +2551,7 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
     if snapshot == "language":
         return [
             "- Current user-visible behavior is described by [../current-state.md](../current-state.md).",
-            f"- Fixture-backed verification covers {fixture_total} manifest entries.",
+            f"- Fixture-backed verification covers {manifest_count} manifest entries (`docs/data/project-state.toml`).",
             f"- Canonical target for current docs: `{state['targets']['canonical']}`",
         ]
     if snapshot == "platform":
@@ -2520,7 +2565,8 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
         return [
             f"- Verification command: `{state['project']['verification_command']}`",
             f"- Current verification gate: {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
-            f"- Fixture manifest size: {fixture_total} entries",
+            f"- Fixture manifest size: {manifest_count} entries (`docs/data/project-state.toml`)",
+            f"- Fixture harness: {format_fixture_harness(state['verification'], with_manifest=False)}",
             "- Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.",
         ]
     if snapshot == "stdlib":
@@ -3264,6 +3310,16 @@ def main() -> int:
     state = load_toml(PROJECT_STATE)
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()
+
+    actual_fixture_total = fixture_count()
+    stated_fixture_total = state.get("verification", {}).get("fixture_manifest_count")
+    if stated_fixture_total is not None and int(stated_fixture_total) != actual_fixture_total:
+        print(
+            "project-state.toml fixture_manifest_count drift: "
+            f"stated={stated_fixture_total} manifest.txt={actual_fixture_total}",
+            file=sys.stderr,
+        )
+        return 1
 
     # Schema validation: always run, fail fast before any doc generation
     schema_errors = validate_manifest_schema(manifest)

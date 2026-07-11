@@ -12,17 +12,18 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - Canonical target: `wasm32-gc`
 - Component/WIT target: `wasm32-gc`
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
-- Fixture harness: 654 passed, 29 skipped / 1199 entries
-- Verification: `python3 scripts/manager.py verify quick` — 162/168 checks pass
+- Fixture harness: 654 passed, 4 failed, 29 skipped / 2679 entries
+- Verification: `python3 scripts/manager.py verify quick` — 167/171 checks pass
 - Stdlib manifest-backed public API: 772 functions
 <!-- END GENERATED:README_STATUS -->
 
 ## Start here
 
-- [見取り図 (HTML)](docs/overview.html) — 初見向けの全体マップ（ペライチ）
 - [Current state](docs/current-state.md) — 実装の現在地
 - [Quickstart](docs/quickstart.md) — まず動かすための最短ガイド
 - [Stdlib overview](docs/stdlib/README.md) — 現在の標準ライブラリ公開面
+- [Docs index](docs/README.md) — ドキュメント入口（ルート参照一覧含む）
+- [見取り図 HTML（アーカイブ）](docs/overview.html) — 旧ターゲット体系の視覚マップ。正本ではない
 - [Compiler pipeline](docs/compiler/pipeline.md) — 現在のコンパイラ構成
 
 ## Workspace overview

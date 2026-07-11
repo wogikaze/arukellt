@@ -13,3 +13,9 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [milestones.md](milestones.md) | 到達記録（historical milestones） | Archive | ステータス: 履歴メモ（現行正本ではない） |
+| [reports/docs-runtime-contract-audit-2026-06-17.md](reports/docs-runtime-contract-audit-2026-06-17.md) | docs-runtime-contract-audit-2026-06-17 | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
+| [reports/false-done-audit-2026-06-12.md](reports/false-done-audit-2026-06-12.md) | false-done-audit-2026-06-12 | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
+| [reports/false-done-audit-orchestration-plan.md](reports/false-done-audit-orchestration-plan.md) | false-done-audit-orchestration-plan | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
+| [reports/internal-api-migration.md](reports/internal-api-migration.md) | internal-api-migration | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
+| [reports/issue-dispatch-flows.md](reports/issue-dispatch-flows.md) | issue-dispatch-flows | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |
+| [reports/llm-readiness-plan.md](reports/llm-readiness-plan.md) | llm-readiness-plan | Archive | ARCHIVED REPORT — historical snapshot. Not current policy. See docs/current-state.md. |

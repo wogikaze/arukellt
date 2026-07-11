@@ -1,3 +1,5 @@
+> **ARCHIVED REPORT** — historical snapshot. Not current policy. See `docs/current-state.md`.
+
 # False-Done Audit Report — 2026-06-12
 
 Audit orchestrator: `prompts/research.md`  
@@ -206,7 +208,7 @@ Wave completion commits are mandatory per updated `prompts/research.md`
 | Artifact | Purpose |
 |----------|---------|
 | `docs/process/false-done-prevention.md` | Root-cause catalog FD-01–FD-10 + close checklist |
-| `docs/process/false-done-audit-orchestration-plan.md` | Full-audit slice plan + cloud kickoff blocker |
+| `docs/history/reports/false-done-audit-orchestration-plan.md` | Full-audit slice plan + cloud kickoff blocker |
 | `scripts/check/check-false-done-hygiene.py` | Mechanical hygiene in verify quick |
 | `scripts/check/check-false-done-close-gates.py` | Re-close gate when tracked issues land in `done/` |
 | `playground/src/tests/typecheck-close-gate.test.ts` | #472 / #500 behavioral contract |
@@ -1035,7 +1037,7 @@ pre-existing failures unchanged from prior waves.
 | Done issues | 542 |
 | Blocked issues | 2 (`issues/blocked/`) |
 | Prevention contract | `docs/process/false-done-prevention.md` |
-| Orchestration plan | `docs/process/false-done-audit-orchestration-plan.md` |
+| Orchestration plan | `docs/history/reports/false-done-audit-orchestration-plan.md` |
 | Mechanical hygiene | `scripts/check/check-false-done-hygiene.py` |
 | Re-close gates | `scripts/check/check-false-done-close-gates.py` |
 | Slice G classification | `.orchestrate/audit-slice-g/classification-table.md` |

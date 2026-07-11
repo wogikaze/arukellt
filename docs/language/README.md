@@ -6,7 +6,7 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture-backed verification covers 2679 manifest entries.
+- Fixture-backed verification covers 2679 manifest entries (`docs/data/project-state.toml`).
 - Canonical target for current docs: `wasm32-gc`
 
 ## Reading Paths

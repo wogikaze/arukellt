@@ -32,7 +32,11 @@
 | `docs/stdlib/reference.md` | generated | `scripts/gen/generate-docs.py` | Stdlib API reference |
 | `docs/stdlib/modules/*.md` | generated | `scripts/gen/generate-docs.py` | Per-module reference pages |
 | `docs/stdlib/scoreboard.md` | generated | `scripts/gen/generate-docs.py` | Module maturity scoreboard |
-| `docs/data/` | generated | `scripts/gen/generate-docs.py` | Project state data |
+| `docs/data/project-state.toml` | product (SSOT input) | hand-maintained | Structured current-state numbers / target profiles |
+| `docs/data/sections.toml` | product (SSOT input) | hand-maintained | Docs section registry |
+| `docs/data/language-doc-classifications.toml` | product (SSOT input) | hand-maintained | Language doc classifications |
+| `docs/data/target-contract-summary.md` | generated | `scripts/gen/generate-docs.py` | Generated from project-state.toml |
+| `docs/data/core-ops.toml` | product (SSOT input) | hand-maintained | Core ops registry input |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/adr/` | product | — | Architecture Decision Records |
 | `docs/rfcs/` | product | — | 詳細設計提案・仕様草案（ADR の長文側） |

@@ -9,16 +9,34 @@
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component emit: available on `wasm32-gc` (ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers (see current-state ADR gaps). CLI default = primary (wasm32-gc); impl may still spell alias wasm32-wasi-p2 until parser migrates.)
-- Fixture harness: 654 passed, 29 skipped / 1199 entries
-- Verification: `python3 scripts/manager.py verify quick` — 162/168 checks pass
+- Fixture harness: 654 passed, 4 failed, 29 skipped / 2679 entries
+- Verification: `python3 scripts/manager.py verify quick` — 167/171 checks pass
 - Stdlib manifest-backed public API: 772 functions
 
-- [見取り図 (HTML)](overview.html) — 初見向けの全体マップ
 - [Current state](current-state.md)
 - [Quickstart](quickstart.md)
 - [コンパイラ](compiler/README.md)
 - [標準ライブラリ](stdlib/README.md)
 - [Contributing](contributing.md)
+
+## Root reference docs
+
+| Doc | Role |
+|-----|------|
+| [cli-reference.md](cli-reference.md) | CLI surface reference |
+| [cli-startup-contract.md](cli-startup-contract.md) | CLI startup / env contract |
+| [ark-toml.md](ark-toml.md) | `ark.toml` schema |
+| [test-strategy.md](test-strategy.md) | Test category strategy |
+| [release-criteria.md](release-criteria.md) | Release guarantee tiers |
+| [release-checklist.md](release-checklist.md) | Executable release checklist |
+| [retention-policy.md](retention-policy.md) | Docs retention / archive zones |
+| [debug-support.md](debug-support.md) | Debug / DAP support status |
+| [capability-surface.md](capability-surface.md) | Host capability reachability matrix |
+| [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |
+| [directory-ownership.md](directory-ownership.md) | Directory ownership map |
+
+> [overview.html](overview.html) is an **archived** visual map (pre-canonical target rename).
+> Do not treat it as current behavior — use [current-state.md](current-state.md).
 
 ## Current Docs
 
@@ -73,4 +91,9 @@ Do not edit generated files manually — changes will be overwritten on the next
 | `docs/stdlib/README.md` | generated |
 | `README.md` (repo root) | marker-updated |
 | `docs/current-state.md` | marker-updated |
-| all other `docs/*.md` | hand-written |
+| `docs/data/target-contract-summary.md` | generated |
+| section `*/README.md` under `docs/` | generated |
+| `docs/process/benchmark-results.md` | generated (benchmark runner) |
+| `docs/data/project-state.toml` | hand-written SSOT (input) |
+| `docs/data/sections.toml` | hand-written SSOT (input) |
+| other hand-written `docs/**/*.md` | hand-written |

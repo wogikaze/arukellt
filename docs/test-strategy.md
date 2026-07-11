@@ -98,10 +98,14 @@ When adding a feature:
 
 ## Current coverage
 
+Counts below are **illustrative category labels**, not a second fixture SSOT.
+Authoritative fixture totals: `docs/data/project-state.toml` → `[verification].fixture_manifest_count`
+(and the harness pass/fail/skip fields). Regenerate docs after updating that file.
+
 | Category | Count | Status |
 |----------|-------|--------|
 | verification | selfhost and policy checks through `scripts/manager.py` | active |
-| fixture | 434 manifest entries | active |
+| fixture | see `fixture_manifest_count` in `project-state.toml` | active |
 | target-contract | supported (`wasm32`) + primary (`wasm32-gc`) via ARUKELLT_TARGET, plus drift enforcement in `target-contract-drift-check` | active |
 | component-interop | 6 component-compile + 1 jco smoke | partial |
 | package-workspace | dedicated non-blocking `verification-package-workspace` alert lane for manifest discovery and script execution | partial |

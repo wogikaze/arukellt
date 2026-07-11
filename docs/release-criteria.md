@@ -35,6 +35,7 @@ sha256sum /tmp/h1.wasm /tmp/h2.wasm  # must match
 These things work and regressions are P1:
 
 - `arukellt compile <file> --target wasm32-gc` produces valid Wasm（CLI 既定も `wasm32-gc` / primary）
+- `arukellt compile <file> --target wasm32` produces valid Wasm（supported compatibility / AtCoder path）
 - `arukellt run <file>` executes the compiled output via wasmtime
 - Fixture harness passes for the current manifest-backed set
 - Compilation is deterministic (same input → same output bytes)
@@ -44,13 +45,12 @@ These things work and regressions are P1:
 
 These work but the API or behavior may change without a deprecation cycle:
 
-- `--emit component` (works, but canonical ABI coverage is not exhaustive)
+- `--emit component` (works, but canonical ABI coverage is not exhaustive; living path may still use `wasm-tools` helpers)
 - LSP hover/completion/diagnostics (functional, feature set evolving)
 - `ark.toml` schema (fields continue to grow; `[world]` section is relatively new)
 
 ### Experimental (may break)
 
-- `--target wasm32` (supported compatibility / AtCoder path; not the primary CI gate)
 - `ark-dap` debug adapter (scaffold)
 - VS Code extension DAP wiring (stub)
 

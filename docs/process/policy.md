@@ -1,6 +1,7 @@
 # Operational Policy
 
 > **Current-first**: this page describes the current operational contract, not aspirational design docs.
+> Target names follow ADR-007 / ADR-013. Structured status lives in [`../data/project-state.toml`](../data/project-state.toml).
 
 ## Capability Defaults
 
@@ -22,21 +23,37 @@
 
 ## Target Support Policy
 
-| Target | Status | Support level |
-|--------|--------|---------------|
-| `wasm32-wasi-p1` (T1) | Implemented | Compatibility path for non-GC environments |
-| `wasm32-freestanding` (T2) | Registry only | Not implemented |
-| `wasm32-wasi-p2` (T3) | Implemented | Canonical GC-native path |
-| `native` (T4) | LLVM scaffold only | Not implemented |
-| `wasm32-wasi-p3` (T5) | Future | Not implemented |
+Canonical public targets (see `docs/current-state.md` / `project-state.toml`):
+
+| Target | Support tier | Implementation | Notes |
+|--------|--------------|----------------|-------|
+| `wasm32-gc` | primary | partial | CLI default; Wasm GC + WASI P2 host profile (ADR-013) |
+| `wasm32` | supported | complete | Linear-memory / AtCoder compatibility path |
+| `native-cpp` | scaffold | scaffold | C99 emit scaffold; not runnable |
+| `native-llvm` | scaffold | scaffold | LLVM IR scaffold; ABI undecided (ADR-045) |
+
+Retired / not public:
+
+| Name | Policy |
+|------|--------|
+| `wasm32-freestanding` | Hard error as public target (ADR-007) |
+| Legacy aliases (`wasm32-wasi-p1`, `wasm32-wasi-p2`, …) | Input compatibility only (`W0002`); never write as current IDs |
+
+Host profiles (`wasi-p1` / `wasi-p2` / `wasi-p3`) are **not** language targets. See `[[host_profiles]]` in `project-state.toml`.
 
 ## Emit Policy
 
-- `--emit core-wasm` is the default production artifact path.
-- `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`.
-- Component output currently depends on an external `wasm-tools` binary and a WASI adapter module.
-- Component export support is implemented for the currently wired WIT-compatible surface; not every canonical ABI case is complete yet.
-- `--emit component` is implemented in v2, but it is **not** part of the original v1 completion gate.
+Separate **public contract** from **living implementation**:
+
+| Axis | Current statement |
+|------|-------------------|
+| Public contract (ADR-008) | `--emit component` / `--emit wit` / `--emit all` on `wasm32-gc` are in-tree compiler responsibilities |
+| Implementation state | Living path may still invoke `wasm-tools` / Python wrap helpers for some component packaging steps (see `current-state.md` ADR gaps) |
+| External requirements | Do not assume a clean environment without `wasm-tools` until the in-tree path is complete (#714 / related) |
+| Default emit | `--emit core-wasm` |
+
+- Component export support covers the currently wired WIT-compatible surface; not every canonical ABI case is complete.
+- `--emit component` is **not** part of a historical v1 completion gate; treat tier as smoke until release criteria say otherwise.
 
 ## Diagnostic Quality Standards
 
@@ -82,6 +99,8 @@ The current gate totals belong to `docs/current-state.md` and the harness output
 - `arukellt check` median compile-time budget: within 10% of baseline.
 - `arukellt compile` median compile-time budget: within 20% of baseline.
 - Heavy perf comparisons are split from the normal correctness gate to avoid unstable CI.
+- See `docs/process/benchmark-plan.md` and `docs/benchmarks/governance.md`.
+- Do not publish all-skipped or deprecated-target runs as current performance evidence.
 
 ## Hidden Developer Support
 
@@ -92,9 +111,9 @@ These are development aids, not stable public CLI surface.
 
 ## Historical Gates vs Current Reality
 
-- v1 completion was defined around **T3 core-wasm compile/run correctness**.
-- v2 added Component Model support on top of that base.
-- Old docs that still describe `--emit component` as a hard error should be treated as historical and updated or ignored in favor of `docs/current-state.md`.
+- Early completion gates centered on primary-target core-wasm compile/run correctness (historically labeled T3 / `wasm32-wasi-p2`).
+- Component Model support was added on top of that base.
+- Old docs that still describe `--emit component` as a hard error, or that treat T1 as the production path, are historical — prefer `docs/current-state.md`.
 
 ## Compatibility / Migration Policy
 

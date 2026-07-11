@@ -1,33 +1,33 @@
 # Wasm Binary Size Reduction Tracking
 
-Status: **achieved** (fixture `tests/fixtures/hello/hello.ark` under 1 KB on T1 and T3)
+Status: **achieved** (fixture `tests/fixtures/hello/hello.ark` under 1 KB on `wasm32` and `wasm32-gc`)
 Updated: 2026-05-16
 Related issues: #108, #089, #091, #092, #093, #611, #612
 
 ## Goal
 
 Achieve `hello.wasm` under 1 KB with `--opt-level 2` for the canonical hello fixture
-(roadmap-v4.md §2). The fixture source is GC-oriented (`wasm32-wasi-p2`) and also builds
-to the T1 linear-memory target for comparison.
+(roadmap-v4.md §2). The fixture source is GC-oriented (`wasm32-gc`; legacy alias
+`wasm32-wasi-p2`) and also builds to the `wasm32` linear-memory target for comparison.
 
 ## Result
 
 As of **2026-05-16** (measured with `arukellt compile` release build):
 
-- **`wasm32-wasi-p1` (T1):** **491 bytes** at `--opt-level` 1 and 2.
-- **`wasm32-wasi-p2` (T3, GC-native):** **491 bytes** at `--opt-level` 2.
+- **`wasm32` (legacy alias `wasm32-wasi-p1`):** **491 bytes** at `--opt-level` 1 and 2.
+- **`wasm32-gc` (legacy alias `wasm32-wasi-p2`):** **491 bytes** at `--opt-level` 2.
 
-Older revisions of this doc cited **526 B** / **534 B** (T1) and **918 B** / **2639 B** (T3);
-those numbers are obsolete for the current compiler and `std::host::stdio` fixture.
+Older revisions of this doc cited **526 B** / **534 B** (`wasm32`) and **918 B** / **2639 B** (`wasm32-gc`);
+those numbers are **obsolete** for the current compiler and `std::host::stdio` fixture.
 
-### Measured Sizes (wasm32-wasi-p1, T1 linear-memory)
+### Measured Sizes (`wasm32` linear-memory)
 
 | Fixture               | opt-level 0 | opt-level 1 | opt-level 2 |
 |-----------------------|------------:|------------:|------------:|
 | `hello.ark` (println) | 14 172 B    | **491 B**   | **491 B**   |
 | `empty_main.ark`      | 13 936 B    | **297 B**   | **297 B**   |
 
-### Measured Sizes (wasm32-wasi-p2, T3 / GC-native)
+### Measured Sizes (`wasm32-gc`)
 
 | Fixture               | opt-level 0 | opt-level 1 | opt-level 2 |
 |-----------------------|------------:|------------:|------------:|

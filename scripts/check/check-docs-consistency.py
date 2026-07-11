@@ -132,9 +132,11 @@ def check_fixture_count_freshness() -> int:
     ]
     actual_count = len(lines)
 
-    # Find fixture count in project-state.toml
+    # Find fixture count in project-state.toml (canonical key: fixture_manifest_count)
     ps_text = project_state.read_text()
-    m = re.search(r'fixture_count\s*=\s*(\d+)', ps_text)
+    m = re.search(r'fixture_manifest_count\s*=\s*(\d+)', ps_text)
+    if m is None:
+        m = re.search(r'fixture_count\s*=\s*(\d+)', ps_text)
     if m:
         recorded_count = int(m.group(1))
         if recorded_count != actual_count:
@@ -143,6 +145,11 @@ def check_fixture_count_freshness() -> int:
                 f"but manifest.txt has {actual_count}"
             )
             return 1
+    else:
+        errors.append(
+            "project-state.toml missing fixture_manifest_count (or legacy fixture_count)"
+        )
+        return 1
 
     return 0
 
@@ -1632,12 +1639,11 @@ def check_docs_runtime_contract() -> int:
             )
 
     if fixture_passed is not None and manifest_count is not None:
-        if fixture_skipped:
-            expected_harness = (
-                f"{fixture_passed} passed, {fixture_skipped} skipped / {manifest_count} entries"
-            )
-        else:
-            expected_harness = f"{fixture_passed} passed / {manifest_count} entries"
+        fixture_failures = verification.get("fixture_failures", 0)
+        expected_harness = (
+            f"{fixture_passed} passed, {fixture_failures} failed, "
+            f"{fixture_skipped} skipped / {manifest_count} entries"
+        )
         if expected_harness not in status_block:
             errors.append(
                 f"README_STATUS fixture harness drift: expected {expected_harness!r}"

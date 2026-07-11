@@ -101,9 +101,9 @@ role = "Future WASI Preview 3 host profile on wasm32-gc; not a separate language
 fixture_passed = 654
 fixture_skipped = 29
 fixture_failures = 4
-fixture_manifest_count = 1199
-checks_passed = 162
-checks_total = 168
+fixture_manifest_count = 2679
+checks_passed = 167
+checks_total = 171
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
 [contract_audit]

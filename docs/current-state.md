@@ -4,11 +4,11 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T16:32:15+09:00
-> Source-Commit: `dbbb23f2`
+> Generated-At: 2026-07-11T16:48:19+09:00
+> Source-Commit: `82e52800`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 4 fixture failure(s), 6 verification check failure(s)
+> Blocking: 4 fixture failure(s), 4 verification check failure(s)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -95,9 +95,9 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness: 654 passed, 4 failed, 29 skipped (manifest-driven)
-- Fixture manifest: 1199 entries
+- Fixture manifest: 2679 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **162/168 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **167/171 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
@@ -142,8 +142,10 @@ full fixture coverage, and `wasm32` / `wasm32-gc` parity gates.
 
 ## Performance Snapshot
 
-Current benchmark measurements (target: `wasm32` (legacy baseline id `wasm32-wasi-p1`), mode: `update-baseline`, 5 iterations).
-Full results and history are tracked in [`docs/process/benchmark-results.md`](process/benchmark-results.md).
+> **INVALID / NO CURRENT MEASUREMENTS.**  
+> [`docs/process/benchmark-results.md`](process/benchmark-results.md) の Current Run
+> （2026-06-09, target `wasm32-wasi-p1`）は全件 skipped であり、現行 performance evidence ではない。
+> 有効な計測が再取得されるまで、この節をリリース判断や最適化根拠に使わないこと。
 
 Run benchmarks locally with:
 
@@ -152,7 +154,7 @@ python3 scripts/util/benchmark_runner.py --mode full            # full measureme
 python3 scripts/util/benchmark_runner.py --mode compare    # compare against stored baseline
 ```
 
-詳細な計測表・履歴は [`docs/process/benchmark-results.md`](process/benchmark-results.md) および生成ブロックを参照。
+詳細な計測表・履歴は [`docs/process/benchmark-results.md`](process/benchmark-results.md) および生成ブロックを参照（現状は invalid artifact）。
 
 <!-- BEGIN GENERATED:CURRENT_STATE_PERF -->
 ## Baseline and Perf Gates
@@ -177,7 +179,9 @@ python3 scripts/util/benchmark_runner.py --mode compare    # compare against sto
 | vec.ark | 2,382 B | 2,382 B | Vec ops, same target path |
 | closure.ark | n/a | n/a | Compile fails (ICE) — pre-existing, tracked in issue backlog |
 
-Canonical hello.ark sizes at opt-level 2 from [`docs/process/wasm-size-reduction.md`](process/wasm-size-reduction.md): wasm32=534 B, wasm32-gc=918 B.
+Size tracking for `hello.ark` at `--opt-level 2` lives in [`docs/process/wasm-size-reduction.md`](process/wasm-size-reduction.md)
+(current measured values there supersede any older 534 B / 918 B citations).
+Do not hand-copy size numbers into other current docs — regenerate or link.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation

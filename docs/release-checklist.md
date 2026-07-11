@@ -37,7 +37,6 @@ release refs; items marked **Manual** require human verification.
 - [ ] **CI** — LSP protocol compliance verified via E2E tests (initialize, shutdown, completion, hover, definition)
 - [ ] **CI** — Diagnostics appear on save for a file with type errors through the installed VSIX
 - [ ] **CI** — Completion, hover, and go-to-definition work in live editor through the installed VSIX
-<!-- CLOSED: Formatter CLI-LSP parity (#550) — neither selfhost CLI fmt nor LSP formatting provider exist; gated on selfhost formatter implementation. Re-add when a formatter exists in the selfhost compiler. -->
 
 ## Failure recovery
 

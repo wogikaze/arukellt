@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-REPORT = REPO_ROOT / "docs" / "process" / "docs-runtime-contract-audit-2026-06-17.md"
+REPORT = REPO_ROOT / "docs" / "history" / "reports" / "docs-runtime-contract-audit-2026-06-17.md"
 CHECK_SCRIPT = REPO_ROOT / "scripts" / "check" / "check-docs-consistency.py"
 
 CHECKLIST_ROWS = (
