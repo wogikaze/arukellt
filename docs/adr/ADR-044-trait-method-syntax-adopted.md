@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — trait / `impl` / メソッド呼び出しを言語の正規機能とする
 
 決定日: 2026-07-11  
-廃止: [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md)
+廃止: [ADR-004-method-syntax-evaluation.md](ADR-004-method-syntax-evaluation.md)
 
 ---
 

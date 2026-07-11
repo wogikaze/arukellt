@@ -2,6 +2,7 @@
 
 ステータス: **ACCEPTED** — Selfhost MIRはSSA形成前に明示的なCFGを採用  
 作成日: 2026-04-15  
+決定日: 2026-04-15
 範囲: selfhost MIR, SSA formation, lowering, codegen boundary
 
 ## 文脈

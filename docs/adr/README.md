@@ -19,8 +19,8 @@
 | [ADR-001-harness-bootstrap.md](ADR-001-harness-bootstrap.md) | ADR-001: Harness Bootstrap Strategy | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | ステータス: ACCEPTED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: ACCEPTED — Monomorphization（型ごとのコード生成）を採用する |
-| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | ステータス: ACCEPTED — 安定公開境界は WIT/canonical。raw Wasm GC layout は非 stable |
-| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: ACCEPTED — ターゲットを3系統に確定（wasm32 / wasm32-gc / native） |
+| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI 境界の分類 | ステータス: ACCEPTED — 安定公開境界は WIT/canonical。raw Wasm GC layout は非 stable |
+| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: ACCEPTED — canonical は wasm32 / wasm32-gc / native-（scaffold） |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: ACCEPTED — --emit component は in-tree で生成する |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | ステータス: ACCEPTED — use std::host::stdioの::-separated形式をソースモジュール参照として確定 |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: ACCEPTED — 実装見送り。heap pointer 初期化は単純定数で十分 |
@@ -49,7 +49,7 @@
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC Implementation Plan | ステータス: PROPOSED — wasm32-gc 向け Wasm GC 実装の段階的移行方針を提案 |
+| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 段階移行方針 | ステータス: PROPOSED — wasm32-gc 向け Wasm GC 実装の段階的移行方針を提案 |
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | ステータス: PROPOSED — #688–#697 後に実行する stdlib 再設計の戦略 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Explicit SIMD Library API | ステータス: PROPOSED — 明示的 SIMD ライブラリ API と v128 第一級型の導入を提案 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: Operator Overload Trait Surface | ステータス: PROPOSED — #688 後に実装する演算子オーバーロードの設計 |
@@ -60,7 +60,7 @@
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: メソッド構文の評価 | ステータス: SUPERSEDED — trait / メソッド構文採択により置換 |
+| [ADR-004-method-syntax-evaluation.md](ADR-004-method-syntax-evaluation.md) | ADR-004: メソッド構文の評価（旧 P4） | ステータス: SUPERSEDED — trait / メソッド構文採択により置換 |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: SUPERSEDED — 旧 LLVM 従属方針を撤回 |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | ステータス: SUPERSEDED — ADR-031 に統合（探索メモ） |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | ステータス: SUPERSEDED — ADR-031 に統合 |

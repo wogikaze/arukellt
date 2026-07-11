@@ -2,6 +2,7 @@
 
 ステータス: **ACCEPTED** — ユーザー到達パスでのpanic禁止  
 作成日: 2026-04-09  
+決定日: 2026-04-09
 範囲: CLI, LSP, extension, manifest parsing
 
 ## 文脈

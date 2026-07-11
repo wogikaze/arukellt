@@ -2,6 +2,7 @@
 
 ステータス: **ACCEPTED** — 3つのドキュメントクラス（normative/explanatory/transitional）を採用
 作成日: 2026-04-14
+決定日: 2026-04-14
 範囲: Language documentation (`docs/language/`), docs tooling
 
 ---
@@ -75,7 +76,7 @@ ADR-014 は仕様の*節*と stdlib の*エントリ*に安定性ラベルを付
 | `spec.md` | normative | 凍結された権威仕様。fixture 裏付け。凍結後変更は ADR 必須 |
 | `syntax.md` | normative | current-first 構文参照。実装・試験済み挙動を反映 |
 | `error-handling.md` | normative | current-first エラー処理。実装済み `Result`/`Option` を反映 |
-| `memory-model.md` | normative | current-first メモリモデル。GC-native T3 実装を反映 |
+| `memory-model.md` | normative | current-first メモリモデル。GC-native（`wasm32-gc`）実装を反映 |
 | `type-system.md` | normative | current-first 型システム。実装済み型検査を反映 |
 | `syntax-v1-preview.md` | transitional | 未 normative の v1 構文追加。`spec.md` 着地で退役 |
 

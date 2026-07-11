@@ -2,6 +2,7 @@
 
 ステータス: **ACCEPTED** — GitHub Pagesで静的ホスティング（Fastly CDN経由）
 作成日: 2026-06-12
+決定日: 2026-06-12
 範囲: Playground (web), deployment, CDN, caching, CI/CD, performance budget
 
 ---

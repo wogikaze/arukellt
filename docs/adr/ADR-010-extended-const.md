@@ -20,7 +20,7 @@ wasmtime 29+ および主要ランタイムは Extended Const をデフォルト
 
 ## 決定（当初）
 
-**T3 emitter に extended const のインフラを追加する。**
+**`wasm32-gc` / selfhost emitter に extended const のインフラを追加する。**（当初決定・後に撤回）
 
 - selfhost emitter (`src/compiler/emitter.ark`) に extended const のための型安全なビルダーヘルパーを実装
 - `opt_level >= 2` のとき、heap pointer グローバルの初期値を extended const で出力:

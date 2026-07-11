@@ -1,8 +1,9 @@
-# ADR-004 P4: メソッド構文の評価
+# ADR-004: メソッド構文の評価（旧 P4）
 
 ステータス: **SUPERSEDED** — trait / メソッド構文採択により置換
 
 後継: [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md)  
+決定日: 2026-04-15
 日付: 2026-04-15  
 統合日: 2026-07-11
 

@@ -1,18 +1,20 @@
-# ADR-035: Wasm GC Implementation Plan
+# ADR-035: Wasm GC 段階移行方針
 
 ステータス: **PROPOSED** — `wasm32-gc` 向け Wasm GC 実装の段階的移行方針を提案
 
-決定日: 2026-06-17
+決定日: 2026-06-17  
+改訂日: 2026-07-11 — タイトル整理、現行テスト数を current-state へ委譲
 
 ---
 
 ## 文脈
 
-ADR-002 (Memory Model, 2026-03-25) は **選択肢 A: Wasm GC 前提** を採用した。Rust
-プロトタイプ (`crates/ark-wasm/src/emit/t3_wasm_gc/`) は実際に GC 命令を出力し、
-542 テストが通過した。selfhost 移行 (2026-03-29) 以降は線形メモリ + bump アロケータ
-を使用していたが、GC target (`wasm32-gc`) では GC 命令基盤、GC struct/array、
-文字列/Vec の GC 表現を段階的に実装する。`wasm32` は線形メモリを維持する。
+ADR-002 (Memory Model, 2026-03-25) は **選択肢 A: Wasm GC 前提** を採用した。
+歴史的な Rust プロトタイプは GC 命令を出力していた。selfhost 移行以降は
+線形メモリ + bump アロケータを使用していたが、GC target (`wasm32-gc`) では
+GC 命令基盤、GC struct/array、文字列/Vec の GC 表現を段階的に実装する。
+`wasm32` は線形メモリを維持する。現行の fixture / テスト通過数は
+`docs/current-state.md` を正本とする。
 
 ADR-007 (Targets) は以下のメモリモデルを定義している：
 
@@ -68,7 +70,7 @@ emitted する。
 
 - [ADR-002: Memory Model](ADR-002-memory-model.md) — GC-native 決定の根拠
 - [ADR-007: Targets](ADR-007-targets.md) — ターゲット定義
-- [ADR-043: Wasm GC Post-MVP](ADR-043-wasm-gc-post-mvp.md) — Post-MVP survey
+- [ADR-043: Wasm GC Post-MVP](ADR-043-wasm-gc-post-mvp.md) — Phase 0 拡張を言語前提にしない
 - [ADR-013: Primary Target](ADR-013-primary-target.md) — `wasm32-gc` primary 根拠
 - [ADR-040: Semantic Type Spine](ADR-040-typed-mir-signature-registry.md) — GcLayoutTable 基盤
 - [実装計画: Wasm GC](../plans/wasm-gc-implementation.md)

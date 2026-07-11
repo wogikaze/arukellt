@@ -2,6 +2,7 @@
 
 ステータス: **ACCEPTED** — fragmentベースのshare URL形式（versioned path structure）
 作成日: 2026-05-15
+決定日: 2026-05-15
 範囲: Playground (web), share/permalink surface, `docs/adr/`, static hosting contract
 
 ---

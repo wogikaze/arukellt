@@ -25,3 +25,8 @@ ADR-006 Layer3 弱体化、ADR-007/013 一本化、check-adrs 強化。
 2026-07-11 追記2: WASI P1 environ_get 誤認訂正、Weak/finalizer を ADR-002/043 で未採択に統一、
 jco GC ブロッカー記述を調査結果に合わせて更新、ADR-008 CM 安定化表現を訂正、
 ADR-006 raw GC layout を non-stable に縮小。
+
+2026-07-11 追記3: ADR-007 を決定のみへスリム化（現行実行面は
+`docs/platform/target-runtime-and-surfaces.md`）。native 出力表の矛盾を解消。
+ADR-042 に intrinsic negative examples。ADR-006 層番号廃止。ADR-002 計測を research へ。
+ADR-017 を理想 frontend 契約へ。形式残件（004 ファイル名、決定日、T3 表現、035 タイトル）。
