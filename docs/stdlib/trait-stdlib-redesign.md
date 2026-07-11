@@ -14,11 +14,11 @@
 ### 1.1 完全階層図
 
 ```
-                    ┌─────── Eq (既存 #cmp) ───────┐
-                    │                               │
-              PartialEq (#695)                   Ord: Eq (#695)
-                                                      │
-                                                PartialOrd: Ord (#695)
+PartialEq (#695) — 部分的な等価（反射律を要求しない）
+ └─ Eq: PartialEq (既存 #cmp をこの階層へ) — 全等価
+
+PartialOrd: PartialEq (#695) — 部分順序（f64 / F32x4 等）
+ └─ Ord: Eq + PartialOrd (#695) — 全順序
 
   Hash (既存 #hash)     Clone (#692)       Default (#692)     Display (既存 #convert)
                          │                                       │
@@ -45,8 +45,9 @@
 
 | Trait | Supertrait | Issue | 備考 |
 |-------|-----------|-------|------|
-| `Ord` | `Eq` | #695 | 全順序 |
-| `PartialOrd` | `Ord` | #695 | Arukellt では Ord の上に積む (Rust は逆だが単純化) |
+| `Eq` | `PartialEq` | #695 | 全等価（反射律） |
+| `PartialOrd` | `PartialEq` | #695 | 部分順序。`PartialOrd: Ord` は禁止 |
+| `Ord` | `Eq` + `PartialOrd` | #695 | 全順序 |
 | `Copy` | `Clone` | #692 | marker trait (メソッドなし) |
 | `Debug` | — | #696 | Display と並列 (supertrait なし、独立) |
 | `Into<T>` | — | #692 | `From<T>` から blanket impl で自動導出 |
@@ -54,30 +55,27 @@
 | `BufRead` | `Read` | #693 | |
 | `Error` | `Display` | #694 | source() chaining |
 
-> **設計メモ (PartialOrd)**: Rust では `PartialOrd: PartialEq` で `Ord: Eq + PartialOrd`
-> だが、Arukellt では `Eq` が既存 trait であり `PartialEq` を新設するコストに見合わない。
-> 単純化のため `Ord: Eq` とし、`PartialOrd: Ord` で部分比較可能型 (f64) を表現する。
-> これは Rust とは逆の階層だが、LLM フレンドリ性を優先した結果。
+> **設計メモ:** 標準的な包含関係（Rust と同型）を採用する。
+> 旧案の `PartialOrd: Ord` は `f64` を PartialOrd のみにできず破綻するため却下（ADR-036 D4）。
 
 ### 1.3 組み込み impl マトリクス
 
 各 trait に対する組み込み型の impl 義務を定義する。□=未実装、■=実装済み、◇=本 redesign で追加。
 
-| Type | Eq | Ord | Hash | Clone | Copy | Default | Display | Debug | From |
-|------|----|----|------|-------|------|---------|---------|-------|------|
-| i32 | ■ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | ◇(←i64等) |
-| i64 | ■ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | ◇ |
-| f64 | ■ | ◇* | ■ | ◇ | ◇ | ◇ | ■ | ◇ | ◇ |
-| bool | ■ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | — |
-| char | ■ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | — |
-| String | ■ | ◇ | ■ | ◇ | — | ◇ | ■ | ◇ | ◇ |
-| Vec<T> | ◇† | ◇† | — | ◇ | — | ◇ | — | ◇ | — |
-| Option<T> | ◇† | ◇† | — | ◇ | ◇‡ | ◇ | — | ◇ | — |
-| Result<T,E> | — | — | — | ◇ | — | — | — | ◇ | — |
+| Type | PartialEq | Eq | PartialOrd | Ord | Hash | Clone | Copy | Default | Display | Debug | From |
+|------|-----------|----|------------|-----|------|-------|------|---------|---------|-------|------|
+| i32 | ■ | ■ | ◇ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | ◇(←i64等) |
+| i64 | ■ | ■ | ◇ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | ◇ |
+| f64 | ◇ | — | ◇ | — | ■ | ◇ | ◇ | ◇ | ■ | ◇ | ◇ |
+| bool | ■ | ■ | ◇ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | — |
+| char | ■ | ■ | ◇ | ◇ | ■ | ◇ | ◇ | ◇ | ■ | ◇ | — |
+| String | ■ | ■ | ◇ | ◇ | ■ | ◇ | — | ◇ | ■ | ◇ | ◇ |
+| Vec<T> | ◇† | ◇† | ◇† | ◇† | — | ◇ | — | ◇ | — | ◇ | — |
+| Option<T> | ◇† | ◇† | ◇† | ◇† | — | ◇ | ◇‡ | ◇ | — | ◇ | — |
+| Result<T,E> | — | — | — | — | — | ◇ | — | — | — | ◇ | — |
 
-`*` f64 は PartialOrd のみ (NaN で全順序不可)。Arukellt 単純化のため Ord も許容するか
-は #695 で決定。本 doc では「f64 は Ord impl しない」を推奨。
-`†` 要素型が Eq/Ord/Clone であることを要求。
+`*` f64 は `PartialEq` + `PartialOrd` のみ（NaN で反射律・全順序不可）。`Eq` / `Ord` は実装しない。
+`†` 要素型が対応する比較 trait であることを要求。
 `‡` T: Copy の場合のみ。
 
 ---

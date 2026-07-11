@@ -4,8 +4,8 @@
 raw `std::wasm::V128` へ再設計・移行する
 
 提案日: 2026-06-26  
-改訂日: 2026-07-11 — 「未実装」前提を撤回。#698 実装済み API からの移行 ADR へ変更。
-比較演算・Mask 表現・migration table を確定
+改訂日: 2026-07-11 — 移行 ADR 化に加え、Eq/PartialEq 分離・`<` 禁止・any_true 分離・
+Mask API 名・ADR-036 D2 例外を確定
 
 ---
 
@@ -90,80 +90,108 @@ LaneBits(lane_type) × lanes = 128
 | `std::simd::f32x4::*` 等 lane モジュール | 対応 nominal 型 | 同上 |
 | `std::simd::v128::{and,or,xor,not,bitselect}` | `I32x4` 等の portable bitwise / `bit_select` | deprecate → 削除（portable へ） |
 | first-class 無印 `v128` を portable 戻り値に使う面 | nominal lane 型 | 段階的に型を分離 |
-| `std::wasm::v128_and/or/xor/not` | portable `std::simd` bitwise | deprecate 後削除 |
-| `std::wasm::v128_bitselect` | `std::simd::bit_select` | deprecate 後削除 |
-| `std::wasm::v128_any_true` | `MaskN::any` / portable any | deprecate 後削除 |
-| `std::wasm::v128_reinterpret_*` | portable `from_bits` / reinterpret | deprecate 後削除 |
+| `std::wasm::v128_and/or/xor/not` | portable 整数 SIMD の bitwise **および** raw `V128` 上の同名操作 | portable 側へ意味を移す。raw `V128::{and,or,xor,not}` は raw value category 操作として `std::wasm` に**残してよい** |
+| `std::wasm::v128_bitselect` | `std::simd::bit_select`（整数 SIMD） | deprecate 後、portable へ。raw に残す場合は `V128::bit_select` として型を分ける |
+| `std::wasm::v128_any_true` | **`V128::any_bit_set()`**（raw 128-bit reduction） | `MaskN::any` へ写さない（意味が異なる）。整数 SIMD には任意で `any_nonzero_bits()` を別途提供可 |
+| `std::wasm::v128_reinterpret_*` | portable `from_bits` / reinterpret | deprecate 後削除（portable へ） |
 | raw load/store / relaxed / valtype | `std::wasm` に残置 | 維持（型名は `V128` へ寄せる） |
 | 無印 `v128` 型そのもの | `std::wasm::V128`（raw 専用） | portable 用途から撤退 |
 
-**互換期間（提案）:**
+**互換期間（提案）— ADR-036 D2 bold cutover の例外:**
+
+本移行は ADR-036 D2 の「deprecated なし一括削除」の **例外** とする。
+SIMD は型 identity と名前空間を変更し、raw/portable の意味分割を伴うため、
+少なくとも 1 リリースの deprecation 期間を設ける。
 
 1. ADR 採択後: 新 API を追加。旧 API に `deprecated_by`（W0008）
 2. 1 リリース以上: 旧・新併存。fixture を新 API へ移行
-3. その後: 旧 `std::simd::*` モジュール関数と誤配置 `std::wasm::v128_{and,bitselect,reinterpret,*}` を削除
+3. その後: 旧 `std::simd::*` モジュール関数と、portable へ移した誤配置
+   `std::wasm::v128_*`（reinterpret 等）を削除。raw として正当な `V128` 操作は残す
 
 `std::simd::v128` モジュールは portable に raw を混ぜているため **廃止対象**。
 中身は lane 型 API または `std::wasm::V128` へ振り分ける。
 
 ### 3. 比較演算と Eq/Ord（ADR-036/038 との統合）
 
-`==` / `<` の結果を `Mask4` にしてはならない。
+演算子の結果を `MaskN` にしてはならない。さらに `<` / `>` / `<=` / `>=` は
+SIMD 型に対して **提供しない**（意味が曖昧なため）。
 
-| 式 | 結果型 | 意味 |
-|----|--------|------|
-| `a == b` / `a != b`（SIMD） | `bool` | **全 lane 一致**のスカラー等価（`Eq` と整合） |
-| `a.cmp_eq(b)` / `lanes_eq(a,b)` | `Mask4` | lane-wise 等価 |
-| `a.cmp_lt(b)` / `lanes_lt(a,b)` 等 | `Mask4` | lane-wise 順序 |
+| 式 | 結果型 | 意味 | 備考 |
+|----|--------|------|------|
+| `a == b` / `a != b` | `bool` | 全 lane について scalar `==` が true | 下記 trait と整合 |
+| `a < b` 等 | — | **禁止**（型エラー） | lexicographic が必要なら明示 API |
+| `a.cmp_eq(b)` / `lanes_eq(a,b)` | `MaskN` | lane-wise 等価 | |
+| `a.cmp_lt(b)` / `lanes_lt(a,b)` 等 | `MaskN` | lane-wise 順序 | IEEE lane 比較（NaN は false） |
+| `a.lexicographic_cmp(b)` | `Ordering` | 任意・後続 | 初期核では不要 |
 
-- SIMD 型は `Eq` を実装してよい（`eq` → `bool`）。
-- lane 比較は `Eq`/`Ord` のメソッド型を変えず、**別 semantic family**（`cmp_*` / `lanes_*`）。
-- ADR-038 の演算子 trait は算術・bitwise 向け。SIMD の `==` を Mask 化する規則は導入しない。
+**Trait 実装（整数 vs 浮動小数）:**
 
-### 4. Mask 表現・bitmask・bit_select（観測可能な仕様）
+| 型 | `PartialEq` | `Eq` | `PartialOrd` / `Ord` |
+|----|-------------|------|----------------------|
+| `I32x4` 等整数 SIMD | ✅ | ✅ | 初期は不要（`<` 禁止）。必要なら後続 |
+| `F32x4` / `F64x2` | ✅（全 lane scalar `==`） | **❌** | **❌**（`<` 禁止。lane 比較は `cmp_*` のみ） |
+
+- `F32x4 == F32x4 → bool` は「全 lane の scalar 浮動小数 `==`」と定義する。
+  NaN を含むと反射律が壊れるため **`Eq` にはしない**（`PartialEq` のみ）。
+- bitwise equality（`+0.0`≠`-0.0`、同一 NaN payload なら等しい）は通常の `==` に使わない。
+  必要なら `I32x4::from_bits(a) == I32x4::from_bits(b)` 等の明示経路。
+- lane 比較は `Eq`/`Ord` のメソッド型を変えず、**別 semantic family**（`cmp_*`）。
+- ADR-038 の演算子 trait は算術・bitwise 向け。SIMD の `==` を Mask 化しない。
+
+### 4. Mask 表現・bitmask・bit_select・any（観測可能な仕様）
 
 明示変換がある以上、表現は実装詳細にできない。
 
-#### 4.1 `Mask4::to_i32x4()`（および同幅整数への明示変換）
+#### 4.1 canonical bits
 
 ```text
-false lane → 0x00000000
-true  lane → 0xffffffff
+Mask4::to_i32x4():
+  false → 0x00000000
+  true  → 0xffffffff
 ```
 
-逆変換 `Mask4::from_i32x4(v)` は各 lane の MSB（または「非ゼロ」ではなく **all-ones 判定**）を
-仕様化する: **lane == 0xffffffff なら true、それ以外は false**（部分ビットは true にしない）。
+逆変換は名前で条件を出す（曖昧な `from_i32x4` は採用しない）:
 
-#### 4.2 `bitmask(mask: Mask4) -> u8`（初期核）
+```text
+Mask4::from_canonical_i32x4(v) -> Mask4
+  lane == 0xffffffff → true
+  それ以外（0x1, 0x80000000, 0xfffffffe 等）→ false
+
+Mask4::try_from_canonical_bits(v) -> Result<Mask4, InvalidMaskBits>
+  全 lane が 0 または 0xffffffff のときのみ Ok。それ以外 Err
+
+Mask4::from_nonzero_lanes(v) -> Mask4
+  lane != 0 → true（別セマンティクス。canonical とは混同しない）
+```
+
+#### 4.2 `bitmask(mask: MaskN) -> u32`
+
+初期核も後続 `Mask16` も **常に `u32`**（generic / 実装単純化のため）:
 
 ```text
 bit i = 1 ⇔ lane i が true
 lane 0 → bit 0（LSB）
-lane 3 → bit 3
-上位ビットは 0
+上位の未使用 bit は 0
 ```
 
 （Wasm `i32x4.bitmask` と同じ lane→bit 対応。）
 
 #### 4.3 `bit_select(a, b, mask_bits) -> T`（整数 SIMD）
 
-現行 `std::wasm::v128_bitselect` と同じ式:
-
 ```text
 (a & mask_bits) | (b & ~mask_bits)
 ```
 
-各ビットについて mask が 1 なら `a`、0 なら `b`。正規化 boolean lane は不要。
-浮動小数 SIMD への直接 `bit_select` は提供しない（必要なら `from_bits` 経由）。
-
-#### 4.4 lane `select`
+#### 4.4 lane `select` と any の分離
 
 ```text
-select(mask: Mask4, a: I32x4, b: I32x4) -> I32x4
+select(mask: Mask4, a: I32x4, b: I32x4) -> I32x4   // boolean lane select
+Mask4::any() / all()                                 // boolean lane reduce
+V128::any_bit_set()                                  // raw: 128bit に 1 が一つでもあれば true
+I32x4::any_nonzero_bits()                            // 任意: portable 整数の非ゼロ bit reduce
 ```
 
-各 lane について mask が true なら `a`、false なら `b`（boolean lane select）。
-
+`v128_any_true` の移行先は **`V128::any_bit_set`** であり `MaskN::any` ではない。
 ### 5. メモリモデル
 
 - portable SIMD / Mask は言語値。GC field に保持可。
@@ -216,11 +244,15 @@ stable 昇格は移行完了（旧 API 削除）+ NativeSimd/Scalar 同値 + raw
 
 1. 「SIMD 未実装」を前提にした新規導入ストーリーで本 ADR を読ませない
 2. 旧 API を deprecate なしに削除しない
-3. `==` / `<` の結果を `MaskN` にしない
-4. Mask の公開変換・bitmask・bit_select のビット意味を backend 依存にしない
-5. portable bitwise / bit_select / reinterpret を `std::wasm` に残したまま stable 化しない
-6. const generics / 公開 `Simd<T,N>` を本 ADR で導入しない
-7. raw `V128` の Scalar emulation / WIT stable 公開をしない
+3. `==` の結果を `MaskN` にしない。SIMD に `<` / `>` / `<=` / `>=` を提供しない
+4. `F32x4` / `F64x2` に `Eq` を実装しない
+5. `v128_any_true` を `MaskN::any` へ写さない
+6. 曖昧な `Mask::from_i32x4` 名を採用しない（canonical / nonzero / try を分離）
+7. Mask の公開変換・bitmask・bit_select のビット意味を backend 依存にしない
+8. portable 意味と raw `V128` 操作を型なしに同一 API へ混同しない
+9. const generics / 公開 `Simd<T,N>` を本 ADR で導入しない
+10. raw `V128` の Scalar emulation / WIT stable 公開をしない
+11. ADR-036 D2 を理由に SIMD 旧 API を deprecate なし削除しない
 
 ---
 
@@ -228,8 +260,8 @@ stable 昇格は移行完了（旧 API 削除）+ NativeSimd/Scalar 同値 + raw
 
 - 既存 #698 API を認識した移行契約になる
 - portable / raw の型・名前空間・capability が分離される
-- `Eq` と lane 比較が衝突しない
-- Mask / bit_select の観測可能意味が固定される
+- 整数 SIMD は `Eq`、浮動小数 SIMD は `PartialEq` のみ。`<` は禁止、lane 比較は `cmp_*`
+- Mask / bit_select / `any_bit_set` の観測可能意味が固定される
 
 ## 関連
 

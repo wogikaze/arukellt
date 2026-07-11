@@ -4,8 +4,8 @@
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
-> Generated-At: 2026-07-11T15:53:11+09:00
-> Source-Commit: `53573ea1`
+> Generated-At: 2026-07-11T16:05:21+09:00
+> Source-Commit: `a56192d1`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 4 fixture failure(s), 6 verification check failure(s)

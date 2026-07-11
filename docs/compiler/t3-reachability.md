@@ -1,6 +1,10 @@
 # T3 Reachability Root Contract
 
-> Defines the root set for dead function elimination on T3 (wasm32-wasi-p2)
+> **Naming:** 「T3」および CLI 旧名 `wasm32-wasi-p2` は歴史的内部ラベル。
+> **公開ターゲット名は `wasm32-gc`**（ADR-007/013）。本文の T3 は `wasm32-gc` を指す。
+>
+> Defines the root set for dead function elimination on `wasm32-gc`
+> (historical: T3 / `wasm32-wasi-p2`).
 > for both `--emit wasm` (core Wasm) and component/wit emit modes.
 > This contract governs which functions are preserved during MIR-level
 > reachability pruning.

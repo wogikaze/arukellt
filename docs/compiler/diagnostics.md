@@ -121,10 +121,10 @@ internal bug reporting 用に `ICE-*` 系 ID を registry に予約する。
 
 といった前提が混じる。現行 guidance には使わない。
 
-### T3 backend validation details
+### `wasm32-gc` backend validation details
 
-T3 (`wasm32-wasi-p2`) output passes through the same `wasmparser::Validator::validate_all()`
-gate as T1. WasmGC-specific validation covers:
+`wasm32-gc`（historical label T3 / alias `wasm32-wasi-p2`）output passes through the same `wasmparser::Validator::validate_all()`
+gate as `wasm32`. WasmGC-specific validation covers:
 
 - Heap type indices and subtyping
 - GC struct/array field declarations
@@ -135,9 +135,9 @@ gate as T1. WasmGC-specific validation covers:
 Any `W0004` failure stops the build. The emitter must produce valid WasmGC modules;
 there is no fallback or warning-only mode.
 
-### T3 runtime phase errors
+### `wasm32-gc` runtime phase errors
 
-T3 runtime errors carry context prefixes for phase-aware triage:
+`wasm32-gc` runtime errors carry context prefixes for phase-aware triage:
 
 | Phase | Error prefix | Example |
 |-------|-------------|---------|
@@ -148,7 +148,7 @@ T3 runtime errors carry context prefixes for phase-aware triage:
 | Execution | `runtime error` | Trap during `_start` execution |
 | Entry point | `missing _start` | Module lacks `_start` export |
 
-These prefixes allow distinguishing T3 backend/runtime failures from frontend
+These prefixes allow distinguishing `wasm32-gc` backend/runtime failures from frontend
 (parse/resolve/typecheck) or target-selection (E0305–E0307) errors.
 
 ## 関連

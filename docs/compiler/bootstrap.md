@@ -75,7 +75,7 @@ parser/front-end alignment work; it does **not** by itself mean Stage 2 fixpoint
 
 The configured `arukellt` binary (see `scripts/run/verify-bootstrap.sh` for
 `ARUKELLT_BIN` / `target/debug` / `target/release` resolution) compiles
-`src/compiler/main.ark` with `--target wasm32-wasi-p1` and writes
+`src/compiler/main.ark` with `--target wasm32-wasi-p1`（canonical `wasm32` の現行 bootstrap スクリプト表記; ADR-007 alias）and writes
 `.bootstrap-build/arukellt-s1.wasm`.  This is the **trusted base**: if the
 Rust compiler is correct, the output is correct.
 

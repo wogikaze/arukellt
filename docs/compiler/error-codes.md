@@ -768,6 +768,8 @@ let x = 1                  // W0007 if x is never used
 ---
 
 ### W0008 — deprecated API
+<a id="w0008-deprecated-api"></a>
+<a id="w0008--deprecated-api"></a>
 
 | | |
 |---|---|

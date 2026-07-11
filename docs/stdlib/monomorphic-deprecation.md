@@ -81,4 +81,4 @@
 
 - [Stability Policy](stability-policy.md)
 - [Prelude Migration](prelude-migration.md)
-- [Error Code W0008](../compiler/error-codes.md#w0008--deprecated-api)
+- [Error Code W0008](../compiler/error-codes.md#w0008-deprecated-api)

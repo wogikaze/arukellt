@@ -70,7 +70,7 @@ Every individual pass is bracketed by MIR validation (`validate_module`) — the
 validated before and after each pass. This ensures pass bugs are caught immediately rather
 than surfacing as backend errors.
 
-## Backend Optimizations (T3 — `wasm32-wasi-p2`)
+## Backend Optimizations (`wasm32-gc` — historical label T3 / alias `wasm32-wasi-p2`)
 
 Backend optimizations are applied during Wasm emission in the selfhost emitter
 (`src/compiler/emitter.ark`).

@@ -220,7 +220,7 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 - [ADR-009-import-syntax.md](ADR-009-import-syntax.md) — 主要決定記録（ACCEPTED）。本 ADR は本文、完全なオプション表、明示的移行影響でその決定を統合・拡張。
 - [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) — 衝突ポリシーと構文探索（本 ADR により SUPERSEDED）。
 - [ADR-006-abi-policy.md](ADR-006-abi-policy.md) — ABI レイヤー。ソース構文が WIT テキストを鏡映する必要はない。
-- [ADR-007-targets.md](ADR-007-targets.md) — プライマリターゲット `wasm32-wasi-p2`。
+- [ADR-007-targets.md](ADR-007-targets.md) — プライマリターゲット `wasm32-gc`（旧 alias `wasm32-wasi-p2`）。
 - [../spec/import-system.md](../spec/import-system.md) — 規範的 Layer S / Layer C 契約ページ。
 - [../module-resolution.md](../module-resolution.md) — `use` / `import` の Layer S 解決挙動。
 - Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 ネイティブ component 出力。
