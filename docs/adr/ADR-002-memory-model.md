@@ -292,7 +292,7 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 
 ## 結果
 
-以下のドキュメントを更新する:
+以下のドキュメントを更新する（決定採択時の作業記録）:
 
 - [x] `docs/language/memory-model.md` — メモリモデル詳細仕様
 - [x] `docs/language/type-system.md` — ADR-002 待ちセクション更新
@@ -303,33 +303,10 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 - [x] [ADR-007: Targets](ADR-007-targets.md) — wasm32 ターゲット層を追記
 - [x] `docs/language/memory-model.md` — wasm32 lowering モデルを追記
 
-## Implementation Status (2026-03-27)
+## 実装状況について
 
-GC-native codegen is **complete** in the selfhost emitter
-(`src/compiler/emitter.ark`; the Rust prototype crate that previously lived at
-`crates/<wasm-emit>` was removed in #562).
-542 fixture tests pass (124 t3-run, 161 t3-compile). `verify-harness.sh` exits 0.
+本 ADR はメモリモデルの**方針決定**のみを正とする。codegen の完了度・fixture 件数・
+builtin 移植状況などの可変状態はここに書かない。
 
-### Builtins fully ported to GC-native
-
-- **to_string**: i32, i64, f64, bool, char — all produce `(ref $string)` GC arrays
-- **println/print/eprintln**: all types, including stderr via `__eprint_str_ln` helper
-- **parse**: parse_i32, parse_i64, parse_f64 — return `(ref $Result)` GC enum
-- **math**: sqrt, abs, min, max, pow, floor, ceil, round, clamp — Wasm native ops
-- **I/O**: fs_read_file, fs_write_file, fs_write_bytes, clock, random, process_exit
-
-### Key design decisions implemented
-
-| Feature | GC-native approach |
-|---------|-------------------|
-| Strings | `(array (mut i8))` — bare GC byte array, `array.len` for length |
-| User structs | `(struct (field ...))` — direct GC struct with typed fields |
-| Enums | Subtype hierarchy + `br_on_cast` for pattern matching |
-| Option/Result | Enum subtypes: base (empty) + Some/Ok/Err variants |
-| Vec\<T\> | `(struct (ref $arr_T) i32)` — GC struct + GC array backing |
-| HashMap\<K,V\> | `(struct (ref $arr_K) (ref $arr_V) i32)` — array-backed linear scan |
-| Generics | `anyref` polymorphism with `ref.i31` boxing/unboxing |
-| Tuples | `__tupleN_any` structs with anyref fields for generic contexts |
-| Linear memory | 1 page (64KB), used **only** for WASI I/O marshaling |
-| Closures | Parameter-passing (captures as extra args), `call_ref` for HOF |
-| Global section | No `heap_ptr` — all allocation via `struct.new`/`array.new` |
+- 現行挙動: [`docs/current-state.md`](../current-state.md)
+- 段階実装計画: [`ADR-035`](ADR-035-wasm-gc-implementation.md) / [`docs/plans/`](../plans/) / issue #686
