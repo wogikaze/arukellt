@@ -9,9 +9,9 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | `stable` | 395 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 28 | API is usable but may change in minor versions based on feedback. |
+| `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
-| [deprecated](#deprecated-apis) | 27 | Superseded — see migration guidance. |
+| [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
 
@@ -125,34 +125,34 @@
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| ~~`HashMap_String_String_contains_key`~~ ⚠️ Deprecated → `hashmap_str_str_contains` | `(HashMap<String, String>, String) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_String_get`~~ ⚠️ Deprecated → `hashmap_str_str_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_String_insert`~~ ⚠️ Deprecated → `hashmap_str_str_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_String_len`~~ ⚠️ Deprecated → `hashmap_str_str_len` | `(HashMap<String, String>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_contains_key`~~ ⚠️ Deprecated → `hashmap_str_i32_contains` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_get`~~ ⚠️ Deprecated → `hashmap_str_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_insert`~~ ⚠️ Deprecated → `hashmap_str_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_String_i32_len`~~ ⚠️ Deprecated → `hashmap_str_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_contains_key`~~ ⚠️ Deprecated → `hashmap_i32_str_contains` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_get`~~ ⚠️ Deprecated → `hashmap_i32_str_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_insert`~~ ⚠️ Deprecated → `hashmap_i32_str_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_String_len`~~ ⚠️ Deprecated → `hashmap_i32_str_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_contains_key`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_get`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_insert`~~ ⚠️ Deprecated → `hashmap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_len`~~ ⚠️ Deprecated → `std::collections::hash_map` | `(HashMap<i32, i32>) -> i32` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_i32_i32_new`~~ ⚠️ Deprecated → `hashmap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_new_String_String`~~ ⚠️ Deprecated → `hashmap_str_str_new` | `() -> HashMap<String, String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_new_String_i32`~~ ⚠️ Deprecated → `hashmap_str_i32_new` | `() -> HashMap<String, i32>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
-| ~~`HashMap_new_i32_String`~~ ⚠️ Deprecated → `hashmap_i32_str_new` | `() -> HashMap<i32, String>` | `prelude` | `deprecated` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_String_contains_key` | `(HashMap<String, String>, String) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_String_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_String_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_String_len` | `(HashMap<String, String>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_i32_contains_key` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_String_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_String_contains_key` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_String_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_String_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_String_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
+| `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
 | `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
 | `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
-| ~~`Vec_new_i32`~~ ⚠️ Deprecated → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
+| `Vec_new_i32` | `() -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
 | `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
-| ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
+| `Vec_new_i64` | `() -> Vec<i64>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
 | `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
-| ~~`Vec_new_v128`~~ ⚠️ Deprecated → `Vec::new<v128>` | `() -> Vec<v128>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
+| `Vec_new_v128` | `() -> Vec<v128>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
@@ -202,7 +202,7 @@
 | `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `stable` | `functional` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
-| ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
+| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
 | `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
 | `find_String` | `(Vec<String>, fn(String) -> bool) -> Option<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_String` | - |
 | `find_f64` | `(Vec<f64>, fn(f64) -> bool) -> Option<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_find_f64` | - |
@@ -1225,34 +1225,10 @@ Expected output: `hello world`
 
 ## Deprecated APIs
 
-> ⚠️ **27 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **3 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
 | Deprecated | Replacement | Migration Guide |
 |------------|-------------|-----------------|
-| ~~`HashMap_String_String_contains_key`~~ | `hashmap_str_str_contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_get`~~ | `hashmap_str_str_get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_insert`~~ | `hashmap_str_str_insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_len`~~ | `hashmap_str_str_len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_contains_key`~~ | `hashmap_str_i32_contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_get`~~ | `hashmap_str_i32_get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_insert`~~ | `hashmap_str_i32_insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_len`~~ | `hashmap_str_i32_len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_contains_key`~~ | `hashmap_i32_str_contains` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_get`~~ | `hashmap_i32_str_get` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_insert`~~ | `hashmap_i32_str_insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_len`~~ | `hashmap_i32_str_len` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_contains_key`~~ | `std::collections::hash_map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_get`~~ | `std::collections::hash_map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_insert`~~ | `hashmap_i32_i32_insert` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_len`~~ | `std::collections::hash_map` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_new`~~ | `hashmap_i32_i32_new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_new_String_String`~~ | `hashmap_str_str_new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_new_String_i32`~~ | `hashmap_str_i32_new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_new_i32_String`~~ | `hashmap_i32_str_new` | [migration-guidance.md](migration-guidance.md) |
-| ~~`Vec_new_i32`~~ | `Vec::new<i32>` | [migration-guidance.md](migration-guidance.md) |
-| ~~`Vec_new_i64`~~ | `Vec::new<i64>` | [migration-guidance.md](migration-guidance.md) |
-| ~~`Vec_new_v128`~~ | `Vec::new<v128>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`concat`~~ | `std::text::concat` | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_i32`~~ | `filter<i32>` | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | [migration-guidance.md](migration-guidance.md) |

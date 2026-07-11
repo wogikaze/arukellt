@@ -1,6 +1,7 @@
 # Arukellt Quickstart
 
-現在の実装でまず動く書き方だけに絞ったガイドです。
+現在の実装で動く core examples と、未完成機能の provisional preview を
+明確に分けたガイドです。
 詳細な実装状況は [current-state.md](current-state.md) を参照してください。
 
 > 各例は fixture registry へ登録され、CI のコンパイル・実行対象です。
@@ -22,7 +23,7 @@ fn main() {
 arukellt run hello.ark
 ```
 
-## Component Build
+## Provisional Preview: Component Build
 
 > ⚠️ **Provisional / 103件失敗中**: Component Model output は `wasm32-gc` で一部利用可能ですが、
 > 現在 `verify component-interop` が 103/103 失敗中です。
@@ -67,10 +68,9 @@ fn main() {
 
 ## Vec
 
-> **API note**: `Vec_new_i32()` は現行 bootstrap で動く monomorphic constructor です。
-> 推奨APIは `Vec::new<i32>()`（associated function, ADR-036）ですが、
-> typechecker/lowering が WIP のため現時点では fallback します。
-> 移行状況は [stdlib/migration-guidance.md](stdlib/migration-guidance.md) を参照してください。
+> **API note**: `Vec_new_i32()` は現行 bootstrap で動く provisional
+> constructorです。`Vec::new<i32>()`は未実装のplanned APIであり、current
+> replacementではありません。
 
 <!-- fixture: quickstart/vec_basic.ark -->
 ```ark
@@ -95,21 +95,19 @@ fn main() {
 
 ## String
 
-> **API note**: `concat()` は deprecated（`stability = "deprecated"` in manifest）です。
-> 推奨APIは `s1.concat(s2)`（trait-based method, ADR-036）ですが、
-> typechecker/lowering が WIP のため現時点では fallback します。
-> `String_from()` は現行 bootstrap で動く stable API ですが、
-> 推奨APIは `String::from()`（associated function, ADR-036）です。
-> 移行状況は [stdlib/migration-guidance.md](stdlib/migration-guidance.md) を参照してください。
+`concat()`のdeprecated prelude wrapperではなく、現在利用可能な
+`std::text::concat`を明示importします。planned method syntaxはcore pathで
+案内しません。
 
 <!-- fixture: quickstart/string_basic.ark -->
 ```ark
 use std::host::stdio
+use std::text
 
 fn main() {
     let s1 = String_from("hello")
     let s2 = String_from(" world")
-    let s3 = concat(s1, s2)
+    let s3 = text::concat(s1, s2)
     stdio::println(s3)
 
     let sub = slice(s3, 0, 5)
@@ -167,6 +165,16 @@ fn main() {
 `FsError` は `read_dir` / `metadata` 等の将来の typed fs API で使われます。
 
 > API signature の正本は [stdlib/modules/fs.md](stdlib/modules/fs.md)（manifest から生成）です。
+
+Current selfhost wrapperでrepository rootをpreopenして実行する完全command:
+
+```bash
+scripts/run/arukellt-selfhost.sh run tests/fixtures/quickstart/fs_read.ark
+```
+
+このwrapperは`wasmtime --dir=<repository-root>`相当を設定します。preopenなしの
+runtimeではfilesystem accessは拒否されます。現行`arukellt run`にはuser-facing
+`--dir` flagがないため、別directoryを許可するcopy-and-run contractは未提供です。
 
 ## 文字列化
 

@@ -1,6 +1,38 @@
 # Canonical verification command registry.
 
 [[commands]]
+id = "verify_quick"
+canonical = "python3 scripts/manager.py verify quick"
+aliases = ["python3 scripts/manager.py verify --quick"]
+alias_status = "compatibility"
+purpose = "Run the fast local verification gate"
+coverage = ["quick"]
+
+[[commands]]
+id = "verify_fixtures"
+canonical = "python3 scripts/manager.py verify fixtures"
+aliases = ["python3 scripts/manager.py verify --fixtures"]
+alias_status = "compatibility"
+purpose = "Run the manifest-driven fixture harness"
+coverage = ["tests/fixtures/manifest.txt"]
+
+[[commands]]
+id = "verify_size"
+canonical = "python3 scripts/manager.py verify size"
+aliases = ["python3 scripts/manager.py verify --size"]
+alias_status = "compatibility"
+purpose = "Run the hello.wasm size gate"
+coverage = ["binary-size"]
+
+[[commands]]
+id = "verify_wat"
+canonical = "python3 scripts/manager.py verify wat"
+aliases = ["python3 scripts/manager.py verify --wat"]
+alias_status = "compatibility"
+purpose = "Run WAT roundtrip verification"
+coverage = ["scripts/run/wat-roundtrip.sh"]
+
+[[commands]]
 id = "verify_component_interop"
 canonical = "python3 scripts/manager.py verify component-interop"
 aliases = ["python3 scripts/manager.py verify component", "python3 scripts/manager.py verify --component"]
@@ -23,3 +55,107 @@ aliases = ["python3 scripts/manager.py verify --full"]
 alias_status = "compatibility"
 purpose = "Run all verification domains sequentially"
 coverage = ["quick", "fixtures", "size", "wat", "component-interop", "selfhost-parity", "selfhost-fixpoint"]
+
+[[commands]]
+id = "selfhost_fixpoint"
+canonical = "python3 scripts/manager.py selfhost fixpoint"
+aliases = []
+alias_status = "none"
+purpose = "Check selfhost bootstrap fixpoint"
+coverage = ["s2", "s3"]
+
+[[commands]]
+id = "selfhost_fixture_parity"
+canonical = "python3 scripts/manager.py selfhost fixture-parity"
+aliases = []
+alias_status = "none"
+purpose = "Run selfhost fixture parity"
+coverage = ["tests/fixtures/manifest.txt"]
+
+[[commands]]
+id = "selfhost_diag_parity"
+canonical = "python3 scripts/manager.py selfhost diag-parity"
+aliases = []
+alias_status = "none"
+purpose = "Run diagnostic parity"
+coverage = ["diagnostic-baselines"]
+
+[[commands]]
+id = "selfhost_parity"
+canonical = "python3 scripts/manager.py selfhost parity"
+aliases = []
+alias_status = "none"
+purpose = "Run all selfhost parity domains"
+coverage = ["fixture", "cli", "diagnostic"]
+
+[[commands]]
+id = "docs_check"
+canonical = "python3 scripts/manager.py docs check"
+aliases = []
+alias_status = "none"
+purpose = "Run documentation checks"
+coverage = ["docs"]
+
+[[commands]]
+id = "docs_regenerate"
+canonical = "python3 scripts/manager.py docs regenerate"
+aliases = []
+alias_status = "none"
+purpose = "Regenerate documentation views"
+coverage = ["generated-docs"]
+
+[[commands]]
+id = "perf_gate"
+canonical = "python3 scripts/manager.py perf gate"
+aliases = []
+alias_status = "none"
+purpose = "Run performance regression gate"
+coverage = ["performance"]
+
+[[commands]]
+id = "perf_baseline"
+canonical = "python3 scripts/manager.py perf baseline"
+aliases = []
+alias_status = "none"
+purpose = "Collect performance baseline"
+coverage = ["performance"]
+
+[[commands]]
+id = "perf_benchmarks"
+canonical = "python3 scripts/manager.py perf benchmarks"
+aliases = []
+alias_status = "none"
+purpose = "Run benchmark suite"
+coverage = ["benchmarks"]
+
+[[commands]]
+id = "gate_local"
+canonical = "python3 scripts/manager.py gate local"
+aliases = []
+alias_status = "none"
+purpose = "Run full local CI equivalent"
+coverage = ["local-ci"]
+
+[[commands]]
+id = "gate_pre_commit"
+canonical = "python3 scripts/manager.py gate pre-commit"
+aliases = []
+alias_status = "none"
+purpose = "Run pre-commit gate"
+coverage = ["pre-commit"]
+
+[[commands]]
+id = "gate_pre_push"
+canonical = "python3 scripts/manager.py gate pre-push"
+aliases = []
+alias_status = "none"
+purpose = "Run pre-push gate"
+coverage = ["pre-push"]
+
+[[commands]]
+id = "gate_repro"
+canonical = "python3 scripts/manager.py gate repro"
+aliases = []
+alias_status = "none"
+purpose = "Run reproducible build gate"
+coverage = ["reproducibility"]

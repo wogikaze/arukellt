@@ -641,20 +641,20 @@ def check_release_guarantees(failures: list[str]) -> None:
             failures.append(f"release checklist missing generated blocker row: {guarantee['id']}")
 
 
-def check_diagnostic_catalogue(failures: list[str]) -> None:
-    data = load_toml(REPO / "docs/data/diagnostics.toml")
+def check_warning_catalogue(failures: list[str]) -> None:
+    data = load_toml(REPO / "docs/data/warnings.toml")
     codes_source = (REPO / "src/compiler/diagnostics/codes.ark").read_text(encoding="utf-8")
     seen: set[str] = set()
     for diagnostic in data.get("diagnostics", []):
         code = diagnostic.get("code", "")
         if code in seen:
-            failures.append(f"diagnostics.toml duplicate code identity: {code}")
+            failures.append(f"warnings.toml duplicate code identity: {code}")
         seen.add(code)
         if f'String_from("{code}")' not in codes_source:
-            failures.append(f"diagnostics.toml code lacks compiler declaration: {code}")
+            failures.append(f"warnings.toml code lacks compiler declaration: {code}")
         for field in ("summary", "phase", "maturity", "emitted"):
             if field not in diagnostic:
-                failures.append(f"diagnostics.toml {code} lacks {field}")
+                failures.append(f"warnings.toml {code} lacks {field}")
     by_code = {item["code"]: item for item in data.get("diagnostics", [])}
     w0101 = by_code.get("W0101", {})
     if w0101.get("adr") != "ADR-031" or w0101.get("phase") != "parse":
@@ -711,7 +711,7 @@ def main() -> int:
     check_capability_policy(cfg, failures)
     check_structured_state(failures)
     check_release_guarantees(failures)
-    check_diagnostic_catalogue(failures)
+    check_warning_catalogue(failures)
     check_verification_commands(failures)
 
     if failures:

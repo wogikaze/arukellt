@@ -1,5 +1,5 @@
-# Diagnostic lifecycle SSOT. Compiler source owns code declarations; this
-# catalogue owns user-visible identity, phase, maturity, and evidence.
+# Warning lifecycle SSOT. Compiler source owns code declarations; this
+# warning catalogue owns user-visible identity, phase, maturity, and evidence.
 
 [[diagnostics]]
 code = "W0001"

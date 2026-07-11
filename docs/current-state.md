@@ -214,7 +214,7 @@ numbers into current contracts.
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation
 
-- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/diagnostics.toml`
+- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/warnings.toml`
 - Diagnostics are tracked by code, severity, phase origin, and implementation maturity
 - `W0001`: possible unintended sharing of reference type (warning, `typecheck`, implemented, emitted)
 - `W0002`: deprecated target alias (warning, `lint-post-resolve`, implemented, emitted)

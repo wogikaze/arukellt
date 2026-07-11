@@ -40,6 +40,9 @@
 | `docs/data/capabilities.toml` | product (SSOT input) | hand-maintained | Host capability matrix SSOT |
 | `docs/data/component-availability.toml` | product (SSOT input) | hand-maintained | Component availability axes |
 | `docs/data/release-guarantees.toml` | product (SSOT input) | hand-maintained | Release guarantees SSOT |
+| `docs/data/warnings.toml` | product (SSOT input) | hand-maintained | Diagnostic identity and lifecycle SSOT |
+| `docs/data/verification-commands.toml` | product (SSOT input) | hand-maintained | Canonical verification command registry |
+| `docs/data/docs-gate-config.toml` | internal (SSOT input) | hand-maintained | Documentation hard-gate policy and ratchets |
 | `docs/capability-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From capabilities.toml |
 | `docs/data/cli-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From cli-surface.toml |
 | `docs/data/bootstrap-contract.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From bootstrap-contract.toml |

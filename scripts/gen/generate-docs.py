@@ -51,7 +51,7 @@ SCOREBOARD_LOW_COVERAGE_THRESHOLD = 50
 LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
 CLI_SURFACE_TOML = DATA / "cli-surface.toml"
 RELEASE_GUARANTEES_TOML = DATA / "release-guarantees.toml"
-DIAGNOSTICS_TOML = DATA / "diagnostics.toml"
+WARNINGS_TOML = DATA / "warnings.toml"
 SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 MONOMORPHIC_DEPRECATION = ROOT / "docs" / "stdlib" / "monomorphic-deprecation.md"
@@ -853,6 +853,13 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
     if int(deprecation_policy.get("minimum_complete_releases", 0)) < 1:
         violations.append("deprecation_policy: minimum_complete_releases must be >= 1")
 
+    active_names = {entry.get("name") for entry in functions if entry.get("stability") != "deprecated"}
+    active_qualified = {
+        f"{entry.get('module')}::{entry.get('name')}"
+        for entry in functions
+        if entry.get("module") and entry.get("stability") != "deprecated"
+    }
+
     for entry in functions:
         fn_name = entry.get("name", "<unnamed>")
         label = f"function '{fn_name}'"
@@ -883,6 +890,12 @@ def validate_manifest_schema(manifest: dict) -> list[str]:
             violations.append(f"{label}: deprecation metadata/prose requires stability='deprecated'")
         if stability == "deprecated" and not deprecated_by:
             violations.append(f"{label}: stability='deprecated' requires deprecated_by")
+        if stability == "deprecated" and deprecated_by:
+            resolves = deprecated_by in active_names or deprecated_by in active_qualified
+            if not resolves:
+                violations.append(
+                    f"{label}: deprecated_by must resolve to a public nondeprecated manifest symbol: {deprecated_by!r}"
+                )
 
         # 3. kind must be a known value when present
         kind = entry.get("kind")
@@ -1550,7 +1563,7 @@ def render_current_state_diagnostics(state: dict) -> str:
     lines = [
         "## Diagnostics and Validation",
         "",
-        "- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/diagnostics.toml`",
+        "- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/warnings.toml`",
         "- Diagnostics are tracked by code, severity, phase origin, and implementation maturity",
     ]
     for diagnostic in state["diagnostics"]:
@@ -1565,6 +1578,59 @@ def render_current_state_diagnostics(state: dict) -> str:
         )
     lines.append("- Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`")
     return "\n".join(lines)
+
+
+def render_warning_code_catalogue(warnings: list[dict]) -> str:
+    """Render canonical W-code identity fields from warnings.toml."""
+    lines = []
+    for warning in warnings:
+        maturity = warning["maturity"]
+        emitted = warning["emitted"]
+        summary = warning["summary"]
+        if not emitted:
+            summary += f" ({maturity}; not emitted)"
+        severity = warning["severity"]
+        if severity == "error":
+            severity = "**error**"
+        lines.append(
+            f"| {warning['code']} | {severity} | {warning['phase']} | {summary} |"
+        )
+    return "\n".join(lines)
+
+
+def update_warning_reference(path: Path, warnings: list[dict], check: bool, stale: list[Path]) -> None:
+    """Update warning identity fields while preserving curated explanations."""
+    text = replace_generated_block(
+        path.read_text(encoding="utf-8"),
+        "WARNING_CODE_CATALOGUE",
+        render_warning_code_catalogue(warnings),
+    )
+    for warning in warnings:
+        heading = re.search(rf"^### {re.escape(warning['code'])}\b", text, re.M)
+        if not heading:
+            continue
+        next_heading = text.find("\n### ", heading.end())
+        end = next_heading if next_heading >= 0 else len(text)
+        section = text[heading.start():end]
+        section = re.sub(
+            r"^\| \*\*Severity\*\* \|.*\|$",
+            f"| **Severity** | {warning['severity']} |",
+            section,
+            flags=re.M,
+        )
+        section = re.sub(
+            r"^\| \*\*Phase\*\* \|.*\|$",
+            f"| **Phase** | {warning['phase']} |",
+            section,
+            flags=re.M,
+        )
+        maturity_row = f"| **Maturity** | {warning['maturity']}; {'emitted' if warning['emitted'] else 'not currently emitted'} |"
+        if "| **Maturity** |" in section:
+            section = re.sub(r"^\| \*\*Maturity\*\* \|.*\|$", maturity_row, section, flags=re.M)
+        else:
+            section = re.sub(r"(^\| \*\*Phase\*\* \|.*\|$)", rf"\1\n{maturity_row}", section, count=1, flags=re.M)
+        text = text[:heading.start()] + section + text[end:]
+    write_file(path, text, check, stale)
 
 
 def render_current_state_cli_surface() -> str:
@@ -3646,7 +3712,7 @@ def main() -> int:
     args = parser.parse_args()
 
     state = load_toml(PROJECT_STATE)
-    state["diagnostics"] = load_toml(DIAGNOSTICS_TOML)["diagnostics"]
+    state["diagnostics"] = load_toml(WARNINGS_TOML)["diagnostics"]
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()
     release_data = load_toml(RELEASE_GUARANTEES_TOML)
@@ -3782,6 +3848,7 @@ def main() -> int:
         args.check,
         stale,
     )
+    update_warning_reference(DOCS / "compiler" / "error-codes.md", state["diagnostics"], args.check, stale)
 
     write_file(
         DOCS / "README.md",

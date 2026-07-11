@@ -85,9 +85,9 @@ require_structured = true
 require_expires = true
 
 # Global ceiling: total skip-doc-check count across all files must not exceed this.
-# Current total: 251. Ratchet target: decrease over time.
-global_max = 244
-global_ratchet_max = 244
+# Current total: 242. Ratchet target: decrease over time.
+global_max = 242
+global_ratchet_max = 242
 # Require every file with skip-doc-check to have a budget entry.
 require_all_budgeted = true
 
@@ -160,10 +160,6 @@ path = "docs/stdlib/trait-stdlib-redesign.md"
 max = 2
 ratchet_max = 2
 [[skip_doc_check.budgets]]
-path = "docs/stdlib/prelude.md"
-max = 2
-ratchet_max = 2
-[[skip_doc_check.budgets]]
 path = "docs/module-resolution.md"
 max = 2
 ratchet_max = 2
@@ -216,10 +212,6 @@ ratchet_max = 1
 path = "docs/history/reports/diagnostic-parity-rust-era.md"
 max = 7
 ratchet_max = 7
-[[skip_doc_check.budgets]]
-path = "docs/history/reports/docs-runtime-contract-audit-2026-06-17.md"
-max = 3
-ratchet_max = 3
 
 [orphan_current]
 # Root current/reference docs that must have ≥1 inbound Markdown link.
@@ -270,6 +262,9 @@ must_be_hand_ssot = [
   "docs/data/capabilities.toml",
   "docs/data/component-availability.toml",
   "docs/data/release-guarantees.toml",
+  "docs/data/warnings.toml",
+  "docs/data/verification-commands.toml",
+  "docs/data/docs-gate-config.toml",
 ]
 
 [bootstrap]

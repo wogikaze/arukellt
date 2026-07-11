@@ -6,7 +6,7 @@
 ## 現在の方針
 
 - 診断 code declaration は `src/compiler/diagnostics/codes.ark`、user-visible
-  identity / phase / maturity は `docs/data/diagnostics.toml` に正規化されている
+  identity / phase / maturity は `docs/data/warnings.toml` に正規化されている
 - 各 code は **severity** と **phase origin** を持つ
 - renderer は phase、primary span、expected/actual、fix hint を出せる
 - structured snapshot は tests / baseline / docs 同期用の補助出力

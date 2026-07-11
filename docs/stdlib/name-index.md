@@ -5,8 +5,8 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 728
-- **Historical/deprecated names:** 27
+- **Canonical names:** 752
+- **Historical/deprecated names:** 3
 - **Total entries:** 755
 
 Related:
@@ -233,6 +233,7 @@ Current public API names, sorted alphabetically.
 | `file_write` | `std::io` | `experimental` | Io |
 | `fill_buffer` | `std::io` | `stable` | Io |
 | `filter_f64` | `prelude` | `stable` | Collections |
+| `filter_i32` | `prelude` | `provisional` | Collections |
 | `filter_i32` | `std::seq` | `stable` | Seq |
 | `filter_i64` | `prelude` | `stable` | Collections |
 | `filter_String` | `prelude` | `stable` | Collections |
@@ -280,16 +281,36 @@ Current public API names, sorted alphabetically.
 | `hashmap_extend` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
+| `HashMap_i32_i32_contains_key` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_i32_get` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_i32_insert` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_i32_len` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_i32_new` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_String_contains_key` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_String_get` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_String_insert` | `prelude` | `provisional` | Collections |
+| `HashMap_i32_String_len` | `prelude` | `provisional` | Collections |
 | `hashmap_insert` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_new` | `std::collections::hash` | `stable` | Collections |
+| `HashMap_new_i32_String` | `prelude` | `provisional` | Collections |
+| `HashMap_new_String_i32` | `prelude` | `provisional` | Collections |
+| `HashMap_new_String_String` | `prelude` | `provisional` | Collections |
 | `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_remove_entry` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_set` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_shrink_to_fit` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_size` | `std::collections::hash` | `stable` | Collections |
+| `HashMap_String_i32_contains_key` | `prelude` | `provisional` | Collections |
+| `HashMap_String_i32_get` | `prelude` | `provisional` | Collections |
+| `HashMap_String_i32_insert` | `prelude` | `provisional` | Collections |
+| `HashMap_String_i32_len` | `prelude` | `provisional` | Collections |
+| `HashMap_String_String_contains_key` | `prelude` | `provisional` | Collections |
+| `HashMap_String_String_get` | `prelude` | `provisional` | Collections |
+| `HashMap_String_String_insert` | `prelude` | `provisional` | Collections |
+| `HashMap_String_String_len` | `prelude` | `provisional` | Collections |
 | `hashmap_try_reserve` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
@@ -700,9 +721,12 @@ Current public API names, sorted alphabetically.
 | `var_or_default` | `std::env` | `stable` | Env |
 | `Vec_new_f64` | `prelude` | `stable` | Collections |
 | `Vec_new_f64_with_cap` | `prelude` | `stable` | Collections |
+| `Vec_new_i32` | `prelude` | `provisional` | Collections |
 | `Vec_new_i32_with_cap` | `prelude` | `stable` | Collections |
+| `Vec_new_i64` | `prelude` | `provisional` | Collections |
 | `Vec_new_i64_with_cap` | `prelude` | `stable` | Collections |
 | `Vec_new_String` | `prelude` | `stable` | Collections |
+| `Vec_new_v128` | `prelude` | `provisional` | Collections |
 | `Vec_with_capacity_i32` | `prelude` | `stable` | Collections |
 | `Vec_with_capacity_String` | `prelude` | `stable` | Collections |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
@@ -760,31 +784,7 @@ Old or deprecated names that have been superseded. Each entry links to its canon
 |----------|-------------|----------|-----------------|
 | ~~`concat`~~ | `std::text::concat` | String | [migration-guidance.md](migration-guidance.md) |
 | ~~`exists`~~ | `is_readable_file` | Host Fs | [migration-guidance.md](migration-guidance.md) |
-| ~~`filter_i32`~~ | `filter<i32>` | Collections | [migration-guidance.md](migration-guidance.md) |
 | ~~`get_var`~~ | `var` | Env | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_contains_key`~~ | `std::collections::hash_map` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_get`~~ | `std::collections::hash_map` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_insert`~~ | `hashmap_i32_i32_insert` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_len`~~ | `std::collections::hash_map` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_i32_new`~~ | `hashmap_i32_i32_new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_contains_key`~~ | `hashmap_i32_str_contains` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_get`~~ | `hashmap_i32_str_get` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_insert`~~ | `hashmap_i32_str_insert` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_i32_String_len`~~ | `hashmap_i32_str_len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_new_i32_String`~~ | `hashmap_i32_str_new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_new_String_i32`~~ | `hashmap_str_i32_new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_new_String_String`~~ | `hashmap_str_str_new` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_contains_key`~~ | `hashmap_str_i32_contains` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_get`~~ | `hashmap_str_i32_get` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_insert`~~ | `hashmap_str_i32_insert` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_i32_len`~~ | `hashmap_str_i32_len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_contains_key`~~ | `hashmap_str_str_contains` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_get`~~ | `hashmap_str_str_get` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_insert`~~ | `hashmap_str_str_insert` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`HashMap_String_String_len`~~ | `hashmap_str_str_len` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`Vec_new_i32`~~ | `Vec::new<i32>` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`Vec_new_i64`~~ | `Vec::new<i64>` | Collections | [migration-guidance.md](migration-guidance.md) |
-| ~~`Vec_new_v128`~~ | `Vec::new<v128>` | Collections | [migration-guidance.md](migration-guidance.md) |
 
 ---
 
@@ -1008,8 +1008,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `file_write` | ✅ `experimental` | `std::io` | Io |
 | `fill_buffer` | ✅ `stable` | `std::io` | Io |
 | `filter_f64` | ✅ `stable` | `prelude` | Collections |
+| `filter_i32` | ✅ `provisional` | `prelude` | Collections |
 | `filter_i32` | ✅ `stable` | `std::seq` | Seq |
-| ~~`filter_i32`~~ | ⚠️ deprecated | `prelude` | → `filter<i32>` · [migration guide](migration-guidance.md) |
 | `filter_i64` | ✅ `stable` | `prelude` | Collections |
 | `filter_String` | ✅ `stable` | `prelude` | Collections |
 | `find_f64` | ✅ `stable` | `prelude` | Collections |
@@ -1057,36 +1057,36 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_extend` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get_option` | ✅ `stable` | `std::collections::hash` | Collections |
-| ~~`HashMap_i32_i32_contains_key`~~ | ⚠️ deprecated | `prelude` | → `std::collections::hash_map` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_i32_get`~~ | ⚠️ deprecated | `prelude` | → `std::collections::hash_map` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_i32_insert`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_i32_insert` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_i32_len`~~ | ⚠️ deprecated | `prelude` | → `std::collections::hash_map` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_i32_new`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_i32_new` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_String_contains_key`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_contains` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_String_get`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_get` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_String_insert`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_insert` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_i32_String_len`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_len` · [migration guide](migration-guidance.md) |
+| `HashMap_i32_i32_contains_key` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_i32_get` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_i32_insert` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_i32_len` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_i32_new` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_String_contains_key` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_String_get` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_String_insert` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_i32_String_len` | ✅ `provisional` | `prelude` | Collections |
 | `hashmap_insert` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |
-| ~~`HashMap_new_i32_String`~~ | ⚠️ deprecated | `prelude` | → `hashmap_i32_str_new` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_new_String_i32`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_new` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_new_String_String`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_new` · [migration guide](migration-guidance.md) |
+| `HashMap_new_i32_String` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_new_String_i32` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_new_String_String` | ✅ `provisional` | `prelude` | Collections |
 | `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_remove_entry` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_shrink_to_fit` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
-| ~~`HashMap_String_i32_contains_key`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_contains` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_i32_get`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_get` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_i32_insert`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_insert` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_i32_len`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_i32_len` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_String_contains_key`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_contains` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_String_get`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_get` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_String_insert`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_insert` · [migration guide](migration-guidance.md) |
-| ~~`HashMap_String_String_len`~~ | ⚠️ deprecated | `prelude` | → `hashmap_str_str_len` · [migration guide](migration-guidance.md) |
+| `HashMap_String_i32_contains_key` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_i32_get` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_i32_insert` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_i32_len` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_String_contains_key` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_String_get` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_String_insert` | ✅ `provisional` | `prelude` | Collections |
+| `HashMap_String_String_len` | ✅ `provisional` | `prelude` | Collections |
 | `hashmap_try_reserve` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -1497,12 +1497,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
 | `Vec_new_f64` | ✅ `stable` | `prelude` | Collections |
 | `Vec_new_f64_with_cap` | ✅ `stable` | `prelude` | Collections |
-| ~~`Vec_new_i32`~~ | ⚠️ deprecated | `prelude` | → `Vec::new<i32>` · [migration guide](migration-guidance.md) |
+| `Vec_new_i32` | ✅ `provisional` | `prelude` | Collections |
 | `Vec_new_i32_with_cap` | ✅ `stable` | `prelude` | Collections |
-| ~~`Vec_new_i64`~~ | ⚠️ deprecated | `prelude` | → `Vec::new<i64>` · [migration guide](migration-guidance.md) |
+| `Vec_new_i64` | ✅ `provisional` | `prelude` | Collections |
 | `Vec_new_i64_with_cap` | ✅ `stable` | `prelude` | Collections |
 | `Vec_new_String` | ✅ `stable` | `prelude` | Collections |
-| ~~`Vec_new_v128`~~ | ⚠️ deprecated | `prelude` | → `Vec::new<v128>` · [migration guide](migration-guidance.md) |
+| `Vec_new_v128` | ✅ `provisional` | `prelude` | Collections |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |

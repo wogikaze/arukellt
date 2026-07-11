@@ -566,8 +566,7 @@ intrinsic = "__intrinsic_Vec_new_i32"
 params = []
 returns = "Vec<i32>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::new<i32>"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -577,8 +576,7 @@ intrinsic = "__intrinsic_Vec_new_i64"
 params = []
 returns = "Vec<i64>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::new<i64>"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -598,8 +596,7 @@ intrinsic = "__intrinsic_Vec_new_v128"
 params = []
 returns = "Vec<v128>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "Vec::new<v128>"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -806,9 +803,8 @@ intrinsic = "__intrinsic_filter_i32"
 params = ["Vec<i32>", "fn(i32) -> bool"]
 returns = "Vec<i32>"
 prelude = true
-stability = "deprecated"
+stability = "provisional"
 doc_category = "collections"
-deprecated_by = "filter<i32>"
 
 [[functions]]
 name = "fold_i32_i32"
@@ -1202,8 +1198,7 @@ kind = "builtin"
 params = []
 returns = "HashMap<i32, i32>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_i32_new"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1212,8 +1207,7 @@ kind = "builtin"
 params = ["HashMap<i32, i32>", "i32", "i32"]
 returns = "()"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_i32_insert"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1222,8 +1216,7 @@ kind = "builtin"
 params = ["HashMap<i32, i32>", "i32"]
 returns = "Option<i32>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "std::collections::hash_map"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1232,8 +1225,7 @@ kind = "builtin"
 params = ["HashMap<i32, i32>", "i32"]
 returns = "bool"
 prelude = true
-stability = "deprecated"
-deprecated_by = "std::collections::hash_map"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1242,8 +1234,7 @@ kind = "builtin"
 params = ["HashMap<i32, i32>"]
 returns = "i32"
 prelude = true
-stability = "deprecated"
-deprecated_by = "std::collections::hash_map"
+stability = "provisional"
 doc_category = "collections"
 
 # ── HashMap<String, i32> ───────────────────────
@@ -1254,8 +1245,7 @@ kind = "builtin"
 params = []
 returns = "HashMap<String, i32>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_i32_new"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1264,8 +1254,7 @@ kind = "builtin"
 params = ["HashMap<String, i32>", "String", "i32"]
 returns = "()"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_i32_insert"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1274,8 +1263,7 @@ kind = "builtin"
 params = ["HashMap<String, i32>", "String"]
 returns = "Option<i32>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_i32_get"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1284,8 +1272,7 @@ kind = "builtin"
 params = ["HashMap<String, i32>", "String"]
 returns = "bool"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_i32_contains"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1294,8 +1281,7 @@ kind = "builtin"
 params = ["HashMap<String, i32>"]
 returns = "i32"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_i32_len"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1304,8 +1290,7 @@ kind = "builtin"
 params = []
 returns = "HashMap<i32, String>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_str_new"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1314,8 +1299,7 @@ kind = "builtin"
 params = ["HashMap<i32, String>", "i32", "String"]
 returns = "unit"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_str_insert"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1324,8 +1308,7 @@ kind = "builtin"
 params = ["HashMap<i32, String>", "i32"]
 returns = "Option<String>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_str_get"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1334,8 +1317,7 @@ kind = "builtin"
 params = ["HashMap<i32, String>", "i32"]
 returns = "bool"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_str_contains"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1344,8 +1326,7 @@ kind = "builtin"
 params = ["HashMap<i32, String>"]
 returns = "i32"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_i32_str_len"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1354,8 +1335,7 @@ kind = "builtin"
 params = []
 returns = "HashMap<String, String>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_str_new"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1364,8 +1344,7 @@ kind = "builtin"
 params = ["HashMap<String, String>", "String", "String"]
 returns = "unit"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_str_insert"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1374,8 +1353,7 @@ kind = "builtin"
 params = ["HashMap<String, String>", "String"]
 returns = "Option<String>"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_str_get"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1384,8 +1362,7 @@ kind = "builtin"
 params = ["HashMap<String, String>", "String"]
 returns = "bool"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_str_contains"
+stability = "provisional"
 doc_category = "collections"
 
 [[functions]]
@@ -1394,8 +1371,7 @@ kind = "builtin"
 params = ["HashMap<String, String>"]
 returns = "i32"
 prelude = true
-stability = "deprecated"
-deprecated_by = "hashmap_str_str_len"
+stability = "provisional"
 doc_category = "collections"
 
 # ── Intrinsics (no public wrapper) ───────────

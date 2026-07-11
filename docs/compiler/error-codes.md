@@ -1,8 +1,8 @@
 # Error Code Reference
 
-> Canonical listing of every diagnostic code emitted by the Arukellt compiler.
+> Declared diagnostic code catalogue, including implemented and reserved codes.
 > Code declarations: `src/compiler/diagnostics/codes.ark`.
-> Lifecycle identity: `docs/data/diagnostics.toml`.
+> Lifecycle identity: `docs/data/warnings.toml`.
 
 ## Overview
 
@@ -665,6 +665,7 @@ Check the spelling or verify the function is exported by the module.
 |---|---|
 | **Severity** | warning |
 | **Phase** | typecheck |
+| **Maturity** | implemented; emitted |
 | **Message** | possible unintended sharing of reference type |
 
 Fires when a mutable reference type is aliased within the same function body,
@@ -684,29 +685,32 @@ fn main() {
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | target |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
 | **Message** | deprecated target alias |
 
 The specified target name is a deprecated alias. Use the canonical target name
 instead.
 
-### W0003 — ambiguous import
+### W0003 — unused symbol
 
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | resolve |
-| **Message** | ambiguous import: local and std modules share the same name |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
+| **Message** | unused symbol `<name>` |
 
-A local module and a standard library module share the same name, making the
-import ambiguous.
+A declared symbol is not referenced. Remove it or apply the supported
+underscore convention when the unused declaration is intentional.
 
 ### W0004 — generated Wasm module failed validation
 
 | | |
 |---|---|
-| **Severity** | **error** (promoted from warning) |
+| **Severity** | error |
 | **Phase** | backend-validate |
+| **Maturity** | implemented; emitted |
 | **Message** | generated Wasm module failed validation |
 
 The generated Wasm binary fails `wasmparser::Validator::validate_all()`.
@@ -718,7 +722,8 @@ is never accepted as a successful build.
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | backend-validate |
+| **Phase** | component |
+| **Maturity** | implemented; emitted |
 | **Message** | function has non-exportable parameter type, skipped from component exports |
 
 A public function uses parameter types that cannot be lowered through the
@@ -731,7 +736,8 @@ canonical ABI and is therefore omitted from the component's export list.
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | resolve |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
 | **Message** | unused import `<module>` |
 
 An imported module is never referenced via qualified identifiers in the
@@ -753,7 +759,8 @@ use std::math as _math  // suppressed by _ prefix
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | typecheck |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
 | **Message** | unused binding `<name>` |
 
 A `let` binding introduces a name that is never referenced in the enclosing
@@ -774,9 +781,9 @@ let x = 1                  // W0007 if x is never used
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | lint |
+| **Phase** | lint-post-resolve |
 | **Message** | documentation drift |
-| **Maturity** | declared; current checker is a no-op |
+| **Maturity** | declared; not currently emitted |
 
 Reserved for documentation drift detected from tracked documentation comments.
 The current compiler declares and registers this code, but does not emit it
@@ -790,7 +797,8 @@ because full comment tracking is not implemented.
 | | |
 |---|---|
 | **Severity** | warning |
-| **Phase** | lint (post-resolve) |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
 | **Message** | deprecated API: use `<replacement>` instead |
 
 A function marked as deprecated in the compiler's generated deprecation table
@@ -856,17 +864,19 @@ one, please file a bug report.
 | E0402 | error | backend-validate | WIT resource type not implemented in current version |
 | E0500 | error | resolve | module requires a different target |
 | E0501 | error | typecheck | symbol not found in module |
+<!-- BEGIN GENERATED:WARNING_CODE_CATALOGUE -->
 | W0001 | warning | typecheck | possible unintended sharing of reference type |
-| W0002 | warning | target | deprecated target alias |
-| W0003 | warning | resolve | ambiguous import |
-| W0004 | **error** | backend-validate | generated Wasm module failed validation |
-| W0005 | warning | backend-validate | non-exportable function skipped |
-| W0006 | warning | resolve | unused import |
-| W0007 | warning | typecheck | unused binding |
-| W0008 | warning | lint | documentation drift (declared; checker not yet active) |
-| W0009 | warning | lint (post-resolve) | deprecated API |
-| W0101 | warning | parse | deprecated `import <name>` syntax |
-| W0102 | warning | lint (post-resolve) | component lowering note (declared; not emitted) |
+| W0002 | warning | lint-post-resolve | deprecated target alias |
+| W0003 | warning | lint-post-resolve | unused symbol |
+| W0004 | **error** | backend-validate | generated Wasm failed validation |
+| W0005 | warning | component | non-exportable function skipped from component exports |
+| W0006 | warning | lint-post-resolve | unused import |
+| W0007 | warning | lint-post-resolve | unused binding |
+| W0008 | warning | lint-post-resolve | documentation drift (declared; not emitted) |
+| W0009 | warning | lint-post-resolve | deprecated API usage with the manifest-recorded replacement |
+| W0101 | warning | parse | deprecated import syntax; use `use` (declared; not emitted) |
+| W0102 | warning | lint-post-resolve | component lowering note (declared; not emitted) |
+<!-- END GENERATED:WARNING_CODE_CATALOGUE -->
 
 ---
 
@@ -905,7 +915,7 @@ use math as m
 | Field | Value |
 |-------|-------|
 | **Severity** | warning |
-| **Phase** | lint (post-resolve) |
+| **Phase** | lint-post-resolve |
 | **Maturity** | declared; not currently emitted |
 
 Reserved for non-fatal Component Model lowering notes. This identity is
@@ -936,7 +946,7 @@ error[E0200|typecheck]: type mismatch
 ## Update Policy
 
 This document is maintained manually. When adding or modifying diagnostic codes
-in `src/compiler/diagnostics/codes.ark` and `docs/data/diagnostics.toml`, update
+in `src/compiler/diagnostics/codes.ark` and `docs/data/warnings.toml`, update
 this file to match.
 `scripts/check/check-docs-consistency.py` includes a check for error-code-to-doc
 alignment.
