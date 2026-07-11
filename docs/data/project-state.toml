@@ -155,66 +155,6 @@ baseline_cases = [
 ]
 heavy_note = "Heavy perf comparisons are intentionally separated from the normal correctness gate"
 
-[[diagnostics]]
-code = "W0001"
-severity = "warning"
-phase = "typecheck"
-summary = "same-body heuristic warning for shared mutable aliasing"
-
-[[diagnostics]]
-code = "W0002"
-severity = "warning"
-phase = "target"
-summary = "deprecated target alias warning"
-
-[[diagnostics]]
-code = "W0004"
-severity = "error"
-phase = "backend-validate"
-summary = "generated Wasm failed backend validation"
-
-[[diagnostics]]
-code = "W0005"
-severity = "warning"
-phase = "component"
-summary = "non-exportable function skipped from component exports"
-
-[[diagnostics]]
-code = "W0008"
-severity = "warning"
-phase = "lint"
-summary = "documentation drift; declared and registered, but the current checker is a no-op"
-maturity = "declared"
-emitted_by_current_compiler = false
-coverage_fixture = "none"
-
-[[diagnostics]]
-code = "W0009"
-severity = "warning"
-phase = "lint-post-resolve"
-summary = "deprecated API usage with the current replacement"
-maturity = "implemented"
-emitted_by_current_compiler = true
-coverage_fixture = "tests/fixtures/selfhost/lsp_stdlib_definition.lsp-expected"
-
-[[diagnostics]]
-code = "W0101"
-severity = "warning"
-phase = "lint"
-summary = "component lowering note"
-
-[[diagnostics]]
-code = "E0500"
-severity = "error"
-phase = "resolve"
-summary = "module requires a different target (e.g. `std::host::sockets` on wasm32 emits E0500; use `--target wasm32-gc`)"
-
-[[diagnostics]]
-code = "E0501"
-severity = "error"
-phase = "typecheck"
-summary = "symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module)"
-
 [component]
 status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-008 in-tree ideal; wrap helpers may still call wasm-tools)"
 summary = "Only user `pub fn` with WIT-compatible types are exported"

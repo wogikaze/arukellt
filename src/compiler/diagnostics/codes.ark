@@ -54,4 +54,5 @@ pub fn DIAG_WARN_UNUSED_IMPORT() -> String { String_from("W0006") }
 pub fn DIAG_WARN_UNUSED_BINDING() -> String { String_from("W0007") }
 pub fn DIAG_WARN_DOC_DRIFT() -> String { String_from("W0008") }
 pub fn DIAG_WARN_DEPRECATED_API() -> String { String_from("W0009") }
-pub fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0101") }
+pub fn DIAG_WARN_DEPRECATED_IMPORT() -> String { String_from("W0101") }
+pub fn DIAG_WARN_COMPONENT_LOWERING_NOTE() -> String { String_from("W0102") }

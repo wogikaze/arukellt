@@ -6959,7 +6959,9 @@ def build_parser() -> argparse.ArgumentParser:
         ("fixtures",  "Run the manifest-driven fixture harness"),
         ("size",      "Run the hello.wasm binary size gate"),
         ("wat",       "Run the WAT roundtrip gate"),
-        ("component", "Run the component interop smoke test"),
+        ("component-interop", "Run the Component Model interop fixture set"),
+        ("component", "Compatibility alias for component-interop"),
+        ("full", "Run all verification domains sequentially"),
     ]:
         p = sub_verify.add_parser(name, help=help_text)
         p.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
@@ -7125,12 +7127,16 @@ def main() -> int:
         "size":      cmd_verify_size,
         "wat":       cmd_verify_wat,
         "component": cmd_verify_component,
+        "component-interop": cmd_verify_component,
     }
 
     if args.domain == "verify":
         subcommand: str | None = getattr(args, "subcommand", None)
 
         # ── Positional subcommand takes priority when present ─────────────────
+        if subcommand == "full":
+            args.full = True
+            subcommand = None
         if subcommand:
             handler = dispatch_positional.get(subcommand)
             if handler is None:

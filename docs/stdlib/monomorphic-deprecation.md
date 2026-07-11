@@ -2,6 +2,7 @@
 
 > Generated from `std/manifest.toml` by `scripts/gen/generate-docs.py`.
 > Lifecycle state and replacement are never maintained separately here.
+> A replacement string is not proof of current callability; migration evidence remains required.
 
 Deprecated APIs remain callable for the policy window in
 [stability-policy.md](stability-policy.md). Monomorphic compatibility

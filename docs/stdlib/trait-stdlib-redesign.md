@@ -4,8 +4,8 @@
 > 対応 issue 群: #688-#697
 > ステータス: **DRAFT** — 688-697 完了後に実行
 
-本 doc は ADR-036 の決定 (静的ディスパッチ優先 + ADR-014 stability に従う移行) に基づき、
-モジュール別の詳細設計・トレイト階層・移行計画を定義する。
+本 doc は PROPOSED ADR-036 の提案を具体化する非normativeな設計案である。
+ADR-036がACCEPTEDになるまで現行contractやmigration targetを定義しない。
 
 ---
 

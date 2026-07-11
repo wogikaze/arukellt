@@ -1,7 +1,8 @@
 # Error Code Reference
 
 > Canonical listing of every diagnostic code emitted by the Arukellt compiler.
-> Source of truth: `src/compiler/diagnostics.ark`.
+> Code declarations: `src/compiler/diagnostics/codes.ark`.
+> Lifecycle identity: `docs/data/diagnostics.toml`.
 
 ## Overview
 
@@ -793,7 +794,8 @@ because full comment tracking is not implemented.
 | **Message** | deprecated API: use `<replacement>` instead |
 
 A function marked as deprecated in the compiler's generated deprecation table
-is being used. The manifest `deprecated_by` field owns the current replacement.
+is being used. The manifest `deprecated_by` field records the intended
+replacement; it does not by itself prove current callability.
 
 <!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
@@ -864,6 +866,7 @@ one, please file a bug report.
 | W0008 | warning | lint | documentation drift (declared; checker not yet active) |
 | W0009 | warning | lint (post-resolve) | deprecated API |
 | W0101 | warning | parse | deprecated `import <name>` syntax |
+| W0102 | warning | lint (post-resolve) | component lowering note (declared; not emitted) |
 
 ---
 
@@ -874,10 +877,11 @@ one, please file a bug report.
 | **Severity** | warning |
 | **Phase** | parse |
 | **Message** | deprecated import syntax |
+| **Maturity** | declared; not currently emitted |
 
-`import <name>` remains accepted for local file module compatibility, but it is
-deprecated in favor of `use <name>`. The `import` keyword is reserved for future
-Component Model / WIT boundary declarations.
+ADR-031 reserves this identity for the `import` to `use` migration. The current
+parser does not yet emit the warning, so examples below describe the accepted
+contract rather than observed compiler output.
 
 ```text
 // Deprecated
@@ -893,6 +897,20 @@ Aliases migrate directly:
 import math as m  // W0101
 use math as m
 ```
+
+---
+
+### W0102 — component lowering note
+
+| Field | Value |
+|-------|-------|
+| **Severity** | warning |
+| **Phase** | lint (post-resolve) |
+| **Maturity** | declared; not currently emitted |
+
+Reserved for non-fatal Component Model lowering notes. This identity is
+separate from W0101 so the accepted import-syntax migration contract remains
+stable.
 
 ---
 
@@ -918,7 +936,8 @@ error[E0200|typecheck]: type mismatch
 ## Update Policy
 
 This document is maintained manually. When adding or modifying diagnostic codes
-in `src/compiler/diagnostics.ark`, update this file to match.
+in `src/compiler/diagnostics/codes.ark` and `docs/data/diagnostics.toml`, update
+this file to match.
 `scripts/check/check-docs-consistency.py` includes a check for error-code-to-doc
 alignment.
 

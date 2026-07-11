@@ -1,0 +1,25 @@
+# Canonical verification command registry.
+
+[[commands]]
+id = "verify_component_interop"
+canonical = "python3 scripts/manager.py verify component-interop"
+aliases = ["python3 scripts/manager.py verify component", "python3 scripts/manager.py verify --component"]
+alias_status = "compatibility"
+purpose = "Run the wasmtime Component Model interop fixture set"
+coverage = ["tests/component-interop/jco/*/run.sh"]
+
+[[commands]]
+id = "verify_component_emit"
+canonical = "python3 scripts/check/gate-666-component-library-emit.py"
+aliases = []
+alias_status = "none"
+purpose = "Run the component/WIT library emit smoke gate"
+coverage = ["examples/ark/export-library/calculator.ark"]
+
+[[commands]]
+id = "verify_full"
+canonical = "python3 scripts/manager.py verify full"
+aliases = ["python3 scripts/manager.py verify --full"]
+alias_status = "compatibility"
+purpose = "Run all verification domains sequentially"
+coverage = ["quick", "fixtures", "size", "wat", "component-interop", "selfhost-parity", "selfhost-fixpoint"]

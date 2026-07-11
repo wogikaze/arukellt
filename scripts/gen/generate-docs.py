@@ -31,6 +31,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
+from structured_state_common import check_freshness
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 local compatibility
@@ -49,6 +51,7 @@ SCOREBOARD_LOW_COVERAGE_THRESHOLD = 50
 LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
 CLI_SURFACE_TOML = DATA / "cli-surface.toml"
 RELEASE_GUARANTEES_TOML = DATA / "release-guarantees.toml"
+DIAGNOSTICS_TOML = DATA / "diagnostics.toml"
 SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 MONOMORPHIC_DEPRECATION = ROOT / "docs" / "stdlib" / "monomorphic-deprecation.md"
@@ -1485,7 +1488,6 @@ def render_current_state_test_health(state: dict, fixture_total: int, release_ch
     )
     # Blockers come from release-guarantees.toml checks (release_blocking = true, result = fail)
     failing_blockers = [ch for ch in release_checks if ch.get("release_blocking") and ch.get("result", ch.get("current_status")) == "fail"]
-    source_commit = verification.get("source_commit", "")
     lines.extend(
         [
             "",
@@ -1493,18 +1495,18 @@ def render_current_state_test_health(state: dict, fixture_total: int, release_ch
             "",
             "Generated from `data/release-guarantees.toml` (checks with `release_blocking = true, result = \"fail\"`).",
             "",
-            "| ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified |",
-            "|----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|",
+            "| ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |",
+            "|----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|",
         ]
     )
     if failing_blockers:
         for ch in failing_blockers:
             last_vc = ch.get("last_verified_commit", "")
-            stale_tag = " ⏰STALE" if (source_commit and last_vc and last_vc != source_commit) else ""
+            freshness = check_freshness(ch)
             incident = ch.get("incident_id", "—")
             summary = escape_table(ch.get("note", ch.get("blocker_category", "")))
             lines.append(
-                "| `{id}` | `{scope}` | `{category}` | {count} | `{incident}` | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}`{stale} |".format(
+                "| `{id}` | `{scope}` | `{category}` | {count} | `{incident}` | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}` | `{freshness}` |".format(
                     id=ch["id"],
                     category=ch.get("blocker_category", "—"),
                     scope=ch.get("blocker_scope", "—"),
@@ -1516,11 +1518,11 @@ def render_current_state_test_health(state: dict, fixture_total: int, release_ch
                     issue=ch.get("blocker_issue", "—"),
                     first=ch.get("first_seen_commit", "—"),
                     last=last_vc,
-                    stale=stale_tag,
+                    freshness=freshness,
                 )
             )
     else:
-        lines.append("| — | — | — | 0 | — | No active blockers in the recorded verification run. | — | — | — | — | — |")
+        lines.append("| — | — | — | 0 | — | No active blockers in the recorded verification run. | — | — | — | — | — | — |")
     return "\n".join(lines)
 
 
@@ -1548,12 +1550,12 @@ def render_current_state_diagnostics(state: dict) -> str:
     lines = [
         "## Diagnostics and Validation",
         "",
-        "- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/project-state.toml`",
+        "- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/diagnostics.toml`",
         "- Diagnostics are tracked by code, severity, phase origin, and implementation maturity",
     ]
     for diagnostic in state["diagnostics"]:
         maturity = diagnostic.get("maturity", "implemented")
-        emitted = diagnostic.get("emitted_by_current_compiler")
+        emitted = diagnostic.get("emitted")
         emitted_note = ""
         if emitted is not None:
             emitted_note = ", emitted" if emitted else ", not currently emitted"
@@ -3165,6 +3167,7 @@ def render_deprecation_table(manifest: dict) -> str:
         "",
         "> Generated from `std/manifest.toml` by `scripts/gen/generate-docs.py`.",
         "> Lifecycle state and replacement are never maintained separately here.",
+        "> A replacement string is not proof of current callability; migration evidence remains required.",
         "",
         "Deprecated APIs remain callable for the policy window in",
         "[stability-policy.md](stability-policy.md). Monomorphic compatibility",
@@ -3643,6 +3646,7 @@ def main() -> int:
     args = parser.parse_args()
 
     state = load_toml(PROJECT_STATE)
+    state["diagnostics"] = load_toml(DIAGNOSTICS_TOML)["diagnostics"]
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()
     release_data = load_toml(RELEASE_GUARANTEES_TOML)

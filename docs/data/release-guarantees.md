@@ -57,10 +57,10 @@ incidents, not by individual checks.
 | `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_cli_parity` | `a80b4181` | `python3 scripts/manager.py selfhost parity --mode --cli` |
 | `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py selfhost diag-parity` |
 | `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_wat_roundtrip` | `a80b4181` | `bash scripts/run/wat-roundtrip.sh` |
-| `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 103 | `incident_component_interop_103` | `a80b4181` | `python3 scripts/manager.py verify --component-interop` |
+| `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 103 | `incident_component_interop_103` | `a80b4181` | `python3 scripts/manager.py verify component-interop` |
 | `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
 | `check_binary_version` | — | no | — | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `arukellt --version` |
-| `check_emit_component` | `emit_component` | no | ✓ | — | ⚠️ partial | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify --component` |
+| `check_emit_component` | `emit_component` | no | ✓ | — | ⚠️ partial | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/check/gate-666-component-library-emit.py` |
 | `check_lsp` | `lsp` | no | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/manager.py verify quick` |
 | `check_ark_toml` | `ark_toml` | no | — | — | ⬜ not-run | ❓ unknown | `smoke` | — | — | `a80b4181` | `arukellt build` |
 | `check_dap` | `dap` | no | — | — | ⬜ not-run | ❓ unknown | `manual` | — | — | `—` | `manual / scaffold` |

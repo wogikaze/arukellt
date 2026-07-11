@@ -1,0 +1,92 @@
+# Diagnostic lifecycle SSOT. Compiler source owns code declarations; this
+# catalogue owns user-visible identity, phase, maturity, and evidence.
+
+[[diagnostics]]
+code = "W0001"
+severity = "warning"
+phase = "typecheck"
+summary = "possible unintended sharing of reference type"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0002"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "deprecated target alias"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0003"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "unused symbol"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0004"
+severity = "error"
+phase = "backend-validate"
+summary = "generated Wasm failed validation"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0005"
+severity = "warning"
+phase = "component"
+summary = "non-exportable function skipped from component exports"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0006"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "unused import"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0007"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "unused binding"
+maturity = "implemented"
+emitted = true
+
+[[diagnostics]]
+code = "W0008"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "documentation drift"
+maturity = "declared"
+emitted = false
+
+[[diagnostics]]
+code = "W0009"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "deprecated API usage with the manifest-recorded replacement"
+maturity = "implemented"
+emitted = true
+fixture = "tests/fixtures/selfhost/lsp_stdlib_definition.lsp-expected"
+
+[[diagnostics]]
+code = "W0101"
+severity = "warning"
+phase = "parse"
+summary = "deprecated import syntax; use `use`"
+maturity = "declared"
+emitted = false
+adr = "ADR-031"
+
+[[diagnostics]]
+code = "W0102"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "component lowering note"
+maturity = "declared"
+emitted = false

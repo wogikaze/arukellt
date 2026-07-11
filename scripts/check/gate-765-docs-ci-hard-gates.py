@@ -218,6 +218,18 @@ def check_ownership(cfg: dict, failures: list[str]) -> None:
                 if line.split("|", 1)[0].strip() == path:
                     failures.append(f"{path} must not be listed in .generated-files")
 
+    stdlib_map = REPO / "docs/stdlib/ownership-map.md"
+    stdlib_root = REPO / "docs/stdlib"
+    if stdlib_map.is_file():
+        seen: set[str] = set()
+        for match in re.finditer(r"^\| `([^`]+)` \|", stdlib_map.read_text(encoding="utf-8"), re.M):
+            relative = match.group(1)
+            if relative in seen:
+                failures.append(f"docs/stdlib/ownership-map.md duplicate path: {relative}")
+            seen.add(relative)
+            if not (stdlib_root / relative).is_file():
+                failures.append(f"docs/stdlib/ownership-map.md stale path: {relative}")
+
 
 def check_benchmark_validity(failures: list[str]) -> None:
     if not BENCHMARK_RESULTS.is_file():
@@ -629,6 +641,47 @@ def check_release_guarantees(failures: list[str]) -> None:
             failures.append(f"release checklist missing generated blocker row: {guarantee['id']}")
 
 
+def check_diagnostic_catalogue(failures: list[str]) -> None:
+    data = load_toml(REPO / "docs/data/diagnostics.toml")
+    codes_source = (REPO / "src/compiler/diagnostics/codes.ark").read_text(encoding="utf-8")
+    seen: set[str] = set()
+    for diagnostic in data.get("diagnostics", []):
+        code = diagnostic.get("code", "")
+        if code in seen:
+            failures.append(f"diagnostics.toml duplicate code identity: {code}")
+        seen.add(code)
+        if f'String_from("{code}")' not in codes_source:
+            failures.append(f"diagnostics.toml code lacks compiler declaration: {code}")
+        for field in ("summary", "phase", "maturity", "emitted"):
+            if field not in diagnostic:
+                failures.append(f"diagnostics.toml {code} lacks {field}")
+    by_code = {item["code"]: item for item in data.get("diagnostics", [])}
+    w0101 = by_code.get("W0101", {})
+    if w0101.get("adr") != "ADR-031" or w0101.get("phase") != "parse":
+        failures.append("W0101 must preserve the accepted ADR-031 parse-warning identity")
+    if by_code.get("W0102", {}).get("summary") != "component lowering note":
+        failures.append("component lowering note must use the distinct W0102 identity")
+
+
+def check_verification_commands(failures: list[str]) -> None:
+    data = load_toml(REPO / "docs/data/verification-commands.toml")
+    commands = {item["id"]: item for item in data.get("commands", [])}
+    expected = {
+        "verify_component_interop": "python3 scripts/manager.py verify component-interop",
+        "verify_component_emit": "python3 scripts/check/gate-666-component-library-emit.py",
+        "verify_full": "python3 scripts/manager.py verify full",
+    }
+    for command_id, canonical in expected.items():
+        if commands.get(command_id, {}).get("canonical") != canonical:
+            failures.append(f"verification command registry drift: {command_id}")
+    release = load_toml(REPO / "docs/data/release-guarantees.toml")
+    release_by_id = {item["id"]: item for item in release.get("checks", [])}
+    if release_by_id.get("check_component_interop_wasmtime", {}).get("command") != expected["verify_component_interop"]:
+        failures.append("component interop release check must use its canonical command")
+    if release_by_id.get("check_emit_component", {}).get("command") != expected["verify_component_emit"]:
+        failures.append("component emit release check must use its distinct canonical command")
+
+
 def main() -> int:
     failures: list[str] = []
     if not CONFIG.is_file():
@@ -658,6 +711,8 @@ def main() -> int:
     check_capability_policy(cfg, failures)
     check_structured_state(failures)
     check_release_guarantees(failures)
+    check_diagnostic_catalogue(failures)
+    check_verification_commands(failures)
 
     if failures:
         print("gate-765-docs-ci-hard-gates: FAIL", file=sys.stderr)

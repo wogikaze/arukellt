@@ -73,8 +73,6 @@ These files are authored and maintained by human contributors. Changes require r
 | `prelude-migration-inventory.md` | Prelude migration inventory | stdlib maintainers | — (manual review) |
 | `recipe-manifest.toml` | Maps cookbook recipes to test fixture files | `check-docs-consistency.py` | `check_recipe_fixture_links` |
 | `modernization/511-numeric-tag-inventory.md` | Numeric tag modernization inventory | stdlib maintainers | — (manual review) |
-| `modernization/514-parser-host-quality-audit.md` | **Moved to `history/stdlib/modernization/`** — superseded by generated reference | — | — |
-| `modernization/514-quality-audit-matrix.md` | **Moved to `history/stdlib/modernization/`** — superseded by generated reference | — | — |
 
 ### Generated Module Pages (host modules)
 
@@ -91,7 +89,6 @@ The following generated module pages are also tracked:
 |------|---------------|-------------|
 | `core.md` | `modules/core.md` | Backward-compatible URLs |
 | `io.md` | `modules/io.md` | Backward-compatible URLs |
-| `std.md` | Current API reference + ADRs | **Moved to `history/stdlib/std.md`** — Historical design rationale (March 2026); not the current API contract |
 
 ---
 

@@ -10,7 +10,8 @@ their responsibilities, and how they map to the CI pipeline.
 | **verification** | Selfhost compiler, manifest, docs, and policy checks | merge-blocking | `verification` + `docs` jobs |
 | **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | merge-blocking (via verification harness) | `verification` job (`manager.py verify` / fixtures) |
 | **target-contract** | Per-target behavior and CI/doc target drift | merge-blocking when exercised in verification | `verification` job |
-| **component-interop** | Component Model emit + host interop | included in verification when available | `python3 scripts/manager.py verify --component` |
+| **component-interop** | Component Model host interop fixture set | included in full verification | `python3 scripts/manager.py verify component-interop` |
+| **component-emit** | Component/WIT library emit smoke | nonblocking release evidence | `python3 scripts/check/gate-666-component-library-emit.py` |
 | **package-workspace** | `ark.toml`, workspace resolution, manifest, script execution | local / targeted | `bash scripts/run/test-package-workspace.sh` |
 | **bootstrap** | Selfhost fixpoint and parity (ADR-029) | merge-blocking | `selfhost` job |
 | **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` job (+ LSP/DAP checks inside verification) |

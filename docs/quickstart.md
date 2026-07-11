@@ -25,7 +25,7 @@ arukellt run hello.ark
 ## Component Build
 
 > ⚠️ **Provisional / 103件失敗中**: Component Model output は `wasm32-gc` で一部利用可能ですが、
-> 現在 `verify --component-interop` が 103/103 失敗中です。
+> 現在 `verify component-interop` が 103/103 失敗中です。
 > Library exports は s2 wasm 条件付き、WIT coverage は partial です。
 > 詳細は [current-state.md](current-state.md) と
 > [data/release-guarantees.md](data/release-guarantees.md) の `emit_component` 行を参照してください。

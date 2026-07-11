@@ -450,7 +450,7 @@ note = "The wasm2wat/wat2wasm roundtrip gate fails"
 [[checks]]
 id = "check_component_interop_wasmtime"
 guarantee_id = "emit_component"
-command = "python3 scripts/manager.py verify --component-interop"
+command = "python3 scripts/manager.py verify component-interop"
 ci_job = "verification"
 release_blocking = true
 included_in_full = true
@@ -510,7 +510,7 @@ note = "Binary smoke: --version exits 0"
 [[checks]]
 id = "check_emit_component"
 guarantee_id = "emit_component"
-command = "python3 scripts/manager.py verify --component"
+command = "python3 scripts/check/gate-666-component-library-emit.py"
 ci_job = "verification"
 release_blocking = false
 included_in_full = true

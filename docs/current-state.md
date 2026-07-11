@@ -117,14 +117,14 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 
 Generated from `data/release-guarantees.toml` (checks with `release_blocking = true, result = "fail"`).
 
-| ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified |
-|----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|
-| `check_fixture_harness` | `full` | `fixture` | 367 | `incident_fixture_parity_367` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
-| `check_close_gate_076` | `quick` | `verification` | 1 | `incident_close_gate_076` | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
-| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` |
-| `check_selfhost_cli_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_cli_parity` | CLI parity drifts for --help, lint, and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` |
-| `check_wat_roundtrip` | `full` | `target-contract` | 1 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` |
-| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify --component-interop` | component model | #074 | `a80b4181` | `a80b4181` |
+| ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |
+|----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
+| `check_fixture_harness` | `full` | `fixture` | 367 | `incident_fixture_parity_367` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` | `fresh` |
+| `check_close_gate_076` | `quick` | `verification` | 1 | `incident_close_gate_076` | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` | `fresh` |
+| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` | `fresh` |
+| `check_selfhost_cli_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_cli_parity` | CLI parity drifts for --help, lint, and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` | `fresh` |
+| `check_wat_roundtrip` | `full` | `target-contract` | 1 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` | `fresh` |
+| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify component-interop` | component model | #074 | `a80b4181` | `a80b4181` | `fresh` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
@@ -214,17 +214,19 @@ numbers into current contracts.
 <!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation
 
-- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/project-state.toml`
+- Canonical code declarations live in `src/compiler/diagnostics/codes.ark`; lifecycle metadata is recorded in `data/diagnostics.toml`
 - Diagnostics are tracked by code, severity, phase origin, and implementation maturity
-- `W0001`: same-body heuristic warning for shared mutable aliasing (warning, `typecheck`, implemented)
-- `W0002`: deprecated target alias warning (warning, `target`, implemented)
-- `W0004`: generated Wasm failed backend validation (error, `backend-validate`, implemented)
-- `W0005`: non-exportable function skipped from component exports (warning, `component`, implemented)
-- `W0008`: documentation drift; declared and registered, but the current checker is a no-op (warning, `lint`, declared, not currently emitted)
-- `W0009`: deprecated API usage with the current replacement (warning, `lint-post-resolve`, implemented, emitted)
-- `W0101`: component lowering note (warning, `lint`, implemented)
-- `E0500`: module requires a different target (e.g. `std::host::sockets` on wasm32 emits E0500; use `--target wasm32-gc`) (error, `resolve`, implemented)
-- `E0501`: symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module) (error, `typecheck`, implemented)
+- `W0001`: possible unintended sharing of reference type (warning, `typecheck`, implemented, emitted)
+- `W0002`: deprecated target alias (warning, `lint-post-resolve`, implemented, emitted)
+- `W0003`: unused symbol (warning, `lint-post-resolve`, implemented, emitted)
+- `W0004`: generated Wasm failed validation (error, `backend-validate`, implemented, emitted)
+- `W0005`: non-exportable function skipped from component exports (warning, `component`, implemented, emitted)
+- `W0006`: unused import (warning, `lint-post-resolve`, implemented, emitted)
+- `W0007`: unused binding (warning, `lint-post-resolve`, implemented, emitted)
+- `W0008`: documentation drift (warning, `lint-post-resolve`, declared, not currently emitted)
+- `W0009`: deprecated API usage with the manifest-recorded replacement (warning, `lint-post-resolve`, implemented, emitted)
+- `W0101`: deprecated import syntax; use `use` (warning, `parse`, declared, not currently emitted)
+- `W0102`: component lowering note (warning, `lint-post-resolve`, declared, not currently emitted)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 

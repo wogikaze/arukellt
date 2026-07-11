@@ -28,9 +28,14 @@ python3 scripts/manager.py verify quick       # fast local gate (default)
 python3 scripts/manager.py verify fixtures    # fixture harness
 python3 scripts/manager.py verify size        # hello.wasm size gate
 python3 scripts/manager.py verify wat         # WAT roundtrip
-python3 scripts/manager.py verify component   # component interop
-python3 scripts/manager.py verify full        # all of the above (canonical positional form)
+python3 scripts/manager.py verify component-interop # wasmtime interop fixtures
+python3 scripts/manager.py verify full              # all verification domains
 ```
+
+The structured command registry is
+[`../data/verification-commands.toml`](../data/verification-commands.toml).
+`verify component` and `verify --component` are compatibility aliases for
+`verify component-interop`; neither means the component emit-only smoke gate.
 
 ### Other domains
 

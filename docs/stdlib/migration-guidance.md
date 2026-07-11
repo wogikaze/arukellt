@@ -260,7 +260,9 @@ let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
    Swapping one for the other should not change program output.
 
 4. **Check warnings**: Deprecation warnings (W0009) flag remaining deprecated
-   calls and identify their current replacement.
+   calls and print the manifest-recorded replacement. Verify availability in
+   the generated reference before migrating; a replacement string alone is not
+   compile evidence.
 
 ## Deprecation Timeline
 

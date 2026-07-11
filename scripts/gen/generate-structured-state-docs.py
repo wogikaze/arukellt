@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 import sys
-from datetime import date, datetime
 from pathlib import Path
+
+from structured_state_common import check_freshness
 
 try:
     import tomllib
@@ -284,16 +285,6 @@ def _check_result(ch: dict) -> str:
     return ch.get("result", ch.get("current_status", "not-run"))
 
 
-def _check_freshness(ch: dict) -> str:
-    """Derive evidence age; test outcome must never influence freshness."""
-    verified_at = ch.get("verified_at")
-    stale_after_days = ch.get("stale_after_days")
-    if not verified_at or stale_after_days is None:
-        return "unknown"
-    verified = datetime.strptime(verified_at, "%Y-%m-%d").date()
-    return "stale" if (date.today() - verified).days > int(stale_after_days) else "fresh"
-
-
 def render_release_guarantees(data: dict) -> str:
     guarantees = data.get("guarantees", [])
     checks = data.get("checks", [])
@@ -335,7 +326,7 @@ def render_release_guarantees(data: dict) -> str:
             else:
                 current = "not-run"
             # Aggregate freshness: stale dominates unknown dominates fresh
-            fresh_statuses = [_check_freshness(ch) for ch in g_checks]
+            fresh_statuses = [check_freshness(ch) for ch in g_checks]
             if "stale" in fresh_statuses:
                 freshness = "stale"
             elif "unknown" in fresh_statuses:
@@ -395,7 +386,7 @@ def render_release_guarantees(data: dict) -> str:
                 in_full=in_full,
                 in_quick=in_quick,
                 result=_result_badge(_check_result(ch)),
-                freshness=_freshness_badge(_check_freshness(ch)),
+                freshness=_freshness_badge(check_freshness(ch)),
                 evidence=ch.get("evidence_type", "manual"),
                 affected=affected,
                 incident=incident,
@@ -405,7 +396,7 @@ def render_release_guarantees(data: dict) -> str:
         )
     lines.append("")
     # Stale check derivation details
-    stale_checks = [ch for ch in checks if _check_freshness(ch) == "stale"]
+    stale_checks = [ch for ch in checks if check_freshness(ch) == "stale"]
     if stale_checks:
         lines.extend([
             "",
