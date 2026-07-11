@@ -64,3 +64,15 @@ incidents, not by individual checks.
 | `check_ark_toml` | `ark_toml` | no | — | — | ⏰ stale | `smoke` | — | — | `a80b4181` | `arukellt build` |
 | `check_dap` | `dap` | no | — | — | ⬜ not-run | `manual` | — | — | `—` | `manual / scaffold` |
 | `check_vscode_dap` | `vscode_dap` | no | — | — | ⏰ stale | `smoke` | — | — | `a80b4181` | `extension-tests (partial)` |
+
+
+### Stale check derivation details
+
+Stale status is derived from `verified_at` + `stale_after_days` relative to the current date.
+Each stale check records the reason and threshold for mechanical verification.
+
+| Check ID | Verified at | Stale after (days) | Stale reason |
+|----------|-------------|:------------------:|--------------|
+| `check_emit_component` | 2026-07-11 | 30 | component interop has 103 failures; last smoke run was at source commit but feature is not passing |
+| `check_ark_toml` | 2026-07-11 | 60 | ark.toml build not exercised in recent CI; last verified at source commit but not re-run since |
+| `check_vscode_dap` | 2026-07-11 | 30 | VS Code DAP extension tests only partially pass; last run at source commit but feature is scaffold-level |

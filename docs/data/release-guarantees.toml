@@ -403,6 +403,9 @@ included_in_quick = false
 current_status = "stale"
 evidence_type = "smoke"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
+stale_reason = "component interop has 103 failures; last smoke run was at source commit but feature is not passing"
 platforms = ["linux"]
 
 [[checks]]
@@ -430,6 +433,9 @@ included_in_quick = false
 current_status = "stale"
 evidence_type = "smoke"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 60
+stale_reason = "ark.toml build not exercised in recent CI; last verified at source commit but not re-run since"
 platforms = ["linux"]
 
 [[checks]]
@@ -456,4 +462,7 @@ included_in_quick = false
 current_status = "stale"
 evidence_type = "smoke"
 last_verified_commit = "a80b4181"
+verified_at = "2026-07-11"
+stale_after_days = 30
+stale_reason = "VS Code DAP extension tests only partially pass; last run at source commit but feature is scaffold-level"
 platforms = ["linux"]

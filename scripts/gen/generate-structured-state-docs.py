@@ -364,6 +364,29 @@ def render_release_guarantees(data: dict) -> str:
             )
         )
     lines.append("")
+    # Stale check derivation details
+    stale_checks = [ch for ch in checks if ch.get("current_status") == "stale"]
+    if stale_checks:
+        lines.extend([
+            "",
+            "### Stale check derivation details",
+            "",
+            "Stale status is derived from `verified_at` + `stale_after_days` relative to the current date.",
+            "Each stale check records the reason and threshold for mechanical verification.",
+            "",
+            "| Check ID | Verified at | Stale after (days) | Stale reason |",
+            "|----------|-------------|:------------------:|--------------|",
+        ])
+        for ch in stale_checks:
+            lines.append(
+                "| `{id}` | {verified_at} | {stale_after} | {reason} |".format(
+                    id=ch["id"],
+                    verified_at=ch.get("verified_at", "—"),
+                    stale_after=ch.get("stale_after_days", "—"),
+                    reason=ch.get("stale_reason", "—"),
+                )
+            )
+        lines.append("")
     return "\n".join(lines)
 
 

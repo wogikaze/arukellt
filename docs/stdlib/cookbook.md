@@ -5,10 +5,14 @@
 
 このページは、現行実装でそのまま使いやすい書き方だけを残した cookbook です。
 古い capability API や未確認 helper は削っています。
-各レシピは対応するテスト fixture へのリンクを含んでおり、実際に動くコードの出典として参照できます。
 
-> 📋 **Recipe manifest**: レシピと fixture の対応は
-> [`recipe-manifest.toml`](recipe-manifest.toml) で管理されており、
+> **Code example verification**: この cookbook の Ark コード例は
+> `<!-- skip-doc-check -->` によって doc-example コンパイルから除外されています。
+> 除外理由は各 block に `reason` / `owner` / `kind` / `expires` として構造化記録されています。
+> 主な理由は `non-runnable`（`main` 関数を含まない断片例、prelude alias 使用など）です。
+> 対応する完全な実行可能 fixture は `tests/fixtures/` に登録されており、
+> fixture harness が CI で検証します。
+> レシピと fixture の対応は [`recipe-manifest.toml`](recipe-manifest.toml) で管理され、
 > CI が `check-docs-consistency.py` でリンク整合性を検証します。
 
 ## 基本方針

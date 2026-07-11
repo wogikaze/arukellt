@@ -11,13 +11,22 @@ It is written for readers who want a practical introduction before diving into t
 not covered here — consult the [Feature Maturity Matrix](maturity-matrix.md) for the
 complete stability picture.
 
-> **Fixture-linking convention**: Code examples in this guide are linked to runnable
-> test fixtures via HTML comments of the form `<!-- fixture: path/relative/to/tests/fixtures/ -->`.
-> These comments appear immediately before the fenced code block they verify.
-> The fixture files are compiled and run by CI through the manifest-driven harness
-> (`tests/fixtures/manifest.txt`), ensuring guide examples stay in sync with the compiler.
-> Fixtures may use `stdio::println` (the stable I/O path) where the guide shows
-> the prelude `println` form — both call the same underlying function.
+> **Code example verification**: Code examples in this guide use two verification paths:
+>
+> 1. **Fixture-backed** (`<!-- fixture: path.ark -->`): The block is verified by a
+>    registered fixture in `tests/fixtures/manifest.txt`. CI compiles and runs the
+>    fixture, not the inline block. These examples are exact copies of the fixture source.
+> 2. **Skip-doc-check** (`<!-- skip-doc-check reason="..." kind="..." -->`): The block
+>    is excluded from doc-example compilation because it demonstrates a concept that
+>    cannot be compiled standalone (e.g. uses `print` prelude alias not in the bootstrap,
+>    shows a type signature without a `main` function, or is pseudocode for a future feature).
+>    Each skip has a structured `reason`, `owner` (issue #), `kind`, and `expires` date.
+>
+> The majority of examples in this guide are currently skip-doc-check (kind=`non-runnable`)
+> because they use the `println`/`print` prelude alias which the bootstrap compiler does
+> not resolve in standalone mode. The underlying functions (`stdio::println`/`stdio::print`)
+> are stable and fixture-backed. See [current-state.md](../current-state.md) for the
+> implementation status of each feature.
 
 ---
 
