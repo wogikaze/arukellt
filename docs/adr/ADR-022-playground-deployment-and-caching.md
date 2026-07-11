@@ -1,8 +1,8 @@
 # ADR-022: Playground Deployment and Asset Caching Strategy
 
 ステータス: **ACCEPTED** — GitHub Pagesで静的ホスティング（Fastly CDN経由）
-**Created**: 2026-06-12
-**Scope**: Playground (web), deployment, CDN, caching, CI/CD, performance budget
+作成日: 2026-06-12
+範囲: Playground (web), deployment, CDN, caching, CI/CD, performance budget
 
 ---
 

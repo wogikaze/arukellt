@@ -1,8 +1,8 @@
 # ADR-023: Package Registry Resolution Design
 
 ステータス: **ACCEPTED** — Registry lookupモデル（local > workspace > registry）を採用
-**Date**: 2026-04-14
-**Decided by**: Module-system track (issue #487)
+日付: 2026-04-14
+決定者: Module-system track (issue #487)
 
 ## Context
 

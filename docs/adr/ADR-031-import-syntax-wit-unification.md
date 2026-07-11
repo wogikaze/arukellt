@@ -1,10 +1,10 @@
 # ADR-031: Import Syntax and WIT Package Identifier Unification
 
-**Status**: ACCEPTED — Two-layer separation confirmed; `use` reserved for Layer S, `import` reserved for Layer C
-**Date**: 2026-04-25
-**Track**: language-design
-**Issue**: [#123](../../issues/done/123-import-syntax-unification.md)
-**Supersedes**: [ADR-026](ADR-026-import-vs-wit-package-syntax.md) (consolidated); also supersedes [ADR-025](ADR-025-use-paths-vs-wit-package-identifiers.md); refines [ADR-009](ADR-009-import-syntax.md)
+ステータス: **ACCEPTED** — 二層分離を確定。`use` は Layer S、`import` は Layer C に予約
+日付: 2026-04-25
+トラック: language-design
+Issue: [#123](../../issues/done/123-import-syntax-unification.md)
+廃止: [ADR-026](ADR-026-import-vs-wit-package-syntax.md)（統合）; [ADR-025](ADR-025-use-paths-vs-wit-package-identifiers.md) も廃止; [ADR-009](ADR-009-import-syntax.md) を精緻化
 
 ---
 

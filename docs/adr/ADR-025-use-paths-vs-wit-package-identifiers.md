@@ -1,9 +1,9 @@
 # ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration
 
 ステータス: **SUPERSEDED** — [ADR-031](ADR-031-import-syntax-wit-unification.md) に統合（探索メモ）
-**Date**: 2026-04-16
-**Track**: language-design (issue #123)
-**Superseded-by**: [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md)
+日付: 2026-04-16
+トラック: language-design（issue #123）
+後継: [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md)
 
 ## Context
 

@@ -2,12 +2,12 @@
 
 ステータス: **SUPERSEDED** — 番号重複解消のため [ADR-043](ADR-043-wasm-gc-post-mvp.md) へ移番
 
-**Superseded-by**: [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md)  
-**Date**: 2026-07-11
+後継: [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md)  
+日付: 2026-07-11
 
 ---
 
-## Tombstone
+## 廃止記録
 
 このパスは歴史的に `ADR-008` として公開されていたが、同一番号の
 [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) と衝突していた。

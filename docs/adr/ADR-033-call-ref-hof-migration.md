@@ -1,9 +1,9 @@
 # ADR-033: クロージャ呼び出しを call_ref に移行
 
-**Status**: ACCEPTED — phased migration; `call_indirect` remains baseline until table-free patterns land
-**Date**: 2026-06-14
-**Track**: wasm-feature
-**Issue**: [#069](../../issues/done/069-wasm-typed-func-ref.md)
+ステータス: **ACCEPTED** — phased migration; `call_indirect` remains baseline until table-free patterns land
+日付: 2026-06-14
+トラック: wasm-feature
+Issue: [#069](../../issues/done/069-wasm-typed-func-ref.md)
 **Supersedes**: none (refines GC-native closure notes in issues #019, #025)
 
 ---

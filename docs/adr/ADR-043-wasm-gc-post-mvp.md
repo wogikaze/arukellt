@@ -2,8 +2,8 @@
 
 ステータス: **ACCEPTED** — v4 では Post-MVP GC 拡張を実装しない; 本文は v5 設計の参考調査として保持
 
-**Formerly**: ADR-008 (renumbered 2026-07-11 to resolve duplicate ID with ADR-008-component-wrapping)  
-**2026-07 改訂**: Wasm 3.0 リリースに伴い、6 提案中 3 つが本仕様に統合済み。
+旧番号: ADR-008（2026-07-11 に移番。ADR-008-component-wrapping との番号重複を解消）  
+2026-07 改訂: Wasm 3.0 リリースに伴い、6 提案中 3 つが本仕様に統合済み。
 
 決定日: 2026-04-15（2026-07-10 改訂）
 

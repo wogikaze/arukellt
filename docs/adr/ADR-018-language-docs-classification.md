@@ -1,8 +1,8 @@
 # ADR-018: Language Docs Classification — Normative / Explanatory / Transitional
 
 ステータス: **ACCEPTED** — 3つのドキュメントクラス（normative/explanatory/transitional）を採用
-**Created**: 2026-04-14
-**Scope**: Language documentation (`docs/language/`), docs tooling
+作成日: 2026-04-14
+範囲: Language documentation (`docs/language/`), docs tooling
 
 ---
 

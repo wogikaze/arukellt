@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""ADR registry integrity checks (identity, status, dates, supersession).
+"""ADR 台帳の整合性検査（識別子・ステータス・日付・後継関係）。
 
-Enforces ADR-0000 process rules for docs/adr/ADR-*.md.
+docs/adr/ADR-*.md に対して ADR-0000 の規則を強制する。
 """
 from __future__ import annotations
 
@@ -29,13 +29,13 @@ STATUS_LINE_RE = re.compile(
 )
 DATE_RE = re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b")
 SUPERSEDES_RE = re.compile(
-    r"(?i)(?:\*\*)?Supersedes(?:\*\*)?\s*:\s*(.+)"
+    r"(?i)(?:\*\*)?(?:Supersedes|廃止)\s*(?:\*\*)?\s*[:：]\s*(.+)"
 )
 SUPERSEDED_BY_RE = re.compile(
-    r"(?i)(?:\*\*)?Superseded-by(?:\*\*)?\s*:\s*(.+)"
+    r"(?i)(?:\*\*)?(?:Superseded-by|後継)\s*(?:\*\*)?\s*[:：]\s*(.+)"
 )
 ADR_REF_RE = re.compile(r"ADR-0*(\d+)", re.IGNORECASE)
-TOMBSTONE_RE = re.compile(r"^##\s+Tombstone\s*$", re.MULTILINE)
+TOMBSTONE_RE = re.compile(r"^##\s+(?:Tombstone|廃止記録)\s*$", re.MULTILINE)
 
 
 def is_tombstone(text: str) -> bool:
@@ -61,7 +61,7 @@ def main() -> int:
 
     files = sorted(ADR_DIR.glob("ADR-*.md"))
     if not files:
-        print("no ADR files found", file=sys.stderr)
+        print("ADR ファイルが見つかりません", file=sys.stderr)
         return 1
 
     by_id: dict[int, list[Path]] = defaultdict(list)
@@ -72,7 +72,7 @@ def main() -> int:
     for path in files:
         m = FILENAME_RE_FLEX.match(path.name)
         if not m:
-            errors.append(f"{path.name}: filename does not start with ADR-<number>")
+            errors.append(f"{path.name}: ファイル名が ADR-<番号> で始まっていません")
             continue
         adr_id = int(m.group(1))
         by_id[adr_id].append(path)
@@ -85,62 +85,53 @@ def main() -> int:
 
         status = extract_status(text)
         if status is None:
-            errors.append(f"{path.name}: missing status header")
+            errors.append(f"{path.name}: ステータスヘッダがありません")
         elif status in FORBIDDEN_ALIASES:
             errors.append(
-                f"{path.name}: forbidden status alias {status} "
-                f"(use {', '.join(sorted(ALLOWED_STATUSES))})"
+                f"{path.name}: 禁止されたステータス別名 {status} "
+                f"（使うべき値: {', '.join(sorted(ALLOWED_STATUSES))}）"
             )
         elif status not in ALLOWED_STATUSES:
-            # Allow "ACCEPTED" with trailing junk only if we captured the token
             errors.append(
-                f"{path.name}: unknown status {status!r}; "
-                f"allowed: {', '.join(sorted(ALLOWED_STATUSES))}"
+                f"{path.name}: 未知のステータス {status!r}; "
+                f"許可: {', '.join(sorted(ALLOWED_STATUSES))}"
             )
 
-        # Future dates anywhere in the file
         for ym, mo, da in DATE_RE.findall(text):
             try:
                 d = date(int(ym), int(mo), int(da))
             except ValueError:
-                errors.append(f"{path.name}: invalid date {ym}-{mo}-{da}")
+                errors.append(f"{path.name}: 不正な日付 {ym}-{mo}-{da}")
                 continue
             if d > today:
-                errors.append(f"{path.name}: future date {d.isoformat()} (today={today})")
+                errors.append(
+                    f"{path.name}: 未来日付 {d.isoformat()}（今日={today}）"
+                )
 
-        # Unchecked boxes in ACCEPTED ADRs (warning)
         if status == "ACCEPTED" and re.search(r"^- \[ \]", text, re.MULTILINE):
-            warnings.append(f"{path.name}: ACCEPTED ADR contains unchecked checkbox")
+            warnings.append(
+                f"{path.name}: ACCEPTED なのに未完了チェックボックスがあります"
+            )
 
-        # Supersession targets
-        for label, cre in (("Supersedes", SUPERSEDES_RE), ("Superseded-by", SUPERSEDED_BY_RE)):
+        for label, cre in (("廃止", SUPERSEDES_RE), ("後継", SUPERSEDED_BY_RE)):
             for line in text.splitlines()[:30]:
                 m = cre.match(line.strip())
                 if not m:
                     continue
                 refs = extract_adr_refs(m.group(1))
-                if not refs and "none" not in m.group(1).lower():
-                    # Allow prose without number only if explicit none
-                    if re.search(r"ADR-\d+", m.group(1), re.I):
-                        pass
-                    else:
+                if not refs and "none" not in m.group(1).lower() and "なし" not in m.group(1):
+                    if not re.search(r"ADR-\d+", m.group(1), re.I):
                         warnings.append(
-                            f"{path.name}: {label} line has no ADR number: {m.group(1)[:80]}"
+                            f"{path.name}: {label} 行に ADR 番号がありません: {m.group(1)[:80]}"
                         )
-                for ref in refs:
-                    if ref not in by_id and not list(ADR_DIR.glob(f"ADR-*{ref}-*.md")) and not list(
-                        ADR_DIR.glob(f"ADR-{ref:03d}-*.md")
-                    ) and not list(ADR_DIR.glob(f"ADR-{ref}-*.md")):
-                        # deferred until by_id fully built — check later
-                        pass
 
-    # ID uniqueness: at most one non-tombstone body per number
     for adr_id, paths in sorted(bodies.items()):
         if len(paths) > 1:
             names = ", ".join(p.name for p in paths)
-            errors.append(f"ADR-{adr_id:03d}: multiple non-tombstone bodies: {names}")
+            errors.append(
+                f"ADR-{adr_id:03d}: 廃止記録以外の本文が複数あります: {names}"
+            )
 
-    # Resolve supersession against known IDs
     known_ids = set(by_id)
     for path in files:
         text = path.read_text(encoding="utf-8")
@@ -152,31 +143,32 @@ def main() -> int:
                 for ref in extract_adr_refs(m.group(1)):
                     if ref not in known_ids:
                         errors.append(
-                            f"{path.name}: supersession target ADR-{ref:03d} does not exist"
+                            f"{path.name}: 後継/廃止先 ADR-{ref:03d} が存在しません"
                         )
 
         if extract_status(text) == "SUPERSEDED":
-            # Prefer explicit Superseded-by; tombstones should have it
             head = "\n".join(text.splitlines()[:40])
-            if "Superseded-by" not in head and "Superseded-by" not in text[:800]:
-                # Japanese tombstones may only link in status line
-                if not ADR_REF_RE.search(head):
-                    warnings.append(
-                        f"{path.name}: SUPERSEDED without Superseded-by / successor link in header"
-                    )
+            if (
+                "Superseded-by" not in head
+                and "後継" not in head
+                and not ADR_REF_RE.search(head)
+            ):
+                warnings.append(
+                    f"{path.name}: SUPERSEDED なのにヘッダに後継リンクがありません"
+                )
 
     for w in warnings:
-        print(f"warning: {w}")
+        print(f"警告: {w}")
 
     if errors:
         for e in errors:
-            print(f"error: {e}", file=sys.stderr)
-        print(f"{len(errors)} ADR registry error(s)", file=sys.stderr)
+            print(f"エラー: {e}", file=sys.stderr)
+        print(f"ADR 台帳エラー {len(errors)} 件", file=sys.stderr)
         return 1
 
     print(
-        f"ADR registry OK ({len(files)} files, {len(known_ids)} IDs, "
-        f"{sum(len(v) for v in tombstones.values())} tombstones)"
+        f"ADR 台帳 OK（{len(files)} ファイル、{len(known_ids)} ID、"
+        f"廃止記録 {sum(len(v) for v in tombstones.values())}）"
     )
     return 0
 

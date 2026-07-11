@@ -1,8 +1,8 @@
 # ADR-015: No-Panic Quality Standard for User-Facing Paths
 
 ステータス: **ACCEPTED** — ユーザー到達パスでのpanic禁止  
-**Created**: 2026-04-09  
-**Scope**: CLI, LSP, extension, manifest parsing
+作成日: 2026-04-09  
+範囲: CLI, LSP, extension, manifest parsing
 
 ## Context
 

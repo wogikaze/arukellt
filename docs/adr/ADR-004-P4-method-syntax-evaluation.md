@@ -1,8 +1,8 @@
 # ADR-004 P4: Method Syntax Evaluation
 
 ステータス: **DEFERRED** — 評価保留（trigger待ち）
-**Date**: 2026-04-15
-**Relates to**: ADR-004 (trait strategy), Issue #157
+日付: 2026-04-15
+関連: ADR-004 (trait strategy), Issue #157
 
 ---
 

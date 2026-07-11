@@ -1,104 +1,99 @@
-# ADR-0000: ADR Process and Status Lifecycle
+# ADR-0000: ADR プロセスとステータスライフサイクル
 
-ステータス: **ACCEPTED** — ADR の識別子・状態遷移・supersession 規則を固定する
+ステータス: **ACCEPTED** — ADR の識別子・状態遷移・後継関係の規則を固定する
 
 決定日: 2026-07-11
 
 ---
 
-## Context
+## 文脈
 
-`docs/adr/` に設計判断・調査・実装計画・進捗メモが混在し、番号重複・未定義 status・
+`docs/adr/` に設計判断・調査・実装計画・進捗メモが混在し、番号重複・未定義ステータス・
 未来日付・欠番参照が発生していた。ADR を意思決定履歴の正本として使うには、
 プロセス自体を ADR として固定する必要がある。
 
-## Decision
+新規・改訂する ADR の本文・見出し・メタデータは**日本語**を正とする
+（ステータストークンなど機械可読な識別子は英語のまま）。
 
-### 1. Allowed status values
+## 決定
 
-Primary lifecycle (exactly one per ADR):
+### 1. 許可するステータス
 
-| Status | Meaning |
-|--------|---------|
+主系列（各 ADR にちょうど 1 つ）:
+
+| ステータス | 意味 |
+|------------|------|
 | `PROPOSED` | 提案中。採択前。本文は候補判断として書く。 |
 | `ACCEPTED` | 採択済み。現行の有効な決定。 |
-| `SUPERSEDED` | 後継 ADR により置換済み。`Superseded-by: ADR-NNN` を必須とする。 |
+| `SUPERSEDED` | 後継 ADR により置換済み。`後継: ADR-NNN` を必須とする。 |
 
-Auxiliary terminal states (also allowed; mutually exclusive with the primary trio):
+補助の終端状態（主系列と排他。いずれも許可）:
 
-| Status | Meaning |
-|--------|---------|
+| ステータス | 意味 |
+|------------|------|
 | `REJECTED` | 提案を却下。後継は不要。 |
-| `DEFERRED` | 判断を保留。再開条件（trigger）を本文に書く。 |
+| `DEFERRED` | 判断を保留。再開条件を本文に書く。 |
 
-**Forbidden / legacy aliases** (must not appear as the canonical status token):
+**禁止する旧別名**（正規ステータストークンとして使ってはならない）:
 
-- `DECIDED` → use `ACCEPTED`
-- `DRAFT` → use `PROPOSED`
-- `SURVEY` → not an ADR status; move survey content out of `docs/adr/` or convert to a narrow `ACCEPTED` decision
-- Free-form status dashboards (PR progress, fixture counts) → keep in issues / `current-state` / RFCs
+- `DECIDED` → `ACCEPTED` を使う
+- `DRAFT` → `PROPOSED` を使う
+- `SURVEY` → ADR のステータスではない。調査は `docs/adr/` 外へ移すか、狭い `ACCEPTED` 決定へ変換する
+- 自由記述の進捗ダッシュボード（PR 進捗・fixture 件数など）→ issues / `current-state` / RFC に置く
 
-Canonical header form (Japanese or English):
-
-```text
-ステータス: **ACCEPTED** — <one-line decision summary>
-```
-
-or
+正規ヘッダ形式:
 
 ```text
-**Status**: ACCEPTED — <one-line decision summary>
+ステータス: **ACCEPTED** — <一行の決定要約>
 ```
 
-### 2. Identity rules
+### 2. 識別子の規則
 
-- ADR numbers are permanent identifiers. Never reuse a number for a different decision.
-- Exactly one non-tombstone body file may own a given number, except a tombstone redirect
-  that points at the surviving file.
-- Filename pattern: `ADR-NNN-kebab-slug.md` (zero-padding optional for legacy `ADR-0001`).
-- Gaps are allowed. Do not renumber existing ADRs to fill gaps.
-- Deleted or consolidated ADRs leave a **tombstone** file that records:
-  - original title
-  - status `SUPERSEDED` (or `REJECTED`)
-  - successor / absorption target when applicable
-  - deletion/consolidation date and one-line reason
+- ADR 番号は恒久識別子である。別決定に番号を再利用してはならない。
+- 同一番号の本文ファイルは、廃止記録（tombstone）によるリダイレクトを除き 1 つまで。
+- ファイル名: `ADR-NNN-kebab-slug.md`（レガシーの `ADR-0001` などゼロ埋めは許容）。
+- 欠番は許容する。欠番埋めのために既存 ADR を改番してはならない。
+- 削除・統合した ADR は**廃止記録**ファイルを残し、次を記録する:
+  - 元タイトル
+  - ステータス `SUPERSEDED`（または `REJECTED`）
+  - 後継 / 吸収先（ある場合）
+  - 削除・統合日と一行の理由
 
-### 3. Supersession
+### 3. 後継関係（supersession）
 
-- `Supersedes: ADR-NNN` / `Superseded-by: ADR-NNN` must name an existing ADR file
-  (body or tombstone).
-- Self-reversal inside one file is allowed only as a dated revision of an `ACCEPTED`
-  decision; do not mark `SUPERSEDED` without a successor ADR.
+- `廃止: ADR-NNN` / `後継: ADR-NNN` は、存在する ADR ファイル（本文または廃止記録）を指すこと。
+- 同一ファイル内での決定撤回は、`ACCEPTED` の日付付き改訂としてのみ許容する。
+  後継 ADR なしに `SUPERSEDED` としてはならない。
 
-### 4. Dates
+### 4. 日付
 
-- Decision and revision dates must be on or before the commit date (no future dates).
-- Planned work uses explicit wording (`Planned`, issue links), never a future “改訂/完了” date.
+- 決定日・改訂日はコミット日以前であること（未来日付禁止）。
+- 予定作業は「予定」「issue リンク」など明示し、未来の「改訂」「完了」日付を既成事実として書いてはならない。
 
-### 5. What belongs in an ADR
+### 5. ADR に書くもの / 書かないもの
 
-Keep: context, decision, rejected alternatives, consequences, revisit triggers, links.
+書く: 文脈、決定、却下した代替案、帰結、再検討条件、関連リンク。
 
-Do not keep as living state: fixture counts, PR lane dashboards, runtime version pins,
-phase checklists that change weekly. Those belong in issues, RFCs, plans, or
-`docs/current-state.md`.
+生きた状態として書かない: fixture 件数、PR レーン進捗、ランタイム版ピン、
+週次で変わるフェーズチェックリスト。これらは issues・RFC・計画・
+`docs/current-state.md` に置く。
 
-### 6. Index and CI
+### 6. 索引と CI
 
-- `docs/adr/README.md` is generated and groups ADRs by status
-  (`Accepted` / `Proposed` / `Superseded` / `Deferred` / `Rejected`).
-- `scripts/check/check-adrs.py` enforces ID uniqueness, allowed status tokens,
-  no future dates, and supersession target existence.
+- `docs/adr/README.md` は生成物であり、ステータス別に ADR を分组する
+  （採択 / 提案 / 後継済み / 保留 / 却下）。
+- `scripts/check/check-adrs.py` が ID 一意性・許可ステータス・未来日付禁止・
+  後継先の存在を検査する。
 
-## Consequences
+## 帰結
 
-- Existing ADRs migrate aliases (`DECIDED`/`DRAFT`/`SURVEY`) to the table above.
-- Survey and epic-sized documents may remain temporarily under `docs/adr/` during
-  registry repair, but later PRs should split RFC/plan/state content out.
-- Verify gates treat `ACCEPTED` as the decided state (legacy `DECIDED` is rejected by CI).
+- 既存 ADR の別名（`DECIDED` / `DRAFT` / `SURVEY`）は上表へ移行する。
+- 調査・巨大 epic 文書は台帳修復中は一時的に `docs/adr/` に残してよいが、
+  後続 PR で RFC / 計画 / 現状から分離する。
+- 検証ゲートは `ACCEPTED` を決定済み状態として扱う（旧 `DECIDED` は CI で拒否）。
 
-## References
+## 参照
 
-- Audit repair plan (2026-07): ADR registry repair before RFC/state separation
+- 監査修復計画（2026-07）: RFC / 現状分離の前に ADR 台帳を修復する
 - `scripts/check/check-adrs.py`
-- `scripts/gen/generate-docs.py` (ADR README rendering)
+- `scripts/gen/generate-docs.py`（ADR README 生成）

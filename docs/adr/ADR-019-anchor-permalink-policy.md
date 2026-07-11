@@ -1,9 +1,9 @@
 # ADR-019: Link-Check Coverage Policy
 
 ステータス: **ACCEPTED** — リンクチェックカバレッジポリシーを採用
-**Created**: 2026-04-14
-**Revised**: 2026-07-06 — ポリシーを柱3（リンクチェック）のみに縮小。柱1（アンカー命名規則）・柱2（リダイレクトポリシー）は運用実態に合わないため削除。
-**Scope**: Language documentation (`docs/language/`), all Markdown docs under `docs/`, docs site (`docs/index.html`)
+作成日: 2026-04-14
+改訂日: 2026-07-06 — ポリシーを柱3（リンクチェック）のみに縮小。柱1（アンカー命名規則）・柱2（リダイレクトポリシー）は運用実態に合わないため削除。
+範囲: Language documentation (`docs/language/`), all Markdown docs under `docs/`, docs site (`docs/index.html`)
 
 ---
 

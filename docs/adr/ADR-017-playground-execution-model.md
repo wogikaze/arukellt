@@ -1,8 +1,8 @@
 # ADR-017: Playground Execution Model and v1/v2 Product Contract
 
 ステータス: **ACCEPTED** — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし、v2はブラウザでcompile+run）
-**Created**: 2026-03-31（2026-07-10 改訂: ADR-032 を統合）
-**Scope**: Playground (web), target roadmap, docs contract
+作成日: 2026-03-31（2026-07-10 改訂: ADR-032 を統合）
+範囲: Playground (web), target roadmap, docs contract
 
 ---
 
