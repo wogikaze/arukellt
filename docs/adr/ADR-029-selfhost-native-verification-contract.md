@@ -1,6 +1,6 @@
 # ADR-029 — Selfhost-native verification contract
 
-**Status**: Accepted
+**Status**: ACCEPTED
 **Date**: 2026-04-22
 **Issue**: [#585](../../issues/done/585-selfhost-native-verification-contract.md)
 **Unblocks**: #583, #560, #561, #562, #563, #564 (Phase 5 Rust retirement)

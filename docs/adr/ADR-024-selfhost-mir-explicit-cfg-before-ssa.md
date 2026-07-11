@@ -1,6 +1,6 @@
 # ADR-024: Selfhost MIR uses an explicit CFG before SSA formation
 
-ステータス: **DECIDED** — Selfhost MIRはSSA形成前に明示的なCFGを採用  
+ステータス: **ACCEPTED** — Selfhost MIRはSSA形成前に明示的なCFGを採用  
 **Created**: 2026-04-15  
 **Scope**: selfhost MIR, SSA formation, lowering, codegen boundary
 
@@ -15,7 +15,7 @@ provide the graph structure that SSA requires:
 - `lower_expr` emits structured markers such as `MIR_IF`, `MIR_ELSE`,
   `MIR_END`, `MIR_BLOCK`, `MIR_LOOP`, and `MIR_BR_IF` into a single lowered
   block per function.
-- `issues/open/503-selfhost-mir-cfg-infrastructure.md` already documents the
+- `issues/done/503-selfhost-mir-cfg-infrastructure.md` already documents the
   missing predecessor lists, immediate dominators, dominance frontiers, and
   phi-node support as the blocker for #494.
 
@@ -99,5 +99,5 @@ already calls out dominance-frontier infrastructure as the missing prerequisite.
 ## References
 
 - `src/compiler/mir.ark`
-- `issues/open/503-selfhost-mir-cfg-infrastructure.md`
-- `issues/open/494-selfhost-mir-ssa-formation.md`
+- `issues/done/503-selfhost-mir-cfg-infrastructure.md`
+- `issues/done/494-selfhost-mir-ssa-formation.md`

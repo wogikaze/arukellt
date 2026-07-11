@@ -1,6 +1,6 @@
 # ADR-011: host-bound stdlib API は `std::host::*` に隔離する
 
-ステータス: **DECIDED** — host-boundなstdlib APIは`std::host::*`に隔離
+ステータス: **ACCEPTED** — host-boundなstdlib APIは`std::host::*`に隔離
 
 決定日: 2026-03-29
 
@@ -207,5 +207,5 @@ import "wasi:http/proxy@0.2.10"
 - ADR-007: コンパイルターゲット整理
 - ADR-009: Import 構文の決定
 - `docs/stdlib/std.md`
-- `issues/open/077-wasi-p2-http.md`
-- `issues/open/139-std-wasi-sockets-p2.md`
+- `issues/done/077-wasi-p2-http.md`
+- `issues/done/139-std-wasi-sockets-p2.md`

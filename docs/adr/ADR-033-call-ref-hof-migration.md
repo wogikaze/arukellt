@@ -1,6 +1,6 @@
 # ADR-033: クロージャ呼び出しを call_ref に移行
 
-**Status**: DECIDED — phased migration; `call_indirect` remains baseline until table-free patterns land
+**Status**: ACCEPTED — phased migration; `call_indirect` remains baseline until table-free patterns land
 **Date**: 2026-06-14
 **Track**: wasm-feature
 **Issue**: [#069](../../issues/done/069-wasm-typed-func-ref.md)
@@ -18,7 +18,7 @@ callee signature is known at compile time.
 
 > **2026-07 update**: Typed Function References is now Phase 5 shipped in
 > Wasm 3.0 (`typedFunctionReferences`). wasmtime 46 and V8 14.6 (Chrome 146 /
-> Node.js 26) enable it by default. See ADR-008 #5 for the Post-MVP survey.
+> Node.js 26) enable it by default. See ADR-043 for the Post-MVP survey.
 
 Historical issues (#019, #025, #024) planned a GC-native `call_ref` path; the
 selfhost emitter still uses `call_indirect` for generic HOF dispatch on the

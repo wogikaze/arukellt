@@ -1,8 +1,9 @@
 # ADR-025: Source module paths vs WIT package identifiers — collision policy and syntax exploration
 
-ステータス: **PROPOSED** (draft)
+ステータス: **SUPERSEDED** — [ADR-031](ADR-031-import-syntax-wit-unification.md) に統合（探索メモ）
 **Date**: 2026-04-16
 **Track**: language-design (issue #123)
+**Superseded-by**: [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md)
 
 ## Context
 
@@ -103,7 +104,7 @@ Adopt **Candidate B** as the continuing default: **do not unify** Arukellt sourc
 
 ## Relationship to other ADRs
 
-- **ADR-009**: Normative **DECIDED** split (`use` vs reserved `import` for WIT). This ADR is a **draft elaboration** for issue #123; it defers to ADR-009 where they overlap.
+- **ADR-009**: Normative **ACCEPTED** split (`use` vs reserved `import` for WIT). This ADR is a **historical elaboration** for issue #123; it is superseded by ADR-031 where they overlap.
 - **ADR-006**: ABI layers — source semantics vs WIT ABI remain distinct.
 - **ADR-023**: Registry resolution applies to Layer S dependencies, not to rewriting module paths into WIT IDs.
 

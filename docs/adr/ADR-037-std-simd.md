@@ -1,6 +1,6 @@
 # ADR-037: std::simd — Explicit SIMD Library API
 
-ステータス: **PROPOSED** — 明示的 SIMD ライブラリ API と v128 第一級型の導入を決定
+ステータス: **PROPOSED** — 明示的 SIMD ライブラリ API と v128 第一級型の導入を提案
 
 決定日: 2026-06-26
 

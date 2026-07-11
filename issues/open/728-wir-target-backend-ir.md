@@ -5,7 +5,7 @@ Updated: 2026-07-18
 ID: 728
 Track: compiler-internal
 Depends on: none
-Related: "714, 646, 649, 680, 727, 668, ADR-007-targets.md, ADR-013-primary-target.md, ADR-008-wasm-gc-post-mvp.md, ADR-005-llvm-scope.md, ADR-008-component-wrapping.md"
+Related: "714, 646, 649, 680, 727, 668, ADR-007-targets.md, ADR-013-primary-target.md, ADR-043-wasm-gc-post-mvp.md, ADR-005-llvm-scope.md, ADR-008-component-wrapping.md"
 Orchestration class: design-ready
 Orchestration upstream: None
 Blocks v{N}: none
@@ -53,7 +53,7 @@ These numbers show the backend is already large and target-specific conditionals
 
 This design is inspired by the WIR (Wasm IR) layer proposed for wado (wado-lang/wado/docs/wep-2026-02-14-wir-layer.md). The Arukellt-specific target concerns it must address are:
 
-- **Wasm GC** (ADR-008-wasm-gc-post-mvp.md, ADR-035-wasm-gc-implementation.md) — GC type and reference operations (`struct.*`, `array.*`, `ref.cast`) that must be emitted differently from the linear-memory T1 path.
+- **Wasm GC** (ADR-043-wasm-gc-post-mvp.md, ADR-035-wasm-gc-implementation.md) — GC type and reference operations (`struct.*`, `array.*`, `ref.cast`) that must be emitted differently from the linear-memory T1 path.
 - **Memory model** (ADR-002-memory-model.md) — linear-memory layout, `heap_global`/`memory_id`, and GC-vs-linear representation decisions.
 - **Component Model + Canonical ABI** (ADR-008-component-wrapping.md) — the `wasi:cli/run` component wrapper and adapter generation under `src/compiler/component/`.
 - **WASI Preview 2 / Preview 3** — the import surface (`wasi:cli/stdout`, `wasi:io/streams`, `wasi:filesystem/types`, etc.) and async-first model that T5 will require.
@@ -115,7 +115,7 @@ Design accepted and implementation issues (or a deliberate "not worth the cost" 
 - `docs/adr/ADR-007-targets.md` (target tiers, host function unification)
 - `docs/adr/ADR-013-primary-target.md` (tier definitions)
 - `docs/adr/ADR-002-memory-model.md` (linear memory layout, GC-vs-linear representation)
-- `docs/adr/ADR-008-wasm-gc-post-mvp.md` (Wasm GC type/operator representation)
+- `docs/adr/ADR-043-wasm-gc-post-mvp.md` (Wasm GC type/operator representation)
 - `docs/adr/ADR-035-wasm-gc-implementation.md` (selfhost GC implementation)
 - `docs/adr/ADR-005-llvm-scope.md` (native backend constraints)
 - `docs/adr/ADR-008-component-wrapping.md` (in-tree component model, canonical ABI)

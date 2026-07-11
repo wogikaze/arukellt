@@ -1,6 +1,6 @@
 # ADR-038: Operator Overload Trait Surface
 
-ステータス: **DRAFT** — #688 完了後に実装される演算子オーバーロードの設計 ADR
+ステータス: **PROPOSED** — #688 完了後に実装される演算子オーバーロードの設計 ADR
 
 決定日: 2026-06-26
 

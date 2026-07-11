@@ -1,6 +1,6 @@
 # ADR-021: Playground Share URL Format — Encoding, Versioning, and Round-Trip Contract
 
-ステータス: **DECIDED** — fragmentベースのshare URL形式（versioned path structure）
+ステータス: **ACCEPTED** — fragmentベースのshare URL形式（versioned path structure）
 **Created**: 2026-05-15
 **Scope**: Playground (web), share/permalink surface, `docs/adr/`, static hosting contract
 

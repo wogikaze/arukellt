@@ -1,6 +1,6 @@
-# ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する
+# ADR-013: wasm32-wasi-p2 をプライマリターゲットとして選定する
 
-ステータス: **DECIDED** — T3 (wasm32-wasi-p2)をプライマリターゲットとして選定
+ステータス: **ACCEPTED** — `wasm32-wasi-p2`（旧称 T3）をプライマリターゲットとして選定
 
 決定日: 2026-04-08
 
@@ -8,23 +8,29 @@
 
 ## 文脈
 
-ADR-007 では T1〜T5 の 5 ターゲットを整理したが、「どれが出荷品質を保証する本線か」は決定されていなかった。
-2026-04-08 現在、T3（wasm32-wasi-p2）のすべての fixture テスト（575 件）が通過し、T1（wasm32-wasi-p1）と合わせて 2 本のバックエンドが実際に動作している。
+ADR-007 は当初 T1〜T5 の 5 ターゲット表記で整理していたが、現行の正本命名は
+ターゲット名ベース（`wasm32` / `wasm32-gc` / `native` 系統、および具体プロファイル
+`wasm32-wasi-p1` / `wasm32-wasi-p2` 等）である（ADR-007 2026-07 改定）。
+本 ADR の決定時点では「どれが出荷品質を保証する本線か」が未確定だった。
+2026-04-08 現在、`wasm32-wasi-p2`（当時の文書では T3）のすべての fixture テスト（575 件）が通過し、
+`wasm32-wasi-p1`（当時 T1）と合わせて 2 本のバックエンドが実際に動作している。
 今後の言語意味論の基準・CI 品質ゲートの本体・リリース保証の起点を 1 本に絞るため、この ADR を設ける。
 
 ---
 
 ## 決定
 
-**T3 (wasm32-wasi-p2) をプライマリターゲット (primary) とする。**
+**`wasm32-wasi-p2` をプライマリターゲット (primary) とする。**
 
-T3 を選ぶ根拠:
+（歴史的別名: T3。新規文書ではターゲット名を使う。）
 
-1. **言語意味論の基準**: ADR-007 § ターゲット優先順位に「言語意味論の基準: T3」とある。Wasm GC ありの実装が Arukellt の型モデルに最も近い。
-2. **fixture coverage**: T3 は 2026-04-08 時点で 157 `t3-run` + 161 `t3-compile` の 318 エントリが manifest に登録され、すべてが pass している。
-3. **Component Model**: `--emit component` により WIT ベースの interop が可能。T1 にはない。
-4. **将来対応**: T5 (wasm32-wasi-p3) は T3 の後継として設計されており、T3 との継続性が高い。
-5. **ユーザー価値**: VS Code 拡張・LSP・タスクランナーすべてが T3 を前提としている。
+選定根拠:
+
+1. **言語意味論の基準**: ADR-007 の優先順位では Wasm GC ありの実装が Arukellt の型モデルに最も近い。
+2. **fixture coverage**: 2026-04-08 時点で 157 `t3-run` + 161 `t3-compile` の 318 エントリが manifest に登録され、すべてが pass している。
+3. **Component Model**: `--emit component` により WIT ベースの interop が可能。`wasm32-wasi-p1` にはない。
+4. **将来対応**: `wasm32-wasi-p3`（旧称 T5）は p2 の後継として設計されており、継続性が高い。
+5. **ユーザー価値**: VS Code 拡張・LSP・タスクランナーすべてが `wasm32-wasi-p2` を前提としている。
 
 ### ターゲット tier 定義
 
@@ -40,20 +46,20 @@ T3 を選ぶ根拠:
 
 | Target | Tier | 根拠 |
 |--------|------|------|
-| T3: wasm32-wasi-p2 | **primary** | 全 fixture pass、Component Model 対応、言語意味論基準 |
-| T1: wasm32-wasi-p1 | **supported** | 全 fixture pass、AtCoder 用途、linear memory の制約あり |
-| T2: wasm32-freestanding | **not-started** | コードなし、テストなし |
-| T4: native (LLVM) | **scaffold** | ark-llvm crate あり、LLVM 18 必須、テストなし |
-| T5: wasm32-wasi-p3 | **not-started** | 仕様策定中、コードなし |
+| `wasm32-wasi-p2` (旧 T3) | **primary** | 全 fixture pass、Component Model 対応、言語意味論基準 |
+| `wasm32-wasi-p1` (旧 T1) | **supported** | 全 fixture pass、AtCoder 用途、linear memory の制約あり |
+| `wasm32-freestanding` (旧 T2) | **not-started** | コードなし、テストなし |
+| `native` / LLVM (旧 T4) | **scaffold** | ark-llvm crate あり、LLVM 18 必須、テストなし |
+| `wasm32-wasi-p3` (旧 T5) | **not-started** | 仕様策定中、コードなし |
 
 ---
 
 ## CI への影響
 
-- primary (T3) の CI ゲートが main ブランチへの merge 条件になる。
-- supported (T1) の CI は別 job として実行し、失敗は merge を止めない（ただし issue 化する）。
+- primary (`wasm32-wasi-p2`) の CI ゲートが main ブランチへの merge 条件になる。
+- supported (`wasm32-wasi-p1`) の CI は別 job として実行し、失敗は merge を止めない（ただし issue 化する）。
 - scaffold / not-started は CI から除外する。
-- ADR-007 の「実装優先度: T1 → T3 → T2 → T4 → T5」は歴史的な実装順であり、この ADR の tier 割り当てと矛盾しない。
+- ADR-007 の旧「実装優先度: T1 → T3 → T2 → T4 → T5」は歴史的な実装順の記録であり、この ADR の tier 割り当てと矛盾しない。
 
 ## current-state.md への影響
 
@@ -72,9 +78,9 @@ T3 を選ぶ根拠:
 
 ## 関連
 
-- ADR-007: コンパイルターゲット整理（5 ターゲットの定義）
+- ADR-007: コンパイルターゲット整理（現行はターゲット名ベース）
 - ADR-002: Wasm GC 採用
-- ADR-005: LLVM バックエンドの役割制限（T4 scaffold の根拠）
+- ADR-005: LLVM バックエンドの役割制限（native scaffold の根拠）
 - [ADR-007: Targets](ADR-007-targets.md): 各ターゲットの詳細検証面
-- `issues/open/241-define-primary-target-and-tier-others.md`
-- `issues/open/242-ci-layer-structure.md`
+- `issues/done/241-define-primary-target-and-tier-others.md`
+- `issues/done/242-ci-layer-structure.md`

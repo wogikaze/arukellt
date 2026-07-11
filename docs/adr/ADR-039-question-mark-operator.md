@@ -1,6 +1,6 @@
 # ADR-039: Question Mark Operator (`?`) and Error Conversion
 
-ステータス: **DRAFT** — #688/#692 完了後に実装される `?` 演算子の設計 ADR
+ステータス: **PROPOSED** — #688/#692 完了後に実装される `?` 演算子の設計 ADR
 
 決定日: 2026-06-26
 

@@ -1,7 +1,7 @@
 # ADR-017: Playground Execution Model and v1/v2 Product Contract
 
-ステータス: **DECIDED** — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし、v2はブラウザでcompile+run）
-**Created**: 2026-03-31（2026-07-15 改訂: ADR-032 を統合）
+ステータス: **ACCEPTED** — client-side hybrid実行モデル（v1はサーバーサイドexecutorなし、v2はブラウザでcompile+run）
+**Created**: 2026-03-31（2026-07-10 改訂: ADR-032 を統合）
 **Scope**: Playground (web), target roadmap, docs contract
 
 ---
@@ -227,7 +227,7 @@ compiler's actual capabilities without requiring a separate CI pipeline.
 
 ---
 
-## v2: Browser Compile + Run Model (integrated from ADR-032, 2026-07-15)
+## v2: Browser Compile + Run Model (integrated from ADR-032, 2026-07-10)
 
 Playground v2 はブラウザでコンパイル + 実行を行う。TypeScript インタプリタは使わず、
 selfhost コンパイラ Wasm をブラウザで実行し、コンパイル結果をブラウザで実行する。

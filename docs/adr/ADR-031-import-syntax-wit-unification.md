@@ -1,10 +1,10 @@
 # ADR-031: Import Syntax and WIT Package Identifier Unification
 
-**Status**: DECIDED — Two-layer separation confirmed; `use` reserved for Layer S, `import` reserved for Layer C
+**Status**: ACCEPTED — Two-layer separation confirmed; `use` reserved for Layer S, `import` reserved for Layer C
 **Date**: 2026-04-25
 **Track**: language-design
 **Issue**: [#123](../../issues/done/123-import-syntax-unification.md)
-**Supersedes**: ADR-026 (consolidated into this ADR); refines ADR-009, ADR-025
+**Supersedes**: [ADR-026](ADR-026-import-vs-wit-package-syntax.md) (consolidated); also supersedes [ADR-025](ADR-025-use-paths-vs-wit-package-identifiers.md); refines [ADR-009](ADR-009-import-syntax.md)
 
 ---
 
@@ -188,12 +188,23 @@ is reserved from v3 onwards for the Layer C surface.
    (string form `import "wasi:cli/stdin@0.2.10"` is the current candidate; see issue #124).
 
 4. **WIT package identifiers remain Layer C boundary data** — they appear in `.wit` files,
-   valid `use` path segments.
+   CLI flags, and manifests; they are **not** valid `use` path segments.
 
 5. **Layer naming is canonical**:
+   - **Layer S (Source)**: `use` + `::` separated paths
+   - **Layer C (Component)**: `import` + WIT identifier form (v4+)
+
+---
+
+## Rationale
 
 The WIT `namespace:package/interface@version` format was designed for cross-organisation package
-identity in the WebAssembly Component Model ecosystem. Applying it to intra-language standard
+identity in the WebAssembly Component Model ecosystem. Applying it to stdlib references would
+produce `arukellt:std/io::writeln_stdout()` — a form that conveys registry identity rather than
+module location, inconsistent with how every major Component Model language works:
+
+| Language | Source import | WIT boundary |
+|----------|--------------|--------------|
 | Rust (cargo-component) | `use crate::...` (`::`) | `wit-bindgen` generates code; WIT does not appear in source |
 | Go (WASI) | `import "path/to/pkg"` | WIT in external tooling |
 | Python (componentize-py) | `import module` | WIT in external files |
@@ -261,10 +272,10 @@ uses `use` throughout; most `import <single-id>` patterns appear in specific tes
 
 ## Related
 
-- [ADR-009-import-syntax.md](ADR-009-import-syntax.md) — primary decision record (DECIDED); this ADR consolidates and expands that decision with English prose, a full options table, and explicit migration impact.
-- [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) — collision policy and syntax exploration (draft).
+- [ADR-009-import-syntax.md](ADR-009-import-syntax.md) — primary decision record (ACCEPTED); this ADR consolidates and expands that decision with English prose, a full options table, and explicit migration impact.
+- [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) — collision policy and syntax exploration (SUPERSEDED by this ADR).
 - [ADR-006-abi-policy.md](ADR-006-abi-policy.md) — ABI layers; does not require source syntax to mirror WIT text.
-- [ADR-007-targets.md](ADR-007-targets.md) — T3 (wasm32-wasi-p2) as primary target.
+- [ADR-007-targets.md](ADR-007-targets.md) — `wasm32-wasi-p2` as primary target.
 - [../spec/import-system.md](../spec/import-system.md) — normative Layer S / Layer C contract page.
 - [../module-resolution.md](../module-resolution.md) — Layer S resolution behaviour for `use` / `import`.
 - Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 native component output.

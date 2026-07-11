@@ -1,6 +1,6 @@
 # ADR-006: 公開 ABI を 3 層に固定
 
-ステータス: **DECIDED** — 公開ABIは3層まで（内部・WASM・native）
+ステータス: **ACCEPTED** — 公開ABIは3層まで（内部・WASM・native）
 
 決定日: 2026-03-24
 

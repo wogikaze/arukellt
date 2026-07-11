@@ -1,8 +1,8 @@
 # ADR-035: Wasm GC Implementation Plan
 
-ステータス: **DRAFT** — 段階実装中（Phase 0 完了、Phase 1-3 部分完了、Phase 4 進行中）
+ステータス: **PROPOSED** — 段階実装中（Phase 0 完了、Phase 1-3 部分完了、Phase 4 進行中）
 
-決定日: 2026-06-17（2026-07-15 更新: 実装進捗反映）
+決定日: 2026-06-17（2026-07-10 更新: 実装進捗反映）
 
 ---
 
@@ -130,7 +130,7 @@ Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は `
 
 ## スコープ外
 
-- Post-MVP GC features (ADR-008 survey): static fields, weak references,
+- Post-MVP GC features (ADR-043 survey): static fields, weak references,
   generics — これらは v5 以降
 - jco/javy interop (#036, #037): jco の Wasm GC サポート待ち
 - LLVM backend (`native-llvm`): native target は別トラック
@@ -163,6 +163,6 @@ Wasm GC 実装を以下の **5 Phase** で段階的に行う。完了基準は `
 
 - [ADR-002: Memory Model](ADR-002-memory-model.md) — GC-native 決定の根拠
 - [ADR-007: Targets](ADR-007-targets.md) — ターゲット定義 (T1-T5)
-- [ADR-008: Wasm GC Post-MVP](ADR-008-wasm-gc-post-mvp.md) — Post-MVP survey
+- [ADR-043: Wasm GC Post-MVP](ADR-043-wasm-gc-post-mvp.md) — Post-MVP survey
 - [ADR-013: Primary Target](ADR-013-primary-target.md) — T3 primary 根拠
 - [ADR-040: Semantic Type Spine](ADR-040-typed-mir-signature-registry.md) — GcLayoutTable 実装の基盤

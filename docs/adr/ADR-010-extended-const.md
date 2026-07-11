@@ -1,8 +1,8 @@
 # ADR-010: Extended Const Expressions (Wasm)
 
-ステータス: **SUPERSEDED** — 実装見送り。heap pointer 初期化は単純定数で十分
+ステータス: **ACCEPTED** — 実装見送り。heap pointer 初期化は単純定数で十分
 
-決定日: 2026-03-28（2026-07-15 改訂: 実装見送りを反映）
+決定日: 2026-03-28（2026-07-10 改訂: 実装見送りを反映）
 
 ---
 
@@ -31,9 +31,9 @@ wasmtime 29+ および主要ランタイムは Extended Const をデフォルト
 
 ---
 
-## 改訂（2026-07-15）: 実装見送り
+## 改訂（2026-07-10）: 実装見送り
 
-issue #065 は「done」とマークされていたが、実際には extended const の実装は
+当初の「extended const インフラを追加する」決定は撤回する。issue #065 は「done」とマークされていたが、実際には extended const の実装は
 行われなかった。調査の結果、以下の理由から実装を見送る:
 
 1. **heap pointer 初期化は単純定数で十分**: `sections_memory.ark:23-31` の
