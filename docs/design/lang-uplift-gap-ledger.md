@@ -253,14 +253,14 @@ The following Haskell-like features are intentionally deferred:
 - Implementation phases (#595-#598) must pass:
 
   ```bash
-  python scripts/manager.py verify quick
-  python scripts/manager.py verify fixtures
-  python scripts/manager.py selfhost fixture-parity
+  python3 scripts/manager.py verify quick
+  python3 scripts/manager.py verify fixtures
+  python3 scripts/manager.py selfhost fixture-parity
   ```
 
 - Phase 5 (#599) additionally requires:
 
   ```bash
   python3 scripts/gen/generate-docs.py
-  python scripts/manager.py docs check
+  python3 scripts/manager.py docs check
   ```

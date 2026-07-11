@@ -23,10 +23,10 @@ cp scripts/run/arukellt-selfhost.sh target/release/arukellt
 chmod +x target/release/arukellt
 
 # Run the fast local verification gate
-python scripts/manager.py verify
+python3 scripts/manager.py verify
 
 # Run the full local verification set when needed
-python scripts/manager.py verify --full
+python3 scripts/manager.py verify --full
 
 # Run a sample program
 ./target/release/arukellt run docs/examples/hello.ark
@@ -35,9 +35,9 @@ python scripts/manager.py verify --full
 ## Common Commands
 
 ```bash
-python scripts/manager.py verify
-python scripts/manager.py verify fixtures
-python scripts/manager.py verify --full
+python3 scripts/manager.py verify
+python3 scripts/manager.py verify fixtures
+python3 scripts/manager.py verify --full
 python3 scripts/gen/generate-docs.py
 python3 scripts/check/check-docs-consistency.py
 python3 scripts/util/collect-baseline.py
@@ -92,7 +92,7 @@ This updates / validates generated landing pages, README status blocks, sidebar 
 Default local verification is the fast deterministic gate:
 
 ```bash
-python scripts/manager.py verify
+python3 scripts/manager.py verify
 ```
 
 It covers, among other checks:
@@ -105,8 +105,8 @@ It covers, among other checks:
 Run heavier groups explicitly when needed:
 
 ```bash
-python scripts/manager.py verify fixtures
-python scripts/manager.py verify --full
+python3 scripts/manager.py verify fixtures
+python3 scripts/manager.py verify --full
 ```
 
 Heavy checks also belong in CI. The pre-commit hook can be installed via:
@@ -115,7 +115,7 @@ Heavy checks also belong in CI. The pre-commit hook can be installed via:
 bash scripts/gate/install-git-hooks.sh
 ```
 
-No pre-push hook script exists today; run `python scripts/manager.py verify --full` manually before pushing.
+No pre-push hook script exists today; run `python3 scripts/manager.py verify --full` manually before pushing.
 
 ## Perf Policy
 

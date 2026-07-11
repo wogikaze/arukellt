@@ -3,8 +3,9 @@
 現在の実装でまず動く書き方だけに絞ったガイドです。
 詳細な実装状況は [current-state.md](current-state.md) を参照してください。
 
-> すべての Ark コード例は fixture として登録され、CI で compile / run されています。
+> 各例は fixture registry へ登録され、CI のコンパイル・実行対象です。
 > fixture は `tests/fixtures/quickstart/` にあります。
+> 最新の harness snapshot で全例が pass している保証は [current-state.md](current-state.md) を参照してください。
 
 ## Hello World
 
@@ -24,7 +25,7 @@ arukellt run hello.ark
 ## Component Build
 
 > ⚠️ **Provisional / 103件失敗中**: Component Model output は `wasm32-gc` で一部利用可能ですが、
-> 現在 `verify --full` の component interop が 103/103 失敗中です。
+> 現在 `verify --component-interop` が 103/103 失敗中です。
 > Library exports は s2 wasm 条件付き、WIT coverage は partial です。
 > 詳細は [current-state.md](current-state.md) と
 > [data/release-guarantees.md](data/release-guarantees.md) の `emit_component` 行を参照してください。
@@ -65,6 +66,11 @@ fn main() {
 > 詳細は [current-state.md](current-state.md) を参照してください。
 
 ## Vec
+
+> **API note**: `Vec_new_i32()` は現行 bootstrap で動く monomorphic constructor です。
+> 推奨APIは `Vec::new<i32>()`（associated function, ADR-036）ですが、
+> typechecker/lowering が WIP のため現時点では fallback します。
+> 移行状況は [stdlib/migration-guidance.md](stdlib/migration-guidance.md) を参照してください。
 
 <!-- fixture: quickstart/vec_basic.ark -->
 ```ark

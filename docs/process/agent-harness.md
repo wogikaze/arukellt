@@ -60,7 +60,7 @@ All subcommands accept `--dry-run` to print intent without executing.
 1. Pick a task from `issues/open/`
 2. Move it conceptually through: planning → implementation → verification
 3. Update relevant docs/ADRs if approach changes
-4. Run `python3 scripts/manager.py verify --quick` for a fast local verify pass
+4. Run `python3 scripts/manager.py verify quick` for a fast local verify pass
 5. Move completed task to `issues/done/`
 
 ## Key Files
@@ -73,7 +73,7 @@ All subcommands accept `--dry-run` to print intent without executing.
 
 ## If Something Breaks
 
-1. Check `python3 scripts/manager.py verify --quick` output for specifics
+1. Check `python3 scripts/manager.py verify quick` output for specifics
 2. Review recent ADRs in `docs/adr/` for context
 3. Examine the queue in `issues/open/` for ongoing work
 4. Refer to language-specific documentation for domain issues

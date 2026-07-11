@@ -59,7 +59,6 @@ These files are authored and maintained by human contributors. Changes require r
 |------|---------|-------------|----------|
 | `cookbook.md` | Hands-on usage recipes with fixture links | stdlib maintainers | `check_cookbook_example_drift`, `check_recipe_fixture_links` |
 | `stability-policy.md` | Stability label definitions and tier change process | project leads | — (manual review) |
-| `std.md` | Comprehensive design rationale (historical, March 2026) | stdlib architects | — (manual review; see archive note below) |
 | `module-system.md` | Import syntax documentation | language team | — (manual review) |
 | `generation-schema.md` | Schema enforced by the docs generator | docs tooling maintainers | — (manual review) |
 | `expansion-policy.md` | Policy for which modules accept new APIs | project leads | — (manual review) |
@@ -74,8 +73,8 @@ These files are authored and maintained by human contributors. Changes require r
 | `prelude-migration-inventory.md` | Prelude migration inventory | stdlib maintainers | — (manual review) |
 | `recipe-manifest.toml` | Maps cookbook recipes to test fixture files | `check-docs-consistency.py` | `check_recipe_fixture_links` |
 | `modernization/511-numeric-tag-inventory.md` | Numeric tag modernization inventory | stdlib maintainers | — (manual review) |
-| `modernization/514-parser-host-quality-audit.md` | Parser host quality audit | stdlib maintainers | — (manual review) |
-| `modernization/514-quality-audit-matrix.md` | Quality audit matrix | stdlib maintainers | — (manual review) |
+| `modernization/514-parser-host-quality-audit.md` | **Moved to `history/stdlib/modernization/`** — superseded by generated reference | — | — |
+| `modernization/514-quality-audit-matrix.md` | **Moved to `history/stdlib/modernization/`** — superseded by generated reference | — | — |
 
 ### Generated Module Pages (host modules)
 
@@ -92,7 +91,7 @@ The following generated module pages are also tracked:
 |------|---------------|-------------|
 | `core.md` | `modules/core.md` | Backward-compatible URLs |
 | `io.md` | `modules/io.md` | Backward-compatible URLs |
-| `std.md` | Current API reference + ADRs | Historical design rationale (March 2026); not the current API contract |
+| `std.md` | Current API reference + ADRs | **Moved to `history/stdlib/std.md`** — Historical design rationale (March 2026); not the current API contract |
 
 ---
 
@@ -194,14 +193,14 @@ Items marked **Manual** require human verification during review.
 ```bash
 # Run all automated gates (required before merge):
 python3 scripts/check/check-docs-consistency.py    # Gates 1–7 (18 checks)
-python scripts/manager.py verify quick       # Includes docs consistency + harness checks
+python3 scripts/manager.py verify quick       # Includes docs consistency + harness checks
 
 # If generated source inputs changed:
 python3 scripts/gen/generate-docs.py             # Regenerate all generated files
 python3 scripts/gen/generate-docs.py --check     # Verify freshness (Gate 1.1)
 
 # Full verification (before releases):
-python scripts/manager.py verify --full  # All checks including heavy ones
+python3 scripts/manager.py verify --full  # All checks including heavy ones
 ```
 
 ---

@@ -16,7 +16,7 @@ guarantee procedures here. Run the aggregate release gates before a tag:
 
 ```bash
 # Full verification (required before every tagged release)
-python scripts/manager.py verify --full
+python3 scripts/manager.py verify --full
 ```
 
 ## Guarantee Tiers

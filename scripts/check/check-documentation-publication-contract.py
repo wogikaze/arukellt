@@ -58,9 +58,11 @@ def main() -> int:
             failures.append(f"{guarantee['id']} lacks evidence scope")
 
     verification = project.get("verification", {})
-    blockers = verification.get("blockers", [])
-    fixture_count = sum(int(b.get("affected_count", 1)) for b in blockers if b.get("category") == "fixture")
-    check_count = sum(int(b.get("affected_count", 1)) for b in blockers if b.get("category") == "verification")
+    # Blockers are now owned by release-guarantees.toml, not project-state.toml
+    release_checks = release.get("checks", [])
+    failing_blockers = [ch for ch in release_checks if ch.get("release_blocking") and ch.get("result", ch.get("current_status")) == "fail"]
+    fixture_count = sum(int(ch.get("affected_count", 1)) for ch in failing_blockers if ch.get("blocker_category") == "fixture")
+    check_count = sum(int(ch.get("affected_count", 1)) for ch in failing_blockers if ch.get("blocker_category") == "verification")
     if fixture_count != verification.get("fixture_failures"):
         failures.append("fixture blocker rows do not account for published count")
     if check_count != verification.get("checks_total") - verification.get("checks_passed"):

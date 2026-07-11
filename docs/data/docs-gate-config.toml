@@ -86,8 +86,8 @@ require_expires = true
 
 # Global ceiling: total skip-doc-check count across all files must not exceed this.
 # Current total: 251. Ratchet target: decrease over time.
-global_max = 251
-global_ratchet_max = 251
+global_max = 244
+global_ratchet_max = 244
 # Require every file with skip-doc-check to have a budget entry.
 require_all_budgeted = true
 
@@ -120,7 +120,7 @@ path = "docs/stdlib/cookbook.md"
 max = 36
 ratchet_max = 36
 [[skip_doc_check.budgets]]
-path = "docs/stdlib/std.md"
+path = "docs/history/stdlib/std.md"
 max = 11
 ratchet_max = 11
 [[skip_doc_check.budgets]]

@@ -48,6 +48,7 @@ FIXTURES_DIR = ROOT / "tests" / "fixtures"
 SCOREBOARD_LOW_COVERAGE_THRESHOLD = 50
 LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
 CLI_SURFACE_TOML = DATA / "cli-surface.toml"
+RELEASE_GUARANTEES_TOML = DATA / "release-guarantees.toml"
 SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 MONOMORPHIC_DEPRECATION = ROOT / "docs" / "stdlib" / "monomorphic-deprecation.md"
@@ -1404,43 +1405,50 @@ def _parse_markdown_table_row(line: str) -> list[str]:
     return [cell.strip() for cell in stripped[1:-1].split("|")]
 
 
-def render_current_state_updated(state: dict) -> str:
+def render_current_state_updated(state: dict, release_checks: list[dict]) -> str:
     updated = state["project"]["updated"]
     cmd = state["project"].get("verification_command", "python3 scripts/manager.py verify quick")
     verification = state.get("verification", {})
     source_commit = verification.get("source_commit", verification.get("last_verified_commit", "not-recorded"))
+    impl_commit = verification.get("implementation_commit", source_commit)
+    doc_commit = verification.get("documentation_commit", "not-recorded")
+    fixture_commit = verification.get("fixture_snapshot_commit", "not-recorded")
     generated_at = verification.get("last_verified_at", updated)
-    blockers = verification.get("blockers", [])
-    failures = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
-    check_gap = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
-    ready = not blockers
+    # Blockers come from release-guarantees.toml checks (release_blocking = true, result = fail)
+    failing_blockers = [ch for ch in release_checks if ch.get("release_blocking") and ch.get("result", ch.get("current_status")) == "fail"]
+    failures = sum(int(ch.get("affected_count", 1)) for ch in failing_blockers if ch.get("blocker_category") == "fixture")
+    check_gap = sum(int(ch.get("affected_count", 1)) for ch in failing_blockers if ch.get("blocker_category") == "verification")
+    ready = not failing_blockers
     readiness = "READY" if ready else "NOT READY"
     blocking = []
     if failures:
         blocking.append(f"{failures} fixture failure(s)")
     if check_gap:
         blocking.append(f"{check_gap} verification check failure(s)")
-    full_only = [blocker for blocker in blockers if blocker.get("category") not in {"fixture", "verification"}]
+    full_only = [ch for ch in failing_blockers if ch.get("blocker_category") not in {"fixture", "verification"}]
     if full_only:
         blocking.append(f"{len(full_only)} additional full-verification blocker group(s)")
     blocking_line = ", ".join(blocking) if blocking else "none"
-    # Distinguish failing checks from distinct incidents
-    distinct_incidents = len(blockers)
-    failing_checks = distinct_incidents  # each blocker row is one incident
+    # Count distinct incidents from incident_id
+    incident_ids = {ch.get("incident_id") for ch in failing_blockers if ch.get("incident_id")}
+    distinct_incidents = len(incident_ids)
+    failing_checks = len(failing_blockers)
     return "\n".join(
         [
             f"> Updated: {updated}.",
             f"> Generated-At: {generated_at}",
-            f"> Source-Commit: `{source_commit}`",
+            f"> Implementation-Commit: `{impl_commit}`",
+            f"> Documentation-Commit: `{doc_commit}`",
+            f"> Fixture-Snapshot-Commit: `{fixture_commit}`",
             f"> Verification-Command: `{cmd}`",
             f"> Release-Readiness: **{readiness}**",
             f"> Blocking: {blocking_line}",
-            f"> Distinct incidents: {distinct_incidents} (each blocker row = one incident; multiple checks may track the same incident)",
+            f"> Distinct incidents: {distinct_incidents} (derived from incident_id in release-guarantees.toml; {failing_checks} failing checks)",
         ]
     )
 
 
-def render_current_state_test_health(state: dict, fixture_total: int) -> str:
+def render_current_state_test_health(state: dict, fixture_total: int, release_checks: list[dict]) -> str:
     verification = state["verification"]
     manifest_count = fixture_manifest_count_from_state(state, fixture_total)
     observed = verification.get("fixture_harness_observed")
@@ -1475,40 +1483,44 @@ def render_current_state_test_health(state: dict, fixture_total: int) -> str:
             f"**{verification['checks_passed']}/{verification['checks_total']} checks pass**",
         ]
     )
-    blockers = verification.get("blockers", [])
+    # Blockers come from release-guarantees.toml checks (release_blocking = true, result = fail)
+    failing_blockers = [ch for ch in release_checks if ch.get("release_blocking") and ch.get("result", ch.get("current_status")) == "fail"]
     source_commit = verification.get("source_commit", "")
     lines.extend(
         [
             "",
             "### Active blockers",
             "",
-            "This table is generated from structured blocker records. Counts above must equal these rows.",
+            "Generated from `data/release-guarantees.toml` (checks with `release_blocking = true, result = \"fail\"`).",
             "",
-            "| ID | Scope | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |",
-            "|----|-------|----------|---------:|-----------------|---------|-------|-------|------------|---------------|",
+            "| ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified |",
+            "|----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|",
         ]
     )
-    if blockers:
-        for blocker in blockers:
-            last_vc = blocker["last_verified_commit"]
+    if failing_blockers:
+        for ch in failing_blockers:
+            last_vc = ch.get("last_verified_commit", "")
             stale_tag = " ⏰STALE" if (source_commit and last_vc and last_vc != source_commit) else ""
+            incident = ch.get("incident_id", "—")
+            summary = escape_table(ch.get("note", ch.get("blocker_category", "")))
             lines.append(
-                "| `{id}` | `{scope}` | `{category}` | {count} | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}`{stale} |".format(
-                    id=blocker["id"],
-                    category=blocker["category"],
-                    scope=blocker["scope"],
-                    count=blocker.get("affected_count", 1),
-                    summary=escape_table(blocker["summary"]),
-                    command=blocker["command"],
-                    owner=blocker["owner"],
-                    issue=blocker["issue"],
-                    first=blocker["first_seen_commit"],
+                "| `{id}` | `{scope}` | `{category}` | {count} | `{incident}` | {summary} | `{command}` | {owner} | {issue} | `{first}` | `{last}`{stale} |".format(
+                    id=ch["id"],
+                    category=ch.get("blocker_category", "—"),
+                    scope=ch.get("blocker_scope", "—"),
+                    count=ch.get("affected_count", 1),
+                    incident=incident,
+                    summary=summary,
+                    command=ch.get("command", ""),
+                    owner=ch.get("blocker_owner", "—"),
+                    issue=ch.get("blocker_issue", "—"),
+                    first=ch.get("first_seen_commit", "—"),
                     last=last_vc,
                     stale=stale_tag,
                 )
             )
     else:
-        lines.append("| — | — | — | 0 | No active blockers in the recorded verification run. | — | — | — | — | — |")
+        lines.append("| — | — | — | 0 | — | No active blockers in the recorded verification run. | — | — | — | — | — |")
     return "\n".join(lines)
 
 
@@ -2287,7 +2299,7 @@ def render_stdlib_readme(
         "",
         "| Resource | Description |",
         "|----------|-------------|",
-        "| [**cookbook.md**](cookbook.md) | Hands-on usage recipes with fixture links — **start here** for working examples |",
+        "| [**cookbook.md**](cookbook.md) | Recipe fragments linked to runnable fixtures — **start here** for practical patterns (examples are skip-doc-check; see cookbook intro) |",
         "| [**reference.md**](reference.md) | Complete manifest-backed API reference (all functions, types, stability tiers) |",
         "| [migration-guidance.md](migration-guidance.md) | Deprecated API migration paths and replacement patterns |",
         "| [stability-policy.md](stability-policy.md) | What stable / provisional / experimental mean for your code |",
@@ -3612,6 +3624,8 @@ def main() -> int:
     state = load_toml(PROJECT_STATE)
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()
+    release_data = load_toml(RELEASE_GUARANTEES_TOML)
+    release_checks = release_data.get("checks", [])
 
     actual_fixture_total = fixture_count()
     stated_fixture_total = state.get("verification", {}).get("fixture_manifest_count")
@@ -3628,33 +3642,23 @@ def main() -> int:
     failed = int(verification.get("fixture_failures", 0) or 0)
     skipped = int(verification.get("fixture_skipped", 0) or 0)
     observed_sum = passed + failed + skipped
-    blockers = verification.get("blockers", [])
-    required_blocker_fields = {
-        "id", "scope", "category", "summary", "command", "owner", "issue",
-        "first_seen_commit", "last_verified_commit",
-    }
-    blocker_errors: list[str] = []
-    seen_blocker_ids: set[str] = set()
-    for blocker in blockers:
-        missing = sorted(required_blocker_fields - blocker.keys())
-        if missing:
-            blocker_errors.append(f"{blocker.get('id', '<unnamed>')}: missing {missing}")
-        if blocker.get("id") in seen_blocker_ids:
-            blocker_errors.append(f"duplicate blocker id {blocker.get('id')}")
-        seen_blocker_ids.add(blocker.get("id"))
-        if blocker.get("category") not in {"fixture", "verification", "target-contract", "component-interop", "bootstrap"}:
-            blocker_errors.append(f"{blocker.get('id')}: invalid category")
-        if blocker.get("scope") not in {"quick", "full"}:
-            blocker_errors.append(f"{blocker.get('id')}: invalid scope")
-    fixture_blockers = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
-    verification_blockers = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
+
+    # Validate release-guarantees blocker consistency
+    failing_blockers = [ch for ch in release_checks if ch.get("release_blocking") and ch.get("result", ch.get("current_status")) == "fail"]
+    fixture_blockers = sum(int(ch.get("affected_count", 1)) for ch in failing_blockers if ch.get("blocker_category") == "fixture")
+    verification_blockers_count = sum(int(ch.get("affected_count", 1)) for ch in failing_blockers if ch.get("blocker_category") == "verification")
     check_gap = int(verification.get("checks_total", 0)) - int(verification.get("checks_passed", 0))
+    blocker_errors: list[str] = []
     if fixture_blockers != failed:
-        blocker_errors.append(f"fixture_failures={failed} but {fixture_blockers} fixture blocker rows")
-    if verification_blockers != check_gap:
-        blocker_errors.append(f"verification check gap={check_gap} but {verification_blockers} verification blocker rows")
+        blocker_errors.append(f"fixture_failures={failed} but {fixture_blockers} fixture blocker affected_count in release-guarantees.toml")
+    if verification_blockers_count != check_gap:
+        blocker_errors.append(f"verification check gap={check_gap} but {verification_blockers_count} verification blocker affected_count in release-guarantees.toml")
+    # C2: all failing release-blocking checks must have incident_id
+    for ch in failing_blockers:
+        if not ch.get("incident_id"):
+            blocker_errors.append(f"check {ch.get('id')}: failing release-blocking check lacks incident_id")
     if blocker_errors:
-        print("project-state.toml blocker contract FAILED:", file=sys.stderr)
+        print("release-guarantees.toml blocker contract FAILED:", file=sys.stderr)
         for error in blocker_errors:
             print(f"  ✗ {error}", file=sys.stderr)
         return 1
@@ -3743,9 +3747,9 @@ def main() -> int:
     apply_marker_updates(
         DOCS / "current-state.md",
         {
-            "CURRENT_STATE_UPDATED": render_current_state_updated(state),
+            "CURRENT_STATE_UPDATED": render_current_state_updated(state, release_checks),
             "CURRENT_STATE_TARGETS": render_current_state_targets(state),
-            "CURRENT_STATE_TEST_HEALTH": render_current_state_test_health(state, fixture_total),
+            "CURRENT_STATE_TEST_HEALTH": render_current_state_test_health(state, fixture_total, release_checks),
             "CURRENT_STATE_PERF": render_current_state_perf(state),
             "CURRENT_STATE_DIAGNOSTICS": render_current_state_diagnostics(state),
             "CURRENT_STATE_CLI_SURFACE": render_current_state_cli_surface(),

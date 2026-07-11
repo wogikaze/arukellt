@@ -18,7 +18,8 @@ DATA = ROOT / "docs" / "data"
 CLI_PRESENCE_VALUES = ("present", "absent")
 CLI_CONTRACT_STABILITY_VALUES = ("stable", "provisional", "experimental")
 CLI_IMPLEMENTATION_STATE_VALUES = ("functional", "limited", "scaffold", "unavailable", "unknown")
-CHECK_CURRENT_STATUS_VALUES = ("pass", "fail", "stale", "not-run")
+CHECK_RESULT_VALUES = ("pass", "fail", "partial", "not-run")
+CHECK_FRESHNESS_VALUES = ("fresh", "stale", "unknown")
 CHECK_EVIDENCE_TYPE_VALUES = ("smoke", "static-scan", "fixture-set", "exhaustive", "manual")
 GUARANTEE_TIER_VALUES = ("guaranteed", "provisional", "experimental", "not_guaranteed")
 
@@ -255,16 +256,42 @@ def render_bootstrap_contract(data: dict) -> str:
     return "\n".join(lines)
 
 
-def _status_badge(status: str) -> str:
-    if status == "pass":
+def _result_badge(result: str) -> str:
+    if result == "pass":
         return "✅ pass"
-    if status == "fail":
+    if result == "fail":
         return "❌ fail"
-    if status == "stale":
-        return "⏰ stale"
-    if status == "not-run":
+    if result == "partial":
+        return "⚠️ partial"
+    if result == "not-run":
         return "⬜ not-run"
-    return status
+    return result
+
+
+def _freshness_badge(freshness: str) -> str:
+    if freshness == "fresh":
+        return "🟢 fresh"
+    if freshness == "stale":
+        return "⏰ stale"
+    if freshness == "unknown":
+        return "❓ unknown"
+    return freshness
+
+
+def _check_result(ch: dict) -> str:
+    """Get the result field, falling back to current_status for backward compat."""
+    return ch.get("result", ch.get("current_status", "not-run"))
+
+
+def _check_freshness(ch: dict) -> str:
+    """Get the freshness field, deriving from result if absent."""
+    if "freshness" in ch:
+        return ch["freshness"]
+    # Backward compat: old current_status "stale" maps to freshness=stale
+    cs = ch.get("current_status", "")
+    if cs == "stale":
+        return "stale"
+    return "fresh"
 
 
 def render_release_guarantees(data: dict) -> str:
@@ -283,44 +310,56 @@ def render_release_guarantees(data: dict) -> str:
         "Checklist: [`../release-checklist.md`](../release-checklist.md).",
         "",
         "> **Contract vs current state:** A guarantee is a release-time contract.",
-        "> `current_status` shows the latest observed verification result, which may be `fail`.",
-        "> A `fail` status means the guarantee is not yet met — it does not remove the guarantee.",
+        "> `result` shows the latest observed test outcome (pass/fail/partial/not-run).",
+        "> `freshness` shows evidence age (fresh/stale/unknown), derived from `verified_at` + `stale_after_days`.",
+        "> A `fail` result means the guarantee is not yet met — it does not remove the guarantee.",
         "",
         "## Guarantee matrix",
         "",
-        "| ID | Tier | Summary | Evidence scope | Current status | Evidence type | Last verified | Known limitation |",
-        "|----|------|---------|----------------|----------------|---------------|---------------|------------------|",
+        "| ID | Tier | Cadence | Summary | Evidence scope | Result | Freshness | Evidence type | Last verified | Known limitation |",
+        "|----|------|---------|---------|----------------|--------|-----------|---------------|---------------|------------------|",
     ]
     for g in guarantees:
         g_checks = checks_by_guarantee.get(g["id"], [])
         if g_checks:
-            # Aggregate current status: fail dominates stale dominates pass
-            statuses = [ch.get("current_status", "not-run") for ch in g_checks]
-            if "fail" in statuses:
+            # Aggregate result: fail dominates partial dominates not-run dominates pass
+            results = [_check_result(ch) for ch in g_checks]
+            if "fail" in results:
                 current = "fail"
-            elif "stale" in statuses:
-                current = "stale"
-            elif "not-run" in statuses:
+            elif "partial" in results:
+                current = "partial"
+            elif "not-run" in results:
                 current = "not-run"
-            elif "pass" in statuses:
+            elif "pass" in results:
                 current = "pass"
             else:
                 current = "not-run"
+            # Aggregate freshness: stale dominates unknown dominates fresh
+            fresh_statuses = [_check_freshness(ch) for ch in g_checks]
+            if "stale" in fresh_statuses:
+                freshness = "stale"
+            elif "unknown" in fresh_statuses:
+                freshness = "unknown"
+            else:
+                freshness = "fresh"
             evidence_types = sorted({ch.get("evidence_type", "manual") for ch in g_checks})
             evidence = ", ".join(evidence_types)
             last_commits = sorted({ch.get("last_verified_commit", "") for ch in g_checks if ch.get("last_verified_commit")})
             last_verified = ", ".join(f"`{c}`" for c in last_commits) if last_commits else "—"
         else:
             current = "not-run"
+            freshness = "unknown"
             evidence = "—"
             last_verified = "—"
         lines.append(
-            "| `{id}` | `{tier}` | {summary} | {coverage} | {current} | {evidence} | {last_verified} | {lim} |".format(
+            "| `{id}` | `{tier}` | `{cadence}` | {summary} | {coverage} | {result} | {freshness} | {evidence} | {last_verified} | {lim} |".format(
                 id=g["id"],
                 tier=g["tier"],
+                cadence=g.get("cadence", "—"),
                 summary=g["summary"],
                 coverage=", ".join(f"`{item}`" for item in g.get("coverage", [])) or "—",
-                current=_status_badge(current),
+                result=_result_badge(current),
+                freshness=_freshness_badge(freshness),
                 evidence=evidence,
                 last_verified=last_verified,
                 lim=g.get("known_limitation", "") or "—",
@@ -339,8 +378,8 @@ def render_release_guarantees(data: dict) -> str:
         "same incident (linked via `incident_id`). Count blockers by distinct",
         "incidents, not by individual checks.",
         "",
-        "| Check ID | Guarantee | Blocking | In full | In quick | Current | Evidence | Affected | Incident | Last verified | Command |",
-        "|----------|-----------|:--------:|:-------:|:--------:|---------|----------|---------:|----------|---------------|---------|",
+        "| Check ID | Guarantee | Blocking | In full | In quick | Result | Freshness | Evidence | Affected | Incident | Last verified | Command |",
+        "|----------|-----------|:--------:|:-------:|:--------:|--------|-----------|----------|---------:|----------|---------------|---------|",
     ])
     for ch in checks:
         blocking = "🔴 yes" if ch.get("release_blocking") else "no"
@@ -349,13 +388,14 @@ def render_release_guarantees(data: dict) -> str:
         affected = str(ch.get("affected_count", "—"))
         incident = f"`{ch['incident_id']}`" if ch.get("incident_id") else "—"
         lines.append(
-            "| `{id}` | {gid} | {blocking} | {in_full} | {in_quick} | {current} | `{evidence}` | {affected} | {incident} | `{lvc}` | `{cmd}` |".format(
+            "| `{id}` | {gid} | {blocking} | {in_full} | {in_quick} | {result} | {freshness} | `{evidence}` | {affected} | {incident} | `{lvc}` | `{cmd}` |".format(
                 id=ch["id"],
                 gid=f"`{ch['guarantee_id']}`" if ch.get("guarantee_id") else "—",
                 blocking=blocking,
                 in_full=in_full,
                 in_quick=in_quick,
-                current=_status_badge(ch.get("current_status", "not-run")),
+                result=_result_badge(_check_result(ch)),
+                freshness=_freshness_badge(_check_freshness(ch)),
                 evidence=ch.get("evidence_type", "manual"),
                 affected=affected,
                 incident=incident,
@@ -365,7 +405,7 @@ def render_release_guarantees(data: dict) -> str:
         )
     lines.append("")
     # Stale check derivation details
-    stale_checks = [ch for ch in checks if ch.get("current_status") == "stale"]
+    stale_checks = [ch for ch in checks if _check_freshness(ch) == "stale"]
     if stale_checks:
         lines.extend([
             "",
@@ -396,7 +436,7 @@ def render_release_blockers(data: dict) -> str:
     for ch in data.get("checks", []):
         if not ch.get("release_blocking"):
             continue
-        status_tag = f" [FAIL]" if ch.get("current_status") == "fail" else ""
+        status_tag = f" [FAIL]" if _check_result(ch) == "fail" else ""
         lines.append(
             f"- [ ] **CI `{ch['id']}`**{status_tag} — `{ch.get('command', '')}` "
             f"(job: `{ch.get('ci_job', 'none')}`)"
@@ -450,14 +490,20 @@ def validate_release_guarantees(release_data: dict) -> list[str]:
         gid = ch.get("guarantee_id", "")
         if gid and gid not in guarantee_ids:
             errors.append(f"check {cid}: unknown guarantee_id '{gid}'")
-        status = ch.get("current_status")
-        if status is not None and status not in CHECK_CURRENT_STATUS_VALUES:
-            errors.append(f"check {cid}: invalid current_status '{status}'; must be one of {list(CHECK_CURRENT_STATUS_VALUES)}")
+        result = ch.get("result", ch.get("current_status"))
+        if result is not None and result not in CHECK_RESULT_VALUES:
+            errors.append(f"check {cid}: invalid result '{result}'; must be one of {list(CHECK_RESULT_VALUES)}")
+        freshness = ch.get("freshness")
+        if freshness is not None and freshness not in CHECK_FRESHNESS_VALUES:
+            errors.append(f"check {cid}: invalid freshness '{freshness}'; must be one of {list(CHECK_FRESHNESS_VALUES)}")
         etype = ch.get("evidence_type")
         if etype is not None and etype not in CHECK_EVIDENCE_TYPE_VALUES:
             errors.append(f"check {cid}: invalid evidence_type '{etype}'; must be one of {list(CHECK_EVIDENCE_TYPE_VALUES)}")
         if ch.get("release_blocking") and (not ch.get("command") or ch.get("ci_job") == "none"):
             errors.append(f"check {cid}: release-blocking check lacks executable command/CI job")
+        # C2: failing release-blocking checks must have incident_id
+        if ch.get("release_blocking") and result == "fail" and not ch.get("incident_id"):
+            errors.append(f"check {cid}: failing release-blocking check lacks incident_id (required for incident tracking)")
     return errors
 
 

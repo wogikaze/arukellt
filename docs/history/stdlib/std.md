@@ -1,6 +1,6 @@
 # Arukellt 標準ライブラリ総合設計書
 
-> **Historical design rationale (March 2026).** This v3-era proposal contains legacy target and lifecycle terminology. It is not the current API contract; use [`reference.md`](reference.md), [`stability-policy.md`](stability-policy.md), and [`../current-state.md`](../current-state.md).
+> **Historical design rationale (March 2026).** This v3-era proposal contains legacy target and lifecycle terminology. It is not the current API contract; use [`../../stdlib/reference.md`](../../stdlib/reference.md), [`../../stdlib/stability-policy.md`](../../stdlib/stability-policy.md), and [`../../current-state.md`](../../current-state.md).
 
 **多言語標準ライブラリ調査を踏まえた LLM-first / Wasm-first 設計**
 

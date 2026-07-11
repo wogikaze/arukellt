@@ -6,11 +6,13 @@
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-07-11.
 > Generated-At: 2026-07-11
-> Source-Commit: `a80b4181`
+> Implementation-Commit: `a80b4181`
+> Documentation-Commit: `b68fc393`
+> Fixture-Snapshot-Commit: `89eb5eb4`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 367 fixture failure(s), 1 verification check failure(s), 4 additional full-verification blocker group(s)
-> Distinct incidents: 6 (each blocker row = one incident; multiple checks may track the same incident)
+> Distinct incidents: 6 (derived from incident_id in release-guarantees.toml; 6 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -113,16 +115,16 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 
 ### Active blockers
 
-This table is generated from structured blocker records. Counts above must equal these rows.
+Generated from `data/release-guarantees.toml` (checks with `release_blocking = true, result = "fail"`).
 
-| ID | Scope | Category | Affected | Failure summary | Command | Owner | Issue | First seen | Last verified |
-|----|-------|----------|---------:|-----------------|---------|-------|-------|------------|---------------|
-| `selfhost_fixture_parity` | `full` | `fixture` | 367 | Current selfhost output has 367 invalid-Wasm, golden-output, or pinned/current parity failures; the command prints every fixture ID and reason. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
-| `close_gate_076_p2_fs_output` | `quick` | `verification` | 1 | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes. | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
-| `wat_roundtrip` | `full` | `target-contract` | 1 | The wasm2wat/wat2wasm roundtrip gate fails. | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` |
-| `component_interop_wasmtime` | `full` | `component-interop` | 103 | All 103 wasmtime component-interop cases fail in the current full verification run. | `python3 scripts/manager.py verify --full` | component model | #074 | `a80b4181` | `a80b4181` |
-| `selfhost_cli_parity` | `full` | `bootstrap` | 3 | CLI parity drifts for --help, lint, and compose --validate. | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` |
-| `selfhost_fixpoint` | `full` | `bootstrap` | 1 | Stage 2 and Stage 3 compiler hashes differ; fixpoint is not reached. | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` |
+| ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified |
+|----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|
+| `check_fixture_harness` | `full` | `fixture` | 367 | `incident_fixture_parity_367` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
+| `check_close_gate_076` | `quick` | `verification` | 1 | `incident_close_gate_076` | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` ⏰STALE |
+| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` |
+| `check_selfhost_cli_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_cli_parity` | CLI parity drifts for --help, lint, and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` |
+| `check_wat_roundtrip` | `full` | `target-contract` | 1 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` |
+| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify --full). | `python3 scripts/manager.py verify --component-interop` | component model | #074 | `a80b4181` | `a80b4181` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates

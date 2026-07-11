@@ -7,7 +7,7 @@ manifest-backed な公開 API と利用ガイド。
 
 | Resource | Description |
 |----------|-------------|
-| [**cookbook.md**](cookbook.md) | Hands-on usage recipes with fixture links — **start here** for working examples |
+| [**cookbook.md**](cookbook.md) | Recipe fragments linked to runnable fixtures — **start here** for practical patterns (examples are skip-doc-check; see cookbook intro) |
 | [**reference.md**](reference.md) | Complete manifest-backed API reference (all functions, types, stability tiers) |
 | [migration-guidance.md](migration-guidance.md) | Deprecated API migration paths and replacement patterns |
 | [stability-policy.md](stability-policy.md) | What stable / provisional / experimental mean for your code |
@@ -114,8 +114,6 @@ All 20 module pages carry curated overviews.
 | [collections-hashmap-rust-diff.md](collections-hashmap-rust-diff.md) | This page records the intentional differences between Arukellt's current |
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. |
 | [modernization/511-numeric-tag-inventory.md](modernization/511-numeric-tag-inventory.md) | This artifact inventories the current public numeric-tag sum-type surfaces in |
-| [modernization/514-parser-host-quality-audit.md](modernization/514-parser-host-quality-audit.md) | This note is a companion to 514-quality-audit-matrix.md. It is intentionally limited to the family surfaces that still need a follow-up-ready audit trail for the parser and host sides of issue 514: |
-| [modernization/514-quality-audit-matrix.md](modernization/514-quality-audit-matrix.md) | This audit is bounded to the family surfaces named by issue 514: |
 | [module-system.md](module-system.md) | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [name-index.md](name-index.md) | Do not edit manually — changes will be overwritten on the next regeneration. |
 | [ownership-map.md](ownership-map.md) | Defines the ownership, maintenance tier, and release gate responsibilities |

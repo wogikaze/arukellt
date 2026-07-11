@@ -145,7 +145,7 @@ Schema validation is integrated into the documentation generation pipeline:
 python3 scripts/gen/generate-docs.py          # validates schema, then generates
 python3 scripts/gen/generate-docs.py --check  # validates schema, then checks freshness
 python3 scripts/check/check-docs-consistency.py # calls generate-docs.py --check internally
-python scripts/manager.py verify quick    # runs check-docs-consistency.py as a bg check
+python3 scripts/manager.py verify quick    # runs check-docs-consistency.py as a bg check
 ```
 
 A violation in `std/manifest.toml` will:

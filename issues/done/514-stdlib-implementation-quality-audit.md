@@ -81,4 +81,4 @@ data structure invariants の品質面で Rust 標準実装や一般的期待値
 
 - `issues/done/044-std-collections-hash.md`
 - `issues/done/392-stdlib-error-result-conventions.md`
-- [`docs/stdlib/modernization/514-parser-host-quality-audit.md`](../../docs/stdlib/modernization/514-parser-host-quality-audit.md)
+- [`docs/history/stdlib/modernization/514-parser-host-quality-audit.md`](../../docs/history/stdlib/modernization/514-parser-host-quality-audit.md)

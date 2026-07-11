@@ -44,10 +44,14 @@ math helpers (`abs`, `min`, `max`).
 ## Legacy Compat (deprecated — bold cutover per ADR-036)
 
 All **monomorphic Vec constructors** and **monomorphic higher-order functions**
-in `std/prelude.ark` are deprecated. Per [ADR-036](../adr/ADR-036-trait-stdlib-redesign.md)
-D2 (bold cutover), they will be **directly removed** — not retained through a
-long deprecation period — once issues #688–#697 (trait-based stdlib redesign)
-are complete.
+in `std/prelude.ark` are marked `stability = "deprecated"` in `std/manifest.toml`
+with `deprecated_by` pointing to the trait-based replacement. Per
+[ADR-036](../adr/ADR-036-trait-stdlib-redesign.md) D2, **already-deprecated**
+surfaces are eligible for bold cutover (direct removal without a further
+deprecation window) once issues #688–#697 (trait-based stdlib redesign)
+are complete. This is consistent with ADR-036's rule that `stable` APIs
+require at least one release of deprecation — these APIs are already
+past that stage.
 
 ### Correct migration target: trait-based method syntax
 

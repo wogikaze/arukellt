@@ -115,7 +115,7 @@ Every tier change must update **both** the manifest source of truth and the gene
 - [ ] **Run CI checks**
   - `python3 scripts/gen/generate-docs.py --check` must pass
   - `python3 scripts/check/check-docs-consistency.py` must pass
-  - `python scripts/manager.py verify quick` must pass
+  - `python3 scripts/manager.py verify quick` must pass
 - [ ] **Review generated module pages** for the affected module
 
 ### Deprecation: Any → Deprecated
@@ -145,5 +145,5 @@ After any stability tier change, run these commands and confirm all pass:
 python3 scripts/gen/generate-docs.py          # regenerate all docs
 python3 scripts/gen/generate-docs.py --check  # verify freshness
 python3 scripts/check/check-docs-consistency.py # verify metadata consistency
-python scripts/manager.py verify quick    # verify test harness
+python3 scripts/manager.py verify quick    # verify test harness
 ```

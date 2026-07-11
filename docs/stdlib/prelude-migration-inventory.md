@@ -143,7 +143,7 @@ Steps:
    to show `use std::io; io::println(...)` pattern.
 3. Update `docs/stdlib/core.md` convert examples to use `core::convert::*`.
 4. Regenerate docs: `python3 scripts/gen/generate-docs.py`.
-5. Verify: `python scripts/manager.py verify quick`.
+5. Verify: `python3 scripts/manager.py verify quick`.
 6. Commit as: `docs(stdlib): migrate reference examples to wrapper families (refs #513)`.
 
 ### Phase 4 — Deprecation annotation in prelude.ark (future, out-of-scope for this slice)
