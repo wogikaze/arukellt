@@ -1614,7 +1614,7 @@ Per ADR-007, Arukellt supports five compilation targets:
 |-----|----------|
 | ADR-002 | Wasm GC adopted as primary memory model |
 | ADR-003 | Limited monomorphisation for generics |
-| ADR-005 | LLVM backend subordinate to Wasm semantics |
+| ADR-005 | LLVM backend role deferred (reopen after Wasm maturity) |
 | ADR-006 | 3-layer public ABI (internal / Wasm / native C) |
 | ADR-007 | Five compilation targets (T1–T5) |
 | ADR-008 | External `wasm-tools` for Component Model wrapping |

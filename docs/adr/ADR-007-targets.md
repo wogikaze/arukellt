@@ -10,8 +10,9 @@
 
 arukellt は複数のランタイム・用途向けにコードを生成する必要がある。
 ターゲットをランタイム軸で整理すると、言語機能セット（GC有無、WASI版）が不明確になる。
-ADR-002（Wasm GC 採用）・ADR-005（LLVM 従属）・ADR-006（ABI 3層）との整合を明示するため、
+ADR-002（Wasm GC 採用）・ADR-006（ABI 3層）との整合を明示するため、
 **「言語機能セット × 実行環境」軸** でターゲットを確定する。
+（ADR-005 LLVM 役割は 2026-07-11 時点で `DEFERRED`。native 意味論は未確定。）
 
 旧版では T1-T5 の5段階ティアを定義していたが、実態に合わせて
 ターゲット名ベースの3系統に再構成する。
@@ -118,11 +119,10 @@ Node.js 実行は制約を受ける場合がある。
 | バックエンド | C++ (`native-cpp`) または LLVM IR (`native-llvm`) |
 | プラットフォーム | Linux / Windows / macOS |
 | ABI | C ABI（System V AMD64 / Windows x64） |
-| 従属 | ADR-005: Wasm 意味論に従属 |
-| 主な用途 | ローカルデバッグ、性能比較 |
+| 意味論 | 未確定（ADR-005 `DEFERRED`） |
+| 主な用途 | ローカルデバッグ、性能比較（scaffold） |
 
-ADR-005 に従い、ネイティブバックエンドは **Wasm 意味論の再現**に留める。
-native 専用の言語機能・最適化は追加しない。
+native バックエンドの意味論従属・最適化方針・FFI 境界は ADR-005 再開まで固定しない。
 
 ---
 
@@ -132,7 +132,7 @@ native 専用の言語機能・最適化は追加しない。
 実装優先度: wasm32-gc（メイン） → wasm32（AtCoder維持） → native
 言語意味論の基準: wasm32-gc
 ADR-002 GC採用: wasm32-gc, native-llvm（wasm32 のみ例外）
-ADR-005 LLVM従属: native-llvm
+ADR-005 LLVM役割: DEFERRED（native-llvm の意味論は未確定）
 ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 ```
 
@@ -173,7 +173,7 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 ## 禁止事項
 
 - `wasm32` の linear memory 実装を `wasm32-gc` に持ち込まない
-- `native` で `wasm32-gc` にない言語機能を追加しない（ADR-005）
+- `native` 向けの言語機能・最適化方針は ADR-005 再開まで設計決定として固定しない
 - `wasm32` は AtCoder が GC 対応したら即座に廃止する。将来に向けた拡張は `wasm32-gc` に行う
 
 ---
@@ -272,7 +272,7 @@ ADR-006 ABI 3層: wasm32-gc = Layer 2、native = Layer 3
 
 - **デフォルト出力**: `<input>.ll` (LLVM IR テキスト)
   - LLVM IR テキストを選択する理由: デバッグ可能性と `opt` / `llc` での手動最適化
-  - ADR-005「LLVM IR は Wasm 意味論に従属」に従い、Wasm と同じ MIR から生成
+  - MIR からの生成経路は scaffold。意味論従属は ADR-005 再開まで未確定
 - **`--emit object`**: `<input>.o` (オブジェクトファイル)
   - `llc <input>.ll -filetype=obj -o <input>.o` で変換
 - **`--emit bitcode`**: `<input>.bc` (LLVM bitcode)
@@ -511,7 +511,7 @@ SIMD 機能のターゲット別状況（ADR-037 参照）:
 ## 関連
 
 - ADR-002: Wasm GC 採用（`wasm32` の例外根拠）
-- ADR-005: LLVM バックエンドの役割制限（`native-llvm`）
+- ADR-005: LLVM バックエンドの役割制限（`DEFERRED` — `native-llvm` 意味論は未確定）
 - ADR-006: 公開 ABI 3層構造（`wasm32-gc` / `native`）
 - ADR-013: Primary Target（`wasm32-gc` primary 根拠）
 - ADR-035: Wasm GC Implementation Plan

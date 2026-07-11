@@ -75,7 +75,7 @@ ADR-007 は当初 T1〜T5 の 5 ターゲット表記で整理していたが、
 
 - ADR-007: コンパイルターゲット整理（現行はターゲット名ベース）
 - ADR-002: Wasm GC 採用
-- ADR-005: LLVM バックエンドの役割制限（native scaffold の根拠）
+- ADR-005: LLVM バックエンドの役割制限（`DEFERRED` — native 方針は未確定）
 - [ADR-007: Targets](ADR-007-targets.md): 各ターゲットの詳細検証面
 - `issues/done/241-define-primary-target-and-tier-others.md`
 - `issues/done/242-ci-layer-structure.md`

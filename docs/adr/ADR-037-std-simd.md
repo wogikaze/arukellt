@@ -19,7 +19,7 @@ Issue #107 (ループベクトル化ヒント) は reject 済みであり、本 
 ### 関連 ADR
 
 - ADR-002: Wasm GC 前提 — v128 は値型だが GC struct/array フィールドに保持可能
-- ADR-005: LLVM 従属 — native SIMD はセマンティクス再現の範囲内で使用
+- ADR-005: LLVM 役割（`DEFERRED`）— native SIMD 方針は再開まで未確定
 - ADR-006: 公開 ABI 3層 — SIMD 値の ABI 表現を追加
 - ADR-007: ターゲット T1/T2/T3/T4/T5 — ターゲット別 SIMD 可否
 - ADR-014: stability labels — 初期は experimental
@@ -206,10 +206,8 @@ portable SIMD API の範囲には入らない。
 
 ### 13. LLVM emitter (T4)
 
-LLVM native SIMD (`<4 x i32>` 等) を使用する。SIMD はセマンティクス再現の範囲とする。
-ADR-005「Wasm にない最適化は入れない」の解釈において、native SIMD は「最適化」ではなく
-「セマンティクス再現」に分類する。Wasm SIMD セマンティクスを LLVM で再現する手段として
-native SIMD vector 型を用いる。
+LLVM native SIMD (`<4 x i32>` 等) を使用する想定。native SIMD と Wasm SIMD の
+意味論関係は ADR-005 再開まで未確定（旧「セマンティクス再現」方針は効力なし）。
 
 ### 14. stability label と昇格条件
 
@@ -255,7 +253,7 @@ native SIMD vector 型を用いる。
 1. `std::simd` に `v128.load` / `v128.store` を混ぜない (portable と Wasm-specific の境界崩壊)
 2. GC Vec から raw pointer を取り出す API を提供しない (GC 安全性の侵害)
 3. `#[vectorize]` のような compiler hint を導入しない (#107 の代替として明示 API を優先)
-4. `native-llvm` で Wasm SIMD セマンティクスを超える native 固有の最適化を入れない (ADR-005)
+4. `native-llvm` 固有の SIMD 最適化方針は ADR-005 再開まで固定しない
 5. `wasm32` でスカラー展開をデフォルトとしない（iwasm 2.4.1 が SIMD 対応のためネイティブ SIMD を使用。スカラー展開はフォールバックとして保持）
 
 ---
@@ -281,7 +279,7 @@ native SIMD vector 型を用いる。
 ## 関連
 
 - ADR-002: Wasm GC 前提 (v128 の GC フィールド保持の根拠)
-- ADR-005: LLVM 従属 (`native-llvm` での native SIMD 使用の根拠)
+- ADR-005: LLVM 役割（`DEFERRED` — native SIMD 方針は未確定）
 - ADR-006: 公開 ABI 3層 (SIMD 値の ABI 表現)
 - ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` (ターゲット別 SIMD 可否)
 - ADR-014: stability labels (experimental → stable 昇格条件)
