@@ -1374,33 +1374,11 @@ def _parse_markdown_table_row(line: str) -> list[str]:
 
 
 def render_current_state_updated(state: dict) -> str:
-    import subprocess
-    from datetime import datetime, timezone
-
     updated = state["project"]["updated"]
     cmd = state["project"].get("verification_command", "python3 scripts/manager.py verify quick")
-    source_commit = "unknown"
-    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    try:
-        source_commit = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=ROOT,
-            text=True,
-        ).strip()
-        # Prefer commit time so regenerate --check is stable until HEAD moves.
-        generated_at = subprocess.check_output(
-            ["git", "show", "-s", "--format=%cI", "HEAD"],
-            cwd=ROOT,
-            text=True,
-        ).strip()
-        if generated_at.endswith("+00:00"):
-            generated_at = generated_at[:-6] + "Z"
-        elif generated_at.endswith("Z") is False and "+" in generated_at:
-            # normalize to Zulu-ish display without breaking local offsets
-            pass
-    except Exception:
-        pass
     verification = state.get("verification", {})
+    source_commit = verification.get("last_verified_commit", "not-recorded")
+    generated_at = verification.get("last_verified_at", updated)
     blockers = verification.get("blockers", [])
     failures = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "fixture")
     check_gap = sum(int(blocker.get("affected_count", 1)) for blocker in blockers if blocker.get("category") == "verification")
