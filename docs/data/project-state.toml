@@ -37,43 +37,40 @@ component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools
 
 [[target_profiles]]
 id = "wasm32"
-tier = "—"
-adr_tier = "supported"
-status = "stable"
+support_tier = "supported"
+implementation_state = "complete"
+api_stability = "stable"
 run_supported = true
 role = "Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1)"
 
 [[target_profiles]]
 id = "wasm32-gc"
-tier = "—"
-adr_tier = "primary"
-status = "stable"
+support_tier = "primary"
+implementation_state = "partial"
+api_stability = "stable"
 run_supported = true
-role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile"
+role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
 
 [[target_profiles]]
 id = "native-cpp"
-tier = "—"
-adr_tier = "scaffold"
-status = "scaffold"
+support_tier = "scaffold"
+implementation_state = "scaffold"
+api_stability = "experimental"
 run_supported = false
 role = "Scaffold C99 emit path"
 
 [[target_profiles]]
 id = "native-llvm"
-tier = "—"
-adr_tier = "scaffold"
-status = "scaffold"
+support_tier = "scaffold"
+implementation_state = "scaffold"
+api_stability = "experimental"
 run_supported = false
 role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
 
-[[target_profiles]]
+[[legacy_gaps]]
 id = "wasm32-freestanding"
-tier = "—"
-adr_tier = "retired"
-status = "legacy-gap"
-run_supported = false
-role = "ADR-007 retired (hard error as public target); leftover driver/emitter code is deletion backlog, not a public contract"
+action = "remove"
+note = "ADR-007 retired (hard error as public target); leftover driver/emitter code is deletion backlog, not a public contract"
 
 [verification]
 fixture_passed = 654
@@ -149,11 +146,18 @@ summary = "Only user `pub fn` with WIT-compatible types are exported"
 
 # Lifecycle status labels used across docs, issues, and target-contract.md.
 # Every feature / target surface should use one of these labels.
+# Axis separation (do not overload a single `status` field):
+# - support_tier: primary | supported | scaffold | not-started  (ADR-007/013)
+# - api_stability: stable | provisional | experimental | unimplemented  (ADR-014)
+# - implementation_state: complete | partial | scaffold | unimplemented
+# - legacy_gaps: retired surfaces awaiting deletion (not target_profiles)
+
 [lifecycle]
+# API stability labels (ADR-014). support_tier / implementation_state / legacy_gaps
+# use their own fields — do not overload this list.
 labels = [
-  "stable",        # CI-verified, regression-protected, safe for production use
-  "provisional",   # Implemented and passing tests but API may change
-  "experimental",  # Functional but incomplete; may break between releases
-  "scaffold",      # Code structure exists but not yet functional end-to-end
-  "unimplemented", # Planned but no working code
+  "stable",
+  "provisional",
+  "experimental",
+  "unimplemented",
 ]

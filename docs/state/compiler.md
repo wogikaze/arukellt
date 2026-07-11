@@ -1,21 +1,19 @@
-# コンパイラ MIR / bootstrap 履歴
+# コンパイラ MIR / bootstrap（現行詳細）
 
-ステータス: 履歴・実装ログ（現行正本ではない）  
-現行の要約は [`docs/current-state.md`](../current-state.md)。
-詳細参照: [`docs/compiler/optimization.md`](../compiler/optimization.md)、
-[`docs/compiler/bootstrap.md`](../compiler/bootstrap.md)。
+ステータス: **現行詳細メモ**（要約の正本は [`../current-state.md`](../current-state.md)）  
+参照: [`../compiler/optimization.md`](../compiler/optimization.md)、[`../compiler/bootstrap.md`](../compiler/bootstrap.md)。
 
 ---
 
 ## MIR Optimization Status
 
-The MIR optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](docs/compiler/optimization.md) for the complete reference.
+The MIR optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](../compiler/optimization.md) for the complete reference.
 
 - **20 MIR passes** implemented in selfhost `src/compiler/passes/`, running up to 3 fixed-point rounds
 - **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)
 - **Dead function elimination** removes unreachable stdlib functions at O1+ via MIR
   reachability pruning on `wasm32-gc` (`wasm` and component/wit emit); `wasm32` relies on backend
-  reachability (see [t3-reachability.md](compiler/t3-reachability.md))
+  reachability (see [t3-reachability.md](../compiler/t3-reachability.md))
 - **`wasm32-gc` backend peephole**: `local.set`/`local.get` → `local.tee` conversion at O1+
 - **Struct field layout reorder**: hot-field-first layout at O2
 - **Backend reachability**: only reachable functions and WASI imports are emitted
@@ -35,7 +33,7 @@ Issue #650 extended `wasm32-gc` reachability pruning to `--emit wasm` (not only 
 and documented `wasm32-gc` O2 pass gating in `mir_opt/orchestrate.ark`:
 
 - `wasm32-gc` dead function elimination is **enabled** for `--emit wasm` and component/wit emit
-  using the export-surface root contract ([t3-reachability.md](compiler/t3-reachability.md))
+  using the export-surface root contract ([t3-reachability.md](../compiler/t3-reachability.md))
 - O2 `gc_hint` is **unlocked** for `wasm32-gc` with GC-safety note + `t3-run:scalar/gc_hint_short_lived.ark`
 - O2 `loop_unroll` and `licm` remain **gated** for `wasm32-gc` until independently GC-audited
 - Regression fixtures: `tests/fixtures/t3/wasm_dead_fn_elim.ark` (wasm emit),
@@ -49,7 +47,7 @@ Historical note: older docs referenced `T3_GATED_PASSES` (internal name) in Rust
 
 > **Completion criterion:** `scripts/run/verify-bootstrap.sh` exits 0 (no
 > SKIP) **and** `python scripts/manager.py selfhost parity` exits 0.
-> See [docs/compiler/bootstrap.md](docs/compiler/bootstrap.md) for full details.
+> See [docs/compiler/bootstrap.md](../compiler/bootstrap.md) for full details.
 
 Verification status of each bootstrap stage (source: `src/compiler/*.ark`):
 

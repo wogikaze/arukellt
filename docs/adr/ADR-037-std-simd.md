@@ -1,8 +1,9 @@
 # ADR-037: std::simd — Explicit SIMD Library API
 
-ステータス: **PROPOSED** — 明示的 SIMD ライブラリ API と v128 第一級型の導入を提案
+ステータス: **PROPOSED** — portable `Simd<T,N>` API と raw `std::wasm::V128` の分離導入を提案
 
-提案日: 2026-06-26
+提案日: 2026-06-26  
+改訂日: 2026-07-11 — ADR-042 と整合（bitselect/reinterpret は portable）。型・fallback 境界を定義
 
 ---
 
@@ -11,106 +12,69 @@
 Arukellt には SIMD サポートが存在しない。`std::wasm::valtype_v128` の定数バイトのみが
 experimental で存在する。本 ADR は明示的 SIMD ライブラリ API としての導入入口を定義する。
 
-Issue #107 (ループベクトル化ヒント) は reject 済みであり、本 ADR はその代替位置づけである。
-ただし「autovectorization を採用する」のではなく、「SIMD 導入の最初の入口を compiler hint
-ではなく explicit library API にする」という代替である。
+Issue #107 (ループベクトル化ヒント) は reject 済みであり、本 ADR はその代替位置づけである
+（hint ではなく explicit library API）。
 
 ### 関連 ADR
 
-- ADR-002: Wasm GC 前提 — v128 は値型だが GC struct/array フィールドに保持可能
-- ADR-045: 旧 LLVM 方針撤回 — native SIMD は本 ADR のスコープ外（後継 native ADR で決定）
-- ADR-006: 公開 ABI 3層 — SIMD 値の ABI 表現を追加
-- ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` — ターゲット別 SIMD 可否
-- ADR-014: stability labels — 初期は experimental
+- ADR-002: Wasm GC 前提 — SIMD 値は GC struct/array フィールドに保持可能（portable 表現）
+- ADR-006: 公開 ABI 境界 — SIMD の stable 公開は WIT/canonical。raw V128 は非 stable
+- ADR-007 / ADR-013: ターゲットと capabilities
+- ADR-014: 初期 stability は experimental
+- **ADR-042**: portable semantic op vs `std::wasm` target intrinsic（本 ADR はこれに従う）
+- ADR-045: native SIMD はスコープ外
 
 ### Wasm 3.0 仕様上の前提
 
-v128 は Wasm 3.0 の `valtype` の一種 (`valtype ::= numtype | vectype | reftype ...`) である。
-GC の `struct` / `array` のフィールド型は `storagetype` で、`storagetype ::= valtype | packtype`
-である。したがって v128 は struct フィールドにも array 要素にも入る。`struct.new` は
-`unpack(storagetype)` を引数に取り、v128 は packed type ではないので `unpack(v128) = v128` のまま
-扱われる。`struct.get` / `struct.set` / `array.get` / `array.set` も同様に v128 をそのまま
-読み書きする。
-
-参照: [WebAssembly 3.0 Spec — Types](https://webassembly.github.io/spec/core/syntax/types.html),
-[WebAssembly 3.0 Spec — Instructions](https://webassembly.github.io/spec/core/valid/instructions.html)
+Wasm の `v128` は `valtype` の一種であり、GC struct/array の field/element にも入りうる。
+ただし **言語の portable SIMD 型と Wasm raw `v128` は同一視しない**（下記決定）。
 
 ---
 
 ## 提案する決定
 
-### 1. v128 第一級型
+### 1. 二層の型モデル（必須分離）
 
-v128 を言語型システムの第一級型として追加する。typechecker / MIR / emitter の全面対応を行う。
-facade (Vec<i32> 等での scalar エミュレーション) は採用しない。
+| 層 | 型 | 役割 | `simd128` ScalarEmulation | Component/WIT 公開 |
+|----|-----|------|---------------------------|-------------------|
+| **Semantic** | `Simd<T, N>` | portable ベクトル意味 | **可能**（scalar tuple 等） | 将来は canonical 投影を別途設計 |
+| **Raw Wasm** | `std::wasm::V128` | Wasm 128-bit value category の露出 | **不可**（capability 必須） | **不可** |
 
-### 2. v128 のメモリモデル
+- `f32x4` / `i32x4` 等は **`Simd<T,N>` の nominal wrapper（または薄い alias）** とする。
+  すべてが同じ raw `v128` の表示違いではない。
+- 同幅 lane 型間の bit reinterpret は portable な型変換 API（`Simd` 上）とし、
+  `std::wasm` に置かない（ADR-042 D8）。
+- facade としての `Vec<i32>` 擬似 SIMD は採用しない。scalar lowering は
+  `Simd<T,N>` の正規表現の一つであり、raw `V128` の emulation ではない。
 
-v128 は Wasm 値型であり GC 管理外だが、GC struct のフィールドおよび GC array の要素として
-保持できる (Wasm 3.0 仕様準拠)。ADR-002 (Wasm GC 前提) と矛盾しない。
+### 2. メモリモデル
 
-- `struct` フィールド型として v128 を許可
-- `array` 要素型として v128 を許可
-- `struct.new` / `struct.get` / `struct.set` は v128 をそのまま扱う
-- `array.get` / `array.set` / `array.new` も同様
+- portable `Simd<T,N>` 値は言語の値意味論に従う。GC struct/array フィールドに保持できる。
+- `std::wasm::V128` は Wasm 値型の露出であり、linear-memory load/store および
+  Wasm 固有操作に使う。GC field に載せる場合も raw capability が必要。
 
-### 3. 型と構文
+### 3. 初期 API 面（仕様上の最小核）
 
-#### lane 型モジュール
+**実装の最初の検証核**（同時に全部を実装しなくてよい）:
 
-`std::simd` 配下に lane 型ごとのモジュールを設ける:
-
-```
-std::simd::i8x16
-std::simd::u8x16
-std::simd::i16x8
-std::simd::u16x8
-std::simd::i32x4
-std::simd::u32x4
-std::simd::i64x2
-std::simd::u64x2
-std::simd::f32x4
-std::simd::f64x2
-std::simd::v128        // 低レベル raw 型
+```text
+Simd<i32, 4> / i32x4
+Simd<f32, 4> / f32x4
+mask / splat / lane access
+arithmetic / compare / select（bitselect 含む）
 ```
 
-#### 構文例
+**仕様カタログとして後続で定義してよい lane 型**（初回実装必須ではない）:
 
-lane 型モジュールの関数呼び出し:
-
-```
-let a = f32x4::new(1.0, 2.0, 3.0, 4.0)
-let b = f32x4::splat(2.0)
-let c = f32x4::add(a, b)
-let x = f32x4::extract_lane(c, 3)
-let d = f32x4::replace_lane(c, 3, x)
+```text
+i8x16 u8x16 i16x8 u16x8 u32x4 i64x2 u64x2 f64x2
 ```
 
-配列リテラル + 演算子:
-
-```
-let a: f32x4 = [1.0, 2.0, 3.0, 4.0]
-let b = f32x4::splat(2.0)
-let c = a + b
-let d = f32x4::replace_lane(c, 3, f32x4::extract_lane(c, 0))
-```
-
-#### 低レベル v128 型
-
-`v128` は「表現力のため」ではなく「Wasm に直接落とす低レベル境界のため」に存在する。
-`v128.load` / `v128.store` / `v128.bitselect` / `v128.and` / `reinterpret` / 外部 intrinsic /
-未分類の raw SIMD 値を扱う際に必要。
+「仕様上すべての lane 型を列挙する」と「初回実装で全 lane を同時出荷する」は分ける。
 
 ### 4. ターゲット適用範囲と capabilities
 
-SIMD 可否は **target × target feature** で決まる（target 名だけでは確定しない）。
-
-| ターゲット | fixed SIMD (`simd128`) | relaxed SIMD | 備考 |
-|------------|------------------------|--------------|------|
-| `wasm32` / `wasm32-gc` | feature 有効時: 直接 emit / 無効時: scalar 同値計算 | `std::wasm` 側で別判定（ADR-042） | portable API は `std::simd` |
-| `native-*` | **本 ADR のスコープ外** | — | ADR-045 再評価後 |
-
-概念モデル:
+SIMD 可否は **target × target feature** で決まる。
 
 ```text
 TargetCapabilities {
@@ -119,179 +83,92 @@ TargetCapabilities {
 }
 ```
 
-- **standardized fixed SIMD**（`i32x4.add` 等）: `simd128` Enabled なら直接 emit、
-  ScalarEmulation なら scalar lowering、Unsupported ならコンパイルエラー
-- **relaxed SIMD**: portable `std::simd` に混ぜず、`std::wasm` の target-specific として扱う（ADR-042）
+| ターゲット | fixed SIMD (`simd128`) | relaxed SIMD |
+|------------|------------------------|--------------|
+| `wasm32` / `wasm32-gc` | Enabled→直接 emit / ScalarEmulation→`Simd` のみ scalar / Unsupported→エラー | `std::wasm` で別判定 |
+| `native-*` | スコープ外（ADR-045） | — |
+
+- portable `std::simd` 操作は ScalarEmulation で同値計算してよい（ADR-015: panic しない）。
+- `std::wasm::V128` および raw load/store / relaxed は ScalarEmulation **不可**。
 
 ### 5. 機能検出
 
-実行時検出は行わない。コンパイル時に `TargetCapabilities`（target + feature フラグ）で決める。
-「ターゲットが決まれば SIMD 可否は確定する」ではない — **feature フラグも必要**。
+実行時検出は行わない。コンパイル時の `TargetCapabilities` で決める。
 
-### 6. SIMD 無効時の挙動
+### 6. 名前空間と所属（ADR-042 と一致）
 
-`simd128` が ScalarEmulation（例: `-simd128` 未指定、または無効ビルド）のとき、
-portable `std::simd` 操作は scalar 展開で同値計算する。エラーではなくエミュレーションである。
-ADR-015（ユーザパス panic 禁止）に従い panic は発生しない。
+```text
+std::simd:
+  and / or / xor / not
+  bitselect
+  any / all / bitmask
+  同幅 lane 型間の bit reinterpret
+  fixed SIMD arithmetic / comparison / shuffle 等の portable 操作
 
-### 7. 名前空間
-
-`std::simd` 単層とする。`std::wasm::simd` には寄せない。
-ポータブル SIMD API と Wasm-specific intrinsic は責務が異なるため分離する (後述 #11, #16)。
-
-### 8. API 形状
-
-lane 型モジュール分割とする。flat 関数 (`simd_i32x4_add`) ではなく、
-`std::simd::i32x4::add` のように lane 型ごとにモジュールを分ける。
-
-### 9. 対応 lane 型
-
-初回から全 lane 型をカバーする:
-
-```
-i8x16   u8x16
-i16x8   u16x8
-i32x4   u32x4
-i64x2   u64x2
-f32x4
-f64x2
-v128             // 低レベル raw 型
+std::wasm:
+  linear-memory v128.load / store（および load_splat / load_lane 等）
+  relaxed SIMD
+  Wasm 固有 trap・lane 規則を直接露出する raw 操作
+  std::wasm::V128 / valtype_v128（encoder/decoder・raw 境界）
 ```
 
-### 10. 操作カテゴリ
+`std::simd::bitselect` の backend が Wasm の `v128.bitselect` を選ぶのは正しい lowering であり、
+**公開 API の所属を Wasm 命令名に合わせる必要はない**。
 
-| カテゴリ | 対象 | 例 |
-|----------|------|-----|
-| construct | 全型 | `splat`, literal, `zero` |
-| lane access | 全型 | `extract_lane`, `replace_lane` |
-| shuffle / swizzle | 主に byte lane | `shuffle`, `swizzle` |
-| arithmetic | 整数・浮動小数 | `add`, `sub`, `mul`, float の `div`, `sqrt` |
-| sign / abs | 整数・浮動小数 | `neg`, `abs` |
-| comparison | 全型 | `eq`, `ne`, `lt`, `le`, `gt`, `ge` |
-| mask / select | 全型 | `select`, `bitselect`, `any`, `all`, `bitmask` |
-| bitwise | raw / integer 寄り | `and`, `or`, `xor`, `not`, `andnot` |
-| shift | 整数型 | `shl`, `shr_s`, `shr_u` |
-| saturating / narrow | 小さい整数型中心 | `add_sat`, `sub_sat`, `narrow` |
-| widening / pairwise | 整数型 | `extend`, `extmul`, `extadd_pairwise` |
-| conversion | int/float 間 | `to_i32x4_sat`, `to_f32x4`, `promote`, `demote` |
-| memory | raw / backend 層 | `load`, `store`, `load_splat`, `load_lane` |
+### 7. メモリアクセス
 
-#### v128 / raw 層の配置
-
-v128 / raw 層の操作は `std::simd` の通常 API 表には出さず、`std::wasm` 側に寄せる。
-ここに置くのは: `v128.load` / `v128.store` / `v128.and` / `v128.or` / `v128.xor` /
-`v128.not` / `v128.andnot` / `v128.bitselect` / `v128.any_true` / `reinterpret` 系。
-
-Wasm の bitwise は v128 を 128 個の独立したビットとして扱い、memory 操作も
-`v128.load` / `v128.store` として定義されている。これらは Wasm-specific intrinsic であり
-portable SIMD API の範囲には入らない。
-
-### 11. メモリアクセス — load/store API の分離
-
-**決定:**
-
-1. `std::simd` は明示的な load/store API を持たない。
-2. SIMD 値の読み書きは通常の Arukellt の field/index access に統合する。
-3. Wasm の `v128.load` / `v128.store` は `std::wasm` に限定し、`LinearPtr` / `LinearSlice`
-   だけを受け付ける。
+1. `std::simd` は明示的な linear-memory load/store API を持たない。
+2. GC / 言語値としての読み書きは field/index access に統合する。
+3. Wasm `v128.load` / `v128.store` は `std::wasm` のみ（`LinearPtr` / `LinearSlice`）。
 4. GC Vec から raw pointer を取り出す API は提供しない。
-5. GC Vec と linear memory の変換は明示的 marshal API として別途提供する。
 
-**根拠:**
+### 8. バックエンド
 
-- `v128.load` / `v128.store` は線形メモリ命令であり、GC object access ではない。
-- WasmGC では v128 を struct/array field として保持できるため、GC Vec 上の SIMD 値は
-  `array.get` / `array.set` で扱える。
-- raw load/store を `std::simd` に混ぜると、portable SIMD と Wasm-specific intrinsic の境界が崩れる。
+必要な範囲で SIMD opcode / locals / MIR を追加する。raw `V128` と portable `Simd` の
+lowering 経路を混線させない。
 
-### 12. バックエンド実装 (Wasm emitter)
+### 9. native backends
 
-必要な範囲で SIMD opcode / v128 型 / locals / params の対応を追加する:
-- `emit_opcodes.ark` への SIMD opcode 追加
-- `sections_types.ark` の v128 型追加
-- locals / params の v128 扱い
-- MIR (`mir_opcodes.ark`) への SIMD 命令追加
+スコープ外（ADR-045 後継）。
 
-### 13. native backends
+### 10. stability
 
-native SIMD は本 ADR のスコープ外とする。Wasm SIMD との意味論関係を含め、
-ADR-045 の再評価条件を満たした後継 ADR で決める。
+初期は `experimental`（ADR-014）。stable 昇格条件:
 
-### 14. stability label と昇格条件
+1. portable API（型・演算・mask）が破壊的変更なしで固定
+2. `+simd128` / ScalarEmulation で `Simd` の意味が一致
+3. `std::wasm::V128` との境界が確定（本 ADR §1 / §6）
+4. conformance + lowering differential tests
 
-初期 stability は `experimental` (ADR-014)。
+### 11. Issue #107
 
-`std::simd` が `stable` になる条件:
+hint-based autovectorization は採用しない。将来再評価する場合も内部は `Simd<T,N>` MIR へ正規化する。
 
-1. portable API の型・演算・mask・layout が破壊的変更なしで固定されていること
-2. `+simd128` と `-simd128` の両方で同じ意味になる scalar fallback が実装済みであること
-3. GC Vec / struct field / array element に置いた SIMD 値の lowering が ADR-002 と矛盾しないこと
-4. raw `std::wasm` API との境界が確定していること
-5. conformance test と lowering test があること
+### 12. `valtype_v128`
 
-これらが満たされない限り、`std::simd` は後で ABI と型システムに刺さるため stable にしない。
-
-### 15. Issue #107 との関係
-
-本 ADR は Issue #107 (ループベクトル化ヒント) の代替である。
-
-- #107 の hint-based autovectorization は本 ADR では採用しない。
-- 将来再評価する場合も、hint を直接 Wasm SIMD 命令へ落とすのではなく、明示的な
-  `std::simd` 呼び出しと同じ `Simd<T, N>` MIR へ正規化できるかを条件とする。
-- `#[vectorize]` のような hint を入れると、意味論・診断・最適化責任が一気に compiler 側へ
-  寄る。現段階ではまず `std::simd::f32x4` を明示的に呼ばせ、compiler はそれを素直に
-  v128 または scalar tuple に lower する。
-- autovectorization は将来再評価するが、その場合も内部表現としては `Simd<T, N>` IR に
-  lower する方針である。`std::simd` はソース上の明示 API、IR は compiler 内部の
-  canonical SIMD 表現、という分離を維持する。
-
-### 16. std::wasm::valtype_v128 との統合
-
-`std::wasm::valtype_v128` を `std::simd` に移動しない。
-
-- `std::simd::f32x4` は言語レベルの portable vector
-- `std::wasm::valtype_v128` は Wasm module/type reflection / encoder / decoder 側の定数
-
-責務が異なるため、両者は独立して存在する。
+既存定数は `std::wasm` に残し、portable `std::simd` へ混ぜない。
 
 ---
 
 ## 禁止事項
 
-1. `std::simd` に `v128.load` / `v128.store` を混ぜない (portable と Wasm-specific の境界崩壊)
-2. GC Vec から raw pointer を取り出す API を提供しない (GC 安全性の侵害)
-3. `#[vectorize]` のような compiler hint を導入しない (#107 の代替として明示 API を優先)
-4. native 固有の SIMD 方針は本 ADR で固定しない（ADR-045 / 後継）
-5. `wasm32` でスカラー展開をデフォルトとしない（iwasm 2.4.1 が SIMD 対応のためネイティブ SIMD を使用。スカラー展開はフォールバックとして保持）
+1. `std::simd` に `v128.load` / `v128.store` を混ぜない
+2. portable `bitselect` / `reinterpret` / bitwise を `std::wasm` に置かない（ADR-042）
+3. raw `V128` を ScalarEmulation しない
+4. raw `V128` を Component/WIT の stable 公開面に載せない
+5. 全 lane 型の同時実装を初回必須にしない
 
 ---
 
 ## 結果
 
-### 正の影響
-
-- ユーザが明示的に SIMD を制御でき、予測可能な性能が得られる
-- Wasm SIMD 命令を直接 emit するため、wasmtime / V8 / SpiderMonkey 間で一貫した挙動
-- GC struct/array フィールドに v128 を保持できるため、GC Vec 上の SIMD 値が自然に扱える
-- SIMD 無効ビルドでも scalar 展開により同値計算が可能で、ポータビリティが保たれる
-- `std::simd` (portable) と `std::wasm` (Wasm-specific) の責務分離が明確
-
-### 負の影響
-
-- v128 第一級型の導入により typechecker / MIR / emitter の全面改修が必要
-- `wasm32` の scalar 展開は性能が出ない (SIMD の恩恵を受けられない)
-- load/store API の分離により、線形メモリ上の SIMD データ操作は明示的 marshal が必要
-
----
+- portable SIMD と Wasm raw value が型・capability・名前空間で分離される
+- ADR-042 の intrinsic 境界と矛盾しない
+- 初期実装核（i32x4 / f32x4）で型モデルを検証できる
 
 ## 関連
 
-- ADR-002: Wasm GC 前提 (v128 の GC フィールド保持の根拠)
-- ADR-045: 旧 LLVM 方針撤回 — native SIMD はスコープ外
-- ADR-006: 公開 ABI 境界分類 (SIMD 値の ABI 表現)
-- ADR-007: ターゲット `wasm32` / `wasm32-gc` / `native` (target × feature capabilities)
-- ADR-014: stability labels (experimental → stable 昇格条件)
-- `issues/reject/107-runtime-loop-vectorization-hint.md` — 本 ADR の代替元
-- `std/wasm/mod.ark` — `valtype_v128` 定数 (本 ADR では移動しない)
+- [ADR-042](ADR-042-intrinsic-layer-separation.md)
+- ADR-002 / ADR-006 / ADR-007 / ADR-014 / ADR-045
+- `issues/reject/107-runtime-loop-vectorization-hint.md`
 - [WebAssembly 3.0 Spec — Types](https://webassembly.github.io/spec/core/syntax/types.html)
-- [WebAssembly 3.0 Spec — Instructions](https://webassembly.github.io/spec/core/valid/instructions.html)

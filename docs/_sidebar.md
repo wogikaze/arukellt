@@ -17,6 +17,7 @@
   - [プレイグラウンド](#/playground/README)
     - [▶ Try Playground](#/playground/index.html)
   - [ベンチマーク](#/benchmarks/README)
+  - [現行詳細](#/state/README)
 
 - **Supporting Docs**
   - [クックブック](#/cookbook/README)

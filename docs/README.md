@@ -32,6 +32,7 @@
 | 実行例 | [examples](examples/README.md) | 実行可能なサンプルと expected 出力。 |
 | プレイグラウンド | [playground](playground/README.md) | ブラウザ向け playground の実装部品、設計、運用ドキュメント。 |
 | ベンチマーク | [benchmarks](benchmarks/README.md) | ベンチマークガバナンス、機能マトリックス、手法。 |
+| 現行詳細 | [state](state/README.md) | current-state の詳細メモ。要約の正本は docs/current-state.md。 |
 
 ## Supporting Docs
 

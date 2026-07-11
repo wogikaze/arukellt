@@ -12,6 +12,4 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
-| [compiler-mir-and-bootstrap.md](compiler-mir-and-bootstrap.md) | コンパイラ MIR / bootstrap 履歴 | Archive | ステータス: 履歴・実装ログ（現行正本ではない） |
-| [component-model-status.md](component-model-status.md) | Component Model 実装メモ | Archive | ステータス: 詳細メモ（要約は current-state） |
 | [milestones.md](milestones.md) | 到達記録（historical milestones） | Archive | ステータス: 履歴メモ（現行正本ではない） |

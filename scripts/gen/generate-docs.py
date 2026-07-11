@@ -1164,16 +1164,16 @@ def join_pipeline(parts: list[str]) -> str:
 
 def render_target_table(state: dict) -> str:
     rows = [
-        "| Target | Tier | ADR-013 Tier | Status | Run | Notes |",
-        "|--------|------|--------------|--------|-----|-------|",
+        "| Target | Support Tier | Implementation | API Stability | Run | Notes |",
+        "|--------|--------------|----------------|---------------|-----|-------|",
     ]
     for profile in load_target_contract_summary():
         rows.append(
             "| `{}` | {} | {} | {} | {} | {} |".format(
                 profile["Target"].strip("`"),
-                profile["Tier"],
-                profile["ADR-013 Tier"],
-                profile["Status"],
+                profile["Support Tier"],
+                profile["Implementation"],
+                profile["API Stability"],
                 profile["Run"],
                 escape_table(profile["Notes"]),
             )
@@ -1203,7 +1203,14 @@ def load_target_contract_summary() -> list[dict[str, str]]:
         raise ValueError("target-contract summary source block is empty")
 
     headers = _parse_markdown_table_row(lines[0])
-    expected_headers = ["Target", "Tier", "ADR-013 Tier", "Status", "Run", "Notes"]
+    expected_headers = [
+        "Target",
+        "Support Tier",
+        "Implementation",
+        "API Stability",
+        "Run",
+        "Notes",
+    ]
     if headers != expected_headers:
         raise ValueError(
             "unexpected target-contract summary headers: "

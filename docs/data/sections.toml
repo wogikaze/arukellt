@@ -111,6 +111,14 @@ category = "archive"
 snapshot = "archive"
 
 
+
+[[sections]]
+dir = "state"
+title = "現行詳細"
+description = "current-state の詳細メモ。要約の正本は docs/current-state.md。"
+category = "current"
+snapshot = "current"
+
 [[sections]]
 dir = "history"
 title = "履歴"
