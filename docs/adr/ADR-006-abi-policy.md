@@ -1,97 +1,90 @@
 # ADR-006: 公開 ABI を 3 層に固定
 
-ステータス: **ACCEPTED** — 公開 ABI は最大 3 層（Layer 3 native は予約・詳細未決定）
+ステータス: **ACCEPTED** — 安定公開境界は WIT/canonical。raw Wasm GC layout は非 stable
 
-決定日: 2026-03-24
+決定日: 2026-03-24  
+改訂日: 2026-07-11 — Layer 2A の GC 型 layout を stable から外す
 
 ---
 
 ## 文脈
 
-公開 ABI を無秩序に増やすと保守コストが増大する。以下のリスクがある:
-
-- Layer の無制限増加
-- バージョン間の互換性維持が困難
-- 各公開面でのテストが必要
+公開 ABI を無秩序に増やすと保守コストが増大する。一方で raw Wasm の GC 型表現
+（`String` / `Vec` の `(ref $…)` layout）を stable に固定すると、内部表現の進化
+（inline string、rope、capacity layout、nullable 最適化、recursive type group 等）を
+阻害する。
 
 ---
 
 ## 決定
 
-**公開 ABI は 3 層まで。これ以上増やさない。**
+**公開境界の枠は最大 3 層まで。これ以上増やさない。**
 
 ### 3 層構造
 
 | Layer | 名称 | 公開範囲 | 互換性保証 |
 |-------|------|---------|-----------|
-| 1 | 内部 ABI | 非公開 | なし |
-| 2 | WASM 公開 ABI | Wasm モジュール間 | 互換性を維持する |
+| 1 | 内部 ABI | コンパイラ私有 | **なし** |
+| 2B | Component / WIT / Canonical ABI | 安定な外部境界 | **維持する** |
+| 2A | raw Wasm module ABI | 実験的・限定 | **experimental**（下記） |
 | 3 | native 公開 ABI（予約） | native 外部境界 | **未決定**（ADR-045） |
 
-### Layer 1: 内部 ABI
+Layer 番号の「2A/2B」は歴史的ラベルである。意味上は別種の境界であり、
+「公開 ABI がちょうど 3 つ」という意味ではない。増やさない対象は
+**安定公開面の種類**である。
 
-- arukellt コンパイラ独自
-- バージョン間の互換性保証なし
+### Layer 1: 内部 ABI（compiler-private）
+
 - 関数呼び出し規約、スタックフレーム、レジスタ割り当て
+- **`String` / `Vec` / enum / closure / trait object の GC 表現**はここに属する
+- バージョン間の互換性保証なし。ADR-040 / ADR-042 の整理で変更してよい
 
-### Layer 2: WASM 公開 ABI
+### Layer 2B: 安定な外部境界（採択）
 
-- 2 つの公開面を持つ:
-  - **Layer 2A: raw Wasm ABI**（素の import/export）
-  - **Layer 2B: Component Model / WIT ABI**（WASI Preview 2、canonical ABI）
-- どちらも Layer 2 の範囲に含める
-- 独立した Layer 4 にはしない
-- raw Wasm 面と WIT 面は同じ言語セマンティクスから生成する
+- Component Model / WIT / Canonical ABI を **stable public ABI** とする
+- 言語セマンティクスから canonical lower/lift で投影する
+- 相互運用・バージョニングの正本はこちら
+
+### Layer 2A: raw Wasm ABI（experimental）
+
+- 素の Wasm import/export 面。次のみを experimental 公開の候補とする:
+  - スカラー値（`i32` / `i64` / `f32` / `f64`、および `bool`/`char` の整数表現）
+  - 明示的に versioned された opaque handle
+- **`(ref $string)` / `(ref $vec_T)` / enum・struct の GC type identity は
+  stable ABI に含めない**（Layer 1）。別モジュール間で型 identity を共有する契約は未定義
+- raw Wasm GC ABI を将来 stable にする場合は、recursive group・subtyping・
+  import/export type・バージョニングを含む **独立 ABI 仕様**が必要（本 ADR の範囲外）
 
 ### Layer 3: native 公開 ABI（予約領域）
 
-- Layer 3 は **native 外部境界のための予約スロット**である。
-- 具体的な ABI（C ABI か否か）、ソース構文（`extern "C"` 等）、型制約、
-  target module 境界は **未決定**（[ADR-045](ADR-045-llvm-scope-withdrawn.md)）。
-- portable な Ark コードから直接利用可能とはしない。
-- scaffold 実装の実験は妨げないが、本層の契約を ACCEPTED として固定しない。
+- 予約スロット。具体 ABI・構文・型制約は **未決定**（[ADR-045](ADR-045-llvm-scope-withdrawn.md)）
+- portable Ark から直接利用可能とはしない
+
 ---
 
 ## 禁止事項
 
-1. **Layer 4 の追加禁止**
-   - 「WIT 専用層」「POSIX 専用層」は作らない
-   - 必要なら Layer 2 または Layer 3 の拡張として吸収
-
-2. **Layer 2A / 2B の意味論分岐禁止**
-   - raw Wasm 面と WIT 面で言語仕様を分岐させない
-   - 片方のみで成功する API 形は正規 API にしない
-
-3. **ABI の独自拡張禁止**
-   - 標準から外れる呼び出し規約は入れない
-   - 他ツールとの相互運用性を維持
+1. **安定公開面の無制限増加禁止** — WIT 専用・POSIX 専用などの第4の stable 面を作らない
+2. **Layer 2B と言語セマンティクスの分岐禁止** — 片方のみで成功する API 形を正規にしない
+3. **Layer 1 の GC layout を Layer 2A stable として公開しない**
 
 ---
 
-## 型の ABI 表現（WASM 公開 ABI）
+## 参考: 現行 emitter の GC 表現（非契約）
 
-Layer 2A / 2B で共有する型意味論:
+実装の理解用。**互換性契約ではない。**
 
-- Layer 2A（raw Wasm）は GC 参照や value type を直接使う
-- Layer 2B（WIT）は canonical ABI の lower/lift で同値な値表現に落とす
-
-| arukellt の型 | ABI 表現 |
-|--------------|---------|
-| `i32` / `i64` / `f32` / `f64` | Wasm value type そのまま |
-| `bool` | `i32`（0 or 1） |
-| `char` | `i32`（Unicode scalar value） |
-| `struct` | `(ref $struct_type)` |
-| `enum` | `(ref $enum_type)` |
-| `String` | `(ref $string)` |
-| `Vec[T]` | `(ref $vec_T)` |
-| `Option[T]` where T is ref | `(ref null $T)` |
-| `Option[T]` where T is value | `(ref $option_T)` |
-| `Result[T, E]` | `(ref $result_T_E)` |
+| arukellt の型 | 現行の典型的 Wasm 表現（変わりうる） |
+|--------------|--------------------------------------|
+| `i32` / `i64` / `f32` / `f64` | Wasm value type |
+| `bool` / `char` | `i32` |
+| `struct` / `enum` / `String` / `Vec[T]` / `Option` / `Result` | GC ref（layout は Layer 1） |
 
 ---
 
 ## 関連
 
-- ADR-045: 旧 LLVM 方針の撤回（Layer 3 詳細は再開まで未決定）
-- `docs/platform/abi.md`: ABI 詳細
-- [ADR-007: Targets](ADR-007-targets.md): 使用する Wasm 機能
+- ADR-045: Layer 3 詳細は未決定
+- ADR-008: component 生成（Layer 2B の成果物）
+- ADR-040 / ADR-042: 内部型・intrinsic 整理（Layer 1 変更の根拠）
+- [ADR-007: Targets](ADR-007-targets.md)

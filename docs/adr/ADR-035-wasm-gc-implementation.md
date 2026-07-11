@@ -41,18 +41,28 @@ emitted する。
 
 ## スコープ外
 
-- Post-MVP GC features (ADR-043 survey): static fields, weak references, generics
-- jco/javy interop (#036, #037): jco の Wasm GC サポート待ち
-- LLVM backend (`native-llvm`): native target は別トラック
-- WASI P3 async-first: WASI P3 仕様未確定のため defer
+- Post-MVP GC features（ADR-043）: static fields、weak references、generics。
+  `Weak<T>` / finalizer は言語未採択（ADR-002 / ADR-043）
+- LLVM backend (`native-llvm`): native target は別トラック（ADR-045）
+- WASI P3 async-first: 仕様未確定のため defer
+
+## ブラウザ経路（jco）との関係
+
+`wasm32-gc` → in-tree component → `jco transpile` → browser/Node は ADR-007 / ADR-017 の
+製品経路である。jco の Wasm GC 対応は調査時点で確認済み
+（[`docs/research/target-runtime-verification.md`](../research/target-runtime-verification.md)、
+旧 #037 は解消済み）。本 ADR は「jco GC 待ち」をブロッカーとしない。
+
+継続的な conformance（GC struct/array を含む component の jco + Chrome/Node）は
+`docs/current-state.md` / CI で追跡する。
 
 ## リスク
 
-1. **jco GC 非対応**: JS interop パスがブロックされる (#037)。
-2. **wasmtime GC perf**: fixture parity と benchmark で監視する。
-3. **Migration cost**: MIR lowering の広範な影響。段階的移行が難しい場合、
+1. **wasmtime GC perf**: fixture parity と benchmark で監視する。
+2. **Migration cost**: MIR lowering の広範な影響。段階的移行が難しい場合、
    「flag day」アプローチも検討。
-4. **`wasm32` / `wasm32-gc` の二重実装コスト**: コードベースが複雑になる。
+3. **`wasm32` / `wasm32-gc` の二重 lowering コスト**: 意味論は単一、表現だけが分岐する
+   （ADR-002）。コードベース複雑さは残る。
 
 ## 関連 ADR
 

@@ -19,7 +19,7 @@
 | [ADR-001-harness-bootstrap.md](ADR-001-harness-bootstrap.md) | ADR-001: Harness Bootstrap Strategy | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | ステータス: ACCEPTED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: ACCEPTED — Monomorphization（型ごとのコード生成）を採用する |
-| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | ステータス: ACCEPTED — 公開 ABI は最大 3 層（Layer 3 native は予約・詳細未決定） |
+| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI を 3 層に固定 | ステータス: ACCEPTED — 安定公開境界は WIT/canonical。raw Wasm GC layout は非 stable |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: ACCEPTED — ターゲットを3系統に確定（wasm32 / wasm32-gc / native） |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: ACCEPTED — --emit component は in-tree で生成する |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | ステータス: ACCEPTED — use std::host::stdioの::-separated形式をソースモジュール参照として確定 |

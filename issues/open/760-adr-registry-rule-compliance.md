@@ -22,5 +22,6 @@ ADR-000 の規則に既存 ADR 群を追従させる残作業を追跡する。
 2026-07-11 着手済み: ADR-043→research、035/040/042→plans、ADR-004/005 supersession、
 ADR-006 Layer3 弱体化、ADR-007/013 一本化、check-adrs 強化。
 
-2026-07-11 追記: ADR-007/008 component in-tree 統一、ADR-005参照除去、ADR-017 jco 整合、
-ADR-002 の AtCoder 制約を target-local 化、ADR-011/037 整合。
+2026-07-11 追記2: WASI P1 environ_get 誤認訂正、Weak/finalizer を ADR-002/043 で未採択に統一、
+jco GC ブロッカー記述を調査結果に合わせて更新、ADR-008 CM 安定化表現を訂正、
+ADR-006 raw GC layout を non-stable に縮小。

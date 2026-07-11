@@ -13,7 +13,13 @@ GC と非GCは「性能差」ではなく「設計方針の分岐点」。この
 - std の String / Vec / HashMap 実装
 - エラー処理でのアロケーション前提
 
-「両対応」は許されない。GC-native profile と linear-memory fallback の二層は「比較」ではなく「二重実装」になる。
+「両対応」は許されない、の意味は次のとおりである。
+
+- **禁止**: GC 用と linear 用で**異なる言語意味論・stdlib・ownership model**を持つこと
+- **許可**: **一つの言語意味論**（Wasm GC ベース）を複数の target representation へ
+  lowering すること（例: `wasm32-gc` はホスト GC、`wasm32` は同一意味の linear lowering）
+
+GC-native profile と「別言語としての」linear fallback の二重設計は比較ではなく二重実装になる。
 
 ## 選択肢
 
@@ -249,11 +255,16 @@ AtCoder 等の非 GC ランタイム向けに、同一言語意味論を linear 
 
 | 機能 | `wasm32-gc` | `wasm32` |
 |------|-------------|----------|
-| 循環参照グラフ | 許可（ホスト GC） | **target capability error**（未対応） |
-| `Weak<T>` / 弱参照 | 許可（実装は別 issue） | **unsupported** |
-| finalizer 意味論 | 許可（実装は別 issue） | **unsupported** |
+| 循環参照グラフ | **許可**（通常のホスト GC 到達可能性） | **target capability error**（未対応） |
+| `Weak<T>` / 弱参照 | **未採択**（ADR-043: Phase 0 拡張に依存しない。将来の独立 ADR） | **unsupported** |
+| finalizer 意味論 | **未採択**（同上。実行保証・順序・resurrection 等は未定義） | **unsupported** |
 
-AtCoder 向けサブターゲットの都合で、primary 言語仕様からこれらの機能を削らない。
+循環参照は MVP GC で扱えるため言語仕様として許可する。
+`Weak<T>` と finalizer は Wasm Weak References / Finalization 等の未標準化機能、
+または独自 runtime エミュレーションの意味論定義が必要なため、**言語仕様に採択しない**。
+将来採択する場合は独立 ADR で観測可能意味論を固定する（ADR-043）。
+
+AtCoder 向けサブターゲットの都合で、primary 言語仕様から循環参照を削らない。
 `wasm32` で使えない機能はコンパイル時にターゲット能力エラーとする。
 
 `wasm32` の arena + RC hybrid 等の **実装手順**は

@@ -16,3 +16,4 @@
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
 | [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | ステータス: 実装計画（決定記録ではない） |
+| [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（arena + RC） | Archive | ステータス: 実装計画（決定記録ではない） |

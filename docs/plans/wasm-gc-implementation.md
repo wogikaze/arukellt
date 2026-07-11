@@ -122,17 +122,19 @@ python3 scripts/manager.py verify quick
 
 ## リスクと依存
 
-1. **jco GC 非対応**: JS interop パスがブロックされる。upstream jco が Wasm GC をサポートするまで待つ必要がある (#037)。
-2. **wasmtime GC perf**: fixture parity と benchmark で監視する。
-3. **Migration cost**: `i32-as-pointer` から GC reference への移行で MIR lowering の多くの箇所に影響。段階的移行が難しい場合、「flag day」アプローチも検討。
-4. **`wasm32` / `wasm32-gc` の二重実装コスト**: `wasm32` 維持のため linear memory パスは残す。
+1. **wasmtime GC perf**: fixture parity と benchmark で監視する。
+2. **Migration cost**: MIR lowering の広範な影響。段階移行が難しい場合は flag day も検討。
+3. **`wasm32` / `wasm32-gc` の二重 lowering コスト**（意味論は単一、ADR-002）。
+
+jco の Wasm GC 対応は調査で確認済み（`docs/research/target-runtime-verification.md`）。
+「jco GC 待ち」は現行ブロッカーではない。
 
 ## スコープ外
 
-- Post-MVP GC features (ADR-043 survey): static fields, weak references, generics
-- jco/javy interop (#036, #037): jco の Wasm GC サポート待ち
-- LLVM backend (`native-llvm`): native target は別トラック
-- WASI P3 async-first: WASI P3 仕様未確定のため defer
+- Post-MVP GC features（ADR-043）: static fields、weak references、generics
+- `Weak<T>` / finalizer（言語未採択、ADR-002 / ADR-043）
+- LLVM backend（ADR-045）
+- WASI P3 async-first
 
 ## 関連
 

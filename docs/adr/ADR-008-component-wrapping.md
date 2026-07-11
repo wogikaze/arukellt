@@ -31,7 +31,10 @@ Component Model 対応にあたり、core Wasm モジュールを `.component.wa
 
 理由:
 - Arukellt はセルフホスト言語であり、component 生成を外部ツールに鎖しない
-- Component Model は Wasm 3.0 で安定化し、in-tree 化のリスクが下がった
+- WASI 0.2 で利用する Component Model の機能集合は producer/consumer 間で安定運用されている
+  （ただし Component Model **全体**は現在も標準化中であり、binary format や gated feature の
+  変化を追跡する必要がある）
+- 必要な subset を限定し、conformance tests と binary encoder を内部管理できる
 - ビルド再現性と CI の自己完結性を優先する
 
 現行の補助スクリプトや fixture の挙動は `docs/current-state.md` を参照する。
