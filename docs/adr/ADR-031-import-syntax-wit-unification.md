@@ -223,5 +223,5 @@ WIT の `namespace:package/interface@version` 形式は、WebAssembly Component 
 - [ADR-007-targets.md](ADR-007-targets.md) — プライマリターゲット `wasm32-gc`（旧 alias `wasm32-wasi-p2`）。
 - [../spec/import-system.md](../spec/import-system.md) — 規範的 Layer S / Layer C 契約ページ。
 - [../module-resolution.md](../module-resolution.md) — `use` / `import` の Layer S 解決挙動。
-- Issue [#074](../../issues/done/074-wasi-p2-native-component.md) — WASI p2 ネイティブ component 出力。
+- Issue [#074](../../issues/open/074-wasi-p2-native-component.md) — WASI p2 ネイティブ component 出力。
 - Issue [#124](../../issues/done/124-wit-component-import-syntax.md) — WIT component import 構文実装。

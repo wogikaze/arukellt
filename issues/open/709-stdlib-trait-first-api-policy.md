@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-01
-Updated: 2026-07-01
+Updated: 2026-07-12
 ID: 709
 Track: stdlib-api
 Depends on: "691, 695, 697, 703"
@@ -9,71 +9,74 @@ Orchestration class: blocked-by-upstream
 Orchestration upstream: "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
 Blocks v{N}: none
 Priority: 1
-Source: Stdlib trait-first direction 2026-07-01
+Source: Stdlib trait-first direction 2026-07-01 / ADR-046 eradication 2026-07-12
 ---
 
-# 709 — Stdlib trait-first API policy and i32 helper containment
+# 709 — Stdlib trait-first API policy and free-function eradication
 
 ## Summary
 
-The stdlib public surface is still too close to a collection of low-level
-`i32` helper functions. This hurts reuse, makes docs look sparse, and teaches
-LLM-generated code to select concrete helper APIs instead of composable
-traits, modules, structs, and `impl` methods.
+The stdlib public surface must be **trait-first / type-first**. User-reachable
+free functions (`func(recv, …)`, monomorphic `*_i32`, prelude thin wrappers)
+are **eradicated**, not kept as permanent bridges
+([ADR-046](../../docs/adr/ADR-046-free-function-eradication.md)).
 
-This issue tracks the policy that `*_i32` and similar monomorphic helpers are
-allowed only as low-level implementation details or temporary compiler/runtime
-bridges. User-facing stdlib APIs should be trait-first and type-first:
+Allowed end states:
 
-- reusable traits such as `Iterator`, `IntoIterator`, `FromIterator`, `Ord`,
-  `Clone`, `Hash`, `Display`, `Debug`, `Read`, and `Write`
-- coherent modules such as `std::iter`, `std::collections`, `std::core::ops`
-- public structs/enums such as `Vec<T>`, `Deque<T>`, iterator adapters, result
-  and error types
-- `impl` methods and associated functions instead of ad-hoc free functions
+- reusable traits (`Iterator`, `Ord`, `Clone`, `Display`, `Read`, …)
+- coherent modules and public structs/enums
+- `impl` methods and associated functions (`v.push(x)`, `Vec::new()`)
+- no-receiver globals as associated on namespace/handle types
+  (`Env::args()`, `Process::exit(c)`, …)
+
+Classification for every remaining free / monomorphic / prelude_wrapper
+symbol (replaces the old “low-level allowed bridge” bucket):
+
+| Class | Meaning |
+|-------|---------|
+| `must delete` | Public or user-reachable free; migrate then remove (ADR-014 if stable) |
+| `associated-or-method` | Replacement is inherent / trait / associated (owner issue required) |
+| `intrinsic-only` | Non-public `__intrinsic_*` / manifest `kind = "intrinsic"` only |
+
+There is **no** lasting `allowed bridge` class for public or prelude wrappers.
 
 ## Current state
 
-- `std::seq` exposes eager `Vec<i32>` helpers.
-- `std::collections::vec` is much thinner than the operations exposed through
-  prelude intrinsics.
-- Several APIs are named by concrete representation rather than reusable
-  behavior (`*_i32`, `cmp_i32`, `sort_i32`, `map_i32_i32`, etc.).
-- Generated stdlib docs expose few structs/enums, which is a symptom of the
-  API surface not being modeled as reusable types.
+- Policy ACCEPTED: ADR-046 (2026-07-12). ADR-036 D5 (prelude thin wrappers
+  as permanent) is withdrawn.
+- `std::seq` and many prelude helpers still expose free / monomorphic APIs.
+- Generated docs still teach concrete helper names over methods.
+- Inventory execution: #718. Monomorphic cutover: #703.
 
 ## Required work
 
-- [ ] Define the stdlib public API policy: monomorphic helpers are private,
-      unstable, or explicitly low-level unless an issue grants an exception.
-- [ ] Add an inventory of all public `*_i32`, `*_i64`, `*_f64`, and
-      representation-specific helpers in stdlib manifests and docs.
-- [ ] Classify each helper as:
-      - low-level allowed
-      - temporary bridge blocked by compiler limitation
-      - must be replaced by trait / struct / `impl` API
-- [ ] Link each replacement to an owning issue such as #691, #695, #697,
-      #702, or #703.
-- [ ] Define a generated scorecard showing public functions vs structs/enums,
-      trait-backed APIs, and remaining monomorphic helpers.
-- [ ] Update stdlib docs to state that high-level user code should prefer
-      trait / struct / `impl` APIs over concrete helper functions.
+- [ ] Document the eradication policy in stdlib docs (link ADR-046).
+- [ ] Inventory all public free / `*_i32` / `*_i64` / `*_f64` /
+      representation-specific helpers in `std/manifest.toml`.
+- [ ] Classify each as `must delete` / `associated-or-method` /
+      `intrinsic-only` (no public bridge class).
+- [ ] Link each replacement to an owning issue (#691, #695, #697, #702,
+      #703, #718 tiers, …).
+- [ ] Define a generated scorecard: public free count, `prelude_wrapper`
+      count, remaining monomorphic helpers — **zero** is the goal for
+      user-reachable free symbols.
+- [ ] Update stdlib docs so high-level examples use method / associated /
+      trait APIs only.
 
 ## Acceptance
 
-- [ ] The stdlib has a documented trait-first API policy.
-- [ ] All public monomorphic helpers have an explicit classification and owner.
-- [ ] Public docs no longer present `i32` helpers as the primary high-level API.
-- [ ] A generated or checkable scorecard tracks the remaining helper count.
-- [ ] #703 has enough inventory data to delete or hide obsolete helpers.
+- [ ] Stdlib docs state free-function eradication (ADR-046).
+- [ ] All public free / monomorphic helpers have an explicit class and owner.
+- [ ] Public docs no longer present `i32` helpers as the primary API.
+- [ ] Scorecard tracks remaining helper count toward zero.
+- [ ] #703 / #718 have enough inventory to delete or hide obsolete helpers.
 
 ## References
 
-- #691 (`Iterator`, `IntoIterator`, `FromIterator`)
-- #695 (`Ord` / `PartialOrd`)
-- #697 (`Vec<T>` operation extension)
-- #702 (`to_string` / `clone` / `hash` trait integration)
-- #703 (monomorphic API bold cutover)
+- ADR-046 (free-function eradication)
+- ADR-044 (trait / method syntax)
+- ADR-036 (D5 withdrawn; redesign still PROPOSED)
+- #691, #695, #697, #702, #703, #718
 - `std/manifest.toml`
 - `std/seq/mod.ark`
 - `std/collections/`

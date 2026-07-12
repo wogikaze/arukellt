@@ -1,8 +1,33 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-11T09:49:54Z",
+  "generated_at": "2026-07-12T05:27:21Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
+    {
+      "id": "074",
+      "path": "074-wasi-p2-native-component.md",
+      "title": "074-wasi-p2-native-component",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "510",
+        "121"
+      ],
+      "blocks_issue_ids": [
+        "474",
+        "62",
+        "668",
+        "714"
+      ],
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
     {
       "id": "30",
       "path": "036-jco-javascript-interop.md",
@@ -23,29 +48,6 @@
       }
     },
     {
-      "id": "474",
-      "path": "474-async-component-support-v5.md",
-      "title": "Async component support (v5)",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [
-        "035",
-        "done)",
-        "074"
-      ],
-      "blocks_issue_ids": [
-        "646"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "649",
       "path": "649-t4-native-full-lowering.md",
       "title": "649 — T4 native full lowering (beyond scaffold #641)",
@@ -63,6 +65,31 @@
       },
       "orchestration": {
         "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "665",
+      "path": "665-wit-import-compose-roundtrip-e2e.md",
+      "title": "665-wit-import-compose-roundtrip-e2e",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [
+        "652",
+        "653",
+        "654",
+        "663",
+        "664"
+      ],
+      "blocks_issue_ids": [
+        "674"
+      ],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -164,27 +191,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "674",
-      "path": "674-component-composition-deps-interop.md",
-      "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
-      "track": "component-composition",
-      "status": "open",
-      "depends_on": [
-        "443",
-        "663",
-        "665"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -596,29 +602,6 @@
       }
     },
     {
-      "id": "714",
-      "path": "714-wasi-p2-emitter-native-component-output.md",
-      "title": "714 — Emitter-native WASI P2 component output without wrapper",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [
-        "668",
-        "727"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "718",
       "path": "718-stdlib-free-function-method-migration.md",
       "title": "718 — Stdlib free-function → method/trait migration inventory",
@@ -734,9 +717,7 @@
       "title": "ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)",
       "track": "compiler-internal",
       "status": "open",
-      "depends_on": [
-        "None"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 8,
@@ -782,22 +763,69 @@
       }
     },
     {
-      "id": "646",
-      "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
-      "title": "646 — T5 wasm32-wasi-p3 target scaffold",
+      "id": "474",
+      "path": "474-async-component-support-v5.md",
+      "title": "Async component support (v5)",
       "track": "wasm-feature",
       "status": "open",
       "depends_on": [
-        "474"
+        "035",
+        "done)",
+        "074"
+      ],
+      "blocks_issue_ids": [
+        "646"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "62",
+      "path": "076-wasi-p2-filesystem.md",
+      "title": "076-wasi-p2-filesystem",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "074",
+        "510"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 3,
+        "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": null
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "714",
+      "path": "714-wasi-p2-emitter-native-component-output.md",
+      "title": "714 — Emitter-native WASI P2 component output without wrapper",
+      "track": "component-model",
+      "status": "open",
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "blocks_issue_ids": [
+        "668",
+        "727"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
       }
     },
     {
@@ -817,6 +845,27 @@
       },
       "orchestration": {
         "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "674",
+      "path": "674-component-composition-deps-interop.md",
+      "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
+      "track": "component-composition",
+      "status": "open",
+      "depends_on": [
+        "443",
+        "663",
+        "665"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -909,7 +958,7 @@
     {
       "id": "703",
       "path": "703-monomorphic-api-bold-cutover.md",
-      "title": "703 — Monomorphic API bold cutover (ADR-036 D2)",
+      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
       "track": "stdlib-api",
       "status": "open",
       "depends_on": [
@@ -928,6 +977,46 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
+      }
+    },
+    {
+      "id": "726",
+      "path": "726-t3-wasm-validation-32-failures.md",
+      "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [
+        "730"
+      ],
+      "acceptance": {
+        "checked": 7,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "646",
+      "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
+      "title": "646 — T5 wasm32-wasi-p3 target scaffold",
+      "track": "wasm-feature",
+      "status": "open",
+      "depends_on": [
+        "474"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 3,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": null
       }
     },
     {
@@ -974,27 +1063,6 @@
       }
     },
     {
-      "id": "726",
-      "path": "726-t3-wasm-validation-32-failures.md",
-      "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [
-        "730"
-      ],
-      "acceptance": {
-        "checked": 7,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -1017,7 +1085,7 @@
     {
       "id": "709",
       "path": "709-stdlib-trait-first-api-policy.md",
-      "title": "709 — Stdlib trait-first API policy and i32 helper containment",
+      "title": "709 — Stdlib trait-first API policy and free-function eradication",
       "track": "stdlib-api",
       "status": "open",
       "depends_on": [
@@ -1042,6 +1110,25 @@
       }
     },
     {
+      "id": "730",
+      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
+      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "726"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "architecture-investigation",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "729",
       "path": "729-intrinsic-layer-separation.md",
       "title": "729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration",
@@ -1059,25 +1146,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "730",
-      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
-      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "726"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
       }
     },
     {

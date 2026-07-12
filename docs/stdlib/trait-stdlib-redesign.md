@@ -233,31 +233,30 @@ std::error/                  (または std::core::error.ark に統合)
 
 ## 3. prelude 再設計
 
-### 3.1 prelude 関数の thin wrapper 化
+> **ADR-046（2026-07-12）**: 公開 free function の恒久 thin wrapper は撤回。
+> 移行期の deprecated wrapper のみ許容し、最終形は method / associated /
+> 非公開 `__intrinsic_*` とする。以下 3.1 は移行期の委譲パターン例であり、
+> 最終 API 契約ではない。
 
-prelude の free function は trait impl への delegate に切り替える。
-**関数名は維持** (破壊的変更を最小化) し、実装のみ trait dispatch 経由にする。
+### 3.1 移行期: prelude → method 委譲（最終削除前提）
 
-<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --><!-- 設計図示用の擬似コード。trait dispatch 未実装のためコンパイル不可 -->
+移行期間中、既存 free 呼び出しを壊さないための **一時的** deprecated wrapper は、
+trait / inherent method へ delegate してよい。**関数名の恒久維持はしない**
+（ADR-014 deprecation → 削除。ADR-046 D3）。
+
+<!-- skip-doc-check reason="legacy example not fixture-backed" owner="#683" kind="non-runnable" expires="2026-12-31" --><!-- 設計図示用の擬似コード。移行期のみ -->
 
 ```ark
-// prelude.ark (after)
+// prelude.ark (migration only — then delete)
 
-/// String clone — delegates to Clone trait impl
+/// deprecated: use `s.clone()`
 pub fn clone(s: String) -> String {
-    s.clone()   // Clone::clone via trait dispatch
-}
-
-/// String equality — delegates to PartialEq trait impl
-pub fn eq(a: String, b: String) -> bool {
-    a.eq(b)     // PartialEq::eq via trait dispatch
-}
-
-/// i32 to string — delegates to Display trait impl
-pub fn i32_to_string(x: i32) -> String {
-    x.to_string()   // Display::to_string via trait dispatch
+    s.clone()
 }
 ```
+
+最終形では prelude から当該 free を削除し、呼び出し側は `s.clone()` /
+`a.eq(b)` / `x.to_string()` のみとする。
 
 ### 3.2 prelude から段階削除する関数（ADR-036 D2）
 
@@ -338,7 +337,7 @@ B10. std::fmt (format!/write! 基盤)       — #696
 B11. std::core::error (Error trait)       — #694
 B12. std::error (impl Error for ...)      — #694
 B13. std::io trait ベース再構築            — #693
-B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
+B14. prelude free 削除（移行期 deprecated のみ） — ADR-046 / 全 trait dispatch 後
 ```
 
 ### 4.3 Phase C: deprecate → 削除対象と [breaking] issue
@@ -372,7 +371,7 @@ B14. prelude thin wrapper 化              — 全 trait dispatch 有効化後
 7. **IO** — `reader_from_bytes` → `Cursor::new`
 8. **エラー** — `Error` enum → `AppError` + `Error` trait
 9. **フォーマット** — `format_i32(n)` → `format!("{}", n)`
-10. **prelude 関数の挙動変化** — thin wrapper 化による挙動は不変
+10. **prelude 関数の削除** — 移行期 wrapper の挙動は委譲で不変、最終は削除（ADR-046）
 
 ---
 
@@ -453,7 +452,7 @@ python3 scripts/check/check-docs-consistency.py
 - `docs/stdlib/modules/text.md` — fmt セクション拡充
 - `docs/stdlib/monomorphic-deprecation.md` — 全エントリを「executed」に更新
 - `docs/stdlib/expansion-policy.md` — family 分類更新 (std::seq 廃止、std::iter 新設)
-- `docs/stdlib/prelude-migration.md` — thin wrapper 化を反映
+- `docs/stdlib/prelude-migration.md` — free 削除 / ADR-046 を反映
 - `docs/stdlib/cookbook.md` — trait ベース API のレシピ追加
 
 ---
@@ -471,7 +470,6 @@ python3 scripts/check/check-docs-consistency.py
 | derive | 後続（#696） |
 
 旧「688-697 実装中に未決定のまま進める」表は撤回。実装開始前に RFC-004 を満たす。
----
 
 ## 8. 参照
 

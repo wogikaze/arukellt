@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-06-14
+Updated: 2026-07-12
 ID: 074
 Track: wasi-feature
 Depends on: 510, 121
@@ -10,6 +10,9 @@ Orchestration upstream: None
 Blocks v4 exit: no
 Status note: Closed 2026-06-14 — gate_074 passes (wasm-tools validate + wasmtime prints `hello p2` via component-new stdout adapt).
 ---
+## Reopened 2026-07-12 (close-gate failure)
+
+Close gate failed under current selfhost path; moved back to `issues/open/` so verify is not blocked (false-done prevention). Re-close when gate passes.
 
 ## Reopened by audit — 2026-06-12
 

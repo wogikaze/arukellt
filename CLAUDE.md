@@ -79,24 +79,32 @@ For tracked issue work, that normally means:
 
 ## API Design Principles
 
-The stdlib is migrating from function-centric free functions to
-**trait-first, type-first method syntax** (ADR-036, issue #709).
+The stdlib public surface is **trait-first / type-first**. User-reachable
+free functions are **eradicated**, not kept as permanent bridges
+(ADR-046, issue #709).
 
-- **Prefer method syntax** `s.split(sep)`, `v.push(x)`, `n.to_string()`
-  over free-function syntax `split(s, sep)`, `push(v, x)`, `i32_to_string(n)`.
+- **Require method syntax** `s.split(sep)`, `v.push(x)`, `n.to_string()` —
+  do not ship `split(s, sep)`, `push(v, x)`, `i32_to_string(n)` as the
+  lasting public API.
 - **Prefer `impl Type` blocks** for new public APIs. Define methods on
   the type they operate on, not as standalone functions in a module.
 - **Prefer associated functions** `Vec::new()`, `String::from("x")` over
   monomorphic constructors `Vec_new_i32()`, `String_from("x")`.
-- Free functions (`split(s, sep)`) remain valid for internal helpers,
-  compiler/runtime bridges, and prelude thin wrappers, but should not
-  be the primary user-facing API surface.
-- Monomorphic helpers (`*_i32`, `*_i64`, `*_f64`) are implementation
-  details or temporary bridges — not user-facing API.
+  No-receiver globals (`args`, `exit`, `println`) become associated
+  functions on a namespace / handle type (e.g. `Env::args()`,
+  `Process::exit(c)`), not permanent free functions.
+- **Do not** leave public or prelude thin wrappers as the end state.
+  Deprecated wrappers are migration-only (ADR-014 + W0009).
+- **Exceptions**: compiler/runtime `__intrinsic_*` (manifest
+  `kind = "intrinsic"`) only — never in the user-facing namespace.
+  Private free helpers inside `std` are also forbidden in principle;
+  use private methods or intrinsics.
+- Monomorphic helpers (`*_i32`, `*_i64`, `*_f64`) are delete targets
+  (#703), not user-facing API.
 
-References: ADR-036 (trait-stdlib-redesign), ADR-038 (operator overload
-traits), ADR-044 (trait/method syntax adopted), issue #709
-(trait-first API policy), issue #703 (monomorphic API bold cutover).
+References: ADR-046 (free-function eradication), ADR-044 (trait/method
+syntax), ADR-036 (trait-stdlib-redesign; D5 withdrawn), ADR-038
+(operator overload traits), issue #709, issue #718, issue #703.
 
 ## Markdown Navigation
 

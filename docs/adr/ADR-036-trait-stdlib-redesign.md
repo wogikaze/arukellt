@@ -83,6 +83,7 @@ stable 契約を無視した一括削除は ADR-014 違反であり禁止。
 少なくとも 1 リリースの deprecation を置く（本節と整合）。
 
 旧「stdlib は provisional なので一括削除可」という根拠は **撤回**する。
+
 ### D3: モジュール再編成
 
 現在のモジュール構造を以下のように再編成する:
@@ -206,14 +207,14 @@ impl<T, U, E> TryInto<U, E> for T where U: TryFrom<T, E> {
 `Self` / associated type / blanket の言語機能前提は
 [RFC-004](../rfcs/004-trait-expressiveness.md) を参照（初期は型引数で代替）。
 
-### D5: prelude の thin wrapper 化
+### D5: prelude の thin wrapper 化 — **撤回**（[ADR-046](ADR-046-free-function-eradication.md)）
 
-prelude の free function (`clone`, `eq`, `i32_to_string` 等) は **trait impl への
-thin wrapper** として残す。これにより:
+~~prelude の free function (`clone`, `eq`, `i32_to_string` 等) は trait impl への
+thin wrapper として残す。~~
 
-- 既存コードの `clone(s)` / `eq(a, b)` 呼び出しは引き続き動作する
-- 新規コードは `s.clone()` / `a.eq(b)` のメソッド構文を推奨
-- prelude 関数の実装は `impl Clone for String { fn clone(...) }` へ delegate する
+**2026-07-12**: 本 D5 は [ADR-046](ADR-046-free-function-eradication.md) により撤回。
+公開・ユーザー可達 free function は根絶対象。移行期の deprecated wrapper 以外は
+最終形として残さない。例外は非公開 `__intrinsic_*` のみ。
 
 ## 代替案と却下理由
 

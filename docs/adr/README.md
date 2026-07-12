@@ -45,6 +45,7 @@
 | [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | ステータス: ACCEPTED — Phase 0 の Wasm GC 拡張に言語仕様を依存させない |
 | [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | ステータス: ACCEPTED — trait / impl / メソッド呼び出しを言語の正規機能とする |
 | [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | ステータス: ACCEPTED — 旧 ADR-005 の LLVM 従属方針を撤回し、再開条件まで未決定とする |
+| [ADR-046-free-function-eradication.md](ADR-046-free-function-eradication.md) | ADR-046: 公開 free function の根絶 | ステータス: ACCEPTED — ユーザー可達の free function を根絶し、例外は非公開 intrinsic のみに封じる |
 
 ## 提案
 

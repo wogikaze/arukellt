@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-03-28
-Updated: 2026-06-14
+Updated: 2026-07-12
 ID: 62
 Track: wasi-feature
 Depends on: 074, 510
@@ -10,6 +10,9 @@ Orchestration upstream: None
 Blocks v4 exit: no
 Status note: Closed 2026-06-14 — gate_076 passes (validate + wasmtime stdout `hello p2 fs` + `p2_fs_out.txt` on disk via preview1 reactor + guest fs patch).
 ---
+## Reopened 2026-07-12 (close-gate failure)
+
+Close gate failed under current selfhost path; moved back to `issues/open/` so verify is not blocked (false-done prevention). Re-close when gate passes.
 
 # WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング
 

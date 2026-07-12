@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-27
-Updated: 2026-06-27
+Updated: 2026-07-12
 ID: 703
 Track: stdlib-api
 Depends on: "700, 701, 691, 695"
@@ -9,27 +9,36 @@ Orchestration class: blocked-by-upstream
 Orchestration upstream: "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
 Blocks v{N}: none
 Priority: 2
-Source: Method-syntax-first stdlib direction 2026-06-27 / ADR-036 D2
+Source: Method-syntax-first stdlib direction 2026-06-27 / ADR-036 D2 / ADR-046
 ---
 
-# 703 — Monomorphic API bold cutover (ADR-036 D2)
+# 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)
 
 ## Summary
 
 Arukellt's stdlib has **parallel monomorphic and (planned) generic** APIs
-for `Vec` operations, sorting, and higher-order sequence functions. ADR-036
-D2 decides on a **bold cutover** — delete monomorphic APIs directly rather
-than maintaining a deprecation period — because:
+for `Vec` operations, sorting, and higher-order sequence functions.
+These monomorphic free APIs must be **removed** from the user-reachable
+surface ([ADR-046](../../docs/adr/ADR-046-free-function-eradication.md)).
+
+Deletion timing follows **ADR-014 + ADR-046 D4** (not “delete stable
+without notice”):
+
+1. Provide the generic / method replacement (#700 / #701 / #691 / #695).
+2. Mark `stable` symbols deprecated (`deprecated_by` + W0009) for at least
+   one release with a migration guide.
+3. Delete after the deprecation window (`experimental` may delete sooner).
+
+Bold cutover without deprecation applies only to `experimental` or
+already-deprecated symbols (ADR-036 D2 as clarified by ADR-046).
+
+Why remove the parallel surface:
 
 1. Monomorphic and generic variants coexisting confuses LLM code
-   generation (the compiler picks one arbitrarily).
-2. v0.1 is provisional; breaking change cost is low.
-3. Deprecation metadata in `std/manifest.toml` already marks the
-   direction; the cutover just executes it.
-
-This issue tracks the actual deletion once the generic replacements
-(`Vec::new<T>()`, `v.push(x)`, `v.sort()`, `v.map(f)`, etc.) are available
-via #700 / #701 / #691 / #695.
+   generation.
+2. Free `*_i32` helpers block trait-first docs and scorecard zero.
+3. Deprecation metadata in `std/manifest.toml` already marks direction
+   for some symbols; this issue finishes the rest under ADR-014.
 
 ## Current state
 
@@ -75,17 +84,19 @@ via #700 / #701 / #691 / #695.
 
 ### Cutover
 
-- [ ] **Delete** all monomorphic `Vec_*` intrinsics from prelude
-      (`std/prelude.ark`): `Vec_new_i32`, `Vec_push_i32`, `Vec_get_i32`,
-      `Vec_set_i32`, `Vec_len_i32`, `Vec_new_i32_with_cap`, etc.
-- [ ] **Delete** all monomorphic sort/map/filter/fold functions
-      from `std/seq/mod.ark` and prelude: `sort_i32`, `sort_i64`,
-      `sort_f64`, `sort_String`, `map_i32_i32`, `filter_i32`,
-      `fold_i32_i32`, `any_i32`, `find_i32`, `contains_i32`,
+- [ ] **Deprecate** (if `stable`) then **delete** all monomorphic `Vec_*`
+      APIs from prelude (`std/prelude.ark`): `Vec_new_i32`, `Vec_push_i32`,
+      `Vec_get_i32`, `Vec_set_i32`, `Vec_len_i32`, `Vec_new_i32_with_cap`,
+      etc. Follow ADR-014 / ADR-046 D4.
+- [ ] **Deprecate** (if `stable`) then **delete** all monomorphic
+      sort/map/filter/fold functions from `std/seq/mod.ark` and prelude:
+      `sort_i32`, `sort_i64`, `sort_f64`, `sort_String`, `map_i32_i32`,
+      `filter_i32`, `fold_i32_i32`, `any_i32`, `find_i32`, `contains_i32`,
       `reverse_i32`, `remove_i32`, `sum_i32`, `product_i32`.
 - [ ] **Delete** `std::seq` module entirely — replace with `std::iter`
       (from #691) and `impl Vec<T>` methods (from #700).
-- [ ] **Update** `std/manifest.toml` — remove deleted entries.
+- [ ] **Update** `std/manifest.toml` — remove deleted entries; ensure
+      deprecation metadata existed for former `stable` symbols.
 - [ ] **Update** all in-tree callers (compiler source, fixtures,
       benchmarks) to use method syntax / associated function syntax /
       `Iterator` adapters.
@@ -114,8 +125,9 @@ via #700 / #701 / #691 / #695.
 
 - Depends on: #700 (builtin method syntax), #701 (associated function
   syntax), #691 (Iterator), #695 (Ord)
-- Related: #697 (Vec operation extension — adds new methods that
-  replace some monomorphic helpers)
-- ADR-036 D2 (bold cutover decision)
+- Related: #697 (Vec operation extension), #709 (eradication policy),
+  #718 (free-function inventory)
+- ADR-046 (free-function eradication)
+- ADR-036 D2 (deletion policy; stable via ADR-014)
 - `std/prelude.ark`, `std/seq/mod.ark`, `std/manifest.toml`
 - `docs/stdlib/migration-guidance.md`, `docs/stdlib/trait-stdlib-redesign.md`

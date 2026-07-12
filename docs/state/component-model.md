@@ -13,7 +13,7 @@
 3. **CLI integration**: `--wit <path>`, `--emit wit`, `--emit component`, and `--emit all` are wired into the selfhost CLI.
   `--wit` paths are accepted, validated, and threaded through CLI → `DriverConfig` → resolver/typecheck/MIR → Wasm import section (Phase 1 slices [#652](../../issues/done/652-wit-import-parser-grammar.md)–[#654](../../issues/done/654-wit-import-component-emit.md)).
   Scalar WIT function imports bind via `import "package/id" as alias` source syntax and resolve to `host::add(...)`-style calls in `tests/fixtures/wit_import/`.
-  `ark.toml` `[dependencies]` vendor WIT packages resolve without `--wit` ([#663](../../issues/done/663-ark-toml-wit-package-resolution.md)); compose round-trip fixture `tests/fixtures/wit_import/compose_roundtrip/` validates provider/socket WIT surfaces via `arukellt compose --validate` ([#665](../../issues/done/665-wit-import-compose-roundtrip-e2e.md)).
+  `ark.toml` `[dependencies]` vendor WIT packages resolve without `--wit` ([#663](../../issues/done/663-ark-toml-wit-package-resolution.md)); compose round-trip fixture `tests/fixtures/wit_import/compose_roundtrip/` validates provider/socket WIT surfaces via `arukellt compose --validate` ([#665](../../issues/open/665-wit-import-compose-roundtrip-e2e.md)).
   `stream<T>` / `future<T>` async WIT types are now accepted for import parsing
   (see #474 Phase 4). WIT `resource` declarations and `own<T>` / `borrow<T>` handles are
   supported for fixture-backed import and export round-trip ([#473](../../issues/done/473-wit-resource-handles.md)).
@@ -25,7 +25,7 @@
 ### Known Component Model limitations
 
 - The current selfhost `--emit component` path emits a Component Model wrapper around the core Wasm module. With Preview 1 host profiles it may inject a minimal WASI Preview 1 stub instance so the core module's `wasi_snapshot_preview1` imports can instantiate.
-- On `wasm32-gc` with WASI P2, the emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../../issues/done/510-t3-p2-import-table-switch.md)). Living wrap helpers (e.g. `p2_component_wrap.py`) may still build a `wasi:cli/command` component via `wasm-tools component embed/new` (~5.3KB, no P1 adapter) while in-tree emit (ADR-008) is completed: stdout is adapted through host `get-stdout` + `blocking-write-and-flush`, guest core wasm is patched for canonical ABI `write(ret, ptr, len, 0)`, and `gate_074` proves `wasm-tools validate` + wasmtime prints `hello p2` ([issue 074](../../issues/done/074-wasi-p2-native-component.md)). Canonical scratch limits: [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md).
+- On `wasm32-gc` with WASI P2, the emitter imports `wasi:cli/*` and related Preview 2 interface names directly ([issue 510](../../issues/done/510-t3-p2-import-table-switch.md)). Living wrap helpers (e.g. `p2_component_wrap.py`) may still build a `wasi:cli/command` component via `wasm-tools component embed/new` (~5.3KB, no P1 adapter) while in-tree emit (ADR-008) is completed: stdout is adapted through host `get-stdout` + `blocking-write-and-flush`, guest core wasm is patched for canonical ABI `write(ret, ptr, len, 0)`, and `gate_074` proves `wasm-tools validate` + wasmtime prints `hello p2` ([issue 074](../../issues/open/074-wasi-p2-native-component.md)). Canonical scratch limits: [`docs/plans/component-canonical-memory.md`](../plans/component-canonical-memory.md).
 - Component output is `wasm32-gc`-oriented: use `--target wasm32-gc` for `--emit component`, `--emit wit`, and `--emit all` (legacy alias `wasm32-wasi-p2` may still appear in older fixtures).
 - Component interop の現行結果は release check
   [`check_component_interop_wasmtime`](../data/release-guarantees.md#check-catalogue)
@@ -36,6 +36,7 @@
 - general string/general list/general option/result/general enum/general record/complex canonical ABI lift-lower coverage is not complete for every case
 - async Component Model features: WIT `future<T>` / `stream<T>` type mapping and import parsing are supported (#474 Phase 4); async function declaration (`async fn`), `await` expression, and full async component export lowering are deferred to #474 later phases
 - **jco**: transpile of GC components works on jco 1.25.2 (old #037 blocker cleared). Node.js E2E verified with a local `arguments` reserved-word patch. **Chrome jco component E2E (HTTP → ESM import → WASI shim → run) is not yet verified** — see [`docs/research/target-runtime-verification.md`](../research/target-runtime-verification.md). Do not describe jco as “blocked upstream” for GC transpile.
+
 ### Component export type tiers
 
 The compiler enforces type-tier restrictions on component exports at compile time:

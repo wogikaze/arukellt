@@ -373,15 +373,16 @@ def _find_tool(name: str) -> str | None:
 
 
 def _compiler() -> Path | None:
+    """Prefer selfhost wrapper (ADR-029); fall back to legacy Rust binary if present."""
+    wrapper = REPO_ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
+    if wrapper.is_file():
+        return wrapper
     release = REPO_ROOT / "target" / "release" / "arukellt"
     if release.is_file():
         return release
     debug = REPO_ROOT / "target" / "debug" / "arukellt"
     if debug.is_file():
         return debug
-    wrapper = REPO_ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
-    if wrapper.is_file():
-        return wrapper
     return None
 
 

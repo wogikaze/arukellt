@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-05
-Updated: 2026-07-05
+Updated: 2026-07-12
 ID: 718
 Track: stdlib-api
 Depends on: "700, 701"
@@ -9,18 +9,18 @@ Orchestration class: incremental
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 2
-Source: Stdlib free-function inventory 2026-07-05
+Source: Stdlib free-function inventory 2026-07-05 / ADR-046 eradication 2026-07-12
 ---
 
 # 718 — Stdlib free-function → method/trait migration inventory
 
 ## Summary
 
-The stdlib has ~287 free functions that should be migrated to trait/method
-syntax per ADR-036 and issue #709. Now that #700 (builtin method syntax)
-and #701 (associated function syntax) are done, the migration can proceed
-in tiers.
-
+The stdlib has ~287 free functions that must be migrated to trait/method
+or associated syntax and then **deleted** from the user-reachable surface
+([ADR-046](../../docs/adr/ADR-046-free-function-eradication.md), #709).
+There is no permanent “keep as free function” bucket. #700 / #701 are done;
+migration proceeds in tiers.
 This issue provides the **complete inventory** (required by #709) and
 tracks the per-type migration milestones.
 
@@ -139,24 +139,28 @@ trait/inherent method. These can be deprecated immediately.
 
 **`std/bytes/mod.ark`** (~40 functions → new `Bytes`/`ByteBuf`/`ByteCursor` types)
 
-### Tier 5: Prelude wrappers (~100 functions)
+### Tier 5: Prelude wrappers (~100 functions) — **must delete**
 
-Most are thin wrappers re-exporting the above. Once source modules
-migrate, these wrappers should be deprecated. Compiler intrinsics
-(`println`, `print`, `len`, `push`, `get`, `pop`, etc.) need compiler
-support to become methods — track separately.
+Most are thin wrappers re-exporting the above. Per ADR-046 they are
+**not** a lasting API. After source modules migrate: deprecate (W0009
+if stable) → delete. Compiler-backed ops become methods / associated
+functions; backing code may remain as non-public `__intrinsic_*` only.
 
-### Keep as free functions (~50 functions)
+### Former “Keep as free” — **reclassified** (ADR-046)
 
-- Constructors / associated functions: `vec_iter`, `map_iter`,
-  `stdin()`, `stdout()`, `writer_new()`, `buf_new()`, `Vec::new()`
-- Path-based fs: `read_string`, `write_string`, `exists`, `is_file`,
-  `is_dir`, `read_dir`, `metadata`
-- Global host ops: `args()`, `var()`, `print()`, `println()`, `exit()`,
-  `random_i32()`, `monotonic_now()`, `now_ms()`
-- Binary ops with no clear receiver: `gcd`, `lcm`, `combine`, `copy_bytes`
-- Parse functions: `parse_i32`, `parse_i64`, `parse_f64`
-- HTTP/sockets: `request`, `get`, `serve`, `connect`, `listen`, `send`
+There is no permanent free-function keep list. Reclassify as follows:
+
+| Former free | Target class | Replacement direction |
+|-------------|--------------|----------------------|
+| `Vec::new()` / true associated already | keep as associated | already OK |
+| `vec_iter`, `map_iter`, `stdin()`, `stdout()`, `writer_new()`, `buf_new()` | `associated-or-method` | `VecIter::new`, `Stdout::lock`, handle constructors on types |
+| Path fs: `read_string`, `write_string`, `exists`, `is_file`, `is_dir`, `read_dir`, `metadata` | `associated-or-method` | `Fs::…` / path type methods (host handle surface) |
+| Globals: `args`, `var`, `print`, `println`, `exit`, `random_i32`, `monotonic_now`, `now_ms` | `associated-or-method` | `Env::args`, `Env::var`, `Stdout::write`, `Process::exit`, `Random::…`, `Clock::…` |
+| Binary: `gcd`, `lcm`, `combine`, `copy_bytes` | `associated-or-method` | `a.gcd(b)`, buffer/slice methods |
+| Parse: `parse_i32`, `parse_i64`, `parse_f64` | `associated-or-method` | `i32::parse`, `i64::parse`, `f64::parse` |
+| HTTP/sockets: `request`, `get`, `serve`, `connect`, `listen`, `send` | `associated-or-method` | methods on `HttpClient` / `TcpStream` / listener types |
+
+Anything that remains only as emit plumbing: `intrinsic-only` (not user-callable).
 
 ## Required work
 
@@ -198,9 +202,10 @@ support to become methods — track separately.
 
 - #700 (builtin method syntax — done)
 - #701 (associated function syntax — done)
-- #703 (monomorphic API bold cutover — blocked by #691, #695)
-- #709 (trait-first API policy — blocked by #691, #695, #697, #703)
-- ADR-036 (trait-stdlib-redesign)
+- #703 (monomorphic API cutover — blocked by #691, #695)
+- #709 (eradication policy — ADR-046)
+- ADR-046 (free-function eradication)
+- ADR-036 (trait-stdlib-redesign; D5 withdrawn)
 - `std/core/cmp.ark`, `std/core/convert.ark`, `std/core/math.ark`,
   `std/core/hash.ark`
 - `std/collections/string.ark`, `std/collections/vec.ark`
