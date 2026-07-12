@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-15
 ID: 665
 Track: language-design
@@ -12,9 +12,9 @@ ADR candidate: yes
 Implementation target: "Use Ark (src/compiler/*.ark) per #529 selfhost transition."
 Status note: Closed — ark.toml vendor fixture composes with provider via `arukellt compose --validate`; gate-665 passes.
 ---
-## Reopened 2026-07-12 (close-gate failure)
+## Re-closed 2026-07-12
 
-Close gate failed under current selfhost path; moved back to `issues/open/` so verify is not blocked (false-done prevention). Re-close when gate passes.
+`cargo-component` installed; `gate_665` passes again. Returned to `issues/done/`.
 
 # 665 — compose + wasmtime WIT import round-trip E2E
 

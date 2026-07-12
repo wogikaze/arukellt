@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-12T05:27:21Z",
+  "generated_at": "2026-07-12T05:35:19Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -65,31 +65,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "665",
-      "path": "665-wit-import-compose-roundtrip-e2e.md",
-      "title": "665-wit-import-compose-roundtrip-e2e",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "652",
-        "653",
-        "654",
-        "663",
-        "664"
-      ],
-      "blocks_issue_ids": [
-        "674"
-      ],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -191,6 +166,27 @@
       },
       "orchestration": {
         "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "674",
+      "path": "674-component-composition-deps-interop.md",
+      "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
+      "track": "component-composition",
+      "status": "open",
+      "depends_on": [
+        "443",
+        "663",
+        "665"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -845,27 +841,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "674",
-      "path": "674-component-composition-deps-interop.md",
-      "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
-      "track": "component-composition",
-      "status": "open",
-      "depends_on": [
-        "443",
-        "663",
-        "665"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },

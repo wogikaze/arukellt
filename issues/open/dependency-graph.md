@@ -9,12 +9,12 @@ graph LR
   I074["074 074-wasi-p2-native-component"]
   I30["30 036-jco-javascript-interop"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
-  I665["665 665-wit-import-compose-roundtrip-e2e"]
   I667["667 667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path"]
   I669["669 669 — WIT import IDE and formatter surface"]
   I670["670 670 — WIT import resolver hardening (duplicates, spans, collisions)"]
   I671["671 671 — WIT import callable type matrix (fixtures + gates)"]
   I672["672 672 — WIT type binding code generation"]
+  I674["674 674 — Component composition: dependency wasm, lockfile, and external interop"]
   I675["675 675 — Host capability user-reachability and runtime permission flags"]
   I676["676 676 — std::host fs / env / process capability completion"]
   I677["677 677 — Component developer experience (CLI, cookbooks, diagnostics explain)"]
@@ -48,7 +48,6 @@ graph LR
   I62["62 076-wasi-p2-filesystem"]
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
-  I674["674 674 — Component composition: dependency wasm, lockfile, and external interop"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
@@ -71,7 +70,6 @@ graph LR
   I074 --> I62
   I074 --> I714
   I649 --> I699
-  I665 --> I674
   I667 --> I673
   I680 --> I682
   I690 --> I694
@@ -112,12 +110,12 @@ graph LR
 - **074** depends on: 510, 121; blocks: 474, 62, 668, 714
 - **30** depends on: 27; blocks: none
 - **649** depends on: 641; blocks: 699
-- **665** depends on: 652, 653, 654, 663, 664; blocks: 674
 - **667** depends on: 666; blocks: 673
 - **669** depends on: 652, done); blocks: none
 - **670** depends on: 653, done); blocks: none
 - **671** depends on: 653, 654; blocks: none
 - **672** depends on: 664, done); blocks: none
+- **674** depends on: 443, 663, 665; blocks: none
 - **675** depends on: 446, 447, 655, 656, 657, 658, done); blocks: 727
 - **676** depends on: 076, done), 445, done); blocks: none
 - **677** depends on: 475, 485; blocks: none
@@ -151,7 +149,6 @@ graph LR
 - **62** depends on: 074, 510; blocks: none
 - **714** depends on: 074, 510; blocks: 668, 727
 - **699** depends on: 649, 698; blocks: none
-- **674** depends on: 443, 663, 665; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **694** depends on: 690, 692; blocks: none
