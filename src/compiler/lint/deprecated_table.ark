@@ -107,19 +107,19 @@ fn deprecated_math_qualified_message(path: String) -> String {
         return String_from("use `base.pow(exp)` (inherent method on i32) instead")
     }
     if eq(clone(path), String_from("math::is_power_of_two")) {
-        return String_from("use `n.is_power_of_two()` (inherent method on i32) instead")
+        return String_from("use `n.is_power_of_two()` (Integer trait) instead")
     }
     if eq(clone(path), String_from("math::next_power_of_two")) {
-        return String_from("use `n.next_power_of_two()` (inherent method on i32) instead")
+        return String_from("use `n.next_power_of_two()` (Integer trait) instead")
     }
     if eq(clone(path), String_from("math::leading_zeros")) {
-        return String_from("use `n.leading_zeros()` (inherent method on i32) instead")
+        return String_from("use `n.leading_zeros()` (Integer trait) instead")
     }
     if eq(clone(path), String_from("math::trailing_zeros")) {
-        return String_from("use `n.trailing_zeros()` (inherent method on i32) instead")
+        return String_from("use `n.trailing_zeros()` (Integer trait) instead")
     }
     if eq(clone(path), String_from("math::popcount")) {
-        return String_from("use `n.popcount()` (inherent method on i32) instead")
+        return String_from("use `n.popcount()` (Integer trait) instead")
     }
     String_new()
 }

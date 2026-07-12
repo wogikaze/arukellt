@@ -74,11 +74,11 @@ trait/inherent method. These can be deprecated immediately.
 - `sqrt(x)` → `x.sqrt()` (needs inherent impl on f64)
 - `clamp(x, lo, hi)` → `x.clamp(lo, hi)` (needs inherent impl on i32)
 - `pow_i32(base, exp)` → `base.pow(exp)` (needs inherent impl on i32)
-- `is_power_of_two(n)` → `n.is_power_of_two()` (needs inherent impl)
-- `next_power_of_two(n)` → `n.next_power_of_two()` (needs inherent impl)
-- `leading_zeros(n)` → `n.leading_zeros()` (needs inherent impl)
-- `trailing_zeros(n)` → `n.trailing_zeros()` (needs inherent impl)
-- `popcount(n)` → `n.popcount()` (needs inherent impl)
+- `is_power_of_two(n)` → `n.is_power_of_two()` (`trait Integer`)
+- `next_power_of_two(n)` → `n.next_power_of_two()` (`trait Integer`)
+- `leading_zeros(n)` → `n.leading_zeros()` (`trait Integer`)
+- `trailing_zeros(n)` → `n.trailing_zeros()` (`trait Integer`)
+- `popcount(n)` → `n.popcount()` (`trait Integer`)
 - Deprecated wrappers to remove: `abs_i32`, `min_i32`, `max_i32`
 
 **`std/core/hash.ark`**:
@@ -166,9 +166,11 @@ Anything that remains only as emit plumbing: `intrinsic-only` (not user-callable
 
 ### Phase 1 (this issue, Tier 1 only)
 
-- [x] Add missing inherent methods to `impl i32`: `clamp`, `pow`,
-      `is_power_of_two`, `next_power_of_two`, `leading_zeros`,
-      `trailing_zeros`, `popcount`
+- [x] Add missing inherent methods to `impl i32`: `clamp`, `pow`
+      (bit ops moved to `trait Integer` — see below)
+- [x] `trait Integer` + `impl` for `i32` / `i64`: `is_power_of_two`,
+      `next_power_of_two`, `leading_zeros`, `trailing_zeros`, `popcount`
+      (ADR-046 trait-first; not inherent-only)
 - [x] Add missing inherent methods to `impl f64`: `sqrt`, `clamp`
 - [x] Add missing inherent methods to `impl i64`: `abs`, `min`, `max`
 - [x] Deprecate duplicated free functions in `std/core/cmp.ark`,
@@ -177,10 +179,15 @@ Anything that remains only as emit plumbing: `intrinsic-only` (not user-callable
 - [x] Remove deprecated wrappers: `abs_i32`, `min_i32`, `max_i32`,
       `hash_combine`
 - [x] Update in-tree callers to use method syntax (stdlib_core math bit
-      fixtures; `std/signal` uses `n.is_power_of_two()`)
+      fixtures; `std/signal` uses `n.is_power_of_two()`; new
+      `stdlib_trait/integer_trait.ark` covers i32 + i64)
 - [x] Update `std/manifest.toml` deprecation metadata (removed
       `std::signal::is_power_of_two` public free entry)
-- [ ] `python scripts/manager.py verify quick` passes
+- [x] `python scripts/manager.py verify quick` passes
+
+Notes (Integer placement): `trait Integer` + impls live in
+`std/core/convert.ark` (not `math.ark`) so method names do not collide
+with deprecated free wrappers still exported from `math.ark`.
 
 ### Phase 2 (future, Tier 2-3, blocked by #691, #695)
 
@@ -194,12 +201,12 @@ Anything that remains only as emit plumbing: `intrinsic-only` (not user-callable
 
 ## Acceptance
 
-- [ ] Tier 1 free functions are deprecated or removed
-- [ ] Missing inherent methods added to `impl i32`, `impl f64`, `impl i64`
-- [ ] In-tree callers use method syntax for Tier 1 operations
-- [ ] `std/manifest.toml` reflects deprecation status
-- [ ] `python scripts/manager.py verify quick` passes
-- [ ] This issue provides the inventory data that #709 requires
+- [x] Tier 1 free functions are deprecated or removed
+- [x] Missing methods added via `trait Integer` / inherent impls (`i32`, `f64`, `i64`)
+- [x] In-tree callers use method syntax for Tier 1 operations
+- [x] `std/manifest.toml` reflects deprecation status
+- [x] `python scripts/manager.py verify quick` passes
+- [x] This issue provides the inventory data that #709 requires
 
 ## References
 

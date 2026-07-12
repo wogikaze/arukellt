@@ -107,9 +107,9 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
-- Fixture registry: 2686 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1106 registry entries (not proof they fail)
-- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2686 is tests/fixtures/manifest.txt registry size. The 1106 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2689 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1109 registry entries (not proof they fail)
+- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2689 is tests/fixtures/manifest.txt registry size. The 1109 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **175/176 checks pass**
 

@@ -1697,6 +1697,7 @@ run:stdlib_trait/ord_sort_stress.ark
 run:stdlib_trait/ord_string.ark
 run:stdlib_trait/ord_string_prefix.ark
 run:stdlib_trait/ord_trait.ark
+run:stdlib_trait/integer_trait.ark
 run:stdlib_trait/partial_ord_f64_nan.ark
 run:stdlib_trait/partial_ord_i32.ark
 run:stdlib_trait/partial_ord_string.ark
@@ -2130,6 +2131,7 @@ t3-compile:stdlib_trait/io_copy.ark
 t3-compile:stdlib_trait/iterator_adapters.ark
 t3-compile:stdlib_trait/ord_sort_by.ark
 t3-compile:stdlib_trait/ord_trait.ark
+t3-compile:stdlib_trait/integer_trait.ark
 t3-compile:stdlib_trait/read_write.ark
 t3-compile:stdlib_trait/seek.ark
 t3-compile:stdlib_trait/self_return_add.ark
@@ -2542,6 +2544,7 @@ t3-run:stdlib_trait/eq_trait.ark
 t3-run:stdlib_trait/eq_trait_string.ark
 t3-run:stdlib_trait/hash_trait.ark
 t3-run:stdlib_trait/hash_trait_nested.ark
+t3-run:stdlib_trait/integer_trait.ark
 t3-run:stdlib_trait/io_backward_compat.ark
 t3-run:stdlib_trait/io_copy.ark
 t3-run:stdlib_trait/read_write.ark

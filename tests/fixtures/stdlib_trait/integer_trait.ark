@@ -1,0 +1,18 @@
+use std::core::convert
+use std::test
+
+fn main() {
+    // Integer trait methods on i32
+    test::assert_true(8.is_power_of_two())
+    test::assert_false(6.is_power_of_two())
+    test::assert_eq_i32(5.next_power_of_two(), 8)
+    test::assert_eq_i32(0.popcount(), 0)
+    test::assert_eq_i32(7.popcount(), 3)
+
+    // Integer trait methods on i64
+    test::assert_true((8i64).is_power_of_two())
+    test::assert_false((6i64).is_power_of_two())
+    test::assert_eq_i32((0i64).leading_zeros(), 64)
+    test::assert_eq_i32((1i64).trailing_zeros(), 0)
+    test::assert_eq_i32((7i64).popcount(), 3)
+}

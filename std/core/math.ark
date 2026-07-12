@@ -1,11 +1,7 @@
 // std::core::math — mathematical functions
 //
-// Wrappers around compiler intrinsics for math operations.
-// Deprecated free functions (abs, abs_i32, min, min_i32, max, max_i32, sqrt,
-// clamp, pow_i32) have been removed per ADR-036/ADR-046. Bit helpers
-// (is_power_of_two, next_power_of_two, leading_zeros, trailing_zeros,
-// popcount) remain as thin deprecated wrappers that delegate to inherent
-// methods on i32. Prefer: x.abs(), a.min(b), n.is_power_of_two(), etc.
+// ADR-046 / #718: bit ops live on `trait Integer` in std::core::convert.
+// Deprecated free wrappers below forward to Integer methods for migration.
 
 pub fn gcd(a: i32, b: i32) -> i32 {
     let mut x = a
@@ -43,33 +39,27 @@ pub fn lcm(a: i32, b: i32) -> i32 {
     x / g * y
 }
 
-/// Returns true if `n` is a power of two (1, 2, 4, 8, ...).
-/// Deprecated migration wrapper (ADR-046 / #718): use `n.is_power_of_two()`.
+/// Deprecated migration wrapper (ADR-046 / #718): use `n.is_power_of_two()`
+/// (`Integer` trait).
 pub fn is_power_of_two(n: i32) -> bool {
     n.is_power_of_two()
 }
 
-/// Returns the smallest power of two >= n. Returns 1 for n <= 1.
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.next_power_of_two()`.
 pub fn next_power_of_two(n: i32) -> i32 {
     n.next_power_of_two()
 }
 
-// ── bit operations ──────────────────────────────────────────────────────────
-
-/// Count leading zero bits. Returns 32 for n == 0.
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.leading_zeros()`.
 pub fn leading_zeros(n: i32) -> i32 {
     n.leading_zeros()
 }
 
-/// Count trailing zero bits. Returns 32 for n == 0.
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.trailing_zeros()`.
 pub fn trailing_zeros(n: i32) -> i32 {
     n.trailing_zeros()
 }
 
-/// Count the number of set bits (population count) in `n`.
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.popcount()`.
 pub fn popcount(n: i32) -> i32 {
     n.popcount()
