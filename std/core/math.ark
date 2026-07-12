@@ -2,9 +2,10 @@
 //
 // Wrappers around compiler intrinsics for math operations.
 // Deprecated free functions (abs, abs_i32, min, min_i32, max, max_i32, sqrt,
-// clamp, pow_i32) have been removed per ADR-036. Use inherent methods on
-// i32/i64/f64 instead: x.abs(), a.min(b), a.max(b), x.clamp(lo, hi),
-// x.sqrt(), base.pow(exp).
+// clamp, pow_i32) have been removed per ADR-036/ADR-046. Bit helpers
+// (is_power_of_two, next_power_of_two, leading_zeros, trailing_zeros,
+// popcount) remain as thin deprecated wrappers that delegate to inherent
+// methods on i32. Prefer: x.abs(), a.min(b), n.is_power_of_two(), etc.
 
 pub fn gcd(a: i32, b: i32) -> i32 {
     let mut x = a
@@ -43,91 +44,35 @@ pub fn lcm(a: i32, b: i32) -> i32 {
 }
 
 /// Returns true if `n` is a power of two (1, 2, 4, 8, ...).
-// @deprecated: use `n.is_power_of_two()` (inherent method on i32) instead. See ADR-036.
+/// Deprecated migration wrapper (ADR-046 / #718): use `n.is_power_of_two()`.
 pub fn is_power_of_two(n: i32) -> bool {
-    n > 0 && (n & (n - 1)) == 0
+    n.is_power_of_two()
 }
 
 /// Returns the smallest power of two >= n. Returns 1 for n <= 1.
-// @deprecated: use `n.next_power_of_two()` (inherent method on i32) instead. See ADR-036.
+/// Deprecated migration wrapper (ADR-046 / #718): use `n.next_power_of_two()`.
 pub fn next_power_of_two(n: i32) -> i32 {
-    if n <= 1 {
-        return 1
-    }
-    let mut x = n - 1
-    x = x | (x >> 1)
-    x = x | (x >> 2)
-    x = x | (x >> 4)
-    x = x | (x >> 8)
-    x = x | (x >> 16)
-    let result = x + 1
-    if result <= 0 {
-        0x40000000
-    } else {
-        result
-    }
+    n.next_power_of_two()
 }
 
 // ── bit operations ──────────────────────────────────────────────────────────
 
 /// Count leading zero bits. Returns 32 for n == 0.
-// @deprecated: use `n.leading_zeros()` (inherent method on i32) instead. See ADR-036.
+/// Deprecated migration wrapper (ADR-046 / #718): use `n.leading_zeros()`.
 pub fn leading_zeros(n: i32) -> i32 {
-    if n == 0 {
-        return 32
-    }
-    if n < 0 {
-        return 0
-    }
-    let mut count = 0
-    let mut x = n
-    if (x & 0xFFFF0000) == 0 {
-        count = count + 16
-        x = x << 16
-    }
-    if (x & 0xFF000000) == 0 {
-        count = count + 8
-        x = x << 8
-    }
-    if (x & 0xF0000000) == 0 {
-        count = count + 4
-        x = x << 4
-    }
-    if (x & 0xC0000000) == 0 {
-        count = count + 2
-        x = x << 2
-    }
-    if (x & 0x80000000) == 0 {
-        count = count + 1
-    }
-    count
+    n.leading_zeros()
 }
 
 /// Count trailing zero bits. Returns 32 for n == 0.
-// @deprecated: use `n.trailing_zeros()` (inherent method on i32) instead. See ADR-036.
+/// Deprecated migration wrapper (ADR-046 / #718): use `n.trailing_zeros()`.
 pub fn trailing_zeros(n: i32) -> i32 {
-    if n == 0 {
-        return 32
-    }
-    let mut count = 0
-    let mut x = n
-    while (x & 1) == 0 {
-        count = count + 1
-        x = x >> 1
-    }
-    count
+    n.trailing_zeros()
 }
 
 /// Count the number of set bits (population count) in `n`.
-// @deprecated: use `n.popcount()` (inherent method on i32) instead. See ADR-036.
+/// Deprecated migration wrapper (ADR-046 / #718): use `n.popcount()`.
 pub fn popcount(n: i32) -> i32 {
-    let mut count = 0
-    let mut x = n
-    while x != 0 {
-        x = x & (x - 1)
-        count = count + 1
-    }
-    count
+    n.popcount()
 }
 
 // ── checked arithmetic traits ───────────────────────────────────────────────

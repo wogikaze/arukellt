@@ -1,12 +1,11 @@
-use std::core::math
 use std::test
 
 fn main() {
-    test::assert_eq_i32(math::next_power_of_two(1), 1)
-    test::assert_eq_i32(math::next_power_of_two(2), 2)
-    test::assert_eq_i32(math::next_power_of_two(3), 4)
-    test::assert_eq_i32(math::next_power_of_two(5), 8)
-    test::assert_eq_i32(math::next_power_of_two(9), 16)
-    test::assert_eq_i32(math::next_power_of_two(0), 1)
-    test::assert_eq_i32(math::next_power_of_two(-5), 1)
+    test::assert_eq_i32(1.next_power_of_two(), 1)
+    test::assert_eq_i32(2.next_power_of_two(), 2)
+    test::assert_eq_i32(3.next_power_of_two(), 4)
+    test::assert_eq_i32(5.next_power_of_two(), 8)
+    test::assert_eq_i32(9.next_power_of_two(), 16)
+    test::assert_eq_i32(0.next_power_of_two(), 1)
+    test::assert_eq_i32((-5).next_power_of_two(), 1)
 }

@@ -1,15 +1,14 @@
-use std::core::math
 use std::test
 
 fn main() {
-    test::assert_true(math::is_power_of_two(1))
-    test::assert_true(math::is_power_of_two(2))
-    test::assert_true(math::is_power_of_two(4))
-    test::assert_true(math::is_power_of_two(8))
-    test::assert_true(math::is_power_of_two(1024))
-    test::assert_false(math::is_power_of_two(0))
-    test::assert_false(math::is_power_of_two(3))
-    test::assert_false(math::is_power_of_two(6))
-    test::assert_false(math::is_power_of_two(-1))
-    test::assert_false(math::is_power_of_two(-4))
+    test::assert_true(1.is_power_of_two())
+    test::assert_true(2.is_power_of_two())
+    test::assert_true(4.is_power_of_two())
+    test::assert_true(8.is_power_of_two())
+    test::assert_true(1024.is_power_of_two())
+    test::assert_false(0.is_power_of_two())
+    test::assert_false(3.is_power_of_two())
+    test::assert_false(6.is_power_of_two())
+    test::assert_false((-1).is_power_of_two())
+    test::assert_false((-4).is_power_of_two())
 }

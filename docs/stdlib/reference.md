@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 395 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 394 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -868,7 +868,6 @@ let input = read_to_string()
 | `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
-| `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `pi` | `() -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |
 | `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `functional` | `builtin` | no | - | - |

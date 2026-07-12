@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 752
+- **Canonical names:** 751
 - **Historical/deprecated names:** 3
-- **Total entries:** 755
+- **Total entries:** 754
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -377,7 +377,6 @@ Current public API names, sorted alphabetically.
 | `is_number` | `std::json` | `experimental` | Json |
 | `is_object` | `std::json` | `experimental` | Json |
 | `is_ok` | `prelude` | `stable` | Option Result |
-| `is_power_of_two` | `std::signal` | `stable` | Signal |
 | `is_readable_file` | `std::fs` | `stable` | Fs |
 | `is_readable_file` | `std::host::fs` | `stable` | Host Fs |
 | `is_some` | `prelude` | `stable` | Option Result |
@@ -1153,7 +1152,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_number` | ✅ `experimental` | `std::json` | Json |
 | `is_object` | ✅ `experimental` | `std::json` | Json |
 | `is_ok` | ✅ `stable` | `prelude` | Option Result |
-| `is_power_of_two` | ✅ `stable` | `std::signal` | Signal |
 | `is_readable_file` | ✅ `stable` | `std::fs` | Fs |
 | `is_readable_file` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |

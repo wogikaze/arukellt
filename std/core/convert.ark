@@ -240,6 +240,87 @@ impl i32 {
         }
         result
     }
+
+    /// Returns true if `self` is a power of two (1, 2, 4, 8, …).
+    fn is_power_of_two(self: i32) -> bool {
+        self > 0 && (self & (self - 1)) == 0
+    }
+
+    /// Returns the smallest power of two >= `self`. Returns 1 for `self` <= 1.
+    fn next_power_of_two(self: i32) -> i32 {
+        if self <= 1 {
+            return 1
+        }
+        let mut x = self - 1
+        x = x | (x >> 1)
+        x = x | (x >> 2)
+        x = x | (x >> 4)
+        x = x | (x >> 8)
+        x = x | (x >> 16)
+        let result = x + 1
+        if result <= 0 {
+            0x40000000
+        } else {
+            result
+        }
+    }
+
+    /// Count leading zero bits. Returns 32 for `self` == 0.
+    fn leading_zeros(self: i32) -> i32 {
+        if self == 0 {
+            return 32
+        }
+        if self < 0 {
+            return 0
+        }
+        let mut count = 0
+        let mut x = self
+        if (x & 0xFFFF0000) == 0 {
+            count = count + 16
+            x = x << 16
+        }
+        if (x & 0xFF000000) == 0 {
+            count = count + 8
+            x = x << 8
+        }
+        if (x & 0xF0000000) == 0 {
+            count = count + 4
+            x = x << 4
+        }
+        if (x & 0xC0000000) == 0 {
+            count = count + 2
+            x = x << 2
+        }
+        if (x & 0x80000000) == 0 {
+            count = count + 1
+        }
+        count
+    }
+
+    /// Count trailing zero bits. Returns 32 for `self` == 0.
+    fn trailing_zeros(self: i32) -> i32 {
+        if self == 0 {
+            return 32
+        }
+        let mut count = 0
+        let mut x = self
+        while (x & 1) == 0 {
+            count = count + 1
+            x = x >> 1
+        }
+        count
+    }
+
+    /// Count the number of set bits (population count).
+    fn popcount(self: i32) -> i32 {
+        let mut count = 0
+        let mut x = self
+        while x != 0 {
+            x = x & (x - 1)
+            count = count + 1
+        }
+        count
+    }
 }
 
 /// Inherent methods on `i64`.

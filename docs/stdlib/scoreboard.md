@@ -36,7 +36,7 @@
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
 | `std::seq` | 13 | 13 | 0 | 0 | 0 | 12/13 (92%) | no |
-| `std::signal` | 11 | 11 | 0 | 0 | 0 | 8/11 (73%) | no |
+| `std::signal` | 10 | 10 | 0 | 0 | 0 | 7/10 (70%) | no |
 | `std::simd::f32x4` | 24 | 0 | 0 | 24 | 0 | 16/24 (67%) | no |
 | `std::simd::f64x2` | 14 | 0 | 0 | 14 | 0 | 13/14 (93%) | no |
 | `std::simd::i16x8` | 10 | 0 | 0 | 10 | 0 | 7/10 (70%) | no |
@@ -56,7 +56,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 755 APIs, 395 stable, 52 provisional, 305 experimental, 3 deprecated, 632/752 (84%) fixture coverage
+**Total**: 754 APIs, 394 stable, 52 provisional, 305 experimental, 3 deprecated, 631/751 (84%) fixture coverage
 
 ## Legend
 

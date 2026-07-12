@@ -4573,14 +4573,6 @@ params = []
 returns = "f64"
 
 [[functions]]
-name = "is_power_of_two"
-module = "std::signal"
-doc_category = "signal"
-stability = "stable"
-params = ["i32"]
-returns = "bool"
-
-[[functions]]
 name = "sin_approx"
 module = "std::signal"
 doc_category = "signal"

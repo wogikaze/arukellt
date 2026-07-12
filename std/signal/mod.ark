@@ -26,18 +26,6 @@ fn i32_to_f64(n: i32) -> f64 {
     out * sign
 }
 
-pub fn is_power_of_two(n: i32) -> bool {
-    if n <= 0 {
-        false
-    } else {
-        let mut x = n
-        while x % 2 == 0 {
-            x = x / 2
-        }
-        x == 1
-    }
-}
-
 fn require_same_length(real: Vec<f64>, imag: Vec<f64>) {
     if len(real) != len(imag) {
         panic("fft: real/imag length mismatch")
@@ -45,7 +33,7 @@ fn require_same_length(real: Vec<f64>, imag: Vec<f64>) {
 }
 
 fn require_power_of_two(n: i32) {
-    if !is_power_of_two(n) {
+    if !n.is_power_of_two() {
         panic("fft: length must be a positive power of two")
     }
 }

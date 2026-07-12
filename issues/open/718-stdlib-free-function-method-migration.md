@@ -9,7 +9,7 @@ Orchestration class: incremental
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 2
-Source: Stdlib free-function inventory 2026-07-05 / ADR-046 eradication 2026-07-12
+Source: Stdlib free-function inventory 2026-07-05 / ADR-046 eradication 2026-07-12 / Tier1 wave
 ---
 
 # 718 — Stdlib free-function → method/trait migration inventory
@@ -166,17 +166,20 @@ Anything that remains only as emit plumbing: `intrinsic-only` (not user-callable
 
 ### Phase 1 (this issue, Tier 1 only)
 
-- [ ] Add missing inherent methods to `impl i32`: `clamp`, `pow`,
+- [x] Add missing inherent methods to `impl i32`: `clamp`, `pow`,
       `is_power_of_two`, `next_power_of_two`, `leading_zeros`,
       `trailing_zeros`, `popcount`
-- [ ] Add missing inherent methods to `impl f64`: `sqrt`, `clamp`
-- [ ] Add missing inherent methods to `impl i64`: `abs`, `min`, `max`
-- [ ] Deprecate duplicated free functions in `std/core/cmp.ark`,
+- [x] Add missing inherent methods to `impl f64`: `sqrt`, `clamp`
+- [x] Add missing inherent methods to `impl i64`: `abs`, `min`, `max`
+- [x] Deprecate duplicated free functions in `std/core/cmp.ark`,
       `std/core/convert.ark`, `std/core/math.ark`, `std/core/hash.ark`
-- [ ] Remove deprecated wrappers: `abs_i32`, `min_i32`, `max_i32`,
+      (removed or thin wrappers + W0009 via `deprecated_table.ark`)
+- [x] Remove deprecated wrappers: `abs_i32`, `min_i32`, `max_i32`,
       `hash_combine`
-- [ ] Update in-tree callers to use method syntax
-- [ ] Update `std/manifest.toml` deprecation metadata
+- [x] Update in-tree callers to use method syntax (stdlib_core math bit
+      fixtures; `std/signal` uses `n.is_power_of_two()`)
+- [x] Update `std/manifest.toml` deprecation metadata (removed
+      `std::signal::is_power_of_two` public free entry)
 - [ ] `python scripts/manager.py verify quick` passes
 
 ### Phase 2 (future, Tier 2-3, blocked by #691, #695)
