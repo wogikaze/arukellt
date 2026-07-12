@@ -109,32 +109,63 @@ supports content-hash-based caching and parallel compilation:
 
 ## API Design Principles
 
-The stdlib public surface is **trait-first / type-first**. User-reachable
-free functions are **eradicated**, not kept as permanent bridges
-(ADR-046, issue #709).
+**Mandatory:** [ADR-046](docs/adr/ADR-046-free-function-eradication.md) (ACCEPTED).
+User-reachable free functions are **eradicated**. Do not treat free functions,
+prelude wrappers, or “temporary bridges” as a lasting public API
+(also issue #709).
 
-- **Require method syntax** `s.split(sep)`, `v.push(x)`, `n.to_string()` —
-  do not ship `split(s, sep)`, `push(v, x)`, `i32_to_string(n)` as the
-  lasting public API.
-- **Prefer `impl Type` blocks** for new public APIs. Define methods on
-  the type they operate on, not as standalone functions in a module.
-- **Prefer associated functions** `Vec::new()`, `String::from("x")` over
-  monomorphic constructors `Vec_new_i32()`, `String_from("x")`.
-  No-receiver globals (`args`, `exit`, `println`) become associated
-  functions on a namespace / handle type (e.g. `Env::args()`,
-  `Process::exit(c)`), not permanent free functions.
-- **Do not** leave public or prelude thin wrappers as the end state.
-  Deprecated wrappers are migration-only (ADR-014 + W0009).
-- **Exceptions**: compiler/runtime `__intrinsic_*` (manifest
-  `kind = "intrinsic"`) only — never in the user-facing namespace.
-  Private free helpers inside `std` are also forbidden in principle;
-  use private methods or intrinsics.
-- Monomorphic helpers (`*_i32`, `*_i64`, `*_f64`) are delete targets
-  (#703), not user-facing API.
+The stdlib public surface is **trait-first / type-first** (ADR-044, ADR-036,
+ADR-046):
 
-References: ADR-046 (free-function eradication), ADR-044 (trait/method
-syntax), ADR-036 (trait-stdlib-redesign; D5 withdrawn), ADR-038
-(operator overload traits), issue #709, issue #718, issue #703.
+1. **Shared behavior → `trait` + `impl Trait for Type`**
+   Prefer a trait when the operation is reusable across types (scalars,
+   collections, etc.). Example — **correct**:
+
+   ```ark
+   trait Integer {
+       fn is_power_of_two(self) -> bool
+   }
+   impl Integer for i32 {
+       fn is_power_of_two(self) -> bool {
+           self > 0 && (self & (self - 1)) == 0
+       }
+   }
+   ```
+
+   **Incorrect end state:** only `impl i32 { fn is_power_of_two(...) }` with
+   no trait, when the same op belongs on `i64` / other integers too.
+   Inherent `impl Type` alone is a stopgap only when the behavior is
+   truly type-unique; default to a trait for cross-type APIs.
+
+2. **Require method / associated call sites**
+   `s.split(sep)`, `v.push(x)`, `n.to_string()`, `n.is_power_of_two()` —
+   never lasting `split(s, sep)`, `push(v, x)`, `i32_to_string(n)`,
+   `is_power_of_two(n)`.
+
+3. **Associated constructors / namespace ops**
+   `Vec::new()`, `String::from("x")`, `Env::args()`, `Process::exit(c)` —
+   not `Vec_new_i32()`, not free `args()` / `exit()`.
+
+4. **Deprecation only, then delete**
+   Public / prelude thin wrappers are migration-only (ADR-014 + W0009).
+   Final form is trait method, inherent method (type-unique only), or
+   associated function — never a free function.
+
+5. **Exceptions (only)**
+   Non-public `__intrinsic_*` / manifest `kind = "intrinsic"`.
+   Private free helpers inside `std` are also forbidden in principle.
+
+6. **Monomorphic helpers** (`*_i32`, `*_i64`, `*_f64`) are delete targets
+   (#703), not user-facing API.
+
+**Agent anti-pattern (do not repeat):** migrating `math::is_power_of_two(n)`
+by adding only `impl i32 { fn is_power_of_two }` and calling Tier 1 “done”.
+That satisfies method syntax but **violates trait-first**. Introduce the
+shared trait (e.g. `Integer`) and `impl` for each integer type.
+
+References: **ADR-046** (free-function eradication — required reading),
+ADR-044 (trait/method syntax), ADR-036 (trait-stdlib-redesign; D5 withdrawn),
+ADR-038 (operator overload traits), issue #709, issue #718, issue #703.
 
 ## Agent Skills
 
