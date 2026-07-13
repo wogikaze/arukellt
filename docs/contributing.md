@@ -115,6 +115,9 @@ Heavy checks also belong in CI. The pre-commit hook can be installed via:
 bash scripts/gate/install-git-hooks.sh
 ```
 
+The pre-commit hook runs `arukellt fmt --check` on staged `.ark` files before
+`verify quick`. Format locally with `arukellt fmt <paths>` when it fails.
+
 No pre-push hook script exists today; run `python3 scripts/manager.py verify full` manually before pushing.
 
 ## Perf Policy

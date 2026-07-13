@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# scripts/gate/pre-commit-verify.sh — Pre-commit gate: repo structure check + quick verification + markdownlint (staged files only).
+# scripts/gate/pre-commit-verify.sh — Pre-commit gate: staged .ark fmt check +
+# repo structure check + quick verification + markdownlint (staged files only).
 #
 # Content-hash result cache: if the staged index, selfhost wasm, and check
 # scripts have not changed since the last run, the entire gate is skipped and
@@ -72,6 +73,36 @@ print(d.get('exit_code', 1))
       echo "pre-commit: FAILED (cached) — fix errors then re-run with PRE_COMMIT_NO_CACHE=1." >&2
       exit 1
     fi
+  fi
+fi
+
+# ── 0b. arukellt fmt --check (staged .ark only) ──────────────────────────────
+banner "arukellt fmt --check (staged .ark only)"
+mapfile -d '' ARK_FILES < <(
+  staged_files | while IFS= read -r -d '' path; do
+    case "$path" in
+      *.ark) printf '%s\0' "$path" ;;
+    esac
+  done
+)
+
+if [ "${#ARK_FILES[@]}" -eq 0 ]; then
+  step "No staged .ark files"
+elif ! command -v arukellt >/dev/null 2>&1; then
+  echo "FAIL: arukellt not found on PATH; required for staged .ark fmt check." >&2
+  FAIL=1
+else
+  set +e
+  FMT_OUTPUT=$(arukellt fmt --check "${ARK_FILES[@]}" 2>&1)
+  FMT_RC=$?
+  set -e
+  if [ "$FMT_RC" -ne 0 ]; then
+    echo "FAIL: staged .ark files are not formatted." >&2
+    echo "$FMT_OUTPUT" | tail -40 >&2
+    echo "  Run: arukellt fmt <paths>, then re-stage." >&2
+    FAIL=1
+  else
+    step "OK"
   fi
 fi
 
