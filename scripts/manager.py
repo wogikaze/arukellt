@@ -4798,6 +4798,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/manager.py selfhost fmt-parity",
         ),
         (
+            "ark lint smoke (W0011 / --deny exit contract)",
+            "python3 scripts/check/check-ark-lint-smoke.py",
+        ),
+        (
             "selfhost LSP lifecycle gate (#569)",
             "python3 scripts/check/check-lsp-lifecycle.py",
         ),

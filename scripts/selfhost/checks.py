@@ -2456,37 +2456,31 @@ pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: St
 def _compiler_source_content_hash(root: Path) -> str:
     """Content-hash of all selfhost compiler source files + checks.py.
 
-    Uses git blob OIDs for tracked files (fast, no file I/O) and falls back
-    to SHA-256 for untracked files.
+    Hashes the working-tree contents of ``src/compiler/**/*.ark`` (not git
+    index blob OIDs) so uncommitted edits invalidate the flat-overlay cache.
     """
-    import subprocess as _sp
     digest = hashlib.sha256()
-    digest.update(b"v1\n")
+    digest.update(b"v2\n")
     # Hash checks.py itself (overlay logic depends on it)
     try:
         with open(__file__, "rb") as f:
             digest.update(f.read())
     except OSError:
         digest.update(b"<missing>")
-    # Hash all src/compiler/*.ark via git blob OIDs
-    r = _sp.run(
-        ["git", "ls-files", "-s", "-z", "--", "src/compiler/"],
-        cwd=str(root), capture_output=True, check=False,
-    )
-    if r.returncode == 0:
-        for raw in r.stdout.split(b"\0"):
-            if not raw:
+    compiler = root / "src" / "compiler"
+    if compiler.is_dir():
+        for path in sorted(compiler.rglob("*.ark")):
+            if not path.is_file():
                 continue
+            rel = path.relative_to(root).as_posix()
+            digest.update(rel.encode())
+            digest.update(b"\0")
             try:
-                meta, rel = raw.split(b"\t", 1)
-            except ValueError:
-                continue
-            parts = meta.split(b" ")
-            if len(parts) >= 2:
-                digest.update(rel)
-                digest.update(b"\0")
-                digest.update(parts[1])
-                digest.update(b"\0")
+                file_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            except OSError:
+                file_hash = "<missing>"
+            digest.update(file_hash.encode())
+            digest.update(b"\0")
     # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)
     for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):
         std_path = root / std_rel

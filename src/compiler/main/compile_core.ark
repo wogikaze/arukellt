@@ -166,12 +166,19 @@ pub fn cmd_compile_single(opts: CliOptions) {
     let input_file = args_record::cli_input_file(opts)
     let json_mode = args_record::cli_json_output(opts)
     let result = file::compile_file(clone(input_file), config)
-    if result_record::compile_result_success(result) {
-        handle_single_compile_success(opts, clone(input_file), result, json_mode)
-    } else {
+    let has_messages = result_record::compile_result_error_message_count(result) > 0 || len(result_record::compile_result_diagnostics(result)) > 0
+    if has_messages {
         print_compile_diagnostics(clone(input_file), result, json_mode)
+    }
+    if !result_record::compile_result_success(result) {
         process::exit(1)
     }
+    // check/lint stop after typecheck; warnings already printed above.
+    let command = args_record::cli_command(opts)
+    if command == kinds::CMD_CHECK() || command == kinds::CMD_LINT() {
+        return
+    }
+    handle_single_compile_success(opts, clone(input_file), result, json_mode)
 }
 
 // Arukellt Selfhost - CLI single compile success handling.

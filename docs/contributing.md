@@ -115,8 +115,15 @@ Heavy checks also belong in CI. The pre-commit hook can be installed via:
 bash scripts/gate/install-git-hooks.sh
 ```
 
-The pre-commit hook runs `arukellt fmt --check` on staged `.ark` files before
-`verify quick`. Format locally with `arukellt fmt <paths>` when it fails.
+The pre-commit hook runs `arukellt fmt --check` on staged `.ark` files, then
+`scripts/run/arukellt-selfhost.sh lint --deny prefer-else-if` on each staged
+standalone `.ark` (after a selfhost rebuild when compiler/stdlib sources are
+staged). Package modules under `src/compiler/` and `std/` are skipped at
+file-level lint (they need package loading); `verify quick` includes
+`scripts/check/check-ark-lint-smoke.py` for the lint exit contract. Then
+`verify quick` runs. Format locally with `arukellt fmt <paths>` when fmt fails.
+Warnings from lint still print but only denied rules (currently
+`prefer-else-if` / W0011) and real errors fail the hook on standalone files.
 
 No pre-push hook script exists today; run `python3 scripts/manager.py verify full` manually before pushing.
 

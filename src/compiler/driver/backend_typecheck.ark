@@ -3,6 +3,7 @@
 use collections::vec_extend
 use compiler::phases
 use compiler::session_typecheck_query
+use diagnostics::mod as diag_mod
 use diagnostics::record as diag_record
 use driver::config_record
 use driver::debug
@@ -39,8 +40,8 @@ fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {
     result.t_typecheck
 }
 
-// Filter lint warnings by --allow/--deny lists.
-fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>, deny_codes: Vec<String>) -> Vec<Diagnostic> {
+// Filter lint warnings by --allow (suppress). --deny is applied after merge.
+fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> Vec<Diagnostic> {
     let filtered = Vec_new_Diagnostic()
     let count = len(warnings)
     let mut i = 0
@@ -55,6 +56,26 @@ fn filter_lint_warnings(warnings: Vec<Diagnostic>, allow_codes: Vec<String>, den
         i = i + 1
     }
     filtered
+}
+
+fn escalate_lint_to_error(diag: Diagnostic) -> Diagnostic {
+    diag_mod::Diagnostic_new(diag_record::diagnostic_code(diag), diag_mod::SEV_ERROR(), diag_record::diagnostic_span(diag), diag_record::diagnostic_message(diag))
+}
+
+// Append denied (escalated) diagnostics into `denied` and remaining warnings into `kept`.
+fn partition_deny_lists(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, denied: Vec<Diagnostic>, kept: Vec<Diagnostic>) {
+    let count = len(warnings)
+    let mut i = 0
+    while i < count {
+        let diag = get_unchecked(warnings, i)
+        let code = diag_record::diagnostic_code(diag)
+        if lint_registry::should_deny(clone(code), deny_codes) {
+            push(denied, escalate_lint_to_error(diag))
+        } else {
+            push(kept, diag)
+        }
+        i = i + 1
+    }
 }
 
 // Merge two Vec<Diagnostic> into one.
@@ -74,17 +95,28 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
         let warnings = session_typecheck_query::session_typecheck_warnings(check_result)
         // Run post-resolution lint checks (W0006 unused import, W0009 deprecated API, etc.)
         let lint_warnings = lint_checks::run_post_resolve_lint(all_decls, config_record::config_target(config))
-        // Filter by --allow/--deny
+        // Filter by --allow; escalate --deny to errors
         let allow_codes = config_record::config_lint_allow(config)
         let deny_codes = config_record::config_lint_deny(config)
-        let filtered_typecheck = filter_lint_warnings(warnings, allow_codes, deny_codes)
-        let filtered_lint = filter_lint_warnings(lint_warnings, allow_codes, deny_codes)
+        let filtered_typecheck = filter_lint_warnings(warnings, allow_codes)
+        let filtered_lint = filter_lint_warnings(lint_warnings, allow_codes)
         // Merge all warnings
         let merged = Vec_new_Diagnostic()
         merge_warnings(merged, filtered_typecheck)
         merge_warnings(merged, filtered_lint)
-        if len(merged) > 0 {
-            return DriverTypecheckResult_new(true, errors::type_warnings_result(clone(source), config_record::config_source_file(config), merged), check_result, clock::monotonic_now())
+        let denied = Vec_new_Diagnostic()
+        let kept = Vec_new_Diagnostic()
+        partition_deny_lists(merged, deny_codes, denied, kept)
+        if len(denied) > 0 {
+            let all = Vec_new_Diagnostic()
+            merge_warnings(all, denied)
+            merge_warnings(all, kept)
+            let denied_result = errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec_new_String())
+            return DriverTypecheckResult_new(true, denied_result, check_result, clock::monotonic_now())
+        }
+        if len(kept) > 0 {
+            let warn_result = errors::type_warnings_result(clone(source), config_record::config_source_file(config), kept)
+            return DriverTypecheckResult_new(true, warn_result, check_result, clock::monotonic_now())
         }
         return DriverTypecheckResult_new(true, result_record::CompileResult_ok(phases::PHASE_TYPECHECK()), check_result, clock::monotonic_now())
     }

@@ -49,8 +49,11 @@ formatter で直せる指摘をレビューの主戦場にしない。linter で
 
 次の順で強化し、上位層は下位層の再検証または拡張とする。
 
-1. ローカルでの `arukellt fmt`（保存時またはコミット前の自動修正）
-2. pre-commit: staged `.ark` の `fmt --check`、続けて `verify quick`
+1. ローカルでの `arukellt fmt`（保存時またはコミット前の自動修正）と任意の
+   `arukellt lint`
+2. pre-commit: staged `.ark` の `fmt --check`、続けてスタンドアロン `.ark` の
+   `lint --deny prefer-else-if`（`src/compiler/` / `std/` はスキップ）、続けて
+   `verify quick`（lint smoke 含む）
 3. CI での同等ゲート再実行
 4. required status checks / branch 保護による未通過 merge の拒否（運用設定は
    repository 側。本 ADR は「機械ゲートを破って merge しない」方針を固定する）

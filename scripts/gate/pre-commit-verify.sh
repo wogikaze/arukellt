@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/gate/pre-commit-verify.sh — Pre-commit gate: staged .ark fmt check +
+# scripts/gate/pre-commit-verify.sh — Pre-commit gate: staged .ark fmt + lint,
 # repo structure check + quick verification + markdownlint (staged files only).
 #
 # Content-hash result cache: if the staged index, selfhost wasm, and check
@@ -11,6 +11,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 FAIL=0
+SELFHOST_CLI="$REPO_ROOT/scripts/run/arukellt-selfhost.sh"
 
 step() {
   echo "  >> $*"
@@ -161,6 +162,55 @@ else
   step "no compiler/stdlib source staged — skipping wasm rebuild"
 fi
 
+# ── 1c. arukellt lint (staged .ark only, after wasm rebuild) ─────────────────
+# Warnings print and do not fail (exit 0). Prefer-else-if is denied on
+# standalone programs so nested else { if } fails the commit (ADR-047).
+# Package modules under src/compiler/ and std/ cannot be linted as single files
+# (module loading needs the package root); those rely on verify lint smoke.
+banner "arukellt lint (staged .ark only)"
+if [ "${#ARK_FILES[@]}" -eq 0 ]; then
+  step "No staged .ark files"
+elif [ ! -x "$SELFHOST_CLI" ]; then
+  echo "FAIL: $SELFHOST_CLI not executable; required for staged .ark lint." >&2
+  FAIL=1
+else
+  LINT_FAIL=0
+  LINT_SKIP=0
+  LINT_RAN=0
+  for ark in "${ARK_FILES[@]}"; do
+    case "$ark" in
+      src/compiler/*|std/*)
+        LINT_SKIP=$((LINT_SKIP + 1))
+        continue
+        ;;
+    esac
+    LINT_RAN=$((LINT_RAN + 1))
+    set +e
+    LINT_OUTPUT=$("$SELFHOST_CLI" lint --deny prefer-else-if "$ark" 2>&1)
+    LINT_RC=$?
+    set -e
+    if [ "$LINT_RC" -ne 0 ]; then
+      echo "FAIL: lint failed for $ark (exit $LINT_RC)." >&2
+      echo "$LINT_OUTPUT" | tail -40 >&2
+      echo "  Fix W0011 (else if) or other denied/errors, then re-stage." >&2
+      LINT_FAIL=1
+    elif [ -n "$LINT_OUTPUT" ]; then
+      # Surface remaining warnings without failing the hook.
+      echo "$LINT_OUTPUT" | head -20
+    fi
+  done
+  if [ "$LINT_SKIP" -gt 0 ]; then
+    step "skipped $LINT_SKIP package module(s) under src/compiler/ or std/ (verify lint smoke covers toolchain)"
+  fi
+  if [ "$LINT_FAIL" -ne 0 ]; then
+    FAIL=1
+  elif [ "$LINT_RAN" -eq 0 ]; then
+    step "OK (no standalone .ark to lint)"
+  else
+    step "OK ($LINT_RAN file(s))"
+  fi
+fi
+
 # ── 2. quick verification ──────────────────────────────────────────────────
 banner "manager verify --quick"
 if python3 scripts/manager.py verify --quick; then
@@ -192,7 +242,7 @@ if command -v npx >/dev/null 2>&1; then
     if npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc "${MD_FILES[@]}"; then
       step "OK"
     else
-      echo "FAIL: markdownlint found issues in staged markdown files. Run 'npx markdownlint-cli2 "**/*.md" --fix' or fix them manually." >&2
+      echo "FAIL: markdownlint found issues in staged markdown files. Run 'npx markdownlint-cli2 \"**/*.md\" --fix' or fix them manually." >&2
       FAIL=1
     fi
   fi

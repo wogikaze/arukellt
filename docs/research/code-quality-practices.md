@@ -43,7 +43,7 @@
 | 実装品質規約 | [`AGENTS.md`](../../AGENTS.md)「コード品質規約」 | 命名・コメント・分割・レビュー問い |
 | 設計寄りの規約 | [`docs/process/coding-conventions.md`](../process/coding-conventions.md) | API・層・エラー・決定性・テスト配置 |
 | ユーザー経路品質 | [ADR-015](../adr/ADR-015-no-panic-in-user-paths.md) | panic / unwrap 禁止 |
-| ローカルゲート | pre-commit: staged `.ark` の `fmt --check` → `verify quick` | [`docs/contributing.md`](../contributing.md) |
+| ローカルゲート | pre-commit: staged `.ark` の `fmt --check` → standalone `lint --deny prefer-else-if` → `verify quick` | [`docs/contributing.md`](../contributing.md) |
 | ratchet | `scripts/check/check-ark-code-quality.py` + [`docs/data/ark-code-quality-baseline.toml`](../data/ark-code-quality-baseline.toml) | タブ・極端インデント・長行など |
 | harness | [ADR-001](../adr/ADR-001-harness-bootstrap.md) | 「formatter と lint スタック」は後続予定のまま |
 

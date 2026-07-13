@@ -73,7 +73,9 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
 }
 
 pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<Diagnostic>) -> CompileResult {
-    let mut result = result_record::CompileResult_new(false, phases::PHASE_TYPECHECK(), len(warnings), Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
+    // Warnings print but do not fail the process (exit 0). Use --deny / [lint] deny
+    // to escalate selected rules to type_errors_result (exit 1).
+    let mut result = result_record::CompileResult_new(true, phases::PHASE_TYPECHECK(), len(warnings), Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
     for i in 0..len(warnings) {
         let diag = get_unchecked(warnings, i)
         result_record::compile_result_push_diagnostic(result, diag)
