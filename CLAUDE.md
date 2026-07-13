@@ -1,153 +1,46 @@
 # AGENTS.md
 
-This repository is the **Arukellt** language toolchain: compiler/runtime backends, standard library, CLI, tests, and documentation.
+## プロジェクトの正本
 
-## Repository Boundary
+- 現行のユーザー可視挙動は `docs/current-state.md` と `docs/data/*.toml` を正とする。
+- 設計判断は `docs/adr/` を参照する。拘束力があるのは `ACCEPTED` のみで、`PROPOSED` は未採択、`SUPERSEDED` は履歴である。
+- 詳細仕様は `docs/rfcs/`、実装計画と一時制限は `docs/plans/`、調査は `docs/research/` に置く。ADR に進捗や一時的な実装上限を書かない。
+- 生成物は `docs/directory-ownership.md` に従い、生成元を変更して再生成する。生成済み Markdown を直接直さない。
+- 検証コマンド名は `docs/data/verification-commands.toml` を正とする。
+- コーディング規約の正本は `docs/process/coding-conventions.md` とする。
 
-This repo contains:
+## 現行アーキテクチャの制約
 
-- compiler and runtime implementation under `crates/`
-- standard library sources under `std/`
-- CLI integration via selfhost wrapper (`scripts/run/arukellt-selfhost.sh`)
-- fixture / benchmark / verification infrastructure under `tests/`, `benchmarks/`, and `scripts/`
-- user-facing and design documentation under `docs/`
+- `src/compiler/` のセルフホスト実装をコンパイラ・LSP の正本として扱う。退役済み Rust-era 経路や `crates/**` を既定の変更先・検証前提にしない。
+- 公開ターゲットは `wasm32-gc`（primary）、`wasm32`（supported）、`native-cpp` / `native-llvm`（scaffold）。WASI P1/P2/P3 は host profile でありターゲット名ではない。
+- `wasm32-gc` が既定でも、実装状態は partial である。ADR の理想形を現行実装済みと誤記しない。
+- 公開 API は trait / method / associated function を正規形とする。ユーザー可達 free function を新設・温存しない。例外は非公開 intrinsic のみ（ADR-044、ADR-046）。
+- 安定性変更は ADR-014、ユーザー入力から到達するエラー処理は ADR-015、セルフホスト検証は ADR-029 に従う。
 
-## Primary Source of Truth
+## 必須ワークフロー
 
-Use these in order, depending on the question:
+- 言語意味論、公開 API、ABI、ターゲット、コンパイラ段階、stdlib 移行方針を変える前に `$implementation-strategy` を使う。
+- 長期的な設計判断を新設・置換するときは `$architecture-decision` を使う。
+- docs、生成元、例、current-state の主張に影響する変更では `$docs-sync` を使う。
+- benchmark、baseline、perf threshold を変更するときは `$benchmark-change` を使う。
+- コード、テスト、例、ビルド、検証挙動を変更した後は `$code-change-verification` を使う。
+- issue を `issues/open/` から `issues/done/` へ移す前は `$issue-close-review` を使う。
 
-- **Current user-visible behavior**: `docs/current-state.md`
-- **Current open work queue**: `issues/open/index.md`
-- **Current dependency ordering**: `issues/open/dependency-graph.md`
-- **Completed tracked work**: `issues/done/`
-- **Design decisions / rationale**: `docs/adr/`
-- **Verification contract**: `scripts/manager.py` (`python scripts/manager.py verify`)
-- **Generated docs contract**: `scripts/gen/generate-docs.py`
+## 実装規律
 
-## Current Work Surface
+- 依頼の目的、対象、制約、完了条件を先に確定し、必要最小限の差分にする。旧スキルの `PRIMARY_PATHS` 形式は必須ではないが、issue に指定があれば従う。
+- コード変更は `docs/process/coding-conventions.md` に従う。変更した `.ark` には `arukellt fmt` または `arukellt fmt --check` を適用する。
+- 既存 ADR と衝突したら、コードで既成事実化せず設計判断を解決する。
+- 仕様変更には最小の回帰試験を追加する。テスト不能な完了主張をしない。
+- 無関係なリファクタ、生成物の手編集、baseline による回帰隠し、SKIP の無根拠追加をしない。
+- コマンドを実行できない、または失敗した場合は、その事実と未確認範囲を明記する。成功扱いにしない。
 
-The active open queue is the generated issue index under `issues/open/`.
-At the time of writing, the queue is centered on:
+## 基本コマンド
 
-- WASI Preview 2 native component output
-- `std::host::*` namespace rollout
-- shared host capability facades across T1 / T3
+- 高速ゲート: `python3 scripts/manager.py verify quick`
+- fixture: `python3 scripts/manager.py verify fixtures`
+- docs 再生成: `python3 scripts/manager.py docs regenerate`
+- docs 検査: `python3 scripts/manager.py docs check`
+- 全体: `python3 scripts/manager.py verify full`
 
-Do not infer active work from old roadmap prose when `issues/open/index.md` disagrees.
-
-## Documentation Rules
-
-- Treat `docs/current-state.md` as the current behavior contract.
-- Many landing pages are generated. After changing manual doc sources, regenerate docs with:
-
-```bash
-python3 scripts/gen/generate-docs.py
-```
-
-- Check for docs drift with:
-
-```bash
-python3 scripts/check/check-docs-consistency.py
-```
-
-- If queue structure changes, regenerate issue indexes with:
-
-```bash
-python3 scripts/gen/generate-issue-index.py
-```
-
-## Completion Criteria
-
-Work is complete when the relevant scope is updated and verification passes.
-For tracked issue work, that normally means:
-
-1. `python scripts/manager.py verify` exits with status 0
-2. generated artifacts touched by the work are regenerated and included
-3. relevant docs / ADRs are updated when behavior changed
-4. tracked issue files move from `issues/open/` to `issues/done/` when the task itself is completed
-5. commits stay focused to the files changed for that task
-
-## Verification Loop
-
-- Quick pass: `python scripts/manager.py verify quick`
-- Full pass: `python scripts/manager.py verify full`
-
-## Tooling Notes
-
-- Prefer `ig` for code search.
-- Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained.
-
-## API Design Principles
-
-**Mandatory:** [ADR-046](docs/adr/ADR-046-free-function-eradication.md) (ACCEPTED).
-User-reachable free functions are **eradicated**. Do not treat free functions,
-prelude wrappers, or “temporary bridges” as a lasting public API
-(also issue #709).
-
-The stdlib public surface is **trait-first / type-first** (ADR-044, ADR-036,
-ADR-046):
-
-1. **Shared behavior → `trait` + `impl Trait for Type`**
-   Prefer a trait when the operation is reusable across types (scalars,
-   collections, etc.). Example — **correct**:
-
-   ```ark
-   trait Integer {
-       fn is_power_of_two(self) -> bool
-   }
-   impl Integer for i32 {
-       fn is_power_of_two(self) -> bool {
-           self > 0 && (self & (self - 1)) == 0
-       }
-   }
-   ```
-
-   **Incorrect end state:** only `impl i32 { fn is_power_of_two(...) }` with
-   no trait, when the same op belongs on `i64` / other integers too.
-   Inherent `impl Type` alone is a stopgap only when the behavior is
-   truly type-unique; default to a trait for cross-type APIs.
-
-2. **Require method / associated call sites**
-   `s.split(sep)`, `v.push(x)`, `n.to_string()`, `n.is_power_of_two()` —
-   never lasting `split(s, sep)`, `push(v, x)`, `i32_to_string(n)`,
-   `is_power_of_two(n)`.
-
-3. **Associated constructors / namespace ops**
-   `Vec::new()`, `String::from("x")`, `Env::args()`, `Process::exit(c)` —
-   not `Vec_new_i32()`, not free `args()` / `exit()`.
-
-4. **Deprecation only, then delete**
-   Public / prelude thin wrappers are migration-only (ADR-014 + W0009).
-   Final form is trait method, inherent method (type-unique only), or
-   associated function — never a free function.
-
-5. **Exceptions (only)**
-   Non-public `__intrinsic_*` / manifest `kind = "intrinsic"`.
-   Private free helpers inside `std` are also forbidden in principle.
-
-6. **Monomorphic helpers** (`*_i32`, `*_i64`, `*_f64`) are delete targets
-   (#703), not user-facing API.
-
-**Agent anti-pattern (do not repeat):** migrating `math::is_power_of_two(n)`
-by adding only `impl i32 { fn is_power_of_two }` and calling Tier 1 “done”.
-That satisfies method syntax but **violates trait-first**. Introduce the
-shared trait (e.g. `Integer`) and `impl` for each integer type.
-
-References: **ADR-046** (free-function eradication — required reading),
-ADR-044 (trait/method syntax), ADR-036 (trait-stdlib-redesign; D5 withdrawn),
-ADR-038 (operator overload traits), issue #709, issue #718, issue #703.
-
-## Markdown Navigation
-
-- When reading large Markdown files such as `README.md`, docs, ADRs, or issue indexes, prefer `markdive` over loading the whole file at once.
-- Use `npx markdive` so the workflow works even when the CLI is not globally installed.
-- Recommended flow:
-
-```bash
-npx markdive dive <file> --depth 2
-npx markdive dive <file> --path <section-id> --depth 2
-npx markdive read <file> --path <section-id>
-```
-
-- First inspect structure with `dive`, then drill down with `--path`, and only then read the target section with `read`.
-- Fall back to normal file reads only when `markdive` cannot handle the document.
+変更範囲に応じた追加コマンドは `docs/data/verification-commands.toml` と対象 issue を確認して選ぶ。

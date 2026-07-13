@@ -7,6 +7,7 @@
 - 詳細仕様は `docs/rfcs/`、実装計画と一時制限は `docs/plans/`、調査は `docs/research/` に置く。ADR に進捗や一時的な実装上限を書かない。
 - 生成物は `docs/directory-ownership.md` に従い、生成元を変更して再生成する。生成済み Markdown を直接直さない。
 - 検証コマンド名は `docs/data/verification-commands.toml` を正とする。
+- コーディング規約の正本は `docs/process/coding-conventions.md` とする。
 
 ## 現行アーキテクチャの制約
 
@@ -28,6 +29,7 @@
 ## 実装規律
 
 - 依頼の目的、対象、制約、完了条件を先に確定し、必要最小限の差分にする。旧スキルの `PRIMARY_PATHS` 形式は必須ではないが、issue に指定があれば従う。
+- コード変更は `docs/process/coding-conventions.md` に従う。変更した `.ark` には `arukellt fmt` または `arukellt fmt --check` を適用する。
 - 既存 ADR と衝突したら、コードで既成事実化せず設計判断を解決する。
 - 仕様変更には最小の回帰試験を追加する。テスト不能な完了主張をしない。
 - 無関係なリファクタ、生成物の手編集、baseline による回帰隠し、SKIP の無根拠追加をしない。
