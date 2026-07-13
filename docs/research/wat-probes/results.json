@@ -1,0 +1,1501 @@
+{
+  "date": "2026-07-13",
+  "versions": {
+    "wasm-tools": "wasm-tools 1.245.1",
+    "wat2wasm": "1.0.34",
+    "wasm-validate": "1.0.34",
+    "wasmtime": "wasmtime 44.0.0 (af382d7d9 2026-04-20)",
+    "iwasm": "iwasm 2.4.3",
+    "node": "v25.2.1"
+  },
+  "results": [
+    {
+      "probe": "wasm10/01-arithmetic.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/02-locals.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/03-globals.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/04-drop-select.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/05-control-flow.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/06-call.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/07-call-indirect.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/08-memory.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/09-start.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/10-custom-section.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "custom-section.inject": {
+          "ok": true,
+          "detail": "appended custom 'probe-meta' (13 bytes)"
+        },
+        "wasm-tools.validate+custom": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/11-trap-unreachable.wat",
+      "group": "wasm10",
+      "expected": "trap",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "trapped exit=134"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "trapped exit=1"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"trap\":true,\"error\":\"RuntimeError: unreachable\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm10/12-convert-reinterpret.wat",
+      "group": "wasm10",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/01-multi-value.wat",
+      "group": "wasm20",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/02-reference-types.wat",
+      "group": "wasm20",
+      "expected": "1",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '1'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x1:i32' -> 1"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"1\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/03-typed-select.wat",
+      "group": "wasm20",
+      "expected": "1",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '1'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x1:i32' -> 1"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"1\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/04-multiple-tables.wat",
+      "group": "wasm20",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/05-bulk-memory.wat",
+      "group": "wasm20",
+      "expected": "65",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '65'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x41:i32' -> 65"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"65\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/06-simd.wat",
+      "group": "wasm20",
+      "expected": "3",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '3'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x3:i32' -> 3"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"3\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/07-sign-extension.wat",
+      "group": "wasm20",
+      "expected": "-1",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '-1'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0xffffffff:i32' -> 4294967295"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"-1\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/08-trunc-sat-scalar.wat",
+      "group": "wasm20",
+      "expected": "2147483647",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '2147483647'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x7fffffff:i32' -> 2147483647"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"2147483647\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/09-trunc-sat-simd.wat",
+      "group": "wasm20",
+      "expected": "2147483647",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '2147483647'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x7fffffff:i32' -> 2147483647"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"2147483647\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/10-js-bigint-i64.wat",
+      "group": "wasm20",
+      "expected": "js",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "skipped (host/tooling probe)"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "skipped (host/tooling probe)"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"result\":\"1\",\"ok\":true}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm20/11-table-ops.wat",
+      "group": "wasm20",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "got '0x2a:i32' -> 42"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/01-extended-const.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: illegal opcode or constant expression required or type mismatch"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/02-memory64.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid limits flags"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/03-table64.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/03-table64.wat:6:17: error: unexpected token funcref, expected (.\n  (table $T i64 funcref (elem $f))\n                ^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/03-table64.wat:7:3: error: unexpected token (, expected EOF.\n  (func (export \"test\") (result i32)\n  ^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid limits flags(table64 flag was found, please enable memory64)"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/04-multiple-memories.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: multiple memories"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/05-tail-call.wat",
+      "group": "wasm30",
+      "expected": "param",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '0'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: unsupported opcode 12"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"0\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/06-typed-func-ref.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/06-typed-func-ref.wat:8:6: error: opcode not allowed: call_ref\n    (call_ref $t (ref.func $f))))\n     ^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/06-typed-func-ref.wat:8:15: error: unexpected token $t, expected ).\n    (call_ref $t (ref.func $f))))\n              ^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/06-typed-func-ref.wat:8:33: error: unexpected token ), expected EOF.\n    (call_ref $t (ref.func $f))))\n                                ^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: unsupported opcode 14"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/07-br-on-null.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/07-br-on-null.wat:10:7: error: unexpected token (, expected ).\n      (br_on_null $is_null)\n      ^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/07-br-on-null.wat:10:8: error: unexpected token br_on_null.\n      (br_on_null $is_null)\n       ^^^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/07-br-on-null.wat:11:16: error: opcode not allowed: call_ref\n      (return (call_ref $t)))\n               ^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/07-br-on-null.wat:11:25: error: unexpected token $t, expected ).\n      (return (call_ref $t)))\n                        ^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/07-br-on-null.wat:13:1: error: unexpected token EOF, expected )."
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: unsupported opcode d5"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/08-gc-struct.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/08-gc-struct.wat:4:13: error: struct not allowed\n  (type $S (struct (field i32)))\n            ^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/08-gc-struct.wat:6:6: error: unexpected token \"struct.get\", expected an instr.\n    (struct.get $S 0 (struct.new $S (i32.const 42)))))\n     ^^^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/08-gc-struct.wat:6:23: error: unexpected token struct.new.\n    (struct.get $S 0 (struct.new $S (i32.const 42)))))\n                      ^^^^^^^^^^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid type flag"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/09-gc-array.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/09-gc-array.wat:4:13: error: array type not allowed\n  (type $A (array (mut i32)))\n            ^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/09-gc-array.wat:6:15: error: unexpected token \"(\", expected i32, i64, f32, f64, v128, externref or funcref.\n    (local $a (ref $A))\n              ^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/09-gc-array.wat:7:20: error: unexpected token array.new.\n    (local.set $a (array.new $A (i32.const 0) (i32.const 1)))\n                   ^^^^^^^^^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid type flag"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/10-i31.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/10-i31.wat:5:6: error: unexpected token \"i31.get_s\", expected an instr.\n    (i31.get_s (ref.i31 (i32.const 42)))))\n     ^^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/10-i31.wat:5:17: error: unexpected token ref.i31.\n    (i31.get_s (ref.i31 (i32.const 42)))))\n                ^^^^^^^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: unsupported opcode fb"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/11-eh-try-table.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/11-eh-try-table.wat:4:3: error: tag not allowed\n  (tag $e (param i32))\n  ^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/11-eh-try-table.wat:7:7: error: unexpected token (, expected ).\n      (try_table (result i32) (catch $e $handler)\n      ^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/11-eh-try-table.wat:7:8: error: unexpected token try_table.\n      (try_table (result i32) (catch $e $handler)\n       ^^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/11-eh-try-table.wat:8:10: error: unexpected token \"throw\", expected an instr.\n        (throw $e (i32.const 42))\n         ^^^^^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid section id"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/12-relaxed-simd.wat",
+      "group": "wasm30",
+      "expected": "validate",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '1'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid opcode 0xfd 101."
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"1\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/13-custom-annotations.wat",
+      "group": "wasm30",
+      "expected": "tooling",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.annotation": {
+          "ok": true,
+          "detail": "annotation/custom visible in print"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "skipped (host/tooling probe)"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "skipped (host/tooling probe)"
+        },
+        "node": {
+          "ok": true,
+          "detail": "skipped (tooling probe)"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/14-return-call-ref.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/14-return-call-ref.wat:8:6: error: unexpected token \"return_call_ref\", expected an instr.\n    (return_call_ref $t (ref.func $f)))\n     ^^^^^^^^^^^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/14-return-call-ref.wat:10:11: error: undefined function variable \"$g\"\n    (call $g)))\n          ^^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: unsupported opcode 15"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/15-recursive-types.wat",
+      "group": "wasm30",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/wasm30/15-recursive-types.wat:4:4: error: unexpected token \"rec\", expected a module field.\n  (rec\n   ^^^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid type flag"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "wasm30/16-js-string-builtins.wat",
+      "group": "wasm30",
+      "expected": "js",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "skipped (host/tooling probe)"
+        },
+        "iwasm": {
+          "ok": true,
+          "detail": "skipped (host/tooling probe)"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"builtins\":true}"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "experimental/legacy-eh-try-catch.wat",
+      "group": "experimental",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": false,
+          "detail": "error: `catch` found outside `LegacyTry` block (at offset 0x30)"
+        },
+        "wasm-tools.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wabt.wat2wasm": {
+          "ok": false,
+          "detail": "/home/wogikaze/arukellt/docs/research/wat-probes/experimental/legacy-eh-try-catch.wat:6:3: error: tag not allowed\n  (tag $e (param i32))\n  ^\n/home/wogikaze/arukellt/docs/research/wat-probes/experimental/legacy-eh-try-catch.wat:8:6: error: opcode not allowed: try\n    (try (result i32)\n     ^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/experimental/legacy-eh-try-catch.wat:9:8: error: unexpected token throw, expected do.\n      (throw $e (i32.const 42))\n       ^^^^^\n/home/wogikaze/arukellt/docs/research/wat-probes/experimental/legacy-eh-try-catch.wat:10:7: error: unexpected token (, expected ).\n      (catch $e))))\n      ^"
+        },
+        "wabt.validate": {
+          "ok": false,
+          "detail": "skipped (parse failed)"
+        },
+        "wasmtime": {
+          "ok": false,
+          "detail": "no binary"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "no binary"
+        },
+        "node": {
+          "ok": false,
+          "detail": "no binary"
+        }
+      },
+      "notes": []
+    },
+    {
+      "probe": "experimental/threads-atomics.wat",
+      "group": "experimental",
+      "expected": "42",
+      "stages": {
+        "wasm-tools.parse": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasm-tools.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wabt.wat2wasm": {
+          "ok": true,
+          "detail": "ok flags=['--enable-all', '--enable-annotations']"
+        },
+        "wabt.validate": {
+          "ok": true,
+          "detail": "ok"
+        },
+        "wasmtime": {
+          "ok": true,
+          "detail": "got '42'"
+        },
+        "iwasm": {
+          "ok": false,
+          "detail": "WASM module load failed: invalid limits flags"
+        },
+        "node": {
+          "ok": true,
+          "detail": "{\"validate\":true,\"result\":\"42\"}"
+        }
+      },
+      "notes": []
+    }
+  ]
+}
