@@ -1,5 +1,4 @@
-// Arukellt Selfhost - Wasm emitter context data record.
-
+// Wasm emitter context data record.
 use corehir::signature_registry
 use corehir::type_table
 use mir::function_identity
@@ -47,10 +46,24 @@ fn SelfEmitCtx_new(functions: Vec<MirFunction>, string_offsets: Vec<i32>, string
     let mut name_lengths = Vec_new_i32()
     let mut fi = 0
     while fi < fn_count {
-        push(name_lengths, len(function_identity::MirFunction_name(get_unchecked(functions, fi))))
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
+        push(name_lengths, len(fname))
         fi = fi + 1
     }
-    SelfEmitCtx { functions: functions, function_name_lengths: name_lengths, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: Vec_new_i32(), target: target, wasi_version: wasi_version, needs_arukellt_host: needs_arukellt_host, gc_hint_offsets: Vec_new_i32(), needs_wasi_http_outgoing: needs_wasi_http_outgoing, gc_type_base: 0, gc_enum_variant_base: 0 - 1, gc_enum_variant_type_map: Vec_new_i32(), gc_enum_variant_names: Vec_new_String(), gc_enum_variant_sigs: Vec_new_String(), gc_struct_base: 0 - 1, gc_struct_type_map: Vec_new_i32(), gc_struct_names: Vec_new_String(), current_func_idx: 0, fn_type_map: Vec_new_i32(), signature_registry: signature_registry::SignatureRegistry_new(), type_table: type_table::TypeTable_new(), mono_instance_table: mono_instance_table::MonoInstanceTable_new(), spine_populated: false, registry_audit_candidates: 0, registry_audit_matched: 0, registry_audit_mismatched: 0, registry_audit_mismatch_budget: 128, gc_layout_table: gc_layout_table::GcLayoutTable_new() }
+    let empty_i32 = Vec_new_i32()
+    let empty_string = Vec_new_String()
+    let empty_i32_b = Vec_new_i32()
+    let empty_i32_c = Vec_new_i32()
+    let empty_string_b = Vec_new_String()
+    let empty_string_c = Vec_new_String()
+    let empty_i32_d = Vec_new_i32()
+    let empty_string_d = Vec_new_String()
+    let empty_i32_e = Vec_new_i32()
+    let sig = signature_registry::SignatureRegistry_new()
+    let types = type_table::TypeTable_new()
+    let mono = mono_instance_table::MonoInstanceTable_new()
+    let layout = gc_layout_table::GcLayoutTable_new()
+    SelfEmitCtx { functions: functions, function_name_lengths: name_lengths, string_offsets: string_offsets, string_lengths: string_lengths, string_values: string_values, scratch_base: 0, true_str_idx: true_str_idx, false_str_idx: false_str_idx, vec_locals: empty_i32, target: target, wasi_version: wasi_version, needs_arukellt_host: needs_arukellt_host, gc_hint_offsets: empty_i32_b, needs_wasi_http_outgoing: needs_wasi_http_outgoing, gc_type_base: 0, gc_enum_variant_base: 0 - 1, gc_enum_variant_type_map: empty_i32_c, gc_enum_variant_names: empty_string_b, gc_enum_variant_sigs: empty_string_c, gc_struct_base: 0 - 1, gc_struct_type_map: empty_i32_d, gc_struct_names: empty_string_d, current_func_idx: 0, fn_type_map: empty_i32_e, signature_registry: sig, type_table: types, mono_instance_table: mono, spine_populated: false, registry_audit_candidates: 0, registry_audit_matched: 0, registry_audit_mismatched: 0, registry_audit_mismatch_budget: 128, gc_layout_table: layout }
 }
 
 fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {

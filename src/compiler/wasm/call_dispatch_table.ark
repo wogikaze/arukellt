@@ -1,57 +1,64 @@
-// Arukellt Selfhost - Call dispatch table bundling all call target handlers.
+// Call dispatch owner: routes MIR call instructions to target handlers.
 
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::opcodes
 use wasm::call_fallback
 use wasm::call_hash
 use wasm::call_host
 use wasm::call_indirect
 use wasm::call_parse
-use wasm::call_seq
 use wasm::call_scalar
+use wasm::call_seq
 use wasm::call_simd
 use wasm::call_text
 use wasm::call_vec
 use wasm::call_wit
 
-fn try_wit_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_wit::try_emit_wit_call(w, inst, ctx, bindings, next_op, next_arg0, next_arg1, next2_op)
+fn try_emit_call_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> bool {
+    if call_wit::try_emit_wit_call(w, inst, ctx, bindings, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL_INDIRECT() {
+        call_indirect::emit_call_indirect_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+        let callee = normalize_callee_name(clone(inst_accessors_literals::MirInst_str_val(inst)))
+        if call_host::try_emit_host_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_seq::try_emit_seq_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_text::try_emit_text_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_scalar::try_emit_scalar_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_hash::try_emit_hash_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, len(bindings)) {
+            return true
+        }
+        if call_parse::try_emit_parse_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_vec::try_emit_vec_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        if call_simd::try_emit_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+            return true
+        }
+        call_fallback::emit_fallback_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op, len(bindings))
+        return true
+    }
+    false
 }
 
-fn try_host_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_host::try_emit_host_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn try_seq_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_seq::try_emit_seq_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn try_text_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_text::try_emit_text_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn try_scalar_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_scalar::try_emit_scalar_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn try_hash_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, binding_count: i32) -> bool {
-    call_hash::try_emit_hash_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, binding_count)
-}
-
-fn try_parse_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_parse::try_emit_parse_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn try_vec_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_vec::try_emit_vec_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn try_simd_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    call_simd::try_emit_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-}
-
-fn emit_fallback(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, binding_count: i32) {
-    call_fallback::emit_fallback_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op, binding_count)
-}
-
-fn emit_indirect(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
-    call_indirect::emit_call_indirect_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+fn normalize_callee_name(raw_callee: String) -> String {
+    let callee_n = len(raw_callee)
+    if callee_n > 12 && starts_with(clone(raw_callee), String_from("__intrinsic_")) {
+        return substring(clone(raw_callee), 12, callee_n)
+    }
+    raw_callee
 }

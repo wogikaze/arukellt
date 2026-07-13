@@ -1,5 +1,4 @@
 // Arukellt Selfhost - component non-record contract allow scan groups
-
 use component::contract_allows_collection_record
 use component::contract_allows_numeric
 use component::contract_allows_string_record
@@ -13,38 +12,11 @@ use component::contract_string_scan_queries
 use component::contract_tuple_scan
 
 fn component_collection_allows(list_scan: ComponentCollectionListScan, option_scan: ComponentCollectionOptionScan, result_scan: ComponentCollectionResultScan) -> ComponentCollectionAllows {
-    contract_allows_collection_record::ComponentCollectionAllows_new(
-        contract_collection_list_scan::ComponentCollectionListScan_allows_list_unary(list_scan),
-        contract_collection_list_scan::ComponentCollectionListScan_allows_list_result(list_scan),
-        contract_collection_list_scan::ComponentCollectionListScan_allows_list_roundtrip(list_scan),
-        contract_collection_option_scan::ComponentCollectionOptionScan_allows_i32_to_option_i32(option_scan),
-        contract_collection_option_scan::ComponentCollectionOptionScan_allows_option_i32_to_i32(option_scan),
-        contract_collection_option_scan::ComponentCollectionOptionScan_allows_option_i32_to_option_i32(option_scan),
-        contract_collection_option_scan::ComponentCollectionOptionScan_allows_bool_to_option_bool(option_scan),
-        contract_collection_option_scan::ComponentCollectionOptionScan_allows_bool_to_option_i64(option_scan),
-        contract_collection_option_scan::ComponentCollectionOptionScan_allows_option_i64_to_i64(option_scan),
-        contract_collection_result_scan::ComponentCollectionResultScan_allows_i32_i32_to_result_i32_string(result_scan),
-        contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_i32_to_i32(result_scan),
-        contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_string_to_i32(result_scan),
-        contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_i32_to_result_i32_i32(result_scan),
-        contract_collection_result_scan::ComponentCollectionResultScan_allows_bool_to_result_bool_bool(result_scan),
-    )
+    contract_allows_collection_record::ComponentCollectionAllows_from_scans(list_scan, option_scan, result_scan)
 }
 
 fn component_string_allows(string_scan: ComponentStringScan) -> ComponentStringAllows {
-    contract_allows_string_record::ComponentStringAllows_new(
-        contract_string_scan_queries::ComponentStringScan_allows_string_unary(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_general_multi(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_i32_to_string(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_i32(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_narrow_i32(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_bool(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_char(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_f32(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_f64(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_i64(string_scan),
-        contract_string_scan_queries::ComponentStringScan_allows_string_to_u64(string_scan),
-    )
+    contract_allows_string_record::ComponentStringAllows_new(contract_string_scan_queries::ComponentStringScan_allows_string_unary(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_general_multi(string_scan), contract_string_scan_queries::ComponentStringScan_allows_i32_to_string(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_i32(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_narrow_i32(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_bool(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_char(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_f32(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_f64(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_i64(string_scan), contract_string_scan_queries::ComponentStringScan_allows_string_to_u64(string_scan))
 }
 
 fn component_collection_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractAllowsCollection {

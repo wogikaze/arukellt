@@ -1,4 +1,7 @@
-// Arukellt Selfhost - component collection contract allow data.
+// Component collection contract allow data.
+use component::contract_collection_list_scan
+use component::contract_collection_option_scan
+use component::contract_collection_result_scan
 
 pub struct ComponentCollectionAllows {
     allow_list_first: bool,
@@ -17,21 +20,20 @@ pub struct ComponentCollectionAllows {
     allow_result_bool: bool,
 }
 
-fn ComponentCollectionAllows_new(allow_list_first: bool, allow_list_result: bool, allow_list_roundtrip: bool, allow_option_maybe: bool, allow_option_param: bool, allow_option_roundtrip: bool, allow_option_bool: bool, allow_option_i64: bool, allow_option_i64_param: bool, allow_result_safe_div: bool, allow_result_param: bool, allow_result_string_param: bool, allow_result_roundtrip: bool, allow_result_bool: bool) -> ComponentCollectionAllows {
-    ComponentCollectionAllows {
-        allow_list_first: allow_list_first,
-        allow_list_result: allow_list_result,
-        allow_list_roundtrip: allow_list_roundtrip,
-        allow_option_maybe: allow_option_maybe,
-        allow_option_param: allow_option_param,
-        allow_option_roundtrip: allow_option_roundtrip,
-        allow_option_bool: allow_option_bool,
-        allow_option_i64: allow_option_i64,
-        allow_option_i64_param: allow_option_i64_param,
-        allow_result_safe_div: allow_result_safe_div,
-        allow_result_param: allow_result_param,
-        allow_result_string_param: allow_result_string_param,
-        allow_result_roundtrip: allow_result_roundtrip,
-        allow_result_bool: allow_result_bool,
-    }
+fn ComponentCollectionAllows_from_scans(list_scan: ComponentCollectionListScan, option_scan: ComponentCollectionOptionScan, result_scan: ComponentCollectionResultScan) -> ComponentCollectionAllows {
+    let allow_list_first = contract_collection_list_scan::ComponentCollectionListScan_allows_list_unary(list_scan)
+    let allow_list_result = contract_collection_list_scan::ComponentCollectionListScan_allows_list_result(list_scan)
+    let allow_list_roundtrip = contract_collection_list_scan::ComponentCollectionListScan_allows_list_roundtrip(list_scan)
+    let allow_option_maybe = contract_collection_option_scan::ComponentCollectionOptionScan_allows_i32_to_option_i32(option_scan)
+    let allow_option_param = contract_collection_option_scan::ComponentCollectionOptionScan_allows_option_i32_to_i32(option_scan)
+    let allow_option_roundtrip = contract_collection_option_scan::ComponentCollectionOptionScan_allows_option_i32_to_option_i32(option_scan)
+    let allow_option_bool = contract_collection_option_scan::ComponentCollectionOptionScan_allows_bool_to_option_bool(option_scan)
+    let allow_option_i64 = contract_collection_option_scan::ComponentCollectionOptionScan_allows_bool_to_option_i64(option_scan)
+    let allow_option_i64_param = contract_collection_option_scan::ComponentCollectionOptionScan_allows_option_i64_to_i64(option_scan)
+    let allow_result_safe_div = contract_collection_result_scan::ComponentCollectionResultScan_allows_i32_i32_to_result_i32_string(result_scan)
+    let allow_result_param = contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_i32_to_i32(result_scan)
+    let allow_result_string_param = contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_string_to_i32(result_scan)
+    let allow_result_roundtrip = contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_i32_to_result_i32_i32(result_scan)
+    let allow_result_bool = contract_collection_result_scan::ComponentCollectionResultScan_allows_bool_to_result_bool_bool(result_scan)
+    ComponentCollectionAllows { allow_list_first: allow_list_first, allow_list_result: allow_list_result, allow_list_roundtrip: allow_list_roundtrip, allow_option_maybe: allow_option_maybe, allow_option_param: allow_option_param, allow_option_roundtrip: allow_option_roundtrip, allow_option_bool: allow_option_bool, allow_option_i64: allow_option_i64, allow_option_i64_param: allow_option_i64_param, allow_result_safe_div: allow_result_safe_div, allow_result_param: allow_result_param, allow_result_string_param: allow_result_string_param, allow_result_roundtrip: allow_result_roundtrip, allow_result_bool: allow_result_bool }
 }
