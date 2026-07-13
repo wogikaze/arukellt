@@ -1,0 +1,8 @@
+// W0010: module-style qualified path used >= 3 times → prefer `use` + short name.
+use std::host::stdio
+
+fn main() {
+    stdio::println("a")
+    stdio::println("b")
+    stdio::println("c")
+}

@@ -3,9 +3,9 @@
 // Defines all lint rules with id, severity, category, and description.
 // Used by `arukellt lint --list` and severity override filtering.
 
+use std::text
 use diagnostics::codes
 use diagnostics::severity
-use std::text
 
 // Lint severity levels: Allow (suppress), Warn (default), Deny (escalate to error).
 fn LINT_ALLOW() -> i32 { 0 }
@@ -38,7 +38,7 @@ fn lint_rule_category(rule: LintRule) -> String { clone(rule.category) }
 fn lint_rule_description(rule: LintRule) -> String { clone(rule.description) }
 
 // Total number of registered lint rules.
-fn lint_rule_count() -> i32 { 10 }
+fn lint_rule_count() -> i32 { 11 }
 
 // Return the LintRule at the given index (0-based).
 fn lint_rule_at(index: i32) -> LintRule {
@@ -68,6 +68,9 @@ fn lint_rule_at(index: i32) -> LintRule {
     }
     if index == 8 {
         return LintRule_new(codes::DIAG_WARN_DEPRECATED_API(), String_from("deprecated-api"), LINT_WARN(), CAT_MIGRATION(), String_from("deprecated API usage"))
+    }
+    if index == 9 {
+        return LintRule_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), String_from("prefer-use-import"), LINT_WARN(), CAT_STYLE(), String_from("prefer use import for frequently qualified paths"))
     }
     LintRule_new(codes::DIAG_WARN_COMPONENT_LOWERING_NOTE(), String_from("component-lowering-note"), LINT_WARN(), CAT_DOCS(), String_from("component lowering note"))
 }

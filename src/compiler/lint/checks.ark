@@ -6,14 +6,15 @@
 
 use collections::vec_extend
 use diagnostics::codes
-use diagnostics::mod as diag_mod
 use diagnostics::record
 use lint::checks_extra
+use lint::prefer_use_import
 use parser::ast
 use resolver::ast_access
 use resolver::ast_decl_predicates
 use resolver::ast_expr_predicates
 use resolver::paths
+use diagnostics::mod as diag_mod
 
 // ── W0006: unused import ──────────────────────────────────────────────
 
@@ -132,6 +133,8 @@ pub fn run_post_resolve_lint(decls: Vec<AstNode>, target: String) -> Vec<Diagnos
     let warnings = Vec_new_Diagnostic()
     let unused_import_warns = check_unused_imports(decls)
     vec_extend::Vec_extend_Diagnostic(warnings, unused_import_warns)
+    let prefer_use_warns = prefer_use_import::check_prefer_use_import(decls)
+    vec_extend::Vec_extend_Diagnostic(warnings, prefer_use_warns)
     let dep_api_warns = checks_extra::check_deprecated_api(decls)
     vec_extend::Vec_extend_Diagnostic(warnings, dep_api_warns)
     let dep_target_warns = checks_extra::check_deprecated_target_alias(target)

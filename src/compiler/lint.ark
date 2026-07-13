@@ -5,4 +5,5 @@
 use lint::checks
 use lint::checks_extra
 use lint::deprecated_table
+use lint::prefer_use_import
 use lint::registry

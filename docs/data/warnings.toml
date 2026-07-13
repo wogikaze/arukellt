@@ -75,6 +75,15 @@ emitted = true
 fixture = "tests/fixtures/selfhost/lsp_stdlib_definition.lsp-expected"
 
 [[diagnostics]]
+code = "W0010"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "prefer use import for frequently qualified paths"
+maturity = "implemented"
+emitted = true
+fixture = "tests/fixtures/diagnostics/prefer_use_import.ark"
+
+[[diagnostics]]
 code = "W0101"
 severity = "warning"
 phase = "parse"

@@ -776,6 +776,7 @@ let x = 1                  // W0007 if x is never used
 ---
 
 ### W0008 — documentation drift
+
 <a id="w0008-documentation-drift"></a>
 
 | | |
@@ -792,6 +793,7 @@ because full comment tracking is not implemented.
 ---
 
 ### W0009 — deprecated API
+
 <a id="w0009-deprecated-api"></a>
 
 | | |
@@ -810,6 +812,29 @@ replacement; it does not by itself prove current callability.
 // Vec_new_i32() is deprecated — use Vec::new() with type annotation
 let v = Vec_new_i32()  // W0009: deprecated API
 ```
+
+---
+
+### W0010 — prefer use import
+
+<a id="w0010-prefer-use-import"></a>
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
+| **Message** | qualified path `<path>` used repeatedly; prefer `use` and call the short name |
+
+A module-style qualified path (`snake_case::symbol`) appears at least three
+times in one file. Prefer importing the symbol with `use` (including
+function-level destructuring such as `use path::{symbol}`) and calling the
+short name. Type or enum qualifiers (`PascalCase::...`) are not reported.
+
+Evidence fixture: `tests/fixtures/diagnostics/prefer_use_import.ark`.
+
+**Suppress**: `--allow W0010` or `--allow prefer-use-import`, or reduce
+qualified uses below the threshold.
 
 ---
 
@@ -874,6 +899,7 @@ one, please file a bug report.
 | W0007 | warning | lint-post-resolve | unused binding |
 | W0008 | warning | lint-post-resolve | documentation drift (declared; not emitted) |
 | W0009 | warning | lint-post-resolve | deprecated API usage with the manifest-recorded replacement |
+| W0010 | warning | lint-post-resolve | prefer use import for frequently qualified paths |
 | W0101 | warning | parse | deprecated import syntax; use `use` (declared; not emitted) |
 | W0102 | warning | lint-post-resolve | component lowering note (declared; not emitted) |
 <!-- END GENERATED:WARNING_CODE_CATALOGUE -->

@@ -1,0 +1,114 @@
+// Arukellt Selfhost - W0010 prefer-use-import lint.
+//
+// When a module-style qualified path (snake_case::symbol) appears many times
+// in one file, recommend importing via `use` and calling the short name.
+// Type/enum qualifiers (PascalCase::...) are excluded.
+
+use diagnostics::codes
+use diagnostics::record
+use parser::ast
+use resolver::ast_access
+use resolver::ast_expr_predicates
+use resolver::paths
+use diagnostics::mod as diag_mod
+
+fn prefer_use_import_threshold() -> i32 { 3 }
+
+fn is_module_style_qualified_path(path: String) -> bool {
+    let pos = index_of(clone(path), String_from("::"))
+    if pos < 0 {
+        return false
+    }
+    let mod_part = paths::path_module_part(clone(path))
+    if len(clone(mod_part)) == 0 {
+        return false
+    }
+    let sym_part = paths::path_symbol_part(clone(path))
+    if len(clone(sym_part)) == 0 {
+        return false
+    }
+    let c = char_at(mod_part, 0)
+    if c == 95 {
+        return true
+    }
+    if c < 97 {
+        return false
+    }
+    if c > 122 {
+        return false
+    }
+    true
+}
+
+fn collect_paths(node: AstNode, paths: Vec<String>, starts: Vec<i32>, ends: Vec<i32>) {
+    if ast_expr_predicates::node_is_path(node) {
+        let path = ast_access::node_text(node)
+        if is_module_style_qualified_path(clone(path)) {
+            push(paths, path)
+            push(starts, ast_access::node_span_start(node))
+            push(ends, ast_access::node_span_end(node))
+        }
+        return
+    }
+    let n = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < n {
+        collect_paths(ast_access::node_child_at(node, i), paths, starts, ends)
+        i = i + 1
+    }
+}
+
+fn path_seen_before(paths: Vec<String>, path: String, before: i32) -> bool {
+    let mut j = 0
+    while j < before {
+        if eq(clone(get_unchecked(paths, j)), clone(path)) {
+            return true
+        }
+        j = j + 1
+    }
+    false
+}
+
+fn count_same_path(paths: Vec<String>, path: String) -> i32 {
+    let n = len(paths)
+    let mut uses = 0
+    let mut k = 0
+    while k < n {
+        if eq(clone(get_unchecked(paths, k)), clone(path)) {
+            uses = uses + 1
+        }
+        k = k + 1
+    }
+    uses
+}
+
+pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    let paths = Vec_new_String()
+    let starts = Vec_new_i32()
+    let ends = Vec_new_i32()
+    let dn = len(decls)
+    let mut di = 0
+    while di < dn {
+        collect_paths(get_unchecked(decls, di), paths, starts, ends)
+        di = di + 1
+    }
+    let threshold = prefer_use_import_threshold()
+    let n = len(paths)
+    let mut i = 0
+    while i < n {
+        let path = clone(get_unchecked(paths, i))
+        if path_seen_before(paths, clone(path), i) {
+            i = i + 1
+            continue
+        }
+        let uses = count_same_path(paths, clone(path))
+        if uses >= threshold {
+            let msg = concat(concat(String_from("qualified path `"), clone(path)), String_from("` used repeatedly; prefer `use` and call the short name"))
+            let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
+            push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
+        }
+        i = i + 1
+    }
+    warnings
+}

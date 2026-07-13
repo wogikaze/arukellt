@@ -222,6 +222,7 @@ diag:diagnostics/mutable_sharing.ark
 diag:diagnostics/non_exhaustive.ark
 diag:diagnostics/parse_bad_token.ark
 diag:diagnostics/parse_missing_rbrace.ark
+diag:diagnostics/prefer_use_import.ark
 diag:diagnostics/question_type_mismatch.ark
 diag:diagnostics/resolve_dup_fn.ark
 diag:diagnostics/resolve_undef_module.ark
