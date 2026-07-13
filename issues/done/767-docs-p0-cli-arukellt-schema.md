@@ -36,7 +36,6 @@ with `current-state.md` and quickstart.
 - `src/compiler/main/component_cmd.ark`
 - `docs/current-state.md` CLI section
 
-
 ## Completion
 
 Completed 2026-07-11 as docs re-audit Phase 1.

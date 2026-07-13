@@ -97,4 +97,4 @@ Option / From 変換付き Result は、早期リターン付き match として
 
 - 現行 Result `?`: `docs/language/spec.md` / `error-handling.md`
 - ADR-036、Issue #688 / #690 / #692 / #694
-- Rust `?`: https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator
+- Rust `?`: <https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator>

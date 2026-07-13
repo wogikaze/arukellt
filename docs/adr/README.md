@@ -46,6 +46,8 @@
 | [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | 廃止: ADR-004-method-syntax-evaluation.md |
 | [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md |
 | [ADR-046-free-function-eradication.md](ADR-046-free-function-eradication.md) | ADR-046: 公開 free function の根絶 | stdlib と prelude は長年 func(recv, …) 形の free function とモノモルフィック helper（_i32 等）を正面 API としてきた。ADR-044 / issue #709 は trait-first / メソッド構文を正規としたが、ADR-036 D5 は |
+| [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 提案日: 2026-07-13 採択日: 2026-07-13 |
+| [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 採択日: 2026-07-13 |
 
 ## 提案
 
@@ -57,8 +59,6 @@
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
 | [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 提案日: 2026-06-26 |
 | [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | 提案日: 2026-07-10 |
-| [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 提案日: 2026-07-13 |
-| [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 |
 
 ## 後継済み
 

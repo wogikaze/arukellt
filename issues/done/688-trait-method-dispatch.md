@@ -44,7 +44,7 @@ for every stdlib trait-based abstraction (`Iterator::next`, `Clone::clone`,
 ## Rust baseline
 
 Rust resolves trait method calls either by **static dispatch** (monomorphization
-+ specialization) or **dynamic dispatch** (`dyn Trait` vtable). For a stdlib
+- specialization) or **dynamic dispatch** (`dyn Trait` vtable). For a stdlib
 parity surface, monomorphization-based static dispatch is the minimum; `dyn
 Trait` is a follow-up.
 
@@ -204,7 +204,6 @@ Trait` is a follow-up.
       **Verified 2026-06-26**: verify quick passes 168/168 checks (after
       fixture manifest registration and docs regeneration). The selfhost
       build generates a fresh s2 wasm via the flattened overlay bootstrap path.
-
 
 ## References
 

@@ -32,7 +32,6 @@ while `current-state.md` and platform docs assert compile-time MIR scan enforcem
 - `docs/current-state.md` Known Limitations
 - `docs/platform/target-runtime-and-surfaces.md` capability deny section
 
-
 ## Completion
 
 Completed 2026-07-11 as docs re-audit Phase 1.

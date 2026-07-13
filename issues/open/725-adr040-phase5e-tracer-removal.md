@@ -420,6 +420,6 @@ emit 段階での推論（トレーサ）を削除する代わりに、lowering 
 
 ### Phase 5e 後半 (トレーサ内部の構造化ルックアップ優先)
 
-9. `a04ec816f` — feat(wasm): add function parameter type_name lookup before tracer fallback
-10. `956ab0602` — refactor(wasm): structured lookup first in tracer type_name check
-11. `fbb77b576` — refactor(wasm): structured lookup first in callee return type inference
+1. `a04ec816f` — feat(wasm): add function parameter type_name lookup before tracer fallback
+2. `956ab0602` — refactor(wasm): structured lookup first in tracer type_name check
+3. `fbb77b576` — refactor(wasm): structured lookup first in callee return type inference

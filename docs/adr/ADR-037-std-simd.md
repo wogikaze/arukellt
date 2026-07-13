@@ -186,6 +186,7 @@ Mask4::from_nonzero_lanes(v) -> Mask4
 
 backend 内部で検証済み canonical bits を載せる必要がある場合は、
 公開 API に出さない unchecked 経路（実装詳細）とする。
+
 #### 4.2 `bitmask(mask: MaskN) -> u32`
 
 初期核も後続 `Mask16` も **常に `u32`**（generic / 実装単純化のため）:

@@ -92,4 +92,4 @@ Arukellt に `&T` がないため、`Index::index` / `Deref::deref` は値返し
 - [RFC-004](../rfcs/004-trait-expressiveness.md) — 初期署名の型表現
 - ADR-036 / #688 / #689
 - ADR-036、Issue #688 / #689
-- Rust `std::ops`: https://doc.rust-lang.org/std/ops/index.html
+- Rust `std::ops`: <https://doc.rust-lang.org/std/ops/index.html>

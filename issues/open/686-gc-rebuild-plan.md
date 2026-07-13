@@ -153,11 +153,13 @@ MIR_BR_ON_CAST_FAIL(scrut, cast_type, label) — br_on_cast_fail
 ## 3. HashMap GC
 
 ### 現状
+
 - HashMap は stdlib で実装された高レベルデータ構造（専用 intrinsic 無し）
 - Vec と struct の組み合わせで構築
 - HashMap の GC 対応は **Vec GC 完了 + Enum GC 完了 + コンパイラ再ビルド** が前提
 
 ### 手順
+
 ```
 1. Vec GC 完了 ✅ （済）
 2. Enum/Struct GC 完了 ⏳ （MIR 変更後）
@@ -171,11 +173,13 @@ MIR_BR_ON_CAST_FAIL(scrut, cast_type, label) — br_on_cast_fail
 ## 4. i31ref Boxing
 
 ### 現状
+
 - `writer_gc.ark` に `emit_gc_ref_i31` / `emit_gc_i31_get_s` は既に存在 ✅
 - `opcodes.ark` に `GC_REF_I31()` / `GC_I31_GET_S()` が定義済み ✅
 - 未使用（コンパイラ再ビルド後に generic コンテナで有効化予定）
 
 ### TODO
+
 ```
 1. コンパイラ再ビルド ⏳
 2. Vec generic で i31ref を使用する最適化パス追加

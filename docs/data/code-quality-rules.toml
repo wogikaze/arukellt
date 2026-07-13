@@ -1,0 +1,107 @@
+# Code quality rule registry (CQ-03) — executable SSOT for ADR-047.
+# Diagnostics identity remains in warnings.toml; inventory ceilings in
+# ark-code-quality-baseline.toml; commands in verification-commands.toml.
+
+[[rules]]
+id = "CQ-FMT-001"
+scope = "ark"
+category = "format"
+enforcer = "formatter"
+severity = "error"
+gate = "local"
+autofix = true
+rationale = "Selfhost arukellt fmt is the sole .ark formatter"
+exception_policy = "generated and vendor trees only"
+owner = "compiler"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-FMT-002"
+scope = "repo"
+category = "format"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = true
+rationale = "editorconfig: spaces indent, trim trailing whitespace, final newline"
+exception_policy = "binary, generated, vendor; see check script excludes"
+owner = "tooling"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-LINT-001"
+scope = "ark"
+category = "correctness"
+enforcer = "linter"
+severity = "warning"
+gate = "local"
+autofix = false
+rationale = "Default lint warnings print and exit 0 unless denied"
+exception_policy = "suppression requires rule id, reason, owner, issue, expiry"
+owner = "compiler"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-LINT-002"
+scope = "ark"
+category = "correctness"
+enforcer = "linter"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "prefer-else-if (W0011) denied on staged/changed code via pre-commit and smoke"
+exception_policy = "narrow allow with full suppression fields only"
+owner = "compiler"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-LINT-003"
+scope = "ark"
+category = "correctness"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "lint smoke covers list, warn exit 0, deny exit non-zero, --local package modules"
+exception_policy = "none"
+owner = "tooling"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-STRUCT-001"
+scope = "ark"
+category = "maintainability"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "tabs and extreme indent hard-fail; long lines and thin wrappers ratchet against baseline"
+exception_policy = "raise baseline only with tracking issue id"
+owner = "tooling"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-REV-001"
+scope = "repo"
+category = "architecture"
+enforcer = "review"
+severity = "advisory"
+gate = "local"
+autofix = false
+rationale = "ADR-048 nine-step design order; not a CI fail"
+exception_policy = "n/a"
+owner = "process"
+adr = "ADR-048"
+
+[[rules]]
+id = "CQ-DOC-001"
+scope = "repo"
+category = "docs"
+enforcer = "custom-check"
+severity = "warning"
+gate = "quick"
+autofix = false
+rationale = "TODO/FIXME should cite an issue id when present in scanned trees"
+exception_policy = "fixtures intentionally lacking issue tags"
+owner = "docs"
+adr = "ADR-047"

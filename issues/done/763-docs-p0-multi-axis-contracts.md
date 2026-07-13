@@ -38,7 +38,6 @@ Component emit・host capability・binary size・benchmark results・release che
 - `docs/process/benchmark-results.md`
 - issue #675
 
-
 ## Completion
 
 Completed 2026-07-11 as part of docs audit remediation (Stage 1 + quick Stage 2).

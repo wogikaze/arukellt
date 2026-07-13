@@ -1,0 +1,90 @@
+# File-family tooling inventory (CQ-02)
+
+# status: enforced | deferred
+# formatter/linter may be empty string when none.
+
+[[families]]
+ext = ".ark"
+formatter = "arukellt fmt"
+linter = "arukellt lint"
+canonical_fmt = "python3 scripts/manager.py fmt"
+canonical_lint = "python3 scripts/manager.py lint"
+status = "enforced"
+notes = "Selfhost CLI via scripts/run/arukellt-selfhost.sh; package modules use lint --local"
+
+[[families]]
+ext = ".md"
+formatter = ""
+linter = "markdownlint-cli2"
+canonical_fmt = ""
+canonical_lint = "npx markdownlint-cli2"
+status = "enforced"
+notes = "No markdown formatter enforced; layout-sensitive tables must not be blindly rewritten"
+
+[[families]]
+ext = ".py"
+formatter = "ruff format"
+linter = "ruff check"
+canonical_fmt = "ruff format"
+canonical_lint = "ruff check"
+status = "deferred"
+notes = "Assigned canonical; not installed/enforced in CQ-01..11 wave"
+
+[[families]]
+ext = ".ts"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+notes = "Single Biome stack when introduced; do not pair with Prettier"
+
+[[families]]
+ext = ".js"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+
+[[families]]
+ext = ".json"
+formatter = ""
+linter = ""
+canonical_fmt = ""
+canonical_lint = ""
+status = "deferred"
+notes = "Key order may be semantic; schema checks separate"
+
+[[families]]
+ext = ".toml"
+formatter = "taplo"
+linter = ""
+canonical_fmt = "taplo format"
+canonical_lint = ""
+status = "deferred"
+notes = "Manifest meaning checks stay in custom scripts"
+
+[[families]]
+ext = ".yml"
+formatter = ""
+linter = "yamllint"
+canonical_fmt = ""
+canonical_lint = "yamllint"
+status = "deferred"
+
+[[families]]
+ext = ".yaml"
+formatter = ""
+linter = "yamllint"
+canonical_fmt = ""
+canonical_lint = "yamllint"
+status = "deferred"
+
+[[families]]
+ext = ".sh"
+formatter = "shfmt"
+linter = "shellcheck"
+canonical_fmt = "shfmt"
+canonical_lint = "shellcheck"
+status = "deferred"

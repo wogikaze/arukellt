@@ -38,7 +38,6 @@ root README の snapshot は fixture failures を省略する。
 - `scripts/gen/generate-docs.py`
 - `scripts/check/check-docs-freshness.py`
 
-
 ## Completion
 
 Completed 2026-07-11 as part of docs audit remediation (Stage 1 + quick Stage 2).

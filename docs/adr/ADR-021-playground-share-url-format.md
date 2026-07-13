@@ -45,7 +45,6 @@ wire format（JSON キー、DEFLATE、base64url、schema、size limit、error ha
 
 ---
 
-
 ## 関連
 
 - [ADR-017](ADR-017-playground-execution-model.md) — v1 製品契約

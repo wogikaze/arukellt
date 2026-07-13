@@ -151,6 +151,7 @@ ADR-040 の SignatureEntry に以下を追加する:
 resolver、typechecker、MIR、docs、runtime ABI 表は SSOT から生成する方針とする。
 現状 `std/manifest.toml` と resolver/typechecker 間に不一致があるため、
 生成パイプラインは実装計画で具体化する。
+
 ### D6: callee 文字列 dispatch の廃止
 
 intrinsic 判定を callee 名から `func_id_raw` + `SemanticId` へ移行する。

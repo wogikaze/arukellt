@@ -35,7 +35,6 @@ Blocks: 770
 - `.github/workflows/ci.yml`
 - `docs/test-strategy.md`
 
-
 ## Completion
 
 Completed 2026-07-11 as docs re-audit Phase 1.

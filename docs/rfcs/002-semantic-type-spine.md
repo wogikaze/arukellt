@@ -51,7 +51,6 @@ Wasm emitter は、Typed MIR を機械的に Wasm へ変換するだけにする
 
 ---
 
-
 ## 決定事項
 
 ### D1: 3層型システム — TypeId / MirValueType / WasmValueType
@@ -472,4 +471,3 @@ instantiated_param_types / instantiated_return_types と一致する。
 3. **コンパイラの保守性向上**: 型推論の複雑さが MIR lowering に集約され、emitter が単純化
 4. **デバッグの容易化**: 型不明の場合に即 internal compiler error が出るため、問題の早期発見
 5. **スクラッチローカル追加の安全化**: LocalAllocator により index シフト問題が解消
-

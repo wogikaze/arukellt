@@ -44,11 +44,13 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 ## Phase 2: 文字列 GC 表現 ✅ 完了 (2026-06-20)
 
 ### 2a: 文字列定数 ✅
+
 | ファイル | 状態 |
 |---------|------|
 | `wasm/inst_const.ark` | ✅ GC: array.new_default + data section copy |
 
 ### 2b: String 比較 (==) ✅
+
 | ファイル | 状態 |
 |---------|------|
 | `wasm/intrinsic_math.ark` | ✅ GC: array.len + array.get_u |
@@ -56,6 +58,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 | `wasm/inst_compare.ark` | ✅ GC: 文字列比較ディスパッチ |
 
 ### 2c: String 操作 — concat, substring, eq, slice, starts_with, ends_with ✅
+
 | ファイル | 関数 | 状態 |
 |---------|------|------|
 | `wasm/intrinsic_string_basic.ark` | emit_concat | ✅ GC: array.new + copy loops |
@@ -66,6 +69,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 | `wasm/string_gc_helpers.ark` | GC ループ/比較ヘルパー | ✅ |
 
 ### 2c: GC emit_to_string (i32/i64/f64) ✅
+
 | ファイル | 関数 | 状態 |
 |---------|------|------|
 | `wasm/intrinsic_string_format_i32.ark` | emit_to_string | ✅ GC: array.new_default + digit copy loop |
@@ -73,12 +77,14 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 | `wasm/intrinsic_string_format_f64.ark` | emit_f64_to_string | ✅ GC: array.new_default + digit copy loop |
 
 ### 2d: I/O 層 GC パス ✅
+
 | ファイル | 関数 | 状態 |
 |---------|------|------|
 | `wasm/intrinsic_stdio.ark` | emit_gc_println/print | ✅ GC 配列 → linear memory コピー |
 | `wasm/intrinsic_stdio.ark` | emit_gc_string_to_heap | ✅ GC 文字列 → heap バッファ変換 |
 
 ### 2e: 型システム修正 ✅
+
 | ファイル | 修正内容 |
 |---------|---------|
 | `corehir/param_shape_value.ark` | `String` パラメータ → VT_REF (従来は VT_I32) |
@@ -96,14 +102,17 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 ## Phase 3: Vec/Enum/Struct GC 表現 🟡 未着手（計画済み）
 
 ### Vec<T> GC 表現
+
 ```wasm
 ;; Vec<String> の場合:
 (struct (field (mut (ref null (array (mut i32))))  ;; data: GC-backed array of i32 (indexes/refs)
        (field (mut i32)))                           ;; len: number of elements
 ```
+
 ただし T1 互換性のため、現状の linear-memory Vec は維持し、GC ターゲットのみ GC 表現に切り替える。
 
 ### Enum GC 表現
+
 ```wasm
 ;; 基本型 (base):
 (struct (field (mut i32)))                           ;; discriminant tag
@@ -111,6 +120,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 (sub final (struct (field (mut i32)                  ;; tag
                          (field (mut $payload)))))   ;; payload
 ```
+
 `match` の Wasm lowering: `br_on_cast` + `br_on_cast_fail`
 
 ### 実装ステップ（コンパイラ再ビルド後に検証）
@@ -133,11 +143,13 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
    - `src/compiler/wasm/intrinsic_vec_new_layout.ark`: `emit_vec_new_layout_gc` 追加
    - パターン: `array.new_default A_i32 8` → `struct.new_default vec_type` → `struct.set vec_type 0`
    - **Verify (コンパイラ再ビルド後):**
+
      ```
      arukeit compile tests/fixtures/stdlib_vec/vec_new.ark -o /tmp/p3_vec_new.wasm --target wasm32-gc
      wasm-tools validate --features gc /tmp/p3_vec_new.wasm
      wasm-tools dump /tmp/p3_vec_new.wasm 2>&1 | grep -E 'struct.new.*10|array.new_default'
      ```
+
    - 期待: Vec 生成時に `struct.new` (type idx 10 = `S_f0_ref1_f1_i32`) と `array.new_default` が発行される
 
 5. ✅ `emit_vec_len` GC パス: struct.get vec_type 1 (2026-06-22)
@@ -147,6 +159,7 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
    - `src/compiler/wasm/intrinsic_vec_access.ark`: `emit_get_unchecked_gc`, `emit_vec_get_gc` 追加
    - パターン: `struct.get vec_type 0` → `array.get A_i32`
    - **Verify (コンパイラ再ビルド後):**
+
      ```
      arukeit compile tests/fixtures/stdlib_vec/vec_get.ark -o /tmp/p3_vec_get.wasm --target wasm32-gc
      wasm-tools validate --features gc /tmp/p3_vec_get.wasm
@@ -155,11 +168,13 @@ T5 (wasm32-gc + WASI P3): Wasm GC + WASI P3 imports — 将来
 
 7. ⏳ `emit_vec_push_gc`: array.set + growth logic
    - **Verify (実装後):**
+
      ```
      arukeit compile tests/fixtures/stdlib_vec/vec_push.ark -o /tmp/p3_vec_push.wasm --target wasm32-gc
      wasm-tools validate --features gc /tmp/p3_vec_push.wasm
      wasm-tools dump /tmp/p3_vec_push.wasm 2>&1 | grep 'array.set'
      ```
+
    - 期待: push 操作が `array.set` で実装され、runtime で正しく動作する
 
 8. ⏳ `emit_vec_pop` / `emit_vec_set` GC パス

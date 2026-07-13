@@ -44,6 +44,7 @@ graph LR
   I725["725 ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
+  I781["781 781 — CQ-02: file-family tooling inventory"]
   I474["474 Async component support (v5)"]
   I62["62 076-wasi-p2-filesystem"]
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
@@ -54,15 +55,24 @@ graph LR
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
+  I782["782 782 — CQ-03: code-quality-rules.toml registry"]
+  I783["783 783 — CQ-04: .editorconfig and whitespace gate"]
+  I784["784 784 — CQ-05: manager.py fmt entrypoint"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I668["668 668 — P2 native component polish (post-#074)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
+  I786["786 786 — CQ-07: manager.py lint entrypoint"]
+  I788["788 788 — CQ-09: comment policy three kinds"]
+  I789["789 789 — CQ-10: PR review checklist and AGENTS sync"]
+  I785["785 785 — CQ-06: Stage A whitespace format-only apply"]
   I729["729 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I787["787 787 — CQ-08: baseline and touched-code ratchet formalization"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I790["790 790 — CQ-11: CI quality-format/lint jobs and required-checks docs"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -78,6 +88,9 @@ graph LR
   I691 --> I703
   I695 --> I703
   I724 --> I726
+  I781 --> I782
+  I781 --> I783
+  I781 --> I784
   I474 --> I646
   I074 --> I668
   I714 --> I668
@@ -89,14 +102,24 @@ graph LR
   I697 --> I709
   I703 --> I709
   I726 --> I730
+  I781 --> I786
+  I782 --> I786
+  I782 --> I788
+  I782 --> I789
+  I783 --> I785
+  I784 --> I785
   I724 --> I729
   I727 --> I729
   I691 --> I710
   I697 --> I710
   I709 --> I710
+  I786 --> I787
   I681 --> I711
   I709 --> I711
   I710 --> I711
+  I784 --> I790
+  I786 --> I790
+  I787 --> I790
   I709 --> I712
   I711 --> I712
   I709 --> I713
@@ -145,6 +168,7 @@ graph LR
 - **725** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
+- **781** depends on: 780; blocks: 782, 783, 784, 786
 - **474** depends on: 035, done), 074; blocks: 646
 - **62** depends on: 074, 510; blocks: none
 - **714** depends on: 074, 510; blocks: 668, 727
@@ -155,15 +179,24 @@ graph LR
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **726** depends on: 724; blocks: 730
+- **782** depends on: 780, 781; blocks: 786, 788, 789
+- **783** depends on: 781; blocks: 785
+- **784** depends on: 781; blocks: 785, 790
 - **646** depends on: 474; blocks: none
 - **668** depends on: 074, 510, 714; blocks: none
 - **727** depends on: 714, 675; blocks: 729
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **730** depends on: 726; blocks: none
+- **786** depends on: 781, 782; blocks: 787, 790
+- **788** depends on: 782; blocks: none
+- **789** depends on: 780, 782; blocks: none
+- **785** depends on: 783, 784; blocks: none
 - **729** depends on: 724, 727; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **787** depends on: 786; blocks: 790
 - **711** depends on: 681, 709, 710; blocks: 712, 713
+- **790** depends on: 784, 786, 787; blocks: none
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none
 

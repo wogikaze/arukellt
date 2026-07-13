@@ -10,7 +10,7 @@
 本ファイルは、大規模開発における「良いコード」実務（formatter / linter 分業、
 設計原則、品質ゲート、メトリクス、レビュー文化）の調査結果を、Arukellt の
 現行資産に照らして評価した記録である。言語仕様の前提にはしない。
-拘束する判断は ADR-047 / ADR-048（いずれも提案）に置く。
+拘束する判断は ADR-047 / ADR-048（いずれも ACCEPTED）に置く。
 
 情報源の優先順位は公式スタイルガイド・主要 OSS の CONTRIBUTING・学術メトリクス
 文献・企業のコードレビュー標準である。5 言語（Java / JS·TS / Python / Go / C#）
@@ -56,10 +56,10 @@
 
 | 調査上の主張 | 判定 | arukellt での扱い |
 |--------------|------|-------------------|
-| formatter と linter の役割分離 | **採用** | ADR-047 で提案。`fmt` / `lint` / 人レビューの分業 |
-| ゲート階層（local → pre-commit → CI → required checks） | **採用** | ADR-047 で提案。既存 hook / `verify quick` を公式層として文書化 |
+| formatter と linter の役割分離 | **採用** | ADR-047。`fmt` / `lint` / 人レビューの分業 |
+| ゲート階層（local → pre-commit → CI → required checks） | **採用** | ADR-047。既存 hook / `verify quick` を公式層として文書化 |
 | レビューは設計重視、style nit を主戦場にしない | **採用** | ADR-047 + 既存 AGENTS レビュー基準 |
-| KISS / YAGNI → DRY / SOLID の適用順 | **採用** | ADR-048 で提案 |
+| KISS / YAGNI → DRY / SOLID の適用順 | **採用** | ADR-048 |
 | メトリクスは危険信号（単独合否にしない） | **採用（方針のみ）** | ADR-048。必須 CI fail 化はしない |
 | 命名・コメント Why・モジュール責務 | **既採択相当** | AGENTS.md / coding-conventions。再 ADR 化しない |
 | Java Checkstyle+PMD 等の言語別スタック表 | **見送り** | `.ark` は自前 fmt/lint。外部スタックを真似ない |
@@ -104,5 +104,5 @@
 - [`docs/contributing.md`](../contributing.md)
 - [ADR-001](../adr/ADR-001-harness-bootstrap.md)
 - [ADR-015](../adr/ADR-015-no-panic-in-user-paths.md)
-- [ADR-047](../adr/ADR-047-code-quality-tooling-and-gates.md)（提案）
-- [ADR-048](../adr/ADR-048-design-heuristics-application-order.md)（提案）
+- [ADR-047](../adr/ADR-047-code-quality-tooling-and-gates.md)（ACCEPTED）
+- [ADR-048](../adr/ADR-048-design-heuristics-application-order.md)（ACCEPTED）

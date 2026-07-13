@@ -1031,6 +1031,7 @@ struct MirStats {
 
 <a id="6-hir-mir-lowering-rules"></a>
 <a id="6-hir--mir-lowering-rules"></a>
+
 ## 6. HIR → MIR Lowering Rules
 
 Lowering is implemented in selfhost `src/compiler/mir.ark`. Two paths exist:
@@ -1405,6 +1406,7 @@ struct MirValidationError {
 
 <a id="9-mir-wasm-mapping"></a>
 <a id="9-mir--wasm-mapping"></a>
+
 ## 9. MIR → Wasm Mapping
 
 The `wasm32-gc` backend (selfhost emitter, `src/compiler/emitter.ark`) emits Wasm GC instructions.

@@ -25,4 +25,3 @@ current-state分割（history/）・鮮度メタ・リンク修正。
 2026-07-11 (再評価対応): ADR-036 を ADR-014 準拠の削除方針へ修正。From/Into 直接
 impl 禁止・TryFrom<T,E>・RFC-004。ADR-037 TypeKind。RFC-003 拡充。host_profiles
 SSOT・ADR-042 core-ops.toml・primary 役割定義。
-

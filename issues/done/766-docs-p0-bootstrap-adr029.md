@@ -37,7 +37,6 @@ Rust Stage 0 / `verify-bootstrap.sh` model.
 - `scripts/run/arukellt-selfhost.sh`
 - `python3 scripts/manager.py selfhost fixpoint`
 
-
 ## Completion
 
 Completed 2026-07-11 as docs re-audit Phase 1.

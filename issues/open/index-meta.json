@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-12T05:35:19Z",
+  "generated_at": "2026-07-13T11:55:28Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -609,8 +609,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 18
+        "checked": 15,
+        "unchecked": 4
       },
       "orchestration": {
         "class": "incremental",
@@ -756,6 +756,30 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "781",
+      "path": "781-cq-02-file-family-tooling-inventory.md",
+      "title": "781 — CQ-02: file-family tooling inventory",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "780"
+      ],
+      "blocks_issue_ids": [
+        "782",
+        "783",
+        "784",
+        "786"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
       }
     },
     {
@@ -976,6 +1000,73 @@
       }
     },
     {
+      "id": "782",
+      "path": "782-cq-03-code-quality-rulestoml-registry.md",
+      "title": "782 — CQ-03: code-quality-rules.toml registry",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "780",
+        "781"
+      ],
+      "blocks_issue_ids": [
+        "786",
+        "788",
+        "789"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "783",
+      "path": "783-cq-04-editorconfig-and-whitespace-gate.md",
+      "title": "783 — CQ-04: .editorconfig and whitespace gate",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "781"
+      ],
+      "blocks_issue_ids": [
+        "785"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "784",
+      "path": "784-cq-05-managerpy-fmt-entrypoint.md",
+      "title": "784 — CQ-05: manager.py fmt entrypoint",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "781"
+      ],
+      "blocks_issue_ids": [
+        "785",
+        "790"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "646",
       "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
       "title": "646 — T5 wasm32-wasi-p3 target scaffold",
@@ -1104,6 +1195,88 @@
       }
     },
     {
+      "id": "786",
+      "path": "786-cq-07-managerpy-lint-entrypoint.md",
+      "title": "786 — CQ-07: manager.py lint entrypoint",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "781",
+        "782"
+      ],
+      "blocks_issue_ids": [
+        "787",
+        "790"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "788",
+      "path": "788-cq-09-comment-policy-three-kinds.md",
+      "title": "788 — CQ-09: comment policy three kinds",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "782"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "789",
+      "path": "789-cq-10-pr-review-checklist-and-agents-sync.md",
+      "title": "789 — CQ-10: PR review checklist and AGENTS sync",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "780",
+        "782"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "785",
+      "path": "785-cq-06-stage-a-whitespace-format-only-apply.md",
+      "title": "785 — CQ-06: Stage A whitespace format-only apply",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "783",
+        "784"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "729",
       "path": "729-intrinsic-layer-separation.md",
       "title": "729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration",
@@ -1149,6 +1322,27 @@
       }
     },
     {
+      "id": "787",
+      "path": "787-cq-08-baseline-and-touched-code-ratchet-formal.md",
+      "title": "787 — CQ-08: baseline and touched-code ratchet formalization",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "786"
+      ],
+      "blocks_issue_ids": [
+        "790"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "711",
       "path": "711-stdlib-docs-rich-reference-quality.md",
       "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
@@ -1170,6 +1364,27 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+      }
+    },
+    {
+      "id": "790",
+      "path": "790-cq-11-ci-quality-format-lint-jobs-and-required.md",
+      "title": "790 — CQ-11: CI quality-format/lint jobs and required-checks docs",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "784",
+        "786",
+        "787"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
       }
     },
     {

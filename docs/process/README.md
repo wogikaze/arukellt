@@ -7,7 +7,7 @@
 
 - Verification command: `python3 scripts/manager.py verify quick`
 - Current verification gate: 175/176 checks pass
-- Fixture registry: 2690 manifest entries (`docs/data/project-state.toml`)
+- Fixture registry: 2691 manifest entries (`docs/data/project-state.toml`)
 - Fixture harness (observed): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
 - Generated docs pull state from `docs/data/project-state.toml`, structured TOMLs under `docs/data/`, `std/manifest.toml`, and fixture manifests.
 
@@ -18,8 +18,12 @@
 | [agent-harness.md](agent-harness.md) | Agent Harness Guide | This is a short pointer document for developers and agents working in this repository. |
 | [benchmark-plan.md](benchmark-plan.md) | Benchmark Plan — Governance, Run Modes, and Baseline Rules | This document is the authoritative process reference for the Arukellt benchmark suite. It defines run modes, baseline update rules, and the governance contract |
 | [bootstrap-verification.md](bootstrap-verification.md) | Bootstrap Verification | Current-first. This page is a thin pointer to the ADR-029 verification contract. Do not treat Rust Stage 0 documents as current. |
+| [ci-required-checks.md](ci-required-checks.md) | CI required checks (quality closed loop) | Policy: ADR-047. |
+| [codeowners-plan.md](codeowners-plan.md) | CODEOWNERS plan (not yet enforced) | ADR-047 does not require CODEOWNERS for acceptance. When owners are known, add .github/CODEOWNERS with paths such as: |
 | [coding-conventions.md](coding-conventions.md) | コード規約（設計・コンパイラ） | コンパイラ層、公開 API、エラー処理、決定性、互換性に関する設計寄りの規約。 読みやすさ・過剰分割・書式・命名の実装品質規約は AGENTS.md の「コード品質規約」を正とする。入口は常に AGENTS.md。 |
 | [decision-guide.md](decision-guide.md) | 意思決定ガイド | この文書は、現行プロジェクトで判断に迷ったときの設計寄り参照先です。 実装の現況確認には ../current-state.md を使ってください。 |
 | [false-done-prevention.md](false-done-prevention.md) | False-Done 再発防止 | 監査オーケストレーター契約: prompts/research.md 監査ログ: docs/history/reports/false-done-audit-2026-06-12.md 更新: 2026-06-12 |
 | [policy.md](policy.md) | Operational Policy | Current-first: this page describes the current operational contract, not aspirational design docs. |
+| [pr-review-checklist.md](pr-review-checklist.md) | PR / agent design review checklist | Policy: ADR-048, ADR-047. |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for snapshots and baselines in the Arukellt test infrastructure. |
+| [tooling-inventory.md](tooling-inventory.md) | Tooling inventory (file families) | Machine-readable SSOT: docs/data/tooling-inventory.toml. |

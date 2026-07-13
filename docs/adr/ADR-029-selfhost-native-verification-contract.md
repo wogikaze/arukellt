@@ -138,7 +138,7 @@ require: for cmd in {compile, check, run}: wasmtime(current_selfhost, cmd).retur
 
 ## 検証
 
-#585 受け入れどおり:
+# 585 受け入れどおり:
 
 ```bash
 rm -f target/debug/arukellt

@@ -37,7 +37,6 @@ Blocks: 764, 765
 - `docs/adr/ADR-007-targets.md`
 - `docs/adr/ADR-013-primary-target.md`
 
-
 ## Completion
 
 Completed 2026-07-11 as part of docs audit remediation (Stage 1 + quick Stage 2).

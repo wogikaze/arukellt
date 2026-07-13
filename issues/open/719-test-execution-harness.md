@@ -160,6 +160,7 @@ Once `arukellt test` can execute `test mod` blocks:
 ## Files to modify
 
 ### Compiler
+
 - `src/compiler/mir/lower/decl_source.ark` — add test decl visibility
 - `src/compiler/mir/lower/entry_decls.ark` — lower test decls
 - `src/compiler/mir/lower/entry_emit_top.ark` — synthesize test functions
@@ -168,10 +169,12 @@ Once `arukellt test` can execute `test mod` blocks:
 - `src/compiler/wasm/` — entry point selection for test mode
 
 ### Scripts
+
 - `scripts/selfhost/checks.py` — fixture-parity `test:` kind support
 - `tests/fixtures/manifest.txt` — `run:` → `test:` for migrated fixtures
 
 ### Fixtures (incremental)
+
 - 609 empty `.expected` files → `test mod` migration
 - 585 non-empty `.expected` files → assertion conversion
 
