@@ -89,18 +89,24 @@ mapfile -d '' ARK_FILES < <(
 
 if [ "${#ARK_FILES[@]}" -eq 0 ]; then
   step "No staged .ark files"
-elif ! command -v arukellt >/dev/null 2>&1; then
-  echo "FAIL: arukellt not found on PATH; required for staged .ark fmt check." >&2
+elif [ ! -x "$SELFHOST_CLI" ]; then
+  echo "FAIL: $SELFHOST_CLI not executable; required for staged .ark fmt check." >&2
   FAIL=1
 else
-  set +e
-  FMT_OUTPUT=$(arukellt fmt --check "${ARK_FILES[@]}" 2>&1)
-  FMT_RC=$?
-  set -e
-  if [ "$FMT_RC" -ne 0 ]; then
-    echo "FAIL: staged .ark files are not formatted." >&2
-    echo "$FMT_OUTPUT" | tail -40 >&2
-    echo "  Run: arukellt fmt <paths>, then re-stage." >&2
+  FMT_FAIL=0
+  for ark in "${ARK_FILES[@]}"; do
+    set +e
+    FMT_OUTPUT=$("$SELFHOST_CLI" fmt --check "$ark" 2>&1)
+    FMT_RC=$?
+    set -e
+    if [ "$FMT_RC" -ne 0 ]; then
+      echo "FAIL: $ark is not formatted." >&2
+      echo "$FMT_OUTPUT" | tail -20 >&2
+      echo "  Run: scripts/run/arukellt-selfhost.sh fmt $ark, then re-stage." >&2
+      FMT_FAIL=1
+    fi
+  done
+  if [ "$FMT_FAIL" -ne 0 ]; then
     FAIL=1
   else
     step "OK"
@@ -163,10 +169,10 @@ else
 fi
 
 # ── 1c. arukellt lint (staged .ark only, after wasm rebuild) ─────────────────
-# Warnings print and do not fail (exit 0). Prefer-else-if is denied on
-# standalone programs so nested else { if } fails the commit (ADR-047).
-# Package modules under src/compiler/ and std/ cannot be linted as single files
-# (module loading needs the package root); those rely on verify lint smoke.
+# Two lint tiers (ADR-047):
+#   - package modules (src/compiler, std): `lint --local` (parse + AST rules)
+#   - standalone programs: full `lint` (resolve/typecheck + local rules)
+# Prefer-else-if is denied so nested else { if } on staged files fails the commit.
 banner "arukellt lint (staged .ark only)"
 if [ "${#ARK_FILES[@]}" -eq 0 ]; then
   step "No staged .ark files"
@@ -175,18 +181,21 @@ elif [ ! -x "$SELFHOST_CLI" ]; then
   FAIL=1
 else
   LINT_FAIL=0
-  LINT_SKIP=0
-  LINT_RAN=0
+  LINT_LOCAL=0
+  LINT_FULL=0
   for ark in "${ARK_FILES[@]}"; do
+    LINT_ARGS=(lint --deny prefer-else-if)
     case "$ark" in
       src/compiler/*|std/*)
-        LINT_SKIP=$((LINT_SKIP + 1))
-        continue
+        LINT_ARGS=(lint --local --deny prefer-else-if)
+        LINT_LOCAL=$((LINT_LOCAL + 1))
+        ;;
+      *)
+        LINT_FULL=$((LINT_FULL + 1))
         ;;
     esac
-    LINT_RAN=$((LINT_RAN + 1))
     set +e
-    LINT_OUTPUT=$("$SELFHOST_CLI" lint --deny prefer-else-if "$ark" 2>&1)
+    LINT_OUTPUT=$("$SELFHOST_CLI" "${LINT_ARGS[@]}" "$ark" 2>&1)
     LINT_RC=$?
     set -e
     if [ "$LINT_RC" -ne 0 ]; then
@@ -199,15 +208,10 @@ else
       echo "$LINT_OUTPUT" | head -20
     fi
   done
-  if [ "$LINT_SKIP" -gt 0 ]; then
-    step "skipped $LINT_SKIP package module(s) under src/compiler/ or std/ (verify lint smoke covers toolchain)"
-  fi
   if [ "$LINT_FAIL" -ne 0 ]; then
     FAIL=1
-  elif [ "$LINT_RAN" -eq 0 ]; then
-    step "OK (no standalone .ark to lint)"
   else
-    step "OK ($LINT_RAN file(s))"
+    step "OK (local=$LINT_LOCAL full=$LINT_FULL)"
   fi
 fi
 

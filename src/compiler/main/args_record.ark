@@ -29,6 +29,7 @@ struct CliOptions {
     compose_socket: String,
     compose_validate_only: bool,
     lint_list: bool,
+    lint_local: bool,
     lint_allow: Vec<String>,
     lint_deny: Vec<String>,
     cache_dir: String,
@@ -61,6 +62,7 @@ fn CliOptions_default() -> CliOptions {
         compose_socket: String_new(),
         compose_validate_only: false,
         lint_list: false,
+        lint_local: false,
         lint_allow: Vec_new_String(),
         lint_deny: Vec_new_String(),
         cache_dir: String_new(),
@@ -190,6 +192,8 @@ fn cli_set_compose_validate_only(opts: CliOptions, compose_validate_only: bool) 
 
 fn cli_lint_list(opts: CliOptions) -> bool { opts.lint_list }
 fn cli_set_lint_list(opts: CliOptions, lint_list: bool) { opts.lint_list = lint_list }
+fn cli_lint_local(opts: CliOptions) -> bool { opts.lint_local }
+fn cli_set_lint_local(opts: CliOptions, lint_local: bool) { opts.lint_local = lint_local }
 fn cli_lint_allow(opts: CliOptions) -> Vec<String> { clone(opts.lint_allow) }
 fn cli_lint_allow_count(opts: CliOptions) -> i32 { len(opts.lint_allow) }
 fn cli_lint_deny(opts: CliOptions) -> Vec<String> { clone(opts.lint_deny) }

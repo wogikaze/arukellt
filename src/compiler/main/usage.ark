@@ -1,10 +1,6 @@
 // Arukellt Selfhost - main namespace: usage
-
 use std::host::stdio
 
-// Arukellt Selfhost - CLI usage and version output
-
-// ── Usage / Version ──────────────────────────────────────────────────────────
 fn print_usage() {
     stdio::println(String_from("The Arukellt compiler"))
     stdio::println(String_from(""))
@@ -36,6 +32,7 @@ fn print_usage() {
     stdio::println(String_from("  --output json  Alias for --json on diagnostic/check output"))
     stdio::println(String_from("  --wit <path>   Add a WIT import file for component compilation"))
     stdio::println(String_from("  --list         List available lint rules (with `lint` command)"))
+    stdio::println(String_from("  --local        Lint local (parse-only) rules; no module resolve"))
     stdio::println(String_from("  --allow <rule> Allow (suppress) a lint rule by W-code or name"))
     stdio::println(String_from("  --deny <rule>  Deny (escalate to error) a lint rule by W-code or name"))
 }
@@ -43,3 +40,5 @@ fn print_usage() {
 fn print_version() {
     stdio::println(String_from("arukellt 0.1.0"))
 }
+// Arukellt Selfhost - CLI usage and version output
+// ── Usage / Version ──────────────────────────────────────────────────────────

@@ -116,14 +116,17 @@ bash scripts/gate/install-git-hooks.sh
 ```
 
 The pre-commit hook runs `arukellt fmt --check` on staged `.ark` files, then
-`scripts/run/arukellt-selfhost.sh lint --deny prefer-else-if` on each staged
-standalone `.ark` (after a selfhost rebuild when compiler/stdlib sources are
-staged). Package modules under `src/compiler/` and `std/` are skipped at
-file-level lint (they need package loading); `verify quick` includes
-`scripts/check/check-ark-lint-smoke.py` for the lint exit contract. Then
-`verify quick` runs. Format locally with `arukellt fmt <paths>` when fmt fails.
-Warnings from lint still print but only denied rules (currently
-`prefer-else-if` / W0011) and real errors fail the hook on standalone files.
+lints each staged `.ark` (after a selfhost rebuild when compiler/stdlib sources
+are staged):
+
+- `src/compiler/**` and `std/**`: `lint --local --deny prefer-else-if`
+  (parse + same-file AST rules; no module graph resolve)
+- other standalone `.ark`: full `lint --deny prefer-else-if`
+
+Then `verify quick` runs (includes `scripts/check/check-ark-lint-smoke.py`).
+Format locally with `arukellt fmt <paths>` when fmt fails. Warnings still print
+but only denied rules (currently `prefer-else-if` / W0011) and real errors fail
+the hook.
 
 No pre-push hook script exists today; run `python3 scripts/manager.py verify full` manually before pushing.
 

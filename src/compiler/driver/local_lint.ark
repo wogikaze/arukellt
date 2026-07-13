@@ -1,0 +1,68 @@
+// Arukellt Selfhost - parse-only local lint stage (`arukellt lint --local`).
+
+use collections::vec_extend
+use compiler::phases
+use driver::config_record
+use driver::errors
+use driver::result_record
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
+use lint::checks as lint_checks
+use lint::registry as lint_registry
+
+fn local_filter_allowed(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> Vec<Diagnostic> {
+    let filtered = Vec_new_Diagnostic()
+    let count = len(warnings)
+    let mut i = 0
+    while i < count {
+        let diag = get_unchecked(warnings, i)
+        let code = diag_record::diagnostic_code(diag)
+        if lint_registry::should_suppress(clone(code), allow_codes) {
+            i = i + 1
+            continue
+        }
+        push(filtered, diag)
+        i = i + 1
+    }
+    filtered
+}
+
+fn local_escalate(diag: Diagnostic) -> Diagnostic {
+    diag_mod::Diagnostic_new(diag_record::diagnostic_code(diag), diag_mod::SEV_ERROR(), diag_record::diagnostic_span(diag), diag_record::diagnostic_message(diag))
+}
+
+fn local_partition_deny(warnings: Vec<Diagnostic>, deny_codes: Vec<String>, denied: Vec<Diagnostic>, kept: Vec<Diagnostic>) {
+    let count = len(warnings)
+    let mut i = 0
+    while i < count {
+        let diag = get_unchecked(warnings, i)
+        let code = diag_record::diagnostic_code(diag)
+        if lint_registry::should_deny(clone(code), deny_codes) {
+            push(denied, local_escalate(diag))
+        } else {
+            push(kept, diag)
+        }
+        i = i + 1
+    }
+}
+
+// Skip resolve/typecheck so package modules can be linted one file at a time.
+pub fn run_local_lint_stage(source: String, config: DriverConfig, decls: Vec<AstNode>) -> CompileResult {
+    let lint_warnings = lint_checks::run_post_resolve_lint(decls, config_record::config_target(config))
+    let allow_codes = config_record::config_lint_allow(config)
+    let deny_codes = config_record::config_lint_deny(config)
+    let filtered = local_filter_allowed(lint_warnings, allow_codes)
+    let denied = Vec_new_Diagnostic()
+    let kept = Vec_new_Diagnostic()
+    local_partition_deny(filtered, deny_codes, denied, kept)
+    if len(denied) > 0 {
+        let all = Vec_new_Diagnostic()
+        vec_extend::Vec_extend_Diagnostic(all, denied)
+        vec_extend::Vec_extend_Diagnostic(all, kept)
+        return errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec_new_String())
+    }
+    if len(kept) > 0 {
+        return errors::type_warnings_result(clone(source), config_record::config_source_file(config), kept)
+    }
+    result_record::CompileResult_ok(phases::PHASE_PARSE())
+}

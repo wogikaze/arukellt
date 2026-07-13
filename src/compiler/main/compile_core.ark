@@ -1,17 +1,17 @@
 // Arukellt Selfhost - main namespace: compile_core
 
+use std::host::stdio
+use std::host::fs
+use std::host::process
 use main::args_record
 use main::commands
 use main::kinds
 use driver::types
 use driver::config_record
-use std::host::stdio
 use driver::result_record
 use main::output
-use diagnostics::mod as diag_mod
-use std::host::fs
-use std::host::process
 use driver::file
+use diagnostics::mod as diag_mod
 
 // Arukellt Selfhost - CLI compile DriverConfig builders
 
@@ -48,6 +48,7 @@ pub fn build_command_config(opts: CliOptions) -> DriverConfig {
     let config = build_emit_config(opts, args_record::cli_emit_mode(opts), true)
     config_record::config_set_parse_only(config, command == kinds::CMD_PARSE())
     config_record::config_set_check_only(config, command == kinds::CMD_CHECK() || command == kinds::CMD_LINT())
+    config_record::config_set_lint_local_only(config, command == kinds::CMD_LINT() && args_record::cli_lint_local(opts))
     config
 }
 
