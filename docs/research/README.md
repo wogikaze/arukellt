@@ -12,7 +12,6 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
-| [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | ステータス: 調査メモ（決定記録ではない） |
-| [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ステータス: 調査メモ（決定記録ではない） |
-| [wasm-gc-post-mvp.md](wasm-gc-post-mvp.md) | WasmGC Post-MVP 拡張機能 — 設計調査 | Archive | ステータス: 調査メモ（決定記録ではない） |
-| [wat-probes/results.md](wat-probes/results.md) | WAT probe results | Archive | Date: 2026-07-13 |
+| [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | 本ファイルは計測表・環境・スクリプト一覧の正本。ADR-002 には判定要旨のみ残す。 |
+| [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ADR-007 が定義する 3 ターゲット（wasm32 / wasm32-gc / native）のうち、 外部ツールチェイン依存がある以下 5 経路について、実装状況と実際の動作を確認する。 |
+| [wasm-gc-post-mvp.md](wasm-gc-post-mvp.md) | WasmGC Post-MVP 拡張機能 — 設計調査 | Archive | 本ファイルは Wasm GC Post-MVP 提案の調査記録である。言語仕様の前提にはしない。 採択済みの方針は ADR-043 を参照する。 |

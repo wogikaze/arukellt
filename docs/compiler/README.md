@@ -14,15 +14,15 @@
 
 | File | Title | Summary |
 |------|-------|---------|
-| [bootstrap.md](bootstrap.md) | Selfhost Bootstrap (ADR-029) | Current contract. Trusted base is the pinned selfhost wasm, not a Rust |
-| [core-ops-registry.md](core-ops-registry.md) | Core Ops Registry | SSOT file: docs/data/core-ops.toml |
-| [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output |
+| [bootstrap.md](bootstrap.md) | Selfhost Bootstrap (ADR-029) | Current contract. Trusted base is the pinned selfhost wasm, not a Rust compiler. Rust-era Stage 0 narratives live in ../history/reports/bootstrap-rust-era-compiler-guide.md. |
+| [core-ops-registry.md](core-ops-registry.md) | Core Ops Registry | SSOT file: docs/data/core-ops.toml Decision: ADR-042 D5 |
+| [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output bit-exact reproducible — the same source must always produce the same binary, byte-for-byte. |
 | [diagnostic-parity.md](diagnostic-parity.md) | Diagnostic Parity (current) | Current verification is selfhost diag-parity under ADR-029 — not a Rust CLI comparison. |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
-| [error-codes.md](error-codes.md) | Error Code Reference | Declared diagnostic code catalogue, including implemented and reserved codes. |
+| [error-codes.md](error-codes.md) | Error Code Reference | Declared diagnostic code catalogue, including implemented and reserved codes. Code declarations: src/compiler/diagnostics/codes.ark. |
 | [incremental-parse-design.md](incremental-parse-design.md) | Incremental Parse Design | The fundamental unit of incremental parsing is the file (module). When a file changes, the entire file is re-parsed. Fine-grained incremental parsing at the declaration or function level is considered out of scope for Phase 1 to limit complexity. |
-| [ir-spec.md](ir-spec.md) | CoreHIR / MIR Specification | This document describes the intermediate representations (IRs) used by the |
-| [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the MIR optimization pipeline. |
+| [ir-spec.md](ir-spec.md) | CoreHIR / MIR Specification | This document describes the intermediate representations (IRs) used by the Arukellt compiler, from parsed source through to Wasm output. It is the authoritative reference for re-implementing the IR in another language. |
+| [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the MIR optimization pipeline. For pipeline context see pipeline.md; for overall state see ../current-state.md. |
 | [panic-ice-policy.md](panic-ice-policy.md) | Panic / ICE Policy | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |
-| [wit-resource-handles.md](wit-resource-handles.md) | WIT resource handles (resource, own<T>, borrow<T>) | Design for Tier 3 component emission of WIT resource types at the canonical ABI |
+| [wit-resource-handles.md](wit-resource-handles.md) | WIT resource handles (resource, own<T>, borrow<T>) | Design for Tier 3 component emission of WIT resource types at the canonical ABI boundary. Tracked by #473. |

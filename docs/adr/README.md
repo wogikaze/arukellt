@@ -15,57 +15,57 @@
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-000-process.md](ADR-000-process.md) | ADR-000: ADR プロセスとステータスライフサイクル | ステータス: ACCEPTED — ADR の識別子・状態遷移・後継関係の規則を固定する |
-| [ADR-001-harness-bootstrap.md](ADR-001-harness-bootstrap.md) | ADR-001: Harness Bootstrap Strategy | ステータス: ACCEPTED — NEPLg2・vibe-lang・wadoの合成ベースラインharnessを採用 |
-| [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | ステータス: ACCEPTED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
-| [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: ACCEPTED — Monomorphization（型ごとのコード生成）を採用する |
-| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI 境界の分類 | ステータス: ACCEPTED — 安定公開境界は WIT/canonical。raw Wasm GC layout は非 stable |
-| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: ACCEPTED — canonical は wasm32 / wasm32-gc / native-（scaffold） |
-| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: ACCEPTED — --emit component は in-tree で生成する |
-| [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | ステータス: ACCEPTED — use std::host::stdioの::-separated形式をソースモジュール参照として確定 |
-| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: ACCEPTED — 実装見送り。heap pointer 初期化は単純定数で十分 |
-| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | ステータス: ACCEPTED — host-boundなstdlib APIはstd::host::に隔離 |
-| [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: wasm32-gc をプライマリターゲットとする | ステータス: ACCEPTED — wasm32-gc を唯一の primary とし、既定 host は WASI P2 |
-| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: 言語仕様と Stdlib API の安定性ラベル | ステータス: ACCEPTED — 言語仕様ラベルと stdlib API lifecycle ラベルを採用 |
-| [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: ユーザー到達パスの No-Panic 品質基準 | ステータス: ACCEPTED — ユーザー到達パスでのpanic禁止 |
-| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground v1 Product Contract | ステータス: ACCEPTED — client-side hybrid（v1 にサーバー側 executor なし） |
-| [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: 言語ドキュメント分類 — Normative / Explanatory / Transitional | ステータス: ACCEPTED — 3つのドキュメントクラス（normative/explanatory/transitional）を採用 |
-| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: リンクチェックカバレッジポリシー | ステータス: ACCEPTED — リンクチェックカバレッジポリシーを採用 |
-| [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format | ステータス: ACCEPTED — fragment ベースの share URL（versioned path） |
-| [ADR-022-playground-deployment-and-caching.md](ADR-022-playground-deployment-and-caching.md) | ADR-022: Playground のデプロイとアセットキャッシュ戦略 | ステータス: ACCEPTED — GitHub Pagesで静的ホスティング（Fastly CDN経由） |
-| [ADR-023-package-registry-resolution.md](ADR-023-package-registry-resolution.md) | ADR-023: パッケージレジストリ解決の設計 | ステータス: ACCEPTED — Registry lookupモデル（local > workspace > registry）を採用 |
-| [ADR-024-selfhost-mir-explicit-cfg-before-ssa.md](ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) | ADR-024: Selfhost MIR は SSA 形成前に明示的 CFG を採用する | ステータス: ACCEPTED — Selfhost MIRはSSA形成前に明示的なCFGを採用 |
-| [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029: セルフホストネイティブ検証契約 | ステータス: ACCEPTED — セルフホスト検証の信頼ベースをピン留め wasm に移す |
-| [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: import 構文と WIT パッケージ識別子の統合 | ステータス: ACCEPTED — 二層分離を確定。use は Layer S、import は Layer C に予約 |
-| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | ステータス: ACCEPTED — ブラウザで compile + run（wasm32-gc component → jco） |
-| [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | ステータス: ACCEPTED — call_indirect をベースラインとし、call_ref へ段階移行する |
-| [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | ステータス: ACCEPTED — Component 合成は wac plug に委譲する |
-| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine | ステータス: ACCEPTED — Semantic Type Spine（SignatureRegistry / MonoInstanceTable）を MIR の正本とする |
-| [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | ステータス: ACCEPTED — ファイル内 test 宣言構文を採択する |
-| [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | ステータス: ACCEPTED — Phase 0 の Wasm GC 拡張に言語仕様を依存させない |
-| [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | ステータス: ACCEPTED — trait / impl / メソッド呼び出しを言語の正規機能とする |
-| [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | ステータス: ACCEPTED — 旧 ADR-005 の LLVM 従属方針を撤回し、再開条件まで未決定とする |
-| [ADR-046-free-function-eradication.md](ADR-046-free-function-eradication.md) | ADR-046: 公開 free function の根絶 | ステータス: ACCEPTED — ユーザー可達の free function を根絶し、例外は非公開 intrinsic のみに封じる |
+| [ADR-000-process.md](ADR-000-process.md) | ADR-000: ADR プロセスとステータスライフサイクル | docs/adr/ に設計判断・調査・実装計画・進捗メモが混在し、番号重複・未定義ステータス・ 未来日付・欠番参照が発生していた。ADR を意思決定履歴の正本として使うには、 プロセス自体を ADR として固定する必要がある。 |
+| [ADR-001-harness-bootstrap.md](ADR-001-harness-bootstrap.md) | ADR-001: Harness Bootstrap Strategy | 本プロジェクトには、次を支える構造化された harness が必要である。 |
+| [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | （2026-07-05 追補: wasmtime / Node.js / ブラウザの 3 ランタイムクロス計測で再確認。結論は不変） |
+| [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ADR-002 により Wasm GC を採用した。generics の実装戦略を決定する。 |
+| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI 境界の分類 | 公開 ABI を無秩序に増やすと保守コストが増大する。一方で raw Wasm の GC 型表現 （String / Vec の (ref $…) layout）を stable に固定すると、内部表現の進化 （inline string、rope、capacity layout、nullable 最適化、recursive type group 等）を |
+| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | 複数ランタイム向けにコードを生成するため、ターゲットを 表現モデル × 製品 profile で固定する。旧 T1–T5 表記は廃止する。 native の意味論・ABI は ADR-045 まで未決定。 |
+| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Component Model 対応にあたり、core Wasm モジュールを .component.wasm に変換する 方法を決める必要がある。 |
+| [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Arukellt には 2 種類の「モジュール参照」が混在している。 |
+| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | WebAssembly Extended Const 提案により、定数式の中で i32.add, i32.sub, i32.mul (および i64 版) が使用可能になった。これにより、グローバル変数の 初期値・データセグメントのオフセット・要素セグメントのオフセットで算術演算を 記述できる。 |
+| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | Arukellt は少なくとも 2 つの実用ターゲットを持つ。 |
+| [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: wasm32-gc をプライマリターゲットとする | ADR-007 は canonical ターゲットを wasm32 / wasm32-gc / native- に再構成した。 出荷品質・CI ゲート・言語意味論の基準を 1 本に絞る必要がある。 |
+| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: 言語仕様と Stdlib API の安定性ラベル | Arukellt の言語仕様と stdlib は拡大している。ユーザーは、本番コードで頼ってよい機能と 変更されうる機能を知る必要がある。明示的な安定性保証がなければ、採用リスクを判断できない。 |
+| [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: ユーザー到達パスの No-Panic 品質基準 | 範囲: CLI, LSP, extension, manifest parsing |
+| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground v1 Product Contract | 範囲: Playground (web) v1 |
+| [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: 言語ドキュメント分類 — Normative / Explanatory / Transitional | 範囲: Language documentation (docs/language/), docs tooling |
+| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: リンクチェックカバレッジポリシー | 範囲: Language documentation (docs/language/), all Markdown docs under docs/, docs site (docs/index.html) |
+| [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format | 範囲: Playground (web), share/permalink surface |
+| [ADR-022-playground-deployment-and-caching.md](ADR-022-playground-deployment-and-caching.md) | ADR-022: Playground のデプロイとアセットキャッシュ戦略 | 範囲: Playground (web), deployment, CDN, caching, CI/CD, performance budget |
+| [ADR-023-package-registry-resolution.md](ADR-023-package-registry-resolution.md) | ADR-023: パッケージレジストリ解決の設計 | Arukellt の依存関係解決（docs/module-resolution.md §5 に文書化）は、現時点でローカルパス依存（{ path = "..." }）のみをサポートする。マニフェスト形式はすでにレジストリ依存用のバージョン文字列構文（some-pkg = "1.2.3"）を予約しているが、その解決ロジックは存在しない。 |
+| [ADR-024-selfhost-mir-explicit-cfg-before-ssa.md](ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) | ADR-024: Selfhost MIR は SSA 形成前に明示的 CFG を採用する | 範囲: selfhost MIR, SSA formation, lowering, codegen boundary |
+| [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029: セルフホストネイティブ検証契約 | Issue: #585 解除する依存: #583, #560, #561, #562, #563, #564（Phase 5 Rust 退役） |
+| [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: import 構文と WIT パッケージ識別子の統合 | トラック: language-design Issue: #123 |
+| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | 関連 issue: #632 |
+| [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | トラック: wasm-feature Issue: #069 廃止: なし（issue #019, #025 の GC-native クロージャ記述を精緻化） |
+| [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | Issue #443 は複数の Wasm Component を 1 つの実行単位に合成する linking モデルを求める。 前提として #442（WIT interop）と #476（wac plug / wasm-tools compose smoke）がある。 |
+| [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine | wasm32-gc の残存 validate-fail は局所修正の限界に出ている。根本原因は個別の型推論バグではなく、 コンパイルパイプライン各段で意味情報（型・シグネチャ・ABI）が失われ、emitter が 名前やスタックから型を掘り返していることである。 |
+| [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | Arukellt にはこれまで言語レベルのテスト構文がなく、arukellt test コマンドは check_only=true の型チェックラッパに過ぎなかった（src/compiler/main/project_run.ark cmd_test 参照）。テスト関数の検出は test_ / _test 命名規約のみ（Issue #458）で、 |
+| [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | 旧番号メモ: 調査草稿は誤って ADR-008 として公開されたのち ADR-043 へ移した。 調査本文の正本は docs/research/wasm-gc-post-mvp.md。 |
+| [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | 廃止: ADR-004-method-syntax-evaluation.md |
+| [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md |
+| [ADR-046-free-function-eradication.md](ADR-046-free-function-eradication.md) | ADR-046: 公開 free function の根絶 | stdlib と prelude は長年 func(recv, …) 形の free function とモノモルフィック helper（_i32 等）を正面 API としてきた。ADR-044 / issue #709 は trait-first / メソッド構文を正規としたが、ADR-036 D5 は |
 
 ## 提案
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | ステータス: PROPOSED — wasm32-gc 上の compiler-private GC 表現方針を提案 |
-| [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | ステータス: PROPOSED — #688–#697 後に実行する stdlib 再設計の戦略 |
-| [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | ステータス: PROPOSED — 既存 experimental SIMD API を portable nominal 型と raw std::wasm::V128 へ再設計・移行する |
-| [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | ステータス: PROPOSED — 既存の magic method 面を std::core::ops trait 面へ置換する |
-| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | ステータス: PROPOSED — 既存の Result ? を前提に、Option / From 拡張を提案 |
-| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | ステータス: PROPOSED — intrinsic を 5 層に分離し emitter から stdlib 実装を除去する方針を提案 |
+| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | 提案日: 2026-06-17 |
+| [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | 提案日: 2026-06-26 |
+| [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
+| [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
+| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 提案日: 2026-06-26 |
+| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | 提案日: 2026-07-10 |
 
 ## 後継済み
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-004-method-syntax-evaluation.md](ADR-004-method-syntax-evaluation.md) | ADR-004: メソッド構文の評価（旧 P4） | ステータス: SUPERSEDED — trait / メソッド構文採択により置換 |
-| [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: SUPERSEDED — 旧 LLVM 従属方針を撤回 |
-| [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | ステータス: SUPERSEDED — ADR-031 に統合（探索メモ） |
-| [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | ステータス: SUPERSEDED — ADR-031 に統合 |
+| [ADR-004-method-syntax-evaluation.md](ADR-004-method-syntax-evaluation.md) | ADR-004: メソッド構文の評価（旧 P4） | 後継: ADR-044-trait-method-syntax-adopted.md |
+| [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | 後継: ADR-045-llvm-scope-withdrawn.md |
+| [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | トラック: language-design（issue #123） 後継: ADR-031-import-syntax-wit-unification.md |
+| [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | 後継: ADR-031-import-syntax-wit-unification.md |
 
 ## その他
 

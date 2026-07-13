@@ -69,10 +69,10 @@ the browser-side implementation work and remaining product-proof gaps.
 | Document | Summary |
 |----------|---------|
 | [build-path-proof.md](build-path-proof.md) | Issue: #468; updated by #631 |
-| [deployment-strategy.md](deployment-strategy.md) | Status: DRAFT |
-| [diagnostics-worker-performance-budget.md](diagnostics-worker-performance-budget.md) | Status: DRAFT |
-| [examples-catalog.md](examples-catalog.md) | The playground ships a curated catalog of example programs defined in |
-| [privacy-telemetry-policy.md](privacy-telemetry-policy.md) | Status: DECIDED |
+| [deployment-strategy.md](deployment-strategy.md) | Updated: 2026-05-17 Scope: Playground (web), CI/CD, hosting, caching, preview environments Related ADRs: ADR-017 (execution model), ADR-021 (share URL format), ADR-022 (deployment & caching) |
+| [diagnostics-worker-performance-budget.md](diagnostics-worker-performance-budget.md) | Updated: 2026-05-17 Issue: #430; updated by #631 Scope: Playground runtime performance, diagnostics pipeline, worker round-trip, and measurement methodology |
+| [examples-catalog.md](examples-catalog.md) | The playground ships a curated catalog of example programs defined in playground/src/examples.ts. Each example is linked to a CI-verified test fixture in tests/fixtures/ so that playground examples always |
+| [privacy-telemetry-policy.md](privacy-telemetry-policy.md) | Created: 2026-07-09 Scope: Playground (web), privacy, telemetry, error reporting, GDPR Related ADRs: ADR-017 (execution model), ADR-021 (share URL format), ADR-022 (deployment & caching) |
 
 ## Related ADRs
 

@@ -12,11 +12,11 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
-| [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | ステータス: 運用メモ（決定記録ではない） |
-| [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ステータス: 実装計画 / 現行挙動メモ（決定記録ではない） |
+| [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | docs/plans/ は、ADR / RFC で決まった方針をどう実装するかの計画を置く場所である。 |
+| [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ADR-008 は「canonical ABI 用の一時領域と再確保契約を in-tree 実装が管理する」までを 契約とする。具体的なページ数・offset・bump 戦略はここに置く。 |
 | [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #770 (Phase 4) / originally #765. |
-| [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
-| [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | ステータス: 実装計画（決定記録ではない） |
-| [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | ステータス: 実装計画（決定記録ではない） |
-| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | ステータス: 実装計画（決定記録ではない） |
-| [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（arena + RC） | Archive | ステータス: 実装計画（決定記録ではない） |
+| [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target intrinsic の 責務分離を完了する。emitter から stdlib 操作の実装本体を除去する。 |
+| [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
+| [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |
+| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | wasm32-gc ターゲットで既存フィクスチャスイートが全通過すること。 wasm-tools validate --features gc を検証ゲートとする。 |
+| [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（arena + RC） | Archive | wasm32（AtCoder / 非 GC ランタイム向け）への lowering 実装方針。 言語仕様の正本は ADR-002（Wasm GC）。本ファイルは backend 実装計画のみ。 |

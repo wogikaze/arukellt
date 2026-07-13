@@ -92,8 +92,8 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Title | Class | Summary |
 |------|-------|-------|---------|
 | [error-handling.md](error-handling.md) | エラー処理 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
-| [formatter.md](formatter.md) | Formatter canonical surface | explanatory | The selfhost formatter (src/compiler/fmt/) is the single source of truth for |
-| [guide.md](guide.md) | Arukellt Language Guide | explanatory | Explanatory: This document explains concepts and usage patterns. |
+| [formatter.md](formatter.md) | Formatter canonical surface | explanatory | The selfhost formatter (src/compiler/fmt/) is the single source of truth for canonical Arukellt source layout. CLI arukellt fmt, LSP textDocument/formatting / textDocument/rangeFormatting, VS Code format |
+| [guide.md](guide.md) | Arukellt Language Guide | explanatory | Explanatory: This document explains concepts and usage patterns. It is not the authoritative specification. For normative behavior, see spec.md |
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative memory-model contract for Arukellt. |
 | [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | explanatory | See also docs/governance/document-ownership.md |

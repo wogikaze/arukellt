@@ -16,4 +16,4 @@
 |------|-------|---------|
 | [abi-reference.md](abi-reference.md) | WIT 型マッピング対応表 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [abi.md](abi.md) | 公開 ABI 方針 | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
-| [target-runtime-and-surfaces.md](target-runtime-and-surfaces.md) | ターゲット実行面・検証・capability（現行） | ステータス: 現行挙動メモ（決定記録ではない） |
+| [target-runtime-and-surfaces.md](target-runtime-and-surfaces.md) | ターゲット実行面・検証・capability（現行） | 正本の決定は ADR-007。本ファイルはランタイム対応・検証面・host 到達可能性・CLI 詳細の置き場。 |

@@ -15,8 +15,8 @@
 | [INTERFACE-COREHIR.md](INTERFACE-COREHIR.md) | CoreHIR interface note | Archive | This note is implementation-facing only. It freezes the frontend handoff expected by downstream MIR and docs work. |
 | [archive/gc-mono-tradeoff.md](archive/gc-mono-tradeoff.md) | GC + Monomorphization トレードオフ | Archive | ADR-002（GC採用）と ADR-003（制限付きmono）の緊張関係を明確化する。 |
 | [archive/reference-control.md](archive/reference-control.md) | 参照過多への制御戦略 | Archive | GC 環境で「すべてがヒープに逃げる」リスクを制御する。 |
-| [archive/trait-less-abstraction.md](archive/trait-less-abstraction.md) | trait なし環境での抽象化戦略 | Archive | Archive / current-first note: |
+| [archive/trait-less-abstraction.md](archive/trait-less-abstraction.md) | trait なし環境での抽象化戦略 | Archive | Archive / current-first note: this document reflects an older design stage where traits were intentionally absent. |
 | [archive/value-semantics.md](archive/value-semantics.md) | 値セマンティクス仕様 | Archive | GC 採用下での copy/move 動作を厳密に定義する。 |
-| [gc-implementation-plan.md](gc-implementation-plan.md) | Wasm GC 実装計画 | Archive | 対応 ADR: ADR-035 |
-| [lang-uplift-gap-ledger.md](lang-uplift-gap-ledger.md) | Language Surface Uplift: Gap Ledger | Archive | Purpose: Record the current syntax state (Phase 0 baseline) and map the gap between |
+| [gc-implementation-plan.md](gc-implementation-plan.md) | Wasm GC 実装計画 | Archive | 動作確認: GC array smoke test ✅, string_gc compile ✅, string_gc run ✅ 検証通過: len, ==, starts_with, ends_with, concat, to_string (i32/i64/f64), print/println 検証コマンド: 全チェックボックスに Verify コマンド付き (#686 更新済み) |
+| [lang-uplift-gap-ledger.md](lang-uplift-gap-ledger.md) | Language Surface Uplift: Gap Ledger | Archive | Purpose: Record the current syntax state (Phase 0 baseline) and map the gap between current behavior and target behavior for each of the four uplift features in #588. |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | Syntax v1 Preview | Archive | Features implemented in v1 milestones M4–M8. |
