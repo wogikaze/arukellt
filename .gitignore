@@ -43,6 +43,8 @@ docs/playground/wasm/
 
 # WAT is a generated text format of WASM; not a source format in this project
 *.wat
+# Exception: curated feature probes kept as research artifacts
+!docs/research/wat-probes/**/*.wat
 
 # s2 debug disassembly dumps
 s2_disasm*
