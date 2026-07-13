@@ -438,17 +438,20 @@ python3 docs/research/wat-probes/run-probes.py
 | Experimental Threads | ⚠️ engine+jco は成功、iwasm OFF。製品 default には入れない |
 | Legacy EH | ❌ text toolchain 非対応 |
 
-### A.6 default emit 許可集合（検証結果からの提案）
+### A.6 default emit 許可集合（**採択**: ADR-007 §5.1）
 
-方針:
+方針（契約）:
 
 ```text
 wasm32     default_emit ⊆ features(iwasm pinned build)
 wasm32-gc  default_emit ⊆ features(wasmtime)
                            ∩ features(Node WebAssembly)
                            ∩ features(Browser / Chrome WebAssembly)
-                           ∩ features(jco@1.25.2 transpile of emitted component)
+                           ∩ features(jco≥1.25.2 transpile of emitted component)
 ```
+
+運用表の正本: [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。  
+決定の正本: [ADR-007 §5.1](../adr/ADR-007-targets.md#default-wasm-feature-emit)。
 
 #### `wasm32`（= iwasm）
 

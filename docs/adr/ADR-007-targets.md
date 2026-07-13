@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — canonical は `wasm32` / `wasm32-gc` / `native-*`（scaffold）
 
 決定日: 2026-03-26  
-改訂日: 2026-07-11 — T1–T5 廃止、現行挙動を platform 文書へ分離
+改訂日: 2026-07-13 — default Wasm feature emit の許可集合を契約化（iwasm / wasmtime∩Node∩Browser∩jco）
 
 ---
 
@@ -72,6 +72,57 @@ WASI 非依存の旧 freestanding は提供しない。
 出力ファイル名の stem 規則など CLI 詳細は
 [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md#emit-surface)。
 
+### 5.1 Default Wasm feature emit（許可集合）
+
+<a id="default-wasm-feature-emit"></a>
+
+コンパイラが **default で core Wasm に出してよい機能**は、ターゲットごとの
+実行／packaging ゲートの積集合に限定する。証拠は
+[`docs/research/target-runtime-verification.md`](../research/target-runtime-verification.md)
+付録 A および `docs/research/wat-probes/`（2026-07-13）。
+
+| ターゲット | ゲート（積集合） | 契約上の default emit 上限 |
+|-----------|------------------|---------------------------|
+| `wasm32` | pinned **iwasm**（WAMR）が実行できる範囲 | **Wasm 2.0 Core**（fixed SIMD 込み）。Wasm 3.0 系は default 禁止 |
+| `wasm32-gc` | **wasmtime ∩ Node(V8) ∩ Browser(Chrome/V8) ∩ jco≥1.25.2 transpile** | 下表。**multiple memories は default 禁止**（jco が拒否） |
+
+`jco` は実行エンジンではなく packaging gate（component → ESM）。browser/Node 経路で
+component を配る前提のため、`wasm32-gc` の default emit 積集合に含める。
+
+#### `wasm32` — default emit OK / 禁止
+
+| default emit OK | default 禁止（フォールバックまたはコンパイルエラー） |
+|-----------------|------------------------------------------------------|
+| Wasm 1.0 Core | Memory64 / Table64 |
+| multi-value / reference types / bulk memory | Multiple memories |
+| fixed SIMD `v128`（trunc_sat SIMD 含む） | Tail call / `return_call_ref` |
+| sign-extension / trunc_sat（scalar） | Typed function references / `br_on_null` |
+| | GC（struct / array / i31 / recursive types） |
+| | Exception handling（`try_table` / legacy） |
+| | Extended const / Relaxed SIMD |
+| | Threads / Atomics（Wasm 3.0 Core 外） |
+
+#### `wasm32-gc` — default emit OK / 禁止
+
+| default emit OK（積集合で成功） | default 禁止 |
+|--------------------------------|--------------|
+| Wasm 1.0 / 2.0 Core | **Multiple memories**（jco transpile 非対応） |
+| Wasm GC（struct / array / i31 / recursive types） | JS String Builtins（JS embedding。core emit 契約外） |
+| typed function references / `call_ref` / `br_on_null` | Threads / Atomics（独立提案。default に入れない） |
+| Memory64 / Table64 | Legacy EH（`try`/`catch`。現行 EH は `try_table`） |
+| Tail call / `return_call_ref` | Branch Hinting（未契約；metadata のみ） |
+| EH `try_table` | |
+| Extended const | |
+| Relaxed SIMD | |
+
+詳細表・再測手順・toolchain 版は platform 文書を正本の運用面とする:
+
+[`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)
+
+opt-in（明示フラグや将来プロファイル）で積集合外の機能を出すことは妨げないが、
+**default の `--target wasm32` / `wasm32-gc` では出さない**。
+実装ゲートの揃い具合は living（`docs/current-state.md`）。
+
 ### 6. Alias policy
 
 | 旧名 | 扱い |
@@ -134,6 +185,8 @@ WASI 非依存の旧 freestanding は提供しない。
 - [ADR-006](ADR-006-abi-policy.md) — 安定境界は WIT/canonical
 - [ADR-008](ADR-008-component-wrapping.md) — component in-tree
 - [ADR-013](ADR-013-primary-target.md) — primary = `wasm32-gc`
+- [ADR-037](ADR-037-std-simd.md) — SIMD 軸（fixed / relaxed）
 - [ADR-045](ADR-045-llvm-scope-withdrawn.md) — native 未決定
-- [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md) — 現行実行面
+- [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md) — 現行実行面・feature emit 表
+- [`docs/research/target-runtime-verification.md`](../research/target-runtime-verification.md) — 機能別 WAT プローブ証拠
 - `docs/current-state.md`

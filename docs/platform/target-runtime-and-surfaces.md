@@ -8,33 +8,90 @@
 
 ## 機能差分表
 
-各実行環境（ツールチェーン・ランタイム）の Wasm 機能対応状況:
+各実行環境（ツールチェーン・ランタイム）の Wasm 機能対応状況。
+**2026-07-13** の機能別 WAT プローブ（`docs/research/wat-probes/`）で再測した列を優先する。
+旧「構成依存」表現は、ピン留めビルド／版での実測結果に置き換えた。
 
-| 機能 | wabt 1.0.34 | iwasm 2.4.1 / WAMR | Chrome | Node.js | Wasmtime | jco |
-|------|------------:|-------------------:|-------:|--------:|---------:|----:|
-| Core Wasm MVP | 可 | 可 | 可 | 可 | 可 | 可 |
-| multi-value | 可 | 可扱いでよい | 可 | 可 | 可 | 可 |
-| bulk memory | 可 | 可 | 可 | 可 | 可 | 可 |
-| reference types | 可 | 可扱いでよい | 可 | 可 | 可 | 可 |
-| fixed SIMD `v128` | wabtは対応 | WAMRは構成依存 | 可 | 可 | 可 | JSエンジン依存 |
-| relaxed SIMD | wabtはflag付き対応 | 怪しい/避ける | Chrome可、Safari差あり | V8依存で可寄り | 可 | JSエンジン依存 |
-| Wasm GC | wabt 1.0.34では実用対象外 | 2.4系に実装はあるが制限あり | 可 | Node 22+で可 | 可 | 実行エンジン依存 |
-| tail-call | wabtはflag付き対応 | 構成依存 | 主要ブラウザ可 | V8依存 | 可 | 実行エンジン依存 |
-| exception handling | wabtはflag付き対応 | WAMRはlegacy/構成依存に注意 | 可 | V8依存 | 可 | 実行エンジン依存 |
-| memory64 | wabtはflag付き対応 | 2.4系に実装あり、制限注意 | ブラウザ差/制限あり | V8依存 | 可 | 実行エンジン依存 |
-| multi-memory | wabtはflag付き対応 | 構成依存 | ブラウザ差あり | V8依存 | 可 | 実行エンジン依存 |
-| Component Model | 不可 | 基本対象外 | ネイティブ不可 | ネイティブ不可 | 可 | 可 |
-| WASI P1 | wabt自体は実行hostではない | iwasmで可 | 標準不可 | `node:wasi`で可 | 可 | 主対象ではない |
-| WASI P2/P3 | 不可 | 主対象外 | ネイティブ不可 | ネイティブ不可 | 可 | 可 |
+| 機能 | wabt 1.0.34 | iwasm 2.4.3 | Chrome 148 | Node 25 | Wasmtime 44 (opt-in) | jco 1.25.2 transpile |
+|------|:-----------:|:-----------:|:----------:|:-------:|:--------------------:|:--------------------:|
+| Core Wasm MVP | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| multi-value | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| bulk memory | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| reference types | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| fixed SIMD `v128` | ✅ | ✅ (SIMD=ON) | ✅ | ✅ | ✅ | ✅ |
+| sign-ext / trunc_sat | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| relaxed SIMD | ✅ (`--enable-all`) | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Wasm GC | text 不完全 | ❌ (GC=OFF) | ✅ | ✅ | ✅ | ✅ |
+| typed func refs | text 不完全 | ❌ | ✅ | ✅ | ✅ | ✅ |
+| tail-call | ✅ (`--enable-all`) | ❌ (TAIL_CALL=OFF) | ✅ | ✅ | ✅ | ✅ |
+| EH `try_table` | text 不完全 | ❌ | ✅ | ✅ | ✅ | ✅ |
+| memory64 / table64 | memory64✅ / table64 text❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| multi-memory | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
+| extended const | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Component Model | 不可 | 対象外 | ネイティブ不可 | ネイティブ不可 | ✅ | ✅（packaging） |
+| WASI P1 | host ではない | ✅ | 標準不可 | `node:wasi` | ✅ | 主対象外 |
+| WASI P2/P3 | 不可 | 主対象外 | ネイティブ不可 | ネイティブ不可 | ✅ | ✅ |
+
+> **注**: wasmtime 列は `-W all-proposals=y`（および threads 時 `shared-memory=y`）。
+> jco は実行ではなく **transpile 成功**。PATH 上の古い jco（例: 1.16）は GC 不可のため、
+> 契約版は **jco ≥ 1.25.2**。
 
 ### ターゲット ↔ 実行環境の対応
 
-| ターゲット | 主な実行環境 | 備考 |
-|-----------|-------------|------|
-| `wasm32` | wabt 1.0.34, iwasm 2.4.1 | AtCoder 環境 |
-| `wasm32-gc` | Chrome, Node.js, wasmtime | ブラウザが主、Node.jsはおまけ、wasmtimeはフル機能。`jco` は packaging tool（実行エンジンではない） |
-| `native-cpp` | gcc/clang (C++ コンパイル) | ローカルデバッグ |
+| ターゲット | 主な実行／packaging ゲート | 備考 |
+|-----------|---------------------------|------|
+| `wasm32` | iwasm（WAMR） | AtCoder 想定。default emit = iwasm 積集合（ADR-007 §5.1） |
+| `wasm32-gc` | wasmtime ∩ Node ∩ Browser ∩ jco≥1.25.2 | ブラウザ経路は jco packaging 前提。default emit = この積集合 |
+| `native-cpp` | gcc/clang | ローカルデバッグ |
 | `native-llvm` | LLVM | ローカルデバッグ、性能比較 |
+
+---
+
+## Default Wasm feature emit
+
+<a id="default-wasm-feature-emit"></a>
+
+決定の正本は [ADR-007 §5.1](../adr/ADR-007-targets.md#default-wasm-feature-emit)。
+本節は運用表と再測入口。
+
+```text
+wasm32     default_emit ⊆ features(iwasm pinned)
+wasm32-gc  default_emit ⊆ features(wasmtime)
+                           ∩ features(Node WebAssembly)
+                           ∩ features(Browser WebAssembly)
+                           ∩ features(jco≥1.25.2 transpile)
+```
+
+### `wasm32`
+
+| default emit OK | default 禁止 |
+|-----------------|--------------|
+| Wasm 1.0 Core | Memory64 / Table64 |
+| multi-value / reference types / bulk memory | Multiple memories |
+| fixed SIMD `v128` + trunc_sat SIMD | Tail call / `return_call_ref` |
+| sign-extension / trunc_sat scalar | Typed function references / `br_on_null` |
+| | GC / EH / Extended const / Relaxed SIMD |
+| | Threads / Atomics |
+
+### `wasm32-gc`
+
+| default emit OK | default 禁止 |
+|-----------------|--------------|
+| Wasm 1.0 / 2.0 Core | **Multiple memories**（jco） |
+| GC struct / array / i31 / recursive types | JS String Builtins（embedding） |
+| typed function references / `call_ref` / `br_on_null` | Threads / Atomics |
+| Memory64 / Table64 | Legacy EH |
+| Tail call / `return_call_ref` | Branch Hinting（未契約） |
+| EH `try_table` | |
+| Extended const / Relaxed SIMD | |
+
+再測:
+
+```bash
+export PATH="$HOME/.nvm/versions/node/v25.2.1/bin:$PATH"
+(cd scripts/dev/wat-probe-browser && npm i)   # once
+python3 docs/research/wat-probes/run-probes.py
+```
 
 ---
 
@@ -48,13 +105,16 @@
 
 ## 未対応機能を使おうとした際の挙動
 
-ターゲットが対応していない機能をユーザーが使おうとした場合の挙動:
+ターゲットが対応していない機能をユーザーが使おうとした場合の挙動。
+「対応」の正本は [Default Wasm feature emit](#default-wasm-feature-emit) /
+[ADR-007 §5.1](../adr/ADR-007-targets.md#default-wasm-feature-emit)。
 
 ### `wasm32` — WASI P2以降・未対応Wasm機能
 
 - **WASI P2以降の機能**（HTTP、sockets 等）を使用しようとした場合:
   **コンパイルエラー**。
-- **Wasm GC、Component Model、relaxed SIMD 等の未対応Wasm機能**を使用しようとした場合:
+- **default emit 禁止の Wasm 機能**（GC、Component Model、Memory64、tail-call、
+  relaxed SIMD、multiple memories、EH 等 — 上表）を使用しようとした場合:
   **コンパイルエラー**。
   ただし、ほとんどの場合 **線形メモリへのフォールバック** を用意する。
   フォールバックが存在する機能についてはエラーではなくフォールバックコードを生成する。
@@ -66,8 +126,9 @@
   **コンパイルエラー**。
   `wasm32-gc` は WASI P2/P3 のみを前提とする。WASI 非依存や P1 が必要な場合は
   `wasm32` ターゲットを使用すること。
-- **未対応Wasm機能**（`wasm32-gc` の実行環境がサポートしない機能）を使用しようとした場合:
-  **コンパイルエラー**。
+- **default emit 禁止の Wasm 機能**（特に **multiple memories**、Threads、
+  Legacy EH、JS String Builtins を core 既定で出すこと）を使用しようとした場合:
+  **コンパイルエラー**（または明示の opt-in プロファイル。default では出さない）。
 
 > **旧 T2（`wasm32-freestanding`）からの変更**:
 > 旧 T2 では stdio は `arukellt_io` ホスト経由で動作し、clock/random/env/fs/http/sockets は
@@ -330,24 +391,26 @@ Deny-flag SSOT: [`../data/capabilities.toml`](../data/capabilities.toml) / [`../
 
 ## SIMD
 
-SIMD 機能のターゲット別状況（ADR-037 参照）:
+SIMD 機能のターゲット別状況（ADR-037 / ADR-007 §5.1 参照）:
 
 | Feature | `wasm32` | `wasm32-gc` | `native` |
 |---------|----------|-------------|----------|
-| v128 first-class type | ✅ native SIMD | ✅ native SIMD | #699 |
+| v128 first-class type | ✅ native SIMD（iwasm） | ✅ native SIMD | #699 |
+| fixed SIMD ops / trunc_sat SIMD | ✅ default emit OK | ✅ default emit OK | #699 |
+| relaxed SIMD | ❌ default 禁止 | ✅ default emit OK（積集合） | #699 |
 | `std::simd` lane types | ✅ 11 types | ✅ 11 types | #699 |
 | `std::wasm` raw v128 intrinsics | ✅ | ✅ | #699 |
 | GC struct/array v128 field | n/a (linear) | fixtures ready | #699 |
 | shuffle / swizzle | deferred | deferred | deferred |
 
-`wasm32` は iwasm 2.4.1 が SIMD に対応しているため、現行実装はネイティブ SIMD 命令を使用する。
+`wasm32` は iwasm（SIMD=ON）が fixed SIMD に対応しているため、現行実装はネイティブ SIMD 命令を使用する。
 スカラー展開（`call_simd_scalar*.ark`）はフォールバックコードとして存在するが、
 現在の `is_simd_target()` は全ターゲットで `true` を返す。
 
 **ADR-037 契約ギャップ:** 提案は `portable_simd_lowering` / `wasm_raw_v128` /
 `wasm_relaxed_simd` の三軸。現行の単一 `is_simd_target()` は未分離。
+ADR-007 §5.1 により **relaxed SIMD は `wasm32` default 禁止・`wasm32-gc` default 許可**。
 API 面も #698 の lane モジュール + 無印 `v128` が先行しており、ADR-037 の
 nominal 型移行は未着手（`current-state.md` ADR contract gaps）。
 
 ---
-

@@ -28,7 +28,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
-### Accepted ADR contract gaps（2026-07-11）
+### Accepted ADR contract gaps（2026-07-13）
 
 採択済み ADR / research と食い違う現行コード・記述（公開契約との差）:
 
@@ -36,7 +36,8 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 |------|----------------|------|
 | `wasm32-freestanding` | ADR-007: 廃止。公開名はハードエラー | driver/emitter に旧 compile-only 実装が残存 → **削除対象** |
 | Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
-| jco browser | research: Node E2E 済み（パッチ要）。Chrome jco component E2E は **未検証** | 旧「#037 blocked」記述は誤り。#037 transpile ブロッカーは解消済み |
+| Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
+| jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
 | CLI default | primary = `wasm32-gc`（ADR-013）。`project-state.toml` `cli_default` も `wasm32-gc` | 実装はまだ旧名 `wasm32-wasi-p2` を default 文字列として保持 → **alias 移行中** |
 | canonical alias policy | ADR-007 で決定済み（`wasm32-wasi-p1`→`wasm32` 等） | target parser は旧名を直接使用する箇所あり → **移行中** |
 | VS Code `arukellt.target` | ADR-007 canonical: `wasm32` / `wasm32-gc` | extension enum が `wasm32-wasi-p1` / `wasm32-wasi-p2` のみ → **alias 移行中** |
@@ -92,6 +93,11 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 >   `stable` means the target name and CLI interface won't change; `partial` means
 >   not all language features are fully lowered to Wasm yet.
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
+
+Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-feature-emit)）:
+`wasm32` ⊆ iwasm（Wasm 2.0 Core まで）;
+`wasm32-gc` ⊆ wasmtime ∩ Node ∩ Browser ∩ jco≥1.25.2（**multiple memories は default 禁止**）。
+運用表: [platform/target-runtime-and-surfaces.md](platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
