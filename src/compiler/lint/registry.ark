@@ -2,22 +2,43 @@
 //
 // Defines all lint rules with id, severity, category, and description.
 // Used by `arukellt lint --list` and severity override filtering.
-
 use std::text
+
 use diagnostics::codes
 use diagnostics::severity
 
-// Lint severity levels: Allow (suppress), Warn (default), Deny (escalate to error).
-fn LINT_ALLOW() -> i32 { 0 }
-fn LINT_WARN() -> i32 { 1 }
-fn LINT_DENY() -> i32 { 2 }
+fn LINT_ALLOW() -> i32 {
+    0
+}
+
+fn LINT_WARN() -> i32 {
+    1
+}
+
+fn LINT_DENY() -> i32 {
+    2
+}
 
 // Lint categories.
-fn CAT_CORRECTNESS() -> String { String_from("correctness") }
-fn CAT_STYLE() -> String { String_from("style") }
-fn CAT_MIGRATION() -> String { String_from("migration") }
-fn CAT_PERFORMANCE() -> String { String_from("performance") }
-fn CAT_DOCS() -> String { String_from("docs") }
+fn CAT_CORRECTNESS() -> String {
+    String_from("correctness")
+}
+
+fn CAT_STYLE() -> String {
+    String_from("style")
+}
+
+fn CAT_MIGRATION() -> String {
+    String_from("migration")
+}
+
+fn CAT_PERFORMANCE() -> String {
+    String_from("performance")
+}
+
+fn CAT_DOCS() -> String {
+    String_from("docs")
+}
 
 struct LintRule {
     code: String,
@@ -31,14 +52,30 @@ fn LintRule_new(code: String, name: String, default_severity: i32, category: Str
     LintRule { code: code, name: name, default_severity: default_severity, category: category, description: description }
 }
 
-fn lint_rule_code(rule: LintRule) -> String { clone(rule.code) }
-fn lint_rule_name(rule: LintRule) -> String { clone(rule.name) }
-fn lint_rule_default_severity(rule: LintRule) -> i32 { rule.default_severity }
-fn lint_rule_category(rule: LintRule) -> String { clone(rule.category) }
-fn lint_rule_description(rule: LintRule) -> String { clone(rule.description) }
+fn lint_rule_code(rule: LintRule) -> String {
+    clone(rule.code)
+}
+
+fn lint_rule_name(rule: LintRule) -> String {
+    clone(rule.name)
+}
+
+fn lint_rule_default_severity(rule: LintRule) -> i32 {
+    rule.default_severity
+}
+
+fn lint_rule_category(rule: LintRule) -> String {
+    clone(rule.category)
+}
+
+fn lint_rule_description(rule: LintRule) -> String {
+    clone(rule.description)
+}
 
 // Total number of registered lint rules.
-fn lint_rule_count() -> i32 { 11 }
+fn lint_rule_count() -> i32 {
+    12
+}
 
 // Return the LintRule at the given index (0-based).
 fn lint_rule_at(index: i32) -> LintRule {
@@ -71,6 +108,9 @@ fn lint_rule_at(index: i32) -> LintRule {
     }
     if index == 9 {
         return LintRule_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), String_from("prefer-use-import"), LINT_WARN(), CAT_STYLE(), String_from("prefer use import for frequently qualified paths"))
+    }
+    if index == 10 {
+        return LintRule_new(codes::DIAG_WARN_PREFER_ELSE_IF(), String_from("prefer-else-if"), LINT_WARN(), CAT_STYLE(), String_from("prefer else-if over nested else { if }"))
     }
     LintRule_new(codes::DIAG_WARN_COMPONENT_LOWERING_NOTE(), String_from("component-lowering-note"), LINT_WARN(), CAT_DOCS(), String_from("component lowering note"))
 }
@@ -172,11 +212,9 @@ pub fn should_suppress(code: String, allow_codes: Vec<String>) -> bool {
     let mut i = 0
     while i < count {
         let entry = get_unchecked(allow_codes, i)
-        // Direct W-code match
         if eq(clone(entry), clone(code)) {
             return true
         }
-        // Rule name match: resolve the name to a W-code and compare
         let resolved = resolve_rule_code(clone(entry))
         if len(clone(resolved)) > 0 && eq(clone(resolved), clone(code)) {
             return true
@@ -218,3 +256,6 @@ pub fn resolve_rule_code(arg: String) -> String {
     }
     String_new()
 }
+// Lint severity levels: Allow (suppress), Warn (default), Deny (escalate to error).
+// Direct W-code match
+// Rule name match: resolve the name to a W-code and compare

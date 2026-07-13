@@ -113,9 +113,9 @@ emitter にまだ残っている場合がある。これは公開契約ではな
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
-- Fixture registry: 2690 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1110 registry entries (not proof they fail)
-- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2690 is tests/fixtures/manifest.txt registry size. The 1110 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2691 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1111 registry entries (not proof they fail)
+- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2691 is tests/fixtures/manifest.txt registry size. The 1111 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **175/176 checks pass**
 
@@ -232,6 +232,7 @@ numbers into current contracts.
 - `W0008`: documentation drift (warning, `lint-post-resolve`, declared, not currently emitted)
 - `W0009`: deprecated API usage with the manifest-recorded replacement (warning, `lint-post-resolve`, implemented, emitted)
 - `W0010`: prefer use import for frequently qualified paths (warning, `lint-post-resolve`, implemented, emitted)
+- `W0011`: prefer else-if over nested else { if } (warning, `lint-post-resolve`, implemented, emitted)
 - `W0101`: deprecated import syntax; use `use` (warning, `parse`, declared, not currently emitted)
 - `W0102`: component lowering note (warning, `lint-post-resolve`, declared, not currently emitted)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`

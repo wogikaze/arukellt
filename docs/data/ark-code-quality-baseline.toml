@@ -9,4 +9,4 @@ max_line_len_hard = 200
 tabs_files = 0
 extreme_indent_lines = 0
 lines_ge_200 = 437
-thin_wrappers = 1729
+thin_wrappers = 1733

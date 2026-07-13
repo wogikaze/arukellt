@@ -1,9 +1,9 @@
 // Arukellt lint namespace root.
 //
 // Lint rule registry and severity management live in lint/* sub-modules.
-
 use lint::checks
 use lint::checks_extra
 use lint::deprecated_table
+use lint::prefer_else_if
 use lint::prefer_use_import
 use lint::registry

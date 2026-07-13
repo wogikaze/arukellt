@@ -838,6 +838,29 @@ qualified uses below the threshold.
 
 ---
 
+### W0011 — prefer else-if
+
+<a id="w0011-prefer-else-if"></a>
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | lint-post-resolve |
+| **Maturity** | implemented; emitted |
+| **Message** | nested `else { if ... }` can be written as `else if`; prefer else-if chaining |
+
+An `if` expression whose else branch is a block whose only statement is another
+`if` can be rewritten with `else if`. True `else if` is represented in the AST
+as an `IfExpr` child; the nested-block form is the anti-pattern this rule
+flags.
+
+Evidence fixture: `tests/fixtures/diagnostics/prefer_else_if.ark`.
+
+**Suppress**: `--allow W0011` or `--allow prefer-else-if`, or rewrite the
+chain with `else if`.
+
+---
+
 ## Internal Compiler Errors — `ICE-*`
 
 These are not language errors but signals of compiler bugs. If you encounter
@@ -900,6 +923,7 @@ one, please file a bug report.
 | W0008 | warning | lint-post-resolve | documentation drift (declared; not emitted) |
 | W0009 | warning | lint-post-resolve | deprecated API usage with the manifest-recorded replacement |
 | W0010 | warning | lint-post-resolve | prefer use import for frequently qualified paths |
+| W0011 | warning | lint-post-resolve | prefer else-if over nested else { if } |
 | W0101 | warning | parse | deprecated import syntax; use `use` (declared; not emitted) |
 | W0102 | warning | lint-post-resolve | component lowering note (declared; not emitted) |
 <!-- END GENERATED:WARNING_CODE_CATALOGUE -->

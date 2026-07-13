@@ -84,6 +84,15 @@ emitted = true
 fixture = "tests/fixtures/diagnostics/prefer_use_import.ark"
 
 [[diagnostics]]
+code = "W0011"
+severity = "warning"
+phase = "lint-post-resolve"
+summary = "prefer else-if over nested else { if }"
+maturity = "implemented"
+emitted = true
+fixture = "tests/fixtures/diagnostics/prefer_else_if.ark"
+
+[[diagnostics]]
 code = "W0101"
 severity = "warning"
 phase = "parse"

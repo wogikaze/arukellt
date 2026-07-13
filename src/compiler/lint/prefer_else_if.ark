@@ -1,0 +1,79 @@
+// W0011 prefer-else-if lint.
+//
+// Flag `if` nodes whose else branch is a block whose sole statement is
+// another `if` (`else { if ... }` instead of `else if`).
+
+use diagnostics::codes
+use diagnostics::record
+use parser::ast
+use resolver::ast_access
+use resolver::ast_control_predicates
+use resolver::kinds
+use diagnostics::mod as diag_mod
+
+fn node_is_if_expr(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_IF_EXPR())
+}
+
+fn node_is_expr_stmt(node: AstNode) -> bool {
+    ast_access::node_kind_is(node, kinds::NK_EXPR_STMT())
+}
+
+fn stmt_inner_expr(stmt: AstNode) -> AstNode {
+    if node_is_expr_stmt(stmt) {
+        if ast_access::node_child_count(stmt) > 0 {
+            return ast_access::node_child_at(stmt, 0)
+        }
+    }
+    stmt
+}
+
+fn is_else_block_with_sole_if(else_node: AstNode) -> bool {
+    if !ast_control_predicates::node_is_block(else_node) {
+        return false
+    }
+    if ast_access::node_child_count(else_node) != 1 {
+        return false
+    }
+    let inner = stmt_inner_expr(ast_access::node_child_at(else_node, 0))
+    node_is_if_expr(inner)
+}
+
+fn collect_nested_else_if(node: AstNode, starts: Vec<i32>, ends: Vec<i32>) {
+    if node_is_if_expr(node) {
+        if ast_access::node_child_count(node) >= 3 {
+            let else_node = ast_access::node_child_at(node, 2)
+            if is_else_block_with_sole_if(else_node) {
+                push(starts, ast_access::node_span_start(else_node))
+                push(ends, ast_access::node_span_end(else_node))
+            }
+        }
+    }
+    let n = ast_access::node_child_count(node)
+    let mut i = 0
+    while i < n {
+        collect_nested_else_if(ast_access::node_child_at(node, i), starts, ends)
+        i = i + 1
+    }
+}
+
+pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
+    let warnings = Vec_new_Diagnostic()
+    let starts = Vec_new_i32()
+    let ends = Vec_new_i32()
+    let dn = len(decls)
+    let mut di = 0
+    while di < dn {
+        collect_nested_else_if(get_unchecked(decls, di), starts, ends)
+        di = di + 1
+    }
+    let n = len(starts)
+    let mut i = 0
+    while i < n {
+        let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
+        let msg = String_from("nested else { if ... } can be written as else if; prefer else-if chaining")
+        push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_ELSE_IF(), diag_mod::SEV_WARNING(), span, msg))
+        i = i + 1
+    }
+    warnings
+}
