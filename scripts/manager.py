@@ -4853,6 +4853,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-compiler-boundaries.py",
         ),
         (
+            "ark code quality (tabs/indent/long-line/thin-wrapper ratchet)",
+            "python3 scripts/check/check-ark-code-quality.py",
+        ),
+        (
             "orphan/stale file inventory (advisory, #418)",
             "bash scripts/check/check-orphan-inventory.sh",
         ),
@@ -6362,51 +6366,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     else:
         h.check_pass("diagnostics source-map helpers stay consolidated")
 
-    # TEMPORARY: disable hard line-count gates (AGENTS.md / coding-conventions.md
-    # reject "N lines per file/function" as a quality metric). Helpers remain for
-    # possible advisory reuse; set True to restore enforce-on-verify behavior.
-    enforce_compiler_line_limits = False
-    if enforce_compiler_line_limits:
-        size_violations = _compiler_file_size_violations(root)
-        if size_violations:
-            h.check_fail(
-                "compiler Ark files exceed 249 line context limit",
-                category="compiler-boundary",
-                command="python3 scripts/manager.py verify quick",
-                primary_path="src/compiler/",
-            )
-            for rel, line_count in size_violations[:20]:
-                print(f"  {rel}: {line_count} lines")
-        else:
-            h.check_pass("compiler Ark files stay under configured line limits")
-
-        function_size_violations = _compiler_function_size_violations(root)
-        if function_size_violations:
-            h.check_fail(
-                "compiler Ark functions exceed 60 line context limit",
-                category="compiler-boundary",
-                command="python3 scripts/manager.py verify quick",
-                primary_path="src/compiler/",
-            )
-            for rel, line_no, line_count, signature in function_size_violations[:20]:
-                print(f"  {rel}:{line_no}: {line_count} lines: {signature}")
-        else:
-            h.check_pass("compiler Ark functions stay under 60 lines")
-    else:
-        h.check_pass("compiler Ark file/function line-count gates temporarily disabled")
-
-    api_violations = _compiler_public_api_violations(root)
-    if api_violations:
-        h.check_fail(
-            "compiler Ark files expose too many public functions",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        for rel, pub_count in api_violations[:20]:
-            print(f"  {rel}: {pub_count} pub fn")
-    else:
-        h.check_pass("compiler Ark public API count stays bounded")
+    # Length / pub-fn count are not quality metrics (AGENTS.md). Helpers remain for
+    # inventory tooling; do not re-enable hard fails that push over-fragmentation.
+    # Format / thin-wrapper / long-line pressure lives in check-ark-code-quality.py.
+    h.check_pass("compiler Ark file/function/pub-fn line-count gates disabled (readability policy)")
 
     direction_violations = _compiler_dependency_direction_violations(root)
     if direction_violations:

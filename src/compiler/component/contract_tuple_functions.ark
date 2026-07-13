@@ -1,54 +1,53 @@
 // Arukellt Selfhost - component tuple function predicates
-
 use component::contract_helpers
 use component::contract_tuple_types
 
 fn component_return_type_is_tuple_i32_i32(f: ComponentExportFunc) -> bool {
-	contract_helpers::component_export_return_has_type(f) && contract_tuple_types::component_type_is_tuple_i32_i32(contract_helpers::component_export_return_type_view(f))
+    contract_helpers::component_export_return_has_type(f) && contract_tuple_types::component_type_is_tuple_i32_i32(contract_helpers::component_export_return_type_view(f))
 }
 
 fn component_return_type_is_tuple_i64_i64(f: ComponentExportFunc) -> bool {
-	contract_helpers::component_export_return_has_type(f) && contract_tuple_types::component_type_is_tuple_i64_i64(contract_helpers::component_export_return_type_view(f))
+    contract_helpers::component_export_return_has_type(f) && contract_tuple_types::component_type_is_tuple_i64_i64(contract_helpers::component_export_return_type_view(f))
 }
 
 fn component_fn_is_i32_i32_to_tuple_i32_i32(f: ComponentExportFunc) -> bool {
-	contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i32")) && component_return_type_is_tuple_i32_i32(f)
+    contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i32")) && component_return_type_is_tuple_i32_i32(f)
 }
 
 fn component_fn_is_i64_i64_to_tuple_i64_i64(f: ComponentExportFunc) -> bool {
-	contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i64")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i64")) && component_return_type_is_tuple_i64_i64(f)
+    contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i64")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i64")) && component_return_type_is_tuple_i64_i64(f)
 }
 
 fn component_fn_is_tuple_i32_i32_to_i32(f: ComponentExportFunc) -> bool {
-	component_fn_is_tuple_param_to_named(f, String_from("i32"), 1)
+    component_fn_is_tuple_param_to_named(f, String_from("i32"), 1)
 }
 
 fn component_fn_is_tuple_i32_bool_to_i32(f: ComponentExportFunc) -> bool {
-	component_fn_is_tuple_param_to_named(f, String_from("i32"), 2)
+    component_fn_is_tuple_param_to_named(f, String_from("i32"), 2)
 }
 
 fn component_fn_is_tuple_bool_bool_to_i32(f: ComponentExportFunc) -> bool {
-	component_fn_is_tuple_param_to_named(f, String_from("i32"), 3)
+    component_fn_is_tuple_param_to_named(f, String_from("i32"), 3)
 }
 
 fn component_fn_is_tuple_i32_i32_to_tuple_i32_i32(f: ComponentExportFunc) -> bool {
-	if contract_helpers::component_export_param_count_is(f, 1) && component_return_type_is_tuple_i32_i32(f) {
-		return contract_tuple_types::component_param_type_is_tuple_i32_i32(f, 0)
-	}
-	false
+    if contract_helpers::component_export_param_count_is(f, 1) && component_return_type_is_tuple_i32_i32(f) {
+        return contract_tuple_types::component_param_type_is_tuple_i32_i32(f, 0)
+    }
+    false
 }
 
 fn component_fn_is_tuple_param_to_named(f: ComponentExportFunc, return_name: String, tuple_kind: i32) -> bool {
-	if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), return_name) {
-		if tuple_kind == 1 {
-			return contract_tuple_types::component_param_type_is_tuple_i32_i32(f, 0)
-		}
-		if tuple_kind == 2 {
-			return contract_tuple_types::component_param_type_is_tuple_i32_bool(f, 0)
-		}
-		if tuple_kind == 3 {
-			return contract_tuple_types::component_param_type_is_tuple_bool_bool(f, 0)
-		}
-	}
-	false
+    if contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_return_type_name(f), return_name) {
+        if tuple_kind == 1 {
+            return contract_tuple_types::component_param_type_is_tuple_i32_i32(f, 0)
+        }
+        if tuple_kind == 2 {
+            return contract_tuple_types::component_param_type_is_tuple_i32_bool(f, 0)
+        }
+        if tuple_kind == 3 {
+            return contract_tuple_types::component_param_type_is_tuple_bool_bool(f, 0)
+        }
+    }
+    false
 }

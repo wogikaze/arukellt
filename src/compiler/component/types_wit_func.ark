@@ -4,50 +4,50 @@ use component::constants_sections_linkage
 use component::writer_core
 
 fn comp_core_func_type(param_vts: Vec<i32>, result_vts: Vec<i32>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_sections_linkage::COMP_SORT_CORE_FUNC())
-	writer_core::comp_emit_byte(w, 0x60)
-	comp_emit_core_func_params(w, param_vts)
-	comp_emit_core_func_results(w, result_vts)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_sections_linkage::COMP_SORT_CORE_FUNC())
+    writer_core::comp_emit_byte(w, 0x60)
+    comp_emit_core_func_params(w, param_vts)
+    comp_emit_core_func_results(w, result_vts)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_component_func_type(param_wit_types: Vec<i32>, result_wit_types: Vec<i32>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_sections_linkage::COMP_SORT_FUNC())
-	comp_emit_component_func_params(w, param_wit_types)
-	comp_emit_component_func_results(w, result_wit_types)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_sections_linkage::COMP_SORT_FUNC())
+    comp_emit_component_func_params(w, param_wit_types)
+    comp_emit_component_func_results(w, result_wit_types)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_emit_core_func_params(w: writer_core::ComponentWriter, param_vts: Vec<i32>) {
-	writer_core::comp_emit_leb128_u(w, len(param_vts))
-	for i in 0..len(param_vts) {
-		writer_core::comp_emit_byte(w, get_unchecked(param_vts, i))
-	}
+    writer_core::comp_emit_leb128_u(w, len(param_vts))
+    for i in 0..len(param_vts) {
+        writer_core::comp_emit_byte(w, get_unchecked(param_vts, i))
+    }
 }
 
 fn comp_emit_core_func_results(w: writer_core::ComponentWriter, result_vts: Vec<i32>) {
-	writer_core::comp_emit_leb128_u(w, len(result_vts))
-	for i in 0..len(result_vts) {
-		writer_core::comp_emit_byte(w, get_unchecked(result_vts, i))
-	}
+    writer_core::comp_emit_leb128_u(w, len(result_vts))
+    for i in 0..len(result_vts) {
+        writer_core::comp_emit_byte(w, get_unchecked(result_vts, i))
+    }
 }
 
 fn comp_emit_component_func_params(w: writer_core::ComponentWriter, param_wit_types: Vec<i32>) {
-	writer_core::comp_emit_leb128_u(w, len(param_wit_types))
-	for i in 0..len(param_wit_types) {
-		writer_core::comp_emit_string(w, concat(String_from("arg"), to_string(i)))
-		writer_core::comp_emit_byte(w, get_unchecked(param_wit_types, i))
-	}
+    writer_core::comp_emit_leb128_u(w, len(param_wit_types))
+    for i in 0..len(param_wit_types) {
+        writer_core::comp_emit_string(w, concat(String_from("arg"), to_string(i)))
+        writer_core::comp_emit_byte(w, get_unchecked(param_wit_types, i))
+    }
 }
 
 fn comp_emit_component_func_results(w: writer_core::ComponentWriter, result_wit_types: Vec<i32>) {
-	if len(result_wit_types) > 0 {
-		writer_core::comp_emit_byte(w, 0x00)
-		writer_core::comp_emit_byte(w, get_unchecked(result_wit_types, 0))
-	} else {
-		writer_core::comp_emit_byte(w, 0x01)
-		writer_core::comp_emit_leb128_u(w, 0)
-	}
+    if len(result_wit_types) > 0 {
+        writer_core::comp_emit_byte(w, 0x00)
+        writer_core::comp_emit_byte(w, get_unchecked(result_wit_types, 0))
+    } else {
+        writer_core::comp_emit_byte(w, 0x01)
+        writer_core::comp_emit_leb128_u(w, 0)
+    }
 }

@@ -13,27 +13,27 @@ use component::types_wit_func
 use component::writer_core
 
 fn emit_option_construct_component(core_wasm: Vec<i32>, export_name: String, kind: i32, param_type: i32, option_elem_type: i32) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, option_construct_adapter_core_module(clone(export_name), kind))
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, option_construct_adapter_core_module(clone(export_name), kind))
 
-	emit_option_construct_alias_section(out, clone(export_name))
-	emit_option_construct_type_section(out, param_type, option_elem_type)
-	emit_option_construct_canon_section(out)
-	emit_option_construct_export_section(out, clone(export_name))
+    emit_option_construct_alias_section(out, clone(export_name))
+    emit_option_construct_type_section(out, param_type, option_elem_type)
+    emit_option_construct_canon_section(out)
+    emit_option_construct_export_section(out, clone(export_name))
 
-	writer_core::comp_writer_bytes(out)
+    writer_core::comp_writer_bytes(out)
 }
 
 fn emit_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_option_construct_component(core_wasm, export_name, OPTION_CONSTRUCT_I32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32())
+    emit_option_construct_component(core_wasm, export_name, OPTION_CONSTRUCT_I32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32())
 }
 
 fn emit_bool_to_option_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_option_construct_component(core_wasm, export_name, OPTION_CONSTRUCT_BOOL(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_BOOL())
+    emit_option_construct_component(core_wasm, export_name, OPTION_CONSTRUCT_BOOL(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_BOOL())
 }
 
 fn emit_bool_to_option_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_option_construct_component(core_wasm, export_name, OPTION_CONSTRUCT_I64(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_S64())
+    emit_option_construct_component(core_wasm, export_name, OPTION_CONSTRUCT_I64(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_S64())
 }
 
 fn OPTION_CONSTRUCT_I32() -> i32 { 1 }
@@ -41,91 +41,91 @@ fn OPTION_CONSTRUCT_BOOL() -> i32 { 2 }
 fn OPTION_CONSTRUCT_I64() -> i32 { 3 }
 
 fn option_construct_adapter_core_module(export_name: String, kind: i32) -> Vec<i32> {
-	if kind == OPTION_CONSTRUCT_BOOL() {
-		return comp_bool_to_option_bool_adapter_core_module(export_name)
-	}
-	if kind == OPTION_CONSTRUCT_I64() {
-		return comp_bool_to_option_i64_adapter_core_module(export_name)
-	}
-	comp_i32_to_option_i32_adapter_core_module(export_name)
+    if kind == OPTION_CONSTRUCT_BOOL() {
+        return comp_bool_to_option_bool_adapter_core_module(export_name)
+    }
+    if kind == OPTION_CONSTRUCT_I64() {
+        return comp_bool_to_option_i64_adapter_core_module(export_name)
+    }
+    comp_i32_to_option_i32_adapter_core_module(export_name)
 }
 
 fn comp_i32_to_option_i32_adapter_core_module(export_name: String) -> Vec<i32> {
-	let out = sections::comp_new_core_module_writer()
-	comp_emit_option_construct_adapter_sections(out, clone(export_name), OPTION_CONSTRUCT_I32())
-	writer_core::comp_writer_bytes(out)
+    let out = sections::comp_new_core_module_writer()
+    comp_emit_option_construct_adapter_sections(out, clone(export_name), OPTION_CONSTRUCT_I32())
+    writer_core::comp_writer_bytes(out)
 }
 
 fn comp_bool_to_option_bool_adapter_core_module(export_name: String) -> Vec<i32> {
-	let out = sections::comp_new_core_module_writer()
-	comp_emit_option_construct_adapter_sections(out, clone(export_name), OPTION_CONSTRUCT_BOOL())
-	writer_core::comp_writer_bytes(out)
+    let out = sections::comp_new_core_module_writer()
+    comp_emit_option_construct_adapter_sections(out, clone(export_name), OPTION_CONSTRUCT_BOOL())
+    writer_core::comp_writer_bytes(out)
 }
 
 fn comp_bool_to_option_i64_adapter_core_module(export_name: String) -> Vec<i32> {
-	let out = sections::comp_new_core_module_writer()
-	comp_emit_option_construct_adapter_sections(out, clone(export_name), OPTION_CONSTRUCT_I64())
-	writer_core::comp_writer_bytes(out)
+    let out = sections::comp_new_core_module_writer()
+    comp_emit_option_construct_adapter_sections(out, clone(export_name), OPTION_CONSTRUCT_I64())
+    writer_core::comp_writer_bytes(out)
 }
 
 fn comp_emit_option_construct_adapter_sections(out: writer_core::ComponentWriter, export_name: String, kind: i32) {
-	let user_params = Vec_new_i32()
-	push(user_params, 0x7f)
-	let user_results = Vec_new_i32()
-	push(user_results, 0x7f)
-	let abi_params = Vec_new_i32()
-	push(abi_params, 0x7f)
-	let abi_results = Vec_new_i32()
-	push(abi_results, 0x7f)
-	adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
+    let user_params = Vec_new_i32()
+    push(user_params, 0x7f)
+    let user_results = Vec_new_i32()
+    push(user_results, 0x7f)
+    let abi_params = Vec_new_i32()
+    push(abi_params, 0x7f)
+    let abi_results = Vec_new_i32()
+    push(abi_results, 0x7f)
+    adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
 
-	adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
-	adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
-	adapters_single_export_sections::comp_emit_memory_and_func_export_section(out, clone(export_name))
+    adapters_single_export_sections::comp_emit_user_memory_import_section(out, clone(export_name))
+    adapters_single_export_sections::comp_emit_single_adapter_func_section(out)
+    adapters_single_export_sections::comp_emit_memory_and_func_export_section(out, clone(export_name))
 
-	let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
-	if kind == OPTION_CONSTRUCT_BOOL() {
-		adapters_option_construct_body::comp_emit_bool_to_option_bool_wrapper_body(code_sec)
-	} else {
-		if kind == OPTION_CONSTRUCT_I64() {
-			adapters_option_construct_body::comp_emit_bool_to_option_i64_wrapper_body(code_sec)
-		} else {
-			adapters_option_construct_body::comp_emit_i32_to_option_i32_wrapper_body(code_sec)
-		}
-	}
-	adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
+    let code_sec = adapters_single_export_sections::comp_new_single_adapter_code_section()
+    if kind == OPTION_CONSTRUCT_BOOL() {
+        adapters_option_construct_body::comp_emit_bool_to_option_bool_wrapper_body(code_sec)
+    } else {
+        if kind == OPTION_CONSTRUCT_I64() {
+            adapters_option_construct_body::comp_emit_bool_to_option_i64_wrapper_body(code_sec)
+        } else {
+            adapters_option_construct_body::comp_emit_i32_to_option_i32_wrapper_body(code_sec)
+        }
+    }
+    adapters_single_export_sections::comp_emit_single_adapter_code_section(out, code_sec)
 }
 
 fn emit_option_construct_alias_section(out: writer_core::ComponentWriter, export_name: String) {
-	let alias_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(alias_sec, 2)
-	export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
-	writer_core::comp_emit_section(out, 6, alias_sec)
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 2)
+    export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+    writer_core::comp_emit_section(out, 6, alias_sec)
 }
 
 fn emit_option_construct_type_section(out: writer_core::ComponentWriter, param_type: i32, option_elem_type: i32) {
-	let type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(type_sec, 2)
-	writer_core::comp_emit_bytes(type_sec, types_wit_collection::comp_wit_option_type(option_elem_type))
-	let params = Vec_new_i32()
-	push(params, param_type)
-	let results = Vec_new_i32()
-	push(results, 0)
-	writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
-	writer_core::comp_emit_section(out, 7, type_sec)
+    let type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(type_sec, 2)
+    writer_core::comp_emit_bytes(type_sec, types_wit_collection::comp_wit_option_type(option_elem_type))
+    let params = Vec_new_i32()
+    push(params, param_type)
+    let results = Vec_new_i32()
+    push(results, 0)
+    writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
+    writer_core::comp_emit_section(out, 7, type_sec)
 }
 
 fn emit_option_construct_canon_section(out: writer_core::ComponentWriter) {
-	let canon_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(canon_sec, 1)
-	export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
-	writer_core::comp_emit_section(out, 8, canon_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
+    writer_core::comp_emit_section(out, 8, canon_sec)
 }
 
 fn emit_option_construct_export_section(out: writer_core::ComponentWriter, export_name: String) {
-	let func_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_export_sec, 1)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
-	writer_core::comp_emit_section(out, 11, func_export_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
+    writer_core::comp_emit_section(out, 11, func_export_sec)
 }

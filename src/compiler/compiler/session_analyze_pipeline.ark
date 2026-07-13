@@ -16,47 +16,47 @@ use loader::load
 use std::text
 
 fn lex_diag_code_string(code: i32) -> String {
-	if code == 1 {
-		return String_from("LEX0001")
-	}
-	if code == 2 {
-		return String_from("LEX0002")
-	}
-	if code == 3 {
-		return String_from("LEX0003")
-	}
-	if code == 4 {
-		return String_from("LEX0004")
-	}
-	if code == 5 {
-		return String_from("LEX0005")
-	}
-	if code == 6 {
-		return String_from("LEX0006")
-	}
-	String_from("LEX0000")
+    if code == 1 {
+        return String_from("LEX0001")
+    }
+    if code == 2 {
+        return String_from("LEX0002")
+    }
+    if code == 3 {
+        return String_from("LEX0003")
+    }
+    if code == 4 {
+        return String_from("LEX0004")
+    }
+    if code == 5 {
+        return String_from("LEX0005")
+    }
+    if code == 6 {
+        return String_from("LEX0006")
+    }
+    String_from("LEX0000")
 }
 
 fn lex_diag_code_message(code: i32) -> String {
-	if code == 1 {
-		return String_from("unterminated string")
-	}
-	if code == 2 {
-		return String_from("unterminated char literal")
-	}
-	if code == 3 {
-		return String_from("unterminated f-string")
-	}
-	if code == 4 {
-		return String_from("unterminated escape")
-	}
-	if code == 5 {
-		return String_from("invalid number")
-	}
-	if code == 6 {
-		return String_from("unknown character")
-	}
-	String_from("lexical error")
+    if code == 1 {
+        return String_from("unterminated string")
+    }
+    if code == 2 {
+        return String_from("unterminated char literal")
+    }
+    if code == 3 {
+        return String_from("unterminated f-string")
+    }
+    if code == 4 {
+        return String_from("unterminated escape")
+    }
+    if code == 5 {
+        return String_from("invalid number")
+    }
+    if code == 6 {
+        return String_from("unknown character")
+    }
+    String_from("lexical error")
 }
 
 fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_result: LexResult) {
@@ -148,7 +148,7 @@ ti = ti + 1
 }
 
 fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
-	run_session_analyze_with_modules(uri, text, load::load_prelude_modules())
+    run_session_analyze_with_modules(uri, text, load::load_prelude_modules())
 }
 
 pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {
@@ -163,17 +163,17 @@ let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decl
 snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))
 let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
 session_record_resolve_diagnostics(snap, resolve_ctx)
-	let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx, Vec_new_String())
+    let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx, Vec_new_String())
 snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
-	session_record_typecheck_diagnostics(snap, check_result, res_err_count)
-	// Record lint warnings (W0006 unused import, W0009 deprecated API, etc.)
-	session_record_lint_diagnostics(snap, decls, check_result)
-	if res_err_count == 0 && session_typecheck_query::session_typecheck_error_count(check_result) == 0 {
-		let empty_names = Vec_new_String()
-		let empty_counts = Vec_new_i32()
-		let bundle = frontend_bundle::FrontendBundle_new(decls, check_result, empty_names, empty_counts)
-		let core_program = mod::build_from_frontend_bundle(bundle)
-		let _sess = session::CompileSession_build(core_program)
-	}
-	snap
+    session_record_typecheck_diagnostics(snap, check_result, res_err_count)
+    // Record lint warnings (W0006 unused import, W0009 deprecated API, etc.)
+    session_record_lint_diagnostics(snap, decls, check_result)
+    if res_err_count == 0 && session_typecheck_query::session_typecheck_error_count(check_result) == 0 {
+        let empty_names = Vec_new_String()
+        let empty_counts = Vec_new_i32()
+        let bundle = frontend_bundle::FrontendBundle_new(decls, check_result, empty_names, empty_counts)
+        let core_program = mod::build_from_frontend_bundle(bundle)
+        let _sess = session::CompileSession_build(core_program)
+    }
+    snap
 }

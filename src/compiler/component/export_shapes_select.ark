@@ -1,150 +1,149 @@
 // Arukellt Selfhost - Component single export selection
-
 use component::export_function_view
 use component::export_shapes_match
 use component::naming
 use mir::module_functions
 
 fn comp_single_list_export_name(mir: MirModule, kind: i32) -> String {
-	let mut candidate = String_new()
-	let mut count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			if export_shapes_match::comp_function_matches_list_export(f, kind) {
-				count = count + 1
-				candidate = export_name
-			} else {
-				return String_new()
-			}
-		}
-		i = i + 1
-	}
-	if count == 1 {
-		return candidate
-	}
-	String_new()
+    let mut candidate = String_new()
+    let mut count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            if export_shapes_match::comp_function_matches_list_export(f, kind) {
+                count = count + 1
+                candidate = export_name
+            } else {
+                return String_new()
+            }
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return candidate
+    }
+    String_new()
 }
 
 fn comp_single_numeric_export_name(mir: MirModule, kind: i32) -> String {
-	let mut candidate = String_new()
-	let mut count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			if export_shapes_match::comp_function_matches_numeric_export(f, kind) {
-				count = count + 1
-				candidate = export_name
-			} else {
-				return String_new()
-			}
-		}
-		i = i + 1
-	}
-	if count == 1 {
-		return candidate
-	}
-	String_new()
+    let mut candidate = String_new()
+    let mut count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            if export_shapes_match::comp_function_matches_numeric_export(f, kind) {
+                count = count + 1
+                candidate = export_name
+            } else {
+                return String_new()
+            }
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return candidate
+    }
+    String_new()
 }
 
 fn comp_single_option_export_name(mir: MirModule, kind: i32) -> String {
-	let mut candidate = String_new()
-	let mut count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			if export_shapes_match::comp_function_matches_option_export(f, kind) {
-				count = count + 1
-				candidate = export_name
-			} else {
-				return String_new()
-			}
-		}
-		i = i + 1
-	}
-	if count == 1 {
-		return candidate
-	}
-	String_new()
+    let mut candidate = String_new()
+    let mut count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            if export_shapes_match::comp_function_matches_option_export(f, kind) {
+                count = count + 1
+                candidate = export_name
+            } else {
+                return String_new()
+            }
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return candidate
+    }
+    String_new()
 }
 
 fn comp_single_result_export_name(mir: MirModule, kind: i32) -> String {
-	let mut candidate = String_new()
-	let mut count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			if export_shapes_match::comp_function_matches_result_export(f, kind) {
-				count = count + 1
-				candidate = export_name
-			} else {
-				return String_new()
-			}
-		}
-		i = i + 1
-	}
-	if count == 1 {
-		return candidate
-	}
-	String_new()
+    let mut candidate = String_new()
+    let mut count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            if export_shapes_match::comp_function_matches_result_export(f, kind) {
+                count = count + 1
+                candidate = export_name
+            } else {
+                return String_new()
+            }
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return candidate
+    }
+    String_new()
 }
 
 fn comp_single_string_export_name(mir: MirModule, kind: i32, return_name: String) -> String {
-	let mut candidate = String_new()
-	let mut count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			if export_shapes_match::comp_function_matches_string_export(f, kind, clone(return_name)) {
-				count = count + 1
-				candidate = export_name
-			} else {
-				return String_new()
-			}
-		}
-		i = i + 1
-	}
-	if count == 1 {
-		return candidate
-	}
-	String_new()
+    let mut candidate = String_new()
+    let mut count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            if export_shapes_match::comp_function_matches_string_export(f, kind, clone(return_name)) {
+                count = count + 1
+                candidate = export_name
+            } else {
+                return String_new()
+            }
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return candidate
+    }
+    String_new()
 }
 
 fn comp_single_tuple_export_name(mir: MirModule, kind: i32) -> String {
-	let mut candidate = String_new()
-	let mut count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			if export_shapes_match::comp_function_matches_tuple_export(f, kind) {
-				count = count + 1
-				candidate = export_name
-			} else {
-				return String_new()
-			}
-		}
-		i = i + 1
-	}
-	if count == 1 {
-		return candidate
-	}
-	String_new()
+    let mut candidate = String_new()
+    let mut count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            if export_shapes_match::comp_function_matches_tuple_export(f, kind) {
+                count = count + 1
+                candidate = export_name
+            } else {
+                return String_new()
+            }
+        }
+        i = i + 1
+    }
+    if count == 1 {
+        return candidate
+    }
+    String_new()
 }

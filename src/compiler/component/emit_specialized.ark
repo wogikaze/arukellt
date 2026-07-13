@@ -1,224 +1,223 @@
 // Arukellt Selfhost - component specialized export-shape dispatch facade
-
-use component::emit_tier3_roundtrip as tier3_roundtrip
 use component::emit_list
 use component::emit_numeric
 use component::emit_option
-use component::emit_specialized_record
-use component::emit_specialized_string_basic
 use component::emit_result
 use component::emit_shape
+use component::emit_specialized_record
+use component::emit_specialized_string_basic
 use component::emit_string_numeric
+use component::emit_tier3_roundtrip as tier3_roundtrip
 use component::emit_tuple
 use component::export_shapes_presence
 use component::export_shapes_scan
 use component::export_shapes_shape_scan
 
 fn emit_specialized_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
-	let record_component = specialized_record::try_emit_record_or_color_component(clone(core_wasm), mir, export_names)
-	if len(record_component) > 0 {
-		return record_component
-	}
-	let string_component = try_emit_string_component(clone(core_wasm), mir)
-	if len(string_component) > 0 {
-		return string_component
-	}
-	let collection_component = try_emit_collection_component(clone(core_wasm), mir)
-	if len(collection_component) > 0 {
-		return collection_component
-	}
-	let shape_component = try_emit_shape_component(clone(core_wasm), mir, export_names)
-	if len(shape_component) > 0 {
-		return shape_component
-	}
-	try_emit_tuple_or_numeric_component(core_wasm, mir)
+    let record_component = specialized_record::try_emit_record_or_color_component(clone(core_wasm), mir, export_names)
+    if len(record_component) > 0 {
+        return record_component
+    }
+    let string_component = try_emit_string_component(clone(core_wasm), mir)
+    if len(string_component) > 0 {
+        return string_component
+    }
+    let collection_component = try_emit_collection_component(clone(core_wasm), mir)
+    if len(collection_component) > 0 {
+        return collection_component
+    }
+    let shape_component = try_emit_shape_component(clone(core_wasm), mir, export_names)
+    if len(shape_component) > 0 {
+        return shape_component
+    }
+    try_emit_tuple_or_numeric_component(core_wasm, mir)
 }
 
 fn try_emit_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let basic_component = specialized_string_basic::try_emit_basic_string_component(clone(core_wasm), clone(mir))
-	if len(basic_component) > 0 {
-		return basic_component
-	}
-	try_emit_numeric_string_component(core_wasm, mir)
+    let basic_component = specialized_string_basic::try_emit_basic_string_component(clone(core_wasm), clone(mir))
+    if len(basic_component) > 0 {
+        return basic_component
+    }
+    try_emit_numeric_string_component(core_wasm, mir)
 }
 
 fn try_emit_collection_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let list_component = try_emit_list_component(clone(core_wasm), mir)
-	if len(list_component) > 0 {
-		return list_component
-	}
-	let option_component = try_emit_option_component(clone(core_wasm), mir)
-	if len(option_component) > 0 {
-		return option_component
-	}
-	try_emit_result_component(core_wasm, mir)
+    let list_component = try_emit_list_component(clone(core_wasm), mir)
+    if len(list_component) > 0 {
+        return list_component
+    }
+    let option_component = try_emit_option_component(clone(core_wasm), mir)
+    if len(option_component) > 0 {
+        return option_component
+    }
+    try_emit_result_component(core_wasm, mir)
 }
 
 fn try_emit_numeric_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let string_to_f32_name = export_shapes_scan::comp_single_string_to_f32_export_name(mir)
-	if len(string_to_f32_name) > 0 {
-		return string_numeric::emit_string_to_f32_component(core_wasm, string_to_f32_name)
-	}
-	let string_to_f64_name = export_shapes_scan::comp_single_string_to_f64_export_name(mir)
-	if len(string_to_f64_name) > 0 {
-		return string_numeric::emit_string_to_f64_component(core_wasm, string_to_f64_name)
-	}
-	let string_to_i64_name = export_shapes_scan::comp_single_string_to_i64_export_name(mir)
-	if len(string_to_i64_name) > 0 {
-		return string_numeric::emit_string_to_i64_component(core_wasm, string_to_i64_name)
-	}
-	let string_to_u64_name = export_shapes_scan::comp_single_string_to_u64_export_name(mir)
-	if len(string_to_u64_name) > 0 {
-		return string_numeric::emit_string_to_u64_component(core_wasm, string_to_u64_name)
-	}
-	let string_result_name = export_shapes_scan::comp_single_i32_to_string_export_name(mir)
-	if len(string_result_name) > 0 {
-		return string_numeric::emit_i32_to_string_component(core_wasm, string_result_name)
-	}
-	Vec_new_i32()
+    let string_to_f32_name = export_shapes_scan::comp_single_string_to_f32_export_name(mir)
+    if len(string_to_f32_name) > 0 {
+        return string_numeric::emit_string_to_f32_component(core_wasm, string_to_f32_name)
+    }
+    let string_to_f64_name = export_shapes_scan::comp_single_string_to_f64_export_name(mir)
+    if len(string_to_f64_name) > 0 {
+        return string_numeric::emit_string_to_f64_component(core_wasm, string_to_f64_name)
+    }
+    let string_to_i64_name = export_shapes_scan::comp_single_string_to_i64_export_name(mir)
+    if len(string_to_i64_name) > 0 {
+        return string_numeric::emit_string_to_i64_component(core_wasm, string_to_i64_name)
+    }
+    let string_to_u64_name = export_shapes_scan::comp_single_string_to_u64_export_name(mir)
+    if len(string_to_u64_name) > 0 {
+        return string_numeric::emit_string_to_u64_component(core_wasm, string_to_u64_name)
+    }
+    let string_result_name = export_shapes_scan::comp_single_i32_to_string_export_name(mir)
+    if len(string_result_name) > 0 {
+        return string_numeric::emit_i32_to_string_component(core_wasm, string_result_name)
+    }
+    Vec_new_i32()
 }
 
 fn try_emit_list_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let list_i32_name = export_shapes_scan::comp_single_list_i32_to_i32_export_name(mir)
-	if len(list_i32_name) > 0 {
-		return list::emit_list_i32_to_i32_component(core_wasm, list_i32_name)
-	}
-	let list_i32_result_name = export_shapes_scan::comp_single_i32_to_list_i32_export_name(mir)
-	if len(list_i32_result_name) > 0 {
-		return list::emit_i32_to_list_i32_component(core_wasm, list_i32_result_name)
-	}
-	let list_i32_roundtrip_name = export_shapes_scan::comp_single_list_i32_to_list_i32_export_name(mir)
-	if len(list_i32_roundtrip_name) > 0 {
-		return list::emit_list_i32_to_list_i32_component(core_wasm, list_i32_roundtrip_name)
-	}
-	Vec_new_i32()
+    let list_i32_name = export_shapes_scan::comp_single_list_i32_to_i32_export_name(mir)
+    if len(list_i32_name) > 0 {
+        return list::emit_list_i32_to_i32_component(core_wasm, list_i32_name)
+    }
+    let list_i32_result_name = export_shapes_scan::comp_single_i32_to_list_i32_export_name(mir)
+    if len(list_i32_result_name) > 0 {
+        return list::emit_i32_to_list_i32_component(core_wasm, list_i32_result_name)
+    }
+    let list_i32_roundtrip_name = export_shapes_scan::comp_single_list_i32_to_list_i32_export_name(mir)
+    if len(list_i32_roundtrip_name) > 0 {
+        return list::emit_list_i32_to_list_i32_component(core_wasm, list_i32_roundtrip_name)
+    }
+    Vec_new_i32()
 }
 
 fn try_emit_option_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let option_i32_name = export_shapes_scan::comp_single_i32_to_option_i32_export_name(mir)
-	if len(option_i32_name) > 0 {
-		return option::emit_i32_to_option_i32_component(core_wasm, option_i32_name)
-	}
-	let option_bool_name = export_shapes_scan::comp_single_bool_to_option_bool_export_name(mir)
-	if len(option_bool_name) > 0 {
-		return option::emit_bool_to_option_bool_component(core_wasm, option_bool_name)
-	}
-	let option_i64_name = export_shapes_scan::comp_single_bool_to_option_i64_export_name(mir)
-	if len(option_i64_name) > 0 {
-		return option::emit_bool_to_option_i64_component(core_wasm, option_i64_name)
-	}
-	let option_i32_param_name = export_shapes_scan::comp_single_option_i32_to_i32_export_name(mir)
-	if len(option_i32_param_name) > 0 {
-		return option::emit_option_i32_to_i32_component(core_wasm, option_i32_param_name)
-	}
-	let option_i64_param_name = export_shapes_scan::comp_single_option_i64_to_i64_export_name(mir)
-	if len(option_i64_param_name) > 0 {
-		return option::emit_option_i64_to_i64_component(core_wasm, option_i64_param_name)
-	}
-	let option_i32_roundtrip_name = export_shapes_scan::comp_single_option_i32_to_option_i32_export_name(mir)
-	if len(option_i32_roundtrip_name) > 0 {
-		return option::emit_option_i32_to_option_i32_component(core_wasm, option_i32_roundtrip_name)
-	}
-	Vec_new_i32()
+    let option_i32_name = export_shapes_scan::comp_single_i32_to_option_i32_export_name(mir)
+    if len(option_i32_name) > 0 {
+        return option::emit_i32_to_option_i32_component(core_wasm, option_i32_name)
+    }
+    let option_bool_name = export_shapes_scan::comp_single_bool_to_option_bool_export_name(mir)
+    if len(option_bool_name) > 0 {
+        return option::emit_bool_to_option_bool_component(core_wasm, option_bool_name)
+    }
+    let option_i64_name = export_shapes_scan::comp_single_bool_to_option_i64_export_name(mir)
+    if len(option_i64_name) > 0 {
+        return option::emit_bool_to_option_i64_component(core_wasm, option_i64_name)
+    }
+    let option_i32_param_name = export_shapes_scan::comp_single_option_i32_to_i32_export_name(mir)
+    if len(option_i32_param_name) > 0 {
+        return option::emit_option_i32_to_i32_component(core_wasm, option_i32_param_name)
+    }
+    let option_i64_param_name = export_shapes_scan::comp_single_option_i64_to_i64_export_name(mir)
+    if len(option_i64_param_name) > 0 {
+        return option::emit_option_i64_to_i64_component(core_wasm, option_i64_param_name)
+    }
+    let option_i32_roundtrip_name = export_shapes_scan::comp_single_option_i32_to_option_i32_export_name(mir)
+    if len(option_i32_roundtrip_name) > 0 {
+        return option::emit_option_i32_to_option_i32_component(core_wasm, option_i32_roundtrip_name)
+    }
+    Vec_new_i32()
 }
 
 fn try_emit_result_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let result_i32_string_name = export_shapes_scan::comp_single_i32_i32_to_result_i32_string_export_name(mir)
-	if len(result_i32_string_name) > 0 {
-		return result::emit_i32_i32_to_result_i32_string_component(core_wasm, result_i32_string_name)
-	}
-	let result_bool_name = export_shapes_scan::comp_single_bool_to_result_bool_bool_export_name(mir)
-	if len(result_bool_name) > 0 {
-		return result::emit_bool_to_result_bool_bool_component(core_wasm, result_bool_name)
-	}
-	let result_i32_i32_param_name = export_shapes_scan::comp_single_result_i32_i32_to_i32_export_name(mir)
-	if len(result_i32_i32_param_name) > 0 {
-		return result::emit_result_i32_i32_to_i32_component(core_wasm, result_i32_i32_param_name)
-	}
-	let result_i32_string_param_name = export_shapes_scan::comp_single_result_i32_string_to_i32_export_name(mir)
-	if len(result_i32_string_param_name) > 0 {
-		return result::emit_result_i32_string_to_i32_component(core_wasm, result_i32_string_param_name)
-	}
-	let result_i32_i32_roundtrip_name = export_shapes_scan::comp_single_result_i32_i32_to_result_i32_i32_export_name(mir)
-	if len(result_i32_i32_roundtrip_name) > 0 {
-		return result::emit_result_i32_i32_to_result_i32_i32_component(core_wasm, result_i32_i32_roundtrip_name)
-	}
-	Vec_new_i32()
+    let result_i32_string_name = export_shapes_scan::comp_single_i32_i32_to_result_i32_string_export_name(mir)
+    if len(result_i32_string_name) > 0 {
+        return result::emit_i32_i32_to_result_i32_string_component(core_wasm, result_i32_string_name)
+    }
+    let result_bool_name = export_shapes_scan::comp_single_bool_to_result_bool_bool_export_name(mir)
+    if len(result_bool_name) > 0 {
+        return result::emit_bool_to_result_bool_bool_component(core_wasm, result_bool_name)
+    }
+    let result_i32_i32_param_name = export_shapes_scan::comp_single_result_i32_i32_to_i32_export_name(mir)
+    if len(result_i32_i32_param_name) > 0 {
+        return result::emit_result_i32_i32_to_i32_component(core_wasm, result_i32_i32_param_name)
+    }
+    let result_i32_string_param_name = export_shapes_scan::comp_single_result_i32_string_to_i32_export_name(mir)
+    if len(result_i32_string_param_name) > 0 {
+        return result::emit_result_i32_string_to_i32_component(core_wasm, result_i32_string_param_name)
+    }
+    let result_i32_i32_roundtrip_name = export_shapes_scan::comp_single_result_i32_i32_to_result_i32_i32_export_name(mir)
+    if len(result_i32_i32_roundtrip_name) > 0 {
+        return result::emit_result_i32_i32_to_result_i32_i32_component(core_wasm, result_i32_i32_roundtrip_name)
+    }
+    Vec_new_i32()
 }
 
 fn try_emit_shape_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
-	if export_shapes_presence::comp_has_shape_area_exports(export_names) {
-		return shape::emit_shape_area_component(core_wasm, String_from("area"))
-	}
-	let shape_to_f64_name = comp_single_shape_to_f64_export_name(mir)
-	if len(shape_to_f64_name) > 0 {
-		return shape::emit_shape_area_component(core_wasm, shape_to_f64_name)
-	}
-	let shape_to_shape_name = comp_single_shape_to_shape_export_name(mir)
-	if len(shape_to_shape_name) > 0 {
-		return shape::emit_shape_roundtrip_component(core_wasm, shape_to_shape_name)
-	}
-	Vec_new_i32()
+    if export_shapes_presence::comp_has_shape_area_exports(export_names) {
+        return shape::emit_shape_area_component(core_wasm, String_from("area"))
+    }
+    let shape_to_f64_name = comp_single_shape_to_f64_export_name(mir)
+    if len(shape_to_f64_name) > 0 {
+        return shape::emit_shape_area_component(core_wasm, shape_to_f64_name)
+    }
+    let shape_to_shape_name = comp_single_shape_to_shape_export_name(mir)
+    if len(shape_to_shape_name) > 0 {
+        return shape::emit_shape_roundtrip_component(core_wasm, shape_to_shape_name)
+    }
+    Vec_new_i32()
 }
 
 fn try_emit_tuple_or_numeric_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-	let tier3_component = tier3_roundtrip::try_emit_tier3_roundtrip_component(clone(core_wasm), mir)
-	if len(tier3_component) > 0 {
-		return tier3_component
-	}
-	let f32_general_component = numeric::try_emit_f32_general_component(clone(core_wasm), mir)
-	if len(f32_general_component) > 0 {
-		return f32_general_component
-	}
-	let tuple_i32_name = export_shapes_scan::comp_single_i32_i32_to_tuple_i32_i32_export_name(mir)
-	if len(tuple_i32_name) > 0 {
-		return tuple::emit_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_name)
-	}
-	let tuple_i64_name = export_shapes_scan::comp_single_i64_i64_to_tuple_i64_i64_export_name(mir)
-	if len(tuple_i64_name) > 0 {
-		return tuple::emit_i64_i64_to_tuple_i64_i64_component(core_wasm, tuple_i64_name)
-	}
-	let tuple_i32_param_name = export_shapes_scan::comp_single_tuple_i32_i32_to_i32_export_name(mir)
-	if len(tuple_i32_param_name) > 0 {
-		return tuple::emit_tuple_i32_i32_to_i32_component(core_wasm, tuple_i32_param_name)
-	}
-	let tuple_i32_bool_param_name = export_shapes_scan::comp_single_tuple_i32_bool_to_i32_export_name(mir)
-	if len(tuple_i32_bool_param_name) > 0 {
-		return tuple::emit_tuple_i32_bool_to_i32_component(core_wasm, tuple_i32_bool_param_name)
-	}
-	let tuple_bool_bool_param_name = export_shapes_scan::comp_single_tuple_bool_bool_to_i32_export_name(mir)
-	if len(tuple_bool_bool_param_name) > 0 {
-		return tuple::emit_tuple_bool_bool_to_i32_component(core_wasm, tuple_bool_bool_param_name)
-	}
-	let tuple_i32_roundtrip_name = export_shapes_scan::comp_single_tuple_i32_i32_to_tuple_i32_i32_export_name(mir)
-	if len(tuple_i32_roundtrip_name) > 0 {
-		return tuple::emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_roundtrip_name)
-	}
-	let f32_binary_name = export_shapes_scan::comp_single_f32_binary_export_name(mir)
-	if len(f32_binary_name) > 0 {
-		return numeric::emit_f32_binary_component(core_wasm, f32_binary_name)
-	}
-	let f32_to_i32_name = export_shapes_scan::comp_single_f32_to_i32_export_name(mir)
-	if len(f32_to_i32_name) > 0 {
-		return numeric::emit_f32_to_i32_component(core_wasm, f32_to_i32_name)
-	}
-	let i32_to_f32_name = export_shapes_scan::comp_single_i32_to_f32_export_name(mir)
-	if len(i32_to_f32_name) > 0 {
-		return numeric::emit_i32_to_f32_component(core_wasm, i32_to_f32_name)
-	}
-	let f32_unary_name = export_shapes_scan::comp_single_f32_unary_export_name(mir)
-	if len(f32_unary_name) > 0 {
-		return numeric::emit_f32_unary_component(core_wasm, f32_unary_name)
-	}
-	Vec_new_i32()
+    let tier3_component = tier3_roundtrip::try_emit_tier3_roundtrip_component(clone(core_wasm), mir)
+    if len(tier3_component) > 0 {
+        return tier3_component
+    }
+    let f32_general_component = numeric::try_emit_f32_general_component(clone(core_wasm), mir)
+    if len(f32_general_component) > 0 {
+        return f32_general_component
+    }
+    let tuple_i32_name = export_shapes_scan::comp_single_i32_i32_to_tuple_i32_i32_export_name(mir)
+    if len(tuple_i32_name) > 0 {
+        return tuple::emit_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_name)
+    }
+    let tuple_i64_name = export_shapes_scan::comp_single_i64_i64_to_tuple_i64_i64_export_name(mir)
+    if len(tuple_i64_name) > 0 {
+        return tuple::emit_i64_i64_to_tuple_i64_i64_component(core_wasm, tuple_i64_name)
+    }
+    let tuple_i32_param_name = export_shapes_scan::comp_single_tuple_i32_i32_to_i32_export_name(mir)
+    if len(tuple_i32_param_name) > 0 {
+        return tuple::emit_tuple_i32_i32_to_i32_component(core_wasm, tuple_i32_param_name)
+    }
+    let tuple_i32_bool_param_name = export_shapes_scan::comp_single_tuple_i32_bool_to_i32_export_name(mir)
+    if len(tuple_i32_bool_param_name) > 0 {
+        return tuple::emit_tuple_i32_bool_to_i32_component(core_wasm, tuple_i32_bool_param_name)
+    }
+    let tuple_bool_bool_param_name = export_shapes_scan::comp_single_tuple_bool_bool_to_i32_export_name(mir)
+    if len(tuple_bool_bool_param_name) > 0 {
+        return tuple::emit_tuple_bool_bool_to_i32_component(core_wasm, tuple_bool_bool_param_name)
+    }
+    let tuple_i32_roundtrip_name = export_shapes_scan::comp_single_tuple_i32_i32_to_tuple_i32_i32_export_name(mir)
+    if len(tuple_i32_roundtrip_name) > 0 {
+        return tuple::emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm, tuple_i32_roundtrip_name)
+    }
+    let f32_binary_name = export_shapes_scan::comp_single_f32_binary_export_name(mir)
+    if len(f32_binary_name) > 0 {
+        return numeric::emit_f32_binary_component(core_wasm, f32_binary_name)
+    }
+    let f32_to_i32_name = export_shapes_scan::comp_single_f32_to_i32_export_name(mir)
+    if len(f32_to_i32_name) > 0 {
+        return numeric::emit_f32_to_i32_component(core_wasm, f32_to_i32_name)
+    }
+    let i32_to_f32_name = export_shapes_scan::comp_single_i32_to_f32_export_name(mir)
+    if len(i32_to_f32_name) > 0 {
+        return numeric::emit_i32_to_f32_component(core_wasm, i32_to_f32_name)
+    }
+    let f32_unary_name = export_shapes_scan::comp_single_f32_unary_export_name(mir)
+    if len(f32_unary_name) > 0 {
+        return numeric::emit_f32_unary_component(core_wasm, f32_unary_name)
+    }
+    Vec_new_i32()
 }
 
 fn comp_single_shape_to_f64_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_shape_scan::comp_shape_export_scan(mir)
-	export_shapes_shape_scan::comp_shape_single_shape_to_f64_name(scan)
+    let scan = export_shapes_shape_scan::comp_shape_export_scan(mir)
+    export_shapes_shape_scan::comp_shape_single_shape_to_f64_name(scan)
 }
 
 fn comp_single_shape_to_shape_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_shape_scan::comp_shape_export_scan(mir)
-	export_shapes_shape_scan::comp_shape_single_shape_to_shape_name(scan)
+    let scan = export_shapes_shape_scan::comp_shape_export_scan(mir)
+    export_shapes_shape_scan::comp_shape_single_shape_to_shape_name(scan)
 }

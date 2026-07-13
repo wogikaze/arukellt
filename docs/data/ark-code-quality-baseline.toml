@@ -1,0 +1,12 @@
+# Auto-maintained inventory ceilings for Ark compiler source quality.
+# Lower counts via remediation; never raise without an explicit decision.
+# Generated/updated by scripts/check/check-ark-code-quality.py --write-baseline
+
+max_leading_ws = 64
+max_line_len_hard = 200
+
+[counts]
+tabs_files = 0
+extreme_indent_lines = 0
+lines_ge_200 = 451
+thin_wrappers = 1739

@@ -1,44 +1,43 @@
 use wasm::constants
-// Arukellt Selfhost - f64 bit intrinsic handlers
-
 use wasm::ctx_scratch
 
-// Handler for: f64_bits_lo
 fn emit_f64_bits_lo(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-	let f_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
-	writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-	writer_core::emit_leb128_u(w, f_tmp)
-	writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-	writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF())
-	writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-	writer_core::emit_leb128_u(w, f_tmp)
-	writer_core::emit_byte(w, opcodes::OP_F64_STORE())
-	writer_core::emit_byte(w, 3)
-	writer_core::emit_byte(w, 0)
-	writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-	writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF())
-	writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-	writer_core::emit_byte(w, 2)
-	writer_core::emit_byte(w, 0)
-	return true
+    let f_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, f_tmp)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, f_tmp)
+    writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF())
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    return true
 }
 
 // Handler for: f64_bits_hi
 fn emit_f64_bits_hi(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-	let f_tmp2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
-	writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-	writer_core::emit_leb128_u(w, f_tmp2)
-	writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-	writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF())
-	writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-	writer_core::emit_leb128_u(w, f_tmp2)
-	writer_core::emit_byte(w, opcodes::OP_F64_STORE())
-	writer_core::emit_byte(w, 3)
-	writer_core::emit_byte(w, 0)
-	writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-	writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF() + 4)
-	writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-	writer_core::emit_byte(w, 2)
-	writer_core::emit_byte(w, 0)
-	return true
+    let f_tmp2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, f_tmp2)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, f_tmp2)
+    writer_core::emit_byte(w, opcodes::OP_F64_STORE())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, constants::SCRATCH_I32BUF() + 4)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    return true
 }
+// Arukellt Selfhost - f64 bit intrinsic handlers
+// Handler for: f64_bits_lo

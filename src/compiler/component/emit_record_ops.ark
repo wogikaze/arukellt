@@ -11,90 +11,90 @@ use component::types_wit_func
 use component::writer_core
 
 fn emit_record_point_op_component(core_wasm: Vec<i32>, export_name: String, op: i32, param_count: i32, result_type: i32, uses_memory_option: bool) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, record_op_adapter_core_module(clone(export_name), op))
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, record_op_adapter_core_module(clone(export_name), op))
 
-	emit_record_point_alias_section(out, clone(export_name), uses_memory_option)
-	emit_record_point_type_sections(out)
-	emit_record_point_func_type_section(out, param_count, result_type)
-	emit_record_point_canon_section(out, uses_memory_option)
-	emit_record_point_export_section(out, clone(export_name))
+    emit_record_point_alias_section(out, clone(export_name), uses_memory_option)
+    emit_record_point_type_sections(out)
+    emit_record_point_func_type_section(out, param_count, result_type)
+    emit_record_point_canon_section(out, uses_memory_option)
+    emit_record_point_export_section(out, clone(export_name))
 
-	writer_core::comp_writer_bytes(out)
+    writer_core::comp_writer_bytes(out)
 }
 
 fn emit_record_point_alias_section(out: writer_core::ComponentWriter, export_name: String, uses_memory_option: bool) {
-	let alias_sec = writer_core::ComponentWriter_new()
-	if uses_memory_option {
-		writer_core::comp_emit_leb128_u(alias_sec, 2)
-		export_sections_entries::emit_core_memory_alias_entry(alias_sec, 1)
-	} else {
-		writer_core::comp_emit_leb128_u(alias_sec, 1)
-	}
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+    let alias_sec = writer_core::ComponentWriter_new()
+    if uses_memory_option {
+        writer_core::comp_emit_leb128_u(alias_sec, 2)
+        export_sections_entries::emit_core_memory_alias_entry(alias_sec, 1)
+    } else {
+        writer_core::comp_emit_leb128_u(alias_sec, 1)
+    }
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
 }
 
 fn emit_record_point_type_sections(out: writer_core::ComponentWriter) {
-	type_section_entries::emit_point_record_type_sections(out)
+    type_section_entries::emit_point_record_type_sections(out)
 }
 
 fn emit_record_point_func_type_section(out: writer_core::ComponentWriter, param_count: i32, result_type: i32) {
-	let func_type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_type_sec, 1)
-	let params = Vec_new_i32()
-	let mut i = 0
-	while i < param_count {
-		push(params, 1)
-		i = i + 1
-	}
-	let results = Vec_new_i32()
-	push(results, result_type)
-	writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
+    let func_type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_type_sec, 1)
+    let params = Vec_new_i32()
+    let mut i = 0
+    while i < param_count {
+        push(params, 1)
+        i = i + 1
+    }
+    let results = Vec_new_i32()
+    push(results, result_type)
+    writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
 }
 
 fn emit_record_point_canon_section(out: writer_core::ComponentWriter, uses_memory_option: bool) {
-	let canon_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(canon_sec, 1)
-	if uses_memory_option {
-		export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 2)
-	} else {
-		export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 2)
-	}
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    if uses_memory_option {
+        export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 2)
+    } else {
+        export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 2)
+    }
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
 }
 
 fn emit_record_point_export_section(out: writer_core::ComponentWriter, export_name: String) {
-	let func_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_export_sec, 1)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 2)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 2)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
 }
 
 fn emit_record_point_add_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_record_point_op_component(core_wasm, export_name, RECORD_OP_ADD(), 2, 1, true)
+    emit_record_point_op_component(core_wasm, export_name, RECORD_OP_ADD(), 2, 1, true)
 }
 
 fn emit_record_distance_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_record_point_op_component(core_wasm, export_name, RECORD_OP_DISTANCE(), 1, type_section_entries::point_s32_value(), false)
+    emit_record_point_op_component(core_wasm, export_name, RECORD_OP_DISTANCE(), 1, type_section_entries::point_s32_value(), false)
 }
 
 fn emit_record_point_roundtrip_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_record_point_op_component(core_wasm, export_name, RECORD_OP_ROUNDTRIP(), 1, 1, true)
+    emit_record_point_op_component(core_wasm, export_name, RECORD_OP_ROUNDTRIP(), 1, 1, true)
 }
 
 fn emit_record_point_component(core_wasm: Vec<i32>, distance_name: String, add_name: String) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_record::comp_point_adapter_core_module(clone(distance_name), clone(add_name)))
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_record::comp_point_adapter_core_module(clone(distance_name), clone(add_name)))
 
-	emit_record_point_multi_alias_section(out, clone(distance_name), clone(add_name))
-	emit_record_point_multi_type_sections(out)
-	emit_record_point_multi_func_type_section(out)
-	emit_record_point_multi_canon_section(out)
-	emit_record_point_multi_export_section(out, clone(distance_name), clone(add_name))
+    emit_record_point_multi_alias_section(out, clone(distance_name), clone(add_name))
+    emit_record_point_multi_type_sections(out)
+    emit_record_point_multi_func_type_section(out)
+    emit_record_point_multi_canon_section(out)
+    emit_record_point_multi_export_section(out, clone(distance_name), clone(add_name))
 
-	writer_core::comp_writer_bytes(out)
+    writer_core::comp_writer_bytes(out)
 }
 
 fn RECORD_OP_ADD() -> i32 { 1 }
@@ -102,57 +102,57 @@ fn RECORD_OP_DISTANCE() -> i32 { 2 }
 fn RECORD_OP_ROUNDTRIP() -> i32 { 3 }
 
 fn record_op_adapter_core_module(export_name: String, op: i32) -> Vec<i32> {
-	if op == RECORD_OP_DISTANCE() {
-		return adapters_record::comp_point_distance_adapter_core_module(export_name)
-	}
-	if op == RECORD_OP_ROUNDTRIP() {
-		return adapters_record::comp_point_to_point_adapter_core_module(export_name)
-	}
-	adapters_record::comp_point_point_to_point_adapter_core_module(export_name)
+    if op == RECORD_OP_DISTANCE() {
+        return adapters_record::comp_point_distance_adapter_core_module(export_name)
+    }
+    if op == RECORD_OP_ROUNDTRIP() {
+        return adapters_record::comp_point_to_point_adapter_core_module(export_name)
+    }
+    adapters_record::comp_point_point_to_point_adapter_core_module(export_name)
 }
 
 fn emit_record_point_multi_alias_section(out: writer_core::ComponentWriter, distance_name: String, add_name: String) {
-	let alias_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(alias_sec, 3)
-	export_sections_entries::emit_core_memory_alias_entry(alias_sec, 1)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, distance_name)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, add_name)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 3)
+    export_sections_entries::emit_core_memory_alias_entry(alias_sec, 1)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, distance_name)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, add_name)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
 }
 
 fn emit_record_point_multi_type_sections(out: writer_core::ComponentWriter) {
-	type_section_entries::emit_point_record_type_sections(out)
+    type_section_entries::emit_point_record_type_sections(out)
 }
 
 fn emit_record_point_multi_func_type_section(out: writer_core::ComponentWriter) {
-	let func_type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_type_sec, 2)
-	let point_param = Vec_new_i32()
-	push(point_param, 1)
-	let s32_result = Vec_new_i32()
-	push(s32_result, type_section_entries::point_s32_value())
-	writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(point_param, s32_result))
-	let two_point_params = Vec_new_i32()
-	push(two_point_params, 1)
-	push(two_point_params, 1)
-	let point_result = Vec_new_i32()
-	push(point_result, 1)
-	writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(two_point_params, point_result))
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
+    let func_type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_type_sec, 2)
+    let point_param = Vec_new_i32()
+    push(point_param, 1)
+    let s32_result = Vec_new_i32()
+    push(s32_result, type_section_entries::point_s32_value())
+    writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(point_param, s32_result))
+    let two_point_params = Vec_new_i32()
+    push(two_point_params, 1)
+    push(two_point_params, 1)
+    let point_result = Vec_new_i32()
+    push(point_result, 1)
+    writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(two_point_params, point_result))
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
 }
 
 fn emit_record_point_multi_canon_section(out: writer_core::ComponentWriter) {
-	let canon_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(canon_sec, 2)
-	export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 2)
-	export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 1, 0, 3)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 2)
+    export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 2)
+    export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 1, 0, 3)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
 }
 
 fn emit_record_point_multi_export_section(out: writer_core::ComponentWriter, distance_name: String, add_name: String) {
-	let func_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_export_sec, 2)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(distance_name), 0, 2)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(add_name), 1, 3)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 2)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(distance_name), 0, 2)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(add_name), 1, 3)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
 }

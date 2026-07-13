@@ -8,39 +8,39 @@ use component::types_wit_func
 use component::writer_core
 
 fn emit_string_abi_alias_section(out: writer_core::ComponentWriter, export_name: String) {
-	let alias_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(alias_sec, 3)
-	export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, String_from("realloc"))
-	writer_core::comp_emit_section(out, 6, alias_sec)
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 3)
+    export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, String_from("realloc"))
+    writer_core::comp_emit_section(out, 6, alias_sec)
 }
 
 fn emit_string_abi_func_type_section(out: writer_core::ComponentWriter, result_wit_type: i32) {
-	emit_string_abi_func_type_section_with_param(out, constants_wit_values::WIT_VAL_STRING(), result_wit_type)
+    emit_string_abi_func_type_section_with_param(out, constants_wit_values::WIT_VAL_STRING(), result_wit_type)
 }
 
 fn emit_string_abi_func_type_section_with_param(out: writer_core::ComponentWriter, param_wit_type: i32, result_wit_type: i32) {
-	let func_type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_type_sec, 1)
-	let params = Vec_new_i32()
-	push(params, param_wit_type)
-	let results = Vec_new_i32()
-	push(results, result_wit_type)
-	writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
-	writer_core::comp_emit_section(out, 7, func_type_sec)
+    let func_type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_type_sec, 1)
+    let params = Vec_new_i32()
+    push(params, param_wit_type)
+    let results = Vec_new_i32()
+    push(results, result_wit_type)
+    writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
+    writer_core::comp_emit_section(out, 7, func_type_sec)
 }
 
 fn emit_string_abi_canon_section(out: writer_core::ComponentWriter) {
-	let canon_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(canon_sec, 1)
-	export_sections_entries::emit_canon_lift_memory_realloc_entry(canon_sec, 0, 0, 1, 0)
-	writer_core::comp_emit_section(out, 8, canon_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    export_sections_entries::emit_canon_lift_memory_realloc_entry(canon_sec, 0, 0, 1, 0)
+    writer_core::comp_emit_section(out, 8, canon_sec)
 }
 
 fn emit_string_abi_export_section(out: writer_core::ComponentWriter, export_name: String) {
-	let func_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_export_sec, 1)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 0)
-	writer_core::comp_emit_section(out, 11, func_export_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 0)
+    writer_core::comp_emit_section(out, 11, func_export_sec)
 }

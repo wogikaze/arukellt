@@ -1,77 +1,76 @@
 // Arukellt Selfhost - Wasm Component section IDs.
-
 fn COMP_CANON_LIFT() -> i32 {
-	0x00
+    0
 }
 
 fn COMP_CANON_LOWER() -> i32 {
-	0x01
+    1
 }
 
 fn COMP_CANON_OPTION_MEMORY() -> i32 {
-	0x03
+    3
 }
 
 fn COMP_CANON_OPTION_REALLOC() -> i32 {
-	0x04
+    4
 }
 
 fn COMP_CANON_OPTION_POST_RETURN() -> i32 {
-	0x05
+    5
 }
 
 fn COMP_CANON_OPTION_UTF8() -> i32 {
-	0x00
+    0
 }
 
 fn COMP_CANON_OPTION_UTF16() -> i32 {
-	0x01
+    1
 }
 
 fn COMP_CANON_OPTION_LATIN1() -> i32 {
-	0x02
+    2
 }
 
 fn COMP_CANON_OPTION_STRING_ENCODING() -> i32 {
-	0x00
+    0
 }
 
 fn COMP_SORT_FUNC() -> i32 {
-	0x40
+    64
 }
 
 fn COMP_SORT_CORE_FUNC() -> i32 {
-	0x00
+    0
 }
 
 fn COMP_EXI_SORT_FUNC() -> i32 {
-	0x01
+    1
 }
 
 fn COMP_SEC_CORE_MODULE() -> i32 {
-	1
+    1
 }
 
 fn COMP_SEC_CORE_INSTANCE() -> i32 {
-	2
+    2
 }
 
 fn COMP_SEC_ALIAS() -> i32 {
-	6
+    6
 }
 
 fn COMP_SEC_TYPE() -> i32 {
-	7
+    7
 }
 
 fn COMP_SEC_CANON() -> i32 {
-	8
+    8
 }
 
 fn COMP_SEC_IMPORT() -> i32 {
-	10
+    10
 }
 
 fn COMP_SEC_EXPORT() -> i32 {
-	11
+    11
 }

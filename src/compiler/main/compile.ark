@@ -1,16 +1,15 @@
 // Arukellt Selfhost - CLI compile/check/parse command dispatch.
-
 use main::args_record
+use main::commands
 use main::compile_all
 use main::compile_core
-use main::commands
 use main::kinds
 
 pub fn cmd_compile(opts: CliOptions) {
-	let command = args_record::cli_command(opts)
-	if commands::cli_str_eq(args_record::cli_emit_mode(opts), String_from("all")) && command != kinds::CMD_PARSE() && command != kinds::CMD_CHECK() {
-		compile_all::cmd_compile_all(opts)
-		return
-	}
-	compile_core::cmd_compile_single(opts)
+    let command = args_record::cli_command(opts)
+    if commands::cli_str_eq(args_record::cli_emit_mode(opts), String_from("all")) && command != kinds::CMD_PARSE() && command != kinds::CMD_CHECK() {
+        compile_all::cmd_compile_all(opts)
+        return
+    }
+    compile_core::cmd_compile_single(opts)
 }

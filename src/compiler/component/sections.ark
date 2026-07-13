@@ -6,25 +6,25 @@ use component::constants_sections_linkage
 use component::writer_core
 
 pub struct CompImport {
-	name: String,
-	sort: i32,
-	type_idx: i32,
+    name: String,
+    sort: i32,
+    type_idx: i32,
 }
 
 fn CompImport_new(name: String, sort: i32, type_idx: i32) -> CompImport {
-	CompImport { name: name, sort: sort, type_idx: type_idx }
+    CompImport { name: name, sort: sort, type_idx: type_idx }
 }
 
 fn CompImport_name(imp: CompImport) -> String {
-	imp.name
+    imp.name
 }
 
 fn CompImport_sort(imp: CompImport) -> i32 {
-	imp.sort
+    imp.sort
 }
 
 fn CompImport_type_idx(imp: CompImport) -> i32 {
-	imp.type_idx
+    imp.type_idx
 }
 
 fn comp_emit_import_entry(w: writer_core::ComponentWriter, name: String, sort: i32, type_idx: i32) {
@@ -55,16 +55,16 @@ fn comp_new_core_module_writer() -> writer_core::ComponentWriter {
 }
 
 fn comp_emit_import_section(out: writer_core::ComponentWriter, imports: Vec<CompImport>) {
-	if len(imports) == 0 {
-		return
-	}
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(w, len(imports))
-	for i in 0..len(imports) {
-		let imp = get_unchecked(imports, i)
-		comp_emit_import_entry(w, CompImport_name(imp), CompImport_sort(imp), CompImport_type_idx(imp))
-	}
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_IMPORT(), w)
+    if len(imports) == 0 {
+        return
+    }
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(w, len(imports))
+    for i in 0..len(imports) {
+        let imp = get_unchecked(imports, i)
+        comp_emit_import_entry(w, CompImport_name(imp), CompImport_sort(imp), CompImport_type_idx(imp))
+    }
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_IMPORT(), w)
 }
 
 fn comp_emit_export(out: writer_core::ComponentWriter, name: String, sort: i32, type_idx: i32) {
@@ -72,17 +72,17 @@ fn comp_emit_export(out: writer_core::ComponentWriter, name: String, sort: i32, 
 }
 
 fn comp_emit_core_func_type(w: writer_core::ComponentWriter, params: Vec<i32>, results: Vec<i32>) {
-	writer_core::comp_emit_byte(w, 0x60)
-	writer_core::comp_emit_leb128_u(w, len(params))
-	for i in 0..len(params) {
-		writer_core::comp_emit_byte(w, get_unchecked(params, i))
-	}
-	writer_core::comp_emit_leb128_u(w, len(results))
-	for i in 0..len(results) {
-		writer_core::comp_emit_byte(w, get_unchecked(results, i))
-	}
+    writer_core::comp_emit_byte(w, 0x60)
+    writer_core::comp_emit_leb128_u(w, len(params))
+    for i in 0..len(params) {
+        writer_core::comp_emit_byte(w, get_unchecked(params, i))
+    }
+    writer_core::comp_emit_leb128_u(w, len(results))
+    for i in 0..len(results) {
+        writer_core::comp_emit_byte(w, get_unchecked(results, i))
+    }
 }
 
 fn comp_emit_wasm_section(out: writer_core::ComponentWriter, section_id: i32, contents: writer_core::ComponentWriter) {
-	writer_core::comp_emit_section(out, section_id, contents)
+    writer_core::comp_emit_section(out, section_id, contents)
 }

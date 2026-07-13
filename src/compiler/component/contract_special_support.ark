@@ -1,5 +1,4 @@
 // Arukellt Selfhost - component named special signature support
-
 use component::contract_collection_fn
 use component::contract_helpers
 use component::contract_numeric
@@ -77,18 +76,18 @@ fn component_numeric_tuple_special_signature_supported(name: String, f: AstNode)
 }
 
 fn component_special_signature_supported(f: AstNode) -> bool {
-	let name = contract_helpers::component_func_name(f)
-	if component_record_special_signature_name(clone(name)) {
-		return component_record_special_signature_supported(clone(name), f)
-	}
-	if component_string_special_signature_name(clone(name)) {
-		return component_string_special_signature_supported(clone(name), f)
-	}
-	if component_collection_special_signature_name(clone(name)) {
-		return component_collection_special_signature_supported(clone(name), f)
-	}
-	if component_numeric_tuple_special_signature_name(clone(name)) {
-		return component_numeric_tuple_special_signature_supported(clone(name), f)
-	}
-	true
+    let name = contract_helpers::component_func_name(f)
+    if component_record_special_signature_name(clone(name)) {
+        return component_record_special_signature_supported(clone(name), f)
+    }
+    if component_string_special_signature_name(clone(name)) {
+        return component_string_special_signature_supported(clone(name), f)
+    }
+    if component_collection_special_signature_name(clone(name)) {
+        return component_collection_special_signature_supported(clone(name), f)
+    }
+    if component_numeric_tuple_special_signature_name(clone(name)) {
+        return component_numeric_tuple_special_signature_supported(clone(name), f)
+    }
+    true
 }

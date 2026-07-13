@@ -1,40 +1,39 @@
 // Arukellt Selfhost - Component record export shape facade
-
 use component::export_shapes_record_scan
 
 fn comp_function_is_point_to_i32_export(f: MirFunction) -> bool {
-	export_shapes_record_scan::comp_function_is_point_to_i32_export(f)
+    export_shapes_record_scan::comp_function_is_point_to_i32_export(f)
 }
 
 fn comp_function_is_point_point_to_point_export(f: MirFunction) -> bool {
-	export_shapes_record_scan::comp_function_is_point_point_to_point_export(f)
+    export_shapes_record_scan::comp_function_is_point_point_to_point_export(f)
 }
 
 fn comp_function_is_point_to_point_export(f: MirFunction) -> bool {
-	export_shapes_record_scan::comp_function_is_point_to_point_export(f)
+    export_shapes_record_scan::comp_function_is_point_to_point_export(f)
 }
 
 fn comp_single_point_to_i32_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_record_scan::comp_record_export_scan(mir)
-	export_shapes_record_scan::comp_record_single_point_to_i32_name(scan)
+    let scan = export_shapes_record_scan::comp_record_export_scan(mir)
+    export_shapes_record_scan::comp_record_single_point_to_i32_name(scan)
 }
 
 fn comp_point_to_i32_pair_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_record_scan::comp_record_export_scan(mir)
-	export_shapes_record_scan::comp_record_pair_point_to_i32_name(scan)
+    let scan = export_shapes_record_scan::comp_record_export_scan(mir)
+    export_shapes_record_scan::comp_record_pair_point_to_i32_name(scan)
 }
 
 fn comp_point_point_to_point_pair_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_record_scan::comp_record_export_scan(mir)
-	export_shapes_record_scan::comp_record_pair_point_point_to_point_name(scan)
+    let scan = export_shapes_record_scan::comp_record_export_scan(mir)
+    export_shapes_record_scan::comp_record_pair_point_point_to_point_name(scan)
 }
 
 fn comp_single_point_point_to_point_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_record_scan::comp_record_export_scan(mir)
-	export_shapes_record_scan::comp_record_single_point_point_to_point_name(scan)
+    let scan = export_shapes_record_scan::comp_record_export_scan(mir)
+    export_shapes_record_scan::comp_record_single_point_point_to_point_name(scan)
 }
 
 fn comp_single_point_to_point_export_name(mir: MirModule) -> String {
-	let scan = export_shapes_record_scan::comp_record_export_scan(mir)
-	export_shapes_record_scan::comp_record_single_point_to_point_name(scan)
+    let scan = export_shapes_record_scan::comp_record_export_scan(mir)
+    export_shapes_record_scan::comp_record_single_point_to_point_name(scan)
 }

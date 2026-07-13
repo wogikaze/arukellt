@@ -1,5 +1,4 @@
 // Arukellt Selfhost - general multi-export f32 canonical ABI plan.
-
 use component::export_function_view
 use component::export_shapes_kinds
 use component::export_shapes_match
@@ -7,78 +6,78 @@ use component::naming
 use mir::module_functions
 
 struct F32GeneralExport {
-	name: String,
-	kind: i32,
+    name: String,
+    kind: i32,
 }
 
 fn F32GeneralExport_new(name: String, kind: i32) -> F32GeneralExport {
-	F32GeneralExport { name: name, kind: kind }
+    F32GeneralExport { name: name, kind: kind }
 }
 
 fn F32GeneralExport_name(entry: F32GeneralExport) -> String {
-	entry.name
+    entry.name
 }
 
 fn F32GeneralExport_kind(entry: F32GeneralExport) -> i32 {
-	entry.kind
+    entry.kind
 }
 
 struct F32GeneralPlan {
-	entries: Vec<F32GeneralExport>,
+    entries: Vec<F32GeneralExport>,
 }
 
 fn F32GeneralPlan_new(entries: Vec<F32GeneralExport>) -> F32GeneralPlan {
-	F32GeneralPlan { entries: entries }
+    F32GeneralPlan { entries: entries }
 }
 
 fn F32GeneralPlan_count(plan: F32GeneralPlan) -> i32 {
-	len(plan.entries)
+    len(plan.entries)
 }
 
 fn F32GeneralPlan_entry_at(plan: F32GeneralPlan, idx: i32) -> F32GeneralExport {
-	get_unchecked(plan.entries, idx)
+    get_unchecked(plan.entries, idx)
 }
 
 fn comp_function_f32_scalar_export_kind(f: MirFunction) -> i32 {
-	if export_shapes_match::comp_function_is_f32_unary_export(f) {
-		return export_shapes_kinds::F32_UNARY()
-	}
-	if export_shapes_match::comp_function_is_f32_binary_export(f) {
-		return export_shapes_kinds::F32_BINARY()
-	}
-	if export_shapes_match::comp_function_is_f32_to_i32_export(f) {
-		return export_shapes_kinds::F32_TO_I32()
-	}
-	if export_shapes_match::comp_function_is_i32_to_f32_export(f) {
-		return export_shapes_kinds::I32_TO_F32()
-	}
-	0 - 1
+    if export_shapes_match::comp_function_is_f32_unary_export(f) {
+        return export_shapes_kinds::F32_UNARY()
+    }
+    if export_shapes_match::comp_function_is_f32_binary_export(f) {
+        return export_shapes_kinds::F32_BINARY()
+    }
+    if export_shapes_match::comp_function_is_f32_to_i32_export(f) {
+        return export_shapes_kinds::F32_TO_I32()
+    }
+    if export_shapes_match::comp_function_is_i32_to_f32_export(f) {
+        return export_shapes_kinds::I32_TO_F32()
+    }
+    0 - 1
 }
 
 fn comp_f32_general_plan(mir: MirModule) -> F32GeneralPlan {
-	let entries: Vec<F32GeneralExport> = Vec_new()
-	let mut export_count = 0
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			export_count = export_count + 1
-			let kind = comp_function_f32_scalar_export_kind(f)
-			if kind < 0 {
-				return F32GeneralPlan_new(Vec_new())
-			}
-			push(entries, F32GeneralExport_new(export_name, kind))
-		}
-		i = i + 1
-	}
-	if export_count < 2 {
-		return F32GeneralPlan_new(Vec_new())
-	}
-	F32GeneralPlan_new(entries)
+    let entries: Vec<F32GeneralExport> = Vec_new()
+    let mut export_count = 0
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            export_count = export_count + 1
+            let kind = comp_function_f32_scalar_export_kind(f)
+            if kind < 0 {
+                return F32GeneralPlan_new(Vec_new())
+            }
+            push(entries, F32GeneralExport_new(export_name, kind))
+        }
+        i = i + 1
+    }
+    if export_count < 2 {
+        return F32GeneralPlan_new(Vec_new())
+    }
+    F32GeneralPlan_new(entries)
 }
 
 fn comp_f32_general_plan_is_valid(plan: F32GeneralPlan) -> bool {
-	F32GeneralPlan_count(plan) >= 2
+    F32GeneralPlan_count(plan) >= 2
 }

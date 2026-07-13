@@ -2,51 +2,47 @@
 //
 // Delegates to std::json (issue #704). The local DapStrResult struct is
 // retained for API compatibility with existing DAP callers.
+use std::json
 
 use dap::json_parse_int
 use dap::json_parse_key
 use dap::json_parse_ws
-use std::json
 
 pub struct DapStrResult {
-	value: String,
-	next: i32,
-	ok: bool,
+    value: String,
+    next: i32,
+    ok: bool,
 }
 
 fn DapStrResult_new(value: String, next: i32, ok: bool) -> DapStrResult {
-	DapStrResult { value: value, next: next, ok: ok }
+    DapStrResult { value: value, next: next, ok: ok }
 }
 
 pub fn dap_skip_ws(s: String, pos: i32) -> i32 {
-	json_parse_ws::dap_skip_ws(s, pos)
+    json_parse_ws::dap_skip_ws(s, pos)
 }
 
 pub fn dap_find_key(json_str: String, key: String, from: i32) -> i32 {
-	json_parse_key::dap_find_key(json_str, key, from)
+    json_parse_key::dap_find_key(json_str, key, from)
 }
 
 pub fn dap_parse_string_at(s: String, pos: i32) -> DapStrResult {
-	let r = json::json_parse_string_at(s, pos)
-	DapStrResult {
-		value: json::json_str_result_value(r),
-		next: json::json_str_result_next(r),
-		ok: json::json_str_result_ok(r),
-	}
+    let r = json::json_parse_string_at(s, pos)
+    DapStrResult { value: json::json_str_result_value(r), next: json::json_str_result_next(r), ok: json::json_str_result_ok(r) }
 }
 
 pub fn dap_str_result_ok(result: DapStrResult) -> bool {
-	result.ok
+    result.ok
 }
 
 pub fn dap_str_result_value(result: DapStrResult) -> String {
-	result.value
+    result.value
 }
 
 pub fn dap_str_result_next(result: DapStrResult) -> i32 {
-	result.next
+    result.next
 }
 
 pub fn dap_parse_int_at(s: String, pos: i32) -> i32 {
-	json_parse_int::dap_parse_int_at(s, pos)
+    json_parse_int::dap_parse_int_at(s, pos)
 }

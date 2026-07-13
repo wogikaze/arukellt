@@ -1,212 +1,197 @@
 // Arukellt Selfhost - component string declaration scan.
-
 use component::contract_helpers
 use component::contract_string_fn
 
 pub struct ComponentStringScan {
-	has_string_unary: bool,
-	has_string_general_multi: bool,
-	all_string_unary: bool,
-	has_i32_to_string: bool,
-	has_string_to_i32: bool,
-	has_string_to_narrow_i32: bool,
-	has_string_to_bool: bool,
-	has_string_to_char: bool,
-	has_string_to_f64: bool,
-	has_string_to_i64: bool,
-	has_string_to_u64: bool,
-	has_string_to_f32: bool,
-	export_count: i32,
+    has_string_unary: bool,
+    has_string_general_multi: bool,
+    all_string_unary: bool,
+    has_i32_to_string: bool,
+    has_string_to_i32: bool,
+    has_string_to_narrow_i32: bool,
+    has_string_to_bool: bool,
+    has_string_to_char: bool,
+    has_string_to_f64: bool,
+    has_string_to_i64: bool,
+    has_string_to_u64: bool,
+    has_string_to_f32: bool,
+    export_count: i32,
 }
 
 fn ComponentStringScan_new(has_string_unary: bool, has_string_general_multi: bool, all_string_unary: bool, has_i32_to_string: bool, has_string_to_i32: bool, has_string_to_narrow_i32: bool, has_string_to_bool: bool, has_string_to_char: bool, has_string_to_f64: bool, has_string_to_i64: bool, has_string_to_u64: bool, has_string_to_f32: bool, export_count: i32) -> ComponentStringScan {
-	ComponentStringScan {
-		has_string_unary: has_string_unary,
-		has_string_general_multi: has_string_general_multi,
-		all_string_unary: all_string_unary,
-		has_i32_to_string: has_i32_to_string,
-		has_string_to_i32: has_string_to_i32,
-		has_string_to_narrow_i32: has_string_to_narrow_i32,
-		has_string_to_bool: has_string_to_bool,
-		has_string_to_char: has_string_to_char,
-		has_string_to_f64: has_string_to_f64,
-		has_string_to_i64: has_string_to_i64,
-		has_string_to_u64: has_string_to_u64,
-		has_string_to_f32: has_string_to_f32,
-		export_count: export_count,
-	}
+    ComponentStringScan { has_string_unary: has_string_unary, has_string_general_multi: has_string_general_multi, all_string_unary: all_string_unary, has_i32_to_string: has_i32_to_string, has_string_to_i32: has_string_to_i32, has_string_to_narrow_i32: has_string_to_narrow_i32, has_string_to_bool: has_string_to_bool, has_string_to_char: has_string_to_char, has_string_to_f64: has_string_to_f64, has_string_to_i64: has_string_to_i64, has_string_to_u64: has_string_to_u64, has_string_to_f32: has_string_to_f32, export_count: export_count }
 }
 
 fn ComponentStringScan_empty() -> ComponentStringScan {
-	ComponentStringScan_new(false, false, true, false, false, false, false, false, false, false, false, false, 0)
+    ComponentStringScan_new(false, false, true, false, false, false, false, false, false, false, false, false, 0)
 }
 
 fn ComponentStringScan_export_count(scan: ComponentStringScan) -> i32 {
-	scan.export_count
+    scan.export_count
 }
 
 fn ComponentStringScan_single_export(scan: ComponentStringScan) -> bool {
-	scan.export_count == 1
+    scan.export_count == 1
 }
 
 fn ComponentStringScan_has_string_unary(scan: ComponentStringScan) -> bool {
-	scan.has_string_unary
+    scan.has_string_unary
 }
 
 fn ComponentStringScan_has_string_general_multi(scan: ComponentStringScan) -> bool {
-	scan.has_string_general_multi
+    scan.has_string_general_multi
 }
 
 fn ComponentStringScan_all_string_unary(scan: ComponentStringScan) -> bool {
-	scan.all_string_unary
+    scan.all_string_unary
 }
 
 fn ComponentStringScan_has_i32_to_string(scan: ComponentStringScan) -> bool {
-	scan.has_i32_to_string
+    scan.has_i32_to_string
 }
 
 fn ComponentStringScan_has_string_to_i32(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_i32
+    scan.has_string_to_i32
 }
 
 fn ComponentStringScan_has_string_to_narrow_i32(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_narrow_i32
+    scan.has_string_to_narrow_i32
 }
 
 fn ComponentStringScan_has_string_to_bool(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_bool
+    scan.has_string_to_bool
 }
 
 fn ComponentStringScan_has_string_to_char(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_char
+    scan.has_string_to_char
 }
 
 fn ComponentStringScan_has_string_to_f64(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_f64
+    scan.has_string_to_f64
 }
 
 fn ComponentStringScan_has_string_to_i64(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_i64
+    scan.has_string_to_i64
 }
 
 fn ComponentStringScan_has_string_to_u64(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_u64
+    scan.has_string_to_u64
 }
 
 fn ComponentStringScan_has_string_to_f32(scan: ComponentStringScan) -> bool {
-	scan.has_string_to_f32
+    scan.has_string_to_f32
 }
 
 fn ComponentStringScan_increment_export_count(scan: ComponentStringScan) {
-	scan.export_count = scan.export_count + 1
+    scan.export_count = scan.export_count + 1
 }
 
 fn ComponentStringScan_set_has_string_unary(scan: ComponentStringScan, value: bool) {
-	scan.has_string_unary = value
+    scan.has_string_unary = value
 }
 
 fn ComponentStringScan_set_all_string_unary(scan: ComponentStringScan, value: bool) {
-	scan.all_string_unary = value
+    scan.all_string_unary = value
 }
 
 fn ComponentStringScan_set_has_i32_to_string(scan: ComponentStringScan, value: bool) {
-	scan.has_i32_to_string = value
+    scan.has_i32_to_string = value
 }
 
 fn ComponentStringScan_set_has_string_to_i32(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_i32 = value
+    scan.has_string_to_i32 = value
 }
 
 fn ComponentStringScan_set_has_string_to_narrow_i32(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_narrow_i32 = value
+    scan.has_string_to_narrow_i32 = value
 }
 
 fn ComponentStringScan_set_has_string_to_bool(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_bool = value
+    scan.has_string_to_bool = value
 }
 
 fn ComponentStringScan_set_has_string_to_char(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_char = value
+    scan.has_string_to_char = value
 }
 
 fn ComponentStringScan_set_has_string_to_f64(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_f64 = value
+    scan.has_string_to_f64 = value
 }
 
 fn ComponentStringScan_set_has_string_to_i64(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_i64 = value
+    scan.has_string_to_i64 = value
 }
 
 fn ComponentStringScan_set_has_string_to_u64(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_u64 = value
+    scan.has_string_to_u64 = value
 }
 
 fn ComponentStringScan_set_has_string_to_f32(scan: ComponentStringScan, value: bool) {
-	scan.has_string_to_f32 = value
+    scan.has_string_to_f32 = value
 }
 
 fn component_string_scan_apply_basic(scan: ComponentStringScan, d: AstNode) {
-	let f = contract_helpers::component_func_from_decl(d)
-	if contract_string_fn::component_fn_is_string_unary(f) {
-		ComponentStringScan_set_has_string_unary(scan, true)
-	}
-	if contract_string_fn::component_fn_is_i32_to_string(f) {
-		ComponentStringScan_set_has_i32_to_string(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_i32(f) {
-		ComponentStringScan_set_has_string_to_i32(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_narrow_i32(f) {
-		ComponentStringScan_set_has_string_to_narrow_i32(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_bool(f) {
-		ComponentStringScan_set_has_string_to_bool(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_char(f) {
-		ComponentStringScan_set_has_string_to_char(scan, true)
-	}
+    let f = contract_helpers::component_func_from_decl(d)
+    if contract_string_fn::component_fn_is_string_unary(f) {
+        ComponentStringScan_set_has_string_unary(scan, true)
+    }
+    if contract_string_fn::component_fn_is_i32_to_string(f) {
+        ComponentStringScan_set_has_i32_to_string(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_i32(f) {
+        ComponentStringScan_set_has_string_to_i32(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_narrow_i32(f) {
+        ComponentStringScan_set_has_string_to_narrow_i32(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_bool(f) {
+        ComponentStringScan_set_has_string_to_bool(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_char(f) {
+        ComponentStringScan_set_has_string_to_char(scan, true)
+    }
 }
 
 fn component_string_scan_apply_numeric(scan: ComponentStringScan, d: AstNode) {
-	let f = contract_helpers::component_func_from_decl(d)
-	if contract_string_fn::component_fn_is_string_to_f64(f) {
-		ComponentStringScan_set_has_string_to_f64(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_i64(f) {
-		ComponentStringScan_set_has_string_to_i64(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_u64(f) {
-		ComponentStringScan_set_has_string_to_u64(scan, true)
-	}
-	if contract_string_fn::component_fn_is_string_to_f32(f) {
-		ComponentStringScan_set_has_string_to_f32(scan, true)
-	}
+    let f = contract_helpers::component_func_from_decl(d)
+    if contract_string_fn::component_fn_is_string_to_f64(f) {
+        ComponentStringScan_set_has_string_to_f64(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_i64(f) {
+        ComponentStringScan_set_has_string_to_i64(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_u64(f) {
+        ComponentStringScan_set_has_string_to_u64(scan, true)
+    }
+    if contract_string_fn::component_fn_is_string_to_f32(f) {
+        ComponentStringScan_set_has_string_to_f32(scan, true)
+    }
 }
 
 fn component_string_scan_apply_export(scan: ComponentStringScan, d: AstNode) {
-	ComponentStringScan_increment_export_count(scan)
-	component_string_scan_apply_basic(scan, d)
-	component_string_scan_apply_numeric(scan, d)
-	let f = contract_helpers::component_func_from_decl(d)
-	if !contract_string_fn::component_fn_is_string_unary(f) {
-		ComponentStringScan_set_all_string_unary(scan, false)
-	}
+    ComponentStringScan_increment_export_count(scan)
+    component_string_scan_apply_basic(scan, d)
+    component_string_scan_apply_numeric(scan, d)
+    let f = contract_helpers::component_func_from_decl(d)
+    if !contract_string_fn::component_fn_is_string_unary(f) {
+        ComponentStringScan_set_all_string_unary(scan, false)
+    }
 }
 
 fn component_string_scan_finalize(scan: ComponentStringScan) -> ComponentStringScan {
-	if scan.export_count >= 2 && ComponentStringScan_all_string_unary(scan) {
-		scan.has_string_general_multi = true
-	}
-	scan
+    if scan.export_count >= 2 && ComponentStringScan_all_string_unary(scan) {
+        scan.has_string_general_multi = true
+    }
+    scan
 }
 
 fn component_string_scan(decls: Vec<AstNode>) -> ComponentStringScan {
-	let scan = ComponentStringScan_empty()
-	for i in 0..len(decls) {
-		let d = get_unchecked(decls, i)
-		if contract_helpers::is_export_func_decl(d) {
-			component_string_scan_apply_export(scan, d)
-		}
-	}
-	component_string_scan_finalize(scan)
+    let scan = ComponentStringScan_empty()
+    for i in 0..len(decls) {
+        let d = get_unchecked(decls, i)
+        if contract_helpers::is_export_func_decl(d) {
+            component_string_scan_apply_export(scan, d)
+        }
+    }
+    component_string_scan_finalize(scan)
 }

@@ -4,62 +4,62 @@ use component::constants_sections_linkage
 use component::writer_core
 
 fn emit_generic_alias_entry(alias_sec: writer_core::ComponentWriter, core_name: String) {
-	emit_core_func_alias_entry(alias_sec, 1, core_name)
+    emit_core_func_alias_entry(alias_sec, 1, core_name)
 }
 
 fn emit_core_memory_alias_entry(alias_sec: writer_core::ComponentWriter, instance_idx: i32) {
-	writer_core::comp_emit_byte(alias_sec, 0x00)
-	writer_core::comp_emit_byte(alias_sec, 0x02)
-	writer_core::comp_emit_byte(alias_sec, 0x01)
-	writer_core::comp_emit_leb128_u(alias_sec, instance_idx)
-	writer_core::comp_emit_string(alias_sec, String_from("memory"))
+    writer_core::comp_emit_byte(alias_sec, 0x00)
+    writer_core::comp_emit_byte(alias_sec, 0x02)
+    writer_core::comp_emit_byte(alias_sec, 0x01)
+    writer_core::comp_emit_leb128_u(alias_sec, instance_idx)
+    writer_core::comp_emit_string(alias_sec, String_from("memory"))
 }
 
 fn emit_core_func_alias_entry(alias_sec: writer_core::ComponentWriter, instance_idx: i32, core_name: String) {
-	writer_core::comp_emit_byte(alias_sec, 0x00)
-	writer_core::comp_emit_byte(alias_sec, 0x00)
-	writer_core::comp_emit_leb128_u(alias_sec, instance_idx)
-	writer_core::comp_emit_string(alias_sec, core_name)
+    writer_core::comp_emit_byte(alias_sec, 0x00)
+    writer_core::comp_emit_byte(alias_sec, 0x00)
+    writer_core::comp_emit_leb128_u(alias_sec, instance_idx)
+    writer_core::comp_emit_string(alias_sec, core_name)
 }
 
 fn emit_generic_canon_lift_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, type_idx_canon: i32) {
-	emit_canon_lift_no_options_entry(canon_sec, func_idx, type_idx_canon)
+    emit_canon_lift_no_options_entry(canon_sec, func_idx, type_idx_canon)
 }
 
 fn emit_canon_lift_no_options_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, type_idx_canon: i32) {
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
-	writer_core::comp_emit_byte(canon_sec, 0x00)
-	writer_core::comp_emit_leb128_u(canon_sec, func_idx)
-	writer_core::comp_emit_leb128_u(canon_sec, 0)
-	writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
+    writer_core::comp_emit_byte(canon_sec, 0x00)
+    writer_core::comp_emit_leb128_u(canon_sec, func_idx)
+    writer_core::comp_emit_leb128_u(canon_sec, 0)
+    writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
 }
 
 fn emit_canon_lower_no_options_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, type_idx_canon: i32) {
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LOWER())
-	writer_core::comp_emit_byte(canon_sec, 0x00)
-	writer_core::comp_emit_leb128_u(canon_sec, func_idx)
-	writer_core::comp_emit_leb128_u(canon_sec, 0)
-	writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LOWER())
+    writer_core::comp_emit_byte(canon_sec, 0x00)
+    writer_core::comp_emit_leb128_u(canon_sec, func_idx)
+    writer_core::comp_emit_leb128_u(canon_sec, 0)
+    writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
 }
 
 fn emit_canon_lift_memory_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, memory_idx: i32, type_idx_canon: i32) {
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
-	writer_core::comp_emit_byte(canon_sec, 0x00)
-	writer_core::comp_emit_leb128_u(canon_sec, func_idx)
-	writer_core::comp_emit_leb128_u(canon_sec, 1)
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_OPTION_MEMORY())
-	writer_core::comp_emit_leb128_u(canon_sec, memory_idx)
-	writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
+    writer_core::comp_emit_byte(canon_sec, 0x00)
+    writer_core::comp_emit_leb128_u(canon_sec, func_idx)
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_OPTION_MEMORY())
+    writer_core::comp_emit_leb128_u(canon_sec, memory_idx)
+    writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
 }
 
 fn emit_canon_lift_memory_realloc_entry(canon_sec: writer_core::ComponentWriter, func_idx: i32, memory_idx: i32, realloc_idx: i32, type_idx_canon: i32) {
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
-	writer_core::comp_emit_byte(canon_sec, 0x00)
-	writer_core::comp_emit_leb128_u(canon_sec, func_idx)
-	writer_core::comp_emit_leb128_u(canon_sec, 2)
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_OPTION_MEMORY())
-	writer_core::comp_emit_leb128_u(canon_sec, memory_idx)
-	writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_OPTION_REALLOC())
-	writer_core::comp_emit_leb128_u(canon_sec, realloc_idx)
-	writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_LIFT())
+    writer_core::comp_emit_byte(canon_sec, 0x00)
+    writer_core::comp_emit_leb128_u(canon_sec, func_idx)
+    writer_core::comp_emit_leb128_u(canon_sec, 2)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_OPTION_MEMORY())
+    writer_core::comp_emit_leb128_u(canon_sec, memory_idx)
+    writer_core::comp_emit_byte(canon_sec, constants_sections_linkage::COMP_CANON_OPTION_REALLOC())
+    writer_core::comp_emit_leb128_u(canon_sec, realloc_idx)
+    writer_core::comp_emit_leb128_u(canon_sec, type_idx_canon)
 }

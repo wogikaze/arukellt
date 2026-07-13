@@ -1,69 +1,68 @@
 // Arukellt Selfhost - Component export-name presence predicates
-
 fn comp_has_shape_area_exports_impl(names: Vec<String>) -> bool {
-	len(names) == 1 && eq(get_unchecked(names, 0), String_from("area"))
+    len(names) == 1 && eq(get_unchecked(names, 0), String_from("area"))
 }
 
 fn comp_has_record_point_exports_impl(names: Vec<String>) -> bool {
-	let mut has_distance = false
-	let mut has_add = false
-	let n = len(names)
-	let mut i = 0
-	while i < n {
-		let nm = get_unchecked(names, i)
-		if eq(clone(nm), String_from("distance_sq")) {
-			has_distance = true
-		}
-		if eq(clone(nm), String_from("add_points")) {
-			has_add = true
-		}
-		i = i + 1
-	}
-	has_distance && has_add
+    let mut has_distance = false
+    let mut has_add = false
+    let n = len(names)
+    let mut i = 0
+    while i < n {
+        let nm = get_unchecked(names, i)
+        if eq(clone(nm), String_from("distance_sq")) {
+            has_distance = true
+        }
+        if eq(clone(nm), String_from("add_points")) {
+            has_add = true
+        }
+        i = i + 1
+    }
+    has_distance && has_add
 }
 
 fn comp_has_record_distance_exports_impl(names: Vec<String>) -> bool {
-	len(names) == 1 && eq(get_unchecked(names, 0), String_from("distance_sq"))
+    len(names) == 1 && eq(get_unchecked(names, 0), String_from("distance_sq"))
 }
 
 fn comp_has_color_enum_exports_impl(names: Vec<String>) -> bool {
-	let mut has_next = false
-	let mut has_value = false
-	let n = len(names)
-	let mut i = 0
-	while i < n {
-		let nm = get_unchecked(names, i)
-		if eq(clone(nm), String_from("next_color")) {
-			has_next = true
-		}
-		if eq(clone(nm), String_from("color_to_value")) {
-			has_value = true
-		}
-		i = i + 1
-	}
-	has_next && has_value
+    let mut has_next = false
+    let mut has_value = false
+    let n = len(names)
+    let mut i = 0
+    while i < n {
+        let nm = get_unchecked(names, i)
+        if eq(clone(nm), String_from("next_color")) {
+            has_next = true
+        }
+        if eq(clone(nm), String_from("color_to_value")) {
+            has_value = true
+        }
+        i = i + 1
+    }
+    has_next && has_value
 }
 
 fn comp_has_color_code_exports_impl(names: Vec<String>) -> bool {
-	len(names) == 1 && eq(get_unchecked(names, 0), String_from("color_code"))
+    len(names) == 1 && eq(get_unchecked(names, 0), String_from("color_code"))
 }
 
 fn comp_has_record_point_exports(names: Vec<String>) -> bool {
-	comp_has_record_point_exports_impl(names)
+    comp_has_record_point_exports_impl(names)
 }
 
 fn comp_has_record_distance_exports(names: Vec<String>) -> bool {
-	comp_has_record_distance_exports_impl(names)
+    comp_has_record_distance_exports_impl(names)
 }
 
 fn comp_has_color_enum_exports(names: Vec<String>) -> bool {
-	comp_has_color_enum_exports_impl(names)
+    comp_has_color_enum_exports_impl(names)
 }
 
 fn comp_has_color_code_exports(names: Vec<String>) -> bool {
-	comp_has_color_code_exports_impl(names)
+    comp_has_color_code_exports_impl(names)
 }
 
 fn comp_has_shape_area_exports(names: Vec<String>) -> bool {
-	comp_has_shape_area_exports_impl(names)
+    comp_has_shape_area_exports_impl(names)
 }

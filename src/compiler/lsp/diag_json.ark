@@ -1,7 +1,6 @@
 // Arukellt Selfhost - LSP diagnostic JSON helpers.
-
 use lsp::json_escape
 
 fn quote_string(s: String) -> String {
-	json_escape::quote_string(s)
+    json_escape::quote_string(s)
 }

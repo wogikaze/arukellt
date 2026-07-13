@@ -1,145 +1,145 @@
 // Arukellt Selfhost - Component names and WIT value type mapping
+use std::text
 
 use component::constants_wit_values
 use mir::function_return_view
 use mir::local_access
 use mir::value_types
-use std::text
 
 fn comp_export_name(name: String) -> String {
-	let mut out = String_from("")
-	let n = len(name)
-	let mut i = 0
-	while i < n {
-		let ch = char_at(name, i)
-		if ch == 95 {
-			out = text::builder_append(out, String_from("-"))
-		} else {
-			out = text::builder_append(out, substring(name, i, i + 1))
-		}
-		i = i + 1
-	}
-	out
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 95 {
+            out = text::builder_append(out, String_from("-"))
+        } else {
+            out = text::builder_append(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
 }
 
 fn comp_should_export_func(name: String) -> bool {
-	if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
-		return false
-	}
-	if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
-		return false
-	}
-	if contains(clone(name), String_from("::")) {
-		return false
-	}
-	true
+    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+        return false
+    }
+    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+        return false
+    }
+    if contains(clone(name), String_from("::")) {
+        return false
+    }
+    true
 }
 
 fn val_type_to_comp(val_type: i32) -> i32 {
-	if val_type == value_types::VT_I32() {
-		return constants_wit_values::WIT_VAL_S32()
-	}
-	if val_type == value_types::VT_I64() {
-		return constants_wit_values::WIT_VAL_S64()
-	}
-	if val_type == value_types::VT_F64() {
-		return constants_wit_values::WIT_VAL_FLOAT64()
-	}
-	if val_type == value_types::VT_REF() {
-		return constants_wit_values::WIT_VAL_STRING()
-	}
-	constants_wit_values::WIT_VAL_S32()
+    if val_type == value_types::VT_I32() {
+        return constants_wit_values::WIT_VAL_S32()
+    }
+    if val_type == value_types::VT_I64() {
+        return constants_wit_values::WIT_VAL_S64()
+    }
+    if val_type == value_types::VT_F64() {
+        return constants_wit_values::WIT_VAL_FLOAT64()
+    }
+    if val_type == value_types::VT_REF() {
+        return constants_wit_values::WIT_VAL_STRING()
+    }
+    constants_wit_values::WIT_VAL_S32()
 }
 
 fn comp_wit_type_from_name(type_name: String, fallback_vt: i32) -> i32 {
-	if eq(clone(type_name), String_from("bool")) {
-		return constants_wit_values::WIT_VAL_BOOL()
-	}
-	if eq(clone(type_name), String_from("char")) {
-		return constants_wit_values::WIT_VAL_CHAR()
-	}
-	if eq(clone(type_name), String_from("u8")) {
-		return constants_wit_values::WIT_VAL_U8()
-	}
-	if eq(clone(type_name), String_from("u16")) {
-		return constants_wit_values::WIT_VAL_U16()
-	}
-	if eq(clone(type_name), String_from("u32")) {
-		return constants_wit_values::WIT_VAL_U32()
-	}
-	if eq(clone(type_name), String_from("u64")) {
-		return constants_wit_values::WIT_VAL_U64()
-	}
-	if eq(clone(type_name), String_from("i8")) {
-		return constants_wit_values::WIT_VAL_S8()
-	}
-	if eq(clone(type_name), String_from("i16")) {
-		return constants_wit_values::WIT_VAL_S16()
-	}
-	if eq(clone(type_name), String_from("i32")) {
-		return constants_wit_values::WIT_VAL_S32()
-	}
-	if eq(clone(type_name), String_from("i64")) {
-		return constants_wit_values::WIT_VAL_S64()
-	}
-	if eq(clone(type_name), String_from("f32")) {
-		return constants_wit_values::WIT_VAL_FLOAT32()
-	}
-	if eq(clone(type_name), String_from("f64")) {
-		return constants_wit_values::WIT_VAL_FLOAT64()
-	}
-	if eq(clone(type_name), String_from("string")) {
-		return constants_wit_values::WIT_VAL_STRING()
-	}
-	val_type_to_comp(fallback_vt)
+    if eq(clone(type_name), String_from("bool")) {
+        return constants_wit_values::WIT_VAL_BOOL()
+    }
+    if eq(clone(type_name), String_from("char")) {
+        return constants_wit_values::WIT_VAL_CHAR()
+    }
+    if eq(clone(type_name), String_from("u8")) {
+        return constants_wit_values::WIT_VAL_U8()
+    }
+    if eq(clone(type_name), String_from("u16")) {
+        return constants_wit_values::WIT_VAL_U16()
+    }
+    if eq(clone(type_name), String_from("u32")) {
+        return constants_wit_values::WIT_VAL_U32()
+    }
+    if eq(clone(type_name), String_from("u64")) {
+        return constants_wit_values::WIT_VAL_U64()
+    }
+    if eq(clone(type_name), String_from("i8")) {
+        return constants_wit_values::WIT_VAL_S8()
+    }
+    if eq(clone(type_name), String_from("i16")) {
+        return constants_wit_values::WIT_VAL_S16()
+    }
+    if eq(clone(type_name), String_from("i32")) {
+        return constants_wit_values::WIT_VAL_S32()
+    }
+    if eq(clone(type_name), String_from("i64")) {
+        return constants_wit_values::WIT_VAL_S64()
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return constants_wit_values::WIT_VAL_FLOAT32()
+    }
+    if eq(clone(type_name), String_from("f64")) {
+        return constants_wit_values::WIT_VAL_FLOAT64()
+    }
+    if eq(clone(type_name), String_from("string")) {
+        return constants_wit_values::WIT_VAL_STRING()
+    }
+    val_type_to_comp(fallback_vt)
 }
 
 fn comp_type_name_is_option_i32(type_name: String) -> bool {
-	eq(clone(type_name), String_from("Option")) || eq(clone(type_name), String_from("Option:i32"))
+    eq(clone(type_name), String_from("Option")) || eq(clone(type_name), String_from("Option:i32"))
 }
 
 fn comp_type_name_is_option_bool(type_name: String) -> bool {
-	eq(clone(type_name), String_from("Option:bool"))
+    eq(clone(type_name), String_from("Option:bool"))
 }
 
 fn comp_type_name_is_option_i64(type_name: String) -> bool {
-	eq(clone(type_name), String_from("Option:i64"))
+    eq(clone(type_name), String_from("Option:i64"))
 }
 
 fn comp_type_name_is_result_bool_bool(type_name: String) -> bool {
-	eq(clone(type_name), String_from("Result:bool:bool"))
+    eq(clone(type_name), String_from("Result:bool:bool"))
 }
 
 fn comp_type_name_is_result_i32_i32(type_name: String) -> bool {
-	eq(clone(type_name), String_from("Result")) || eq(clone(type_name), String_from("Result:i32:i32"))
+    eq(clone(type_name), String_from("Result")) || eq(clone(type_name), String_from("Result:i32:i32"))
 }
 
 fn comp_type_name_is_result_i32_string(type_name: String) -> bool {
-	eq(clone(type_name), String_from("Result:i32:String"))
+    eq(clone(type_name), String_from("Result:i32:String"))
 }
 
 fn comp_param_wit_type(fn_name: String, param: MirLocal) -> i32 {
-	let param_type_name = local_access::MirLocal_type_name(param)
-	let param_val_type = local_access::MirLocal_val_type(param)
-	if len(param_type_name) > 0 {
-		return comp_wit_type_from_name(param_type_name, param_val_type)
-	}
-	val_type_to_comp(param_val_type)
+    let param_type_name = local_access::MirLocal_type_name(param)
+    let param_val_type = local_access::MirLocal_val_type(param)
+    if len(param_type_name) > 0 {
+        return comp_wit_type_from_name(param_type_name, param_val_type)
+    }
+    val_type_to_comp(param_val_type)
 }
 
 fn comp_result_wit_type(f: MirFunction) -> i32 {
-	let return_type_name = function_return_view::MirFunction_return_type_name(f)
-	let return_type = function_return_view::MirFunction_return_type(f)
-	if len(return_type_name) > 0 {
-		return comp_wit_type_from_name(return_type_name, return_type)
-	}
-	val_type_to_comp(return_type)
+    let return_type_name = function_return_view::MirFunction_return_type_name(f)
+    let return_type = function_return_view::MirFunction_return_type(f)
+    if len(return_type_name) > 0 {
+        return comp_wit_type_from_name(return_type_name, return_type)
+    }
+    val_type_to_comp(return_type)
 }
 
 fn comp_export_uses_color(name: String) -> bool {
-	false
+    false
 }
 
 fn comp_export_result_uses_color(name: String) -> bool {
-	false
+    false
 }

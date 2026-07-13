@@ -1,120 +1,115 @@
 // Arukellt Selfhost - Component shape export shape scan.
-
 use component::export_function_view
 use component::naming
 use mir::module_functions
 
 pub struct ComponentShapeExportScan {
-	shape_to_f64_name: String,
-	shape_to_shape_name: String,
-	export_count: i32,
+    shape_to_f64_name: String,
+    shape_to_shape_name: String,
+    export_count: i32,
 }
 
 fn ComponentShapeExportScan_new(shape_to_f64_name: String, shape_to_shape_name: String, export_count: i32) -> ComponentShapeExportScan {
-	ComponentShapeExportScan {
-		shape_to_f64_name: shape_to_f64_name,
-		shape_to_shape_name: shape_to_shape_name,
-		export_count: export_count,
-	}
+    ComponentShapeExportScan { shape_to_f64_name: shape_to_f64_name, shape_to_shape_name: shape_to_shape_name, export_count: export_count }
 }
 
 fn ComponentShapeExportScan_empty() -> ComponentShapeExportScan {
-	ComponentShapeExportScan_new(String_new(), String_new(), 0)
+    ComponentShapeExportScan_new(String_new(), String_new(), 0)
 }
 
 fn comp_shape_export_count_is(scan: ComponentShapeExportScan, expected: i32) -> bool {
-	scan.export_count == expected
+    scan.export_count == expected
 }
 
 fn comp_shape_has_shape_to_f64(scan: ComponentShapeExportScan) -> bool {
-	len(scan.shape_to_f64_name) > 0
+    len(scan.shape_to_f64_name) > 0
 }
 
 fn comp_shape_has_shape_to_shape(scan: ComponentShapeExportScan) -> bool {
-	len(scan.shape_to_shape_name) > 0
+    len(scan.shape_to_shape_name) > 0
 }
 
 fn comp_shape_to_f64_name(scan: ComponentShapeExportScan) -> String {
-	scan.shape_to_f64_name
+    scan.shape_to_f64_name
 }
 
 fn comp_shape_to_shape_name(scan: ComponentShapeExportScan) -> String {
-	scan.shape_to_shape_name
+    scan.shape_to_shape_name
 }
 
 fn comp_shape_increment_export_count(scan: ComponentShapeExportScan) {
-	scan.export_count = scan.export_count + 1
+    scan.export_count = scan.export_count + 1
 }
 
 fn comp_shape_set_shape_to_f64_name(scan: ComponentShapeExportScan, name: String) {
-	scan.shape_to_f64_name = name
+    scan.shape_to_f64_name = name
 }
 
 fn comp_shape_set_shape_to_shape_name(scan: ComponentShapeExportScan, name: String) {
-	scan.shape_to_shape_name = name
+    scan.shape_to_shape_name = name
 }
 
 fn comp_function_is_shape_to_f64_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 1 {
-		return false
-	}
-	if !eq(export_function_view::export_function_return_type_name(f), String_from("f64")) {
-		return false
-	}
-	eq(export_function_view::export_function_param_type_name(f, 0), String_from("Shape"))
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !eq(export_function_view::export_function_return_type_name(f), String_from("f64")) {
+        return false
+    }
+    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Shape"))
 }
 
 fn comp_function_is_shape_to_shape_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 1 {
-		return false
-	}
-	if !eq(export_function_view::export_function_return_type_name(f), String_from("Shape")) {
-		return false
-	}
-	eq(export_function_view::export_function_param_type_name(f, 0), String_from("Shape"))
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !eq(export_function_view::export_function_return_type_name(f), String_from("Shape")) {
+        return false
+    }
+    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Shape"))
 }
 
 fn comp_shape_single_shape_to_f64_name(scan: ComponentShapeExportScan) -> String {
-	if comp_shape_export_count_is(scan, 1) && comp_shape_has_shape_to_f64(scan) {
-		return comp_shape_to_f64_name(scan)
-	}
-	String_new()
+    if comp_shape_export_count_is(scan, 1) && comp_shape_has_shape_to_f64(scan) {
+        return comp_shape_to_f64_name(scan)
+    }
+    String_new()
 }
 
 fn comp_shape_single_shape_to_shape_name(scan: ComponentShapeExportScan) -> String {
-	if comp_shape_export_count_is(scan, 1) && comp_shape_has_shape_to_shape(scan) {
-		return comp_shape_to_shape_name(scan)
-	}
-	String_new()
+    if comp_shape_export_count_is(scan, 1) && comp_shape_has_shape_to_shape(scan) {
+        return comp_shape_to_shape_name(scan)
+    }
+    String_new()
 }
 
 fn comp_shape_export_scan_apply(scan: ComponentShapeExportScan, f: MirFunction, export_name: String) {
-	comp_shape_increment_export_count(scan)
-	if comp_function_is_shape_to_f64_export(f) {
-		comp_shape_set_shape_to_f64_name(scan, clone(export_name))
-	}
-	if comp_function_is_shape_to_shape_export(f) {
-		comp_shape_set_shape_to_shape_name(scan, export_name)
-	}
+    comp_shape_increment_export_count(scan)
+    if comp_function_is_shape_to_f64_export(f) {
+        comp_shape_set_shape_to_f64_name(scan, clone(export_name))
+    }
+    if comp_function_is_shape_to_shape_export(f) {
+        comp_shape_set_shape_to_shape_name(scan, export_name)
+    }
 }
 
 fn comp_shape_export_scan(mir: MirModule) -> ComponentShapeExportScan {
-	let scan = ComponentShapeExportScan_empty()
-	let n = module_functions::MirModule_function_count(mir)
-	let mut i = 0
-	while i < n {
-		let f = module_functions::MirModule_function_at(mir, i)
-		let export_name = export_function_view::export_function_name(f)
-		if naming::comp_should_export_func(clone(export_name)) {
-			comp_shape_export_scan_apply(scan, f, export_name)
-		}
-		i = i + 1
-	}
-	scan
+    let scan = ComponentShapeExportScan_empty()
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            comp_shape_export_scan_apply(scan, f, export_name)
+        }
+        i = i + 1
+    }
+    scan
 }

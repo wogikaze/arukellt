@@ -1,5 +1,4 @@
 // Arukellt Selfhost - numeric string component wrappers
-
 use component::adapters_string_numeric
 use component::adapters_string_to_numeric_core
 use component::component_base
@@ -8,57 +7,53 @@ use component::emit_string_sections
 use component::writer_core
 
 fn emit_string_to_f64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	let adapter_core = comp_string_to_f64_adapter_core_module(clone(export_name))
-	emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_FLOAT64(), adapter_core)
+    let adapter_core = comp_string_to_f64_adapter_core_module(clone(export_name))
+    emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_FLOAT64(), adapter_core)
 }
 
 fn emit_string_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	let adapter_core = comp_string_to_f32_adapter_core_module(clone(export_name))
-	emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_FLOAT32(), adapter_core)
+    let adapter_core = comp_string_to_f32_adapter_core_module(clone(export_name))
+    emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_FLOAT32(), adapter_core)
 }
 
 fn emit_string_to_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	let adapter_core = comp_string_to_i64_adapter_core_module(clone(export_name))
-	emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S64(), adapter_core)
+    let adapter_core = comp_string_to_i64_adapter_core_module(clone(export_name))
+    emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S64(), adapter_core)
 }
 
 fn emit_string_to_u64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	let adapter_core = comp_string_to_i64_adapter_core_module(clone(export_name))
-	emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_U64(), adapter_core)
+    let adapter_core = comp_string_to_i64_adapter_core_module(clone(export_name))
+    emit_string_to_numeric_component(core_wasm, export_name, constants_wit_values::WIT_VAL_U64(), adapter_core)
 }
 
 fn emit_i32_to_string_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_string_numeric::comp_i32_to_string_adapter_core_module(clone(export_name)))
-
-	string_sections::emit_string_abi_alias_section(out, clone(export_name))
-	string_sections::emit_string_abi_func_type_section_with_param(out, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_STRING())
-	string_sections::emit_string_abi_canon_section(out)
-	string_sections::emit_string_abi_export_section(out, clone(export_name))
-
-	writer_core::comp_writer_bytes(out)
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_string_numeric::comp_i32_to_string_adapter_core_module(clone(export_name)))
+    string_sections::emit_string_abi_alias_section(out, clone(export_name))
+    string_sections::emit_string_abi_func_type_section_with_param(out, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_STRING())
+    string_sections::emit_string_abi_canon_section(out)
+    string_sections::emit_string_abi_export_section(out, clone(export_name))
+    writer_core::comp_writer_bytes(out)
 }
 
 fn comp_string_to_f32_adapter_core_module(export_name: String) -> Vec<i32> {
-	adapters_string_to_numeric_core::comp_string_to_numeric_adapter_core_module(export_name, 0x7f, 0x7d, 0xbe)
+    adapters_string_to_numeric_core::comp_string_to_numeric_adapter_core_module(export_name, 127, 125, 190)
 }
 
 fn comp_string_to_f64_adapter_core_module(export_name: String) -> Vec<i32> {
-	adapters_string_to_numeric_core::comp_string_to_numeric_adapter_core_module(export_name, 0x7c, 0x7c, 0)
+    adapters_string_to_numeric_core::comp_string_to_numeric_adapter_core_module(export_name, 124, 124, 0)
 }
 
 fn comp_string_to_i64_adapter_core_module(export_name: String) -> Vec<i32> {
-	adapters_string_to_numeric_core::comp_string_to_numeric_adapter_core_module(export_name, 0x7e, 0x7e, 0)
+    adapters_string_to_numeric_core::comp_string_to_numeric_adapter_core_module(export_name, 126, 126, 0)
 }
 
 fn emit_string_to_numeric_component(core_wasm: Vec<i32>, export_name: String, result_wit_type: i32, adapter_core: Vec<i32>) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapter_core)
-
-	string_sections::emit_string_abi_alias_section(out, clone(export_name))
-	string_sections::emit_string_abi_func_type_section(out, result_wit_type)
-	string_sections::emit_string_abi_canon_section(out)
-	string_sections::emit_string_abi_export_section(out, clone(export_name))
-
-	writer_core::comp_writer_bytes(out)
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapter_core)
+    string_sections::emit_string_abi_alias_section(out, clone(export_name))
+    string_sections::emit_string_abi_func_type_section(out, result_wit_type)
+    string_sections::emit_string_abi_canon_section(out)
+    string_sections::emit_string_abi_export_section(out, clone(export_name))
+    writer_core::comp_writer_bytes(out)
 }

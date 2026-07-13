@@ -1,24 +1,23 @@
 // Arukellt Resolver - scope metrics queries.
-
 use resolver::kinds
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
 
 fn count_user_symbols(ctx: ResolveCtx) -> i32 {
-	if scope_stack_scopes::ResolveCtx_scope_count(ctx) == 0 {
-		return 0
-	}
-	let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
-	let total = scope_stack_scopes::Scope_symbol_count(scope)
-	let mut user = 0
-	let mut i = 0
-	while i < total {
-		let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
-		let kind = scope_stack_symbols::Symbol_kind(sym)
-		if kind != commands::SYM_BUILTIN() && kind != commands::SYM_MODULE() {
-			user = user + 1
-		}
-		i = i + 1
-	}
-	user
+    if scope_stack_scopes::ResolveCtx_scope_count(ctx) == 0 {
+        return 0
+    }
+    let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
+    let total = scope_stack_scopes::Scope_symbol_count(scope)
+    let mut user = 0
+    let mut i = 0
+    while i < total {
+        let sym = scope_stack_scopes::Scope_symbol_at(scope, i)
+        let kind = scope_stack_symbols::Symbol_kind(sym)
+        if kind != commands::SYM_BUILTIN() && kind != commands::SYM_MODULE() {
+            user = user + 1
+        }
+        i = i + 1
+    }
+    user
 }

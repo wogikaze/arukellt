@@ -1,71 +1,70 @@
 // Arukellt Selfhost - Component result export shape predicates
-
 use component::export_function_view
 use component::naming
 use mir::value_types
 
 fn comp_function_is_result_i32_i32_to_i32_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 1 {
-		return false
-	}
-	if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
-		return false
-	}
-	naming::comp_type_name_is_result_i32_i32(export_function_view::export_function_param_type_name(f, 0))
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+        return false
+    }
+    naming::comp_type_name_is_result_i32_i32(export_function_view::export_function_param_type_name(f, 0))
 }
 
 fn comp_function_is_result_i32_string_to_i32_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 1 {
-		return false
-	}
-	if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
-		return false
-	}
-	naming::comp_type_name_is_result_i32_string(export_function_view::export_function_param_type_name(f, 0))
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+        return false
+    }
+    naming::comp_type_name_is_result_i32_string(export_function_view::export_function_param_type_name(f, 0))
 }
 
 fn comp_function_is_result_i32_i32_to_result_i32_i32_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 1 {
-		return false
-	}
-	if !naming::comp_type_name_is_result_i32_i32(export_function_view::export_function_return_type_name(f)) {
-		return false
-	}
-	naming::comp_type_name_is_result_i32_i32(export_function_view::export_function_param_type_name(f, 0))
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !naming::comp_type_name_is_result_i32_i32(export_function_view::export_function_return_type_name(f)) {
+        return false
+    }
+    naming::comp_type_name_is_result_i32_i32(export_function_view::export_function_param_type_name(f, 0))
 }
 
 fn comp_function_is_bool_to_result_bool_bool_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 1 {
-		return false
-	}
-	if !naming::comp_type_name_is_result_bool_bool(export_function_view::export_function_return_type_name(f)) {
-		return false
-	}
-	export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && eq(export_function_view::export_function_param_type_name(f, 0), String_from("bool"))
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 1 {
+        return false
+    }
+    if !naming::comp_type_name_is_result_bool_bool(export_function_view::export_function_return_type_name(f)) {
+        return false
+    }
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && eq(export_function_view::export_function_param_type_name(f, 0), String_from("bool"))
 }
 
 fn comp_function_is_i32_i32_to_result_i32_string_export(f: MirFunction) -> bool {
-	if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
-		return false
-	}
-	if export_function_view::export_function_param_count(f) != 2 {
-		return false
-	}
-	let return_type_name = export_function_view::export_function_return_type_name(f)
-	if !(eq(clone(return_type_name), String_from("Result")) || naming::comp_type_name_is_result_i32_string(return_type_name)) {
-		return false
-	}
-	export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && export_function_view::export_function_param_val_type(f, 1) == value_types::VT_I32()
+    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+        return false
+    }
+    if export_function_view::export_function_param_count(f) != 2 {
+        return false
+    }
+    let return_type_name = export_function_view::export_function_return_type_name(f)
+    if !eq(clone(return_type_name), String_from("Result")) || naming::comp_type_name_is_result_i32_string(return_type_name) {
+        return false
+    }
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && export_function_view::export_function_param_val_type(f, 1) == value_types::VT_I32()
 }

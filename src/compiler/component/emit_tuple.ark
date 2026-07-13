@@ -12,102 +12,102 @@ use component::types_wit_func
 use component::writer_core
 
 fn emit_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_tuple_return_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), false)
+    emit_tuple_return_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), false)
 }
 
 fn emit_i64_i64_to_tuple_i64_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_tuple_return_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S64(), true)
+    emit_tuple_return_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S64(), true)
 }
 
 fn emit_tuple_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32())
+    emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32())
 }
 
 fn emit_tuple_i32_bool_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_S32())
+    emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_S32())
 }
 
 fn emit_tuple_bool_bool_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_S32())
+    emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_S32())
 }
 
 fn emit_tuple_i32_i32_to_tuple_i32_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), 0)
+    emit_tuple_input_component(core_wasm, export_name, constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), 0)
 }
 
 fn emit_tuple_input_component(core_wasm: Vec<i32>, export_name: String, elem0_type: i32, elem1_type: i32, result_type: i32) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_tuple::comp_tuple_i32_i32_to_i32_adapter_core_module(clone(export_name)))
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_tuple::comp_tuple_i32_i32_to_i32_adapter_core_module(clone(export_name)))
 
-	emit_tuple_alias_section(out, clone(export_name), 2)
-	emit_tuple_input_type_section(out, elem0_type, elem1_type, result_type)
-	emit_tuple_memory_canon_section(out)
-	emit_tuple_memory_export_section(out, clone(export_name))
+    emit_tuple_alias_section(out, clone(export_name), 2)
+    emit_tuple_input_type_section(out, elem0_type, elem1_type, result_type)
+    emit_tuple_memory_canon_section(out)
+    emit_tuple_memory_export_section(out, clone(export_name))
 
-	writer_core::comp_writer_bytes(out)
+    writer_core::comp_writer_bytes(out)
 }
 
 fn emit_tuple_return_component(core_wasm: Vec<i32>, export_name: String, elem_type: i32, uses_adapter: bool) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	if uses_adapter {
-		component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_tuple::comp_i64_i64_to_tuple_i64_i64_adapter_core_module(clone(export_name)))
-	} else {
-		component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
-	}
+    let out = component_base::comp_new_component_writer()
+    if uses_adapter {
+        component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, adapters_tuple::comp_i64_i64_to_tuple_i64_i64_adapter_core_module(clone(export_name)))
+    } else {
+        component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+    }
 
-	let mut instance_idx = 1
-	if uses_adapter {
-		instance_idx = 2
-	}
-	emit_tuple_alias_section(out, clone(export_name), instance_idx)
-	emit_tuple_return_type_section(out, elem_type)
-	emit_tuple_memory_canon_section(out)
-	emit_tuple_memory_export_section(out, clone(export_name))
+    let mut instance_idx = 1
+    if uses_adapter {
+        instance_idx = 2
+    }
+    emit_tuple_alias_section(out, clone(export_name), instance_idx)
+    emit_tuple_return_type_section(out, elem_type)
+    emit_tuple_memory_canon_section(out)
+    emit_tuple_memory_export_section(out, clone(export_name))
 
-	writer_core::comp_writer_bytes(out)
+    writer_core::comp_writer_bytes(out)
 }
 
 fn emit_tuple_alias_section(out: writer_core::ComponentWriter, export_name: String, instance_idx: i32) {
-	let alias_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(alias_sec, 2)
-	export_sections_entries::emit_core_memory_alias_entry(alias_sec, instance_idx)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, instance_idx, export_name)
-	writer_core::comp_emit_section(out, 6, alias_sec)
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 2)
+    export_sections_entries::emit_core_memory_alias_entry(alias_sec, instance_idx)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, instance_idx, export_name)
+    writer_core::comp_emit_section(out, 6, alias_sec)
 }
 
 fn emit_tuple_return_type_section(out: writer_core::ComponentWriter, elem_type: i32) {
-	let elems = Vec_new_i32()
-	push(elems, elem_type)
-	push(elems, elem_type)
-	let params = Vec_new_i32()
-	push(params, elem_type)
-	push(params, elem_type)
-	let results = Vec_new_i32()
-	push(results, 0)
-	type_section_entries::emit_two_type_section(out, types_wit_compound::comp_wit_tuple_type(elems), types_wit_func::comp_component_func_type(params, results))
+    let elems = Vec_new_i32()
+    push(elems, elem_type)
+    push(elems, elem_type)
+    let params = Vec_new_i32()
+    push(params, elem_type)
+    push(params, elem_type)
+    let results = Vec_new_i32()
+    push(results, 0)
+    type_section_entries::emit_two_type_section(out, types_wit_compound::comp_wit_tuple_type(elems), types_wit_func::comp_component_func_type(params, results))
 }
 
 fn emit_tuple_input_type_section(out: writer_core::ComponentWriter, elem0_type: i32, elem1_type: i32, result_type: i32) {
-	let elems = Vec_new_i32()
-	push(elems, elem0_type)
-	push(elems, elem1_type)
-	let params = Vec_new_i32()
-	push(params, 0)
-	let results = Vec_new_i32()
-	push(results, result_type)
-	type_section_entries::emit_two_type_section(out, types_wit_compound::comp_wit_tuple_type(elems), types_wit_func::comp_component_func_type(params, results))
+    let elems = Vec_new_i32()
+    push(elems, elem0_type)
+    push(elems, elem1_type)
+    let params = Vec_new_i32()
+    push(params, 0)
+    let results = Vec_new_i32()
+    push(results, result_type)
+    type_section_entries::emit_two_type_section(out, types_wit_compound::comp_wit_tuple_type(elems), types_wit_func::comp_component_func_type(params, results))
 }
 
 fn emit_tuple_memory_canon_section(out: writer_core::ComponentWriter) {
-	let canon_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(canon_sec, 1)
-	export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
-	writer_core::comp_emit_section(out, 8, canon_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
+    writer_core::comp_emit_section(out, 8, canon_sec)
 }
 
 fn emit_tuple_memory_export_section(out: writer_core::ComponentWriter, export_name: String) {
-	let func_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_export_sec, 1)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
-	writer_core::comp_emit_section(out, 11, func_export_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
+    writer_core::comp_emit_section(out, 11, func_export_sec)
 }

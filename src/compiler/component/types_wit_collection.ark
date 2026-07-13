@@ -4,33 +4,33 @@ use component::constants_wit_values
 use component::writer_core
 
 fn comp_wit_list_type(elem_type_idx: i32) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_LIST())
-	comp_emit_wit_single_type_index(w, elem_type_idx)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_LIST())
+    comp_emit_wit_single_type_index(w, elem_type_idx)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_option_type(elem_type_idx: i32) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_OPTION())
-	comp_emit_wit_single_type_index(w, elem_type_idx)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_OPTION())
+    comp_emit_wit_single_type_index(w, elem_type_idx)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_result_type(ok_type_idx: i32, err_type_idx: i32) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RESULT())
-	comp_emit_wit_result_pair(w, ok_type_idx, err_type_idx)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RESULT())
+    comp_emit_wit_result_pair(w, ok_type_idx, err_type_idx)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_emit_wit_single_type_index(w: writer_core::ComponentWriter, elem_type_idx: i32) {
-	writer_core::comp_emit_leb128_u(w, elem_type_idx)
+    writer_core::comp_emit_leb128_u(w, elem_type_idx)
 }
 
 fn comp_emit_wit_result_pair(w: writer_core::ComponentWriter, ok_type_idx: i32, err_type_idx: i32) {
-	writer_core::comp_emit_byte(w, 0x01)
-	writer_core::comp_emit_leb128_u(w, ok_type_idx)
-	writer_core::comp_emit_byte(w, 0x01)
-	writer_core::comp_emit_leb128_u(w, err_type_idx)
+    writer_core::comp_emit_byte(w, 0x01)
+    writer_core::comp_emit_leb128_u(w, ok_type_idx)
+    writer_core::comp_emit_byte(w, 0x01)
+    writer_core::comp_emit_leb128_u(w, err_type_idx)
 }

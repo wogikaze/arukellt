@@ -1,45 +1,44 @@
 // Arukellt Selfhost - component tuple type predicates
-
 use component::contract_helpers
 use component::type_node
 
 fn component_type_is_tuple_i32_i32(ty: ComponentTypeNode) -> bool {
-	component_type_is_named_pair(ty, String_from("i32"), String_from("i32"))
+    component_type_is_named_pair(ty, String_from("i32"), String_from("i32"))
 }
 
 fn component_type_is_tuple_i32_bool(ty: ComponentTypeNode) -> bool {
-	component_type_is_named_pair(ty, String_from("i32"), String_from("bool"))
+    component_type_is_named_pair(ty, String_from("i32"), String_from("bool"))
 }
 
 fn component_type_is_tuple_bool_bool(ty: ComponentTypeNode) -> bool {
-	component_type_is_named_pair(ty, String_from("bool"), String_from("bool"))
+    component_type_is_named_pair(ty, String_from("bool"), String_from("bool"))
 }
 
 fn component_type_is_tuple_i64_i64(ty: ComponentTypeNode) -> bool {
-	component_type_is_named_pair(ty, String_from("i64"), String_from("i64"))
+    component_type_is_named_pair(ty, String_from("i64"), String_from("i64"))
 }
 
 fn component_type_is_named_pair(ty: ComponentTypeNode, left_name: String, right_name: String) -> bool {
-	type_node::type_node_is_tuple_pair(ty, left_name, right_name)
+    type_node::type_node_is_tuple_pair(ty, left_name, right_name)
 }
 
 fn component_param_type_is_tuple_i32_i32(f: ComponentExportFunc, idx: i32) -> bool {
-	if !contract_helpers::component_export_param_has_type_at(f, idx) {
-		return false
-	}
-	component_type_is_tuple_i32_i32(contract_helpers::component_export_param_type_view_at(f, idx))
+    if !contract_helpers::component_export_param_has_type_at(f, idx) {
+        return false
+    }
+    component_type_is_tuple_i32_i32(contract_helpers::component_export_param_type_view_at(f, idx))
 }
 
 fn component_param_type_is_tuple_i32_bool(f: ComponentExportFunc, idx: i32) -> bool {
-	if !contract_helpers::component_export_param_has_type_at(f, idx) {
-		return false
-	}
-	component_type_is_tuple_i32_bool(contract_helpers::component_export_param_type_view_at(f, idx))
+    if !contract_helpers::component_export_param_has_type_at(f, idx) {
+        return false
+    }
+    component_type_is_tuple_i32_bool(contract_helpers::component_export_param_type_view_at(f, idx))
 }
 
 fn component_param_type_is_tuple_bool_bool(f: ComponentExportFunc, idx: i32) -> bool {
-	if !contract_helpers::component_export_param_has_type_at(f, idx) {
-		return false
-	}
-	component_type_is_tuple_bool_bool(contract_helpers::component_export_param_type_view_at(f, idx))
+    if !contract_helpers::component_export_param_has_type_at(f, idx) {
+        return false
+    }
+    component_type_is_tuple_bool_bool(contract_helpers::component_export_param_type_view_at(f, idx))
 }

@@ -1,21 +1,19 @@
 // Arukellt Selfhost - string intrinsic handlers.
-
 use mir::inst_accessors_operands
+use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::ctx_string_view
-use wasm::ctx_record
-use wasm::string_gc_helpers
-use wasm::writer_core
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::string_gc_helpers
+use wasm::writer_core
 
-// Handler for: String_from, clone
 fn emit_clone(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-                                                                                                                            let _nop = 0
+    let _nop = 0
     return true
-    }
+}
 
 // Handler for: len
 fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -25,7 +23,7 @@ fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         helpers_memory::emit_string_len_from_stack(w)
     }
     return true
-    }
+}
 
 // Handler for: bool_to_string, text::format_bool, convert::bool_to_string
 fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -64,16 +62,13 @@ fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32,
     string_gc_helpers::emit_gc_i32_const(w, str_len)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     string_gc_helpers::emit_gc_local_set(w, dest)
-
     string_gc_helpers::emit_gc_i32_const(w, 0)
     string_gc_helpers::emit_gc_local_set(w, s_i)
-
     string_gc_helpers::emit_gc_block_loop(w)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, str_len)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-
     string_gc_helpers::emit_gc_local_get(w, dest)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, data_offset)
@@ -83,14 +78,12 @@ fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32,
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
     string_gc_helpers::emit_gc_array_set(w, string_type)
-
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     string_gc_helpers::emit_gc_i32_add(w)
     string_gc_helpers::emit_gc_local_set(w, s_i)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
-
     if dest < 0 {
         string_gc_helpers::emit_gc_local_get(w, dest)
     }
@@ -122,21 +115,11 @@ fn emit_concat_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_len_a = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_len_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
-
-    // Save GC refs from stack to GC scratch locals
     helpers_core::emit_local_set(w, s_gc1)
     helpers_core::emit_local_set(w, s_gc0)
-
-    // Compute lengths and allocate result array
     emit_concat_gc_alloc(w, s_gc0, s_gc1, dest, string_type, s_len_a, s_len_b)
-
-    // Copy loop A: for i = 0 to len_a-1: dest[i] = A[i]
     emit_gc_copy_loop(w, s_i, s_len_a, dest, s_gc0, string_type)
-
-    // Copy loop B: for i = 0 to len_b-1: dest[len_a + i] = B[i]
     emit_gc_copy_loop_offset(w, s_i, s_len_b, dest, s_gc1, s_len_a, string_type)
-
-    // Push result on stack
     helpers_core::emit_local_get(w, dest)
 }
 
@@ -144,11 +127,9 @@ fn emit_concat_gc_alloc(w: WasmWriter, arg0: i32, arg1: i32, dest: i32, string_t
     helpers_core::emit_local_get(w, arg0)
     string_gc_helpers::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_len_a)
-
     helpers_core::emit_local_get(w, arg1)
     string_gc_helpers::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_len_b)
-
     helpers_core::emit_local_get(w, s_len_a)
     helpers_core::emit_local_get(w, s_len_b)
     helpers_numeric_i32::emit_i32_add(w)
@@ -234,7 +215,6 @@ fn emit_concat_copy(w: WasmWriter, a_local: i32, b_local: i32, len_a_local: i32,
     helpers_core::emit_local_get(w, a_local)
     helpers_core::emit_local_get(w, len_a_local)
     helpers_memory::emit_memory_copy(w)
-
     helpers_core::emit_local_get(w, result_ptr_local)
     helpers_core::emit_local_get(w, len_a_local)
     helpers_numeric_i32::emit_i32_add(w)
@@ -244,3 +224,9 @@ fn emit_concat_copy(w: WasmWriter, a_local: i32, b_local: i32, len_a_local: i32,
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_memory::emit_memory_copy(w)
 }
+// Handler for: String_from, clone
+// Save GC refs from stack to GC scratch locals
+// Compute lengths and allocate result array
+// Copy loop A: for i = 0 to len_a-1: dest[i] = A[i]
+// Copy loop B: for i = 0 to len_b-1: dest[len_a + i] = B[i]
+// Push result on stack

@@ -1,140 +1,139 @@
 // Arukellt Selfhost - Component single export shape scan facade
-
 use component::export_shapes_kinds
 use component::export_shapes_select
 
 fn comp_single_list_i32_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_list_export_name(mir, export_shapes_kinds::LIST_I32_TO_I32())
+    export_shapes_select::comp_single_list_export_name(mir, export_shapes_kinds::LIST_I32_TO_I32())
 }
 
 fn comp_single_i32_to_list_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_list_export_name(mir, export_shapes_kinds::I32_TO_LIST_I32())
+    export_shapes_select::comp_single_list_export_name(mir, export_shapes_kinds::I32_TO_LIST_I32())
 }
 
 fn comp_single_list_i32_to_list_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_list_export_name(mir, export_shapes_kinds::LIST_I32_TO_LIST_I32())
+    export_shapes_select::comp_single_list_export_name(mir, export_shapes_kinds::LIST_I32_TO_LIST_I32())
 }
 
 fn comp_single_f32_unary_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::F32_UNARY())
+    export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::F32_UNARY())
 }
 
 fn comp_single_f32_binary_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::F32_BINARY())
+    export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::F32_BINARY())
 }
 
 fn comp_single_f32_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::F32_TO_I32())
+    export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::F32_TO_I32())
 }
 
 fn comp_single_i32_to_f32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::I32_TO_F32())
+    export_shapes_select::comp_single_numeric_export_name(mir, export_shapes_kinds::I32_TO_F32())
 }
 
 fn comp_single_i32_to_option_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::I32_TO_OPTION_I32())
+    export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::I32_TO_OPTION_I32())
 }
 
 fn comp_single_bool_to_option_bool_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::BOOL_TO_OPTION_BOOL())
+    export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::BOOL_TO_OPTION_BOOL())
 }
 
 fn comp_single_bool_to_option_i64_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::BOOL_TO_OPTION_I64())
+    export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::BOOL_TO_OPTION_I64())
 }
 
 fn comp_single_option_i32_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::OPTION_I32_TO_I32())
+    export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::OPTION_I32_TO_I32())
 }
 
 fn comp_single_option_i64_to_i64_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::OPTION_I64_TO_I64())
+    export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::OPTION_I64_TO_I64())
 }
 
 fn comp_single_option_i32_to_option_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::OPTION_I32_TO_OPTION_I32())
+    export_shapes_select::comp_single_option_export_name(mir, export_shapes_kinds::OPTION_I32_TO_OPTION_I32())
 }
 
 fn comp_single_result_i32_i32_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::RESULT_I32_I32_TO_I32())
+    export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::RESULT_I32_I32_TO_I32())
 }
 
 fn comp_single_result_i32_string_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::RESULT_I32_STRING_TO_I32())
+    export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::RESULT_I32_STRING_TO_I32())
 }
 
 fn comp_single_result_i32_i32_to_result_i32_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::RESULT_I32_I32_TO_RESULT_I32_I32())
+    export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::RESULT_I32_I32_TO_RESULT_I32_I32())
 }
 
 fn comp_single_bool_to_result_bool_bool_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::BOOL_TO_RESULT_BOOL_BOOL())
+    export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::BOOL_TO_RESULT_BOOL_BOOL())
 }
 
 fn comp_single_i32_i32_to_result_i32_string_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::I32_I32_TO_RESULT_I32_STRING())
+    export_shapes_select::comp_single_result_export_name(mir, export_shapes_kinds::I32_I32_TO_RESULT_I32_STRING())
 }
 
 fn comp_single_string_unary_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_UNARY(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_UNARY(), String_new())
 }
 
 fn comp_single_string_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_I32(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_I32(), String_new())
 }
 
 fn comp_single_string_to_named_i32_export_name(mir: MirModule, return_name: String) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_NAMED_I32(), return_name)
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_NAMED_I32(), return_name)
 }
 
 fn comp_single_i32_to_string_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::I32_TO_STRING(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::I32_TO_STRING(), String_new())
 }
 
 fn comp_single_string_to_bool_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_BOOL(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_BOOL(), String_new())
 }
 
 fn comp_single_string_to_char_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_CHAR(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_CHAR(), String_new())
 }
 
 fn comp_single_string_to_f64_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_F64(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_F64(), String_new())
 }
 
 fn comp_single_string_to_i64_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_I64(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_I64(), String_new())
 }
 
 fn comp_single_string_to_u64_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_U64(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_U64(), String_new())
 }
 
 fn comp_single_string_to_f32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_F32(), String_new())
+    export_shapes_select::comp_single_string_export_name(mir, export_shapes_kinds::STRING_TO_F32(), String_new())
 }
 
 fn comp_single_i32_i32_to_tuple_i32_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::I32_I32_TO_TUPLE_I32_I32())
+    export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::I32_I32_TO_TUPLE_I32_I32())
 }
 
 fn comp_single_i64_i64_to_tuple_i64_i64_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::I64_I64_TO_TUPLE_I64_I64())
+    export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::I64_I64_TO_TUPLE_I64_I64())
 }
 
 fn comp_single_tuple_i32_i32_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_I32_I32_TO_I32())
+    export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_I32_I32_TO_I32())
 }
 
 fn comp_single_tuple_i32_i32_to_tuple_i32_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_I32_I32_TO_TUPLE_I32_I32())
+    export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_I32_I32_TO_TUPLE_I32_I32())
 }
 
 fn comp_single_tuple_i32_bool_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_I32_BOOL_TO_I32())
+    export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_I32_BOOL_TO_I32())
 }
 
 fn comp_single_tuple_bool_bool_to_i32_export_name(mir: MirModule) -> String {
-	export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_BOOL_BOOL_TO_I32())
+    export_shapes_select::comp_single_tuple_export_name(mir, export_shapes_kinds::TUPLE_BOOL_BOOL_TO_I32())
 }

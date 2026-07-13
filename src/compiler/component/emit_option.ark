@@ -12,39 +12,39 @@ use component::types_wit_func
 use component::writer_core
 
 fn emit_option_projection_component(core_wasm: Vec<i32>, export_name: String, kind: i32, option_elem_type: i32, result_type: i32) -> Vec<i32> {
-	let out = component_base::comp_new_component_writer()
-	component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, option_adapter_core_module(clone(export_name), kind))
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_core_adapter_instance_sections(out, core_wasm, option_adapter_core_module(clone(export_name), kind))
 
-	emit_option_projection_alias_section(out, clone(export_name))
-	emit_option_projection_type_section(out, option_elem_type, result_type)
-	emit_option_projection_canon_section(out)
-	emit_option_projection_export_section(out, clone(export_name))
+    emit_option_projection_alias_section(out, clone(export_name))
+    emit_option_projection_type_section(out, option_elem_type, result_type)
+    emit_option_projection_canon_section(out)
+    emit_option_projection_export_section(out, clone(export_name))
 
-	writer_core::comp_writer_bytes(out)
+    writer_core::comp_writer_bytes(out)
 }
 
 fn emit_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	option_construct::emit_i32_to_option_i32_component(core_wasm, export_name)
+    option_construct::emit_i32_to_option_i32_component(core_wasm, export_name)
 }
 
 fn emit_bool_to_option_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	option_construct::emit_bool_to_option_bool_component(core_wasm, export_name)
+    option_construct::emit_bool_to_option_bool_component(core_wasm, export_name)
 }
 
 fn emit_bool_to_option_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	option_construct::emit_bool_to_option_i64_component(core_wasm, export_name)
+    option_construct::emit_bool_to_option_i64_component(core_wasm, export_name)
 }
 
 fn emit_option_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_option_projection_component(core_wasm, export_name, OPTION_ADAPTER_I32_TO_I32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32())
+    emit_option_projection_component(core_wasm, export_name, OPTION_ADAPTER_I32_TO_I32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32())
 }
 
 fn emit_option_i64_to_i64_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_option_projection_component(core_wasm, export_name, OPTION_ADAPTER_I64_TO_I64(), constants_wit_values::WIT_VAL_S64(), constants_wit_values::WIT_VAL_S64())
+    emit_option_projection_component(core_wasm, export_name, OPTION_ADAPTER_I64_TO_I64(), constants_wit_values::WIT_VAL_S64(), constants_wit_values::WIT_VAL_S64())
 }
 
 fn emit_option_i32_to_option_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-	emit_option_projection_component(core_wasm, export_name, OPTION_ADAPTER_I32_ROUNDTRIP(), constants_wit_values::WIT_VAL_S32(), 0)
+    emit_option_projection_component(core_wasm, export_name, OPTION_ADAPTER_I32_ROUNDTRIP(), constants_wit_values::WIT_VAL_S32(), 0)
 }
 
 fn OPTION_ADAPTER_I32_TO_I32() -> i32 { 1 }
@@ -52,45 +52,45 @@ fn OPTION_ADAPTER_I64_TO_I64() -> i32 { 2 }
 fn OPTION_ADAPTER_I32_ROUNDTRIP() -> i32 { 3 }
 
 fn option_adapter_core_module(export_name: String, kind: i32) -> Vec<i32> {
-	if kind == OPTION_ADAPTER_I64_TO_I64() {
-		return adapters_option::comp_option_i64_to_i64_adapter_core_module(export_name)
-	}
-	if kind == OPTION_ADAPTER_I32_ROUNDTRIP() {
-		return adapters_option::comp_option_i32_to_option_i32_adapter_core_module(export_name)
-	}
-	adapters_option::comp_option_i32_to_i32_adapter_core_module(export_name)
+    if kind == OPTION_ADAPTER_I64_TO_I64() {
+        return adapters_option::comp_option_i64_to_i64_adapter_core_module(export_name)
+    }
+    if kind == OPTION_ADAPTER_I32_ROUNDTRIP() {
+        return adapters_option::comp_option_i32_to_option_i32_adapter_core_module(export_name)
+    }
+    adapters_option::comp_option_i32_to_i32_adapter_core_module(export_name)
 }
 
 fn emit_option_projection_alias_section(out: writer_core::ComponentWriter, export_name: String) {
-	let alias_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(alias_sec, 2)
-	export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
-	export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
-	writer_core::comp_emit_section(out, 6, alias_sec)
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 2)
+    export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
+    writer_core::comp_emit_section(out, 6, alias_sec)
 }
 
 fn emit_option_projection_type_section(out: writer_core::ComponentWriter, option_elem_type: i32, result_type: i32) {
-	let type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(type_sec, 2)
-	writer_core::comp_emit_bytes(type_sec, types_wit_collection::comp_wit_option_type(option_elem_type))
-	let params = Vec_new_i32()
-	push(params, 0)
-	let results = Vec_new_i32()
-	push(results, result_type)
-	writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
-	writer_core::comp_emit_section(out, 7, type_sec)
+    let type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(type_sec, 2)
+    writer_core::comp_emit_bytes(type_sec, types_wit_collection::comp_wit_option_type(option_elem_type))
+    let params = Vec_new_i32()
+    push(params, 0)
+    let results = Vec_new_i32()
+    push(results, result_type)
+    writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
+    writer_core::comp_emit_section(out, 7, type_sec)
 }
 
 fn emit_option_projection_canon_section(out: writer_core::ComponentWriter) {
-	let canon_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(canon_sec, 1)
-	export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
-	writer_core::comp_emit_section(out, 8, canon_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    export_sections_entries::emit_canon_lift_memory_entry(canon_sec, 0, 0, 1)
+    writer_core::comp_emit_section(out, 8, canon_sec)
 }
 
 fn emit_option_projection_export_section(out: writer_core::ComponentWriter, export_name: String) {
-	let func_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(func_export_sec, 1)
-	export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
-	writer_core::comp_emit_section(out, 11, func_export_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
+    writer_core::comp_emit_section(out, 11, func_export_sec)
 }

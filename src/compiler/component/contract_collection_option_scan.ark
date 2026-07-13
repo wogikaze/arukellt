@@ -1,97 +1,88 @@
 // Arukellt Selfhost - component option declaration scan.
-
 use component::contract_collection_fn
 use component::contract_helpers
 
 pub struct ComponentCollectionOptionScan {
-	has_i32_to_option_i32: bool,
-	has_bool_to_option_bool: bool,
-	has_bool_to_option_i64: bool,
-	has_option_i64_to_i64: bool,
-	has_option_i32_to_i32: bool,
-	has_option_i32_to_option_i32: bool,
-	export_count: i32,
+    has_i32_to_option_i32: bool,
+    has_bool_to_option_bool: bool,
+    has_bool_to_option_i64: bool,
+    has_option_i64_to_i64: bool,
+    has_option_i32_to_i32: bool,
+    has_option_i32_to_option_i32: bool,
+    export_count: i32,
 }
 
 fn ComponentCollectionOptionScan_new(has_i32_to_option_i32: bool, has_bool_to_option_bool: bool, has_bool_to_option_i64: bool, has_option_i64_to_i64: bool, has_option_i32_to_i32: bool, has_option_i32_to_option_i32: bool, export_count: i32) -> ComponentCollectionOptionScan {
-	ComponentCollectionOptionScan {
-		has_i32_to_option_i32: has_i32_to_option_i32,
-		has_bool_to_option_bool: has_bool_to_option_bool,
-		has_bool_to_option_i64: has_bool_to_option_i64,
-		has_option_i64_to_i64: has_option_i64_to_i64,
-		has_option_i32_to_i32: has_option_i32_to_i32,
-		has_option_i32_to_option_i32: has_option_i32_to_option_i32,
-		export_count: export_count,
-	}
+    ComponentCollectionOptionScan { has_i32_to_option_i32: has_i32_to_option_i32, has_bool_to_option_bool: has_bool_to_option_bool, has_bool_to_option_i64: has_bool_to_option_i64, has_option_i64_to_i64: has_option_i64_to_i64, has_option_i32_to_i32: has_option_i32_to_i32, has_option_i32_to_option_i32: has_option_i32_to_option_i32, export_count: export_count }
 }
 
 fn ComponentCollectionOptionScan_empty() -> ComponentCollectionOptionScan {
-	ComponentCollectionOptionScan_new(false, false, false, false, false, false, 0)
+    ComponentCollectionOptionScan_new(false, false, false, false, false, false, 0)
 }
 
 fn ComponentCollectionOptionScan_single_export(scan: ComponentCollectionOptionScan) -> bool {
-	scan.export_count == 1
+    scan.export_count == 1
 }
 
 fn ComponentCollectionOptionScan_increment_export_count(scan: ComponentCollectionOptionScan) {
-	scan.export_count = scan.export_count + 1
+    scan.export_count = scan.export_count + 1
 }
 
 fn component_collection_option_scan_apply_fn(d: AstNode, scan: ComponentCollectionOptionScan) -> ComponentCollectionOptionScan {
-	let f = contract_helpers::component_func_from_decl(d)
-	if contract_collection_fn::component_fn_is_i32_to_option_i32(f) {
-		scan.has_i32_to_option_i32 = true
-	}
-	if contract_collection_fn::component_fn_is_bool_to_option_bool(f) {
-		scan.has_bool_to_option_bool = true
-	}
-	if contract_collection_fn::component_fn_is_bool_to_option_i64(f) {
-		scan.has_bool_to_option_i64 = true
-	}
-	if contract_collection_fn::component_fn_is_option_i64_to_i64(f) {
-		scan.has_option_i64_to_i64 = true
-	}
-	if contract_collection_fn::component_fn_is_option_i32_to_i32(f) {
-		scan.has_option_i32_to_i32 = true
-	}
-	if contract_collection_fn::component_fn_is_option_i32_to_option_i32(f) {
-		scan.has_option_i32_to_option_i32 = true
-	}
-	scan
+    let f = contract_helpers::component_func_from_decl(d)
+    if contract_collection_fn::component_fn_is_i32_to_option_i32(f) {
+        scan.has_i32_to_option_i32 = true
+    }
+    if contract_collection_fn::component_fn_is_bool_to_option_bool(f) {
+        scan.has_bool_to_option_bool = true
+    }
+    if contract_collection_fn::component_fn_is_bool_to_option_i64(f) {
+        scan.has_bool_to_option_i64 = true
+    }
+    if contract_collection_fn::component_fn_is_option_i64_to_i64(f) {
+        scan.has_option_i64_to_i64 = true
+    }
+    if contract_collection_fn::component_fn_is_option_i32_to_i32(f) {
+        scan.has_option_i32_to_i32 = true
+    }
+    if contract_collection_fn::component_fn_is_option_i32_to_option_i32(f) {
+        scan.has_option_i32_to_option_i32 = true
+    }
+    scan
 }
 
 fn ComponentCollectionOptionScan_allows_i32_to_option_i32(scan: ComponentCollectionOptionScan) -> bool {
-	scan.has_i32_to_option_i32 && ComponentCollectionOptionScan_single_export(scan)
+    scan.has_i32_to_option_i32 && ComponentCollectionOptionScan_single_export(scan)
 }
 
 fn ComponentCollectionOptionScan_allows_bool_to_option_bool(scan: ComponentCollectionOptionScan) -> bool {
-	scan.has_bool_to_option_bool && ComponentCollectionOptionScan_single_export(scan)
+    scan.has_bool_to_option_bool && ComponentCollectionOptionScan_single_export(scan)
 }
 
 fn ComponentCollectionOptionScan_allows_bool_to_option_i64(scan: ComponentCollectionOptionScan) -> bool {
-	scan.has_bool_to_option_i64 && ComponentCollectionOptionScan_single_export(scan)
+    scan.has_bool_to_option_i64 && ComponentCollectionOptionScan_single_export(scan)
 }
 
 fn ComponentCollectionOptionScan_allows_option_i64_to_i64(scan: ComponentCollectionOptionScan) -> bool {
-	scan.has_option_i64_to_i64 && ComponentCollectionOptionScan_single_export(scan)
+    scan.has_option_i64_to_i64 && ComponentCollectionOptionScan_single_export(scan)
 }
 
 fn ComponentCollectionOptionScan_allows_option_i32_to_i32(scan: ComponentCollectionOptionScan) -> bool {
-	scan.has_option_i32_to_i32 && ComponentCollectionOptionScan_single_export(scan)
+    scan.has_option_i32_to_i32 && ComponentCollectionOptionScan_single_export(scan)
 }
 
 fn ComponentCollectionOptionScan_allows_option_i32_to_option_i32(scan: ComponentCollectionOptionScan) -> bool {
-	scan.has_option_i32_to_option_i32 && ComponentCollectionOptionScan_single_export(scan)
+    scan.has_option_i32_to_option_i32 && ComponentCollectionOptionScan_single_export(scan)
 }
 
 fn component_collection_option_scan(decls: Vec<AstNode>) -> ComponentCollectionOptionScan {
-	let scan = ComponentCollectionOptionScan_empty()
-	for i in 0..len(decls) {
-		let d = get_unchecked(decls, i)
-		if contract_helpers::is_export_func_decl(d) {
-			ComponentCollectionOptionScan_increment_export_count(scan)
-			component_collection_option_scan_apply_fn(d, scan)
-		}
-	}
-	scan
+    let scan = ComponentCollectionOptionScan_empty()
+    for i in 0..len(decls) {
+        let d = get_unchecked(decls, i)
+        if contract_helpers::is_export_func_decl(d) {
+            ComponentCollectionOptionScan_increment_export_count(scan)
+            component_collection_option_scan_apply_fn(d, scan)
+        }
+    }
+    scan
 }

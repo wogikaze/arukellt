@@ -7,42 +7,42 @@ use component::types_wit_compound
 use component::writer_core
 
 fn emit_single_type_section(out: writer_core::ComponentWriter, type_bytes: Vec<i32>) {
-	let type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(type_sec, 1)
-	writer_core::comp_emit_bytes(type_sec, type_bytes)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
+    let type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(type_sec, 1)
+    writer_core::comp_emit_bytes(type_sec, type_bytes)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
 }
 
 fn emit_single_type_export_section(out: writer_core::ComponentWriter, export_name: String, type_idx: i32) {
-	let type_export_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(type_export_sec, 1)
-	sections::comp_emit_export_entry(type_export_sec, export_name, 0x03, type_idx)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), type_export_sec)
+    let type_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(type_export_sec, 1)
+    sections::comp_emit_export_entry(type_export_sec, export_name, 0x03, type_idx)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), type_export_sec)
 }
 
 fn emit_two_type_section(out: writer_core::ComponentWriter, first_type_bytes: Vec<i32>, second_type_bytes: Vec<i32>) {
-	let type_sec = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_leb128_u(type_sec, 2)
-	writer_core::comp_emit_bytes(type_sec, first_type_bytes)
-	writer_core::comp_emit_bytes(type_sec, second_type_bytes)
-	writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
+    let type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(type_sec, 2)
+    writer_core::comp_emit_bytes(type_sec, first_type_bytes)
+    writer_core::comp_emit_bytes(type_sec, second_type_bytes)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)
 }
 
 fn point_s32_value() -> i32 {
-	constants_wit_values::WIT_VAL_S32()
+    constants_wit_values::WIT_VAL_S32()
 }
 
 fn point_record_type_bytes() -> Vec<i32> {
-	let field_names = Vec_new_String()
-	push(field_names, String_from("x"))
-	push(field_names, String_from("y"))
-	let field_types = Vec_new_i32()
-	push(field_types, point_s32_value())
-	push(field_types, point_s32_value())
-	types_wit_compound::comp_wit_record_type(field_names, field_types)
+    let field_names = Vec_new_String()
+    push(field_names, String_from("x"))
+    push(field_names, String_from("y"))
+    let field_types = Vec_new_i32()
+    push(field_types, point_s32_value())
+    push(field_types, point_s32_value())
+    types_wit_compound::comp_wit_record_type(field_names, field_types)
 }
 
 fn emit_point_record_type_sections(out: writer_core::ComponentWriter) {
-	emit_single_type_section(out, point_record_type_bytes())
-	emit_single_type_export_section(out, String_from("point"), 0)
+    emit_single_type_section(out, point_record_type_bytes())
+    emit_single_type_export_section(out, String_from("point"), 0)
 }

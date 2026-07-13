@@ -45,6 +45,7 @@
 
 - `.ark` ファイルはプロジェクトの formatter を通し、formatter 適用後の差分を確認する。
 - インデントはスペース 4 個とする。タブ、タブとスペースの混在、桁合わせのための大量の空白を追加しない。
+- `verify quick` は `scripts/check/check-ark-code-quality.py` でタブ禁止・極端インデント禁止・200 文字超行 / 薄い転送の件数 ratchet を検査する（天井は `docs/data/ark-code-quality-baseline.toml`）。
 - 1 行は原則 120 文字以内にする。長い関数宣言、呼び出し、record literal、条件式は意味のまとまりごとに複数行へ分ける。
 - 複数フィールドを持つ record literal は、原則として 1 フィールド 1 行で記述する。
 - CSS、HTML、JavaScript、fixture などの長い文字列を minify した 1 行として埋め込まない。意味のある断片へ分けるか、専用の resource または template として管理する。

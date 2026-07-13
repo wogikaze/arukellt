@@ -4,109 +4,109 @@ use component::constants_wit_values
 use component::writer_core
 
 fn comp_wit_record_type(names: Vec<String>, type_indices: Vec<i32>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RECORD())
-	comp_emit_named_index_entries(w, names, type_indices)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RECORD())
+    comp_emit_named_index_entries(w, names, type_indices)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_variant_type(names: Vec<String>, type_indices: Vec<i32>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_VARIANT())
-	comp_emit_variant_entries(w, names, type_indices)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_VARIANT())
+    comp_emit_variant_entries(w, names, type_indices)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_enum_type(names: Vec<String>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_ENUM())
-	comp_emit_named_entries(w, names)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_ENUM())
+    comp_emit_named_entries(w, names)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_flags_type(names: Vec<String>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_FLAGS())
-	comp_emit_named_entries(w, names)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_FLAGS())
+    comp_emit_named_entries(w, names)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_tuple_type(elem_type_indices: Vec<i32>) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_TUPLE())
-	comp_emit_index_entries(w, elem_type_indices)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_TUPLE())
+    comp_emit_index_entries(w, elem_type_indices)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_resource_type() -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RESOURCE())
-	writer_core::comp_emit_leb128_u(w, 0)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_RESOURCE())
+    writer_core::comp_emit_leb128_u(w, 0)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_own_type(type_idx: i32) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_OWN())
-	writer_core::comp_emit_leb128_u(w, type_idx)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_OWN())
+    writer_core::comp_emit_leb128_u(w, type_idx)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_wit_borrow_type(type_idx: i32) -> Vec<i32> {
-	let w = writer_core::ComponentWriter_new()
-	writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_BORROW())
-	writer_core::comp_emit_leb128_u(w, type_idx)
-	writer_core::comp_writer_bytes(w)
+    let w = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_byte(w, constants_wit_values::WIT_TAG_BORROW())
+    writer_core::comp_emit_leb128_u(w, type_idx)
+    writer_core::comp_writer_bytes(w)
 }
 
 fn comp_emit_named_entries(w: writer_core::ComponentWriter, names: Vec<String>) {
-	let count = len(names)
-	writer_core::comp_emit_leb128_u(w, count)
-	let mut i = 0
-	while i < count {
-		writer_core::comp_emit_string(w, get_unchecked(names, i))
-		i = i + 1
-	}
+    let count = len(names)
+    writer_core::comp_emit_leb128_u(w, count)
+    let mut i = 0
+    while i < count {
+        writer_core::comp_emit_string(w, get_unchecked(names, i))
+        i = i + 1
+    }
 }
 
 fn comp_emit_named_index_entries(w: writer_core::ComponentWriter, names: Vec<String>, type_indices: Vec<i32>) {
-	let count = len(names)
-	writer_core::comp_emit_leb128_u(w, count)
-	let mut i = 0
-	while i < count {
-		writer_core::comp_emit_string(w, get_unchecked(names, i))
-		writer_core::comp_emit_leb128_u(w, get_unchecked(type_indices, i))
-		i = i + 1
-	}
+    let count = len(names)
+    writer_core::comp_emit_leb128_u(w, count)
+    let mut i = 0
+    while i < count {
+        writer_core::comp_emit_string(w, get_unchecked(names, i))
+        writer_core::comp_emit_leb128_u(w, get_unchecked(type_indices, i))
+        i = i + 1
+    }
 }
 
 fn comp_emit_index_entries(w: writer_core::ComponentWriter, type_indices: Vec<i32>) {
-	let count = len(type_indices)
-	writer_core::comp_emit_leb128_u(w, count)
-	let mut i = 0
-	while i < count {
-		writer_core::comp_emit_leb128_u(w, get_unchecked(type_indices, i))
-		i = i + 1
-	}
+    let count = len(type_indices)
+    writer_core::comp_emit_leb128_u(w, count)
+    let mut i = 0
+    while i < count {
+        writer_core::comp_emit_leb128_u(w, get_unchecked(type_indices, i))
+        i = i + 1
+    }
 }
 
 fn comp_emit_variant_entries(w: writer_core::ComponentWriter, names: Vec<String>, type_indices: Vec<i32>) {
-	let count = len(names)
-	writer_core::comp_emit_leb128_u(w, count)
-	let mut i = 0
-	while i < count {
-		writer_core::comp_emit_string(w, get_unchecked(names, i))
-		comp_emit_variant_payload(w, get_unchecked(type_indices, i))
-		writer_core::comp_emit_byte(w, 0x00)
-		i = i + 1
-	}
+    let count = len(names)
+    writer_core::comp_emit_leb128_u(w, count)
+    let mut i = 0
+    while i < count {
+        writer_core::comp_emit_string(w, get_unchecked(names, i))
+        comp_emit_variant_payload(w, get_unchecked(type_indices, i))
+        writer_core::comp_emit_byte(w, 0x00)
+        i = i + 1
+    }
 }
 
 fn comp_emit_variant_payload(w: writer_core::ComponentWriter, type_idx: i32) {
-	if type_idx < 0 {
-		writer_core::comp_emit_leb128_u(w, 0)
-	} else {
-		writer_core::comp_emit_leb128_u(w, 1)
-		writer_core::comp_emit_leb128_u(w, type_idx)
-	}
+    if type_idx < 0 {
+        writer_core::comp_emit_leb128_u(w, 0)
+    } else {
+        writer_core::comp_emit_leb128_u(w, 1)
+        writer_core::comp_emit_leb128_u(w, type_idx)
+    }
 }
