@@ -1,0 +1,8 @@
+{
+  "name": "arukellt-wat-probe-browser",
+  "private": true,
+  "description": "Local Chrome via puppeteer for docs/research/wat-probes browser stage",
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  }
+}

@@ -6,7 +6,9 @@
     "wasm-validate": "1.0.34",
     "wasmtime": "wasmtime 44.0.0 (af382d7d9 2026-04-20)",
     "iwasm": "iwasm 2.4.3",
-    "node": "v25.2.1"
+    "node": "v25.2.1",
+    "jco": "npx @bytecodealliance/jco@1.25.2 => 1.25.2",
+    "chrome": "/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"
   },
   "results": [
     {
@@ -41,6 +43,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -77,6 +87,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -113,6 +131,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -149,6 +175,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -185,6 +219,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -221,6 +263,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -257,6 +307,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -293,6 +351,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -329,6 +395,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -373,6 +447,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -409,6 +491,14 @@
         "node": {
           "ok": true,
           "detail": "{\"trap\":true,\"error\":\"RuntimeError: unreachable\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"trap\":true,\"error\":\"RuntimeError: unreachable\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -445,6 +535,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -481,6 +579,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -517,6 +623,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"1\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"1\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -553,6 +667,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"1\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"1\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -589,6 +711,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -625,6 +755,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"65\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"65\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -661,6 +799,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"3\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"3\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -697,6 +843,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"-1\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"-1\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -733,6 +887,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"2147483647\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"2147483647\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -769,6 +931,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"2147483647\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"2147483647\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -805,6 +975,14 @@
         "node": {
           "ok": true,
           "detail": "{\"result\":\"1\",\"ok\":true}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"result\":\"1\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -841,6 +1019,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -877,6 +1063,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -913,6 +1107,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -949,6 +1151,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -985,6 +1195,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": false,
+          "detail": "transpile: ComponentError: unsupported section found in module using multiple memories /     at generate (file:///home/wogikaze/.npm/_npx/c2122ac3d87d3ef3/node_modules/@bytecodealliance/jco-transpile/vendor/j..."
         }
       },
       "notes": []
@@ -1021,6 +1239,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"0\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"0\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1057,6 +1283,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1093,6 +1327,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1129,6 +1371,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1165,6 +1415,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1201,6 +1459,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1237,6 +1503,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1273,6 +1547,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"1\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"1\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1313,6 +1595,14 @@
         "node": {
           "ok": true,
           "detail": "skipped (tooling probe)"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "skipped (tooling probe)"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "skipped (tooling probe)"
         }
       },
       "notes": []
@@ -1349,6 +1639,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1385,6 +1683,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []
@@ -1421,6 +1727,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"builtins\":true}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"builtins\":true}"
+        },
+        "jco.transpile": {
+          "ok": false,
+          "detail": "skipped: host js-string imports (not a pure core export probe)"
         }
       },
       "notes": []
@@ -1455,6 +1769,14 @@
           "detail": "no binary"
         },
         "node": {
+          "ok": false,
+          "detail": "no binary"
+        },
+        "browser": {
+          "ok": false,
+          "detail": "no binary"
+        },
+        "jco.transpile": {
           "ok": false,
           "detail": "no binary"
         }
@@ -1493,6 +1815,14 @@
         "node": {
           "ok": true,
           "detail": "{\"validate\":true,\"result\":\"42\"}"
+        },
+        "browser": {
+          "ok": true,
+          "detail": "{\"chrome\":\"/home/wogikaze/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\",\"ok\":true,\"validate\":true,\"result\":\"42\"}"
+        },
+        "jco.transpile": {
+          "ok": true,
+          "detail": "transpile ok (1 js)"
         }
       },
       "notes": []

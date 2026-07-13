@@ -89,26 +89,6 @@ EXPECT: dict[str, str] = {
 }
 
 
-def which(name: str) -> str | None:
-    return shutil.which(name)
-
-
-def run(cmd: list[str], timeout: float = 30.0) -> tuple[int, str, str]:
-    try:
-        p = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=str(REPO),
-        )
-        return p.returncode, p.stdout.strip(), p.stderr.strip()
-    except FileNotFoundError as e:
-        return 127, "", str(e)
-    except subprocess.TimeoutExpired:
-        return 124, "", "timeout"
-
-
 def toolchain_versions() -> dict[str, str]:
     vers: dict[str, str] = {}
     for name, cmd in [
@@ -124,7 +104,59 @@ def toolchain_versions() -> dict[str, str]:
             vers[name] = (out or err).splitlines()[0] if (out or err) else f"exit={code}"
         else:
             vers[name] = "missing"
+    # Prefer pinned jco used by probes (npx), fall back to PATH jco
+    code, out, err = run(["npx", "--yes", "@bytecodealliance/jco@1.25.2", "--version"])
+    if code == 0 and (out or err):
+        vers["jco"] = f"npx @bytecodealliance/jco@1.25.2 => {(out or err).splitlines()[0]}"
+    elif which("jco"):
+        code, out, err = run(["jco", "--version"])
+        vers["jco"] = (out or err).splitlines()[0] if (out or err) else "present"
+    else:
+        vers["jco"] = "missing"
+    chrome = _chrome_path()
+    vers["chrome"] = chrome if chrome else "missing"
     return vers
+
+
+def _chrome_path() -> str | None:
+    env = os.environ.get("CHROME_PATH")
+    if env and Path(env).exists():
+        return env
+    # puppeteer-downloaded chrome from local .browser-tools install
+    cache = Path.home() / ".cache/puppeteer/chrome"
+    if cache.is_dir():
+        matches = sorted(cache.glob("linux-*/chrome-linux64/chrome"))
+        if matches:
+            return str(matches[-1])
+    for c in (
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+    ):
+        if Path(c).exists():
+            return c
+    return None
+
+
+def which(name: str) -> str | None:
+    return shutil.which(name)
+
+
+def run(cmd: list[str], timeout: float = 60.0) -> tuple[int, str, str]:
+    try:
+        p = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=str(REPO),
+        )
+        return p.returncode, p.stdout.strip(), p.stderr.strip()
+    except FileNotFoundError as e:
+        return 127, "", str(e)
+    except subprocess.TimeoutExpired:
+        return 124, "", "timeout"
 
 
 def parse_with_wasm_tools(wat: Path, wasm_out: Path) -> StageResult:
@@ -422,6 +454,100 @@ def invoke_node(wasm: Path, expected: str, probe_rel: str) -> StageResult:
         os.unlink(harness)
 
 
+def invoke_browser(wasm: Path, expected: str, probe_rel: str) -> StageResult:
+    if expected == "tooling":
+        return StageResult(True, "skipped (tooling probe)")
+    chrome = _chrome_path()
+    if not chrome:
+        return StageResult(False, "chrome missing")
+    browser_tools = REPO / "scripts" / "dev" / "wat-probe-browser" / "node_modules" / "puppeteer"
+    if not browser_tools.exists():
+        return StageResult(
+            False,
+            "puppeteer missing; cd scripts/dev/wat-probe-browser && npm i",
+        )
+    exp = expected
+    if probe_rel.endswith("10-js-bigint-i64.wat"):
+        exp = "js-bigint"
+    elif probe_rel.endswith("16-js-string-builtins.wat"):
+        exp = "js-string"
+    elif expected == "js":
+        exp = "js-bigint"
+    script = ROOT / "browser-probe.mjs"
+    cmd = ["node", str(script), str(wasm), exp, "--chrome", chrome]
+    code, out, err = run(cmd, timeout=90.0)
+    if code == 0:
+        return StageResult(True, out or "ok")
+    return StageResult(False, err or out or f"exit={code}")
+
+
+def probe_jco(wasm: Path, expected: str, probe_rel: str, work: Path) -> StageResult:
+    """Wrap core wasm as a minimal component and run jco transpile (1.25.2)."""
+    if expected in ("tooling",):
+        return StageResult(True, "skipped (tooling probe)")
+    if probe_rel.endswith("16-js-string-builtins.wat"):
+        return StageResult(False, "skipped: host js-string imports (not a pure core export probe)")
+    if not which("wasm-tools") or not which("npx"):
+        return StageResult(False, "wasm-tools or npx missing")
+
+    wit_dir = work / "wit"
+    wit_dir.mkdir(parents=True, exist_ok=True)
+    if expected == "param" or probe_rel.endswith("05-tail-call.wat"):
+        wit = "package probe:feat@0.0.1;\nworld probe {\n  export test: func(n: s32) -> s32;\n}\n"
+    elif probe_rel.endswith("10-js-bigint-i64.wat"):
+        wit = "package probe:feat@0.0.1;\nworld probe {\n  export test: func(x: s64) -> s64;\n}\n"
+    else:
+        wit = "package probe:feat@0.0.1;\nworld probe {\n  export test: func() -> s32;\n}\n"
+    (wit_dir / "world.wit").write_text(wit)
+
+    embedded = work / "embedded.wasm"
+    component = work / "component.wasm"
+    out_dir = work / "jco-out"
+
+    code, out, err = run(
+        [
+            "wasm-tools",
+            "component",
+            "embed",
+            str(wit_dir),
+            "--world",
+            "probe",
+            str(wasm),
+            "-o",
+            str(embedded),
+        ]
+    )
+    if code != 0:
+        return StageResult(False, f"embed: {err or out}")
+
+    code, out, err = run(
+        ["wasm-tools", "component", "new", str(embedded), "-o", str(component)]
+    )
+    if code != 0:
+        return StageResult(False, f"component new: {err or out}")
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    code, out, err = run(
+        [
+            "npx",
+            "--yes",
+            "@bytecodealliance/jco@1.25.2",
+            "transpile",
+            str(component),
+            "-o",
+            str(out_dir),
+        ],
+        timeout=120.0,
+    )
+    if code != 0:
+        detail = (err or out or "").replace("\n", " / ")
+        if len(detail) > 200:
+            detail = detail[:197] + "..."
+        return StageResult(False, f"transpile: {detail}")
+    js_files = list(out_dir.glob("*.js"))
+    return StageResult(True, f"transpile ok ({len(js_files)} js)")
+
+
 def annotation_roundtrip(wat: Path) -> StageResult:
     """Tooling probe: parse and print, check @custom presence if supported."""
     code, out, err = run(["wasm-tools", "print", str(wat)])
@@ -488,6 +614,8 @@ def main() -> int:
                 pr.stages["wasmtime"] = StageResult(False, "no binary")
                 pr.stages["iwasm"] = StageResult(False, "no binary")
                 pr.stages["node"] = StageResult(False, "no binary")
+                pr.stages["browser"] = StageResult(False, "no binary")
+                pr.stages["jco.transpile"] = StageResult(False, "no binary")
             else:
                 # Wasm 1.0 custom-section probe: inject section into binary and re-check
                 if rel.endswith("10-custom-section.wat"):
@@ -503,6 +631,10 @@ def main() -> int:
                 pr.stages["wasmtime"] = invoke_wasmtime(runtime_wasm, expected, rel)
                 pr.stages["iwasm"] = invoke_iwasm(runtime_wasm, expected)
                 pr.stages["node"] = invoke_node(runtime_wasm, expected, rel)
+                pr.stages["browser"] = invoke_browser(runtime_wasm, expected, rel)
+                jco_work = tdir / f"jco-{wat.stem}"
+                jco_work.mkdir(parents=True, exist_ok=True)
+                pr.stages["jco.transpile"] = probe_jco(runtime_wasm, expected, rel, jco_work)
 
             results.append(pr)
             print(f"[{group}] {wat.name}: " + ", ".join(

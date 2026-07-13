@@ -4,7 +4,7 @@
 
 調査日: 2026-07-11（ランタイム経路） / **2026-07-13（機能別 WAT プローブ追記）**
 
-関連成果物: [`wat-probes/`](wat-probes/)（使用した WAT・`run-probes.py`・`results.json` / `results.md`）
+関連成果物: [`wat-probes/`](wat-probes/)（使用した WAT・`run-probes.py`・`browser-probe.mjs`・`results.json` / `results.md`）
 
 ---
 
@@ -398,66 +398,105 @@ python3 docs/research/wat-probes/run-probes.py
 | trunc_sat（SIMD） | `09` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | JS BigInt ↔ i64 | `10` | ✅ parse | ✅ | — | — | ✅ `1n` 往復 |
 
-→ **Wasm 2.0 Core は 5 toolchain とも実行可能**（JS BigInt は Node のみが意味を持つ）。
+→ **Wasm 2.0 Core は wasm-tools / wabt / wasmtime / iwasm / Node / Browser / jco とも成功**（JS BigInt は Node/Browser；jco は i64 export の transpile 成功）。
 
-#### Wasm 3.0 / embedding / tooling
+#### Wasm 3.0 / embedding / tooling（+ Browser / jco）
 
-| 機能 | WAT | wasm-tools | wabt `--enable-all` | wasmtime (opt-in) | iwasm (現行ビルド) | Node 25 |
-|------|-----|------------|---------------------|-------------------|-------------------|---------|
-| Extended const | `01` | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Memory64 | `02` | ✅ | ✅ | ✅ | ❌ (MEMORY64=0) | ✅ |
-| Table64 | `03` | ✅ | ❌ text 非対応 | ✅ | ❌ | ✅ |
-| Multiple memories | `04` | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Tail call (`return_call`) | `05` | ✅ | ✅ | ✅（1e6 回 0.015s） | ❌ (TAIL_CALL=0) | ✅ |
-| Typed func ref / `call_ref` | `06` | ✅ | ❌ | ✅ | ❌ (GC=0) | ✅ |
-| `br_on_null` | `07` | ✅ | ❌ | ✅ | ❌ | ✅ |
-| GC struct / array / i31 | `08`–`10` | ✅ | ❌（GC text 不完全） | ✅ | ❌ (GC=0) | ✅ |
-| EH `try_table` | `11` | ✅ | ❌ | ✅ | ❌（現行 EH 非対応） | ✅ |
-| Relaxed SIMD | `12` | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Custom annotations | `13` | ✅ round-trip | ✅ (`--enable-annotations`) | — | — | — |
-| `return_call_ref` | `14` | ✅ | ❌ | ✅ | ❌ | ✅ |
-| Recursive types | `15` | ✅ | ❌ | ✅ | ❌ | ✅ |
-| JS String Builtins | `16` | ✅ parse | ✅ | — | — | ✅ `validate/compile({builtins:['js-string']})` + `length("hello")===5` |
-| Branch Hinting | （未作成） | — | — | 実行成功では判定不能 | — | — |
-| Deterministic Profile | （未作成） | — | — | `-W nan-canonicalization` / relaxed-simd-deterministic で別途 | — | — |
+| 機能 | WAT | wasmtime (opt-in) | iwasm | Node 25 | Browser (Chrome 148) | jco 1.25.2 transpile |
+|------|-----|-------------------|-------|---------|----------------------|----------------------|
+| Extended const | `01` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Memory64 | `02` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Table64 | `03` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Multiple memories | `04` | ✅ | ❌ | ✅ | ✅ | ❌ `unsupported section ... multiple memories` |
+| Tail call | `05` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Typed func ref / `call_ref` | `06` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| `br_on_null` | `07` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| GC struct / array / i31 | `08`–`10` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| EH `try_table` | `11` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Relaxed SIMD | `12` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Custom annotations | `13` | — | — | — | — | ✅（実行意味なし；transpile は core として成功） |
+| `return_call_ref` | `14` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Recursive types | `15` | ✅ | ❌ | ✅ | ✅ | ✅ |
+| JS String Builtins | `16` | — | — | ✅ | ✅ | ⏭ core-only wrap 対象外（host import） |
+| Branch Hinting | （未作成） | 実行成功では判定不能 | — | — | — | — |
 
 #### Experimental（3.0 Core 外）
 
 | 機能 | WAT | 結果 |
 |------|-----|------|
-| Legacy EH `try/catch` | `experimental/legacy-eh-try-catch.wat` | 現行 `wasm-tools` / wabt とも text を受理せず。**旧 EH ≠ 3.0 EH** |
-| Threads/Atomics | `experimental/threads-atomics.wat` | wasm-tools✅ / wabt✅ / wasmtime✅（`shared-memory=y`） / Node✅ / iwasm❌（SHARED_MEMORY=0） |
+| Legacy EH `try/catch` | `experimental/legacy-eh-try-catch.wat` | 現行 `wasm-tools` が text を受理せず。**旧 EH ≠ 3.0 EH** |
+| Threads/Atomics | `experimental/threads-atomics.wat` | wasmtime✅（`shared-memory=y`）/ Node✅ / Browser✅ / jco✅ / iwasm❌ |
 
 ### A.5 「対応」判定のまとめ
 
 | 表記 | 本機での判定 |
 |------|-------------|
-| Wasm 1.0 Core | ✅ wasm-tools / wabt / wasmtime / iwasm / Node |
-| Wasm 2.0 Core | ✅ 同上 |
-| Wasm 3.0 Core（実行） | ⚠️ **wasmtime (opt-in)** と **Node 25** は主要プローブ成功。**iwasm 現行ビルドは不可**。**wabt 1.0.34 は GC/typed-ref/table64/EH text が弱い**（binary 経由なら一部のみ） |
-| Wasm 3.0 Text Tooling | ✅ `wasm-tools` の `@custom` round-trip。wabt は `--enable-annotations` で受理 |
-| Wasm 3.0 JS Embedding | ✅ Node 25 で BigInt + js-string builtins |
-| Experimental Threads | ⚠️ wasmtime opt-in + Node。iwasm OFF |
-| Legacy EH | ❌ 現行ローカル text toolchain ではプローブ不可（意図的に分離） |
+| Wasm 1.0 / 2.0 Core | ✅ wasm-tools / wabt / wasmtime / iwasm / Node / Browser / jco |
+| Wasm 3.0 実行（engine） | ✅ wasmtime (opt-in) / Node 25 / Chrome 148。❌ iwasm 現行ビルド |
+| Wasm 3.0 packaging（jco） | ✅ GC・typed-ref・EH・Memory64・tail-call 等。❌ **multiple memories** |
+| Wasm 3.0 JS Embedding | ✅ Node + Browser で BigInt / js-string builtins |
+| Experimental Threads | ⚠️ engine+jco は成功、iwasm OFF。製品 default には入れない |
+| Legacy EH | ❌ text toolchain 非対応 |
 
-### A.6 Arukellt ターゲットへの含意
+### A.6 default emit 許可集合（検証結果からの提案）
+
+方針:
+
+```text
+wasm32     default_emit ⊆ features(iwasm pinned build)
+wasm32-gc  default_emit ⊆ features(wasmtime)
+                           ∩ features(Node WebAssembly)
+                           ∩ features(Browser / Chrome WebAssembly)
+                           ∩ features(jco@1.25.2 transpile of emitted component)
+```
+
+#### `wasm32`（= iwasm）
+
+| default emit OK | default 禁止 |
+|-----------------|--------------|
+| Wasm 1.0 Core | Memory64 / Table64 |
+| multi-value / ref-types / bulk memory | Multiple memories |
+| fixed SIMD `v128` + trunc_sat SIMD | Tail call / `return_call_ref` |
+| sign-extension / trunc_sat scalar | Typed func refs / `br_on_null` |
+| | GC / EH / Extended const / Relaxed SIMD |
+| | Threads |
+
+#### `wasm32-gc`（= wasmtime ∩ Node ∩ Browser ∩ jco）
+
+| default emit OK（積集合で成功） | default 禁止（積集合で欠けた／意図的除外） |
+|--------------------------------|-------------------------------------------|
+| Wasm 1.0 / 2.0 Core | **Multiple memories**（jco が拒否） |
+| GC struct / array / i31 / recursive types | JS String Builtins（embedding；core emit 契約外） |
+| typed func refs / `call_ref` / `br_on_null` | Threads/Atomics（3.0 Core 外） |
+| Memory64 / Table64 | Legacy EH |
+| Tail call / `return_call_ref` | Branch Hinting（未プローブ；metadata のみ） |
+| EH `try_table` | |
+| Extended const | |
+| Relaxed SIMD | |
+| Component packaging 前提の GC core（jco 1.25.2） | PATH 上の古い jco（例: 1.16）は GC 不可 — **1.25.2+ を契約版にする** |
+
+注意:
+
+1. wasmtime 列は引き続き **`-W all-proposals=y`**。製品 default にする前に wasmtime default config でも再確認すること。
+2. Browser は puppeteer 同梱 Chrome 148（V8）。AtCoder 等の固定版とは別物。
+3. jco は実行ではなく **transpile 成功**をゲートにしている。
+
+### A.7 Arukellt ターゲットへの含意
 
 | ADR-007 経路 | 機能面の含意 |
 |--------------|-------------|
-| `wasm32` → iwasm | MVP +（ビルド設定上）Bulk/SIMD/RefTypes まで。**GC / Memory64 / TailCall / MultiMemory は不可** |
-| `wasm32-gc` → wasmtime | `-W gc` 等の提案を有効にすれば 3.0 系プローブ成功。CLI デフォルトとの差に注意 |
-| `wasm32-gc` → Node / Chrome(V8) | Node 25 で GC・typed ref・try_table・Memory64 等を実測成功。Chrome は本機未検証（V8 世代依存） |
-| wabt 経由の WAT デバッグ | 1.0/2.0 は十分。**GC / call_ref / try_table / table64 の text は wabt 1.0.34 では不足** → `wasm-tools` を優先 |
+| `wasm32` → iwasm | **Wasm 2.0 Core まで**。Wasm 3.0 系は default emit 禁止 |
+| `wasm32-gc` → wasmtime ∩ Node ∩ Browser ∩ jco | GC + typed refs +（実測上）Memory64/tail/EH/relaxed-simd まで積集合。**multiple memories は default 禁止** |
+| wabt 経由の WAT デバッグ | 1.0/2.0 は十分。GC/EH/table64 text は `wasm-tools` 優先 |
 
-### A.7 エラー切り分け（実測で確認した例）
+### A.8 エラー切り分け（実測で確認した例）
 
 | 観測 | 例 | 判定 |
 |------|----|------|
-| WAT→wasm 失敗 | wabt が `struct` / `call_ref` / `try_table` / table64 を拒否 | toolchain text 不足。runtime は未判定 |
-| validate 成功・実行失敗 | iwasm が Memory64 limits / GC type flag で load 失敗 | runtime ビルド flag OFF |
-| instantiate 時 shared memory 拒否 | wasmtime default | `Config::shared_memory` / `-W shared-memory=y` が別ゲート |
-| 旧 `try/catch` が parse 不可 | wasm-tools | Legacy EH 非対応。`try_table` 成功とは無関係 |
-| annotation 付きが動く | custom section 無視で実行可 | tooling 対応の証明にはならない（別途 print round-trip） |
-| Tail call 小テストのみ | （参考） | 本調査では 1,000,000 回でも stack overflow なし → proper tail-call 寄り |
+| WAT→wasm 失敗 | wabt が `struct` / `call_ref` / table64 を拒否 | toolchain text 不足 |
+| jco 1.16 が GC で失敗 | `struct indexed types not supported without the gc feature` | **jco 版ピン不足**。1.25.2 では成功 |
+| jco 1.25.2 が multi-memory で失敗 | `unsupported section ... multiple memories` | packaging 非対応 → `wasm32-gc` default から除外 |
+| Browser と Node が一致 | 本調査の全 core 実行プローブ | V8 世代が近い場合の期待通り |
+| Tail call 100万回 | wasmtime で stack overflow なし | proper tail-call 寄り |
 
 詳細な生ログは `wat-probes/results.json` を参照。
