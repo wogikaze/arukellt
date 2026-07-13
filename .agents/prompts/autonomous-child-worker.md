@@ -294,4 +294,4 @@ Prefer NEED_WORK over stopping when assigned work is exhausted.
 - **SELFHOST SPECIFIC:** `prompts/exec-selfhost.md` — selfhost-track rules, canonical gates, shared-core conflict detection
 - **SUPERSEDED:** `prompts/subagent-slice.md` — existing implementation subagent contract (respected for slice discipline)
 - **TOOLS:** `scripts/manager.py orchestration ...`
-- **REPO CONTEXT:** `.agents/arukellt-repo-context/SKILL.md`
+- **REPO POLICY:** `AGENTS.md`; task workflows are under `.agents/skills/`

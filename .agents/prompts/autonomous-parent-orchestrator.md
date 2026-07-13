@@ -424,4 +424,4 @@ Prefer `CONTINUE` unless a clean stop condition or explicit unsafe state is reac
 - **LAUNCHER:** `.agents/prompts/start-autonomous-loop.md`
 - **TOOLS:** `scripts/manager.py orchestration ...` — agent-state, issue-health, repo-smoke, reference-coverage, gen-issues
 - **WORKFLOW:** `.agents/workflows/compiler_dev_fsm.md` (if present)
-- **AGENTS:** `.agents/` — available impl-*, design-*, verify-* skills
+- **SKILLS:** `.agents/skills/` — repository workflows; mandatory triggers are defined in `AGENTS.md`

@@ -211,9 +211,8 @@ candidate.
 - **ICE 出力フォーマットの実装** (criterion 4)
   — `[BUG]` プレフィックス + status 101 を `src/compiler/diagnostics.ark` で実装
 
-これらは Rust ソースの変更を伴うため、本 doc スライス
-(impl-language-docs) の対象外であり、別の implementation slice として
-issue #615 上で扱う。
+これらはコンパイラ実装の変更を伴うため、本ドキュメント更新の範囲外であり、
+別の implementation slice として issue #615 上で扱う。
 
 ## 関連 issue
 
