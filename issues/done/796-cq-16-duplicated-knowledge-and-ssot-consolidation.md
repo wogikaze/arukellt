@@ -37,8 +37,9 @@ The original issue incorrectly treated two different obligations as one:
   implementation obligation and is tracked separately by #798, whose start
   condition is ADR-042 acceptance.
 
-`docs/data/core-ops.toml` remains a `status = "scaffold"` future semantic
-registry, not an authoritative compiler input. Today `std/manifest.toml` owns
+`data/core-ops.toml` remains a `status = "scaffold"` future semantic
+registry, not an authoritative compiler input. The path moved from `docs/data/core-ops.toml`
+to `data/core-ops.toml` after this issue was closed. Today `std/manifest.toml` owns
 public paths, documentation, stability, and deprecation, while resolver,
 typechecker, and emitter registrations remain migration debt. CQ-16 completes
 when every audited category has a disposition and same-knowledge duplication

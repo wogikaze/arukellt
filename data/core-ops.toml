@@ -4,10 +4,10 @@
 # Proposed responsibility split; not authoritative until ADR-042 is accepted and
 # issue #798 completes the migration.
 #
-# Fallback values are stable symbol paths (or DefKey after name resolution).
-# Do not store compile-local FunctionId here.
+# Fallback values are stable implementation symbol paths (or DefKey after name
+# resolution). Do not store compile-local FunctionId here.
 
-schema_version = 2
+schema_version = 3
 status = "scaffold"
 
 [registry]
@@ -23,9 +23,9 @@ planned_outputs = [
 [validation]
 # Conditions a generator/checker must satisfy before the registry can lose
 # status = "scaffold".
+check_unreferenced_public_bindings = true
+check_public_binding_collisions = true
 check_signature_compat = true
-check_unreferenced_semantic_ops = true
-check_duplicate_public_bindings = true
 check_effect_lowering_consistency = true
 check_fallback_resolvable = true
 
@@ -63,17 +63,22 @@ lanes = 4
 # ─────────────────────────────────────────────────────────────────────────────
 # Operations
 # ─────────────────────────────────────────────────────────────────────────────
-# These are referenced from std/manifest.toml via semantic_id.
-# Example fallback values that do not yet resolve to a real public symbol are
-# prefixed with example.invalid so a future checker can reject them mechanically.
+# id is the canonical CoreOpId. std/manifest.toml references it via core_op_id.
+# Example fallback values that do not yet resolve to a real implementation symbol
+# are prefixed with example.invalid so a future checker can reject them mechanically.
 
 [[operations]]
 id = "string.starts_with"
+exposure = "public"
+binding_required = true
 description = "Return true when the receiver string starts with the given prefix."
 [operations.signature]
-receiver = { name = "s", type = "string" }
-parameters = [{ name = "prefix", type = "string" }]
-results = [{ type = "bool" }]
+inputs = [
+  { name = "s", type = "string" },
+  { name = "prefix", type = "string" },
+]
+receiver_index = 0
+outputs = [{ type = "bool" }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -90,20 +95,59 @@ external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
+[operations.inline]
+policy = "hint"
 [operations.lowering]
 kind = "normal_call"
 [operations.fallback]
-stable_symbol_path = "std::text::starts_with"
+implementation_symbol = "example.invalid.fallback.string.starts_with_impl"
+required = true
+
+[[operations]]
+id = "panic"
+exposure = "public"
+binding_required = true
+description = "Abort execution with a message, via the runtime panic handler."
+[operations.signature]
+inputs = [{ name = "message", type = "string" }]
+outputs = [{ type = "unit" }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = true
+external_io = true
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+function = "panic"
+abi = "native"
+[operations.fallback]
+required = false
 
 [[operations]]
 id = "simd.i32x4.add"
-description = "Portable 4-lane i32 addition."
+exposure = "public"
+binding_required = false
+description = "Portable 4-lane i32 addition. Scalar fallback, native SIMD specialisation."
 [operations.signature]
-parameters = [
+inputs = [
   { name = "a", type = "simd.i32x4" },
   { name = "b", type = "simd.i32x4" },
 ]
-results = [{ type = "simd.i32x4" }]
+outputs = [{ type = "simd.i32x4" }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -120,24 +164,29 @@ external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
+[operations.inline]
+policy = "hint"
 [operations.lowering]
-kind = "target_intrinsic"
-target_id = "i32x4.add"
-[operations.target]
-capability_predicate = "simd"
-fallback_allowed = true
+kind = "normal_call"
+[[operations.specializations]]
+when = { portable_simd_lowering = "NativeSimd" }
+backend = "wasm"
+target_op = "i32x4.add"
 [operations.fallback]
-stable_symbol_path = "example.invalid.fallback.simd_i32x4_add"
+implementation_symbol = "example.invalid.fallback.simd_i32x4_add"
+required = true
 
 [[operations]]
 id = "simd.i32x4.sub"
-description = "Portable 4-lane i32 subtraction."
+exposure = "public"
+binding_required = false
+description = "Portable 4-lane i32 subtraction. Scalar fallback, native SIMD specialisation."
 [operations.signature]
-parameters = [
+inputs = [
   { name = "a", type = "simd.i32x4" },
   { name = "b", type = "simd.i32x4" },
 ]
-results = [{ type = "simd.i32x4" }]
+outputs = [{ type = "simd.i32x4" }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -154,24 +203,29 @@ external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
+[operations.inline]
+policy = "hint"
 [operations.lowering]
-kind = "target_intrinsic"
-target_id = "i32x4.sub"
-[operations.target]
-capability_predicate = "simd"
-fallback_allowed = true
+kind = "normal_call"
+[[operations.specializations]]
+when = { portable_simd_lowering = "NativeSimd" }
+backend = "wasm"
+target_op = "i32x4.sub"
 [operations.fallback]
-stable_symbol_path = "example.invalid.fallback.simd_i32x4_sub"
+implementation_symbol = "example.invalid.fallback.simd_i32x4_sub"
+required = true
 
 [[operations]]
 id = "simd.f32x4.add"
-description = "Portable 4-lane f32 addition."
+exposure = "public"
+binding_required = false
+description = "Portable 4-lane f32 addition. Scalar fallback, native SIMD specialisation."
 [operations.signature]
-parameters = [
+inputs = [
   { name = "a", type = "simd.f32x4" },
   { name = "b", type = "simd.f32x4" },
 ]
-results = [{ type = "simd.f32x4" }]
+outputs = [{ type = "simd.f32x4" }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -188,11 +242,52 @@ external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
+[operations.inline]
+policy = "hint"
+[operations.lowering]
+kind = "normal_call"
+[[operations.specializations]]
+when = { portable_simd_lowering = "NativeSimd" }
+backend = "wasm"
+target_op = "f32x4.add"
+[operations.fallback]
+implementation_symbol = "example.invalid.fallback.simd_f32x4_add"
+required = true
+
+[[operations]]
+id = "wasm.v128.load"
+exposure = "public"
+binding_required = true
+description = "Load a 128-bit vector from linear memory at address + offset."
+[operations.signature]
+inputs = [
+  { name = "address", type = "i32" },
+  { name = "offset", type = "i32" },
+]
+outputs = [{ type = "v128" }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "hint"
 [operations.lowering]
 kind = "target_intrinsic"
-target_id = "f32x4.add"
-[operations.target]
-capability_predicate = "simd"
-fallback_allowed = true
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "v128.load"
+required_features = ["simd"]
 [operations.fallback]
-stable_symbol_path = "example.invalid.fallback.simd_f32x4_add"
+required = false

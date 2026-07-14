@@ -169,9 +169,9 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 68. [699 — 699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md)
 69. [709 — 709 — Stdlib trait-first API policy and free-function eradication](709-stdlib-trait-first-api-policy.md)
 70. [729 — 729 — Intrinsic layer separation (blocked epic)](729-intrinsic-layer-separation.md)
-71. [730 — 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh](730-bootstrap-wasm-4gb-memory-limit.md)
-72. [710 — 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md)
-73. [798 — 798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md)
+71. [798 — 798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md)
+72. [730 — 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh](730-bootstrap-wasm-4gb-memory-limit.md)
+73. [710 — 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md)
 74. [816 — 816 — Prelude compilation restoration](816-prelude-compilation-restoration.md)
 75. [817 — 817 — Sealed raw API module for Vec/String internal representation](817-sealed-raw-api-module.md)
 76. [711 — 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability](711-stdlib-docs-rich-reference-quality.md)
@@ -219,7 +219,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 721 | [Final Types (`sub final`) を全 struct に適用](721-final-types-emit-for-all-structs.md) | wasm-feature | none | none | 0 checked / 7 open | implementation-ready | none | |
 | 722 | [Typed Function References (`call_ref`) ベンチマーク計測](722-typed-funcref-call-ref-benchmark.md) | wasm-feature | none | none | 0 checked / 9 open | design-ready | none | |
 | 723 | [Wasm Exception Handling (`exnref`) 統合の検討](723-exception-handling-exnref-evaluation.md) | language-design | none | none | 0 checked / 5 open | design-required | none | |
-| 724 | [ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業](724-adr040-phase5-7-remaining-work.md) | compiler-internal | none | 726, 729 | 10 checked / 8 open | design-then-implement | — | |
+| 724 | [ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業](724-adr040-phase5-7-remaining-work.md) | compiler-internal | none | 726, 729, 798 | 10 checked / 8 open | design-then-implement | — | |
 | 725 | [ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)](725-adr040-phase5e-tracer-removal.md) | compiler-internal | None | none | 8 checked / 1 open | design-then-implement | — | |
 | 728 | [728 — WIR / backend target IR for ADR-007 multi-target separation](728-wir-target-backend-ir.md) | compiler-internal | none | none | 0 checked / 5 open | design-ready | None | |
 | 760 | [ADR 台帳の規則追従 — research/plans 分離と supersession 整合](760-adr-registry-rule-compliance.md) | main | none | none | 0 checked / 0 open | — | — | |
@@ -242,7 +242,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 697 | [697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)](697-vec-operation-extension.md) | stdlib-api | 691, 695 | 709, 710 | 0 checked / 15 open | blocked-by-upstream | #691 Iterator, #695 Ord | |
 | 703 | [703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)](703-monomorphic-api-bold-cutover.md) | stdlib-api | 700, 701, 691, 695 | 709 | 0 checked / 19 open | blocked-by-upstream | #700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord | |
 | 668 | [668 — P2 native component polish (post-#074)](668-p2-native-component-polish.md) | wasi-feature | 074, 510, 714 | none | 0 checked / 9 open | implementation-ready | None | |
-| 727 | [727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports](727-arukellt-host-bridge-retirement.md) | wasi-feature | 714, 675 | 729 | 0 checked / 11 open | architecture-implementation | None | |
+| 727 | [727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports](727-arukellt-host-bridge-retirement.md) | wasi-feature | 714, 675 | 729, 798 | 0 checked / 11 open | architecture-implementation | None | |
 | 719 | [719 — `arukellt test` execution harness (ADR-041 Phase 2)](719-test-execution-harness.md) | tooling | 715 | none | 0 checked / 0 open | implementation | None | |
 | 799 | [799 — CQ-18: code-quality closed-loop strict final audit](799-cq-18-code-quality-closed-loop-strict-final-audit.md) | code-quality | 715, 796, 797 | none | 11 checked / 0 open | blocked | 715 | |
 | 726 | [T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md) | compiler-internal | 724 | 730 | 7 checked / 2 open | implementation-ready | — | |
@@ -251,12 +251,12 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 683 | [683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md) | docs-audit | 679, 682 | none | 0 checked / 6 open | audit-ready | None | |
 | 699 | [699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md) | native-feature | 649, 698 | none | 0 checked / 9 open | design-ready | None | |
 | 709 | [709 — Stdlib trait-first API policy and free-function eradication](709-stdlib-trait-first-api-policy.md) | stdlib-api | 691, 695, 697, 703 | 710, 711, 712, 713 | 0 checked / 11 open | blocked-by-upstream | #691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover | |
-| 729 | [729 — Intrinsic layer separation (blocked epic)](729-intrinsic-layer-separation.md) | compiler-internal | 724, 727 | 798, 816, 817 | 0 checked / 11 open | blocked | ADR-042 acceptance | |
+| 729 | [729 — Intrinsic layer separation (blocked epic)](729-intrinsic-layer-separation.md) | compiler-internal | 724, 727 | none | 0 checked / 10 open | blocked | ADR-042 acceptance | |
+| 798 | [798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md) | architecture | 724, 727 | 816, 817 | 0 checked / 13 open | blocked | ADR-042 acceptance | |
 | 730 | [730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh](730-bootstrap-wasm-4gb-memory-limit.md) | selfhost-infra | 726 | none | 0 checked / 3 open | architecture-investigation | — | |
 | 710 | [710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface](710-stdlib-linear-collections-type-surface.md) | stdlib-api | 691, 697, 701, 707, 709 | 711 | 0 checked / 13 open | blocked-by-upstream | #691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy | |
-| 798 | [798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md) | architecture | 729 | none | 0 checked / 12 open | blocked | 729 (ADR-042 acceptance) | |
-| 816 | [816 — Prelude compilation restoration](816-prelude-compilation-restoration.md) | compiler-internal | 729 | none | 0 checked / 6 open | blocked | prelude-restoration-rfc | |
-| 817 | [817 — Sealed raw API module for Vec/String internal representation](817-sealed-raw-api-module.md) | compiler-internal | 729 | none | 0 checked / 7 open | blocked | sealed-raw-api-rfc | |
+| 816 | [816 — Prelude compilation restoration](816-prelude-compilation-restoration.md) | compiler-internal | 798 | none | 0 checked / 6 open | blocked | prelude-restoration-rfc | |
+| 817 | [817 — Sealed raw API module for Vec/String internal representation](817-sealed-raw-api-module.md) | compiler-internal | 798 | none | 0 checked / 7 open | blocked | sealed-raw-api-rfc | |
 | 711 | [711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability](711-stdlib-docs-rich-reference-quality.md) | stdlib-docs | 681, 709, 710 | 712, 713 | 0 checked / 13 open | blocked-by-upstream | #681 manifest reachability, #709 trait-first policy, #710 linear collection type surface | |
 | 712 | [712 — LLM code quality signal gates for readability and stdlib misuse](712-llm-code-quality-signal-gates.md) | tooling-contract | 709, 711 | 713 | 0 checked / 11 open | ready | None | |
 | 713 | [713 — Stdlib and Arukellt code best-practices doc pack](713-stdlib-best-practices-doc-pack.md) | language-docs | 709, 711, 712 | none | 0 checked / 13 open | blocked-by-upstream | #709 trait-first policy, #711 stdlib docs, #712 LLM quality signals | |

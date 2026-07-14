@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T15:27:44Z",
+  "generated_at": "2026-07-14T16:53:14Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -768,7 +768,8 @@
       "depends_on": [],
       "blocks_issue_ids": [
         "726",
-        "729"
+        "729",
+        "798"
       ],
       "acceptance": {
         "checked": 10,
@@ -1219,7 +1220,8 @@
         "675"
       ],
       "blocks_issue_ids": [
-        "729"
+        "729",
+        "798"
       ],
       "acceptance": {
         "checked": 0,
@@ -1406,14 +1408,33 @@
         "724",
         "727"
       ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "ADR-042 acceptance"
+      }
+    },
+    {
+      "id": "798",
+      "path": "798-adr-042-semantic-operation-registry-migration.md",
+      "title": "798 — ADR-042 semantic operation registry migration",
+      "track": "architecture",
+      "status": "open",
+      "depends_on": [
+        "724",
+        "727"
+      ],
       "blocks_issue_ids": [
-        "798",
         "816",
         "817"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 11
+        "unchecked": 13
       },
       "orchestration": {
         "class": "blocked",
@@ -1465,32 +1486,13 @@
       }
     },
     {
-      "id": "798",
-      "path": "798-adr-042-semantic-operation-registry-migration.md",
-      "title": "798 — ADR-042 semantic operation registry migration",
-      "track": "architecture",
-      "status": "open",
-      "depends_on": [
-        "729"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "729 (ADR-042 acceptance)"
-      }
-    },
-    {
       "id": "816",
       "path": "816-prelude-compilation-restoration.md",
       "title": "816 — Prelude compilation restoration",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
-        "729"
+        "798"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -1509,7 +1511,7 @@
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
-        "729"
+        "798"
       ],
       "blocks_issue_ids": [],
       "acceptance": {

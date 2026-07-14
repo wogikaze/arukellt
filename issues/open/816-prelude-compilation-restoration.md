@@ -4,8 +4,8 @@ Created: 2026-07-15
 Updated: 2026-07-15
 ID: 816
 Track: compiler-internal
-Depends on: "729"
-Related: "798, ADR-042, docs/plans/intrinsic-layer-separation"
+Depends on: "798"
+Related: "729, ADR-042, docs/plans/intrinsic-layer-separation"
 Orchestration class: blocked
 Orchestration upstream: "prelude-restoration-rfc"
 Blocks v{N}: none

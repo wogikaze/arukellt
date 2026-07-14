@@ -45,7 +45,7 @@ ADR-042 defines five layers:
 2. Runtime ABI (runtime/host)
 3. Semantic stdlib (Ark, with compiler-known meaning)
 4. Normal stdlib (Ark)
-5. Target intrinsics (`std::wasm`, `std::simd`, etc.)
+5. Target intrinsics (`std::wasm`, raw SIMD; portable `std::simd` is `normal_call` + specializations)
 
 ## Child issues
 
@@ -60,27 +60,28 @@ under this epic as the registry work in #798 completes.
 ## Acceptance
 
 - [ ] ADR-042 is accepted
-- [ ] Callee-string dispatch is removed from `call_*.ark` (all dispatch via `FunctionId` + `SignatureRegistry`)
-- [ ] No host intrinsics remain in `src/compiler/wasm/intrinsic_*.ark`
-- [ ] `SignatureEntry` carries `semantic_id`, effect, `const` semantics, `inline_policy`, `lowering_kind`, target, and fallback
-- [ ] `data/core-ops.toml` is the SSOT for semantic types / `SemanticId` / effect / lowering / fallback
-- [ ] `std/manifest.toml` remains the SSOT for public path / docs / stability / deprecation, referencing `core-ops.toml` via `semantic_id` / `type_id`
+- [ ] All child issues of this epic are closed
+- [ ] Callee-string dispatch is removed from call lowering (semantic invariant, not just a file-name check)
+- [ ] No host intrinsics remain in the emitter; host operations are lowered through runtime ABI / WIT import
+- [ ] `SignatureEntry` carries `core_op_id`, effect, const semantics, `inline_policy`, lowering variant, signature, exposure, and fallback
+- [ ] `data/core-ops.toml` is the SSOT for semantic types / `CoreOpId` / effect / lowering / fallback
+- [ ] `std/manifest.toml` remains the SSOT for public path / docs / stability / deprecation, referencing `core-ops.toml` via `core_op_id` / `type_id`
 - [ ] stdlib-only inliner is operational
-- [ ] ≥ 60 general intrinsics are migrated to Ark stdlib
-- [ ] GC/LM dual intrinsic files are eliminated
-- [ ] Differential tests pass for all migrated operations
+- [ ] Migrated operations have Ark fallback bodies and pass differential tests
 - [ ] `python3 scripts/manager.py verify quick` exits 0
 
 ## Close gate
 
-A check script under `scripts/check/` that:
+A check script under `scripts/check/` that verifies semantic invariants, not
+specific file names or syntax:
 
-1. Asserts no `eq(clone(callee), ...)` in `call_*.ark` (FunctionId-based dispatch only)
-2. Asserts no host intrinsic files in `src/compiler/wasm/intrinsic_*.ark`
-3. Asserts `data/core-ops.toml` exists and is the SSOT referenced by `std/manifest.toml`
-4. Asserts `SignatureEntry` includes the ADR-042 fields
-5. Runs differential tests for migrated operations
-6. Runs `python3 scripts/manager.py verify quick`
+1. Call lowering does not use callee strings for semantic dispatch (except for diagnostics and error messages).
+2. Every CALL `FunctionId` either resolves to a `SignatureRegistry` entry or is treated as an ordinary function call.
+3. Every non-`normal_call` lowering has a canonical `CoreOpId`.
+4. Host operations are lowered through the runtime ABI layer, not through `intrinsic_*.ark` files in the emitter.
+5. Public `std/manifest.toml` bindings are consistent with `data/core-ops.toml` `signature` and `effect`.
+6. Differential tests pass between Ark fallback and optimized lowering for all migrated operations.
+7. `python3 scripts/manager.py verify quick` passes.
 
 ## Notes
 
@@ -97,6 +98,9 @@ checklists belong in child issues and the plan document.
   retirement) — `verify quick` must pass before intrinsic dispatch refactoring
   begins. Host intrinsic removal is shared scope with the child migration
   issues.
+- Related: **#798** — registry schema and `SignatureEntry` extension.
+- Related: **#816** — prelude compilation restoration (RFC dependency).
+- Related: **#817** — sealed raw API module (RFC dependency).
 - Related: **#718** (free-function → method migration) — the Ark stdlib
   migration target is the same; ADR-042 adds the semantic/inliner layer.
 - Related: **#709** (trait-first API policy) — trait-based generics replace
