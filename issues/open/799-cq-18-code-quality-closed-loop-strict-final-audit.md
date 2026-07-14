@@ -216,9 +216,17 @@ equal). New additions: 0.
   Generated `target_contract_generated.ark`, `target-contract.generated.js`,
   `target-contract-summary.md`, and `current-state.md` targets section all
   consistent with SSOT.
-- **Generated view (all types)**: 4 generated view types verified consistent
-  with `project-state.toml`. All registered in `.generated-files`. Drift check
-  via `generate-docs.py --check` and `docs regenerate` passes.
+- **Generated view (all types)**: 4 generated target-contract views verified
+  consistent with `docs/data/project-state.toml`.
+  - 3 whole-file generated views are registered in `.generated-files`:
+    `src/compiler/main/target_contract_generated.ark`,
+    `extensions/arukellt-all-in-one/src/target-contract.generated.js`,
+    `docs/data/target-contract-summary.md`. Owner: compiler-tooling.
+  - 1 partial generated section in `docs/current-state.md` (target table) is
+    tracked by `generate-docs.py --check`, not listed in `.generated-files`
+    (`.generated-files` scope is whole-file only).
+  - Drift detection: `python3 scripts/gen/generate-docs.py --check` and
+    `python3 scripts/manager.py docs regenerate`.
 - **Comment policy fixtures**: normal and violation fixtures in
   `test_comment_policy.py` correctly test API classification, boundary doc
   contract, unstructured TODO, issue-only comment, commented-out code,

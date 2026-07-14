@@ -9,15 +9,26 @@
 # Format: path | generator-script | regenerate-command
 #
 # Scope: This manifest lists WHOLE-FILE generations only. Files that
-# contain generated SECTIONS (e.g. docs/current-state.md target section,
-# docs/data/target-contract-summary.md) are not listed here. Partial
-# generation is tracked by drift checks in the generator itself
+# contain generated SECTIONS are not listed here.
+#
+# Target contract generated views:
+#   - Whole-file views (listed below):
+#       src/compiler/main/target_contract_generated.ark
+#       extensions/arukellt-all-in-one/src/target-contract.generated.js
+#       docs/data/target-contract-summary.md
+#   - Partial section view (tracked by generate-docs.py --check):
+#       docs/current-state.md target table (between
+#       <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS --> and
+#       <!-- END GENERATED:CURRENT_STATE_TARGETS --> markers)
+#
+# Partial generation is tracked by drift checks in the generator itself
 # (generate-docs.py --check) and by structure checks. See
 # docs/directory-ownership.md for the full ownership map.
 
 # docs landing pages (generate-docs.py)
 src/compiler/main/target_contract_generated.ark | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 extensions/arukellt-all-in-one/src/target-contract.generated.js | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/data/target-contract-summary.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/adr/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/compiler/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
