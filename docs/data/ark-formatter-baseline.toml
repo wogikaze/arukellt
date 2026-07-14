@@ -27,7 +27,7 @@ path = "src/compiler/diagnostics/format.ark"
 sha256 = "d193f1c517f6ce8b93ad372f2509631b987458f9c4ac9bb236e3e218fbb4ec0a"
 [[exceptions]]
 path = "src/compiler/main/manifest_doc_site.ark"
-sha256 = "415fe77287f5d53e193c960065abe3fdb9a11ccd4211d16e0499a1dfdafa8a01"
+sha256 = "cb09b0dd146dab844ae3f081bf57393fbe200e3eeb6708dcc4899159891e0cde"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_if.ark"
 sha256 = "95defdf29f925549db26c04c746917768141312f79750221d3c2509e55fcf5bb"
