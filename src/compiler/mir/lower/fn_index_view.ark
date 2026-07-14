@@ -36,6 +36,11 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
     let typed_fn_count = fn_index_source::mir_fn_index_source_typed_fn_count(source)
     let spine = signature_registry_build::mir_build_signature_spine_from_view(view, midx, fn_names)
     module_spine::MirModule_set_signature_spine(m, spine)
-    let synced_vts = fn_index_mono_sync::fn_index_sync_mono_returns_from_spine(fn_names, fn_return_vts, signature_spine::mir_signature_spine_mono_table(spine), signature_spine::mir_signature_spine_type_table(spine))
+    let synced_vts = fn_index_mono_sync::fn_index_sync_mono_returns_from_spine(
+        fn_names,
+        fn_return_vts,
+        signature_spine::mir_signature_spine_mono_table(spine),
+        signature_spine::mir_signature_spine_type_table(spine)
+    )
     fn_index::MirLowerFnIndex_new(fn_names, synced_vts, fn_return_type_names, entry_main_decl_index, typed_fn_count)
 }

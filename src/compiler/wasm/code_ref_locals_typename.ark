@@ -11,10 +11,16 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
     if vec >= 0 {
         return vec
     }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
     if starts_with(clone(type_name), String_from("enum:")) {

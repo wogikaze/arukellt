@@ -17,7 +17,17 @@ fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     } else {
         let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
         writer_core::emit_byte(w, opcodes::OP_CALL())
-        writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+        writer_core::emit_leb128_u(
+            w,
+            function_indices::defined_function_index(
+                fn_idx,
+                ctx_record::SelfEmitCtx_target(ctx),
+                ctx_record::SelfEmitCtx_wasi_version(ctx),
+                ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+                ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+                wit_import_count
+            )
+        )
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -72,7 +82,17 @@ fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     } else {
         let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
         writer_core::emit_byte(w, opcodes::OP_CALL())
-        writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+        writer_core::emit_leb128_u(
+            w,
+            function_indices::defined_function_index(
+                fn_idx,
+                ctx_record::SelfEmitCtx_target(ctx),
+                ctx_record::SelfEmitCtx_wasi_version(ctx),
+                ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+                ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+                wit_import_count
+            )
+        )
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -94,7 +114,17 @@ fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     } else {
         let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
         writer_core::emit_byte(w, opcodes::OP_CALL())
-        writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+        writer_core::emit_leb128_u(
+            w,
+            function_indices::defined_function_index(
+                fn_idx,
+                ctx_record::SelfEmitCtx_target(ctx),
+                ctx_record::SelfEmitCtx_wasi_version(ctx),
+                ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+                ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+                wit_import_count
+            )
+        )
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }

@@ -4,7 +4,34 @@ use std::text
 fn build_initialize_response(id: i32) -> String {
     let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     body = text::builder_append(body, to_string(id))
-    body = text::builder_append(body, String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1,\"hoverProvider\":true,\"definitionProvider\":true,\"typeDefinitionProvider\":true,\"referencesProvider\":true,\"documentHighlightProvider\":true,\"renameProvider\":true,\"completionProvider\":{\"resolveProvider\":false,\"triggerCharacters\":[\".\",\":\"]},\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]},\"codeActionProvider\":true,\"workspaceSymbolProvider\":true,\"documentFormattingProvider\":true,\"documentRangeFormattingProvider\":true,\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}},\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}"))
+    body = text::builder_append(
+        body,
+        String_from(",\"result\":{\"capabilities\":{\"textDocumentSync\":1")
+    )
+    body = text::builder_append(body, String_from(",\"hoverProvider\":true,\"definitionProvider\":true"))
+    body = text::builder_append(body, String_from(",\"typeDefinitionProvider\":true,\"referencesProvider\":true"))
+    body = text::builder_append(body, String_from(",\"documentHighlightProvider\":true,\"renameProvider\":true"))
+    body = text::builder_append(
+        body,
+        String_from(",\"completionProvider\":{\"resolveProvider\":false,\"triggerCharacters\":[\".\",\":\"]}")
+    )
+    body = text::builder_append(
+        body,
+        String_from(",\"signatureHelpProvider\":{\"triggerCharacters\":[\"(\",\",\"]}")
+    )
+    body = text::builder_append(body, String_from(",\"codeActionProvider\":true,\"workspaceSymbolProvider\":true"))
+    body = text::builder_append(
+        body,
+        String_from(",\"documentFormattingProvider\":true,\"documentRangeFormattingProvider\":true")
+    )
+    body = text::builder_append(
+        body,
+        String_from(",\"diagnosticProvider\":{\"interFileDependencies\":false,\"workspaceDiagnostics\":false}}")
+    )
+    body = text::builder_append(
+        body,
+        String_from(",\"serverInfo\":{\"name\":\"arukellt-lsp\",\"version\":\"0.1.0\"}}}")
+    )
     body
 }
 

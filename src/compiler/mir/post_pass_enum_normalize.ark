@@ -78,10 +78,16 @@ fn is_open_enum_container_type_name(type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("enum:")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         return true
     }
     false
@@ -236,10 +242,16 @@ fn normalize_type_name_to_open_enum(type_name: String) -> String {
     if is_open_enum_container_type_name(clone(type_name)) {
         return clone(type_name)
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         return String_from("result:")
     }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) {
         return String_from("option:")
     }
     if len(type_name) == 0 {

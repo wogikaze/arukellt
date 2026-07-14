@@ -23,15 +23,42 @@ fn component_named_type_supported(ty: ComponentTypeNode, allows: ComponentContra
 }
 
 fn component_named_primitive_type_supported(name: String) -> bool {
-    eq(clone(name), String_from("i32")) || eq(clone(name), String_from("i64")) || eq(clone(name), String_from("f64")) || eq(clone(name), String_from("bool")) || eq(clone(name), String_from("char")) || eq(clone(name), String_from("u8")) || eq(clone(name), String_from("u16")) || eq(clone(name), String_from("u32")) || eq(clone(name), String_from("u64")) || eq(clone(name), String_from("i8")) || eq(clone(name), String_from("i16"))
+    eq(clone(name), String_from("i32")) ||
+    eq(clone(name), String_from("i64")) ||
+    eq(clone(name), String_from("f64")) ||
+    eq(clone(name), String_from("bool")) ||
+    eq(clone(name), String_from("char")) ||
+    eq(clone(name), String_from("u8")) ||
+    eq(clone(name), String_from("u16")) ||
+    eq(clone(name), String_from("u32")) ||
+    eq(clone(name), String_from("u64")) ||
+    eq(clone(name), String_from("i8")) ||
+    eq(clone(name), String_from("i16"))
 }
 
 fn component_named_numeric_type_supported(name: String, allows: ComponentContractAllows) -> bool {
-    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_square(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_binary(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_to_i32(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_i32_to_f32(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_general_multi(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows)) && eq(clone(name), String_from("f32"))
+    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_square(allows) ||
+        contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_binary(allows) ||
+        contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_to_i32(allows) ||
+        contract_allows_numeric_tuple_query::ComponentContractAllows_allow_i32_to_f32(allows) ||
+        contract_allows_numeric_tuple_query::ComponentContractAllows_allow_f32_general_multi(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows)) &&
+    eq(clone(name), String_from("f32"))
 }
 
 fn component_named_string_type_supported(name: String, allows: ComponentContractAllows) -> bool {
-    (contract_allows_string_query::ComponentContractAllows_allow_string_greet(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_general_multi(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_result(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_param(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_narrow(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_bool(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_char(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_f64(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_i64(allows) || contract_allows_string_query::ComponentContractAllows_allow_string_u64(allows)) && eq(clone(name), String_from("String"))
+    (contract_allows_string_query::ComponentContractAllows_allow_string_greet(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_general_multi(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_result(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_param(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_narrow(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_bool(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_char(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_f32(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_f64(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_i64(allows) ||
+        contract_allows_string_query::ComponentContractAllows_allow_string_u64(allows)) &&
+    eq(clone(name), String_from("String"))
 }
 
 fn component_named_record_type_supported(name: String, allows: ComponentContractAllows) -> bool {
@@ -54,7 +81,9 @@ fn component_named_point_type_supported(name: String, allows: ComponentContractA
     if contract_allows_record_query::ComponentContractAllows_allow_record_point(allows) && eq(clone(name), String_from("Point")) {
         return true
     }
-    if (contract_allows_record_query::ComponentContractAllows_allow_record_roundtrip(allows) || contract_allows_record_query::ComponentContractAllows_allow_record_add(allows)) && eq(clone(name), String_from("Point")) {
+    if (contract_allows_record_query::ComponentContractAllows_allow_record_roundtrip(allows) ||
+        contract_allows_record_query::ComponentContractAllows_allow_record_add(allows)) &&
+    eq(clone(name), String_from("Point")) {
         return true
     }
     false
@@ -64,12 +93,16 @@ fn component_named_color_type_supported(name: String, allows: ComponentContractA
     if contract_allows_record_query::ComponentContractAllows_allow_color_code(allows) && eq(clone(name), String_from("Color")) {
         return true
     }
-    if (contract_allows_record_query::ComponentContractAllows_allow_color_enum(allows) || contract_allows_record_query::ComponentContractAllows_allow_color_roundtrip(allows)) && eq(clone(name), String_from("Color")) {
+    if (contract_allows_record_query::ComponentContractAllows_allow_color_enum(allows) ||
+        contract_allows_record_query::ComponentContractAllows_allow_color_roundtrip(allows)) &&
+    eq(clone(name), String_from("Color")) {
         return true
     }
     false
 }
 
 fn component_named_shape_type_supported(name: String, allows: ComponentContractAllows) -> bool {
-    (contract_allows_record_query::ComponentContractAllows_allow_shape_area(allows) || contract_allows_record_query::ComponentContractAllows_allow_shape_roundtrip(allows)) && eq(clone(name), String_from("Shape"))
+    (contract_allows_record_query::ComponentContractAllows_allow_shape_area(allows) ||
+        contract_allows_record_query::ComponentContractAllows_allow_shape_roundtrip(allows)) &&
+    eq(clone(name), String_from("Shape"))
 }

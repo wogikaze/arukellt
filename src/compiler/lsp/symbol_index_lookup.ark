@@ -49,7 +49,14 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
     while i < n {
         let sym = get_unchecked(symbols, i)
         if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
-            return IndexDefinition { found: true, uri: symbol_index_record::indexed_symbol_uri(sym), decl_start: symbol_index_record::indexed_symbol_decl_start(sym), decl_end: symbol_index_record::indexed_symbol_decl_end(sym), detail: symbol_index_record::indexed_symbol_detail(sym), doc: String_new() }
+            return IndexDefinition {
+                found: true,
+                uri: symbol_index_record::indexed_symbol_uri(sym),
+                decl_start: symbol_index_record::indexed_symbol_decl_start(sym),
+                decl_end: symbol_index_record::indexed_symbol_decl_end(sym),
+                detail: symbol_index_record::indexed_symbol_detail(sym),
+                doc: String_new()
+            }
         }
         i = i + 1
     }
@@ -69,7 +76,14 @@ pub fn lookup_definition(state: LspState, name: String) -> IndexDefinition {
                     decl_end = symbol_index_stdlib_spans::source_span_end(span)
                 }
             }
-            return IndexDefinition { found: true, uri: source_uri, decl_start: decl_start, decl_end: decl_end, detail: symbol_index_record::stdlib_indexed_symbol_detail(sym), doc: symbol_index_record::stdlib_indexed_symbol_doc(sym) }
+            return IndexDefinition {
+                found: true,
+                uri: source_uri,
+                decl_start: decl_start,
+                decl_end: decl_end,
+                detail: symbol_index_record::stdlib_indexed_symbol_detail(sym),
+                doc: symbol_index_record::stdlib_indexed_symbol_doc(sym)
+            }
         }
         j = j + 1
     }
@@ -85,7 +99,14 @@ pub fn lookup_type_definition(state: LspState, name: String) -> IndexDefinition 
         if eq(symbol_index_record::indexed_symbol_name(sym), clone(name)) {
             let kind = symbol_index_record::indexed_symbol_kind(sym)
             if kind == kinds::LSP_SYMBOL_STRUCT() || kind == kinds::LSP_SYMBOL_ENUM() {
-                return IndexDefinition { found: true, uri: symbol_index_record::indexed_symbol_uri(sym), decl_start: symbol_index_record::indexed_symbol_decl_start(sym), decl_end: symbol_index_record::indexed_symbol_decl_end(sym), detail: symbol_index_record::indexed_symbol_detail(sym), doc: String_new() }
+                return IndexDefinition {
+                    found: true,
+                    uri: symbol_index_record::indexed_symbol_uri(sym),
+                    decl_start: symbol_index_record::indexed_symbol_decl_start(sym),
+                    decl_end: symbol_index_record::indexed_symbol_decl_end(sym),
+                    detail: symbol_index_record::indexed_symbol_detail(sym),
+                    doc: String_new()
+                }
             }
         }
         i = i + 1

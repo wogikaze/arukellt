@@ -11,7 +11,12 @@ pub fn issue504_hir_self_check() -> String {
     let self_ty = type_contracts::HirType_named(commands::TY_STRUCT(), String_from("MyStruct"))
     let type_param = items::HirTypeParam_new(String_from("T"))
     items::HirTypeParam_push_bound(type_param, items::HirTraitBound_new(foo_trait))
-    let func = items::HirFunction_new(String_from("f"), type_contracts::HirType_simple(commands::TY_UNIT()), node_record::HirNode_new(commands::HIR_BLOCK(), type_contracts::HirType_simple(commands::TY_UNIT())), false)
+    let func = items::HirFunction_new(
+        String_from("f"),
+        type_contracts::HirType_simple(commands::TY_UNIT()),
+        node_record::HirNode_new(commands::HIR_BLOCK(), type_contracts::HirType_simple(commands::TY_UNIT())),
+        false
+    )
     items::HirFunction_push_type_param(func, type_param)
     let impl_block = items::HirImplBlock_new(type_contracts::HirType_named(commands::TY_TRAIT(), String_from("Foo")), self_ty)
     let fn_param = items::HirFunction_type_param_at(func, 0)

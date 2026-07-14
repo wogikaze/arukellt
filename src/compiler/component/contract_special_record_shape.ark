@@ -23,7 +23,9 @@ fn component_record_point_signature_error(f: AstNode, allows: ComponentContractA
     if contract_allows_record_query::ComponentContractAllows_allow_record_distance(allows) && !contract_record_shape::component_fn_is_point_to_i32(f) {
         return contract_helpers::component_error_for_fn(f)
     }
-    if contract_allows_record_query::ComponentContractAllows_allow_record_point(allows) && !contract_record_shape::component_fn_is_point_to_i32(f) || contract_record_shape::component_fn_is_point_point_to_point(f) {
+    if contract_allows_record_query::ComponentContractAllows_allow_record_point(allows) &&
+    !contract_record_shape::component_fn_is_point_to_i32(f) ||
+    contract_record_shape::component_fn_is_point_point_to_point(f) {
         return contract_helpers::component_error_for_fn(f)
     }
     if contract_allows_record_query::ComponentContractAllows_allow_record_roundtrip(allows) && !contract_record_shape::component_fn_is_point_to_point(f) {
@@ -39,7 +41,9 @@ fn component_record_color_signature_error(f: AstNode, allows: ComponentContractA
     if contract_allows_record_query::ComponentContractAllows_allow_color_code(allows) && !contract_record_shape::component_fn_is_color_to_i32(f) {
         return contract_helpers::component_error_for_fn(f)
     }
-    if contract_allows_record_query::ComponentContractAllows_allow_color_enum(allows) && !contract_record_shape::component_fn_is_color_to_color(f) || contract_record_shape::component_fn_is_color_to_i32(f) {
+    if contract_allows_record_query::ComponentContractAllows_allow_color_enum(allows) &&
+    !contract_record_shape::component_fn_is_color_to_color(f) ||
+    contract_record_shape::component_fn_is_color_to_i32(f) {
         return contract_helpers::component_error_for_fn(f)
     }
     if contract_allows_record_query::ComponentContractAllows_allow_color_roundtrip(allows) && !contract_record_shape::component_fn_is_color_to_color(f) {

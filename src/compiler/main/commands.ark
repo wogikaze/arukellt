@@ -19,7 +19,14 @@ fn parse_ascii_core_command(name: String) -> i32 {
     if name_len == 5 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 104 && char_at(clone(name), 2) == 101 && char_at(clone(name), 3) == 99 && char_at(clone(name), 4) == 107 {
         return kinds::CMD_CHECK()
     }
-    if name_len == 7 && char_at(clone(name), 0) == 99 && char_at(clone(name), 1) == 111 && char_at(clone(name), 2) == 109 && char_at(clone(name), 3) == 112 && char_at(clone(name), 4) == 105 && char_at(clone(name), 5) == 108 && char_at(clone(name), 6) == 101 {
+    if name_len == 7 &&
+    char_at(clone(name), 0) == 99 &&
+    char_at(clone(name), 1) == 111 &&
+    char_at(clone(name), 2) == 109 &&
+    char_at(clone(name), 3) == 112 &&
+    char_at(clone(name), 4) == 105 &&
+    char_at(clone(name), 5) == 108 &&
+    char_at(clone(name), 6) == 101 {
         return kinds::CMD_COMPILE()
     }
     if name_len == 5 && char_at(clone(name), 0) == 112 && char_at(clone(name), 1) == 97 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 101 {
@@ -28,7 +35,14 @@ fn parse_ascii_core_command(name: String) -> i32 {
     if name_len == 4 && char_at(clone(name), 0) == 104 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 108 && char_at(clone(name), 3) == 112 {
         return kinds::CMD_HELP()
     }
-    if name_len == 7 && char_at(clone(name), 0) == 118 && char_at(clone(name), 1) == 101 && char_at(clone(name), 2) == 114 && char_at(clone(name), 3) == 115 && char_at(clone(name), 4) == 105 && char_at(clone(name), 5) == 111 && char_at(clone(name), 6) == 110 {
+    if name_len == 7 &&
+    char_at(clone(name), 0) == 118 &&
+    char_at(clone(name), 1) == 101 &&
+    char_at(clone(name), 2) == 114 &&
+    char_at(clone(name), 3) == 115 &&
+    char_at(clone(name), 4) == 105 &&
+    char_at(clone(name), 5) == 111 &&
+    char_at(clone(name), 6) == 110 {
         return kinds::CMD_VERSION()
     }
     kinds::CMD_UNKNOWN()

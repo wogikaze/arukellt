@@ -8,15 +8,46 @@ use mir::mono_names
 use mir::type_contracts
 use mir::typeinfo_shape
 
-fn mir_index_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo) {
+fn mir_index_mono_variants(
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    midx: MonoIndex,
+    base_name: String,
+    return_vt: i32,
+    return_type_name: String,
+    mono_instances: Vec<MonoInstance>,
+    generic_return_ty: TypeInfo
+) {
     mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, clone(base_name), return_vt, clone(return_type_name), mono_instances, generic_return_ty, false)
 }
 
-fn mir_index_method_mono_variants(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo) {
+fn mir_index_method_mono_variants(
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    midx: MonoIndex,
+    base_name: String,
+    return_vt: i32,
+    return_type_name: String,
+    mono_instances: Vec<MonoInstance>,
+    generic_return_ty: TypeInfo
+) {
     mir_index_mono_variants_with_method_fallback(fn_names, fn_return_vts, fn_return_type_names, midx, clone(base_name), return_vt, clone(return_type_name), mono_instances, generic_return_ty, true)
 }
 
-fn mir_index_mono_variants_with_method_fallback(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, midx: MonoIndex, base_name: String, return_vt: i32, return_type_name: String, mono_instances: Vec<MonoInstance>, generic_return_ty: TypeInfo, method_return_suffix_fallback: bool) {
+fn mir_index_mono_variants_with_method_fallback(
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    midx: MonoIndex,
+    base_name: String,
+    return_vt: i32,
+    return_type_name: String,
+    mono_instances: Vec<MonoInstance>,
+    generic_return_ty: TypeInfo,
+    method_return_suffix_fallback: bool
+) {
     let mono_count = mono::mono_index_count(midx, clone(base_name))
     if mono_count > 0 {
         let mut mono_i = 0

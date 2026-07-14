@@ -9,7 +9,14 @@ use corehir::param_shape_node
 fn param_named_local_type_name(ann: AstNode) -> String {
     if decl_ann_name::decl_ann_is_named(ann) {
         let name = decl_ann_name::decl_ann_name(ann)
-        if !eq(clone(name), "i32") && !eq(clone(name), "f64") && !eq(clone(name), "i64") && !eq(clone(name), "bool") && !eq(clone(name), "String") && !eq(clone(name), "u8") && !eq(clone(name), "char") && len(name) > 1 {
+        if !eq(clone(name), "i32") &&
+        !eq(clone(name), "f64") &&
+        !eq(clone(name), "i64") &&
+        !eq(clone(name), "bool") &&
+        !eq(clone(name), "String") &&
+        !eq(clone(name), "u8") &&
+        !eq(clone(name), "char") &&
+        len(name) > 1 {
             return name
         }
     }

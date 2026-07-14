@@ -14,8 +14,32 @@ struct DocFnEntry {
     avail_note: String,
 }
 
-fn DocFnEntry_new(name: String, module: String, params: String, returns: String, stability: String, doc: String, errors: String, target: String, avail_t1: i32, avail_t3: i32, avail_note: String) -> DocFnEntry {
-    DocFnEntry { name: name, module: module, params: params, returns: returns, stability: stability, doc: doc, errors: errors, target: target, avail_t1: avail_t1, avail_t3: avail_t3, avail_note: avail_note }
+fn DocFnEntry_new(
+    name: String,
+    module: String,
+    params: String,
+    returns: String,
+    stability: String,
+    doc: String,
+    errors: String,
+    target: String,
+    avail_t1: i32,
+    avail_t3: i32,
+    avail_note: String
+) -> DocFnEntry {
+    DocFnEntry {
+        name: name,
+        module: module,
+        params: params,
+        returns: returns,
+        stability: stability,
+        doc: doc,
+        errors: errors,
+        target: target,
+        avail_t1: avail_t1,
+        avail_t3: avail_t3,
+        avail_note: avail_note
+    }
 }
 
 fn DocFnEntry_name(e: DocFnEntry) -> String { clone(e.name) }

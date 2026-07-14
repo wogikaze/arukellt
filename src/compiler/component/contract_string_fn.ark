@@ -3,45 +3,69 @@
 use component::contract_helpers
 
 fn component_fn_is_string_unary(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("String"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("String"))
 }
 
 fn component_fn_is_i32_to_string(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && eq(contract_helpers::component_export_return_type_name(f), String_from("String"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("String"))
 }
 
 fn component_fn_is_string_to_i32(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("i32"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("i32"))
 }
 
 fn component_fn_is_string_to_named_i32(f: ComponentExportFunc, ret_name: String) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), ret_name)
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), ret_name)
 }
 
 fn component_fn_is_string_to_narrow_i32(f: ComponentExportFunc) -> bool {
-    component_fn_is_string_to_named_i32(f, String_from("u8")) || component_fn_is_string_to_named_i32(f, String_from("u16")) || component_fn_is_string_to_named_i32(f, String_from("u32")) || component_fn_is_string_to_named_i32(f, String_from("i8")) || component_fn_is_string_to_named_i32(f, String_from("i16"))
+    component_fn_is_string_to_named_i32(f, String_from("u8")) ||
+    component_fn_is_string_to_named_i32(f, String_from("u16")) ||
+    component_fn_is_string_to_named_i32(f, String_from("u32")) ||
+    component_fn_is_string_to_named_i32(f, String_from("i8")) ||
+    component_fn_is_string_to_named_i32(f, String_from("i16"))
 }
 
 fn component_fn_is_string_to_f64(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("f64"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("f64"))
 }
 
 fn component_fn_is_string_to_i64(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("i64"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("i64"))
 }
 
 fn component_fn_is_string_to_u64(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("u64"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("u64"))
 }
 
 fn component_fn_is_string_to_f32(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("f32"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("f32"))
 }
 
 fn component_fn_is_string_to_bool(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("bool"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("bool"))
 }
 
 fn component_fn_is_string_to_char(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 1) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) && eq(contract_helpers::component_export_return_type_name(f), String_from("char"))
+    contract_helpers::component_export_param_count_is(f, 1) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("String")) &&
+    eq(contract_helpers::component_export_return_type_name(f), String_from("char"))
 }

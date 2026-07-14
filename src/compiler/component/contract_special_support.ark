@@ -7,7 +7,12 @@ use component::contract_string_fn
 use component::contract_tuple_functions
 
 fn component_record_special_signature_name(name: String) -> bool {
-    eq(clone(name), String_from("distance_sq")) || eq(clone(name), String_from("add_points")) || eq(clone(name), String_from("next_color")) || eq(clone(name), String_from("color_to_value")) || eq(clone(name), String_from("color_code")) || eq(clone(name), String_from("area"))
+    eq(clone(name), String_from("distance_sq")) ||
+    eq(clone(name), String_from("add_points")) ||
+    eq(clone(name), String_from("next_color")) ||
+    eq(clone(name), String_from("color_to_value")) ||
+    eq(clone(name), String_from("color_code")) ||
+    eq(clone(name), String_from("area"))
 }
 
 fn component_record_special_signature_supported(name: String, f: AstNode) -> bool {
@@ -39,7 +44,15 @@ fn component_string_special_signature_name(name: String) -> bool {
 fn component_string_special_signature_supported(name: String, f: AstNode) -> bool {
     let func = contract_helpers::component_func_from_decl(f)
     if eq(clone(name), String_from("greet")) {
-        return contract_string_fn::component_fn_is_string_unary(func) || contract_string_fn::component_fn_is_string_to_i32(func) || contract_string_fn::component_fn_is_string_to_narrow_i32(func) || contract_string_fn::component_fn_is_string_to_bool(func) || contract_string_fn::component_fn_is_string_to_char(func) || contract_string_fn::component_fn_is_string_to_f32(func) || contract_string_fn::component_fn_is_string_to_f64(func) || contract_string_fn::component_fn_is_string_to_i64(func) || contract_string_fn::component_fn_is_string_to_u64(func)
+        return contract_string_fn::component_fn_is_string_unary(func) ||
+        contract_string_fn::component_fn_is_string_to_i32(func) ||
+        contract_string_fn::component_fn_is_string_to_narrow_i32(func) ||
+        contract_string_fn::component_fn_is_string_to_bool(func) ||
+        contract_string_fn::component_fn_is_string_to_char(func) ||
+        contract_string_fn::component_fn_is_string_to_f32(func) ||
+        contract_string_fn::component_fn_is_string_to_f64(func) ||
+        contract_string_fn::component_fn_is_string_to_i64(func) ||
+        contract_string_fn::component_fn_is_string_to_u64(func)
     }
     false
 }

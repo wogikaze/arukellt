@@ -124,7 +124,16 @@ fn mono_suffix_is_single_type_key(suffix: String) -> bool {
 }
 
 fn is_mono_type_var_name(type_name: String) -> bool {
-    eq(clone(type_name), String_from("T")) || eq(clone(type_name), String_from("A")) || eq(clone(type_name), String_from("B")) || eq(clone(type_name), String_from("C")) || eq(clone(type_name), String_from("D")) || eq(clone(type_name), String_from("E")) || eq(clone(type_name), String_from("K")) || eq(clone(type_name), String_from("U")) || eq(clone(type_name), String_from("V")) || eq(clone(type_name), String_from("W"))
+    eq(clone(type_name), String_from("T")) ||
+    eq(clone(type_name), String_from("A")) ||
+    eq(clone(type_name), String_from("B")) ||
+    eq(clone(type_name), String_from("C")) ||
+    eq(clone(type_name), String_from("D")) ||
+    eq(clone(type_name), String_from("E")) ||
+    eq(clone(type_name), String_from("K")) ||
+    eq(clone(type_name), String_from("U")) ||
+    eq(clone(type_name), String_from("V")) ||
+    eq(clone(type_name), String_from("W"))
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {

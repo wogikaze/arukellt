@@ -24,19 +24,53 @@ fn emit_result_output_component(core_wasm: Vec<i32>, export_name: String, kind: 
 }
 
 fn emit_i32_i32_to_result_i32_string_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-    emit_result_output_component(core_wasm, export_name, RESULT_OUTPUT_ADAPTER_I32_I32_TO_RESULT_I32_STRING(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_STRING(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), 2)
+    emit_result_output_component(
+        core_wasm,
+        export_name,
+        RESULT_OUTPUT_ADAPTER_I32_I32_TO_RESULT_I32_STRING(),
+        constants_wit_values::WIT_VAL_S32(),
+        constants_wit_values::WIT_VAL_STRING(),
+        constants_wit_values::WIT_VAL_S32(),
+        constants_wit_values::WIT_VAL_S32(),
+        2
+    )
 }
 
 fn emit_bool_to_result_bool_bool_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-    emit_result_output_component(core_wasm, export_name, RESULT_OUTPUT_ADAPTER_BOOL_TO_RESULT_BOOL_BOOL(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_BOOL(), constants_wit_values::WIT_VAL_BOOL(), 0, 1)
+    emit_result_output_component(
+        core_wasm,
+        export_name,
+        RESULT_OUTPUT_ADAPTER_BOOL_TO_RESULT_BOOL_BOOL(),
+        constants_wit_values::WIT_VAL_BOOL(),
+        constants_wit_values::WIT_VAL_BOOL(),
+        constants_wit_values::WIT_VAL_BOOL(),
+        0,
+        1
+    )
 }
 
 fn emit_result_i32_i32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-    emit_result_input_component(core_wasm, export_name, RESULT_INPUT_ADAPTER_I32_I32_TO_I32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_S32(), false)
+    emit_result_input_component(
+        core_wasm,
+        export_name,
+        RESULT_INPUT_ADAPTER_I32_I32_TO_I32(),
+        constants_wit_values::WIT_VAL_S32(),
+        constants_wit_values::WIT_VAL_S32(),
+        constants_wit_values::WIT_VAL_S32(),
+        false
+    )
 }
 
 fn emit_result_i32_string_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-    emit_result_input_component(core_wasm, export_name, RESULT_INPUT_ADAPTER_I32_STRING_TO_I32(), constants_wit_values::WIT_VAL_S32(), constants_wit_values::WIT_VAL_STRING(), constants_wit_values::WIT_VAL_S32(), true)
+    emit_result_input_component(
+        core_wasm,
+        export_name,
+        RESULT_INPUT_ADAPTER_I32_STRING_TO_I32(),
+        constants_wit_values::WIT_VAL_S32(),
+        constants_wit_values::WIT_VAL_STRING(),
+        constants_wit_values::WIT_VAL_S32(),
+        true
+    )
 }
 
 fn emit_result_i32_i32_to_result_i32_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {

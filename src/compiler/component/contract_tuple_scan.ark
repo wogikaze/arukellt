@@ -21,7 +21,11 @@ pub struct ComponentTupleScan {
 }
 
 fn ComponentTupleReturnScan_new(has_i32_i32_to_tuple_i32_i32: bool, has_i64_i64_to_tuple_i64_i64: bool, has_tuple_i32_i32_to_tuple_i32_i32: bool) -> ComponentTupleReturnScan {
-    ComponentTupleReturnScan { has_i32_i32_to_tuple_i32_i32: has_i32_i32_to_tuple_i32_i32, has_i64_i64_to_tuple_i64_i64: has_i64_i64_to_tuple_i64_i64, has_tuple_i32_i32_to_tuple_i32_i32: has_tuple_i32_i32_to_tuple_i32_i32 }
+    ComponentTupleReturnScan {
+        has_i32_i32_to_tuple_i32_i32: has_i32_i32_to_tuple_i32_i32,
+        has_i64_i64_to_tuple_i64_i64: has_i64_i64_to_tuple_i64_i64,
+        has_tuple_i32_i32_to_tuple_i32_i32: has_tuple_i32_i32_to_tuple_i32_i32
+    }
 }
 
 fn ComponentTupleParamScan_new(has_tuple_i32_i32_to_i32: bool, has_tuple_i32_bool_to_i32: bool, has_tuple_bool_bool_to_i32: bool) -> ComponentTupleParamScan {

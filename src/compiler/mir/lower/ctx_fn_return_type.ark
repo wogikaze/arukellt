@@ -88,7 +88,14 @@ fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
 }
 
 fn mono_type_key_looks_valid(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
+    if eq(clone(key), String_from("i32")) ||
+    eq(clone(key), String_from("i64")) ||
+    eq(clone(key), String_from("f64")) ||
+    eq(clone(key), String_from("f32")) ||
+    eq(clone(key), String_from("bool")) ||
+    eq(clone(key), String_from("char")) ||
+    eq(clone(key), String_from("String")) ||
+    eq(clone(key), String_from("string")) {
         return true
     }
     if len(key) > 0 {

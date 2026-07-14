@@ -38,7 +38,16 @@ fn registry_audit_print_summary(ctx: SelfEmitCtx) {
     if c <= 0 {
         return
     }
-    let line = concat(String_from("reg-vt-audit: summary candidates="), concat(i32_to_string(c), concat(String_from(" matched="), concat(i32_to_string(ctx_record::SelfEmitCtx_registry_audit_matched(ctx)), concat(String_from(" mismatched="), i32_to_string(ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx)))))))
+    let line = concat(
+        String_from("reg-vt-audit: summary candidates="),
+        concat(
+            i32_to_string(c),
+            concat(
+                String_from(" matched="),
+                concat(i32_to_string(ctx_record::SelfEmitCtx_registry_audit_matched(ctx)), concat(String_from(" mismatched="), i32_to_string(ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx))))
+            )
+        )
+    )
     stdio::eprintln(line)
 }
 

@@ -9,7 +9,19 @@ use wasm::intrinsics::helpers_core
 
 // Arukellt Selfhost - Wasm option/result/assert/process host call dispatch facade.
 
-fn try_emit_option_assert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_option_assert_call(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
     if try_emit_option_result_call(w, clone(callee), inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -21,7 +33,19 @@ fn try_emit_option_assert_call(w: WasmWriter, callee: String, inst: MirInst, ctx
 
 // Arukellt Selfhost - option/result host call dispatch.
 
-fn try_emit_option_result_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_option_result_call(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
     if try_emit_option_unwrap_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
@@ -50,7 +74,19 @@ fn emit_option_receiver_if_needed(w: WasmWriter, prev_op: i32, prev_arg0: i32, p
 
 // Arukellt Selfhost - option/result status host call dispatch.
 
-fn try_emit_option_status_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_option_status_call(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
     if eq(clone(callee), "is_some") || eq(clone(callee), "is_ok") {
         emit_option_receiver_if_needed(w, prev_op, prev_arg0, prev_arg1)
         let _result_on_stack = intrinsic_option_result::emit_is_ok(w, inst, ctx)
@@ -68,7 +104,19 @@ fn try_emit_option_status_call(w: WasmWriter, callee: String, inst: MirInst, ctx
 
 // Arukellt Selfhost - option/result unwrap host call dispatch.
 
-fn try_emit_option_unwrap_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_option_unwrap_call(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
     if eq(clone(callee), "unwrap") {
         emit_option_receiver_if_needed(w, prev_op, prev_arg0, prev_arg1)
         let _result_on_stack = intrinsic_option_result::emit_unwrap_l4771(w, inst, ctx)

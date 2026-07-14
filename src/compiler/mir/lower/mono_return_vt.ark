@@ -77,7 +77,14 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("hashmap:")) {
         return true
     }
-    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) || eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("i64")) ||
+    eq(clone(type_name), String_from("f64")) ||
+    eq(clone(type_name), String_from("f32")) ||
+    eq(clone(type_name), String_from("bool")) ||
+    eq(clone(type_name), String_from("char")) ||
+    eq(clone(type_name), String_from("String")) ||
+    eq(clone(type_name), String_from("string")) {
         return true
     }
     false

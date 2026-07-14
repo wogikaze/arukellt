@@ -20,7 +20,12 @@ fn mir_local_vt_from_type_name(type_name: String) -> i32 {
     if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
         return value_types::VT_I64()
     }
-    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) || eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("Option")) || eq(clone(type_name), String_from("Result")) {
+    if eq(clone(type_name), String_from("Vec")) ||
+    eq(clone(type_name), String_from("HashMap")) ||
+    eq(clone(type_name), String_from("HashSet")) ||
+    eq(clone(type_name), String_from("String")) ||
+    eq(clone(type_name), String_from("Option")) ||
+    eq(clone(type_name), String_from("Result")) {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()

@@ -29,7 +29,17 @@ fn ExportSectionPlan_main_idx(plan: ExportSectionPlan) -> i32 {
     plan.main_idx
 }
 
-fn emit_export_section(out: WasmWriter, mir: MirModule, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
+fn emit_export_section(
+    out: WasmWriter,
+    mir: MirModule,
+    fn_count: i32,
+    needs_wrapper: i32,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: i32,
+    needs_wasi_http_outgoing: i32,
+    wit_import_count: i32
+) {
     let export_sec = writer_core::WasmWriter_new()
     let plan = build_export_section_plan(mir, fn_count)
     let export_count = ExportSectionPlan_export_count(plan)
@@ -84,7 +94,17 @@ fn emit_memory_export_entry(export_sec: WasmWriter) {
     writer_core::emit_leb128_u(export_sec, 0)
 }
 
-fn emit_start_export_entry(export_sec: WasmWriter, main_idx: i32, fn_count: i32, needs_wrapper: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
+fn emit_start_export_entry(
+    export_sec: WasmWriter,
+    main_idx: i32,
+    fn_count: i32,
+    needs_wrapper: i32,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: i32,
+    needs_wasi_http_outgoing: i32,
+    wit_import_count: i32
+) {
     if main_idx >= 0 {
         writer_string::emit_string(export_sec, String_from("_start"))
         writer_core::emit_byte(export_sec, 0)
@@ -96,7 +116,16 @@ fn emit_start_export_entry(export_sec: WasmWriter, main_idx: i32, fn_count: i32,
     }
 }
 
-fn emit_function_export_entries(export_sec: WasmWriter, mir: MirModule, fn_count: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
+fn emit_function_export_entries(
+    export_sec: WasmWriter,
+    mir: MirModule,
+    fn_count: i32,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: i32,
+    needs_wasi_http_outgoing: i32,
+    wit_import_count: i32
+) {
     let functions = module_functions::MirModule_functions(mir)
     let mut seen_short_names = Vec_new_String()
     let mut exi = 0

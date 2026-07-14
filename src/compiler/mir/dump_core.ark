@@ -12,7 +12,6 @@ use mir::module_metadata
 use mir::types
 use mir::ssa_rename_entry
 
-
 // ── MIR Dump ─────────────────────────────────────────────────────────────────
 fn dump_mir(m: MirModule) {
     dominance::mir_compute_dominance(m)
@@ -28,7 +27,15 @@ fn dump_mir(m: MirModule) {
         let f = module_functions::MirModule_function_at(m, i)
         let block_count = function_block_queries::MirFunction_block_count(f)
         let local_count = function_locals_view::MirFunction_local_count(f)
-        stdio::eprintln(concat(String_from("  fn "), concat(function_identity::MirFunction_name(f), concat(String_from(" ("), concat(to_string(local_count), concat(String_from(" locals, "), concat(to_string(block_count), String_from(" blocks)"))))))))
+        stdio::eprintln(
+            concat(
+                String_from("  fn "),
+                concat(
+                    function_identity::MirFunction_name(f),
+                    concat(String_from(" ("), concat(to_string(local_count), concat(String_from(" locals, "), concat(to_string(block_count), String_from(" blocks)")))))
+                )
+            )
+        )
         dump_core_blocks::dump_mir_function_blocks(f)
         i = i + 1
     }
@@ -36,3 +43,4 @@ fn dump_mir(m: MirModule) {
     if str_count > 0 {
         stdio::eprintln(concat(String_from("  strings: "), to_string(str_count)))
     }
+}

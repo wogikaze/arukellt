@@ -12,7 +12,17 @@ use mir::mono_names
 use mir::type_contracts
 use mir::typeinfo_shape
 
-fn mir_emit_top_level_fn_mono_bodies(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, decl_name: String, typed_index: i32, param_count: i32, entry_view: MirLowerEntryView, fn_info_index: i32, midx: MonoIndex, mir_tr: i32) {
+fn mir_emit_top_level_fn_mono_bodies(
+    ctx: LowerCtx,
+    body_input: MirLowerEntryBodyInput,
+    decl_name: String,
+    typed_index: i32,
+    param_count: i32,
+    entry_view: MirLowerEntryView,
+    fn_info_index: i32,
+    midx: MonoIndex,
+    mir_tr: i32
+) {
     let mono_emit_count_raw = mono::mono_index_count(midx, clone(decl_name))
     if mono_emit_count_raw > 0 {
         let mut mono_emit_i = 0

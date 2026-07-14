@@ -24,7 +24,12 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
         sig_type_name = clone(local_type_name)
-        if starts_with(clone(local_type_name), String_from("vec:")) || starts_with(clone(local_type_name), String_from("hashmap:")) || starts_with(clone(local_type_name), String_from("Option_")) || starts_with(clone(local_type_name), String_from("option:")) || starts_with(clone(local_type_name), String_from("Result_")) || starts_with(clone(local_type_name), String_from("result:")) {
+        if starts_with(clone(local_type_name), String_from("vec:")) ||
+        starts_with(clone(local_type_name), String_from("hashmap:")) ||
+        starts_with(clone(local_type_name), String_from("Option_")) ||
+        starts_with(clone(local_type_name), String_from("option:")) ||
+        starts_with(clone(local_type_name), String_from("Result_")) ||
+        starts_with(clone(local_type_name), String_from("result:")) {
             pvt = value_types::VT_GC_REF()
         } else {
             // Qualified names like "parser::TomlValue" need the bare enum

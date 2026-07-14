@@ -164,7 +164,15 @@ fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> 
     if starts_with(clone(name), String_from("hashmap:")) {
         return gc_type_base + 16
     }
-    if starts_with(clone(name), String_from("enum:")) || starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Option_")) || starts_with(clone(name), String_from("Option:")) || starts_with(clone(name), String_from("Option<")) || starts_with(clone(name), String_from("Result_")) || starts_with(clone(name), String_from("Result:")) || starts_with(clone(name), String_from("Result<")) {
+    if starts_with(clone(name), String_from("enum:")) ||
+    starts_with(clone(name), String_from("option:")) ||
+    starts_with(clone(name), String_from("result:")) ||
+    starts_with(clone(name), String_from("Option_")) ||
+    starts_with(clone(name), String_from("Option:")) ||
+    starts_with(clone(name), String_from("Option<")) ||
+    starts_with(clone(name), String_from("Result_")) ||
+    starts_with(clone(name), String_from("Result:")) ||
+    starts_with(clone(name), String_from("Result<")) {
         return gc_type_base + 14
     }
     // Unknown type — return -1 so caller knows there's no mapping.
@@ -177,7 +185,12 @@ fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, g
         return GC_LAYOUT_ID_INVALID()
     }
     let kind = type_table::type_entry_kind(entry)
-    if kind != kinds::TYPE_KIND_STRING() && kind != kinds::TYPE_KIND_VEC() && kind != kinds::TYPE_KIND_OPTION() && kind != kinds::TYPE_KIND_RESULT() && kind != kinds::TYPE_KIND_HASHMAP() && kind != kinds::TYPE_KIND_HASHSET() {
+    if kind != kinds::TYPE_KIND_STRING() &&
+    kind != kinds::TYPE_KIND_VEC() &&
+    kind != kinds::TYPE_KIND_OPTION() &&
+    kind != kinds::TYPE_KIND_RESULT() &&
+    kind != kinds::TYPE_KIND_HASHMAP() &&
+    kind != kinds::TYPE_KIND_HASHSET() {
         return GC_LAYOUT_ID_INVALID()
     }
     let name = type_table::type_entry_name(entry)

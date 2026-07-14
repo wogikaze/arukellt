@@ -5,7 +5,18 @@ use corehir::raw_decls
 use corehir::raw_record
 use corehir::raw_types
 
-fn build_program_from_facts(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHirFnInfo>, method_infos: Vec<CoreHirMethodInfo>, layout_decls: Vec<CoreHirLayoutDecl>, type_facts: CoreHirTypeFacts, body_table: CoreHirBodyTable, modules: Vec<CoreHirModuleInfo>, resolved_calls: Vec<CoreHirResolvedCall>, typed_locals: Vec<CoreHirTypedLocal>, export_surface: CoreHirExportSurface) -> CoreHirRawProgram {
+fn build_program_from_facts(
+    decl_infos: Vec<CoreHirDeclInfo>,
+    fn_infos: Vec<CoreHirFnInfo>,
+    method_infos: Vec<CoreHirMethodInfo>,
+    layout_decls: Vec<CoreHirLayoutDecl>,
+    type_facts: CoreHirTypeFacts,
+    body_table: CoreHirBodyTable,
+    modules: Vec<CoreHirModuleInfo>,
+    resolved_calls: Vec<CoreHirResolvedCall>,
+    typed_locals: Vec<CoreHirTypedLocal>,
+    export_surface: CoreHirExportSurface
+) -> CoreHirRawProgram {
     raw_record::CoreHirRawProgram_new(decl_infos, fn_infos, method_infos, layout_decls, type_facts, body_table, modules, resolved_calls, typed_locals, export_surface)
 }
 

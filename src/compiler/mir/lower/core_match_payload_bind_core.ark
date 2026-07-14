@@ -10,7 +10,16 @@ use mir::lower::core_match_payload_bind_emit
 use mir::lower::core_match_payload_type_extract
 use mir::value_types
 
-fn core_emit_payload_variant_binds(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, pat: CoreHirExpr, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool, scrut_ok_is_ref: bool) {
+fn core_emit_payload_variant_binds(
+    ctx: LowerCtx,
+    exprs: Vec<CoreHirExpr>,
+    pat: CoreHirExpr,
+    scrut_idx: i32,
+    scrut_ok_is_f64: bool,
+    scrut_ok_is_i64: bool,
+    scrut_ok_is_i32: bool,
+    scrut_ok_is_ref: bool
+) {
     let variant_name = core_expr_shape_accessors::mir_core_expr_text(pat)
     let mut bi = 0
     while bi < core_expr_shape_accessors::mir_core_expr_child_count(pat) {
@@ -79,7 +88,17 @@ fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
     let mut set_type = clone(elem_ty)
     if !core_match_payload_bind_types::core_payload_scalar_type_name(clone(elem_ty)) {
         if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
-            if !starts_with(clone(elem_ty), String_from("vec:")) && !starts_with(clone(elem_ty), String_from("Vec<")) && !starts_with(clone(elem_ty), String_from("Vec_")) && !eq(clone(elem_ty), String_from("Vec")) && !starts_with(clone(elem_ty), String_from("hashmap:")) && !starts_with(clone(elem_ty), String_from("Option_")) && !starts_with(clone(elem_ty), String_from("option:")) && !starts_with(clone(elem_ty), String_from("Option<")) && !starts_with(clone(elem_ty), String_from("Result_")) && !starts_with(clone(elem_ty), String_from("result:")) && !starts_with(clone(elem_ty), String_from("Result<")) {
+            if !starts_with(clone(elem_ty), String_from("vec:")) &&
+            !starts_with(clone(elem_ty), String_from("Vec<")) &&
+            !starts_with(clone(elem_ty), String_from("Vec_")) &&
+            !eq(clone(elem_ty), String_from("Vec")) &&
+            !starts_with(clone(elem_ty), String_from("hashmap:")) &&
+            !starts_with(clone(elem_ty), String_from("Option_")) &&
+            !starts_with(clone(elem_ty), String_from("option:")) &&
+            !starts_with(clone(elem_ty), String_from("Option<")) &&
+            !starts_with(clone(elem_ty), String_from("Result_")) &&
+            !starts_with(clone(elem_ty), String_from("result:")) &&
+            !starts_with(clone(elem_ty), String_from("Result<")) {
                 if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(elem_ty)) < 0 {
                     set_type = concat(String_from("enum:"), clone(elem_ty))
                 }

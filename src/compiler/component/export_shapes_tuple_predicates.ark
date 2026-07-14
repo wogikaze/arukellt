@@ -66,7 +66,9 @@ fn comp_function_is_i32_i32_to_tuple_i32_i32_export(f: MirFunction) -> bool {
     if !eq(export_function_view::export_function_return_type_name(f), String_from("")) {
         return false
     }
-    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && export_function_view::export_function_param_val_type(f, 1) == value_types::VT_I32() && export_function_view::export_function_return_type(f) == value_types::VT_I32()
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() &&
+    export_function_view::export_function_param_val_type(f, 1) == value_types::VT_I32() &&
+    export_function_view::export_function_return_type(f) == value_types::VT_I32()
 }
 
 fn comp_function_is_i64_i64_to_tuple_i64_i64_export(f: MirFunction) -> bool {
@@ -79,5 +81,7 @@ fn comp_function_is_i64_i64_to_tuple_i64_i64_export(f: MirFunction) -> bool {
     if !eq(export_function_view::export_function_return_type_name(f), String_from("")) {
         return false
     }
-    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I64() && export_function_view::export_function_param_val_type(f, 1) == value_types::VT_I64() && export_function_view::export_function_return_type(f) == value_types::VT_I32()
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I64() &&
+    export_function_view::export_function_param_val_type(f, 1) == value_types::VT_I64() &&
+    export_function_view::export_function_return_type(f) == value_types::VT_I32()
 }

@@ -39,7 +39,13 @@ fn param_ann_value_type(ann: AstNode) -> i32 {
     if decl_ann_name::decl_ann_is_name(ann, String_from("String")) || decl_ann_name::decl_ann_is_name(ann, String_from("string")) {
         return value_types::VT_REF()
     }
-    if decl_ann_name::decl_ann_is_name(ann, String_from("i32")) || decl_ann_name::decl_ann_is_name(ann, String_from("bool")) || decl_ann_name::decl_ann_is_name(ann, String_from("char")) || decl_ann_name::decl_ann_is_name(ann, String_from("u8")) || decl_ann_name::decl_ann_is_name(ann, String_from("u16")) || decl_ann_name::decl_ann_is_name(ann, String_from("u32")) || decl_ann_name::decl_ann_is_name(ann, String_from("i16")) {
+    if decl_ann_name::decl_ann_is_name(ann, String_from("i32")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("bool")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("char")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("u8")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("u16")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("u32")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("i16")) {
         return value_types::VT_I32()
     }
     // Named/generic user types (Range, VecIter, Option, Vec, ...) are GC refs.

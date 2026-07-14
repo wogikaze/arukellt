@@ -67,10 +67,16 @@ fn type_name_is_ref(type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("vec:")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         return true
     }
     if starts_with(clone(type_name), String_from("enum:")) {
@@ -137,7 +143,13 @@ fn local_inst_assigns_ref(f: MirFunction, inst: MirInst, local_idx: i32, depth: 
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if dest == local_idx {
-        if op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_ARRAY_NEW() || op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_CALL() || op == opcodes::MIR_REF_CAST() || op == opcodes::MIR_REF_TEST() {
+        if op == opcodes::MIR_GC_STRUCT_NEW() ||
+        op == opcodes::MIR_STRUCT_NEW() ||
+        op == opcodes::MIR_ARRAY_NEW() ||
+        op == opcodes::MIR_CONST_STRING() ||
+        op == opcodes::MIR_CALL() ||
+        op == opcodes::MIR_REF_CAST() ||
+        op == opcodes::MIR_REF_TEST() {
             return true
         }
         if op == opcodes::MIR_GC_STRUCT_GET() && local_has_ref_type_name(f, local_idx) {

@@ -11,17 +11,62 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
     let block = function_block_queries::MirFunction_block_at(f, block_id)
     let actual_count = block_pred_access::MirBlock_pred_count(block)
     if actual_count != expected_count {
-        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected count="), concat(to_string(expected_count), concat(String_from(" actual="), concat(to_string(actual_count), concat(String_from(" preds="), dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))))))
+        let msg = concat(
+            String_from("pred check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(
+                    String_from(": expected count="),
+                    concat(
+                        to_string(expected_count),
+                        concat(
+                            String_from(" actual="),
+                            concat(to_string(actual_count), concat(String_from(" preds="), dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block))))
+                        )
+                    )
+                )
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }
     if expected_count > 0 && block_pred_access::MirBlock_pred_at(block, 0) != expected0 {
-        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected preds="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))))))
+        let msg = concat(
+            String_from("pred check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(
+                    String_from(": expected preds="),
+                    concat(
+                        String_from("["),
+                        concat(
+                            to_string(expected0),
+                            concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))
+                        )
+                    )
+                )
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }
     if expected_count > 1 && block_pred_access::MirBlock_pred_at(block, 1) != expected1 {
-        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected preds="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))))))
+        let msg = concat(
+            String_from("pred check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(
+                    String_from(": expected preds="),
+                    concat(
+                        String_from("["),
+                        concat(
+                            to_string(expected0),
+                            concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))))
+                        )
+                    )
+                )
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }
@@ -31,7 +76,13 @@ fn mir_expect_idom(f: MirFunction, block_id: i32, expected_idom: i32) {
     let block = function_block_queries::MirFunction_block_at(f, block_id)
     let actual_idom = block_dominance_access::MirBlock_idom(block)
     if actual_idom != expected_idom {
-        let msg = concat(String_from("idom check failed for bb"), concat(to_string(block_id), concat(String_from(": expected="), concat(dump_format_edges::mir_format_edge(expected_idom), concat(String_from(" actual="), dump_format_edges::mir_format_edge(actual_idom))))))
+        let msg = concat(
+            String_from("idom check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(String_from(": expected="), concat(dump_format_edges::mir_format_edge(expected_idom), concat(String_from(" actual="), dump_format_edges::mir_format_edge(actual_idom))))
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }
@@ -41,17 +92,68 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
     let block = function_block_queries::MirFunction_block_at(f, block_id)
     let actual_count = block_dominance_access::MirBlock_dom_frontier_count(block)
     if actual_count != expected_count {
-        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected count="), concat(to_string(expected_count), concat(String_from(" actual="), concat(to_string(actual_count), concat(String_from(" frontier="), dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))))))
+        let msg = concat(
+            String_from("frontier check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(
+                    String_from(": expected count="),
+                    concat(
+                        to_string(expected_count),
+                        concat(
+                            String_from(" actual="),
+                            concat(to_string(actual_count), concat(String_from(" frontier="), dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block))))
+                        )
+                    )
+                )
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }
     if expected_count > 0 && block_dominance_access::MirBlock_dom_frontier_at(block, 0) != expected0 {
-        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected frontier="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))))))
+        let msg = concat(
+            String_from("frontier check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(
+                    String_from(": expected frontier="),
+                    concat(
+                        String_from("["),
+                        concat(
+                            to_string(expected0),
+                            concat(
+                                String_from(","),
+                                concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block))))
+                            )
+                        )
+                    )
+                )
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }
     if expected_count > 1 && block_dominance_access::MirBlock_dom_frontier_at(block, 1) != expected1 {
-        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected frontier="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))))))))
+        let msg = concat(
+            String_from("frontier check failed for bb"),
+            concat(
+                to_string(block_id),
+                concat(
+                    String_from(": expected frontier="),
+                    concat(
+                        String_from("["),
+                        concat(
+                            to_string(expected0),
+                            concat(
+                                String_from(","),
+                                concat(to_string(expected1), concat(String_from("] actual="), dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block))))
+                            )
+                        )
+                    )
+                )
+            )
+        )
         stdio::eprintln(msg)
         process::exit(1)
     }

@@ -66,10 +66,19 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if len(gc_param_sig) > 0 {
         return gc_param_sig
     }
-    if emit_target::is_gc_target(clone(target)) && (starts_with(clone(p_type_name), String_from("Option_")) || starts_with(clone(p_type_name), String_from("option:")) || starts_with(clone(p_type_name), String_from("Option:")) || starts_with(clone(p_type_name), String_from("Option<"))) {
+    if emit_target::is_gc_target(clone(target)) &&
+    (starts_with(clone(p_type_name), String_from("Option_")) ||
+        starts_with(clone(p_type_name), String_from("option:")) ||
+        starts_with(clone(p_type_name), String_from("Option:")) ||
+        starts_with(clone(p_type_name), String_from("Option<"))) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if emit_target::is_gc_target(clone(target)) && (starts_with(clone(p_type_name), String_from("Result_")) || starts_with(clone(p_type_name), String_from("result:")) || starts_with(clone(p_type_name), String_from("Result:")) || starts_with(clone(p_type_name), String_from("Result<")) || eq(clone(p_type_name), String_from("Result"))) {
+    if emit_target::is_gc_target(clone(target)) &&
+    (starts_with(clone(p_type_name), String_from("Result_")) ||
+        starts_with(clone(p_type_name), String_from("result:")) ||
+        starts_with(clone(p_type_name), String_from("Result:")) ||
+        starts_with(clone(p_type_name), String_from("Result<")) ||
+        eq(clone(p_type_name), String_from("Result"))) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(p_type_name), String_from("struct:")) {

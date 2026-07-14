@@ -13,7 +13,13 @@ pub struct ComponentContractAllows {
     tuple_allows: ComponentTupleAllows,
 }
 
-fn ComponentContractAllows_new(record_allows: ComponentRecordAllows, string_allows: ComponentStringAllows, collection_allows: ComponentCollectionAllows, numeric_allows: ComponentNumericAllows, tuple_allows: ComponentTupleAllows) -> ComponentContractAllows {
+fn ComponentContractAllows_new(
+    record_allows: ComponentRecordAllows,
+    string_allows: ComponentStringAllows,
+    collection_allows: ComponentCollectionAllows,
+    numeric_allows: ComponentNumericAllows,
+    tuple_allows: ComponentTupleAllows
+) -> ComponentContractAllows {
     ComponentContractAllows {
         record_allows: record_allows,
         string_allows: string_allows,

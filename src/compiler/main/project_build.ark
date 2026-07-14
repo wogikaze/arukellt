@@ -44,7 +44,12 @@ fn exit_project_compile_error(entry: String, result: CompileResult) {
 
 fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: String) {
     if manifest_has_pkg_name(info) {
-        stdio::eprintln(concat(String_from("building "), concat(manifest_pkg_name(info), concat(String_from(" v"), concat(manifest_pkg_version(info), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))))
+        stdio::eprintln(
+            concat(
+                String_from("building "),
+                concat(manifest_pkg_name(info), concat(String_from(" v"), concat(manifest_pkg_version(info), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))
+            )
+        )
     } else {
         stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
     }
@@ -65,7 +70,12 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
     let write_result = fs::write_bytes(clone(out_path), bytes)
     match write_result {
         Result::Ok(_) => {
-            stdio::eprintln(concat(String_from("built "), concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(byte_count), String_from(" bytes)"))))))))
+            stdio::eprintln(
+                concat(
+                    String_from("built "),
+                    concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(byte_count), String_from(" bytes)"))))))
+                )
+            )
         },
         Result::Err(e) => {
             stdio::eprintln(concat(String_from("error writing output: "), e))
@@ -137,7 +147,12 @@ fn build_manifest_path(opts: CliOptions) -> String {
 }
 
 fn parse_project_manifest(content: String) -> ProjectBuildManifest {
-    ProjectBuildManifest_new(project_run::find_toml_value(clone(content), String_from("name")), project_run::find_toml_value(clone(content), String_from("version")), project_run::find_toml_value(clone(content), String_from("path")), project_run::find_toml_value(clone(content), String_from("entry")))
+    ProjectBuildManifest_new(
+        project_run::find_toml_value(clone(content), String_from("name")),
+        project_run::find_toml_value(clone(content), String_from("version")),
+        project_run::find_toml_value(clone(content), String_from("path")),
+        project_run::find_toml_value(clone(content), String_from("entry"))
+    )
 }
 
 fn manifest_pkg_name(info: ProjectBuildManifest) -> String {

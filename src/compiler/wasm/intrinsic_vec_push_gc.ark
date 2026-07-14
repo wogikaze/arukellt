@@ -84,7 +84,12 @@ fn push_gc_element_is_gc_ref(ctx: SelfEmitCtx, inst: MirInst, is_vec_string: boo
 }
 
 fn push_gc_primitive_vec_elem(elem: String) -> bool {
-    eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("f32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))
+    eq(clone(elem), String_from("i32")) ||
+    eq(clone(elem), String_from("i64")) ||
+    eq(clone(elem), String_from("f64")) ||
+    eq(clone(elem), String_from("f32")) ||
+    eq(clone(elem), String_from("bool")) ||
+    eq(clone(elem), String_from("char"))
 }
 
 // Array scratch locals must match the vec's element array type.
@@ -116,7 +121,19 @@ fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_
     helpers_core::emit_local_set(w, arr_tmp)
 }
 
-fn emit_gc_push_store_finish(w: WasmWriter, ctx: SelfEmitCtx, arr_tmp: i32, s_len: i32, s_val: i32, i32_array_type: i32, vec_local: i32, vec_type: i32, is_void_push: bool, next_op: i32, element_is_gc_ref: bool) {
+fn emit_gc_push_store_finish(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    arr_tmp: i32,
+    s_len: i32,
+    s_val: i32,
+    i32_array_type: i32,
+    vec_local: i32,
+    vec_type: i32,
+    is_void_push: bool,
+    next_op: i32,
+    element_is_gc_ref: bool
+) {
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_get(w, s_len)
     helpers_core::emit_local_get(w, s_val)

@@ -87,7 +87,15 @@ fn session_record_parse_diagnostics(snap: AnalysisSnapshot, parse_result: ParseR
     let mut pi = 0
     while pi < parse_err_count {
         let pe = session_parse_tokens::session_parse_error_at(parse_result, pi)
-        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_PARSE(), session_parse_tokens::session_parse_error_message(pe), session_parse_tokens::session_parse_error_start(pe), session_parse_tokens::session_parse_error_end(pe)))
+        snapshot_state_record::snapshot_push(
+            snap,
+            diagnostic_record::AnalysisDiagnostic_new(
+                phases::PHASE_PARSE(),
+                session_parse_tokens::session_parse_error_message(pe),
+                session_parse_tokens::session_parse_error_start(pe),
+                session_parse_tokens::session_parse_error_end(pe)
+            )
+        )
         pi = pi + 1
     }
 }

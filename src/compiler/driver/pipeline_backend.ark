@@ -26,7 +26,14 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if config_record::config_lint_local_only(config) {
         return local_lint::run_local_lint_stage(clone(source), config, pipeline_frontend::frontend_result_decls(frontend))
     }
-    run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))
+    run_backend(
+        source,
+        config,
+        pipeline_frontend::frontend_result_decls(frontend),
+        pipeline_frontend::frontend_result_t0(frontend),
+        pipeline_frontend::frontend_result_t_lex(frontend),
+        pipeline_frontend::frontend_result_t_parse(frontend)
+    )
 }
 
 // Arukellt Selfhost - driver load, resolve, typecheck, lower, and emit stages.

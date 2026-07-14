@@ -29,7 +29,10 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
     out = text::builder_append(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
     out = text::builder_append(out, String_from(",\"location\":"))
     if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
-        out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym)))
+        out = text::builder_append(
+            out,
+            symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
+        )
     } else {
         out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
     }

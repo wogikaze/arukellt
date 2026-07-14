@@ -177,11 +177,21 @@ fn gc_payload_layout_field_type_name(ctx: LowerCtx, variant_name: String, field_
 }
 
 fn gc_payload_is_scalar_type_name(type_name: String) -> bool {
-    eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("I32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("Bool"))
+    eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("I32")) ||
+    eq(clone(type_name), String_from("i64")) ||
+    eq(clone(type_name), String_from("I64")) ||
+    eq(clone(type_name), String_from("f64")) ||
+    eq(clone(type_name), String_from("F64")) ||
+    eq(clone(type_name), String_from("bool")) ||
+    eq(clone(type_name), String_from("Bool"))
 }
 
 fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("Vec")) || starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("Vec_")) {
+    if eq(clone(type_name), String_from("Vec")) ||
+    starts_with(clone(type_name), String_from("vec:")) ||
+    starts_with(clone(type_name), String_from("Vec<")) ||
+    starts_with(clone(type_name), String_from("Vec_")) {
         return true
     }
     if starts_with(clone(type_name), String_from("hashmap:")) {

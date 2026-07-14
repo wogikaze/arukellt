@@ -9,11 +9,31 @@ use wasm::sections_table
 use wasm::sections_type_plan
 use wasm::sections_types
 
-fn emit_type_section(out: WasmWriter, mir: MirModule, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: bool, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> TypeSectionPlan {
+fn emit_type_section(
+    out: WasmWriter,
+    mir: MirModule,
+    functions: Vec<MirFunction>,
+    fn_count: i32,
+    needs_wrapper: bool,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: bool,
+    needs_wasi_http_outgoing: bool,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>
+) -> TypeSectionPlan {
     sections_types::emit_type_section(out, mir, functions, fn_count, needs_wrapper, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, bindings)
 }
 
-fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
+fn emit_import_section(
+    out: WasmWriter,
+    host_type_map: Vec<i32>,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: bool,
+    needs_wasi_http_outgoing: bool,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    wit_type_map: Vec<i32>
+) {
     sections_imports::emit_import_section(out, host_type_map, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, bindings, wit_type_map)
 }
 
@@ -33,7 +53,17 @@ fn emit_global_section(out: WasmWriter, data_offset: i32) {
     sections_memory::emit_global_section(out, data_offset)
 }
 
-fn emit_export_section(out: WasmWriter, mir: MirModule, fn_count: i32, needs_wrapper: bool, target: String, wasi_version: String, needs_arukellt_host: bool, needs_wasi_http_outgoing: bool, wit_import_count: i32) {
+fn emit_export_section(
+    out: WasmWriter,
+    mir: MirModule,
+    fn_count: i32,
+    needs_wrapper: bool,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: bool,
+    needs_wasi_http_outgoing: bool,
+    wit_import_count: i32
+) {
     sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
 }
 

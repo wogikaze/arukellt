@@ -101,7 +101,15 @@ fn try_ok_payload_vt(ok_type_name: String) -> i32 {
     if eq(clone(ok_type_name), "i64") || eq(clone(ok_type_name), "I64") {
         return value_types::VT_I64()
     }
-    if starts_with(clone(ok_type_name), String_from("vec:")) || starts_with(clone(ok_type_name), String_from("Vec_")) || starts_with(clone(ok_type_name), String_from("hashmap:")) || starts_with(clone(ok_type_name), String_from("HashMap_")) || starts_with(clone(ok_type_name), String_from("Option_")) || starts_with(clone(ok_type_name), String_from("option:")) || starts_with(clone(ok_type_name), String_from("Result_")) || starts_with(clone(ok_type_name), String_from("result:")) || starts_with(clone(ok_type_name), String_from("enum:")) {
+    if starts_with(clone(ok_type_name), String_from("vec:")) ||
+    starts_with(clone(ok_type_name), String_from("Vec_")) ||
+    starts_with(clone(ok_type_name), String_from("hashmap:")) ||
+    starts_with(clone(ok_type_name), String_from("HashMap_")) ||
+    starts_with(clone(ok_type_name), String_from("Option_")) ||
+    starts_with(clone(ok_type_name), String_from("option:")) ||
+    starts_with(clone(ok_type_name), String_from("Result_")) ||
+    starts_with(clone(ok_type_name), String_from("result:")) ||
+    starts_with(clone(ok_type_name), String_from("enum:")) {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()

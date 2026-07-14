@@ -22,5 +22,12 @@ fn fn_param_from_node(node: AstNode) -> CoreHirParam {
 fn method_param_from_node(node: AstNode) -> CoreHirParam {
     let name = param_shape_node::param_name(clone(node))
     let bindable = param_shape_node::param_is_ident(clone(node))
-    param::CoreHirParam_new(clone(name), param_shape_value::method_param_value_type(clone(node)), param_type_name(clone(node)), param_shape_local::method_param_local_type_name(node), bindable, param_shape_node::param_is_self_name(name))
+    param::CoreHirParam_new(
+        clone(name),
+        param_shape_value::method_param_value_type(clone(node)),
+        param_type_name(clone(node)),
+        param_shape_local::method_param_local_type_name(node),
+        bindable,
+        param_shape_node::param_is_self_name(name)
+    )
 }

@@ -324,7 +324,9 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if callee_eq(clone(callee_name), String_from("__hm_is_get_key")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
     }
-    if callee_eq(clone(callee_name), String_from("__hm_is_get_val")) || callee_eq(clone(callee_name), String_from("__hm_ss_get_key")) || callee_eq(clone(callee_name), String_from("__hm_ss_get_val")) {
+    if callee_eq(clone(callee_name), String_from("__hm_is_get_val")) ||
+    callee_eq(clone(callee_name), String_from("__hm_ss_get_key")) ||
+    callee_eq(clone(callee_name), String_from("__hm_ss_get_val")) {
         mark_hash_type_ref(ctx, dest, String_from("string"))
     }
     if is_hashmap_i32i32_new(clone(callee_name)) {

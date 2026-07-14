@@ -31,7 +31,14 @@ fn mir_emit_match_ident_bind(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {
 fn mir_emit_payload_variant_binds_if_needed(ctx: LowerCtx, info: MirMatchPayloadInfo, pat: AstNode, scrut_idx: i32) {
     match_payload_struct::mir_emit_struct_pattern_binds_if_needed(ctx, pat, scrut_idx)
     if match_payload_prepare::mir_match_payload_info_is_payload_match(info) && ast_node::node_kind_is(pat, lower_kinds::NK_PAT_VARIANT()) && ast_node::node_child_count(pat) > 0 {
-        match_payload_fields::mir_emit_payload_variant_binds(ctx, pat, scrut_idx, match_payload_prepare::mir_match_payload_info_scrut_ok_is_f64(info), match_payload_prepare::mir_match_payload_info_scrut_ok_is_i64(info), match_payload_prepare::mir_match_payload_info_scrut_ok_is_i32(info))
+        match_payload_fields::mir_emit_payload_variant_binds(
+            ctx,
+            pat,
+            scrut_idx,
+            match_payload_prepare::mir_match_payload_info_scrut_ok_is_f64(info),
+            match_payload_prepare::mir_match_payload_info_scrut_ok_is_i64(info),
+            match_payload_prepare::mir_match_payload_info_scrut_ok_is_i32(info)
+        )
     }
 }
 

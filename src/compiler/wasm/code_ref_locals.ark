@@ -34,7 +34,10 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     if code_ref_locals_types::is_option_type_name(clone(type_name)) {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         return true
     }
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
@@ -97,7 +100,10 @@ fn mir_function_returns_enum_open(f: MirFunction) -> bool {
         return false
     }
     let ret_name = function_return_view::MirFunction_return_type_name(f)
-    if starts_with(clone(ret_name), String_from("Result_")) || starts_with(clone(ret_name), String_from("result:")) || starts_with(clone(ret_name), String_from("Result:")) || starts_with(clone(ret_name), String_from("Result<")) {
+    if starts_with(clone(ret_name), String_from("Result_")) ||
+    starts_with(clone(ret_name), String_from("result:")) ||
+    starts_with(clone(ret_name), String_from("Result:")) ||
+    starts_with(clone(ret_name), String_from("Result<")) {
         return true
     }
     if starts_with(clone(ret_name), String_from("enum:")) {

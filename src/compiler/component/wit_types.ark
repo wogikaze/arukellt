@@ -16,7 +16,10 @@ fn wit_type_from_ast(ty: ComponentTypeNode) -> String {
             return concat(String_from("option<"), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), String_from(">")))
         }
         if eq(clone(name), String_from("Result")) && type_node::type_node_child_count(ty) > 2 {
-            return concat(String_from("result<"), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), concat(String_from(", "), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 2)), String_from(">")))))
+            return concat(
+                String_from("result<"),
+                concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), concat(String_from(", "), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 2)), String_from(">"))))
+            )
         }
         if eq(clone(name), String_from("Future")) && type_node::type_node_child_count(ty) > 1 {
             return concat(String_from("future<"), concat(wit_type_from_ast(type_node::type_node_child_at(ty, 1)), String_from(">")))

@@ -13,7 +13,13 @@ struct MirLowerEntryInput {
 fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput {
     let view = input::mir_lower_input_view(input)
     let body_source = input::mir_lower_input_body_source(input)
-    MirLowerEntryInput { view: view, body_source: body_source, wit_paths: input::mir_lower_input_wit_paths(input), decl_nodes: input::mir_lower_input_decl_nodes(input), target: input::mir_lower_input_target(input) }
+    MirLowerEntryInput {
+        view: view,
+        body_source: body_source,
+        wit_paths: input::mir_lower_input_wit_paths(input),
+        decl_nodes: input::mir_lower_input_decl_nodes(input),
+        target: input::mir_lower_input_target(input)
+    }
 }
 
 fn mir_entry_input_view(input: MirLowerEntryInput) -> CoreHirMirView {

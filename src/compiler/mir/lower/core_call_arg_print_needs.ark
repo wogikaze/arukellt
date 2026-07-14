@@ -41,10 +41,23 @@ fn mir_core_print_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirExpr, a
             return true
         }
     }
-    let mut needs_convert = core_expr_shape_atoms::mir_core_expr_is_int(arg) || core_expr_shape_atoms::mir_core_expr_is_bool(arg) || core_expr_shape_atoms::mir_core_expr_is_char(arg) || core_expr_shape_atoms::mir_core_expr_is_float(arg) || core_expr_shape_ops::mir_core_expr_is_unary(arg)
+    let mut needs_convert = core_expr_shape_atoms::mir_core_expr_is_int(arg) ||
+    core_expr_shape_atoms::mir_core_expr_is_bool(arg) ||
+    core_expr_shape_atoms::mir_core_expr_is_char(arg) ||
+    core_expr_shape_atoms::mir_core_expr_is_float(arg) ||
+    core_expr_shape_ops::mir_core_expr_is_unary(arg)
     if !needs_convert {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "u64") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") || eq(clone(lt), "f64") {
+        if eq(clone(lt), "char") ||
+        eq(clone(lt), "u8") ||
+        eq(clone(lt), "u16") ||
+        eq(clone(lt), "u32") ||
+        eq(clone(lt), "u64") ||
+        eq(clone(lt), "i16") ||
+        eq(clone(lt), "i32") ||
+        eq(clone(lt), "i64") ||
+        eq(clone(lt), "bool") ||
+        eq(clone(lt), "f64") {
             needs_convert = true
         }
     }

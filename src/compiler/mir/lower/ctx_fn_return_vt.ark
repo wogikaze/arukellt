@@ -11,7 +11,13 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     if found >= 0 {
         let rvt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
         let resolved = mono_return_vt::mono_return_vt(ctx, clone(name), rvt)
-        if resolved == value_types::VT_GC_REF() || resolved == value_types::VT_REF() || resolved == value_types::VT_I32() || resolved == value_types::VT_I64() || resolved == value_types::VT_F64() || resolved == value_types::VT_F32() || resolved == value_types::VT_V128() {
+        if resolved == value_types::VT_GC_REF() ||
+        resolved == value_types::VT_REF() ||
+        resolved == value_types::VT_I32() ||
+        resolved == value_types::VT_I64() ||
+        resolved == value_types::VT_F64() ||
+        resolved == value_types::VT_F32() ||
+        resolved == value_types::VT_V128() {
             if resolved == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
                 return value_types::VT_GC_REF()
             }
@@ -51,7 +57,13 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
     if ctx_is_void_builtin(clone(bare_name)) {
         return value_types::VT_VOID()
     }
-    if eq(clone(bare_name), "to_string") || eq(clone(bare_name), "i32_to_string") || eq(clone(bare_name), "i64_to_string") || eq(clone(bare_name), "f64_to_string") || eq(clone(bare_name), "bool_to_string") || eq(clone(bare_name), "char_to_string") || eq(clone(bare_name), "f32_to_string") {
+    if eq(clone(bare_name), "to_string") ||
+    eq(clone(bare_name), "i32_to_string") ||
+    eq(clone(bare_name), "i64_to_string") ||
+    eq(clone(bare_name), "f64_to_string") ||
+    eq(clone(bare_name), "bool_to_string") ||
+    eq(clone(bare_name), "char_to_string") ||
+    eq(clone(bare_name), "f32_to_string") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
@@ -82,7 +94,14 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
         return value_types::VT_REF()
     }
     // String-returning stdlib functions that may not be in the fn_index.
-    if eq(clone(bare_name), "split") || eq(clone(bare_name), "join") || eq(clone(bare_name), "clone") || eq(clone(bare_name), "slice") || eq(clone(bare_name), "to_lower") || eq(clone(bare_name), "to_upper") || eq(clone(bare_name), "trim") || eq(clone(bare_name), "replace") {
+    if eq(clone(bare_name), "split") ||
+    eq(clone(bare_name), "join") ||
+    eq(clone(bare_name), "clone") ||
+    eq(clone(bare_name), "slice") ||
+    eq(clone(bare_name), "to_lower") ||
+    eq(clone(bare_name), "to_upper") ||
+    eq(clone(bare_name), "trim") ||
+    eq(clone(bare_name), "replace") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
@@ -112,5 +131,45 @@ fn ctx_is_void_builtin(bare_name: String) -> bool {
     if eq(clone(bare_name), "hash_string::hashmap_i32_str_set") || eq(clone(bare_name), "hash_string::hashmap_str_str_set") {
         return true
     }
-    eq(clone(bare_name), "stdio::println") || eq(clone(bare_name), "println") || eq(clone(bare_name), "stdio::print") || eq(clone(bare_name), "print") || eq(clone(bare_name), "stdio::eprintln") || eq(clone(bare_name), "eprintln") || eq(clone(bare_name), "stdio::eprint") || eq(clone(bare_name), "eprint") || eq(clone(bare_name), "process::exit") || eq(clone(bare_name), "host::process::exit") || eq(clone(bare_name), "process::abort") || eq(clone(bare_name), "host::process::abort") || eq(clone(bare_name), "push_char") || eq(clone(bare_name), "push") || eq(clone(bare_name), "push_byte") || eq(clone(bare_name), "push_i64") || eq(clone(bare_name), "push_f64") || eq(clone(bare_name), "sort_i32") || eq(clone(bare_name), "sort_i64") || eq(clone(bare_name), "sort_f64") || eq(clone(bare_name), "reverse_String") || eq(clone(bare_name), "assert") || eq(clone(bare_name), "assert_eq") || eq(clone(bare_name), "assert_ne") || eq(clone(bare_name), "assert_eq_str") || eq(clone(bare_name), "assert_eq_i64") || eq(clone(bare_name), "memory_copy") || eq(clone(bare_name), "memory_fill") || eq(clone(bare_name), "HashMap_i32_i32_insert") || eq(clone(bare_name), "HashMap_i32_String_insert") || eq(clone(bare_name), "HashMap_String_i32_insert") || eq(clone(bare_name), "HashMap_String_String_insert") || eq(clone(bare_name), "hashmap_set") || eq(clone(bare_name), "hashmap_str_set") || eq(clone(bare_name), "hashmap_str_val_set") || eq(clone(bare_name), "hashmap_str_str_set") || eq(clone(bare_name), "hashmap_clear") || eq(clone(bare_name), "hashset_insert") || eq(clone(bare_name), "hashset_remove") || eq(clone(bare_name), "hashset_str_insert") || eq(clone(bare_name), "hashset_str_remove")
+    eq(clone(bare_name), "stdio::println") ||
+    eq(clone(bare_name), "println") ||
+    eq(clone(bare_name), "stdio::print") ||
+    eq(clone(bare_name), "print") ||
+    eq(clone(bare_name), "stdio::eprintln") ||
+    eq(clone(bare_name), "eprintln") ||
+    eq(clone(bare_name), "stdio::eprint") ||
+    eq(clone(bare_name), "eprint") ||
+    eq(clone(bare_name), "process::exit") ||
+    eq(clone(bare_name), "host::process::exit") ||
+    eq(clone(bare_name), "process::abort") ||
+    eq(clone(bare_name), "host::process::abort") ||
+    eq(clone(bare_name), "push_char") ||
+    eq(clone(bare_name), "push") ||
+    eq(clone(bare_name), "push_byte") ||
+    eq(clone(bare_name), "push_i64") ||
+    eq(clone(bare_name), "push_f64") ||
+    eq(clone(bare_name), "sort_i32") ||
+    eq(clone(bare_name), "sort_i64") ||
+    eq(clone(bare_name), "sort_f64") ||
+    eq(clone(bare_name), "reverse_String") ||
+    eq(clone(bare_name), "assert") ||
+    eq(clone(bare_name), "assert_eq") ||
+    eq(clone(bare_name), "assert_ne") ||
+    eq(clone(bare_name), "assert_eq_str") ||
+    eq(clone(bare_name), "assert_eq_i64") ||
+    eq(clone(bare_name), "memory_copy") ||
+    eq(clone(bare_name), "memory_fill") ||
+    eq(clone(bare_name), "HashMap_i32_i32_insert") ||
+    eq(clone(bare_name), "HashMap_i32_String_insert") ||
+    eq(clone(bare_name), "HashMap_String_i32_insert") ||
+    eq(clone(bare_name), "HashMap_String_String_insert") ||
+    eq(clone(bare_name), "hashmap_set") ||
+    eq(clone(bare_name), "hashmap_str_set") ||
+    eq(clone(bare_name), "hashmap_str_val_set") ||
+    eq(clone(bare_name), "hashmap_str_str_set") ||
+    eq(clone(bare_name), "hashmap_clear") ||
+    eq(clone(bare_name), "hashset_insert") ||
+    eq(clone(bare_name), "hashset_remove") ||
+    eq(clone(bare_name), "hashset_str_insert") ||
+    eq(clone(bare_name), "hashset_str_remove")
 }

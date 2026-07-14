@@ -16,8 +16,30 @@ struct SignatureEntry {
     abi_kind: i32,
 }
 
-fn SignatureEntry_new(id: FunctionId, base_name: String, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>, receiver_present: bool, receiver_type: MirValueType, trait_id: i32, impl_id: i32, mono_instance_id: i32, abi_kind: i32) -> SignatureEntry {
-    SignatureEntry { id: id, base_name: base_name, param_types: param_types, return_types: return_types, receiver_present: receiver_present, receiver_type: receiver_type, trait_id: trait_id, impl_id: impl_id, mono_instance_id: mono_instance_id, abi_kind: abi_kind }
+fn SignatureEntry_new(
+    id: FunctionId,
+    base_name: String,
+    param_types: Vec<MirValueType>,
+    return_types: Vec<MirValueType>,
+    receiver_present: bool,
+    receiver_type: MirValueType,
+    trait_id: i32,
+    impl_id: i32,
+    mono_instance_id: i32,
+    abi_kind: i32
+) -> SignatureEntry {
+    SignatureEntry {
+        id: id,
+        base_name: base_name,
+        param_types: param_types,
+        return_types: return_types,
+        receiver_present: receiver_present,
+        receiver_type: receiver_type,
+        trait_id: trait_id,
+        impl_id: impl_id,
+        mono_instance_id: mono_instance_id,
+        abi_kind: abi_kind
+    }
 }
 
 fn signature_entry_id(entry: SignatureEntry) -> FunctionId {

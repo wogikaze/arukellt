@@ -16,7 +16,12 @@ fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
     if len(type_name) == 0 {
         return type_contracts::TypeInfo_simple(0)
     }
-    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("u32")) || eq(clone(type_name), String_from("u8")) || eq(clone(type_name), String_from("u16")) || eq(clone(type_name), String_from("i16")) || eq(clone(type_name), String_from("i8")) {
+    if eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("u32")) ||
+    eq(clone(type_name), String_from("u8")) ||
+    eq(clone(type_name), String_from("u16")) ||
+    eq(clone(type_name), String_from("i16")) ||
+    eq(clone(type_name), String_from("i8")) {
         return type_contracts::TypeInfo_simple(lower_kinds::TY_I32())
     }
     if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {
@@ -47,7 +52,16 @@ fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
 }
 
 fn method_return_type_name_is_type_var(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("T")) || eq(clone(type_name), String_from("A")) || eq(clone(type_name), String_from("B")) || eq(clone(type_name), String_from("C")) || eq(clone(type_name), String_from("D")) || eq(clone(type_name), String_from("E")) || eq(clone(type_name), String_from("K")) || eq(clone(type_name), String_from("U")) || eq(clone(type_name), String_from("V")) || eq(clone(type_name), String_from("W")) {
+    if eq(clone(type_name), String_from("T")) ||
+    eq(clone(type_name), String_from("A")) ||
+    eq(clone(type_name), String_from("B")) ||
+    eq(clone(type_name), String_from("C")) ||
+    eq(clone(type_name), String_from("D")) ||
+    eq(clone(type_name), String_from("E")) ||
+    eq(clone(type_name), String_from("K")) ||
+    eq(clone(type_name), String_from("U")) ||
+    eq(clone(type_name), String_from("V")) ||
+    eq(clone(type_name), String_from("W")) {
         return true
     }
     false
@@ -83,7 +97,14 @@ fn method_concrete_return_from_mono_fn_name(fn_name: String, generic_return_name
 }
 
 fn method_return_vt_from_type_name(type_name: String) -> i32 {
-    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("u32")) || eq(clone(type_name), String_from("u8")) || eq(clone(type_name), String_from("u16")) || eq(clone(type_name), String_from("i16")) || eq(clone(type_name), String_from("i8")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+    if eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("u32")) ||
+    eq(clone(type_name), String_from("u8")) ||
+    eq(clone(type_name), String_from("u16")) ||
+    eq(clone(type_name), String_from("i16")) ||
+    eq(clone(type_name), String_from("i8")) ||
+    eq(clone(type_name), String_from("bool")) ||
+    eq(clone(type_name), String_from("char")) {
         return value_types::VT_I32()
     }
     if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("u64")) {

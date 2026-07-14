@@ -52,7 +52,16 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
     if eq(clone(ann_name), String_from("Vec")) {
         return String_from("vec")
     }
-    if eq(clone(ann_name), String_from("char")) || eq(clone(ann_name), String_from("u8")) || eq(clone(ann_name), String_from("u16")) || eq(clone(ann_name), String_from("u32")) || eq(clone(ann_name), String_from("u64")) || eq(clone(ann_name), String_from("i16")) || eq(clone(ann_name), String_from("i32")) || eq(clone(ann_name), String_from("i64")) || eq(clone(ann_name), String_from("bool")) || eq(clone(ann_name), String_from("f64")) {
+    if eq(clone(ann_name), String_from("char")) ||
+    eq(clone(ann_name), String_from("u8")) ||
+    eq(clone(ann_name), String_from("u16")) ||
+    eq(clone(ann_name), String_from("u32")) ||
+    eq(clone(ann_name), String_from("u64")) ||
+    eq(clone(ann_name), String_from("i16")) ||
+    eq(clone(ann_name), String_from("i32")) ||
+    eq(clone(ann_name), String_from("i64")) ||
+    eq(clone(ann_name), String_from("bool")) ||
+    eq(clone(ann_name), String_from("f64")) {
         return ann_name
     }
     if known_struct_fields > 0 {

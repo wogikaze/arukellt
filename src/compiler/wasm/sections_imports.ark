@@ -9,7 +9,16 @@ use wasm::emit_target
 use wasm::sections_wit_imports
 use mir::module_wit_imports
 
-fn emit_import_section(out: WasmWriter, host_type_map: Vec<i32>, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, wit_type_map: Vec<i32>) {
+fn emit_import_section(
+    out: WasmWriter,
+    host_type_map: Vec<i32>,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: i32,
+    needs_wasi_http_outgoing: i32,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    wit_type_map: Vec<i32>
+) {
     let import_sec = writer_core::WasmWriter_new()
     let wit_count = module_wit_imports::wit_import_count(bindings)
     writer_core::emit_leb128_u(import_sec, emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_count))

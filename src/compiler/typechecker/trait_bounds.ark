@@ -18,7 +18,8 @@ fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bo
     let mut i = 0
     while i < count {
         let impl_info = get_unchecked(env.trait_impls, i)
-        if eq(contract_trait_impl::TraitImplInfo_trait_name(impl_info), contract_type_access::TypeInfo_name(bound)) && names::same_named_type(contract_trait_impl::TraitImplInfo_self_ty(impl_info), resolved_ty) {
+        if eq(contract_trait_impl::TraitImplInfo_trait_name(impl_info), contract_type_access::TypeInfo_name(bound)) &&
+        names::same_named_type(contract_trait_impl::TraitImplInfo_self_ty(impl_info), resolved_ty) {
             return true
         }
         i = i + 1

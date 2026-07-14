@@ -12,7 +12,17 @@ pub struct ComponentRecordAllows {
     allow_shape_roundtrip: bool,
 }
 
-fn ComponentRecordAllows_new(allow_record_point: bool, allow_record_distance: bool, allow_record_roundtrip: bool, allow_record_add: bool, allow_color_enum: bool, allow_color_code: bool, allow_color_roundtrip: bool, allow_shape_area: bool, allow_shape_roundtrip: bool) -> ComponentRecordAllows {
+fn ComponentRecordAllows_new(
+    allow_record_point: bool,
+    allow_record_distance: bool,
+    allow_record_roundtrip: bool,
+    allow_record_add: bool,
+    allow_color_enum: bool,
+    allow_color_code: bool,
+    allow_color_roundtrip: bool,
+    allow_shape_area: bool,
+    allow_shape_roundtrip: bool
+) -> ComponentRecordAllows {
     ComponentRecordAllows {
         allow_record_point: allow_record_point,
         allow_record_distance: allow_record_distance,

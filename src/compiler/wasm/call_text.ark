@@ -108,7 +108,11 @@ fn try_emit_char_text_format_call(w: WasmWriter, callee: String, inst: MirInst, 
 // Arukellt Selfhost - numeric text formatting call dispatch.
 
 fn try_emit_numeric_text_format_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "convert::i32_to_string") || eq(clone(callee), "__intrinsic_i32_to_string") {
+    if eq(clone(callee), "to_string") ||
+    eq(clone(callee), "i32_to_string") ||
+    eq(clone(callee), "text::format_i32") ||
+    eq(clone(callee), "convert::i32_to_string") ||
+    eq(clone(callee), "__intrinsic_i32_to_string") {
         if eq(clone(callee), "to_string") {
             let arg_vt = to_string_arg_vt(inst, ctx)
             if arg_vt == call_text_mir_view::VT_I64() {

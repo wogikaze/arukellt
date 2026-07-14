@@ -17,7 +17,18 @@ struct ResolveCtx {
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
-    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), diagnostics: Vec_new_Diagnostic(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new(), use_alias_shorts: Vec_new_String(), use_alias_targets: Vec_new_String() }
+    ResolveCtx {
+        scopes: Vec_new_Scope(),
+        current_depth: 0,
+        error_count: 0,
+        errors: Vec_new_String(),
+        diagnostics: Vec_new_Diagnostic(),
+        next_decl_index: 0,
+        target: String_from("wasm32-wasi-p2"),
+        ref_index: ref_index::RefIndex_new(),
+        use_alias_shorts: Vec_new_String(),
+        use_alias_targets: Vec_new_String()
+    }
 }
 
 fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {

@@ -46,7 +46,13 @@ fn dispatch_command_allows_missing_input(opts: CliOptions, command: i32) -> bool
     if command == kinds::CMD_LINT() && args_record::cli_lint_list(opts) {
         return true
     }
-    command == kinds::CMD_BUILD() || command == kinds::CMD_TEST() || command == kinds::CMD_TARGETS() || command == kinds::CMD_SCRIPT() || command == kinds::CMD_COMPOSE() || command == kinds::CMD_LSP() || command == kinds::CMD_DAP()
+    command == kinds::CMD_BUILD() ||
+    command == kinds::CMD_TEST() ||
+    command == kinds::CMD_TARGETS() ||
+    command == kinds::CMD_SCRIPT() ||
+    command == kinds::CMD_COMPOSE() ||
+    command == kinds::CMD_LSP() ||
+    command == kinds::CMD_DAP()
 }
 
 // Arukellt Selfhost - CLI command route selection.

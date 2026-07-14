@@ -68,7 +68,25 @@ fn mir_function_sole_call_target(f: MirFunction) -> String {
                 call_count = call_count + 1
                 sole_callee = inst_accessors_literals::MirInst_str_val(inst)
             } else {
-                if op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() || op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() || op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() || op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() || op == opcodes::MIR_MUL() || op == opcodes::MIR_DIV() || op == opcodes::MIR_MOD() || op == opcodes::MIR_NEG() || op == opcodes::MIR_BIT_AND() || op == opcodes::MIR_BIT_OR() || op == opcodes::MIR_BIT_XOR() || op == opcodes::MIR_SHL() || op == opcodes::MIR_SHR() || op == opcodes::MIR_AND() || op == opcodes::MIR_OR() {
+                if op == opcodes::MIR_EQ() ||
+                op == opcodes::MIR_NEQ() ||
+                op == opcodes::MIR_LT() ||
+                op == opcodes::MIR_LTEQ() ||
+                op == opcodes::MIR_GT() ||
+                op == opcodes::MIR_GTEQ() ||
+                op == opcodes::MIR_ADD() ||
+                op == opcodes::MIR_SUB() ||
+                op == opcodes::MIR_MUL() ||
+                op == opcodes::MIR_DIV() ||
+                op == opcodes::MIR_MOD() ||
+                op == opcodes::MIR_NEG() ||
+                op == opcodes::MIR_BIT_AND() ||
+                op == opcodes::MIR_BIT_OR() ||
+                op == opcodes::MIR_BIT_XOR() ||
+                op == opcodes::MIR_SHL() ||
+                op == opcodes::MIR_SHR() ||
+                op == opcodes::MIR_AND() ||
+                op == opcodes::MIR_OR() {
                     has_computation = true
                 }
             }

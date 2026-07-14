@@ -88,7 +88,18 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
     debug::dump_typed_hir_if_enabled(config, check_result)
     let error_count = session_typecheck_query::session_typecheck_error_count(check_result)
     if error_count > 0 {
-        return DriverTypecheckResult_new(true, errors::type_errors_result(clone(source), config_record::config_source_file(config), error_count, session_typecheck_query::session_typecheck_diagnostics(check_result), session_typecheck_query::session_typecheck_errors(check_result)), check_result, 0)
+        return DriverTypecheckResult_new(
+            true,
+            errors::type_errors_result(
+                clone(source),
+                config_record::config_source_file(config),
+                error_count,
+                session_typecheck_query::session_typecheck_diagnostics(check_result),
+                session_typecheck_query::session_typecheck_errors(check_result)
+            ),
+            check_result,
+            0
+        )
     }
     if config_record::config_check_only(config) {
         // Collect typecheck warnings (W0007 unused binding, W0001 shared-mut-alias, etc.)

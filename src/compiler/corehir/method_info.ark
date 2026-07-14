@@ -15,8 +15,30 @@ struct CoreHirMethodInfo {
     return_type_name: String,
 }
 
-fn CoreHirMethodInfo_new(impl_decl_index: i32, method_index: i32, owner_name: String, name: String, mangled_name: String, param_count: i32, params: Vec<CoreHirParam>, body_index: i32, return_vt: i32, return_type_name: String) -> CoreHirMethodInfo {
-    CoreHirMethodInfo { impl_decl_index: impl_decl_index, method_index: method_index, owner_name: owner_name, name: name, mangled_name: mangled_name, param_count: param_count, params: params, body_index: body_index, return_vt: return_vt, return_type_name: return_type_name }
+fn CoreHirMethodInfo_new(
+    impl_decl_index: i32,
+    method_index: i32,
+    owner_name: String,
+    name: String,
+    mangled_name: String,
+    param_count: i32,
+    params: Vec<CoreHirParam>,
+    body_index: i32,
+    return_vt: i32,
+    return_type_name: String
+) -> CoreHirMethodInfo {
+    CoreHirMethodInfo {
+        impl_decl_index: impl_decl_index,
+        method_index: method_index,
+        owner_name: owner_name,
+        name: name,
+        mangled_name: mangled_name,
+        param_count: param_count,
+        params: params,
+        body_index: body_index,
+        return_vt: return_vt,
+        return_type_name: return_type_name
+    }
 }
 
 fn method_info_index_for_method(method_infos: Vec<CoreHirMethodInfo>, impl_decl_index: i32, method_index: i32) -> i32 {

@@ -52,7 +52,13 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
         let mod_kind = scope_lookup::lookup_kind(ctx, clone(module_part))
         if mod_kind != commands::SYM_ENUM() {
             if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
-                scope_error::resolve_error(ctx, concat(String_from("visibility error: `"), concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))))
+                scope_error::resolve_error(
+                    ctx,
+                    concat(
+                        String_from("visibility error: `"),
+                        concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))
+                    )
+                )
             }
         }
     }

@@ -11,7 +11,12 @@ fn build_decl_infos(decls: Vec<AstNode>) -> Vec<CoreHirDeclInfo> {
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
-        let info = decl_info::CoreHirDeclInfo_new(decl_node::decl_kind_to_corehir(decl_node_identity::decl_kind(decl)), decl_node_identity::decl_name(decl), decl_children::decl_child_count(decl), decl_node_identity::decl_is_pub(decl))
+        let info = decl_info::CoreHirDeclInfo_new(
+            decl_node::decl_kind_to_corehir(decl_node_identity::decl_kind(decl)),
+            decl_node_identity::decl_name(decl),
+            decl_children::decl_child_count(decl),
+            decl_node_identity::decl_is_pub(decl)
+        )
         push(infos, info)
         i = i + 1
     }

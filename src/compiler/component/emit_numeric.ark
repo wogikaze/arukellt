@@ -29,7 +29,15 @@ fn emit_f32_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32
 }
 
 fn emit_f32_binary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
-    emit_numeric_component(core_wasm, export_name, NUM_ADAPTER_F32_BINARY(), constants_wit_values::WIT_VAL_FLOAT32(), constants_wit_values::WIT_VAL_FLOAT32(), 2, constants_wit_values::WIT_VAL_FLOAT32())
+    emit_numeric_component(
+        core_wasm,
+        export_name,
+        NUM_ADAPTER_F32_BINARY(),
+        constants_wit_values::WIT_VAL_FLOAT32(),
+        constants_wit_values::WIT_VAL_FLOAT32(),
+        2,
+        constants_wit_values::WIT_VAL_FLOAT32()
+    )
 }
 
 fn emit_f32_to_i32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {

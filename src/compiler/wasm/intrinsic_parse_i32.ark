@@ -25,7 +25,13 @@ fn emit_parse_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 4)
     writer_core::emit_byte(w, 127)
-    intrinsic_parse_result::emit_invalid_integer_error_result(w, ctx, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1), ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2), ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3))
+    intrinsic_parse_result::emit_invalid_integer_error_result(
+        w,
+        ctx,
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1),
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2),
+        ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    )
     writer_core::emit_byte(w, 5)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, constants::SCRATCH_P_NEG())

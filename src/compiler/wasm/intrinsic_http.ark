@@ -40,7 +40,13 @@ fn emit_http_request(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     }
     intrinsic_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_REQ_RESPPTR())
     emit_http_request_call(w, ctx)
-    intrinsic_http_result::emit_http_finalize_string_result(w, constants::SCRATCH_HTTP_REQ_RESPPTR(), constants::SCRATCH_HTTP_REQ_RET(), constants::SCRATCH_HTTP_REQ_ABSLEN(), constants::SCRATCH_HTTP_REQ_ENUMPTR())
+    intrinsic_http_result::emit_http_finalize_string_result(
+        w,
+        constants::SCRATCH_HTTP_REQ_RESPPTR(),
+        constants::SCRATCH_HTTP_REQ_RET(),
+        constants::SCRATCH_HTTP_REQ_ABSLEN(),
+        constants::SCRATCH_HTTP_REQ_ENUMPTR()
+    )
     return true
 }
 

@@ -24,7 +24,10 @@ fn corehir_build_struct_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 
                 if expr_predicates::expr_is_unsupported(base_expr) {
                     unsupported = true
                 }
-                let base_field_index = corehir_push_expr(table, expr_builder_structs::corehir_expr_struct_base(expr_node_access::expr_text(node), expr_node_access::expr_span_start(field), base_children))
+                let base_field_index = corehir_push_expr(
+                    table,
+                    expr_builder_structs::corehir_expr_struct_base(expr_node_access::expr_text(node), expr_node_access::expr_span_start(field), base_children)
+                )
                 push(children, base_field_index)
             }
         } else {
@@ -38,7 +41,10 @@ fn corehir_build_struct_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 
                 if expr_predicates::expr_is_unsupported(value_expr) {
                     unsupported = true
                 }
-                let field_index = corehir_push_expr(table, expr_builder_structs::corehir_expr_struct_field(expr_node_access::expr_text(field), value_expr, expr_node_access::expr_span_start(field), field_children))
+                let field_index = corehir_push_expr(
+                    table,
+                    expr_builder_structs::corehir_expr_struct_field(expr_node_access::expr_text(field), value_expr, expr_node_access::expr_span_start(field), field_children)
+                )
                 push(children, field_index)
             }
         }

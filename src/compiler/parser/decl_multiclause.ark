@@ -17,7 +17,10 @@ fn parse_multiclause_fn_decl(p: Parser, is_pub: bool, is_async: bool) -> AstNode
         let next_clause = decl_multiclause_clause::parse_fn_clause(p)
         let nc_param_count = fn_clause::clause_param_count(next_clause)
         if nc_param_count != param_count {
-            core_api_expect::error(p, concat(String_from("clause has "), concat(to_string(nc_param_count), concat(String_from(" parameters but previous clauses have "), concat(to_string(param_count), String_from(""))))))
+            core_api_expect::error(
+                p,
+                concat(String_from("clause has "), concat(to_string(nc_param_count), concat(String_from(" parameters but previous clauses have "), concat(to_string(param_count), String_from("")))))
+            )
             let stub = fn_clause::make_clause_error_stub(next_clause, is_pub, is_async)
             clauses = Vec_new_AstNode()
             push(clauses, stub)

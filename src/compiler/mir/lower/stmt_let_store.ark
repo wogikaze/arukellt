@@ -37,7 +37,10 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
     if starts_with(clone(existing), String_from("enum:")) {
         if eq(clone(existing), String_from("enum:Option")) || eq(clone(existing), String_from("enum:Result")) {
             let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-            if starts_with(clone(init_type), String_from("option:")) || starts_with(clone(init_type), String_from("result:")) || starts_with(clone(init_type), String_from("Option_")) || starts_with(clone(init_type), String_from("Result_")) {
+            if starts_with(clone(init_type), String_from("option:")) ||
+            starts_with(clone(init_type), String_from("result:")) ||
+            starts_with(clone(init_type), String_from("Option_")) ||
+            starts_with(clone(init_type), String_from("Result_")) {
                 ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
             }
         }
@@ -45,7 +48,10 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
     }
     // Preserve specific Option_/Result_ annotation types from being overridden
     // by generic enum:open/enum:Option from the initializer.
-    if starts_with(clone(existing), String_from("Option_")) || starts_with(clone(existing), String_from("Result_")) || starts_with(clone(existing), String_from("option:")) || starts_with(clone(existing), String_from("result:")) {
+    if starts_with(clone(existing), String_from("Option_")) ||
+    starts_with(clone(existing), String_from("Result_")) ||
+    starts_with(clone(existing), String_from("option:")) ||
+    starts_with(clone(existing), String_from("result:")) {
         return
     }
     // Preserve explicit vec:/hashmap: annotations (e.g. Vec<Vec<i32>> → vec:Vec)

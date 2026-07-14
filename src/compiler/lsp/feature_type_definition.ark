@@ -12,7 +12,15 @@ use lsp::symbol_index_lookup
 pub fn handle_type_definition(state: LspState, body: String) {
     let sym = feature_symbol::resolve_symbol_request(state, clone(body))
     if feature_symbol::symbol_request_found(sym) {
-        framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
+        framing::append_framed(
+            state,
+            responses::build_definition_response(
+                feature_symbol::symbol_request_id(sym),
+                feature_symbol::symbol_request_uri(sym),
+                feature_symbol::symbol_request_start(sym),
+                feature_symbol::symbol_request_end(sym)
+            )
+        )
         return
     }
     let req = feature_request::read_text_position_request(state, body)

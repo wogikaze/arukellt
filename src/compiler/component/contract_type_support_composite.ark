@@ -7,7 +7,10 @@ use component::contract_tuple_types
 use component::type_node
 
 fn component_list_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
-    (contract_allows_collection_query::ComponentContractAllows_allow_list_first(allows) || contract_allows_collection_query::ComponentContractAllows_allow_list_result(allows) || contract_allows_collection_query::ComponentContractAllows_allow_list_roundtrip(allows)) && contract_collection_types::component_type_is_vec_i32(ty)
+    (contract_allows_collection_query::ComponentContractAllows_allow_list_first(allows) ||
+        contract_allows_collection_query::ComponentContractAllows_allow_list_result(allows) ||
+        contract_allows_collection_query::ComponentContractAllows_allow_list_roundtrip(allows)) &&
+    contract_collection_types::component_type_is_vec_i32(ty)
 }
 
 fn component_option_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
@@ -24,7 +27,10 @@ fn component_option_type_supported(ty: ComponentTypeNode, allows: ComponentContr
 }
 
 fn component_option_i32_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
-    (contract_allows_collection_query::ComponentContractAllows_allow_option_maybe(allows) || contract_allows_collection_query::ComponentContractAllows_allow_option_param(allows) || contract_allows_collection_query::ComponentContractAllows_allow_option_roundtrip(allows)) && contract_collection_types::component_type_is_option_i32(ty)
+    (contract_allows_collection_query::ComponentContractAllows_allow_option_maybe(allows) ||
+        contract_allows_collection_query::ComponentContractAllows_allow_option_param(allows) ||
+        contract_allows_collection_query::ComponentContractAllows_allow_option_roundtrip(allows)) &&
+    contract_collection_types::component_type_is_option_i32(ty)
 }
 
 fn component_option_bool_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
@@ -32,7 +38,9 @@ fn component_option_bool_type_supported(ty: ComponentTypeNode, allows: Component
 }
 
 fn component_option_i64_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
-    (contract_allows_collection_query::ComponentContractAllows_allow_option_i64(allows) || contract_allows_collection_query::ComponentContractAllows_allow_option_i64_param(allows)) && contract_collection_types::component_type_is_option_i64(ty)
+    (contract_allows_collection_query::ComponentContractAllows_allow_option_i64(allows) ||
+        contract_allows_collection_query::ComponentContractAllows_allow_option_i64_param(allows)) &&
+    contract_collection_types::component_type_is_option_i64(ty)
 }
 
 fn component_result_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
@@ -59,7 +67,9 @@ fn component_result_i32_string_type_supported(ty: ComponentTypeNode, allows: Com
 }
 
 fn component_result_i32_i32_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
-    (contract_allows_collection_query::ComponentContractAllows_allow_result_param(allows) || contract_allows_collection_query::ComponentContractAllows_allow_result_roundtrip(allows)) && contract_collection_types::component_type_is_result_i32_i32(ty)
+    (contract_allows_collection_query::ComponentContractAllows_allow_result_param(allows) ||
+        contract_allows_collection_query::ComponentContractAllows_allow_result_roundtrip(allows)) &&
+    contract_collection_types::component_type_is_result_i32_i32(ty)
 }
 
 fn component_result_bool_bool_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
@@ -83,7 +93,10 @@ fn component_tuple_type_supported(ty: ComponentTypeNode, allows: ComponentContra
 }
 
 fn component_tuple_i32_i32_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {
-    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_swap(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_param(allows) || contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_roundtrip(allows)) && contract_tuple_types::component_type_is_tuple_i32_i32(ty)
+    (contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_swap(allows) ||
+        contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_param(allows) ||
+        contract_allows_numeric_tuple_query::ComponentContractAllows_allow_tuple_roundtrip(allows)) &&
+    contract_tuple_types::component_type_is_tuple_i32_i32(ty)
 }
 
 fn component_tuple_i64_i64_type_supported(ty: ComponentTypeNode, allows: ComponentContractAllows) -> bool {

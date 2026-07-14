@@ -9,7 +9,23 @@ use wasm::string_gc_helpers
 use wasm::intrinsic_string_split_gc_count
 
 // Pass 2 (seplen > 0): fill segments.
-fn emit_split_gc_fill(w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32, s_seplen: i32, s_pos: i32, s_start: i32, s_segidx: i32, s_arr: i32, s_j: i32, s_match: i32, s_seglen: i32, s_k: i32, arr_type: i32, string_type: i32) {
+fn emit_split_gc_fill(
+    w: WasmWriter,
+    s_src: i32,
+    s_sep: i32,
+    s_slen: i32,
+    s_seplen: i32,
+    s_pos: i32,
+    s_start: i32,
+    s_segidx: i32,
+    s_arr: i32,
+    s_j: i32,
+    s_match: i32,
+    s_seglen: i32,
+    s_k: i32,
+    arr_type: i32,
+    string_type: i32
+) {
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_pos)
     helpers_core::emit_local_get(w, s_slen)

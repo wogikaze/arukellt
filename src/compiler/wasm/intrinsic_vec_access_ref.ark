@@ -64,7 +64,11 @@ fn vec_ref_target_type_from_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     if eq(clone(tname), String_from("string")) || eq(clone(tname), String_from("String")) {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
-    if starts_with(clone(tname), String_from("enum:")) || starts_with(clone(tname), String_from("option:")) || starts_with(clone(tname), String_from("Option_")) || starts_with(clone(tname), String_from("result:")) || starts_with(clone(tname), String_from("Result_")) {
+    if starts_with(clone(tname), String_from("enum:")) ||
+    starts_with(clone(tname), String_from("option:")) ||
+    starts_with(clone(tname), String_from("Option_")) ||
+    starts_with(clone(tname), String_from("result:")) ||
+    starts_with(clone(tname), String_from("Result_")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
     if starts_with(clone(tname), String_from("hashmap:")) {

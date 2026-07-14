@@ -13,8 +13,30 @@ struct CoreHirRawProgram {
     export_surface: CoreHirExportSurface,
 }
 
-fn CoreHirRawProgram_new(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHirFnInfo>, method_infos: Vec<CoreHirMethodInfo>, layout_decls: Vec<CoreHirLayoutDecl>, type_facts: CoreHirTypeFacts, body_table: CoreHirBodyTable, modules: Vec<CoreHirModuleInfo>, resolved_calls: Vec<CoreHirResolvedCall>, typed_locals: Vec<CoreHirTypedLocal>, export_surface: CoreHirExportSurface) -> CoreHirRawProgram {
-    CoreHirRawProgram { decl_infos: decl_infos, fn_infos: fn_infos, method_infos: method_infos, layout_decls: layout_decls, type_facts: type_facts, body_table: body_table, modules: modules, resolved_calls: resolved_calls, typed_locals: typed_locals, export_surface: export_surface }
+fn CoreHirRawProgram_new(
+    decl_infos: Vec<CoreHirDeclInfo>,
+    fn_infos: Vec<CoreHirFnInfo>,
+    method_infos: Vec<CoreHirMethodInfo>,
+    layout_decls: Vec<CoreHirLayoutDecl>,
+    type_facts: CoreHirTypeFacts,
+    body_table: CoreHirBodyTable,
+    modules: Vec<CoreHirModuleInfo>,
+    resolved_calls: Vec<CoreHirResolvedCall>,
+    typed_locals: Vec<CoreHirTypedLocal>,
+    export_surface: CoreHirExportSurface
+) -> CoreHirRawProgram {
+    CoreHirRawProgram {
+        decl_infos: decl_infos,
+        fn_infos: fn_infos,
+        method_infos: method_infos,
+        layout_decls: layout_decls,
+        type_facts: type_facts,
+        body_table: body_table,
+        modules: modules,
+        resolved_calls: resolved_calls,
+        typed_locals: typed_locals,
+        export_surface: export_surface
+    }
 }
 
 fn raw_program_decl_infos(program: CoreHirRawProgram) -> Vec<CoreHirDeclInfo> { program.decl_infos }

@@ -9,7 +9,15 @@ use mir::lower::ctx_types
 use mir::inst_local_set
 
 fn mir_is_printlike_callee(name: String) -> bool {
-    eq(clone(name), "stdio::println") || eq(clone(name), "println") || eq(clone(name), "stdio::print") || eq(clone(name), "print") || eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") || eq(clone(name), "__intrinsic_println") || eq(clone(name), "__intrinsic_eprintln") || eq(clone(name), "__intrinsic_print")
+    eq(clone(name), "stdio::println") ||
+    eq(clone(name), "println") ||
+    eq(clone(name), "stdio::print") ||
+    eq(clone(name), "print") ||
+    eq(clone(name), "stdio::eprintln") ||
+    eq(clone(name), "eprintln") ||
+    eq(clone(name), "__intrinsic_println") ||
+    eq(clone(name), "__intrinsic_eprintln") ||
+    eq(clone(name), "__intrinsic_print")
 }
 
 fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {

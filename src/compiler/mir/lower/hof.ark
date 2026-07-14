@@ -13,7 +13,16 @@ fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: 
     hof_f64::mir_lower_hof_f64(ctx, hof_f64_fn_name, hof_f64_vec_local, hof_f64_init_idx, is_map_f64_f64, is_filter_f64, is_fold_f64_f64)
 }
 
-fn mir_lower_hof_i32(ctx: LowerCtx, hof_callee_text: String, hof32_fn_name: String, hof32_vec_local: i32, hof32_init_idx: i32, is_map_i32_i32: bool, is_filter_i32: bool, is_fold_i32_i32: bool) -> i32 {
+fn mir_lower_hof_i32(
+    ctx: LowerCtx,
+    hof_callee_text: String,
+    hof32_fn_name: String,
+    hof32_vec_local: i32,
+    hof32_init_idx: i32,
+    is_map_i32_i32: bool,
+    is_filter_i32: bool,
+    is_fold_i32_i32: bool
+) -> i32 {
     hof_i32::mir_lower_hof_i32(ctx, hof_callee_text, hof32_fn_name, hof32_vec_local, hof32_init_idx, is_map_i32_i32, is_filter_i32, is_fold_i32_i32)
 }
 

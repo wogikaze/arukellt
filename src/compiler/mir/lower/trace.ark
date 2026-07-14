@@ -50,5 +50,12 @@ fn mir_lower_trace_ctx(on: i32, ctx: LowerCtx, phase: i32) {
         return
     }
     let f = ctx_api_local_frame::ctx_current_function(ctx)
-    mir_lower_trace_line(on, phase, function_param_view::MirFunction_param_count(f), function_locals_view::MirFunction_local_count(f), function_block_queries::MirFunction_block_count(f), function_return_view::MirFunction_return_type(f))
+    mir_lower_trace_line(
+        on,
+        phase,
+        function_param_view::MirFunction_param_count(f),
+        function_locals_view::MirFunction_local_count(f),
+        function_block_queries::MirFunction_block_count(f),
+        function_return_view::MirFunction_return_type(f)
+    )
 }

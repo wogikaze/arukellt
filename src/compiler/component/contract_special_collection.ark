@@ -26,7 +26,8 @@ fn component_collection_list_signature_error(f: AstNode, allows: ComponentContra
     if contract_allows_collection_query::ComponentContractAllows_allow_list_result(allows) && !contract_collection_fn::component_fn_is_i32_to_vec_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
-    if contract_allows_collection_query::ComponentContractAllows_allow_list_roundtrip(allows) && !contract_collection_fn::component_fn_is_vec_i32_to_vec_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_list_roundtrip(allows) &&
+    !contract_collection_fn::component_fn_is_vec_i32_to_vec_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
@@ -61,42 +62,48 @@ fn component_collection_option_signature_error(f: AstNode, allows: ComponentCont
 }
 
 fn component_option_maybe_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_option_maybe(allows) && !contract_collection_fn::component_fn_is_i32_to_option_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_option_maybe(allows) &&
+    !contract_collection_fn::component_fn_is_i32_to_option_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_option_param_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_option_param(allows) && !contract_collection_fn::component_fn_is_option_i32_to_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_option_param(allows) &&
+    !contract_collection_fn::component_fn_is_option_i32_to_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_option_roundtrip_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_option_roundtrip(allows) && !contract_collection_fn::component_fn_is_option_i32_to_option_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_option_roundtrip(allows) &&
+    !contract_collection_fn::component_fn_is_option_i32_to_option_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_option_bool_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_option_bool(allows) && !contract_collection_fn::component_fn_is_bool_to_option_bool(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_option_bool(allows) &&
+    !contract_collection_fn::component_fn_is_bool_to_option_bool(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_option_i64_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_option_i64(allows) && !contract_collection_fn::component_fn_is_bool_to_option_i64(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_option_i64(allows) &&
+    !contract_collection_fn::component_fn_is_bool_to_option_i64(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_option_i64_param_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_option_i64_param(allows) && !contract_collection_fn::component_fn_is_option_i64_to_i64(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_option_i64_param(allows) &&
+    !contract_collection_fn::component_fn_is_option_i64_to_i64(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
@@ -127,35 +134,40 @@ fn component_collection_result_signature_error(f: AstNode, allows: ComponentCont
 }
 
 fn component_result_safe_div_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_result_safe_div(allows) && !contract_collection_fn::component_fn_is_i32_i32_to_result_i32_string(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_safe_div(allows) &&
+    !contract_collection_fn::component_fn_is_i32_i32_to_result_i32_string(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_result_param_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_result_param(allows) && !contract_collection_fn::component_fn_is_result_i32_i32_to_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_param(allows) &&
+    !contract_collection_fn::component_fn_is_result_i32_i32_to_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_result_string_param_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_result_string_param(allows) && !contract_collection_fn::component_fn_is_result_i32_string_to_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_string_param(allows) &&
+    !contract_collection_fn::component_fn_is_result_i32_string_to_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_result_roundtrip_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_result_roundtrip(allows) && !contract_collection_fn::component_fn_is_result_i32_i32_to_result_i32_i32(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_roundtrip(allows) &&
+    !contract_collection_fn::component_fn_is_result_i32_i32_to_result_i32_i32(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()
 }
 
 fn component_result_bool_signature_error(f: AstNode, allows: ComponentContractAllows) -> String {
-    if contract_allows_collection_query::ComponentContractAllows_allow_result_bool(allows) && !contract_collection_fn::component_fn_is_bool_to_result_bool_bool(contract_helpers::component_func_from_decl(f)) {
+    if contract_allows_collection_query::ComponentContractAllows_allow_result_bool(allows) &&
+    !contract_collection_fn::component_fn_is_bool_to_result_bool_bool(contract_helpers::component_func_from_decl(f)) {
         return contract_helpers::component_error_for_fn(f)
     }
     String_new()

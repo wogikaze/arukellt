@@ -47,7 +47,16 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     }
 }
 
-fn sig_reg_index_top_level_fn(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, decl_index: i32, decl_name: String) {
+fn sig_reg_index_top_level_fn(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    mono_table: MonoInstanceTable,
+    source: MirLowerFnIndexSource,
+    sig_source: CoreHirMirSignatureSource,
+    midx: MonoIndex,
+    decl_index: i32,
+    decl_name: String
+) {
     let mut typed_index = 0
     let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
     if fn_info_index >= 0 {
@@ -61,7 +70,16 @@ fn sig_reg_index_top_level_fn(table: TypeTable, registry: SignatureRegistry, mon
     }
 }
 
-fn sig_reg_index_impl_methods(table: TypeTable, registry: SignatureRegistry, mono_table: MonoInstanceTable, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, midx: MonoIndex, impl_decl_index: i32, struct_name: String) {
+fn sig_reg_index_impl_methods(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    mono_table: MonoInstanceTable,
+    source: MirLowerFnIndexSource,
+    sig_source: CoreHirMirSignatureSource,
+    midx: MonoIndex,
+    impl_decl_index: i32,
+    struct_name: String
+) {
     let method_count = fn_index_source::mir_fn_index_source_method_count_for_impl(source, impl_decl_index)
     let mut mi = 0
     while mi < method_count {

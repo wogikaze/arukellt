@@ -114,7 +114,14 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> symbol_
         let found = find_decl_in_node(get_unchecked(decls, i), clone(name))
         if symbol_types::symbol_info_found(found) {
             let doc = doc_scan::doc_comment_before_offset(clone(text), symbol_types::symbol_info_decl_start(found))
-            return symbol_types::SymbolInfo_found(name, symbol_types::symbol_info_kind(found), symbol_types::symbol_info_decl_start(found), symbol_types::symbol_info_decl_end(found), symbol_types::symbol_info_signature(found), doc)
+            return symbol_types::SymbolInfo_found(
+                name,
+                symbol_types::symbol_info_kind(found),
+                symbol_types::symbol_info_decl_start(found),
+                symbol_types::symbol_info_decl_end(found),
+                symbol_types::symbol_info_signature(found),
+                doc
+            )
         }
         if i == 0 { break }
         i = i - 1

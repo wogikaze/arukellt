@@ -11,8 +11,22 @@ pub struct ComponentCollectionResultScan {
     export_count: i32,
 }
 
-fn ComponentCollectionResultScan_new(has_bool_to_result_bool_bool: bool, has_i32_i32_to_result_i32_string: bool, has_result_i32_i32_to_i32: bool, has_result_i32_string_to_i32: bool, has_result_i32_i32_to_result_i32_i32: bool, export_count: i32) -> ComponentCollectionResultScan {
-    ComponentCollectionResultScan { has_bool_to_result_bool_bool: has_bool_to_result_bool_bool, has_i32_i32_to_result_i32_string: has_i32_i32_to_result_i32_string, has_result_i32_i32_to_i32: has_result_i32_i32_to_i32, has_result_i32_string_to_i32: has_result_i32_string_to_i32, has_result_i32_i32_to_result_i32_i32: has_result_i32_i32_to_result_i32_i32, export_count: export_count }
+fn ComponentCollectionResultScan_new(
+    has_bool_to_result_bool_bool: bool,
+    has_i32_i32_to_result_i32_string: bool,
+    has_result_i32_i32_to_i32: bool,
+    has_result_i32_string_to_i32: bool,
+    has_result_i32_i32_to_result_i32_i32: bool,
+    export_count: i32
+) -> ComponentCollectionResultScan {
+    ComponentCollectionResultScan {
+        has_bool_to_result_bool_bool: has_bool_to_result_bool_bool,
+        has_i32_i32_to_result_i32_string: has_i32_i32_to_result_i32_string,
+        has_result_i32_i32_to_i32: has_result_i32_i32_to_i32,
+        has_result_i32_string_to_i32: has_result_i32_string_to_i32,
+        has_result_i32_i32_to_result_i32_i32: has_result_i32_i32_to_result_i32_i32,
+        export_count: export_count
+    }
 }
 
 fn ComponentCollectionResultScan_empty() -> ComponentCollectionResultScan {

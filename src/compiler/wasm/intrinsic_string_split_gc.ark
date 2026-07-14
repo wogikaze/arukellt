@@ -98,7 +98,24 @@ fn emit_split_gc_alloc_vec(w: WasmWriter, s_count: i32, s_arr: i32, s_vec: i32, 
 }
 
 // Pass 2: fill segments. Dispatches to fill-by-scan or fill-by-chars.
-fn emit_split_gc_fill_pass(w: WasmWriter, s_src: i32, s_sep: i32, s_slen: i32, s_seplen: i32, s_pos: i32, s_start: i32, s_segidx: i32, s_arr: i32, s_j: i32, s_match: i32, s_seglen: i32, s_k: i32, vec_type: i32, arr_type: i32, string_type: i32) {
+fn emit_split_gc_fill_pass(
+    w: WasmWriter,
+    s_src: i32,
+    s_sep: i32,
+    s_slen: i32,
+    s_seplen: i32,
+    s_pos: i32,
+    s_start: i32,
+    s_segidx: i32,
+    s_arr: i32,
+    s_j: i32,
+    s_match: i32,
+    s_seglen: i32,
+    s_k: i32,
+    vec_type: i32,
+    arr_type: i32,
+    string_type: i32
+) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_pos)
     string_gc_helpers::emit_gc_i32_const(w, 0)

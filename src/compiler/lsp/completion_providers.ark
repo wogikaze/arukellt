@@ -57,7 +57,17 @@ fn push_stdlib(items: String, text: String, prefix: String, state: LspState) -> 
                 clone(name)
             }
             let needs_import = !import_graph::is_path_imported(clone(text), clone(import_path))
-            out = completion_items::append_item(out, completion_items::completion_item_json(label, symbol_index_record::stdlib_indexed_symbol_kind(sym), symbol_index_record::stdlib_indexed_symbol_detail(sym), clone(text), import_path, needs_import))
+            out = completion_items::append_item(
+                out,
+                completion_items::completion_item_json(
+                    label,
+                    symbol_index_record::stdlib_indexed_symbol_kind(sym),
+                    symbol_index_record::stdlib_indexed_symbol_detail(sym),
+                    clone(text),
+                    import_path,
+                    needs_import
+                )
+            )
         }
         j = j + 1
     }
@@ -73,7 +83,10 @@ fn push_project(items: String, text: String, prefix: String, state: LspState) ->
         let sym = get_unchecked(symbols, i)
         let name = symbol_index_record::indexed_symbol_name(sym)
         if starts_with_prefix(clone(name), clone(prefix)) {
-            out = completion_items::append_item(out, completion_items::completion_item_json(name, symbol_index_record::indexed_symbol_kind(sym), symbol_index_record::indexed_symbol_detail(sym), clone(text), String_new(), false))
+            out = completion_items::append_item(
+                out,
+                completion_items::completion_item_json(name, symbol_index_record::indexed_symbol_kind(sym), symbol_index_record::indexed_symbol_detail(sym), clone(text), String_new(), false)
+            )
         }
         i = i + 1
     }

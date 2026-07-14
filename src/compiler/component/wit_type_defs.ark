@@ -92,7 +92,12 @@ fn component_decl_is_perms_flags_shape(d: AstNode) -> bool {
     }
     let f0 = wit_decl::wit_decl_member_at(decl, 0)
     let f1 = wit_decl::wit_decl_member_at(decl, 1)
-    eq(wit_decl::wit_decl_member_name(f0), String_from("read")) && eq(wit_decl::wit_decl_member_name(f1), String_from("write")) && wit_decl::wit_decl_member_has_type(f0) && wit_decl::wit_decl_member_has_type(f1) && type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f0), String_from("bool")) && type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f1), String_from("bool"))
+    eq(wit_decl::wit_decl_member_name(f0), String_from("read")) &&
+    eq(wit_decl::wit_decl_member_name(f1), String_from("write")) &&
+    wit_decl::wit_decl_member_has_type(f0) &&
+    wit_decl::wit_decl_member_has_type(f1) &&
+    type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f0), String_from("bool")) &&
+    type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f1), String_from("bool"))
 }
 
 fn emit_wit_flags_type_def(d: AstNode) -> String {

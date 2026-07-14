@@ -64,8 +64,25 @@ fn mono_instance_table_find_by_mangled(table: MonoInstanceTable, mangled: String
     0 - 1
 }
 
-fn MonoInstanceEntry_new(mangled_name: String, subst_var_names: Vec<String>, subst_type_ids: Vec<TypeId>, instantiated_param_types: Vec<MirValueType>, instantiated_return_types: Vec<MirValueType>, base_function_id: FunctionId, signature_id: FunctionId) -> MonoInstanceEntry {
-    MonoInstanceEntry { id: MONO_INSTANCE_ID_INVALID(), mangled_name: mangled_name, subst_var_names: subst_var_names, subst_type_ids: subst_type_ids, instantiated_param_types: instantiated_param_types, instantiated_return_types: instantiated_return_types, base_function_id: base_function_id, signature_id: signature_id }
+fn MonoInstanceEntry_new(
+    mangled_name: String,
+    subst_var_names: Vec<String>,
+    subst_type_ids: Vec<TypeId>,
+    instantiated_param_types: Vec<MirValueType>,
+    instantiated_return_types: Vec<MirValueType>,
+    base_function_id: FunctionId,
+    signature_id: FunctionId
+) -> MonoInstanceEntry {
+    MonoInstanceEntry {
+        id: MONO_INSTANCE_ID_INVALID(),
+        mangled_name: mangled_name,
+        subst_var_names: subst_var_names,
+        subst_type_ids: subst_type_ids,
+        instantiated_param_types: instantiated_param_types,
+        instantiated_return_types: instantiated_return_types,
+        base_function_id: base_function_id,
+        signature_id: signature_id
+    }
 }
 
 fn mono_instance_entry_return_at(entry: MonoInstanceEntry, index: i32) -> MirValueType {
