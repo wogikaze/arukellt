@@ -127,6 +127,22 @@ fn target_alias_message(input: String) -> String {
     String_new()
 }
 
+fn target_display_line(input: String) -> String {
+    if eq(clone(input), String_from("wasm32")) {
+        return String_from("  wasm32  WebAssembly linear-memory target (WASI P1)")
+    }
+    if eq(clone(input), String_from("wasm32-gc")) {
+        return String_from("  wasm32-gc  WebAssembly GC target (WASI P2, default)")
+    }
+    if eq(clone(input), String_from("native-cpp")) {
+        return String_from("  native-cpp  Native C++ backend scaffold")
+    }
+    if eq(clone(input), String_from("native-llvm")) {
+        return String_from("  native-llvm  Native LLVM backend scaffold")
+    }
+    String_new()
+}
+
 test mod "target_contract_generated" {
     test "canonical_0" { assert(target_is_canonical(String_from("wasm32"))) }
     test "canonical_1" { assert(target_is_canonical(String_from("wasm32-gc"))) }

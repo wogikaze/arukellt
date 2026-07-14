@@ -1519,6 +1519,15 @@ def render_compiler_target_contract(state: dict) -> str:
             f'        return String_from("{_ark_string(message)}")',
             "    }",
         ])
+    lines.extend(["    String_new()", "}", "", "fn target_display_line(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        target_id = _ark_string(profile["id"])
+        display = _ark_string(profile.get("display", profile.get("role", "")))
+        lines.extend([
+            f'    if eq(clone(input), String_from("{target_id}")) {{',
+            f'        return String_from("  {target_id}  {display}")',
+            "    }",
+        ])
     lines.extend(["    String_new()", "}", ""])
     lines.extend(['test mod "target_contract_generated" {'])
     for index, target in enumerate(canonical):

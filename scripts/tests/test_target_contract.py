@@ -95,6 +95,14 @@ class TargetContractTest(unittest.TestCase):
                     findings.append(f"{path.relative_to(ROOT)}: {spelling}")
         self.assertEqual(findings, [])
 
+    def test_cmd_targets_uses_generated_display_lines(self) -> None:
+        """cmd_targets() must call target_display_line for each canonical target."""
+        targets_ark = (ROOT / "src/compiler/main/targets.ark").read_text(encoding="utf-8")
+        canonical = [entry["id"] for entry in self.state["target_profiles"]]
+        for target in canonical:
+            needle = f'target_contract_generated::target_display_line(String_from("{target}"))'
+            self.assertIn(needle, targets_ark, f"cmd_targets() missing generated display for {target}")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,6 +43,7 @@ contract_stability = "stable"
 run_supported = true
 default_host_profile = "wasi-p1"
 role = "Supported: AtCoder / linear-memory competition path"
+display = "WebAssembly linear-memory target (WASI P1)"
 
 [[target_profiles]]
 id = "wasm32-gc"
@@ -52,6 +53,7 @@ contract_stability = "stable"
 run_supported = true
 default_host_profile = "wasi-p2"
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
+display = "WebAssembly GC target (WASI P2, default)"
 
 [[target_profiles]]
 id = "native-cpp"
@@ -60,6 +62,7 @@ implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
 role = "Scaffold C99 emit path"
+display = "Native C++ backend scaffold"
 
 [[target_profiles]]
 id = "native-llvm"
@@ -68,6 +71,7 @@ implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
 role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
+display = "Native LLVM backend scaffold"
 
 # User input spellings are canonicalized once at the CLI/config boundary. These
 # entries are the only product-contract owner for deprecated aliases and rejected

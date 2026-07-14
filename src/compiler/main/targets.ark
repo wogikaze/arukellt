@@ -2,10 +2,10 @@ use std::host::stdio
 
 pub fn cmd_targets() {
     stdio::println(String_from("Available targets:"))
-    stdio::println(String_from("  wasm32      WebAssembly linear-memory target (WASI P1)"))
-    stdio::println(String_from("  wasm32-gc   WebAssembly GC target (WASI P2, default)"))
-    stdio::println(String_from("  native-cpp  Native C++ backend scaffold"))
-    stdio::println(String_from("  native-llvm Native LLVM backend scaffold"))
+    stdio::println(target_contract_generated::target_display_line(String_from("wasm32")))
+    stdio::println(target_contract_generated::target_display_line(String_from("wasm32-gc")))
+    stdio::println(target_contract_generated::target_display_line(String_from("native-cpp")))
+    stdio::println(target_contract_generated::target_display_line(String_from("native-llvm")))
 }
 test mod "targets_bulk" {
     test "probe_0" { assert(0 >= 0) }
