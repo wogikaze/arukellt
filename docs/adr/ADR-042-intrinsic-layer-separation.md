@@ -12,7 +12,7 @@
 
 intrinsic 周辺の構造には以下の問題がある:
 
-1. **callee 文字列による dispatch**: `call_dispatch.ark` が MIR に保存された
+1. **callee 文字列による dispatch**: `call_dispatch_table.ark` 等が MIR に保存された
    callee 文字列を見て `host → seq → text → scalar → parse → vec → simd` の
    順で振り分ける。各層で `eq(clone(callee), "starts_with")` のような文字列比較を
    行っている。`func_id_raw` が既に存在するにもかかわらず、intrinsic 判定
@@ -125,18 +125,18 @@ ADR-040 の SignatureEntry に以下を追加する:
 
 | 情報 | 例 |
 |------|-----|
-| semantic ID | `VecLen`, `VecGetUnchecked`, `StringByteLen` |
-| effect | pure, read, write, allocate, IO, noreturn |
-| may trap | bounds check, parse 等 |
-| const evaluable | 可否 |
+| semantic ID | `string.starts_with`, `vec.len`, `simd.i32x4.add` |
+| effect | memory / allocates / may_trap / noreturn / external_io / nondeterminism / atomic / volatile からなる直交属性セット |
+| const semantics | 定数評価可否、overflow/NaN/trap 規則 |
 | inline policy | never, hint, always |
-| lowering policy | normal call, MIR op, runtime call, target intrinsic |
-| fallback body | 安定 symbol path / DefKey（名前解決後に FunctionId へ変換。FunctionId は永続化しない） |
+| lowering kind | normal_call, mir_op, runtime_call, target_intrinsic |
+| target | capability predicate, fallback 可否 |
+| fallback | 安定 symbol path / DefKey（名前解決後に FunctionId へ変換。FunctionId は永続化しない） |
 
-**宣言の単一正本（SSOT）:** `docs/data/core-ops.toml`（GHC `primops.txt.pp` 方式）。
+**宣言の単一正本（SSOT）:** `data/core-ops.toml`（GHC `primops.txt.pp` 方式）。
 人間向け概要は [`docs/compiler/core-ops-registry.md`](../compiler/core-ops-registry.md)。
 
-- **core-ops.toml** が semantic types / SemanticId / effect / lowering policy / fallback symbol の正本。
+- **core-ops.toml** が semantic types / SemanticId / effect / lowering kind / fallback symbol の正本。
 - **std/manifest.toml** は公開 path・docs・stability・deprecation の正本であり、
   `semantic_id` / `type_id` で core-ops を **参照**する（manifest 全体を core-ops から生成しない）。
 - 一つの semantic operation を複数の公開 API から参照してよい
@@ -146,6 +146,22 @@ ADR-040 の SignatureEntry に以下を追加する:
   未参照 semantic op・重複 public binding を検査する。
 - resolver / typechecker / MIR / docs は core-ops（および検査済み参照）から読む。手作業二重登録禁止。
 
+**effect モデルは単一 enum にしない。**
+`pure` は memory=none / allocates=false / may_trap=false / noreturn=false / external_io=false / nondeterminism=deterministic 等の導出値である。
+最低限必要な直交属性は:
+
+- `memory`: `none` / `read` / `write` / `read-write`
+- `allocates`: bool
+- `may_trap`: bool
+- `noreturn`: bool
+- `external_io`: bool
+- `nondeterminism`: `deterministic` / `clock` / `random` / `external`
+- `atomic`: bool
+- `volatile`: bool
+
+`pure` と `readnone` や `may_trap` と別 `may_trap` フラグを併存させるような
+重複表現は避ける。
+
 移行中は既存 manifest を拡張してよいが、実装開始前に core-ops 参照モデルへ切り替える（本 ADR の D5 決定）。
 
 resolver、typechecker、MIR、docs、runtime ABI 表は SSOT から生成する方針とする。
@@ -154,8 +170,15 @@ resolver、typechecker、MIR、docs、runtime ABI 表は SSOT から生成する
 
 ### D6: callee 文字列 dispatch の廃止
 
-intrinsic 判定を callee 名から `func_id_raw` + `SemanticId` へ移行する。
-`SemanticId` は FunctionId から取得し、名前は診断表示にだけ使う。
+intrinsic 判定を callee 名から MIR に保存された `FunctionId` による
+`SignatureRegistry` 参照へ移行する。
+`SignatureRegistry` から `LoweringKind` / `SemanticOpId` を取得し、
+それによって dispatch する。
+
+`func_id_raw` は `FunctionId` を `MirInst` 内に保存するための物理表現にすぎない。
+backend が raw な `FunctionId` 値を意味キーとして扱うと、
+登録順・monomorphization・module 結合順に依存する暗黙 ABI になるため禁止する。
+名前は診断表示にだけ使う。
 
 ### D7: target intrinsic の名前空間
 
@@ -198,7 +221,6 @@ linear-memory 規則を直接露出する場合に限る。
   廃止と prelude 本体の backend 通過。型チェック専用スタブからの移行は
   破壊的変更を伴うため、専用 ADR / RFC が必要。
 - **sealed raw API のモジュール名と公開面**（D4 候補の最終決定）
-- **semantic 宣言 SSOT**: `docs/data/core-ops.toml`（D5 で決定）。manifest は `semantic_id` で参照する公開面。
 
 ## 等価性検証
 

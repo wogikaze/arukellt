@@ -45,7 +45,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | 項目 | 提案 ADR | 現行 |
 |------|----------|------|
 | Trait stdlib redesign | ADR-046 根絶 + ADR-036（D5 撤回）+ ADR-014 削除方針 | モノモルフィック / free 公開面が残存 → **移行前**（根絶方針は採択済み） |
-| Intrinsic layer | ADR-042（PROPOSED）が `docs/data/core-ops.toml` owner を提案 | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、移行は #798 |
+| Intrinsic layer | ADR-042（PROPOSED）が `data/core-ops.toml` owner を提案 | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、移行は #798 |
 | SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
 | SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
 | Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |

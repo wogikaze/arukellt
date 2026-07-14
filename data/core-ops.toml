@@ -1,4 +1,4 @@
-# Future core semantic operations registry scaffold — ADR-042 (PROPOSED) D5
+# Core semantic operations registry scaffold — ADR-042 (PROPOSED) D5
 # Human-readable overview: docs/compiler/core-ops-registry.md
 #
 # Proposed responsibility split; not authoritative until ADR-042 is accepted and
@@ -7,11 +7,12 @@
 # Fallback values are stable symbol paths (or DefKey after name resolution).
 # Do not store compile-local FunctionId here.
 
-schema_version = 1
+schema_version = 2
 status = "scaffold"
 
 [registry]
 description = "Core semantic operations registry"
+canonical_path = "data/core-ops.toml"
 planned_outputs = [
   "compiler-type-table",
   "compiler-semantic-ops",
@@ -19,8 +20,28 @@ planned_outputs = [
   "docs-semantic-table",
 ]
 
-# Example scaffold entries (not yet authoritative for codegen).
-# Public paths live only in std/manifest.toml via semantic_id references.
+[validation]
+# Conditions a generator/checker must satisfy before the registry can lose
+# status = "scaffold".
+check_signature_compat = true
+check_unreferenced_semantic_ops = true
+check_duplicate_public_bindings = true
+check_effect_lowering_consistency = true
+check_fallback_resolvable = true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Types
+# ─────────────────────────────────────────────────────────────────────────────
+# These are referenced from std/manifest.toml via type_id.
+
+[[types]]
+id = "string"
+kind = "string"
+
+[[types]]
+id = "vec"
+kind = "vec"
+generic_params = ["T"]
 
 [[types]]
 id = "simd.i32x4"
@@ -39,29 +60,139 @@ id = "simd.mask4"
 kind = "mask"
 lanes = 4
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Operations
+# ─────────────────────────────────────────────────────────────────────────────
+# These are referenced from std/manifest.toml via semantic_id.
+# Example fallback values that do not yet resolve to a real public symbol are
+# prefixed with example.invalid so a future checker can reject them mechanically.
+
+[[operations]]
+id = "string.starts_with"
+description = "Return true when the receiver string starts with the given prefix."
+[operations.signature]
+receiver = { name = "s", type = "string" }
+parameters = [{ name = "prefix", type = "string" }]
+results = [{ type = "bool" }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = true
+overflow = "none"
+nan = "none"
+trap = "none"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.lowering]
+kind = "normal_call"
+[operations.fallback]
+stable_symbol_path = "std::text::starts_with"
+
 [[operations]]
 id = "simd.i32x4.add"
-effect = "pure"
-may_trap = false
+description = "Portable 4-lane i32 addition."
+[operations.signature]
+parameters = [
+  { name = "a", type = "simd.i32x4" },
+  { name = "b", type = "simd.i32x4" },
+]
+results = [{ type = "simd.i32x4" }]
+generic_params = []
+constraints = []
+[operations.semantics]
 const_evaluable = true
-inline_policy = "hint"
-lowering_policy = "native_or_fallback"
-fallback_symbol = "std::simd::internal::i32x4_add_scalar"
+overflow = "wrap"
+nan = "none"
+trap = "none"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.lowering]
+kind = "target_intrinsic"
+target_id = "i32x4.add"
+[operations.target]
+capability_predicate = "simd"
+fallback_allowed = true
+[operations.fallback]
+stable_symbol_path = "example.invalid.fallback.simd_i32x4_add"
 
 [[operations]]
 id = "simd.i32x4.sub"
-effect = "pure"
-may_trap = false
+description = "Portable 4-lane i32 subtraction."
+[operations.signature]
+parameters = [
+  { name = "a", type = "simd.i32x4" },
+  { name = "b", type = "simd.i32x4" },
+]
+results = [{ type = "simd.i32x4" }]
+generic_params = []
+constraints = []
+[operations.semantics]
 const_evaluable = true
-inline_policy = "hint"
-lowering_policy = "native_or_fallback"
-fallback_symbol = "std::simd::internal::i32x4_sub_scalar"
+overflow = "wrap"
+nan = "none"
+trap = "none"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.lowering]
+kind = "target_intrinsic"
+target_id = "i32x4.sub"
+[operations.target]
+capability_predicate = "simd"
+fallback_allowed = true
+[operations.fallback]
+stable_symbol_path = "example.invalid.fallback.simd_i32x4_sub"
 
 [[operations]]
 id = "simd.f32x4.add"
-effect = "pure"
-may_trap = false
+description = "Portable 4-lane f32 addition."
+[operations.signature]
+parameters = [
+  { name = "a", type = "simd.f32x4" },
+  { name = "b", type = "simd.f32x4" },
+]
+results = [{ type = "simd.f32x4" }]
+generic_params = []
+constraints = []
+[operations.semantics]
 const_evaluable = true
-inline_policy = "hint"
-lowering_policy = "native_or_fallback"
-fallback_symbol = "std::simd::internal::f32x4_add_scalar"
+overflow = "ieee754"
+nan = "canonical"
+trap = "none"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.lowering]
+kind = "target_intrinsic"
+target_id = "f32x4.add"
+[operations.target]
+capability_predicate = "simd"
+fallback_allowed = true
+[operations.fallback]
+stable_symbol_path = "example.invalid.fallback.simd_f32x4_add"

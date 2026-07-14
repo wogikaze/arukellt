@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T10:51:54Z",
+  "generated_at": "2026-07-14T15:27:44Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -10,7 +10,8 @@
       "track": "component-model",
       "status": "open",
       "depends_on": [
-        "27"
+        "27",
+        "037"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
@@ -95,6 +96,7 @@
         "641"
       ],
       "blocks_issue_ids": [
+        "698",
         "699"
       ],
       "acceptance": {
@@ -400,6 +402,8 @@
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [
+        "698",
+        "716",
         "801",
         "808"
       ],
@@ -672,7 +676,8 @@
         "done)"
       ],
       "blocks_issue_ids": [
-        "719"
+        "719",
+        "799"
       ],
       "acceptance": {
         "checked": 13,
@@ -850,23 +855,6 @@
       }
     },
     {
-      "id": "798",
-      "path": "798-adr-042-semantic-operation-registry-migration.md",
-      "title": "798 — ADR-042 semantic operation registry migration",
-      "track": "architecture",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
-      }
-    },
-    {
       "id": "807",
       "path": "807-fixture-parity-367-remaining-failures.md",
       "title": "807 — Fixture parity: 367 remaining failures",
@@ -977,7 +965,7 @@
     {
       "id": "815",
       "path": "815-diagnostic-t3-compile-skips.md",
-      "title": "815 — Diagnostic/T3 compile skips (23 fixtures)",
+      "title": "815 — Diagnostic/T3 compile skips",
       "track": "selfhost",
       "status": "open",
       "depends_on": [],
@@ -1008,26 +996,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -1074,6 +1042,47 @@
       }
     },
     {
+      "id": "698",
+      "path": "698-std-simd-explicit-library.md",
+      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
+      "track": "wasm-feature",
+      "status": "open",
+      "depends_on": [
+        "686",
+        "649"
+      ],
+      "blocks_issue_ids": [
+        "699"
+      ],
+      "acceptance": {
+        "checked": 49,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "716",
+      "path": "716-gc-intrinsic-stub-completion.md",
+      "title": "GC target intrinsic stub completion (silent-wrong-result backfill)",
+      "track": "gc-native",
+      "status": "open",
+      "depends_on": [
+        "686"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 17,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "#686 Wasm GC Selfhost Implementation"
+      }
+    },
+    {
       "id": "801",
       "path": "801-gc-rebuild-plan.md",
       "title": "GC 完了までのプラン",
@@ -1088,7 +1097,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "ready",
+        "class": "blocked",
         "upstream_notes": 686
       }
     },
@@ -1107,7 +1116,7 @@
         "unchecked": 0
       },
       "orchestration": {
-        "class": "ready",
+        "class": "blocked",
         "upstream_notes": 686
       }
     },
@@ -1241,6 +1250,27 @@
       }
     },
     {
+      "id": "799",
+      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
+      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "715",
+        "796",
+        "797"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 11,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": 715
+      }
+    },
+    {
       "id": "726",
       "path": "726-t3-wasm-validation-32-failures.md",
       "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
@@ -1320,6 +1350,26 @@
       }
     },
     {
+      "id": "699",
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature",
+      "status": "open",
+      "depends_on": [
+        "649",
+        "698"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "709",
       "path": "709-stdlib-trait-first-api-policy.md",
       "title": "709 — Stdlib trait-first API policy and free-function eradication",
@@ -1349,21 +1399,25 @@
     {
       "id": "729",
       "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration",
+      "title": "729 — Intrinsic layer separation (blocked epic)",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
         "724",
         "727"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "798",
+        "816",
+        "817"
+      ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 71
+        "unchecked": 11
       },
       "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
+        "class": "blocked",
+        "upstream_notes": "ADR-042 acceptance"
       }
     },
     {
@@ -1408,6 +1462,63 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      }
+    },
+    {
+      "id": "798",
+      "path": "798-adr-042-semantic-operation-registry-migration.md",
+      "title": "798 — ADR-042 semantic operation registry migration",
+      "track": "architecture",
+      "status": "open",
+      "depends_on": [
+        "729"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "729 (ADR-042 acceptance)"
+      }
+    },
+    {
+      "id": "816",
+      "path": "816-prelude-compilation-restoration.md",
+      "title": "816 — Prelude compilation restoration",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "729"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "prelude-restoration-rfc"
+      }
+    },
+    {
+      "id": "817",
+      "path": "817-sealed-raw-api-module.md",
+      "title": "817 — Sealed raw API module for Vec/String internal representation",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "729"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "sealed-raw-api-rfc"
       }
     },
     {

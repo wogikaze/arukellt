@@ -50,11 +50,13 @@ generic_params = ["T", "E"]
 name = "String"
 prelude = true
 stability = "stable"
+type_id = "string"
 
 [[types]]
 name = "Vec"
 prelude = true
 generic_params = ["T"]
+type_id = "vec"
 
 # ─────────────────────────────────────────────
 # Prelude values (auto-imported)
@@ -1921,6 +1923,7 @@ module = "std::text"
 doc_category = "text"
 stability = "stable"
 intrinsic = "__intrinsic_starts_with"
+semantic_id = "string.starts_with"
 params = ["String", "String"]
 returns = "bool"
 

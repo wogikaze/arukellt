@@ -15,7 +15,7 @@
 | File | Title | Summary |
 |------|-------|---------|
 | [bootstrap.md](bootstrap.md) | Selfhost Bootstrap (ADR-029) | Current contract. Trusted base is the pinned selfhost wasm, not a Rust compiler. Rust-era Stage 0 narratives live in ../history/reports/bootstrap-rust-era-compiler-guide.md. |
-| [core-ops-registry.md](core-ops-registry.md) | Core Ops Registry | Future registry scaffold: docs/data/core-ops.toml Proposed design: ADR-042 D5 Migration owner: issue #798 |
+| [core-ops-registry.md](core-ops-registry.md) | Core Ops Registry | Registry path: data/core-ops.toml Proposed design: ADR-042 D5 Migration owner: issue #798 |
 | [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output bit-exact reproducible — the same source must always produce the same binary, byte-for-byte. |
 | [diagnostic-parity.md](diagnostic-parity.md) | Diagnostic Parity (current) | Current verification is selfhost diag-parity under ADR-029 — not a Rust CLI comparison. |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |

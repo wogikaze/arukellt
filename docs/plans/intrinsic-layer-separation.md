@@ -12,50 +12,66 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 
 ## 移行段階
 
-### 第 1 段階: intrinsic 追加を凍結
+### 第 1 段階: registry schema と SignatureEntry 拡張
 
-新規の文字列 dispatch を禁止する。例外は target-specific SIMD のみ。
-同時に、すべての呼び出し判定を callee 名ではなく `func_id_raw` と
-`SemanticId` へ移す。
+- `core-ops.toml` を `data/core-ops.toml` として正規の production path に配置し、
+  schema_version を上げる。
+- `SignatureEntry` に `semantic_id`、effect（直交属性セット）、`const semantics`、
+  `inline_policy`、`lowering_kind`、target、fallback を追加する。
+- effect モデルは `pure` / `read` / `write` / `allocate` / `IO` / `noreturn` 等の
+  単一 enum にせず、memory / allocates / may_trap / noreturn / external_io /
+  nondeterminism / atomic / volatile の直交属性セットとする。
+- この段階では既存の callee 文字列 dispatch をそのままにしておく。
+  既存の挙動を変えない。
 
-### 第 2 段階: host intrinsic を runtime ABI へ分離
+### 第 2 段階: 全 builtin/intrinsic への SemanticId と LoweringKind 割り当て
 
-HTTP、fs、socket、clock、random、process、stdio を emitter から外す。
-インライン化とは無関係なので先にできる。
-WIT/import lowering の汎用機構に統合する。
+- 現在の全 builtin / intrinsic / runtime ABI operation に `SemanticId` と
+  `LoweringKind` を割り当てる。
+- `std/manifest.toml` の `[[types]]` には `type_id`、`[[functions]]` には `semantic_id`
+  を追加し、`core-ops.toml` を参照する。
+- 割り当てた mapping を手作業で検証し、既存文字列 dispatch と同じ dispatch 結果に
+  なることを確認する。
 
-### 第 3 段階: semantic registry を作る
+### 第 3 段階: registry と既存文字列 dispatch の対応検証
 
-SignatureEntry に semantic ID、effect、may trap、const evaluable、
-inline policy、lowering policy、fallback body を追加する。
-manifest / ops 表（候補: `std/manifest.toml` または `core-ops.toml`）を
-単一の正本にして、各種 compiler データを生成する。
+- generator / checker が `core-ops.toml` と `std/manifest.toml` の参照整合性、
+  signature 互換、effect/lowering 整合、未参照 semantic op、重複 public binding を
+  検査するよう整備する。
+- 検証を通過するまで次の段階に進めない。
 
-### 第 4 段階: 小さな stdlib 専用 inliner
+### 第 4 段階: emitter を FunctionId 経由の registry lookup へ切り替える
 
-最初は一般的な高度 inliner でなくてよい:
+- `call_dispatch_table.ark` / `inst_dispatch.ark` を、MIR に保存された `FunctionId`
+  から `SignatureRegistry` を参照する形に書き換える。
+- `LoweringKind` / `SemanticOpId` によって dispatch する。
+- `func_id_raw` は `FunctionId` の物理表現にすぎず、raw 値そのものを
+  意味判定に使用しない。
 
-- compiler-shipped core/std だけ対象
-- 再帰なし
-- MIR 命令数が小さい
-- 単一 basic block または単純 CFG
-- `@inline(always)` または cost threshold 以下
-- target ごとの code size 上限あり
+### 第 5 段階: 文字列 dispatch と callee 別名処理を削除する
 
-semantic operation は早期にはインライン化せず高水準最適化に使い、
-後段でインライン化する設計が理想。
+- `eq(clone(callee), "...")` 比較を `call_*.ark` から完全に削除する。
+- `normalize_callee_name`、callee 別名処理、`__intrinsic_` prefix stripping を削除する。
+- この時点で intrinsic 追加は完全に凍結する（新規操作は `core-ops.toml` へ追加する）。
 
-### 第 5 段階: pure operation を Ark へ移す
+### 第 6 段階: runtime ABI 分離、inliner、stdlib 移行
 
-まず `gcd`、range 操作、trim start/end、starts/ends with、contains/index_of、
-reverse、any/find/fold、sort から移す。
-split、replace、format、HashMap などは、allocation や representation の設計が
-安定してから移す。
+- host intrinsic（HTTP、fs、sockets、clock、random、process、stdio、env）を
+  emitter から外し、runtime ABI / WIT import lowering へ統合する。
+- 小さな stdlib 専用 inliner を導入する（compiler-shipped core/std だけ、
+  再帰なし、MIR 命令数・code size 制限付き）。
+- pure operation（`gcd`、range 操作、`starts_with`/`ends_with`/`contains`/`index_of`、
+  `trim`、`reverse`、any/find/fold、sort 等）を Ark stdlib へ移す。
+- allocation-dependent 操作（`split`、`join`、`replace`、`repeat`、`pad_left/right`、
+  `lines`、HashMap/HashSet、数値 parse/format 等）を Ark へ移す。
+- 各移行には differential test（Ark fallback vs 旧 intrinsic）を伴う。
 
-### 第 6 段階: prelude のコンパイル対象復帰
+### 第 7 段階: 検証と cleanup
 
-prelude 本体を本当にコンパイル対象に戻し、偽の関数本体を廃止する。
-**要別 ADR / RFC** — 本段階の詳細は別文書で決定する。
+- GC/LM 二重 intrinsic ファイルを削除する（representation 違いは sealed raw API に吸収）。
+- `intrinsic_*_gc.ark` / `intrinsic_*_lm.ark`  dual files を整理する。
+- `core-ops.toml` / `std/manifest.toml` / `docs/current-state.md` の整合を再確認する。
+- `python3 scripts/manager.py verify quick` が通ることを確認する。
 
 ---
 
@@ -122,6 +138,18 @@ generic/trait 実装へ統合する。
 - atomics
 - target feature detection
 - Wasm-specific reference/table operations
+
+---
+
+## 本計画のスコープ外
+
+以下は ADR-042 で「別 ADR / RFC が必要」とされているため、
+本計画の各段階に含めない。
+
+- **prelude のコンパイル対象復帰**: `combine_loaded_and_main_decls_skip_prelude` の
+  廃止と prelude 本体の backend 通過。専用 RFC 依存の子 issue として追跡する。
+- **sealed raw API のモジュール名と公開面**: `core::raw` / `core::intrinsics` / `core::rt`
+  等の最終決定。専用 RFC 依存の子 issue として追跡する。
 
 ---
 
