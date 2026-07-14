@@ -251,10 +251,13 @@ def parse_receipt(text: str) -> dict:
             continue
 
     # Component interop failures
+    component_items = []
+    seen_component: set[str] = set()
     for line in clean_lines:
         m = re.match(r"✗ component interop: (\S+)", line)
-        if m:
-            receipt["items"].append({
+        if m and m.group(1) not in seen_component:
+            seen_component.add(m.group(1))
+            component_items.append({
                 "check_id": "component_interop",
                 "item_id": m.group(1),
                 "result": "fail",
@@ -263,6 +266,17 @@ def parse_receipt(text: str) -> dict:
                 "baseline_status": "existing",
                 "new_or_existing": "existing",
             })
+    receipt["items"].extend(component_items)
+    if component_items:
+        receipt["aggregate_checks"].append({
+            "check_id": "component_interop",
+            "category": "component-interop",
+            "result": "fail",
+            "pass_count": 0,
+            "fail_count": len(component_items),
+            "skip_count": 0,
+            "owner_issue": OWNER_ISSUES["component_interop"],
+        })
 
     # CLI parity failures
     for line in clean_lines:
@@ -333,6 +347,36 @@ def parse_receipt(text: str) -> dict:
                 "detail": m.group(1),
             })
             continue
+
+    # ── Deduplicate aggregate checks ────────────────────────────────
+    # When combining outputs from multiple verify subcommands, the same
+    # check_id may appear multiple times (e.g. quick_checks from each
+    # subcommand's Summary block). Keep only the first occurrence of each
+    # check_id, but preserve the one with the most detail (highest
+    # pass+fail+skip count).
+    seen: dict[str, dict] = {}
+    for check in receipt["aggregate_checks"]:
+        cid = check["check_id"]
+        if cid not in seen:
+            seen[cid] = check
+        else:
+            # Keep the one with higher total count
+            existing_total = seen[cid]["pass_count"] + seen[cid]["fail_count"] + seen[cid]["skip_count"]
+            new_total = check["pass_count"] + check["fail_count"] + check["skip_count"]
+            if new_total > existing_total:
+                seen[cid] = check
+    receipt["aggregate_checks"] = list(seen.values())
+
+    # ── Deduplicate items ───────────────────────────────────────────
+    # Keep only unique (check_id, item_id) pairs
+    seen_items: set[tuple[str, str]] = set()
+    unique_items = []
+    for item in receipt["items"]:
+        key = (item["check_id"], item["item_id"])
+        if key not in seen_items:
+            seen_items.add(key)
+            unique_items.append(item)
+    receipt["items"] = unique_items
 
     # ── Summary ─────────────────────────────────────────────────────
     total_items = len(receipt["items"])
