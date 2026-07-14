@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T10:14:38Z",
+  "generated_at": "2026-07-14T10:45:08Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -850,27 +850,6 @@
       }
     },
     {
-      "id": "796",
-      "path": "796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
-      "title": "796 — CQ-16: duplicated knowledge and SSOT consolidation",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "795"
-      ],
-      "blocks_issue_ids": [
-        "797"
-      ],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "798",
       "path": "798-adr-042-semantic-operation-registry-migration.md",
       "title": "798 — ADR-042 semantic operation registry migration",
@@ -1321,27 +1300,6 @@
       }
     },
     {
-      "id": "797",
-      "path": "797-cq-17-public-api-and-comment-audit.md",
-      "title": "797 — CQ-17: public API and comment audit",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "796"
-      ],
-      "blocks_issue_ids": [
-        "799"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": 796
-      }
-    },
-    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -1425,25 +1383,6 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "799",
-      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
-      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "797"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "715, 796, 797"
       }
     },
     {

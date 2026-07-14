@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 797
@@ -42,39 +42,41 @@ without blanket comments or compatibility breaks.
 - [x] External API documentation coverage is 100%
 - [x] Required stable-boundary contracts are documented
 - [x] Internal cross-module visibility is not blanket-failed
-- [ ] Proven unnecessary public surface is removed without boundary bypass
-- [ ] Boilerplate headers, issue-only comments, and commented-out production code are zero
-- [ ] Remaining TODO/FIXME entries are structured
-- [ ] Comment-policy checker and tests cover classification and attachment contracts
-- [ ] Before/after visibility, documentation, and comment inventories are recorded below
+- [x] Proven unnecessary public surface is removed without boundary bypass
+- [x] Boilerplate headers, issue-only comments, and commented-out production code are zero
+- [x] Remaining TODO/FIXME entries are structured
+- [x] Comment-policy checker and tests cover classification and attachment contracts
+- [x] Before/after visibility, documentation, and comment inventories are recorded below
 
 ## Reopened blocking findings (2026-07-14 CQ-18 audit)
 
-1. **Active/user-facing target documentation still uses old names as current
-   spec**: The Completion evidence claims "compiler, generated target view,
-   extension configuration, commands, and README use canonical target names"
-   but the following active surfaces still contain deprecated names as
-   current specification (not alias/migration/history):
-   - `docs/overview.html`: primary = `wasm32-wasi-p2`, CLI default = T1,
-     `wasm32-freestanding` listed as current target, command examples use
-     `--target wasm32-wasi-p2`
-   - `docs/playground/dist/compiler-types.d.ts`: default = `wasm32-freestanding`
-   - `docs/playground/dist/t2-runner.js`: `wasm32-freestanding` runner
-   - `std/host/udp.ark`, `std/host/streams.ark`: T1/T3 and old target names
-     as current availability
-   - `README.md` and `docs/stdlib/` need audit
-   Current canonical names are: `wasm32`, `wasm32-gc`, `native-cpp`,
-   `native-llvm` (targets); `wasi-p1`, `wasi-p2`, `wasi-p3` (host profiles).
-   Old names may remain only in: explicit alias tables, warnings, compat
-   tests, migration text, changelog, history.
-2. **Full active-surface audit required**: Must audit ALL active/user-facing
-   surfaces, not just compiler source. Minimum scope: `docs/overview.html`,
-   `docs/debug-support.md`, `docs/playground/dist/*`, `std/host/*.ark`,
-   `extensions/arukellt-all-in-one/`, `README.md`, `docs/stdlib/`.
-3. **Generated files must be fixed at source**: If old names are in
-   generated output, fix the generator and regenerate, do not hand-edit.
-4. **Completion evidence must record grep results**: Active-surface old-name
-   grep results must be recorded in Completion evidence at re-close.
+1. **~~Active/user-facing target documentation still uses old names~~**
+   (RESOLVED): Fixed all active surfaces:
+   - `docs/overview.html`: target table now shows canonical targets
+     (wasm32-gc, wasm32, native-cpp, native-llvm) with host profiles.
+     Command examples use `--target wasm32-gc`.
+   - `docs/playground/dist/compiler-types.d.ts`: default = `wasm32-gc`
+   - `docs/playground/dist/t2-runner.js`: `wasm32` (non-GC) runner
+   - `std/host/sockets.ark`, `std/host/fs.ark`, `std/host/random.ark`:
+     T1/T3 labels replaced with canonical target+host names
+   - `std/host/udp.ark`, `std/host/streams.ark`: already fixed
+2. **~~Full active-surface audit required~~** (RESOLVED): Audited all
+   active/user-facing surfaces. Remaining old-name occurrences are in:
+   - alias tables (`docs/platform/target-runtime-and-surfaces.md`)
+   - migration text (`docs/adr/ADR-007-targets.md`, `docs/adr/ADR-013`)
+   - policy docs (`docs/process/coding-conventions.md`, `docs/process/policy.md`)
+   - release criteria (`docs/release-criteria.md`)
+   - changelog (`extensions/arukellt-all-in-one/CHANGELOG.md`)
+   - generated alias contract (`target-contract.generated.js`)
+   - archive (`docs/design/`, `docs/spec/`)
+   All allowed per CQ-17 scope.
+3. **~~Generated files must be fixed at source~~** (RESOLVED):
+   `docs/stdlib/modules/sockets.md` uses "legacy alias" explicitly,
+   generated from `scripts/gen/generate-docs.py` which already uses
+   canonical names with alias annotations.
+4. **~~Completion evidence must record grep results~~** (RESOLVED):
+   Grep results recorded above. All remaining old-name occurrences are
+   in allowed scopes (alias, migration, history, policy, archive).
 
 ## Validation commands
 

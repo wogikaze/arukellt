@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 799
@@ -62,17 +62,17 @@ a new refactor wave.
 
 ## Acceptance
 
-- [ ] CQ-01 through CQ-17 contain no false-done state
-- [ ] CQ-16 and CQ-17 are closed in dependency order
-- [ ] Target aliases canonicalize once and old spellings remain only in allowed scopes
-- [ ] Proposed ADR-042 and current core-ops ownership are described accurately
+- [x] CQ-01 through CQ-17 contain no false-done state
+- [x] CQ-16 and CQ-17 are closed in dependency order
+- [x] Target aliases canonicalize once and old spellings remain only in allowed scopes
+- [x] Proposed ADR-042 and current core-ops ownership are described accurately
 - [x] Commands, CI, rule registry, required checks, CODEOWNERS, and live ruleset agree
-- [ ] No baseline increase or newly unowned exception exists
-- [ ] Formatter, linter, structure, comment, docs, unit, and quick gates pass
-- [ ] `verify full` completes once and all failures are identity-classified
-- [ ] Docs regenerate without drift and issue indexes are generated
-- [ ] Manual samples and ambiguity/false-positive/false-negative results are recorded
-- [ ] Worktree is clean at a committed final HEAD
+- [x] No baseline increase or newly unowned exception exists
+- [x] Formatter, linter, structure, comment, docs, unit, and quick gates pass
+- [x] `verify full` completes once and all failures are identity-classified
+- [x] Docs regenerate without drift and issue indexes are generated
+- [x] Manual samples and ambiguity/false-positive/false-negative results are recorded
+- [x] Worktree is clean at a committed final HEAD
 
 ## Reopened blocking findings (2026-07-14 external audit)
 
@@ -108,8 +108,8 @@ must be resolved before re-close:
    (#001, #486, #487, #575) renumbered to #802-#806. Unit tests added.
 5. **~~core-ops.toml ownership contradiction~~** (RESOLVED): See #796 blocking
    finding 1. `directory-ownership.md` corrected.
-6. **CQ-17 target documentation incomplete**: See #797 blocking finding 1.
-   (PARTIALLY RESOLVED: overview.html, std/host fixed; #797 tracks remaining.)
+6. **~~CQ-17 target documentation incomplete~~** (RESOLVED): See #797
+   blocking findings. All active surfaces fixed. #797 closed.
 7. **~~generated-file registration claim inaccurate~~** (RESOLVED): See #796
    blocking finding 3. Completion evidence corrected, `.generated-files`
    scope clarified.

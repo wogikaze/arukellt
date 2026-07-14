@@ -48,7 +48,6 @@ graph LR
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
-  I796["796 796 — CQ-16: duplicated knowledge and SSOT consolidation"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
   I807["807 807 — Fixture parity: 367 remaining failures"]
   I809["809 809 — WAT roundtrip failure"]
@@ -72,12 +71,10 @@ graph LR
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
-  I797["797 797 — CQ-17: public API and comment audit"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I729["729 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
-  I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -101,7 +98,6 @@ graph LR
   I724 --> I726
   I791 --> I800
   I791 --> I814
-  I796 --> I797
   I682 --> I683
   I691 --> I709
   I695 --> I709
@@ -110,7 +106,6 @@ graph LR
   I724 --> I729
   I727 --> I729
   I726 --> I730
-  I797 --> I799
   I691 --> I710
   I697 --> I710
   I709 --> I710
@@ -169,7 +164,6 @@ graph LR
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 800, 814
-- **796** depends on: 795; blocks: 797
 - **798** depends on: none; blocks: none
 - **807** depends on: 287, framework); blocks: none
 - **809** depends on: none; blocks: none
@@ -193,12 +187,10 @@ graph LR
 - **726** depends on: 724; blocks: 730
 - **800** depends on: 791; blocks: none
 - **814** depends on: 791; blocks: none
-- **797** depends on: 796; blocks: 799
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **729** depends on: 724, 727; blocks: none
 - **730** depends on: 726; blocks: none
-- **799** depends on: 797; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713

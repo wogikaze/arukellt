@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 796
@@ -60,7 +60,7 @@ dependency ADR, acceptance, and rollback boundary in #798.
 - [x] Compatibility aliases are separated from canonical representation
 - [x] Derived views have deterministic generation and drift checks
 - [x] Existing registries are reused and local knowledge remains local
-- [ ] Code, tests, docs, and generated views are synchronized
+- [x] Code, tests, docs, and generated views are synchronized
 - [x] Before/after owner inventory is recorded below
 
 ## Reopened blocking findings (2026-07-14 CQ-18 audit)
@@ -69,12 +69,8 @@ dependency ADR, acceptance, and rollback boundary in #798.
    corrected from `product (SSOT input)` to `internal (proposal scaffold)` with
    description noting ADR-042 PROPOSED status, not consumed by compiler, migration
    owner: #798. `current-state.md` and `core-ops-registry.md` were already correct.
-2. **CQ-17 target documentation incomplete**: Active/user-facing surfaces
-   still contain old target names as current spec (see #797 blocking
-   findings). CQ-16 Acceptance "code, tests, docs, and generated views are
-   synchronized" is not met while active docs show deprecated names as
-   canonical. (PARTIALLY RESOLVED: overview.html, std/host fixed; #797
-   tracks remaining surface audit.)
+2. **~~CQ-17 target documentation incomplete~~** (RESOLVED): See #797
+   blocking findings. All active surfaces fixed. #797 closed.
 3. **~~generated-file registration claim inaccurate~~** (RESOLVED): Completion
    evidence corrected to distinguish whole-file generation (registered in
    `.generated-files`) from partial generation (tracked by drift checks).

@@ -112,22 +112,22 @@ Priority modules where in-file tests add the most value:
 
 ## Reopened blocking findings (2026-07-14 CQ-18 audit)
 
-1. **Dummy/probe tests inflating count**: At least 171 `probe_N { assert(N >= 0) }`
-   tests and 4 `sanity { assert(1 == 1) }` tests exist. `std/bytes/mod.ark` has
-   150 probe tests, `src/compiler/main/targets.ark` has 21. These are generated
-   by `scripts/gen/append-issue-715-tests.py` to meet count targets, not to
-   verify contracts, boundaries, or invariants. This violates the Acceptance
-   intent and AGENTS.md test conventions.
-2. **Trivial asserts**: `assert(0 == 0)`, `assert(false == false)`, `assert(true)`
-   patterns exist in generated tests. These provide zero verification value.
-3. **Removal required**: All probe_N, sanity, and trivial-assert tests must be
-   removed. `append-issue-715-tests.py` bulk-fill logic must be removed.
-4. **Recount required**: After removal, coverage must be remeasured counting
-   only tests that verify function contracts, boundary values, or invariants.
-   If count falls below Acceptance threshold, issue stays open.
-5. **Lint prevention**: A quality checker or lint rule must detect and reject
-   future `probe_N`, `sanity` with trivial asserts, `assert(literal >= 0)`,
-   `assert(x == x)` patterns. False-positive unit tests required.
+1. **~~Dummy/probe tests inflating count~~** (RESOLVED): All 171 `probe_N`
+   tests and 4 `sanity { assert(1 == 1) }` tests removed. `std/bytes/mod.ark`
+   150 probe tests and `src/compiler/main/targets.ark` 21 probe tests
+   deleted. `append-issue-715-tests.py` bulk-fill logic removed.
+2. **~~Trivial asserts~~** (RESOLVED): `assert(0 == 0)`, `assert(false == false)`,
+   `assert(true)` patterns removed from `std/core/default.ark`.
+3. **~~Removal required~~** (RESOLVED): All probe_N, sanity, and trivial-assert
+   tests removed. `append-issue-715-tests.py` bulk-fill logic removed.
+4. **Recount required**: After removal, coverage remeasured:
+   - std: 29 meaningful tests (target: 180) — BELOW THRESHOLD
+   - compiler: 71 meaningful tests (target: 60) — MET
+   Issue stays open until std reaches 180 meaningful tests.
+5. **~~Lint prevention~~** (RESOLVED): `check-trivial-tests.py` added to
+   detect and reject future `probe_N`, `sanity` with trivial asserts,
+   `assert(literal >= 0)`, `assert(x == x)` patterns. 7 unit tests added
+   with false-positive guards.
 
 ## Dependencies
 
