@@ -4,9 +4,10 @@
 This script parses the stdout of `python3 scripts/manager.py verify full` and
 writes a structured JSON receipt with per-check and per-item identity.
 
-The receipt schema separates aggregate checks from individual items:
-- checks: summary-level pass/fail/skip counts per domain, plus identity coverage
-- items: individual fixture/test IDs with result, category, owner_issue
+The receipt schema is version 2: each check is a dict with aggregate counts and
+a nested `items` list.  Identity coverage is recorded per check so consumers
+know whether the `items` list is exhaustive (`full`), partial (`partial`), or
+only an aggregate (`aggregate_only`).
 
 Usage:
     python3 scripts/manager.py verify full 2>&1 | \
@@ -34,8 +35,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
-# Canonical issue owners for each verify domain. The quick_checks harness fails
-# when the T3 background gate fails, so its owner is the same as the T3 gate.
+RESULT_PASS = "pass"
+RESULT_FAIL = "fail"
+RESULT_SKIP = "skip"
+
+# Canonical issue owners for each verify domain.
 OWNER_ISSUES = {
     "size": "422",
     "quick_checks": "808",
@@ -48,26 +52,23 @@ OWNER_ISSUES = {
     "fixpoint": "813",
 }
 
-# How completely this domain emits per-item identity in the log.
-# - full: every aggregate result has a stable item ID in the receipt.
-# - partial: only some items are emitted (domain does not print every identity).
-# - aggregate_only: no per-item identity expected (size, quick, fixpoint).
+# Issue owner for per-item skip identities that belong to the diagnostic/T3
+# compile-skip contract (#815).
+SKIP_OWNER_ISSUE = "815"
+
+# Identity coverage per domain.  `t3_wasm_validate` is upgraded to `full` when
+# pass fixture identities are present in the report.
 IDENTITY_COVERAGE = {
     "size": "aggregate_only",
     "quick_checks": "aggregate_only",
-    "t3_wasm_validate": "full",
-    "fixture_parity": "full",
+    "t3_wasm_validate": "nonpass_full",
+    "fixture_parity": "nonpass_full",
     "wat_roundtrip": "partial",
     "component_interop": "full",
     "cli_parity": "full",
     "diag_parity": "full",
     "fixpoint": "aggregate_only",
 }
-
-# Result of a single aggregate check.
-RESULT_PASS = "pass"
-RESULT_FAIL = "fail"
-RESULT_SKIP = "skip"
 
 
 def _clean(text: str) -> str:
@@ -98,7 +99,6 @@ def _parse_iso_timestamp(value: str | None) -> str | None:
     """Validate an ISO 8601 timestamp. Returns the value or None if invalid."""
     if not value:
         return None
-    # Python 3.11+ supports datetime.datetime.fromisoformat with 'Z'.
     try:
         dt = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
         return dt.isoformat().replace("+00:00", "Z")
@@ -130,10 +130,11 @@ class _Check:
         self.identity_coverage = identity_coverage
         self.command = command
         self.primary_path = primary_path
+        self.evidence: dict[str, str] = {}
         self.items: list[dict] = []
 
     def as_dict(self) -> dict:
-        return {
+        d = {
             "check_id": self.check_id,
             "pass_count": self.pass_count,
             "fail_count": self.fail_count,
@@ -145,6 +146,9 @@ class _Check:
             "primary_path": self.primary_path,
             "items": self.items,
         }
+        if self.evidence:
+            d["evidence"] = self.evidence
+        return d
 
 
 class _Section:
@@ -160,7 +164,7 @@ class ReceiptWriter:
     """Parse `verify full` output and emit a domain-aware receipt."""
 
     # Each section is identified by a header line. The end is the first line
-    # matching the end pattern or the start of the next section.
+    # matching the next section start or the end of the log.
     SECTION_STARTERS = [
         ("size", re.compile(r"^\[size\] Checking hello\.wasm binary size gate")),
         ("quick", re.compile(r"^\[bg\] Running background checks in parallel")),
@@ -168,11 +172,11 @@ class ReceiptWriter:
         ("wat", re.compile(r"^\[wat\] Running WAT roundtrip")),
         ("component", re.compile(r"^\[component\] Component interop smoke test")),
         ("cli_parity", re.compile(r"^\[cli-parity\] Checking selfhost CLI surface")),
-        ("diag_parity", re.compile(r"^\[diag-parity\] Checking .* diag: fixtures" )),
+        ("diag_parity", re.compile(r"^\[diag-parity\] Checking .* diag: fixtures")),
         ("fixpoint", re.compile(r"^\[selfhost-fixpoint\] Fixpoint gate \(full verify\)")),
     ]
 
-    # Regexes for aggregate summaries.
+    # Aggregate summary patterns.
     T3_SUMMARY_RE = re.compile(
         r"^T3 WASM validation:\s+(\d+) pass,\s+(\d+) validate-fail,\s+(\d+) compile-fail,\s+(\d+) skip"
     )
@@ -188,31 +192,51 @@ class ReceiptWriter:
     WAT_SUMMARY_RE = re.compile(
         r"^WAT roundtrip summary:\s+PASS=(\d+)\s+FAIL=(\d+)\s+SKIP=(\d+)"
     )
-    TOTAL_CHECKS_RE = re.compile(
-        r"^Total checks:\s+(\d+)"
-    )
+    TOTAL_CHECKS_RE = re.compile(r"^Total checks:\s+(\d+)")
     PASSED_RE = re.compile(r"^Passed:\s+(\d+)")
     SKIPPED_RE = re.compile(r"^Skipped:\s+(\d+)")
     FAILED_RE = re.compile(r"^Failed:\s+(\d+)")
 
-    # Item patterns.
-    FAIL_ITEM_RE = re.compile(r"^\s*FAIL:\s+([^()]+?)(?:\s+(?:\(|$))")
+    # Per-item identity patterns.
+    PASS_ITEM_RE = re.compile(r"^\s*pass:\s+([^()]+?)(?:\s+\(|$)")
+    FAIL_ITEM_RE = re.compile(r"^\s*FAIL:\s+([^()]+?)(?:\s+\(|$)")
     SKIP_ITEM_RE = re.compile(r"^\s*skip:\s+(\S+)")
-    WAT_FAIL_RE = re.compile(r"^\s*FAIL:\s+(.+?)\s+\([^)]+\)\s+\(")
-    WAT_FAIL_LABEL_RE = re.compile(r"^\s*FAIL:\s+(.+?)$")
-    COMPONENT_FAIL_RE = re.compile(r"✗\s+component\s+interop:\s+(\S+)")
-    SIZE_PASS_RE = re.compile(r"✓\s+hello\.wasm\s+binary\s+size:\s+(\d+)\s+bytes")
-    SIZE_FAIL_RE = re.compile(r"✗\s+hello\.wasm\s+binary\s+size:")
+    COMPONENT_PASS_RE = re.compile(r"\u2713\s+component\s+interop:\s+(\S+)")
+    COMPONENT_FAIL_RE = re.compile(r"\u2717\s+component\s+interop:\s+(\S+)")
+    SIZE_PASS_RE = re.compile(r"\u2713\s+hello\.wasm\s+binary\s+size:\s+(\d+)\s+bytes")
+    SIZE_FAIL_RE = re.compile(r"\u2717\s+hello\.wasm\s+binary\s+size:")
     FIXPOINT_S2_RE = re.compile(r"sha256\(s2\)\s*=\s*([0-9a-f]+)")
     FIXPOINT_S3_RE = re.compile(r"sha256\(s3\)\s*=\s*([0-9a-f]+)")
 
-    def __init__(self, log_text: str, started_at: str | None, exit_status: int):
+    def __init__(
+        self,
+        log_text: str,
+        *,
+        started_at: str | None = None,
+        exit_status: int = 0,
+        verified_commit: str | None = None,
+        t3_report: dict | None = None,
+    ):
         self.lines = [self._clean(l) for l in log_text.splitlines()]
         self.started_at = started_at
         self.exit_status = exit_status
+        self.verified_commit = verified_commit
+        self.t3_report = self._resolve_t3_report(t3_report)
         self.sections = self._detect_sections()
         self.checks: dict[str, _Check] = {}
         self.incidents: list[str] = []
+
+    def _resolve_t3_report(self, t3_report: dict | None) -> dict | None:
+        """Use the provided report, or load it from the default build path."""
+        if t3_report is not None:
+            return t3_report
+        report_path = REPO_ROOT / ".build" / "t3-wasm-validate-report.json"
+        if report_path.is_file():
+            try:
+                return json.loads(report_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                return None
+        return None
 
     def _clean(self, line: str) -> str:
         return ANSI_RE.sub("", line).rstrip()
@@ -226,7 +250,6 @@ class ReceiptWriter:
                 if pattern.search(line):
                     sections.append(_Section(check_id, i))
                     break
-        # Sort and resolve end indices to the next section start.
         sections.sort(key=lambda s: s.start_idx)
         for idx, sec in enumerate(sections):
             if idx + 1 < len(sections):
@@ -257,16 +280,17 @@ class ReceiptWriter:
         result: str,
         category: str,
         detail: str | None = None,
+        owner_issue: str | None = None,
         baseline_status: str = "existing",
         new_or_existing: str = "existing",
     ) -> None:
         check = self._make_check(check_id)
         item = {
             "check_id": check_id,
-            "item_id": item_id,
+            "item_id": item_id.strip(),
             "result": result,
             "category": category,
-            "owner_issue": check.owner_issue,
+            "owner_issue": owner_issue or check.owner_issue,
             "baseline_status": baseline_status,
             "new_or_existing": new_or_existing,
         }
@@ -281,142 +305,191 @@ class ReceiptWriter:
         check.primary_path = "src/compiler/emitter.ark"
         section = self._section_lines("size")
         for line in section:
-            m = self.SIZE_PASS_RE.search(line)
-            if m:
+            if self.SIZE_PASS_RE.search(line):
                 check.pass_count = 1
                 check.result = RESULT_PASS
-                check.items.append({
-                    "check_id": "size",
-                    "item_id": "hello.wasm binary size",
-                    "result": RESULT_PASS,
-                    "category": "size",
-                    "owner_issue": check.owner_issue,
-                    "baseline_status": "existing",
-                    "new_or_existing": "existing",
-                    "detail": f"{m.group(1)} bytes <= 5120",
-                })
                 return
             if self.SIZE_FAIL_RE.search(line):
-                check.pass_count = 0
                 check.fail_count = 1
                 check.result = RESULT_FAIL
-                check.items.append({
-                    "check_id": "size",
-                    "item_id": "hello.wasm binary size",
-                    "result": RESULT_FAIL,
-                    "category": "size",
-                    "owner_issue": check.owner_issue,
-                    "baseline_status": "existing",
-                    "new_or_existing": "existing",
-                })
                 return
-        # Section not found or not run; mark as skip.
         check.skip_count = 1
         check.result = RESULT_SKIP
 
     def _parse_quick(self) -> None:
         section = self._section_lines("quick")
-        t3_pass = t3_fail = 0
-        t3_aggregate_seen = False
-        quick_pass = quick_fail = quick_skip = 0
-        for line in section:
-            m = self.T3_SUMMARY_RE.search(line)
-            if m:
-                t3_pass = int(m.group(1))
-                t3_fail = int(m.group(2))
-                t3_aggregate_seen = True
+        check = self._make_check("quick_checks")
+        check.command = "python3 scripts/manager.py verify quick"
+        check.primary_path = "scripts/manager.py"
+
         for idx, line in enumerate(section):
-            m = self.TOTAL_CHECKS_RE.search(line)
-            if m:
-                quick_pass = quick_fail = quick_skip = 0
-                total = int(m.group(1))
-                # The next three lines are Passed, Skipped, Failed.
+            if self.TOTAL_CHECKS_RE.search(line):
                 for nxt in section[idx + 1 : idx + 5]:
                     pm = self.PASSED_RE.search(nxt)
                     if pm:
-                        quick_pass = int(pm.group(1))
+                        check.pass_count = int(pm.group(1))
                     sm = self.SKIPPED_RE.search(nxt)
                     if sm:
-                        quick_skip = int(sm.group(1))
+                        check.skip_count = int(sm.group(1))
                     fm = self.FAILED_RE.search(nxt)
                     if fm:
-                        quick_fail = int(fm.group(1))
-        quick_check = self._make_check("quick_checks")
-        quick_check.command = "python3 scripts/manager.py verify quick"
-        quick_check.primary_path = "scripts/manager.py"
-        quick_check.pass_count = quick_pass
-        quick_check.fail_count = quick_fail
-        quick_check.skip_count = quick_skip
-        quick_check.result = RESULT_FAIL if quick_fail else RESULT_PASS
+                        check.fail_count = int(fm.group(1))
+                break
 
-        # T3 aggregate domain is populated from the report file, but we can also
-        # derive it from the log summary if the report is missing.
-        if t3_aggregate_seen:
-            self._parse_t3_report(t3_pass, t3_fail)
+        if check.fail_count:
+            check.result = RESULT_FAIL
         else:
-            self._parse_t3_report(0, 0)
+            check.result = RESULT_PASS if check.pass_count else RESULT_SKIP
 
-    def _parse_t3_report(self, pass_count: int, fail_count: int) -> None:
+    def _parse_t3(self) -> None:
         check = self._make_check("t3_wasm_validate")
         check.command = "python3 scripts/check/check-t3-wasm-validate.py"
         check.primary_path = "scripts/check/check-t3-wasm-validate.py"
-        report_path = REPO_ROOT / ".build" / "t3-wasm-validate-report.json"
-        if report_path.is_file():
-            try:
-                report = json.loads(report_path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError):
-                report = None
+        if self.t3_report is not None:
+            self._parse_t3_from_report(check)
         else:
-            report = None
+            self._parse_t3_from_log(check)
 
-        if report is not None:
-            check.pass_count = report.get("pass_count", pass_count)
-            check.fail_count = report.get("fail_validate", fail_count)
-            check.skip_count = report.get("skip_count", 0)
-            for item in report.get("items", []):
-                status = item.get("status", "")
-                fixture = item.get("fixture", "")
-                detail = item.get("detail", "")
-                if status == "skip":
-                    result = RESULT_SKIP
-                    category = "t3-compile-skip"
-                elif status == "compile-fail":
-                    result = RESULT_FAIL
-                    category = "t3-compile-failure"
-                elif status == "timeout":
-                    result = RESULT_SKIP
-                    category = "t3-compile-timeout"
-                else:
-                    result = RESULT_FAIL
-                    category = "t3-wasm-validate-failure"
+    def _parse_t3_from_report(self, check: _Check) -> None:
+        report = self.t3_report or {}
+        pass_count = int(report.get("pass_count", 0))
+        fail_validate = int(report.get("fail_validate", 0))
+        fail_compile = int(report.get("fail_compile", 0))
+        skip_count = int(report.get("skip_count", 0))
+
+        for item in report.get("items", []):
+            if not isinstance(item, dict):
+                continue
+            status = item.get("status", "")
+            fixture = item.get("fixture", "")
+            detail = item.get("detail", "")
+            if status == "pass":
                 self._add_item(
                     "t3_wasm_validate",
                     fixture,
-                    result,
-                    category,
+                    RESULT_PASS,
+                    "t3-pass",
                     detail,
-                    baseline_status="existing",
-                    new_or_existing="existing",
                 )
-        else:
-            # Fallback: log-based parsing only (truncated by manager.py).
-            check.pass_count = pass_count
-            check.fail_count = fail_count
-            check.skip_count = 0
-            section = self._section_lines("quick")
-            for line in section:
-                if line.startswith("VALIDATE FAIL:"):
-                    fixture = line.split("—", 1)[0].replace("VALIDATE FAIL:", "").strip()
-                    detail = line.split("—", 1)[1].strip() if "—" in line else ""
-                    self._add_item("t3_wasm_validate", fixture, RESULT_FAIL, "t3-wasm-validate-failure", detail)
-                elif line.startswith("COMPILE FAIL:"):
-                    fixture = line.replace("COMPILE FAIL:", "").strip()
-                    self._add_item("t3_wasm_validate", fixture, RESULT_FAIL, "t3-compile-failure", "compile failed")
-                elif line.startswith("COMPILE TIMEOUT:"):
-                    fixture = line.replace("COMPILE TIMEOUT:", "").strip()
-                    self._add_item("t3_wasm_validate", fixture, RESULT_SKIP, "t3-compile-timeout", "compile timeout")
+            elif status == "validate-fail":
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_FAIL,
+                    "t3-validate-failure",
+                    detail,
+                )
+            elif status == "compile-fail":
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_FAIL,
+                    "t3-compile-failure",
+                    detail,
+                )
+            elif status == "timeout":
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_SKIP,
+                    "t3-compile-timeout",
+                    detail,
+                    owner_issue=OWNER_ISSUES["t3_wasm_validate"],
+                )
+            elif status == "skip":
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_SKIP,
+                    "t3-compile-skip",
+                    detail,
+                    owner_issue=SKIP_OWNER_ISSUE,
+                )
 
+        pass_items = sum(1 for i in check.items if i["result"] == RESULT_PASS)
+        fail_items = sum(1 for i in check.items if i["result"] == RESULT_FAIL)
+        skip_items = sum(1 for i in check.items if i["result"] == RESULT_SKIP)
+
+        check.pass_count = pass_count
+        check.fail_count = fail_validate + fail_compile
+        check.skip_count = skip_count
         check.result = RESULT_FAIL if check.fail_count else RESULT_PASS
+
+        if pass_items:
+            check.identity_coverage = "full"
+        elif fail_items or skip_items:
+            check.identity_coverage = "nonpass_full"
+        else:
+            check.identity_coverage = "partial"
+
+        if pass_items != pass_count:
+            self.incidents.append(
+                f"t3_wasm_validate: pass identity count ({pass_items}) != "
+                f"pass_count ({pass_count})"
+            )
+        if fail_items != fail_validate + fail_compile:
+            self.incidents.append(
+                f"t3_wasm_validate: fail identity count ({fail_items}) != "
+                f"fail_validate + fail_compile ({fail_validate + fail_compile})"
+            )
+        if skip_items != skip_count:
+            self.incidents.append(
+                f"t3_wasm_validate: skip identity count ({skip_items}) != "
+                f"skip_count ({skip_count})"
+            )
+
+    def _parse_t3_from_log(self, check: _Check) -> None:
+        section = self._section_lines("quick")
+        pass_count = fail_validate = fail_compile = skip_count = 0
+        for line in section:
+            m = self.T3_SUMMARY_RE.search(line)
+            if m:
+                pass_count = int(m.group(1))
+                fail_validate = int(m.group(2))
+                fail_compile = int(m.group(3))
+                skip_count = int(m.group(4))
+                break
+
+        check.pass_count = pass_count
+        check.fail_count = fail_validate + fail_compile
+        check.skip_count = skip_count
+        check.result = RESULT_FAIL if check.fail_count else RESULT_PASS
+
+        for line in section:
+            if line.startswith("VALIDATE FAIL:"):
+                fixture = line.split("—", 1)[0].replace("VALIDATE FAIL:", "").strip()
+                detail = line.split("—", 1)[1].strip() if "—" in line else ""
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_FAIL,
+                    "t3-validate-failure",
+                    detail,
+                )
+            elif line.startswith("COMPILE FAIL:"):
+                fixture = line.replace("COMPILE FAIL:", "").strip()
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_FAIL,
+                    "t3-compile-failure",
+                    "compile failed",
+                )
+            elif line.startswith("COMPILE TIMEOUT:"):
+                fixture = line.replace("COMPILE TIMEOUT:", "").strip()
+                self._add_item(
+                    "t3_wasm_validate",
+                    fixture,
+                    RESULT_SKIP,
+                    "t3-compile-timeout",
+                    "compile timeout",
+                    owner_issue=OWNER_ISSUES["t3_wasm_validate"],
+                )
+
+        # When the report is unavailable, the log is truncated and we only have
+        # partial identity; leave the aggregate counts from the summary and let
+        # the partial-coverage invariant validate the fail identities.
+        check.identity_coverage = "partial"
 
     def _parse_fixtures(self) -> None:
         section = self._section_lines("fixtures")
@@ -438,16 +511,26 @@ class ReceiptWriter:
                 m = self.FAIL_ITEM_RE.match(line)
                 if m:
                     fixture = m.group(1).strip()
-                    if fixture.endswith(".ark"):
-                        detail = line.split("(", 1)[1].rstrip(")") if "(" in line else ""
-                        self._add_item("fixture_parity", fixture, RESULT_FAIL, "fixture-parity", detail)
+                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else None
+                    self._add_item(
+                        "fixture_parity",
+                        fixture,
+                        RESULT_FAIL,
+                        "fixture-parity",
+                        detail,
+                    )
             elif line.startswith("  skip:"):
                 m = self.SKIP_ITEM_RE.match(line)
                 if m:
                     fixture = m.group(1).strip()
-                    if fixture.endswith(".ark"):
-                        detail = line.split("(", 1)[1].rstrip(")") if "(" in line else ""
-                        self._add_item("fixture_parity", fixture, RESULT_SKIP, "fixture-parity", detail)
+                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else None
+                    self._add_item(
+                        "fixture_parity",
+                        fixture,
+                        RESULT_SKIP,
+                        "fixture-parity",
+                        detail,
+                    )
 
     def _parse_wat(self) -> None:
         section = self._section_lines("wat")
@@ -466,17 +549,17 @@ class ReceiptWriter:
 
         for line in section:
             if line.startswith("  FAIL:"):
-                # WAT failures look like: FAIL: fixture (wasm32) (reason)
-                m = self.WAT_FAIL_RE.match(line)
+                m = self.FAIL_ITEM_RE.match(line)
                 if m:
                     label = m.group(1).strip()
-                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else ""
-                    self._add_item("wat_roundtrip", label, RESULT_FAIL, "wat-roundtrip", detail)
-                else:
-                    m = self.WAT_FAIL_LABEL_RE.match(line)
-                    if m:
-                        label = m.group(1).strip()
-                        self._add_item("wat_roundtrip", label, RESULT_FAIL, "wat-roundtrip")
+                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else None
+                    self._add_item(
+                        "wat_roundtrip",
+                        label,
+                        RESULT_FAIL,
+                        "wat-roundtrip",
+                        detail,
+                    )
 
     def _parse_component(self) -> None:
         section = self._section_lines("component")
@@ -486,17 +569,29 @@ class ReceiptWriter:
 
         pass_count = fail_count = skip_count = 0
         for line in section:
-            if "✓ component interop:" in line:
+            if self.COMPONENT_PASS_RE.search(line):
                 pass_count += 1
-            elif "✗ component interop:" in line:
+                m = self.COMPONENT_PASS_RE.search(line)
+                if m:
+                    self._add_item(
+                        "component_interop",
+                        m.group(1),
+                        RESULT_PASS,
+                        "component-interop",
+                    )
+            elif self.COMPONENT_FAIL_RE.search(line):
                 fail_count += 1
                 m = self.COMPONENT_FAIL_RE.search(line)
                 if m:
-                    fixture = m.group(1)
-                    self._add_item("component_interop", fixture, RESULT_FAIL, "component-interop")
-            elif "⊙ component interop" in line or "skipped" in line.lower():
-                # Any skip line is not emitted per-fixture by the Harness.
-                pass
+                    self._add_item(
+                        "component_interop",
+                        m.group(1),
+                        RESULT_FAIL,
+                        "component-interop",
+                    )
+            elif "\u2299 component interop" in line or "skipped" in line.lower():
+                skip_count += 1
+
         check.pass_count = pass_count
         check.fail_count = fail_count
         check.skip_count = skip_count
@@ -518,12 +613,28 @@ class ReceiptWriter:
                 break
 
         for line in section:
-            if line.startswith("  FAIL:"):
+            if line.startswith("  pass:"):
+                m = self.PASS_ITEM_RE.match(line)
+                if m:
+                    item = m.group(1).strip()
+                    self._add_item(
+                        "cli_parity",
+                        item,
+                        RESULT_PASS,
+                        "cli-parity",
+                    )
+            elif line.startswith("  FAIL:"):
                 m = self.FAIL_ITEM_RE.match(line)
                 if m:
                     item = m.group(1).strip()
-                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else ""
-                    self._add_item("cli_parity", item, RESULT_FAIL, "cli-parity", detail)
+                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else None
+                    self._add_item(
+                        "cli_parity",
+                        item,
+                        RESULT_FAIL,
+                        "cli-parity",
+                        detail,
+                    )
 
     def _parse_diag_parity(self) -> None:
         section = self._section_lines("diag_parity")
@@ -541,26 +652,48 @@ class ReceiptWriter:
                 break
 
         for line in section:
-            if line.startswith("  FAIL:"):
+            if line.startswith("  pass:"):
+                m = self.PASS_ITEM_RE.match(line)
+                if m:
+                    fixture = m.group(1).strip()
+                    self._add_item(
+                        "diag_parity",
+                        fixture,
+                        RESULT_PASS,
+                        "diag-parity",
+                    )
+            elif line.startswith("  FAIL:"):
                 m = self.FAIL_ITEM_RE.match(line)
                 if m:
                     fixture = m.group(1).strip()
-                    if fixture.endswith(".ark"):
-                        detail = line.split("(", 1)[1].rstrip(")") if "(" in line else ""
-                        self._add_item("diag_parity", fixture, RESULT_FAIL, "diag-parity", detail)
+                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else None
+                    self._add_item(
+                        "diag_parity",
+                        fixture,
+                        RESULT_FAIL,
+                        "diag-parity",
+                        detail,
+                    )
             elif line.startswith("  skip:"):
                 m = self.SKIP_ITEM_RE.match(line)
                 if m:
                     fixture = m.group(1).strip()
-                    if fixture.endswith(".ark"):
-                        detail = line.split("(", 1)[1].rstrip(")") if "(" in line else ""
-                        self._add_item("diag_parity", fixture, RESULT_SKIP, "diag-parity", detail)
+                    detail = line.split("(", 1)[1].rstrip(")") if "(" in line else None
+                    self._add_item(
+                        "diag_parity",
+                        fixture,
+                        RESULT_SKIP,
+                        "diag-parity",
+                        detail,
+                        owner_issue=SKIP_OWNER_ISSUE,
+                    )
 
     def _parse_fixpoint(self) -> None:
         section = self._section_lines("fixpoint")
         check = self._make_check("fixpoint")
         check.command = "python3 scripts/manager.py selfhost fixpoint"
         check.primary_path = "scripts/run/arukellt-selfhost.sh"
+        check.identity_coverage = "aggregate_only"
 
         s2_hash: str | None = None
         s3_hash: str | None = None
@@ -572,8 +705,13 @@ class ReceiptWriter:
             m = self.FIXPOINT_S3_RE.search(line)
             if m:
                 s3_hash = m.group(1)
-            if "selfhost fixpoint reached" in line or "✓ selfhost fixpoint reached" in line:
+            if "selfhost fixpoint reached" in line or "\u2713 selfhost fixpoint reached" in line:
                 reached = True
+
+        if s2_hash:
+            check.evidence["s2_hash"] = s2_hash
+        if s3_hash:
+            check.evidence["s3_hash"] = s3_hash
 
         if reached:
             check.pass_count = 1
@@ -582,41 +720,63 @@ class ReceiptWriter:
             check.fail_count = 1
             check.result = RESULT_FAIL
 
-        if s2_hash:
-            self._add_item("fixpoint", f"s2:{s2_hash}", check.result, "fixpoint", f"sha256(s2) = {s2_hash}")
-        if s3_hash:
-            self._add_item("fixpoint", f"s3:{s3_hash}", check.result, "fixpoint", f"sha256(s3) = {s3_hash}")
-
     def _ensure_invariants(self) -> None:
         """Verify identity/aggregate invariants and record incidents."""
         for check in self.checks.values():
+            pass_items = sum(1 for i in check.items if i["result"] == RESULT_PASS)
+            fail_items = sum(1 for i in check.items if i["result"] == RESULT_FAIL)
+            skip_items = sum(1 for i in check.items if i["result"] == RESULT_SKIP)
+
             if check.identity_coverage == "full":
-                fail_items = sum(1 for i in check.items if i["result"] == RESULT_FAIL)
-                skip_items = sum(1 for i in check.items if i["result"] == RESULT_SKIP)
+                if pass_items != check.pass_count:
+                    self.incidents.append(
+                        f"{check.check_id}: pass identity count ({pass_items}) != "
+                        f"pass_count ({check.pass_count})"
+                    )
                 if fail_items != check.fail_count:
                     self.incidents.append(
-                        f"{check.check_id}: failure identity count ({fail_items}) != "
-                        f"aggregate fail_count ({check.fail_count})"
+                        f"{check.check_id}: fail identity count ({fail_items}) != "
+                        f"fail_count ({check.fail_count})"
                     )
                 if skip_items != check.skip_count:
                     self.incidents.append(
                         f"{check.check_id}: skip identity count ({skip_items}) != "
-                        f"aggregate skip_count ({check.skip_count})"
+                        f"skip_count ({check.skip_count})"
                     )
-            if check.identity_coverage in ("full", "partial"):
-                # pass + fail + skip identities must not exceed the aggregate total.
-                total_items = len(check.items)
-                total_agg = check.pass_count + check.fail_count + check.skip_count
-                if total_items > total_agg:
+            elif check.identity_coverage == "nonpass_full":
+                if fail_items != check.fail_count:
                     self.incidents.append(
-                        f"{check.check_id}: item identity count ({total_items}) > "
-                        f"aggregate total ({total_agg})"
+                        f"{check.check_id}: fail identity count ({fail_items}) != "
+                        f"fail_count ({check.fail_count})"
+                    )
+                if skip_items != check.skip_count:
+                    self.incidents.append(
+                        f"{check.check_id}: skip identity count ({skip_items}) != "
+                        f"skip_count ({check.skip_count})"
+                    )
+                if pass_items != 0:
+                    self.incidents.append(
+                        f"{check.check_id}: nonpass_full coverage has "
+                        f"{pass_items} pass item(s)"
+                    )
+            elif check.identity_coverage == "partial":
+                if fail_items != check.fail_count:
+                    self.incidents.append(
+                        f"{check.check_id}: fail identity count ({fail_items}) != "
+                        f"fail_count ({check.fail_count})"
+                    )
+            elif check.identity_coverage == "aggregate_only":
+                if check.items:
+                    self.incidents.append(
+                        f"{check.check_id}: aggregate_only check has "
+                        f"{len(check.items)} item(s)"
                     )
 
     def build(self) -> dict:
         """Parse the log and produce the receipt dictionary."""
         self._parse_size()
         self._parse_quick()
+        self._parse_t3()
         self._parse_fixtures()
         self._parse_wat()
         self._parse_component()
@@ -630,8 +790,12 @@ class ReceiptWriter:
         skipped = sum(1 for c in self.checks.values() if c.result == RESULT_SKIP)
 
         total_items = sum(len(c.items) for c in self.checks.values())
-        item_failures = sum(1 for c in self.checks.values() for i in c.items if i["result"] == RESULT_FAIL)
-        item_skips = sum(1 for c in self.checks.values() for i in c.items if i["result"] == RESULT_SKIP)
+        item_failures = sum(
+            1 for c in self.checks.values() for i in c.items if i["result"] == RESULT_FAIL
+        )
+        item_skips = sum(
+            1 for c in self.checks.values() for i in c.items if i["result"] == RESULT_SKIP
+        )
 
         t3 = self.checks.get("t3_wasm_validate")
         t3_pass = t3.pass_count if t3 else 0
@@ -648,7 +812,7 @@ class ReceiptWriter:
             "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "started_at": self.started_at,
             "finished_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "verified_commit": _get_git_commit(),
+            "verified_commit": self.verified_commit or _get_git_commit(),
             "exit_status": self.exit_status,
             "status": RESULT_FAIL if failed or self.exit_status else RESULT_PASS,
             "summary": {
@@ -674,8 +838,51 @@ class ReceiptWriter:
 
 def _normalize_receipt(receipt: dict) -> dict:
     """Sort and normalize the receipt for stable output."""
-    order = ["schema_version", "generated_at", "started_at", "finished_at", "verified_commit", "exit_status", "status", "summary", "checks"]
+    order = [
+        "schema_version",
+        "generated_at",
+        "started_at",
+        "finished_at",
+        "verified_commit",
+        "exit_status",
+        "status",
+        "summary",
+        "checks",
+    ]
     return {k: receipt[k] for k in order if k in receipt}
+
+
+def build_receipt(
+    log_text: str,
+    *,
+    started_at: str | None = None,
+    exit_status: int = 0,
+    verified_commit: str | None = None,
+    t3_report: dict | None = None,
+) -> dict:
+    """Parse `verify full` output and return a schema v2 receipt dict.
+
+    Parameters
+    ----------
+    log_text: captured stdout of `python3 scripts/manager.py verify full`.
+    started_at: optional ISO 8601 timestamp when the verify run started.
+    exit_status: shell exit code of the verify command.
+    verified_commit: commit being verified; falls back to current HEAD.
+    t3_report: optional dict from `check-t3-wasm-validate.py`.  If omitted and
+        `.build/t3-wasm-validate-report.json` exists, it is loaded.
+    """
+    parsed_started_at = _parse_iso_timestamp(started_at)
+    if not parsed_started_at:
+        parsed_started_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    writer = ReceiptWriter(
+        log_text,
+        started_at=parsed_started_at,
+        exit_status=exit_status,
+        verified_commit=verified_commit,
+        t3_report=t3_report,
+    )
+    return writer.build()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -683,7 +890,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--input", "-i", default="-", help="Input log file (default: stdin)")
     parser.add_argument("--output", "-o", required=True, help="Output JSON receipt path")
     parser.add_argument("--started-at", help="ISO 8601 timestamp when verify full started")
-    parser.add_argument("--exit-status", type=int, default=0, help="Shell exit status of the verify command")
+    parser.add_argument(
+        "--exit-status", type=int, default=0, help="Shell exit status of the verify command"
+    )
+    parser.add_argument(
+        "--verified-commit", help="Commit hash being verified (defaults to current HEAD)"
+    )
     args = parser.parse_args(argv)
 
     if args.input == "-":
@@ -691,26 +903,31 @@ def main(argv: list[str] | None = None) -> int:
     else:
         log_text = Path(args.input).read_text(encoding="utf-8")
 
-    started_at = _parse_iso_timestamp(args.started_at)
-    if not started_at:
-        started_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
-
-    writer = ReceiptWriter(log_text, started_at, args.exit_status)
-    receipt = writer.build()
+    receipt = build_receipt(
+        log_text,
+        started_at=args.started_at,
+        exit_status=args.exit_status,
+        verified_commit=args.verified_commit,
+    )
     receipt = _normalize_receipt(receipt)
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    output_path.write_text(
+        json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
-    if writer.incidents:
-        print(f"verify-full receipt written with {len(writer.incidents)} incident(s):", file=sys.stderr)
-        for incident in writer.incidents:
+    if receipt["summary"]["incidents"]:
+        print(
+            f"verify-full receipt written with {len(receipt['summary']['incidents'])} incident(s):",
+            file=sys.stderr,
+        )
+        for incident in receipt["summary"]["incidents"]:
             print(f"  - {incident}", file=sys.stderr)
     else:
         print(f"verify-full receipt written to {output_path}", file=sys.stderr)
 
-    return 0 if not writer.incidents else 1
+    return 0 if not receipt["summary"]["incidents"] else 1
 
 
 if __name__ == "__main__":
