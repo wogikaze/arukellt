@@ -6287,11 +6287,15 @@ def cmd_verify_wat(args: argparse.Namespace) -> int:
 
     print(f"\n{YELLOW}[wat] Running WAT roundtrip verification...{NC}")
 
-    rc, _, _ = _run(
+    rc, out, err = _run(
         ["bash", "scripts/run/wat-roundtrip.sh"],
         cwd=root,
         dry_run=dry_run,
     )
+    if out:
+        print(out, end="")
+    if err:
+        print(err, end="", file=sys.stderr)
     if rc == 0:
         h.check_pass("WAT roundtrip (wasm2wat \u21c4 wat2wasm)")
     else:
@@ -6393,7 +6397,7 @@ def cmd_verify_selfhost_parity(args: argparse.Namespace) -> int:
             command="python3 scripts/manager.py selfhost parity --mode --cli",
             primary_path="tests/snapshots/selfhost/",
         )
-        for line in out_cli.splitlines()[-30:]:
+        for line in out_cli.splitlines():
             print(line)
 
     rc_diag, out_diag = run_diag_parity(root, dry_run)
@@ -6406,7 +6410,7 @@ def cmd_verify_selfhost_parity(args: argparse.Namespace) -> int:
             command="python3 scripts/manager.py selfhost diag-parity",
             primary_path="tests/fixtures/",
         )
-        for line in out_diag.splitlines()[-30:]:
+        for line in out_diag.splitlines():
             print(line)
 
     total, passed, skipped, failed = h.summary()

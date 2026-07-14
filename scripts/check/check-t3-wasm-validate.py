@@ -17,9 +17,11 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -302,6 +304,59 @@ def _cache_invalidate_all() -> None:
         shutil.rmtree(str(T3_CACHE_DIR), ignore_errors=True)
 
 
+REPORT_PATH = REPO_ROOT / ".build" / "t3-wasm-validate-report.json"
+
+
+def _write_report(
+    pass_count: int,
+    fail_validate: int,
+    fail_compile: int,
+    skip_count: int,
+    details: list[str],
+    skipped: list[str],
+) -> None:
+    """Write a machine-readable report for the receipt writer.
+
+    The report contains per-fixture identity and status so the verify-full
+    receipt can include all 213 T3 failures and 23 skips even though the
+    human-readable stdout is truncated to the last 50 details.
+    """
+    items = []
+    for line in details:
+        # Lines are formatted by _process_fixture_worker as:
+        #   VALIDATE FAIL: <fixture> — <msg>
+        #   COMPILE FAIL: <fixture>
+        #   COMPILE TIMEOUT: <fixture>
+        m = re.match(r"^\s*(VALIDATE FAIL|COMPILE FAIL|COMPILE TIMEOUT):\s*(\S+)(?:\s*—\s*(.*))?", line)
+        if not m:
+            continue
+        kind = m.group(1)
+        fixture = m.group(2)
+        msg = (m.group(3) or "").strip()
+        if kind == "COMPILE TIMEOUT":
+            items.append({"fixture": fixture, "status": "timeout", "detail": "compile timeout"})
+        elif kind == "COMPILE FAIL":
+            items.append({"fixture": fixture, "status": "compile-fail", "detail": "compile failed"})
+        else:
+            items.append({"fixture": fixture, "status": "validate-fail", "detail": msg})
+    for fixture in skipped:
+        items.append({"fixture": fixture, "status": "skip", "detail": "compile-time skip"})
+    report = {
+        "schema_version": 1,
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "pass_count": pass_count,
+        "fail_validate": fail_validate,
+        "fail_compile": fail_compile,
+        "skip_count": skip_count,
+        "items": items,
+    }
+    try:
+        REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        REPORT_PATH.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -368,17 +423,20 @@ def main() -> int:
     skip_count = 0
     cache_hits = 0
     fail_details: list[str] = []
+    skipped_fixtures: list[str] = []
 
     # Phase 1: Check cache for all fixtures
     uncached: list[tuple[str, str]] = []  # (fixture, key)
     for fixture in fixtures:
         if fixture in T3_COMPILE_SKIP:
             skip_count += 1
+            skipped_fixtures.append(fixture)
             continue
 
         src_abs = REPO_ROOT / "tests" / "fixtures" / fixture
         if not src_abs.is_file():
             skip_count += 1
+            skipped_fixtures.append(fixture)
             continue
 
         if use_cache:
@@ -451,6 +509,15 @@ def main() -> int:
             print(line)
         if len(fail_details) > 50:
             print(f"  ... and {len(fail_details) - 50} more")
+
+    _write_report(
+        pass_count=pass_count,
+        fail_validate=fail_validate,
+        fail_compile=fail_compile,
+        skip_count=skip_count,
+        details=fail_details,
+        skipped=skipped_fixtures,
+    )
 
     if fail_validate > 0 or fail_compile > 0:
         # Repeat the summary line after details so failure tail output from

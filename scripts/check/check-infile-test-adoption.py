@@ -8,6 +8,9 @@ Reports test adoption broken down by:
 - Phase 1 target modules (std/core, std/collections, std/text, std/bytes)
 - Phase 2 target modules (lexer, parser, resolver, typechecker, mir, diagnostics)
 - Out-of-scope modules (host, component, lsp, dap, wasm emitter body, simd)
+
+The scanner ignores line comments, block comments, and string literals, so
+commented-out examples or prose cannot inflate test counts.
 """
 from __future__ import annotations
 
@@ -62,6 +65,166 @@ PROBE_NAME_RE = re.compile(r'test\s+"probe_\d+"')
 SANITY_NAME_RE = re.compile(r'test\s+"sanity"')
 
 
+def _strip_comments_and_strings(text: str) -> str:
+    """Return text with line comments, block comments, and string literals
+    replaced by spaces. This preserves character positions and line numbers."""
+    out = []
+    i = 0
+    n = len(text)
+    in_line_comment = False
+    in_block_comment = False
+    in_string = False
+    while i < n:
+        ch = text[i]
+        prev = text[i - 1] if i > 0 else ""
+
+        if in_line_comment:
+            if ch == "\n":
+                out.append(ch)
+                in_line_comment = False
+            else:
+                out.append(" ")
+            i += 1
+            continue
+
+        if in_block_comment:
+            if ch == "*" and i + 1 < n and text[i + 1] == "/":
+                out.append("  ")
+                i += 2
+                in_block_comment = False
+                continue
+            if ch == "\n":
+                out.append(ch)
+            else:
+                out.append(" ")
+            i += 1
+            continue
+
+        if in_string:
+            if ch == '"' and prev != "\\":
+                out.append(ch)
+                in_string = False
+            elif ch == "\n":
+                out.append(ch)
+            else:
+                out.append(" ")
+            i += 1
+            continue
+
+        if ch == '"':
+            out.append(ch)
+            in_string = True
+            i += 1
+            continue
+
+        if ch == "/" and i + 1 < n:
+            if text[i + 1] == "/":
+                out.append("  ")
+                i += 2
+                in_line_comment = True
+                continue
+            if text[i + 1] == "*":
+                out.append("  ")
+                i += 2
+                in_block_comment = True
+                continue
+
+        out.append(ch)
+        i += 1
+
+    return "".join(out)
+
+
+def _read_identifier(text: str, i: int) -> tuple[str, int]:
+    """Read an alphanumeric/underscore identifier starting at i."""
+    n = len(text)
+    start = i
+    while i < n and (text[i].isalnum() or text[i] == "_"):
+        i += 1
+    return text[start:i], i
+
+
+def _skip_whitespace(text: str, i: int) -> int:
+    n = len(text)
+    while i < n and text[i].isspace():
+        i += 1
+    return i
+
+
+def _read_string_literal(text: str, i: int) -> tuple[str, int]:
+    """Read a double-quoted string literal starting at i. Returns the contents
+    (without quotes) and the index after the closing quote."""
+    if i >= len(text) or text[i] != '"':
+        return "", i
+    i += 1
+    n = len(text)
+    start = i
+    while i < n:
+        ch = text[i]
+        if ch == "\\" and i + 1 < n:
+            i += 2
+            continue
+        if ch == '"':
+            return text[start:i], i + 1
+        i += 1
+    return text[start:], i
+
+
+def _extract_test_blocks(text: str) -> list[tuple[str, bool, str, int]]:
+    """Extract test mod declarations and test cases from a source file.
+
+    Returns a list of (name, is_mod, body_text, start_line). The scanner skips
+    line comments, block comments, and string literals, so only actual test
+    declarations are counted.
+    """
+    blocks: list[tuple[str, bool, str, int]] = []
+    code = _strip_comments_and_strings(text)
+    n = len(code)
+    i = 0
+    line_no = 1
+    while i < n:
+        ch = code[i]
+        if ch == "\n":
+            line_no += 1
+        # Detect the keyword `test` as a bare word.
+        if ch.isalpha() or ch == "_":
+            ident, end = _read_identifier(code, i)
+            if ident == "test":
+                j = _skip_whitespace(code, end)
+                is_mod = False
+                if j < n and (code[j].isalpha() or code[j] == "_"):
+                    next_ident, after = _read_identifier(code, j)
+                    if next_ident == "mod":
+                        is_mod = True
+                        j = _skip_whitespace(code, after)
+                if j < n and code[j] == '"':
+                    name, after_name = _read_string_literal(code, j)
+                    j = _skip_whitespace(code, after_name)
+                    if j < n and code[j] == "{":
+                        # Find the matching closing brace in the de-commented
+                        # code. Strings are already replaced, so braces inside
+                        # original strings are harmless here.
+                        brace_depth = 1
+                        k = j + 1
+                        while k < n:
+                            c = code[k]
+                            if c == "{":
+                                brace_depth += 1
+                            elif c == "}":
+                                brace_depth -= 1
+                                if brace_depth == 0:
+                                    break
+                            k += 1
+                        body = code[i : k + 1]
+                        blocks.append((name, is_mod, body, line_no))
+                        i = k + 1
+                        continue
+            i = end
+            continue
+        i += 1
+    return blocks
+
+
 def is_trivial_assert(line: str) -> bool:
     for pattern in TRIVIAL_ASSERT_RES:
         if pattern.search(line):
@@ -75,7 +238,6 @@ def is_trivial_test(name: str, body: str) -> bool:
     """Check if a test case is trivial (probe_N, sanity with trivial asserts, or only trivial asserts)."""
     if PROBE_NAME_RE.search(f'test "{name}"'):
         return True
-    # Check if all asserts in body are trivial
     assert_lines = [l.strip() for l in body.splitlines() if "assert(" in l]
     if not assert_lines:
         return False
@@ -106,39 +268,13 @@ def count_tests_in_dir(root_rel: str) -> tuple[int, int, int]:
             except Exception:
                 continue
 
-            # Count test mod declarations
-            test_mod_count += len(re.findall(r'^\s*test\s+mod\s+"', text, re.M))
-
-            # Count test cases (test "name" { ... }) — exclude test mod
-            test_case_matches = re.findall(r'^\s*test\s+"([^"]+)"\s*\{', text, re.M)
-            test_case_count += len(test_case_matches)
-
-            # Count meaningful test cases (exclude trivial)
-            # Extract test blocks
-            lines = text.splitlines()
-            i = 0
-            while i < len(lines):
-                line = lines[i]
-                m = re.search(r'test\s+"([^"]+)"\s*\{', line)
-                if m and "test mod" not in line:
-                    test_name = m.group(1)
-                    # Find closing brace
-                    body_lines = []
-                    brace_depth = line.count("{") - line.count("}")
-                    j = i
-                    while j < len(lines):
-                        if j > i:
-                            brace_depth += lines[j].count("{") - lines[j].count("}")
-                        body_lines.append(lines[j])
-                        if brace_depth <= 0:
-                            break
-                        j += 1
-                    body_text = "\n".join(body_lines)
-                    if not is_trivial_test(test_name, body_text):
-                        meaningful_count += 1
-                    i = j + 1
+            for test_name, is_mod, body, _ in _extract_test_blocks(text):
+                if is_mod:
+                    test_mod_count += 1
                 else:
-                    i += 1
+                    test_case_count += 1
+                    if not is_trivial_test(test_name, body):
+                        meaningful_count += 1
 
     return test_mod_count, test_case_count, meaningful_count
 
@@ -147,12 +283,17 @@ def main() -> int:
     print("in-file test adoption (advisory, #715)")
     print()
 
+    invariant_failed = False
+
     # Phase 1: stdlib
     print("Phase 1: stdlib pure functions (target: 180 meaningful tests)")
     phase1_meaningful_total = 0
     for dir_rel, _ in sorted(PHASE1_DIRS.items()):
         mods, cases, meaningful = count_tests_in_dir(dir_rel)
         phase1_meaningful_total += meaningful
+        if meaningful > cases:
+            invariant_failed = True
+            print(f"  ERROR {dir_rel}: meaningful_count ({meaningful}) > test_case_count ({cases})")
         print(f"  {dir_rel}: {mods} test mods, {cases} test cases, {meaningful} meaningful")
     p1_status = "ok" if phase1_meaningful_total >= PHASE1_TOTAL_TARGET else "below-target"
     print(f"  Phase 1 total: {phase1_meaningful_total}/{PHASE1_TOTAL_TARGET} meaningful [{p1_status}]")
@@ -164,6 +305,9 @@ def main() -> int:
     for dir_rel, _ in sorted(PHASE2_DIRS.items()):
         mods, cases, meaningful = count_tests_in_dir(dir_rel)
         phase2_meaningful_total += meaningful
+        if meaningful > cases:
+            invariant_failed = True
+            print(f"  ERROR {dir_rel}: meaningful_count ({meaningful}) > test_case_count ({cases})")
         print(f"  {dir_rel}: {mods} test mods, {cases} test cases, {meaningful} meaningful")
     p2_status = "ok" if phase2_meaningful_total >= PHASE2_TOTAL_TARGET else "below-target"
     print(f"  Phase 2 total: {phase2_meaningful_total}/{PHASE2_TOTAL_TARGET} meaningful [{p2_status}]")
@@ -178,6 +322,9 @@ def main() -> int:
         else:
             print(f"  {dir_rel}: 0 (ok)")
 
+    if invariant_failed:
+        print("\nADOPTION_INVARIANT_FAILED: meaningful_count > test_case_count")
+        return 1
     return 0
 
 

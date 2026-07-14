@@ -3575,6 +3575,7 @@ def _run_diag_parity_locked(root: Path) -> tuple[int, str]:
     for fixture in fixtures:
         if fixture in DIAG_PARITY_SKIP:
             skip_count += 1
+            lines.append(f"  skip: {fixture} (known diag parity skip)")
             continue
 
         ark_path = root / "tests" / "fixtures" / fixture

@@ -1142,6 +1142,592 @@
         "evidence": "internal cross-module pub fn, advisory only",
         "judgment": "correct"
       }
+    ],
+    "B API": [
+      {
+        "index": 1,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "PHASE_LEX",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "PHASE_PARSE",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "PHASE_RESOLVE",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "PHASE_TYPECHECK",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "PHASE_LINT",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "analyze",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "analyze_with_modules",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "src/compiler/analysis.ark",
+        "symbol": "snapshot_summary",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 9,
+        "path": "src/compiler/component_emit.ark",
+        "symbol": "emit_component",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 10,
+        "path": "src/compiler/component_emitter.ark",
+        "symbol": "emit_component",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 11,
+        "path": "src/compiler/dap.ark",
+        "symbol": "run_dap_session",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 12,
+        "path": "src/compiler/driver.ark",
+        "symbol": "DriverConfig_default",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 13,
+        "path": "src/compiler/driver.ark",
+        "symbol": "compile_source",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 14,
+        "path": "src/compiler/driver.ark",
+        "symbol": "compile_file",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 15,
+        "path": "src/compiler/emit_wat.ark",
+        "symbol": "emit_wat",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 16,
+        "path": "src/compiler/emitter.ark",
+        "symbol": "emit_wasm",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 17,
+        "path": "src/compiler/hir.ark",
+        "symbol": "trait_hir_self_check",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 18,
+        "path": "src/compiler/lsp.ark",
+        "symbol": "run_session",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 19,
+        "path": "src/compiler/mir_dump.ark",
+        "symbol": "dump_mir",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 20,
+        "path": "src/compiler/mir_lower.ark",
+        "symbol": "lower_to_mir",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 21,
+        "path": "src/compiler/mir_lower.ark",
+        "symbol": "lower_to_mir_no_prune",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 22,
+        "path": "src/compiler/parser.ark",
+        "symbol": "parse_program",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 23,
+        "path": "src/compiler/parser.ark",
+        "symbol": "ParseResult_decls",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 24,
+        "path": "src/compiler/parser.ark",
+        "symbol": "ParseResult_decl_count",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 25,
+        "path": "src/compiler/parser.ark",
+        "symbol": "ParseResult_error_count",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 26,
+        "path": "src/compiler/parser.ark",
+        "symbol": "ParseResult_error_at",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 27,
+        "path": "src/compiler/parser.ark",
+        "symbol": "ParseResult_errors",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 28,
+        "path": "src/compiler/parser.ark",
+        "symbol": "parse_module",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 29,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "use_module_short_name",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 30,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "register_module_export",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 31,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "ModuleDecls_new",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 32,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "resolve_module",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 33,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "resolve_program",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 34,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "resolve_program_for_target",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 35,
+        "path": "src/compiler/resolver.ark",
+        "symbol": "count_user_symbols",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      },
+      {
+        "index": 36,
+        "path": "src/compiler/typechecker.ark",
+        "symbol": "typecheck_module",
+        "expected_classification": "B API",
+        "actual_classification": "B API",
+        "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
+        "judgment": "correct"
+      }
+    ],
+    "target_alias": [
+      {
+        "index": 1,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm32-wasi-p1",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=wasm32, policy=warning, compatibility_status=deprecated",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm32-wasi",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=wasm32, policy=warning, compatibility_status=deprecated",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm32-wasi-p2",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm-gc",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm-gc-wasi-p2",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm32-wasi-p3",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "docs/data/project-state.toml",
+        "symbol": "native",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=n/a, policy=error, compatibility_status=rejected-ambiguous",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "docs/data/project-state.toml",
+        "symbol": "wasm32-freestanding",
+        "expected_classification": "target alias",
+        "actual_classification": "target alias",
+        "evidence": "canonical_target=n/a, policy=error, compatibility_status=rejected",
+        "judgment": "correct"
+      }
+    ],
+    "generated_view": [
+      {
+        "index": 1,
+        "path": "src/compiler/main/target_contract_generated.ark",
+        "symbol": "target_contract_generated.ark",
+        "expected_classification": "generated view",
+        "actual_classification": "generated view",
+        "evidence": "whole-file generated view listed in .generated-files",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "extensions/arukellt-all-in-one/src/target-contract.generated.js",
+        "symbol": "target-contract.generated.js",
+        "expected_classification": "generated view",
+        "actual_classification": "generated view",
+        "evidence": "whole-file generated view listed in .generated-files",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "docs/data/target-contract-summary.md",
+        "symbol": "target-contract-summary.md",
+        "expected_classification": "generated view",
+        "actual_classification": "generated view",
+        "evidence": "whole-file generated view listed in .generated-files",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "docs/current-state.md",
+        "symbol": "current-state.md target table",
+        "expected_classification": "generated view",
+        "actual_classification": "generated view",
+        "evidence": "partial generated section tracked by generate-docs.py --check (BEGIN/END GENERATED:CURRENT_STATE_TARGETS markers)",
+        "judgment": "correct"
+      }
+    ],
+    "comment_policy_fixture": [
+      {
+        "index": 1,
+        "path": "scripts/tests/test_comment_policy.py",
+        "symbol": "test_api_classification_and_boundary_doc_contract",
+        "expected_classification": "comment policy fixture",
+        "actual_classification": "comment policy fixture",
+        "evidence": "test covers API classification and boundary doc contract",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "scripts/tests/test_comment_policy.py",
+        "symbol": "test_missing_boundary_doc_is_error_but_internal_pub_is_not",
+        "expected_classification": "comment policy fixture",
+        "actual_classification": "comment policy fixture",
+        "evidence": "test covers missing boundary doc is error but internal pub is not",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "scripts/tests/test_comment_policy.py",
+        "symbol": "test_comment_findings_distinguish_hard_and_advisory_cases",
+        "expected_classification": "comment policy fixture",
+        "actual_classification": "comment policy fixture",
+        "evidence": "test covers comment findings distinguish hard and advisory cases",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "scripts/tests/test_comment_policy.py",
+        "symbol": "test_structured_todo_allows_descriptive_quoted_removal_condition",
+        "expected_classification": "comment policy fixture",
+        "actual_classification": "comment policy fixture",
+        "evidence": "test covers structured TODO allows descriptive quoted removal condition",
+        "judgment": "correct"
+      }
+    ],
+    "ssot_12": [
+      {
+        "index": 1,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "compiler phases/numbers",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "compiler/phases.ark; six unused driver.ark copies removed",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "phase display tags",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "compiler/phase_tags.ark; derived locally from phase IDs",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "target/profile/capability",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "project-state.toml owns target profiles, host profiles, aliases; capabilities.toml owns host capabilities",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "builtin/intrinsic/stdlib symbols",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "std/manifest.toml owns public paths/docs/stability/deprecation; core-ops.toml is ADR-042 proposal scaffold",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "primitive/vec/GC type spelling",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "ctx_gc_type.ark; exact duplicate Vec GC resolver removed",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "MIR/CoreHIR/Wasm opcode and tags",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "subsystem-local kinds/opcodes; coincidental numeric similarity not centralized",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "diagnostics/warnings",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "existing diagnostics/warnings registries; no new registry",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "scratch/local/GC offsets",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "subsystem-local layout constants; not moved to mega-registry",
+        "judgment": "correct"
+      },
+      {
+        "index": 9,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "WIT canonical ABI",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "component/WIT subsystem and existing manifests",
+        "judgment": "correct"
+      },
+      {
+        "index": 10,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "CLI options/subcommands",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "docs/data/cli-surface.toml and generated views",
+        "judgment": "correct"
+      },
+      {
+        "index": 11,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "parser token/precedence",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "parser-local tables; not globalized",
+        "judgment": "correct"
+      },
+      {
+        "index": 12,
+        "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+        "symbol": "public exports/docs lists",
+        "expected_classification": "SSOT knowledge category",
+        "actual_classification": "SSOT knowledge category",
+        "evidence": "std/manifest.toml; publication checks remain canonical",
+        "judgment": "correct"
+      }
     ]
   },
   "summary": {
