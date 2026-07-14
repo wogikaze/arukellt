@@ -130,6 +130,27 @@ def ark_paths(root: Path, requested: list[str] | None = None) -> list[str]:
     return selected
 
 
+def _has_enforced_ark_sources(root: Path) -> bool:
+    try:
+        roots = _ark_inventory(root).get("roots", [])
+    except (OSError, KeyError, ValueError, tomllib.TOMLDecodeError):
+        return False
+    return any(
+        any((root / source_root).rglob("*.ark"))
+        for source_root in roots
+        if (root / source_root).is_dir()
+    )
+
+
+def _empty_selection_failure(root: Path, selected: list[str], label: str) -> int:
+    if selected or not _has_enforced_ark_sources(root):
+        return 0
+    print(
+        f"{label}: FAIL: enforced Ark sources exist but the canonical inventory selected 0 files"
+    )
+    return 1
+
+
 def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool) -> ToolResult:
     if dry_run:
         return ToolResult(path, command, 0, "DRY-RUN: " + " ".join(command))
@@ -252,6 +273,8 @@ def _apply_parser_failure_baseline(root: Path, results: list[ToolResult]) -> lis
 def run_fmt(root: Path, paths: list[str], check: bool, dry_run: bool, json_output: bool) -> int:
     wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
     selected = ark_paths(root, paths)
+    if _empty_selection_failure(root, selected, "fmt"):
+        return 1
     jobs = []
     for path in selected:
         args = [wrapper, "fmt"]
@@ -274,6 +297,8 @@ def run_lint(
     deny_prefer_else_if: bool = False,
 ) -> int:
     selected = ark_paths(root, paths)
+    if _empty_selection_failure(root, selected, "lint"):
+        return 1
     if fix:
         fmt_rc = run_fmt(root, selected, check=False, dry_run=dry_run, json_output=json_output)
         if fmt_rc != 0:

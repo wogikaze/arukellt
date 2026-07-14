@@ -25,7 +25,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from quality.metrics import scan_ark_source  # noqa: E402
+from quality.baseline import (  # noqa: E402
+    BaselineError,
+    read_baseline,
+    with_inventory,
+    write_baseline,
+)
+from quality.metrics import METRIC_NAMES, scan_ark_source  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COMPILER_ROOT = REPO_ROOT / "src" / "compiler"
@@ -36,6 +42,7 @@ MAX_LINE_LEN_HARD = 200
 
 @dataclass
 class Inventory:
+    checked_files: int = 0
     tab_files: list[str] = field(default_factory=list)
     extreme_indent: list[str] = field(default_factory=list)
     long_lines: list[str] = field(default_factory=list)
@@ -62,6 +69,7 @@ def scan_paths(paths: list[Path]) -> Inventory:
     for path in sorted(paths):
         if not path.is_file():
             continue
+        inv.checked_files += 1
         text = path.read_text(encoding="utf-8")
         rel = _rel(path)
         if "\t" in text:
@@ -168,27 +176,6 @@ def check_changed(base: str) -> int:
     return 0
 
 
-def _parse_baseline(path: Path) -> dict[str, int]:
-    if not path.is_file():
-        return {}
-    counts: dict[str, int] = {}
-    in_counts = False
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line == "[counts]":
-            in_counts = True
-            continue
-        if line.startswith("["):
-            in_counts = False
-            continue
-        if in_counts and "=" in line:
-            key, value = [p.strip() for p in line.split("=", 1)]
-            counts[key] = int(value)
-    return counts
-
-
 def _tracking_issue_exists(issue: int) -> bool:
     pattern = f"{issue}-*.md"
     return any(
@@ -198,28 +185,12 @@ def _tracking_issue_exists(issue: int) -> bool:
 
 
 def _write_baseline(path: Path, inv: Inventory, issue: int) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    counts = inv.counts
-    body = (
-        "# Auto-maintained inventory ceilings for Ark compiler source quality.\n"
-        "# Lower counts via remediation; never raise without an explicit decision.\n"
-        "# Generated/updated by scripts/check/check-ark-code-quality.py --write-baseline --issue N\n"
-        "\n"
-        "owner = \"compiler-tooling\"\n"
-        "increase_requires_tracking_issue = true\n"
-        f"last_update_issue = {issue}\n"
-        "\n"
-        f"max_leading_ws = {MAX_LEADING_WS}\n"
-        f"max_line_len_hard = {MAX_LINE_LEN_HARD}\n"
-        "\n"
-        "[counts]\n"
-        f"tabs_files = {counts['tabs_files']}\n"
-        f"extreme_indent_lines = {counts['extreme_indent_lines']}\n"
-        f"lines_ge_200 = {counts['lines_ge_200']}\n"
-        f"thin_wrappers = {counts['thin_wrappers']}\n"
-        f"single_function_files = {counts['single_function_files']}\n"
+    baseline = read_baseline(path, METRIC_NAMES)
+    write_baseline(
+        path,
+        with_inventory(baseline, inv.counts, issue),
+        METRIC_NAMES,
     )
-    path.write_text(body, encoding="utf-8")
 
 
 def _print_sample(title: str, items: list[str], limit: int = 20) -> None:
@@ -259,6 +230,9 @@ def main() -> int:
         return check_changed(args.base)
 
     inv = scan_compiler()
+    if inv.checked_files == 0:
+        print(f"FAIL: no enforced Ark sources were checked under {_rel(COMPILER_ROOT)}")
+        return 1
     counts = inv.counts
     print("ark code quality inventory:")
     for key, value in counts.items():
@@ -269,7 +243,11 @@ def main() -> int:
             parser.error("--write-baseline requires --issue")
         if not _tracking_issue_exists(args.issue):
             parser.error(f"tracking issue {args.issue} does not exist in issues/open or issues/done")
-        _write_baseline(BASELINE_PATH, inv, args.issue)
+        try:
+            _write_baseline(BASELINE_PATH, inv, args.issue)
+        except BaselineError as exc:
+            print(f"FAIL: baseline update: {exc}")
+            return 1
         print(f"wrote baseline: {_rel(BASELINE_PATH)}")
         return 0
 
@@ -292,12 +270,8 @@ def main() -> int:
         )
         _print_sample("extreme indent", inv.extreme_indent)
 
-    baseline = _parse_baseline(BASELINE_PATH)
-    if not baseline:
-        failures.append(
-            f"missing baseline {_rel(BASELINE_PATH)}; run with --write-baseline after remediation"
-        )
-    else:
+    try:
+        baseline = read_baseline(BASELINE_PATH, METRIC_NAMES).counts
         for key in ("lines_ge_200", "thin_wrappers", "single_function_files"):
             current = counts[key]
             ceiling = baseline.get(key)
@@ -312,6 +286,8 @@ def main() -> int:
                     _print_sample("thin wrappers", inv.thin_wrappers)
                 else:
                     _print_sample("single-function files", inv.single_function_files)
+    except BaselineError as exc:
+        failures.append(f"invalid baseline {_rel(BASELINE_PATH)}: {exc}")
 
     if failures:
         print("\nFAIL:")

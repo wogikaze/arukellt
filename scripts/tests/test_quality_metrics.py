@@ -2,6 +2,7 @@
 
 import tempfile
 import unittest
+from dataclasses import asdict
 from pathlib import Path
 from unittest import mock
 
@@ -13,6 +14,15 @@ from scripts.quality.metrics import (
     sanitize_ark_lines,
     scan_ark_source,
     write_metrics_baseline,
+)
+from scripts.quality.baseline import (
+    BaselineError,
+    InventoryMetadata,
+    MetricsMetadata,
+    QualityBaseline,
+    read_baseline,
+    with_inventory,
+    write_baseline,
 )
 
 
@@ -53,25 +63,82 @@ class TestMetricsBaseline(unittest.TestCase):
         (root / "issues/open").mkdir(parents=True)
         (root / "issues/open/9-metrics.md").write_text("# metrics\n", encoding="utf-8")
 
+    def _seed_baseline(self, root: Path):
+        report = collect_metrics(root)
+        baseline = QualityBaseline(
+            inventory=InventoryMetadata("tooling", True, 8, 64, 200),
+            counts={
+                "tabs_files": 0,
+                "extreme_indent_lines": 0,
+                "lines_ge_200": 4,
+                "thin_wrappers": 3,
+                "single_function_files": 2,
+            },
+            metrics_metadata=MetricsMetadata(8, "string metadata is valid"),
+            metrics={
+                name: asdict(report.distributions[name]) for name in METRIC_NAMES
+            },
+        )
+        path = root / "docs/data/ark-code-quality-baseline.toml"
+        write_baseline(path, baseline, METRIC_NAMES)
+        return path, report
+
     def test_baseline_write_read_roundtrip(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             self._repository(root)
-            report = collect_metrics(root)
+            baseline_path, report = self._seed_baseline(root)
             write_metrics_baseline(root, report, 9, "initial fixture baseline")
-            baseline = _baseline_metrics(root / "docs/data/ark-code-quality-baseline.toml")
+            baseline = _baseline_metrics(baseline_path)
             self.assertEqual(set(baseline), set(METRIC_NAMES))
+            self.assertEqual(
+                read_baseline(baseline_path, METRIC_NAMES).counts["lines_ge_200"],
+                4,
+            )
 
     def test_report_does_not_implicitly_update_baseline(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             self._repository(root)
-            report = collect_metrics(root)
-            write_metrics_baseline(root, report, 9, "initial fixture baseline")
-            baseline_path = root / "docs/data/ark-code-quality-baseline.toml"
+            baseline_path, _ = self._seed_baseline(root)
             before = baseline_path.read_bytes()
             self.assertEqual(run_metrics_report(root), 0)
             self.assertEqual(baseline_path.read_bytes(), before)
+
+    def test_inventory_update_preserves_metrics_and_only_lowers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._repository(root)
+            baseline_path, _ = self._seed_baseline(root)
+            baseline = read_baseline(baseline_path, METRIC_NAMES)
+            lowered = dict(baseline.counts)
+            lowered["lines_ge_200"] = 3
+            write_baseline(
+                baseline_path,
+                with_inventory(baseline, lowered, 9),
+                METRIC_NAMES,
+            )
+            updated = read_baseline(baseline_path, METRIC_NAMES)
+            self.assertEqual(updated.metrics, baseline.metrics)
+            self.assertEqual(updated.metrics_metadata, baseline.metrics_metadata)
+            raised = dict(lowered)
+            raised["lines_ge_200"] = 5
+            with self.assertRaisesRegex(BaselineError, "only lower counts"):
+                with_inventory(updated, raised, 9)
+
+    def test_malformed_type_and_missing_key_are_explained(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "baseline.toml"
+            cases = (
+                ("not = [valid", "malformed baseline TOML"),
+                ("[inventory]\nowner = 4\n", "owner must be str"),
+                ('[inventory]\nowner = "tooling"\n', "missing required key"),
+            )
+            for content, message in cases:
+                with self.subTest(message=message):
+                    path.write_text(content, encoding="utf-8")
+                    with self.assertRaisesRegex(BaselineError, message):
+                        read_baseline(path, METRIC_NAMES)
 
 
 class TestCanonicalToolExitContracts(unittest.TestCase):
@@ -87,6 +154,16 @@ class TestCanonicalToolExitContracts(unittest.TestCase):
             ):
                 self.assertEqual(run_fmt(Path("/tmp"), [], True, False, False), returncode)
 
+    def test_missing_formatter_and_linter_are_failures(self):
+        from scripts.quality.checks import ToolResult, run_fmt, run_lint
+
+        missing = [ToolResult("sample.ark", ("missing-tool",), 127, "not found")]
+        with mock.patch(
+            "scripts.quality.checks.ark_paths", return_value=["sample.ark"]
+        ), mock.patch("scripts.quality.checks._run_parallel", return_value=missing):
+            self.assertEqual(run_fmt(Path("/tmp"), [], True, False, False), 1)
+            self.assertEqual(run_lint(Path("/tmp"), [], False, False, False), 1)
+
     def test_lint_command_includes_smoke_and_propagates_exit_code(self):
         from scripts.quality.checks import run_lint_command
 
@@ -95,6 +172,22 @@ class TestCanonicalToolExitContracts(unittest.TestCase):
         ) as command:
             self.assertEqual(run_lint_command(Path("/tmp"), [], False, False, False), 1)
             self.assertIn("scripts/check/check-ark-lint-smoke.py", command.call_args.args[1])
+
+    def test_enforced_sources_cannot_succeed_with_zero_selected_files(self):
+        from scripts.quality.checks import run_fmt, run_lint
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "src/compiler").mkdir(parents=True)
+            (root / "src/compiler/main.ark").write_text("fn main() {}\n", encoding="utf-8")
+            (root / "docs/data").mkdir(parents=True)
+            (root / "docs/data/tooling-inventory.toml").write_text(
+                '[[families]]\next = ".ark"\nroots = ["src/compiler/"]\n',
+                encoding="utf-8",
+            )
+            with mock.patch("scripts.quality.checks.ark_paths", return_value=[]):
+                self.assertEqual(run_fmt(root, [], True, False, False), 1)
+                self.assertEqual(run_lint(root, [], False, False, False), 1)
 
 
 if __name__ == "__main__":
