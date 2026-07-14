@@ -44,6 +44,8 @@ from verify.fixtures import (  # noqa: E402
 from verify.harness import GREEN, NC, RED, YELLOW, Harness  # noqa: E402
 from selfhost.checks import (  # noqa: E402
     SelfhostFixpointResult,
+    _ensure_bootstrap_compiler_wasm,
+    _find_pinned_wasm,
     run_diag_parity,
     run_fixpoint,
     run_fixture_parity,
@@ -4253,6 +4255,18 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
     h = Harness(repo_root=root, dry_run=dry_run)
+
+    # ── Ensure heap-patched bootstrap wasm is available ───────────────────────
+    # The wrapper script (arukellt-selfhost.sh) prefers s2-runtime.wasm, then
+    # s3.wasm, then s2.wasm, then the pinned bootstrap.  If the fixpoint build
+    # failed (exit 2), none of the built wasms exist, so the wrapper falls back
+    # to the unpatched pinned wasm (512 MiB limit).  Preparing the heap-patched
+    # bootstrap wasm here ensures the wrapper always has a 4 GiB wasm to use,
+    # preventing OOM crashes during parallel lint/compile checks.
+    if not dry_run:
+        pinned = _find_pinned_wasm(root)
+        if pinned is not None:
+            _ensure_bootstrap_compiler_wasm(root, pinned)
 
     # ── Fixture manifest completeness check ──────────────────────────────────
     print(f"\n{YELLOW}[manifest] Checking fixture manifest completeness...{NC}")
