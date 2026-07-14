@@ -53,6 +53,7 @@
 | `docs/data/component-availability.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From component-availability.toml |
 | `docs/data/release-guarantees.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From release-guarantees.toml |
 | `docs/data/target-contract-summary.md` | generated | `scripts/gen/generate-docs.py` | Generated from project-state.toml |
+| `docs/data/verify-full-receipt.json` | internal (receipt) | hand-maintained via parser | Machine-readable verify full receipt with exact failure/skip identity set |
 | `docs/data/core-ops.toml` | internal (proposal scaffold) | hand-maintained | Future semantic registry scaffold for ADR-042 (PROPOSED). Not consumed authoritatively by compiler. Current semantic registration owner is `std/manifest.toml` + compiler-local registration. Migration owner: #798. |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/adr/` | product | — | Architecture Decision Records |

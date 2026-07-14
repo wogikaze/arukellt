@@ -116,11 +116,15 @@ must be resolved before re-close:
 8. **current-state.md snapshot stale**: `Generated-At: 2026-07-11`,
    `Implementation-Commit: a80b4181` does not match verified commit. Must
    regenerate after all fixes.
-9. **#715 dummy/probe tests**: See #715 blocking findings. Test count
-   inflation invalidates CQ-18 "no false-done" claim for #715.
-10. **verify full receipt not machine-readable**: No exact fixture/check ID
-    baseline diff saved. Aggregate counts mixed with individual fixture
-    counts. Must save machine-readable receipt with exact identity set.
+9. **~~#715 dummy/probe tests~~** (RESOLVED): See #715 blocking findings.
+   All 171 probe_N tests, 4 sanity tests with trivial asserts, and 3
+   trivial asserts removed. `check-trivial-tests.py` added to prevent
+   recurrence.
+10. **~~verify full receipt not machine-readable~~** (RESOLVED):
+    `docs/data/verify-full-receipt.json` saved with exact fixture/check
+    ID identity set. Contains: fixture_parity (804 pass, 367 fail, 417
+    skip), quick_checks (164 pass, 3 fail), individual fixture failure
+    and skip lists, owner issue mapping (#807-#815).
 
 ## Validation commands
 
