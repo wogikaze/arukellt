@@ -185,11 +185,11 @@ last_verified_at = "2026-07-14"
 #   implementation_commit — the code commit that was verified
 #   documentation_commit  — the last commit that edited this SSOT
 #   fixture_snapshot_commit — the commit where the fixture harness was last run
-implementation_commit = "222faab5"
+implementation_commit = "2baf648b"
 documentation_commit = "9d05db21"
-fixture_snapshot_commit = "222faab5"
+fixture_snapshot_commit = "2baf648b"
 # Legacy field kept for backward compat — same as implementation_commit
-source_commit = "222faab5"
+source_commit = "2baf648b"
 fixture_passed = 804
 fixture_skipped = 417
 fixture_failures = 367
@@ -198,7 +198,7 @@ fixture_manifest_count = 2693
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
 fixture_not_in_last_harness_snapshot = 1105
-fixture_accounting_note = "804+367+417=1588 outcomes from the 2026-07-14 selfhost fixture-parity run at 222faab5; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail)."
+fixture_accounting_note = "804+367+417=1588 outcomes from the 2026-07-14 selfhost fixture-parity run at 2baf648b; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail)."
 checks_passed = 165
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
