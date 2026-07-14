@@ -26,13 +26,17 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if config_record::config_lint_local_only(config) {
         return local_lint::run_local_lint_stage(clone(source), config, pipeline_frontend::frontend_result_decls(frontend))
     }
+    let decls = pipeline_frontend::frontend_result_decls(frontend)
+    let t0: i64 = pipeline_frontend::frontend_result_t0(frontend)
+    let t_lex: i64 = pipeline_frontend::frontend_result_t_lex(frontend)
+    let t_parse: i64 = pipeline_frontend::frontend_result_t_parse(frontend)
     run_backend(
         source,
         config,
-        pipeline_frontend::frontend_result_decls(frontend),
-        pipeline_frontend::frontend_result_t0(frontend),
-        pipeline_frontend::frontend_result_t_lex(frontend),
-        pipeline_frontend::frontend_result_t_parse(frontend)
+        decls,
+        t0,
+        t_lex,
+        t_parse
     )
 }
 
