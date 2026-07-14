@@ -81,6 +81,42 @@ def _is_record_contract(path: str, symbol: str, statements: list[str]) -> bool:
     )
 
 
+def _single_call(statement: str):
+    call = CALL_RE.match(statement)
+    if not call:
+        return None
+    open_at = statement.find("(")
+    depth = 0
+    for index, char in enumerate(statement[open_at:], open_at):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return call if not statement[index + 1 :].strip(" ;") else None
+    return None
+
+
+def _logical_statements(body: str) -> list[str]:
+    statements: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for line in body.splitlines():
+        stripped = line.strip().rstrip(";")
+        if not stripped:
+            continue
+        current.append(stripped)
+        depth += sum(stripped.count(char) for char in "([{")
+        depth -= sum(stripped.count(char) for char in ")]}")
+        if depth <= 0:
+            statements.append(" ".join(current))
+            current = []
+            depth = 0
+    if current:
+        statements.append(" ".join(current))
+    return statements
+
+
 def classify_wrappers(path: str, text: str) -> tuple[WrapperClassification, ...]:
     """Classify only functions that look like small wrappers with high confidence."""
     lines = sanitize_ark_lines(text)
@@ -108,11 +144,12 @@ def classify_wrappers(path: str, text: str) -> tuple[WrapperClassification, ...]
             end += 1
         body = "\n".join(lines[start : end + 1])
         body = body[body.find("{") + 1 : body.rfind("}")]
-        statements = [line.strip().rstrip(";") for line in body.splitlines() if line.strip()]
+        statements = _logical_statements(body)
+        logical_statement = " ".join(statements)
         symbol = match.group(2)
         category = "ambiguous"
         target: str | None = None
-        call = CALL_RE.match(statements[0]) if len(statements) == 1 else None
+        call = _single_call(logical_statement)
         if _is_record_contract(path, symbol, statements):
             category = "record_accessor_or_constructor"
         elif call:
@@ -125,7 +162,15 @@ def classify_wrappers(path: str, text: str) -> tuple[WrapperClassification, ...]
                     category = "boundary_facade"
             else:
                 category = "semantic_wrapper"
-        elif len(statements) > 1 and len(statements) <= 5:
+        elif (
+            len(statements) > 1
+            and len(statements) <= 5
+            and _single_call(statements[-1])
+            and any(
+                statement.startswith(("if ", "assert(", "require", "let "))
+                for statement in statements[:-1]
+            )
+        ):
             category = "semantic_wrapper"
         findings.append(WrapperClassification(symbol, start + 1, category, target))
         index = max(index + 1, end + 1)

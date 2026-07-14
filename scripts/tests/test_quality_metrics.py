@@ -67,6 +67,19 @@ class TestWrapperClassification(unittest.TestCase):
             "pure_forwarder",
         )
 
+    def test_multiline_forwarder_has_the_same_classification(self):
+        body = '''fn alias(
+    first: I32,
+    second: String
+) -> I32 {
+    return impl::alias(
+        first,
+        second
+    )
+}
+'''
+        self.assertEqual(self._category(body), "pure_forwarder")
+
     def test_reordered_default_clone_and_conversion_are_semantic(self):
         bodies = (
             "fn f(a: I32, b: I32) {\n    impl::f(b, a)\n}\n",
@@ -81,6 +94,10 @@ class TestWrapperClassification(unittest.TestCase):
     def test_validation_is_semantic(self):
         body = "fn f(a: I32) {\n    if a < 0 { return }\n    impl::f(a)\n}\n"
         self.assertEqual(self._category(body), "semantic_wrapper")
+
+    def test_multiple_unrelated_statements_are_ambiguous(self):
+        body = "fn f(a: I32) {\n    first::run(a)\n    second::run(a)\n}\n"
+        self.assertEqual(self._category(body), "ambiguous")
 
     def test_facade_constructor_and_accessor_are_preserved(self):
         facade = "pub fn run(a: I32) {\n    impl::run(a)\n}\n"
