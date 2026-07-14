@@ -4257,17 +4257,22 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     dry_run: bool = args.dry_run
     h = Harness(repo_root=root, dry_run=dry_run)
 
+    # ── Reduce lint parallelism to avoid CI runner OOM ────────────────────────
+    # verify quick runs quality quick (which runs lint with 16 parallel workers)
+    # alongside other wasm-using background checks.  Each wasm instance can use
+    # up to 512 MiB of linear memory.  With 16 lint workers + other checks, the
+    # total memory demand exceeds the CI runner's 7 GiB limit, causing OOM.
+    # Reducing to 4 workers keeps peak memory under ~3 GiB for lint.
+    if "ARUKELLT_LINT_WORKERS" not in os.environ:
+        os.environ["ARUKELLT_LINT_WORKERS"] = "4"
+
     # ── Ensure heap-patched wasm is available ─────────────────────────────────
     # The wrapper script (arukellt-selfhost.sh) resolves wasms in priority order.
     # If the fixpoint build succeeded, s2.wasm exists but is unpatched (512 MiB
-    # linear memory limit), causing OOM crashes during parallel lint in verify
-    # quick.  _run_tool would override ARUKELLT_SELFHOST_WASM to s2.wasm,
-    # bypassing any caller-provided value.
-    #
-    # Strategy: if s2.wasm exists, create a heap-patched s2-runtime.wasm (4 GiB)
-    # and set ARUKELLT_SELFHOST_WASM to it.  The patched s2-runtime wasm
-    # supports current lint syntax (unlike the pinned bootstrap wasm) and has
-    # sufficient memory for large file sets.
+    # linear memory limit).  If it failed, the wrapper falls back to the pinned
+    # wasm (also 512 MiB).  In either case, creating a heap-patched s2-runtime
+    # wasm (4 GiB) and pointing ARUKELLT_SELFHOST_WASM to it gives all checks
+    # sufficient memory.
     if not dry_run:
         s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
         if s2.is_file():

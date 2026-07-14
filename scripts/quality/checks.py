@@ -198,7 +198,11 @@ def _run_parallel(
     dry_run: bool,
     timeout: int = 60,
 ) -> list[ToolResult]:
-    workers = min(16, max(1, os.cpu_count() or 1))
+    # Allow callers (e.g. verify quick) to reduce parallelism to avoid
+    # exhausting CI runner memory when many wasm instances run concurrently.
+    # Each wasm instance can use up to 512 MiB (unpatched) or 4 GiB (patched).
+    max_workers = int(os.environ.get("ARUKELLT_LINT_WORKERS", "16"))
+    workers = min(max_workers, max(1, os.cpu_count() or 1))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
             executor.submit(_run_tool, root, path, command, dry_run, timeout)
