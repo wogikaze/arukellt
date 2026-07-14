@@ -6,7 +6,7 @@ ID: 799
 Track: code-quality
 Depends on: "715, 796, 797"
 Orchestration class: blocked
-Orchestration upstream: 715, 797
+Orchestration upstream: 715
 Blocks v{N}: none
 Priority: 1
 Source: CQ closed-loop strict final audit
@@ -85,8 +85,8 @@ must be resolved before re-close:
 the dummy/probe test inflation was a CQ-18 blocking finding (finding 9).
 CQ-18 cannot close while #715 is open, because the test count inflation
 invalidated the "no false-done" claim. `Orchestration class: blocked`
-and `Orchestration upstream: 715, 797` are correct and will remain until
-both #715 and #797 are resolved.
+and `Orchestration upstream: 715` are correct and will remain until
+#715 is resolved. #797 was resolved and closed on 2026-07-14.
 
 1. **~~Live GitHub ruleset not confirmed~~** (RESOLVED): `gh api
    repos/wogikaze/arukellt/rulesets/18894318` executed. Live readback
@@ -130,10 +130,36 @@ both #715 and #797 are resolved.
    trivial asserts removed. `check-trivial-tests.py` added to prevent
    recurrence.
 10. **~~verify full receipt not machine-readable~~** (RESOLVED):
-    `docs/data/verify-full-receipt.json` saved with exact fixture/check
-    ID identity set. Contains: fixture_parity (804 pass, 367 fail, 417
-    skip), quick_checks (164 pass, 3 fail), individual fixture failure
-    and skip lists, owner issue mapping (#807-#815).
+    `docs/data/verify-full-receipt.json` saved with schema v2, generated
+    by `scripts/gen/write-verify-receipt.py`. Contains 8 aggregate
+    checks and 903 individual items:
+    - t3_wasm_validate (#808): 1 fail
+    - quick_checks: 164 pass, 2 fail
+    - fixture_parity (#807): 804 pass, 367 fail, 417 skip
+    - wat_roundtrip (#809): 1 fail
+    - cli_parity (#811): 17 pass, 2 fail
+    - diag_parity (#812): 29 pass, 3 fail, 26 skip
+    - fixpoint (#813): 1 fail
+    - component_interop (#810): 103 fail
+    verified_commit matches current HEAD. 13 unit tests added.
+11. **~~Owner issues lack machine-readable baselines~~** (RESOLVED):
+    All owner issues #807-#815 now reference `docs/data/verify-full-receipt.json`
+    with specific `check_id` and `items[]`/`aggregate_checks[]` paths.
+12. **~~Diagnostic parity counts inconsistent~~** (RESOLVED):
+    `release-guarantees.toml` corrected: diag_parity 1→3, cli_parity 3→2.
+    All sources now agree: #812=3, #811=2, current-state.md=3/2,
+    release-guarantees.toml=3/2, receipt=3/2.
+13. **~~Old target names in operational code~~** (RESOLVED):
+    70 operational files canonicalized. `check-operational-target-drift.py`
+    added to detect future drift. Old names allowed only in alias contracts,
+    compat tests, migration/history text, ADR/RFC/spec docs.
+14. **~~#715 adoption checker not separated~~** (RESOLVED):
+    `check-infile-test-adoption.py` rewritten with Phase 1/2 breakdown.
+    Phase 1: 34/180 meaningful (below-target). Phase 2: 13/60 meaningful
+    (below-target). #715 remains open as hard dependency.
+15. **~~Manual samples not saved as machine-readable~~** (RESOLVED):
+    `docs/data/cq18-manual-sample.json` saved with 110 samples (50
+    wrapper + 20 hotspot + 20 A API + 20 C API), all judgment=correct.
 
 ## Validation commands
 
