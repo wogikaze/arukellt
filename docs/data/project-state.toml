@@ -2,7 +2,7 @@
 name = "Arukellt"
 version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-07-11"
+updated = "2026-07-14"
 verification_command = "python3 scripts/manager.py verify quick"
 current_state_doc = "docs/current-state.md"
 
@@ -179,28 +179,28 @@ contract_stability = "experimental"
 role = "Future WASI Preview 3 host profile on wasm32-gc; not a separate language target"
 
 [verification]
-last_verified_at = "2026-07-11"
+last_verified_at = "2026-07-14"
 # Commit separation — each axis has its own commit to avoid conflating
 # documentation edits with implementation verification:
 #   implementation_commit — the code commit that was verified
 #   documentation_commit  — the last commit that edited this SSOT
 #   fixture_snapshot_commit — the commit where the fixture harness was last run
-implementation_commit = "a80b4181"
-documentation_commit = "b68fc393"
-fixture_snapshot_commit = "89eb5eb4"
+implementation_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
+documentation_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
+fixture_snapshot_commit = "52967b17ace3f63cc2fe59ac9bbf5f0202445106"
 # Legacy field kept for backward compat — same as implementation_commit
-source_commit = "a80b4181"
-fixture_passed = 796
+source_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
+fixture_passed = 804
 fixture_skipped = 417
 fixture_failures = 367
 fixture_manifest_count = 2693
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
-fixture_harness_observed = 1580
-fixture_not_in_last_harness_snapshot = 1113
-fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2693 is tests/fixtures/manifest.txt registry size. The 1113 remainder were not part of that run (not proof they fail)."
-checks_passed = 175
-checks_total = 176
+fixture_harness_observed = 1588
+fixture_not_in_last_harness_snapshot = 1105
+fixture_accounting_note = "804+367+417=1588 outcomes from the 2026-07-14 selfhost fixture-parity run; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail)."
+checks_passed = 164
+checks_total = 165
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
 # Release blockers are owned by docs/data/release-guarantees.toml (the check
@@ -209,9 +209,9 @@ unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.
 # copies. The generated current-state.md pulls blocker rows from the catalogue.
 #
 # Blocker check IDs (for reference; canonical data is in release-guarantees.toml):
-#   check_fixture_harness, check_close_gate_076, check_wat_roundtrip,
+#   check_fixture_harness, check_t3_wasm_validate, check_wat_roundtrip,
 #   check_component_interop_wasmtime, check_selfhost_cli_parity,
-#   check_selfhost_fixpoint
+#   check_selfhost_diag_parity, check_selfhost_fixpoint
 
 [contract_audit]
 component_emit_tier = "smoke"

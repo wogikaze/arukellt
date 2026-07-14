@@ -6,14 +6,14 @@
 ## Current Snapshot
 
 - **Release readiness: NOT READY**
-- Failing release checks: 6
-- Distinct incidents: 6
-- Updated: 2026-07-11
+- Failing release checks: 7
+- Distinct incidents: 7
+- Updated: 2026-07-14
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `component_cli`=`provisional` — Living path may still use wasm-tools / Python wrap helpers for some packaging steps ([axes](data/component-availability.md))
-- Fixture harness: 796 passed, 367 failed, 417 skipped (observed harness: 1580); registry: 2693 manifest entries
-- Verification: `python3 scripts/manager.py verify quick` — 175/176 checks pass
+- Fixture harness: 804 passed, 367 failed, 417 skipped (observed harness: 1588); registry: 2693 manifest entries
+- Verification: `python3 scripts/manager.py verify quick` — 164/165 checks pass
 - Stdlib manifest-backed public API: 754 functions
 
 - [Current state](current-state.md)
