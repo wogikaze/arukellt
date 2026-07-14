@@ -5,7 +5,7 @@ pub fn init_list_templates() {
     stdio::println(String_from("minimal    - Minimal Hello World project (default)"))
     stdio::println(String_from("cli        - CLI tool with argument parsing"))
     stdio::println(String_from("with-tests - Project with test functions"))
-    stdio::println(String_from("wasi-host  - WASI host API usage example (wasm32-wasi-p2)"))
+    stdio::println(String_from("wasi-host  - WASI host API usage example (wasm32-gc)"))
 }
 
 pub fn init_template_is_valid(name: String) -> bool {
@@ -50,7 +50,7 @@ pub fn init_template_main_ark(template: String) -> String {
         return source
     }
     if eq(clone(template), String_from("wasi-host")) {
-        let mut source = String_from("// Build with: arukellt run --target wasm32-wasi-p2 main.ark\n")
+        let mut source = String_from("// Build with: arukellt run --target wasm32-gc main.ark\n")
         source = text::builder_append(source, String_from("use std::host::stdio\n\nfn main() {\n"))
         source = text::builder_append(source, String_from("    stdio::println(String_from(\"Fetching example.com...\"))\n"))
         source = text::builder_append(source, String_from("    // Uncomment after enabling std::host::http:\n    // use std::host::http\n"))
@@ -70,7 +70,7 @@ pub fn init_template_ark_toml(project_name: String, template: String) -> String 
     out = text::builder_append(out, clone(project_name))
     out = text::builder_append(out, String_from("\"\npath = \"main.ark\"\n"))
     if eq(clone(template), String_from("wasi-host")) {
-        out = text::builder_append(out, String_from("target = \"wasm32-wasi-p2\"\n"))
+        out = text::builder_append(out, String_from("target = \"wasm32-gc\"\n"))
     }
     out
 }
@@ -86,7 +86,7 @@ pub fn init_template_print_next_steps(project_name: String, template: String) {
         stdio::eprintln(String_from("  arukellt test main.ark         # run tests"))
     }
     if eq(clone(template), String_from("wasi-host")) {
-        stdio::eprintln(String_from("  arukellt check --target wasm32-wasi-p2 main.ark"))
+        stdio::eprintln(String_from("  arukellt check --target wasm32-gc main.ark"))
     }
 }
 test mod "init_templates" {

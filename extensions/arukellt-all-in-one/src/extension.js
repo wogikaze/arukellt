@@ -5,6 +5,7 @@ const path = require('path')
 const fs = require('fs')
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node')
 const { createOpsSurfaces } = require('./ops-surfaces')
+const TARGET_CONTRACT = require('./target-contract.generated')
 
 let client = null
 let opsSurfaces = null
@@ -440,7 +441,7 @@ function runCliCommand(kind) {
   }
 
   const config = vscode.workspace.getConfiguration('arukellt', editor.document.uri)
-  const target = config.get('target', 'wasm32-wasi-p1')
+  const target = config.get('target', TARGET_CONTRACT.defaultTarget)
   const emit = config.get('emit', 'core-wasm')
 
   const { command } = resolveServerCommand()
@@ -543,7 +544,7 @@ function resolveActiveArkFile() {
 
 /**
  * arukellt.buildComponent
- * Compiles the current .ark file as a component (--target wasm32-wasi-p2 --emit all),
+ * Compiles the current .ark file as a component using the canonical component target,
  * shows output paths and sizes in the compiler output channel, and pushes diagnostics.
  */
 async function buildComponent() {
@@ -552,7 +553,7 @@ async function buildComponent() {
   const { file, uri } = resolved
 
   const { command } = resolveServerCommand()
-  const args = ['compile', file, '--target', 'wasm32-wasi-p2', '--emit', 'all']
+  const args = ['compile', file, '--target', TARGET_CONTRACT.componentTarget, '--emit', 'all']
 
   compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
   compilerChannel.show()
@@ -606,7 +607,7 @@ async function buildComponentWit() {
   const { file, uri } = resolved
 
   const { command } = resolveServerCommand()
-  const args = ['compile', file, '--target', 'wasm32-wasi-p2', '--emit', 'wit']
+  const args = ['compile', file, '--target', TARGET_CONTRACT.componentTarget, '--emit', 'wit']
 
   compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
   compilerChannel.show()
@@ -640,7 +641,7 @@ async function buildComponentWit() {
 
 /**
  * arukellt.runComponent
- * Runs the current .ark file as a component (--target wasm32-wasi-p2).
+ * Runs the current .ark file using the canonical component target.
  * Stderr is parsed for diagnostics; stdout/stderr are streamed to the compiler channel.
  */
 async function runComponent() {
@@ -649,7 +650,7 @@ async function runComponent() {
   const { file, uri } = resolved
 
   const { command } = resolveServerCommand()
-  const args = ['run', file, '--target', 'wasm32-wasi-p2']
+  const args = ['run', file, '--target', TARGET_CONTRACT.componentTarget]
 
   compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
   compilerChannel.show()
@@ -666,7 +667,7 @@ async function runComponent() {
     child.on('close', (code) => {
       const diagMap = parseStderrDiagnostics(stderr)
       applyDiagnostics(diagMap, uri)
-      compilerChannel.appendLine(`arukellt run --target wasm32-wasi-p2 exited with code ${code}`)
+      compilerChannel.appendLine(`arukellt run --target ${TARGET_CONTRACT.componentTarget} exited with code ${code}`)
       resolve()
     })
   })
@@ -955,7 +956,7 @@ function registerTaskProvider(context) {
         const folderConfig = scope.uri
           ? vscode.workspace.getConfiguration('arukellt', scope.uri)
           : getConfiguration()
-        const target = folderConfig.get('target', 'wasm32-wasi-p1')
+        const target = folderConfig.get('target', TARGET_CONTRACT.defaultTarget)
         const prefix = folders.length > 1 && scope.name ? `${scope.name}: ` : ''
 
         for (const def of definitions) {
@@ -1031,7 +1032,7 @@ function detectProjects() {
     projects.push({
       folder,
       hasManifest,
-      target: config.get('target', 'wasm32-wasi-p1'),
+      target: config.get('target', TARGET_CONTRACT.defaultTarget),
       emit: config.get('emit', 'core-wasm'),
     })
   }
@@ -1284,7 +1285,7 @@ class ProjectTreeProvider {
   _loadProjectData() {
     this._modules = []
     this._scripts = []
-    this._targets = ['wasm32-wasi-p1', 'wasm32-wasi-p2']
+    this._targets = [...TARGET_CONTRACT.canonicalTargets]
     this._projects = []
 
     const folders = vscode.workspace.workspaceFolders

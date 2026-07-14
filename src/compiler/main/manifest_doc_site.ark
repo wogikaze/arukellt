@@ -27,13 +27,13 @@ fn doc_site_signature(e: manifest_doc_record::DocFnEntry) -> String {
 
 fn doc_site_target_badge(e: manifest_doc_record::DocFnEntry) -> String {
     if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 && manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
-        return String_from("T1 + T3")
+        return String_from("wasm32 + wasm32-gc")
     }
     if manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
-        return String_from("T3")
+        return String_from("wasm32-gc")
     }
     if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 {
-        return String_from("T1")
+        return String_from("wasm32")
     }
     String_from("target-gated")
 }

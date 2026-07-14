@@ -5,11 +5,11 @@ use main::manifest_doc_lookup
 use main::manifest_doc_record
 
 fn doc_target_is_p1(target: String) -> bool {
-    contains(clone(target), String_from("wasm32-wasi-p1"))
+    eq(clone(target), String_from("wasm32"))
 }
 
 fn doc_target_is_p2(target: String) -> bool {
-    contains(clone(target), String_from("wasm32-wasi-p2"))
+    eq(clone(target), String_from("wasm32-gc"))
 }
 
 fn doc_target_warning(e: manifest_doc_record::DocFnEntry, filter_target: String) -> String {
@@ -58,10 +58,10 @@ pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: Str
         stdio::println(concat(String_from("  Supported on: "), tgt))
     } else {
         if manifest_doc_record::DocFnEntry_avail_t1(e) == 1 && manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
-            stdio::println(String_from("  Supported on: wasm32-wasi-p1, wasm32-wasi-p2"))
+            stdio::println(String_from("  Supported on: wasm32, wasm32-gc"))
         } else {
             if manifest_doc_record::DocFnEntry_avail_t3(e) == 1 {
-                stdio::println(String_from("  Supported on: wasm32-wasi-p2"))
+                stdio::println(String_from("  Supported on: wasm32-gc"))
             }
         }
     }
