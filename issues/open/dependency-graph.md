@@ -48,7 +48,7 @@ graph LR
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
-  I796["796 796 — CQ-16: duplicated knowledge and SSOT consolidation"]
+  I797["797 797 — CQ-17: public API and comment audit"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
@@ -60,7 +60,6 @@ graph LR
   I668["668 668 — P2 native component polish (post-#074)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
-  I797["797 797 — CQ-17: public API and comment audit"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I729["729 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration"]
@@ -83,7 +82,6 @@ graph LR
   I714 --> I727
   I675 --> I727
   I724 --> I726
-  I796 --> I797
   I682 --> I683
   I691 --> I709
   I695 --> I709
@@ -150,7 +148,7 @@ graph LR
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: none
-- **796** depends on: 795; blocks: 797
+- **797** depends on: 796; blocks: none
 - **798** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
@@ -162,7 +160,6 @@ graph LR
 - **668** depends on: 074, 510, 714; blocks: none
 - **727** depends on: 714, 675; blocks: 729
 - **726** depends on: 724; blocks: 730
-- **797** depends on: 796; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **729** depends on: 724, 727; blocks: none

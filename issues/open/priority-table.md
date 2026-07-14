@@ -70,7 +70,6 @@ Scoring criteria (0-5 each, total 25):
 | 57 | 684 | 684 — False-done and limited-scope done issue re-audit program | docs-audit | 0 | 0 | 1 | 2 | 3 | 6 |
 | 58 | 702 | 702 — Integrate `to_string` / `clone` / `hash` builtins int... | stdlib-api | 0 | 0 | 1 | 3 | 2 | 6 |
 | 59 | 791 | 791 — Eliminate the Ark canonical parser baseline | tooling-contract | 0 | 0 | 1 | 1 | 4 | 6 |
-| 60 | 796 | 796 — CQ-16: duplicated knowledge and SSOT consolidation | code-quality | 1 | 0 | 1 | 1 | 3 | 6 |
-| 61 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
-| 62 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
-| 63 | 798 | 798 — ADR-042 semantic operation registry migration | architecture | 0 | 0 | 1 | 1 | 3 | 5 |
+| 60 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
+| 61 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 62 | 798 | 798 — ADR-042 semantic operation registry migration | architecture | 0 | 0 | 1 | 1 | 3 | 5 |
