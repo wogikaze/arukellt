@@ -117,6 +117,8 @@ for the canonical order and downstream work.
 
 ## Validation commands
 
+- `python3 scripts/check/check-core-ops.py`
+- `python3 scripts/check/check-core-ops.py --strict`
 - `python3 scripts/manager.py docs regenerate`
 - `python3 scripts/manager.py docs check`
 - `python3 scripts/manager.py quality structure`
@@ -126,14 +128,22 @@ for the canonical order and downstream work.
 
 ## Completion evidence
 
-Not started. ADR-042 is PROPOSED and #729 is blocked, so implementation is
-blocked by design.
+Design scaffold and structural checker implemented:
+
+- `data/core-ops.toml` schema_version = 4 with `visibility` / `classification` / `binding` axes
+- `TypeExpr` grammar, manifest type-string parser, `core_op_id` / `type_id` references
+- `scripts/check/check-core-ops.py` (structural + manifest-semantic layer) PASS
+
+Compiler consumption, complete operation mapping, shadow dispatch, compiler-aware
+validator, and `FunctionId` dispatch cutover have not started. ADR-042 is PROPOSED
+and #729 is blocked, so implementation is blocked by design.
 
 ## Primary artifacts
 
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
 - `data/core-ops.toml`
 - `std/manifest.toml`
+- `scripts/check/check-core-ops.py`
 - `src/compiler/resolver/`
 - `src/compiler/typechecker/`
 - `src/compiler/mir/`

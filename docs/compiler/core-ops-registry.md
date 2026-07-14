@@ -188,10 +188,24 @@ Empty `constraints = []` is allowed for non-generic operations.
 | `internal` | `required` | Invalid (internal operations have no manifest binding). |
 | `internal` | `optional` | Invalid unless a clear use case is documented. |
 
+### Validation layers
+
+Validation is split into three layers. `data/core-ops.toml` and
+`scripts/check/check-core-ops.py` cover the first layer. The second and third
+layers require compiler or runtime support and are documented as requirements
+for `check-core-ops.py --production-readiness`.
+
+| Layer | Owner | Scope |
+|-------|-------|-------|
+| Python schema checker | `scripts/check/check-core-ops.py` | TOML structure, ID uniqueness, `TypeExpr` arity and manifest parse, binding policy, public reference, lowering payload closure, specialization static overlap |
+| Compiler-aware validator | compiler (future) | fallback symbol resolution, call graph and cycles, Ark signature compatibility, effect/lowering consistency, target handler registry lookup |
+| Differential test | runtime / test harness (future) | fallback vs specialized lowering produce equivalent observable results and side effects |
+
 ### Validation
 
-`[validation]` lists the checks the generator/checker runs. Each checker is
-conditional on `visibility`, `classification`, and `binding`:
+`[validation]` lists the invariant checks the Python schema checker runs. These
+are not user-configurable toggles; the checker always runs them and the file
+must contain all required keys set to `true`.
 
 - `check_unreferenced_required_bindings` — `visibility = "public"` かつ
   `binding.policy = "required"` の operation が `std/manifest.toml` から `core_op_id` で参照される。
@@ -205,9 +219,9 @@ conditional on `visibility`, `classification`, and `binding`:
   無効な組合せを検出する。
 - `check_fallback_resolvable` — `fallback.required = true` な operation に
   `fallback.implementation_symbol` が設定されている。`example.invalid.*` 接頭辞は解決できない。
-- `check_fallback_no_cycle` — fallback 呼び出しグラフに閉路がない。
+- `check_fallback_no_cycle` — fallback 呼び出しグラフに閉路がない（compiler-aware validator）。
 - `check_fallback_signature_compat` — fallback のシグネチャが CoreOp の signature と
-  互換である。
+  互換である（compiler-aware validator）。
 - `check_specialization_ambiguity` — 同じ target configuration に対して最も高い priority の
   specialization が一意である。`when` 内の key は閉じた集合（`backend`, `target_family`,
   `portable_simd_lowering`, `wasm_raw_v128`, `wasm_relaxed_simd`）に限定する。
@@ -218,10 +232,21 @@ conditional on `visibility`, `classification`, and `binding`:
 次を満たす:
 
 - `example.invalid.*` fallback シンボルが 0 件である
-- 全 `required` fallback が解決可能
+- `python3 scripts/check/check-core-ops.py --strict` が PASS
+- compiler-aware validator により全 `required` fallback が解決可能
 - `std/manifest.toml` の全 `core_op_id` / `type_id` 参照が有効
-- 上記 checker が PASS
 - compiler が `CoreOpRegistry` を消費する
+- `python3 scripts/check/check-core-ops.py --production-readiness` が PASS
+
+### Checker commands
+
+- `python3 scripts/check/check-core-ops.py` — structural + manifest-semantic check
+  (allows `example.invalid.*` placeholders when `status = "scaffold"`).
+- `python3 scripts/check/check-core-ops.py --strict` — structural + manifest-semantic check
+  that rejects `example.invalid.*` placeholders.
+- `python3 scripts/check/check-core-ops.py --production-readiness` — strict check plus
+  `status = "production"` gate and explicit acknowledgement that compiler-aware
+  validator receipts are still required.
 
 ## Status
 
