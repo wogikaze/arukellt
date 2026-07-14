@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T05:04:31Z",
+  "generated_at": "2026-07-14T06:09:51Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -855,6 +855,25 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "ADR-042 acceptance"
+      }
+    },
+    {
+      "id": "799",
+      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
+      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "797"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "in-progress",
+        "upstream_notes": 797
       }
     },
     {

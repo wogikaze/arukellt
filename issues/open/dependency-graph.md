@@ -49,6 +49,7 @@ graph LR
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
+  I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
@@ -148,6 +149,7 @@ graph LR
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: none
 - **798** depends on: none; blocks: none
+- **799** depends on: 797; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none

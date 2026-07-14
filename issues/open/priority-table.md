@@ -72,3 +72,4 @@ Scoring criteria (0-5 each, total 25):
 | 59 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
 | 60 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
 | 61 | 798 | 798 — ADR-042 semantic operation registry migration | architecture | 0 | 0 | 1 | 1 | 3 | 5 |
+| 62 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 1 | 1 | 3 | 5 |

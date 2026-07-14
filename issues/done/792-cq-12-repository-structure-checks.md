@@ -5,7 +5,7 @@ Updated: 2026-07-14
 ID: 792
 Track: tooling-contract
 Depends on: "782, 790"
-Orchestration class: ready
+Orchestration class: completed
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1

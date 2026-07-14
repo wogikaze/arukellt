@@ -5,7 +5,7 @@ Updated: 2026-07-13
 ID: 788
 Track: tooling-contract
 Depends on: "782"
-Orchestration class: ready
+Orchestration class: completed
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
