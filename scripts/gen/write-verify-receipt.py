@@ -589,8 +589,25 @@ class ReceiptWriter:
                         RESULT_FAIL,
                         "component-interop",
                     )
-            elif "\u2299 component interop" in line or "skipped" in line.lower():
+            elif "\u2299 component interop" in line:
+                # Real skip: "⊙ component interop (wasmtime not found) (skipped)"
                 skip_count += 1
+                detail = ""
+                if "wasmtime not found" in line:
+                    item_id = "wasmtime-not-found"
+                    detail = "wasmtime not found"
+                elif "scripts not found" in line:
+                    item_id = "scripts-not-found"
+                    detail = "component interop scripts not found"
+                else:
+                    item_id = "component-interop"
+                self._add_item(
+                    "component_interop",
+                    item_id,
+                    RESULT_SKIP,
+                    "component-interop",
+                    detail,
+                )
 
         check.pass_count = pass_count
         check.fail_count = fail_count
