@@ -60,9 +60,8 @@ test mod "clone" {
 """,
     "std/core/default.ark": """
 test mod "default_docs" {
-    test "trait_exists" { assert(1 == 1) }
-    test "i32_zero_literal" { assert(0 == 0) }
-    test "bool_false_literal" { assert(false == false) }
+    test "i32_default" { let x: i32 = Default_default(); assert(x == 0) }
+    test "bool_default" { let b: bool = Default_default(); assert(b == false) }
 }
 """,
     "std/core/error.ark": """use std::test
@@ -122,7 +121,7 @@ test mod "deque" {
 """,
     "std/collections/ordered.ark": """
 test mod "ordered_map_probe" {
-    test "sanity" { assert(1 == 1) }
+    test "empty" { assert(ordered_is_empty(ordered_new())) }
 }
 """,
     "std/collections/hash.ark": """
@@ -142,7 +141,7 @@ test mod "hashmap" {
 """,
     "std/collections/compiler.ark": """
 test mod "collections_compiler" {
-    test "sanity" { assert(1 == 1) }
+    test "vec_from_iter" { let v = vec_from_iter([1, 2, 3]); assert(vec_len(v) == 3) }
 }
 """,
     "std/bytes/mod.ark": """
@@ -221,12 +220,12 @@ test mod "load_state" {
 """,
     "src/compiler/main/doc_usage.ark": """
 test mod "doc_usage" {
-    test "sanity" { assert(1 == 1) }
+    test "extract_section" { assert(len(extract_doc_section("# Title\\nbody", "Title")) > 0) }
 }
 """,
     "src/compiler/main/init_templates.ark": """
 test mod "init_templates" {
-    test "sanity" { assert(1 == 1) }
+    test "template_has_main" { assert(contains(init_template("app"), "fn main")) }
 }
 """,
 }

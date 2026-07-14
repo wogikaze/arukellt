@@ -69,6 +69,32 @@ class TrivialTestsTest(unittest.TestCase):
         findings = trivial_tests.find_trivial_tests(p)
         self.assertEqual(findings, [])
 
+    def test_detect_multiline_trivial_assert(self) -> None:
+        """Multi-line test block with trivial assert must be detected."""
+        p = self._write("bad.ark", 'test "x" {\n    assert(true)\n}\n')
+        findings = trivial_tests.find_trivial_tests(p)
+        self.assertTrue(len(findings) > 0)
+        self.assertTrue(any("assert(true)" in f for f in findings))
+
+    def test_detect_multiline_assert_1_eq_1(self) -> None:
+        """Multi-line test block with assert(1 == 1) must be detected."""
+        p = self._write("bad.ark", 'test "trait_exists" {\n    assert(1 == 1)\n}\n')
+        findings = trivial_tests.find_trivial_tests(p)
+        self.assertTrue(len(findings) > 0)
+        self.assertTrue(any("assert(1 == 1)" in f for f in findings))
+
+    def test_no_false_positive_n_eq_0(self) -> None:
+        """assert(n == 0) where n is a variable must NOT be flagged as trivial."""
+        p = self._write("good.ark", 'test "default" {\n    let n: i32 = Default_default()\n    assert(n == 0)\n}\n')
+        findings = trivial_tests.find_trivial_tests(p)
+        self.assertEqual(findings, [])
+
+    def test_detect_self_comparison(self) -> None:
+        """assert(x == x) self-comparison must be detected."""
+        p = self._write("bad.ark", 'test "self" {\n    let x = 5\n    assert(x == x)\n}\n')
+        findings = trivial_tests.find_trivial_tests(p)
+        self.assertTrue(len(findings) > 0)
+
 
 if __name__ == "__main__":
     unittest.main()

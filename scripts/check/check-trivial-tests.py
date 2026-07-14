@@ -9,6 +9,9 @@ Detects:
 - assert(x == x) equivalent (self-comparison)
 - assert(true), assert(1 == 1), assert(0 == 0), assert(false == false)
 
+Parses test blocks (test "name" { ... }) and checks all assert statements
+within each block, including multi-line blocks.
+
 Usage:
     check-trivial-tests.py [--root <path>]
 
@@ -26,14 +29,22 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # Patterns that indicate trivial/dummy tests
 PROBE_NAME_RE = re.compile(r'test\s+"probe_\d+"')
 SANITY_NAME_RE = re.compile(r'test\s+"sanity"')
+
+# Trivial assert patterns — these match any assert that is always true
 TRIVIAL_ASSERT_RES = [
-    re.compile(r'assert\(\s*\d+\s*>=\s*0\s*\)'),
-    re.compile(r'assert\(\s*true\s*\)'),
-    re.compile(r'assert\(\s*1\s*==\s*1\s*\)'),
-    re.compile(r'assert\(\s*0\s*==\s*0\s*\)'),
-    re.compile(r'assert\(\s*false\s*==\s*false\s*\)'),
-    re.compile(r'assert\(\s*\d+\s*==\s*\d+\s*\)'),
+    re.compile(r'assert\(\s*\d+\s*>=\s*0\s*\)'),          # assert(N >= 0) for literal N
+    re.compile(r'assert\(\s*true\s*\)'),                    # assert(true)
+    re.compile(r'assert\(\s*1\s*==\s*1\s*\)'),              # assert(1 == 1)
+    re.compile(r'assert\(\s*0\s*==\s*0\s*\)'),              # assert(0 == 0)
+    re.compile(r'assert\(\s*false\s*==\s*false\s*\)'),      # assert(false == false)
+    re.compile(r'assert\(\s*\d+\s*==\s*\d+\s*\)'),          # assert(N == N) for same literal N
 ]
+
+# Self-comparison pattern: assert(x == x) where both sides are the same identifier
+SELF_CMP_RE = re.compile(r'assert\(\s*(\w+)\s*==\s*\1\s*\)')
+
+# Test block pattern: test "name" { ... }
+TEST_BLOCK_START_RE = re.compile(r'test\s+"([^"]+)"\s*\{')
 
 # Directories to scan
 SCAN_DIRS = [
@@ -48,53 +59,84 @@ EXCLUDE_FILES = {
 }
 
 
+def extract_test_blocks(text: str) -> list[tuple[str, int, str]]:
+    """Extract test blocks from text.
+
+    Returns list of (test_name, start_line, body_text).
+    Handles both single-line and multi-line test blocks.
+    """
+    blocks = []
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = TEST_BLOCK_START_RE.search(line)
+        if m:
+            test_name = m.group(1)
+            start_line = i + 1
+            # Find the closing brace
+            body_lines = []
+            brace_depth = line.count("{") - line.count("}")
+            j = i
+            while j < len(lines):
+                if j > i:
+                    brace_depth += lines[j].count("{") - lines[j].count("}")
+                body_lines.append(lines[j])
+                if brace_depth <= 0:
+                    break
+                j += 1
+            body_text = "\n".join(body_lines)
+            blocks.append((test_name, start_line, body_text))
+            i = j + 1
+        else:
+            i += 1
+    return blocks
+
+
+def is_trivial_assert(line: str) -> bool:
+    """Check if a line contains a trivial assert."""
+    for pattern in TRIVIAL_ASSERT_RES:
+        if pattern.search(line):
+            return True
+    # Check for self-comparison: assert(x == x)
+    if SELF_CMP_RE.search(line):
+        return True
+    return False
+
+
 def find_trivial_tests(path: Path) -> list[str]:
     """Return list of findings for trivial tests in the given file."""
     findings = []
     text = path.read_text(encoding="utf-8")
-    lines = text.splitlines()
 
-    for i, line in enumerate(lines, 1):
-        stripped = line.strip()
+    blocks = extract_test_blocks(text)
 
+    for test_name, start_line, body_text in blocks:
         # Check for probe_N test names
-        if PROBE_NAME_RE.search(stripped):
-            findings.append(f"{path}:{i}: TRIVIAL_TEST: probe_N pattern: {stripped}")
+        if PROBE_NAME_RE.search(f'test "{test_name}"'):
+            findings.append(f"{path}:{start_line}: TRIVIAL_TEST: probe_N pattern: test \"{test_name}\"")
             continue
 
-        # Check for sanity test with trivial body
-        if SANITY_NAME_RE.search(stripped):
-            # Look at the next few lines for the body
-            body = []
-            for j in range(i, min(i + 5, len(lines))):
-                body.append(lines[j].strip())
-                if "}" in lines[j]:
-                    break
-            body_text = " ".join(body)
-            # Check if body contains only trivial asserts
-            has_real_assert = False
-            for pattern in TRIVIAL_ASSERT_RES:
-                if pattern.search(body_text):
-                    has_real_assert = True
-                    break
-            # If the body is just assert(1 == 1) or similar
-            if has_real_assert or "assert(1 + 1 == 2)" not in body_text:
-                # Check specifically for trivial patterns
-                is_trivial = False
-                for pattern in TRIVIAL_ASSERT_RES:
-                    if pattern.search(body_text):
-                        is_trivial = True
-                        break
-                if is_trivial:
-                    findings.append(f"{path}:{i}: TRIVIAL_TEST: sanity with trivial assert: {stripped}")
+        # Check for sanity test name
+        is_sanity = SANITY_NAME_RE.search(f'test "{test_name}"') is not None
 
-        # Check for trivial assert patterns on any test line
-        for pattern in TRIVIAL_ASSERT_RES:
-            if pattern.search(stripped):
-                # Only flag if inside a test block (heuristic: line is indented)
-                if stripped.startswith("test ") or "test " in stripped:
-                    findings.append(f"{path}:{i}: TRIVIAL_ASSERT: {stripped}")
-                    break
+        # Check all lines in the body for trivial asserts
+        body_lines = body_text.splitlines()
+        trivial_count = 0
+        total_asserts = 0
+        for body_line in body_lines:
+            stripped = body_line.strip()
+            if "assert(" not in stripped:
+                continue
+            total_asserts += 1
+            if is_trivial_assert(stripped):
+                trivial_count += 1
+                findings.append(f"{path}:{start_line}: TRIVIAL_ASSERT in test \"{test_name}\": {stripped}")
+
+        # If sanity test and all asserts are trivial, flag it
+        if is_sanity and total_asserts > 0 and trivial_count == total_asserts:
+            if not any("TRIVIAL_TEST: sanity" in f for f in findings if f"{path}:{start_line}:" in f):
+                findings.append(f"{path}:{start_line}: TRIVIAL_TEST: sanity with only trivial asserts")
 
     return findings
 
