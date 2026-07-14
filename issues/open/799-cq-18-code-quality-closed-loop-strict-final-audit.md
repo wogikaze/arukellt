@@ -90,18 +90,23 @@ must be resolved before re-close:
    - B API: all 36 required, 36 actual (OK)
    - C API: 20 required, 5 actual
    Must redo with required counts and deterministic selection.
-3. **Unresolved failure owners are invalid**: `verify full` failures were
-   assigned to done issues (#287, #459, #529) or labeled `known`/`various`/
-   `dynamic` without a tracking issue. Each failure category needs an open
-   owner issue with: exact scope, machine-readable baseline, owner, removal
-   condition, validation command, current count, new-failure ratchet.
-4. **Issue ID #686 duplicated**: Two files share ID 686 in `issues/open/`.
-   `check-issue-health.py` does not detect cross-file duplicates. Must fix
-   checker, assign unique ID, update dependencies/index.
-5. **core-ops.toml ownership contradiction**: See #796 blocking finding 1.
+3. **~~Unresolved failure owners are invalid~~** (RESOLVED): `verify full`
+   failures were assigned to done issues (#287, #459, #529) or labeled
+   `known`/`various`/`dynamic` without a tracking issue. Created 9 open
+   remediation issues #807-#815, each with exact scope, machine-readable
+   baseline, owner, removal condition, validation command, current count,
+   and new-failure ratchet.
+4. **~~Issue ID #686 duplicated~~** (RESOLVED): `check-issue-health.py` now
+   detects duplicate IDs within and across directories, filename/frontmatter
+   ID mismatch. `686-gc-rebuild-plan.md` renumbered to #801. Legacy duplicates
+   (#001, #486, #487, #575) renumbered to #802-#806. Unit tests added.
+5. **~~core-ops.toml ownership contradiction~~** (RESOLVED): See #796 blocking
+   finding 1. `directory-ownership.md` corrected.
 6. **CQ-17 target documentation incomplete**: See #797 blocking finding 1.
-7. **generated-file registration claim inaccurate**: See #796 blocking
-   finding 3.
+   (PARTIALLY RESOLVED: overview.html, std/host fixed; #797 tracks remaining.)
+7. **~~generated-file registration claim inaccurate~~** (RESOLVED): See #796
+   blocking finding 3. Completion evidence corrected, `.generated-files`
+   scope clarified.
 8. **current-state.md snapshot stale**: `Generated-At: 2026-07-11`,
    `Implementation-Commit: a80b4181` does not match verified commit. Must
    regenerate after all fixes.

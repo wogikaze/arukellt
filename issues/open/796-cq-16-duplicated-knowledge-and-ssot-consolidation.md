@@ -57,33 +57,28 @@ dependency ADR, acceptance, and rollback boundary in #798.
 
 - [x] Every listed knowledge category has a recorded disposition under the corrected accepted-contract scope
 - [x] Same-knowledge duplication in accepted contracts has one owner
-- [ ] Compatibility aliases are separated from canonical representation
-- [ ] Derived views have deterministic generation and drift checks
-- [ ] Existing registries are reused and local knowledge remains local
+- [x] Compatibility aliases are separated from canonical representation
+- [x] Derived views have deterministic generation and drift checks
+- [x] Existing registries are reused and local knowledge remains local
 - [ ] Code, tests, docs, and generated views are synchronized
-- [ ] Before/after owner inventory is recorded below
+- [x] Before/after owner inventory is recorded below
 
 ## Reopened blocking findings (2026-07-14 CQ-18 audit)
 
-1. **core-ops.toml ownership contradiction**: Three documents disagree:
-   - `docs/data/core-ops.toml`: `status = "scaffold"`
-   - `docs/current-state.md`: current owner is manifest + compiler-local registration
-   - `docs/directory-ownership.md`: `core-ops.toml = product (SSOT input)`
-   While ADR-042 is PROPOSED, `core-ops.toml` must NOT be described as
-   `product (SSOT input)` or current compiler SSOT. `directory-ownership.md`
-   must be corrected to: future semantic registry scaffold, hand-maintained
-   proposal input, not consumed authoritatively by compiler, migration
-   owner: #798.
+1. **~~core-ops.toml ownership contradiction~~** (RESOLVED): `directory-ownership.md`
+   corrected from `product (SSOT input)` to `internal (proposal scaffold)` with
+   description noting ADR-042 PROPOSED status, not consumed by compiler, migration
+   owner: #798. `current-state.md` and `core-ops-registry.md` were already correct.
 2. **CQ-17 target documentation incomplete**: Active/user-facing surfaces
    still contain old target names as current spec (see #797 blocking
    findings). CQ-16 Acceptance "code, tests, docs, and generated views are
    synchronized" is not met while active docs show deprecated names as
-   canonical.
-3. **generated-file registration claim is inaccurate**: Completion evidence
-   states all 4 target views are registered in `.generated-files`, but only
-   2 are registered. Partial-generation files (`target-contract-summary.md`,
-   `current-state.md` target section) are not in the manifest. Either extend
-   the schema or correct the claim.
+   canonical. (PARTIALLY RESOLVED: overview.html, std/host fixed; #797
+   tracks remaining surface audit.)
+3. **~~generated-file registration claim inaccurate~~** (RESOLVED): Completion
+   evidence corrected to distinguish whole-file generation (registered in
+   `.generated-files`) from partial generation (tracked by drift checks).
+   `.generated-files` header updated with scope clarification.
 
 ## Validation commands
 
@@ -123,10 +118,14 @@ target migration then changed ownership as follows:
 | extension legacy-only enum/default and literal component args | canonical enum plus generated `target-contract.generated.js` |
 | `core-ops.toml` described as present compiler SSOT | explicit `status = "scaffold"`; current owners documented, migration isolated in #798 |
 
-Generated views are `main/target_contract_generated.ark`, the extension target
-contract, and target summary/docs. They are registered in `.generated-files`;
-`generate-docs.py --check`, structure checks, and `test_target_contract.py`
-reject source/view drift and duplicate/invalid aliases. Compiler operational
+Generated views are `main/target_contract_generated.ark` and the extension
+`target-contract.generated.js` (whole-file generation, registered in
+`.generated-files`). The target summary (`docs/data/target-contract-summary.md`)
+and the `docs/current-state.md` target section are PARTIAL generations
+(generated sections within hand-maintained files) and are NOT in
+`.generated-files`; their drift is tracked by `generate-docs.py --check`
+and structure checks. `test_target_contract.py` rejects source/view drift
+and duplicate/invalid aliases. Compiler operational
 source contains no old target spelling outside the generated alias contract.
 Allowed occurrences are the alias SSOT/views, compatibility tests, migration or
 historical documentation, changelog, and archived fixture/baseline evidence.

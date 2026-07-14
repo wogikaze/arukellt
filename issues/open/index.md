@@ -222,7 +222,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 728 | [728 — WIR / backend target IR for ADR-007 multi-target separation](728-wir-target-backend-ir.md) | compiler-internal | none | none | 0 checked / 5 open | design-ready | None | |
 | 760 | [ADR 台帳の規則追従 — research/plans 分離と supersession 整合](760-adr-registry-rule-compliance.md) | main | none | none | 0 checked / 0 open | — | — | |
 | 791 | [791 — Eliminate the Ark canonical parser baseline](791-formatter-parse-baseline-elimination.md) | tooling-contract | 785 | 800, 814 | 0 checked / 5 open | ready | None | |
-| 796 | [796 — CQ-16: duplicated knowledge and SSOT consolidation](796-cq-16-duplicated-knowledge-and-ssot-consolidation.md) | code-quality | 795 | 797 | 2 checked / 5 open | ready | None | |
+| 796 | [796 — CQ-16: duplicated knowledge and SSOT consolidation](796-cq-16-duplicated-knowledge-and-ssot-consolidation.md) | code-quality | 795 | 797 | 6 checked / 1 open | ready | None | |
 | 798 | [798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md) | architecture | none | none | 0 checked / 8 open | blocked | ADR-042 acceptance | |
 | 807 | [807 — Fixture parity: 367 remaining failures](807-fixture-parity-367-remaining-failures.md) | selfhost | 287, framework) | none | 0 checked / 0 open | ready | None | |
 | 809 | [809 — WAT roundtrip failure](809-wat-roundtrip-failure.md) | compiler | none | none | 0 checked / 0 open | ready | None | |
