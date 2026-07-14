@@ -4,8 +4,8 @@ Created: 2026-07-10
 Updated: 2026-07-15
 ID: 729
 Track: compiler-internal
-Depends on: "724, 727"
-Related: "718, 709, 798, 808, 816, 817, ADR-040, ADR-036, ADR-042"
+Depends on: "724"
+Related: "718, 709, 727, 798, 808, 816, 817, ADR-040, ADR-036, ADR-042"
 Orchestration class: blocked
 Orchestration upstream: ADR-042 acceptance
 Blocks v{N}: none
@@ -100,10 +100,9 @@ checklists belong in child issues and the plan document.
 - Depends on **#724** (ADR-040 Phase 5-7 remaining work) — the semantic
   spine must be complete before extending it with effect/inline/lowering
   policy.
-- Depends on **#727** (host bridge retirement + wasm-heap-grow-patcher
-  retirement) — `verify quick` must pass before intrinsic dispatch refactoring
-  begins. Host intrinsic removal is shared scope with the child migration
-  issues.
+- Related: **#727** (host bridge retirement) — runtime ABI / host bridge
+  migration is downstream of the registry work; host intrinsic removal is
+  shared scope with the child migration issues.
 - Related: **#798** — registry schema and `SignatureEntry` extension.
 - Related: **#808** — T3/Wasm validation failures (global `verify quick` blocker).
 - Related: **#816** — prelude compilation restoration (RFC dependency, out of scope).

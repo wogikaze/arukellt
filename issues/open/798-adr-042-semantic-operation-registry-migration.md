@@ -3,9 +3,10 @@ Status: open
 Created: 2026-07-14
 Updated: 2026-07-15
 ID: 798
+Parent: 729
 Track: architecture
-Depends on: "724, 727"
-Related: "729, 808, 816, 817, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
+Depends on: "724"
+Related: "727, 808, 816, 817, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
 Orchestration class: blocked
 Orchestration upstream: ADR-042 acceptance
 Blocks v{N}: none
@@ -30,10 +31,16 @@ from callee-string matching to `FunctionId` + `SignatureRegistry` lookup.
   stays in `data/core-ops.toml`; `SignatureEntry` does not duplicate it.
 - Replace `exposure` with three orthogonal fields:
   - `visibility` (`public` / `internal`)
-  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `normal_stdlib` / `target_raw`)
+  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `target_raw`)
   - `binding` (`policy` = `required` / `optional` / `forbidden`)
 - Define `TypeExpr` grammar for `signature.inputs` / `outputs` with `kind`
   discriminator (`ref`, `primitive`, `var`, `tuple`, `function`).
+- Define manifest type-string to `TypeExpr` conversion and generic arity validation.
+- Define `runtime_call` lowering as a discriminated union:
+  - `internal` (`symbol` + `abi_version`)
+  - `wit` (`package` + `interface` + `function` + `version`)
+  - `native` (`backend` + `symbol` + `abi_version`)
+- Define `target_id` as a backend-owned handler key.
 - Assign `CoreOpId` and `LoweringKind` to every builtin / intrinsic /
   runtime-ABI operation.
 - Add `core_op_id` / `type_id` references to `std/manifest.toml`.
@@ -56,6 +63,8 @@ from callee-string matching to `FunctionId` + `SignatureRegistry` lookup.
 - Do not migrate host ABI separation, stdlib inliner, or stdlib operations in
   this issue; those are separate child issues of #729.
 - Do not implement prelude restoration or sealed raw API; those are #816 and #817.
+- Do not fix #727; the runtime ABI / host bridge migration is downstream or
+  parallel work, not a prerequisite for the registry schema.
 - Do not fix #808; the global `verify quick` green gate is a pre-existing
   compiler problem and remains in #808. This issue may ratchet the T3 failure
   count but does not require it to be zero.
@@ -92,6 +101,7 @@ for the canonical order and downstream work.
       - unreferenced `required` public bindings (only when `visibility = "public"` and `binding.policy = "required"`)
       - public binding collisions
       - signature / effect / lowering / fallback / specialization inconsistencies
+      - invalid `visibility` + `binding` combinations
       - specialization ambiguity
 - [ ] Shadow dispatch mode shows 100% agreement between old string dispatch and
       new `SignatureRegistry` dispatch at `EffectiveLoweringDecision` level
@@ -102,6 +112,8 @@ for the canonical order and downstream work.
 - [ ] T3 validation failure count does not increase beyond #808 baseline
 - [ ] `python3 scripts/manager.py docs regenerate` and `python3 scripts/manager.py docs check` pass
 - [ ] `python3 scripts/manager.py quality structure` passes
+- [ ] `data/core-ops.toml` scaffold-exit criteria are met before `status` changes
+      from scaffold
 
 ## Validation commands
 

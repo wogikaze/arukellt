@@ -70,17 +70,17 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
+  I729["729 729 — Intrinsic layer separation (blocked epic)"]
+  I798["798 798 — ADR-042 semantic operation registry migration"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
-  I729["729 729 — Intrinsic layer separation (blocked epic)"]
-  I798["798 798 — ADR-042 semantic operation registry migration"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
-  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I816["816 816 — Prelude compilation restoration"]
   I817["817 817 — Sealed raw API module for Vec/String internal representation"]
+  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
@@ -104,6 +104,8 @@ graph LR
   I715 --> I719
   I715 --> I799
   I724 --> I726
+  I724 --> I729
+  I724 --> I798
   I791 --> I800
   I791 --> I814
   I682 --> I683
@@ -113,16 +115,12 @@ graph LR
   I695 --> I709
   I697 --> I709
   I703 --> I709
-  I724 --> I729
-  I727 --> I729
-  I724 --> I798
-  I727 --> I798
   I726 --> I730
+  I798 --> I816
+  I798 --> I817
   I691 --> I710
   I697 --> I710
   I709 --> I710
-  I798 --> I816
-  I798 --> I817
   I681 --> I711
   I709 --> I711
   I710 --> I711
@@ -196,21 +194,21 @@ graph LR
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **668** depends on: 074, 510, 714; blocks: none
-- **727** depends on: 714, 675; blocks: 729, 798
+- **727** depends on: 714, 675; blocks: none
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **726** depends on: 724; blocks: 730
+- **729** depends on: 724; blocks: none
+- **798** depends on: 724; blocks: 816, 817
 - **800** depends on: 791; blocks: none
 - **814** depends on: 791; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
-- **729** depends on: 724, 727; blocks: none
-- **798** depends on: 724, 727; blocks: 816, 817
 - **730** depends on: 726; blocks: none
-- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **816** depends on: 798; blocks: none
 - **817** depends on: 798; blocks: none
+- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none

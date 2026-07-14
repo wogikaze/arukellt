@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T20:19:34Z",
+  "generated_at": "2026-07-14T23:18:22Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1219,10 +1219,7 @@
         "714",
         "675"
       ],
-      "blocks_issue_ids": [
-        "729",
-        "798"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
@@ -1291,6 +1288,47 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation (blocked epic)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "ADR-042 acceptance"
+      }
+    },
+    {
+      "id": "798",
+      "path": "798-adr-042-semantic-operation-registry-migration.md",
+      "title": "798 — ADR-042 semantic operation registry migration",
+      "track": "architecture",
+      "status": "open",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [
+        "816",
+        "817"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "ADR-042 acceptance"
       }
     },
     {
@@ -1399,49 +1437,6 @@
       }
     },
     {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (blocked epic)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724",
-        "727"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
-      }
-    },
-    {
-      "id": "798",
-      "path": "798-adr-042-semantic-operation-registry-migration.md",
-      "title": "798 — ADR-042 semantic operation registry migration",
-      "track": "architecture",
-      "status": "open",
-      "depends_on": [
-        "724",
-        "727"
-      ],
-      "blocks_issue_ids": [
-        "816",
-        "817"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 14
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
-      }
-    },
-    {
       "id": "730",
       "path": "730-bootstrap-wasm-4gb-memory-limit.md",
       "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
@@ -1458,31 +1453,6 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "710",
-      "path": "710-stdlib-linear-collections-type-surface.md",
-      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "697",
-        "701",
-        "707",
-        "709"
-      ],
-      "blocks_issue_ids": [
-        "711"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {
@@ -1521,6 +1491,31 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "sealed-raw-api-rfc"
+      }
+    },
+    {
+      "id": "710",
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "697",
+        "701",
+        "707",
+        "709"
+      ],
+      "blocks_issue_ids": [
+        "711"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {

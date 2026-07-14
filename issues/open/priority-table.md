@@ -50,33 +50,33 @@ Scoring criteria (0-5 each, total 25):
 | 37 | 714 | 714 — Emitter-native WASI P2 component output without wrapper | component-model | 2 | 0 | 1 | 3 | 3 | 9 |
 | 38 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
 | 39 | 722 | Typed Function References (`call_ref`) ベンチマーク計測 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 40 | 727 | 727 — Retire `arukellt_host` custom host bridge; migrate HT... | wasi-feature | 2 | 0 | 1 | 3 | 3 | 9 |
-| 41 | 729 | 729 — Intrinsic layer separation (blocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 42 | 807 | 807 — Fixture parity: 367 remaining failures | selfhost | 0 | 0 | 1 | 5 | 3 | 9 |
-| 43 | 813 | 813 — Selfhost fixpoint not reached | selfhost | 0 | 0 | 1 | 5 | 3 | 9 |
-| 44 | 816 | 816 — Prelude compilation restoration | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 45 | 817 | 817 — Sealed raw API module for Vec/String internal represe... | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
-| 46 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 2 | 3 | 2 | 8 |
-| 47 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 1 | 0 | 1 | 3 | 3 | 8 |
-| 48 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 49 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
-| 50 | 705 | std::toml Full TOML 1.0 Compliance | stdlib | 0 | 0 | 1 | 3 | 4 | 8 |
-| 51 | 706 | std::wit Full WIT 1.0 Compliance | stdlib | 0 | 0 | 1 | 3 | 4 | 8 |
-| 52 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
-| 53 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
-| 54 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
-| 55 | 760 | ADR 台帳の規則追従 — research/plans 分離と supersession 整合 | main | 0 | 0 | 1 | 2 | 5 | 8 |
-| 56 | 791 | 791 — Eliminate the Ark canonical parser baseline | tooling-contract | 2 | 0 | 1 | 1 | 4 | 8 |
-| 57 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
-| 58 | 62 | 076-wasi-p2-filesystem | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
-| 59 | 675 | 675 — Host capability user-reachability and runtime permiss... | capability | 1 | 0 | 1 | 3 | 2 | 7 |
-| 60 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
-| 61 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
-| 62 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 63 | 696 | 696 — `Debug` trait and `format!` / `write!` formatting eco... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
-| 64 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 1 | 0 | 1 | 3 | 2 | 7 |
-| 65 | 704 | std::json Full JSON RFC 8259 Compliance | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
-| 66 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 40 | 729 | 729 — Intrinsic layer separation (blocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 41 | 807 | 807 — Fixture parity: 367 remaining failures | selfhost | 0 | 0 | 1 | 5 | 3 | 9 |
+| 42 | 813 | 813 — Selfhost fixpoint not reached | selfhost | 0 | 0 | 1 | 5 | 3 | 9 |
+| 43 | 816 | 816 — Prelude compilation restoration | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 44 | 817 | 817 — Sealed raw API module for Vec/String internal represe... | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 45 | 474 | Async component support (v5) | wasm-feature | 1 | 0 | 2 | 3 | 2 | 8 |
+| 46 | 667 | 667 — Library component routing: scalar emitter bypasses sp... | component-model | 1 | 0 | 1 | 3 | 3 | 8 |
+| 47 | 681 | 681 — Stdlib manifest reachability contract audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 48 | 682 | 682 — Component / WIT product-claim verification audit | docs-audit | 1 | 0 | 1 | 3 | 3 | 8 |
+| 49 | 705 | std::toml Full TOML 1.0 Compliance | stdlib | 0 | 0 | 1 | 3 | 4 | 8 |
+| 50 | 706 | std::wit Full WIT 1.0 Compliance | stdlib | 0 | 0 | 1 | 3 | 4 | 8 |
+| 51 | 711 | 711 — Rich stdlib reference docs with crates.io / docs.rs /... | stdlib-docs | 2 | 0 | 1 | 3 | 2 | 8 |
+| 52 | 712 | 712 — LLM code quality signal gates for readability and std... | tooling-contract | 1 | 0 | 1 | 3 | 3 | 8 |
+| 53 | 713 | 713 — Stdlib and Arukellt code best-practices doc pack | language-docs | 0 | 0 | 1 | 5 | 2 | 8 |
+| 54 | 760 | ADR 台帳の規則追従 — research/plans 分離と supersession 整合 | main | 0 | 0 | 1 | 2 | 5 | 8 |
+| 55 | 791 | 791 — Eliminate the Ark canonical parser baseline | tooling-contract | 2 | 0 | 1 | 1 | 4 | 8 |
+| 56 | 799 | 799 — CQ-18: code-quality closed-loop strict final audit | code-quality | 0 | 0 | 5 | 1 | 2 | 8 |
+| 57 | 62 | 076-wasi-p2-filesystem | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
+| 58 | 675 | 675 — Host capability user-reachability and runtime permiss... | capability | 1 | 0 | 1 | 3 | 2 | 7 |
+| 59 | 677 | 677 — Component developer experience (CLI, cookbooks, diagn... | cli | 0 | 0 | 1 | 3 | 3 | 7 |
+| 60 | 680 | 680 — Target tier honesty audit (stable / smoke / scaffold ... | docs-audit | 1 | 0 | 1 | 2 | 3 | 7 |
+| 61 | 693 | 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO u... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 62 | 696 | 696 — `Debug` trait and `format!` / `write!` formatting eco... | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 63 | 703 | 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046) | stdlib-api | 1 | 0 | 1 | 3 | 2 | 7 |
+| 64 | 704 | std::json Full JSON RFC 8259 Compliance | stdlib | 0 | 0 | 1 | 3 | 3 | 7 |
+| 65 | 708 | 708 — `TryFrom` / `TryInto` traits for fallible conversions | stdlib-api | 0 | 0 | 1 | 3 | 3 | 7 |
+| 66 | 727 | 727 — Retire `arukellt_host` custom host bridge; migrate HT... | wasi-feature | 0 | 0 | 1 | 3 | 3 | 7 |
 | 67 | 798 | 798 — ADR-042 semantic operation registry migration | architecture | 2 | 0 | 1 | 1 | 3 | 7 |
 | 68 | 668 | 668 — P2 native component polish (post-#074) | wasi-feature | 0 | 0 | 1 | 3 | 2 | 6 |
 | 69 | 673 | 673 — Component export aggregate expansion (Tier 2 blocked ... | component-model | 0 | 0 | 1 | 3 | 2 | 6 |

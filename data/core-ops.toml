@@ -27,7 +27,11 @@ check_unreferenced_required_bindings = true
 check_public_binding_collisions = true
 check_signature_compat = true
 check_effect_lowering_consistency = true
+check_binding_field_consistency = true
+check_forbidden_bindings = true
 check_fallback_resolvable = true
+check_fallback_no_cycle = true
+check_fallback_signature_compat = true
 check_specialization_ambiguity = true
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -73,11 +77,12 @@ kind = "wasm_v128"
 # are prefixed with example.invalid so a future checker can reject them mechanically.
 #
 # visibility: public / internal
-# classification.layer: primitive / runtime / semantic_stdlib / normal_stdlib / target_raw
+# classification.layer: primitive / runtime / semantic_stdlib / target_raw
 # binding.policy: required / optional / forbidden
 #
 # A public binding with policy = required must be referenced from std/manifest.toml.
-# policy = optional must include binding.reason.
+# policy = optional must include binding.reason (and a tracking issue or RFC reference
+# when the binding is intentionally deferred).
 
 [[operations]]
 id = "string.starts_with"
@@ -186,8 +191,9 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-function = "panic"
-abi = "native"
+kind = "internal"
+symbol = "panic"
+abi_version = "0.1"
 [operations.fallback]
 required = false
 
@@ -195,7 +201,7 @@ required = false
 id = "simd.i32x4.add"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration" }
+binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration", tracking_issue = "ADR-037" }
 description = "Portable 4-lane i32 addition. Scalar fallback, native SIMD specialisation."
 [operations.signature]
 inputs = [
@@ -237,13 +243,14 @@ kind = "target_intrinsic"
 [operations.specializations.lowering.target]
 target_family = "wasm"
 target_id = "i32x4.add"
+required_capabilities = []
 required_target_features = ["simd128"]
 
 [[operations]]
 id = "simd.i32x4.sub"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration" }
+binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration", tracking_issue = "ADR-037" }
 description = "Portable 4-lane i32 subtraction. Scalar fallback, native SIMD specialisation."
 [operations.signature]
 inputs = [
@@ -285,13 +292,14 @@ kind = "target_intrinsic"
 [operations.specializations.lowering.target]
 target_family = "wasm"
 target_id = "i32x4.sub"
+required_capabilities = []
 required_target_features = ["simd128"]
 
 [[operations]]
 id = "simd.f32x4.add"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration" }
+binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration", tracking_issue = "ADR-037" }
 description = "Portable 4-lane f32 addition. Scalar fallback, native SIMD specialisation."
 [operations.signature]
 inputs = [
@@ -333,6 +341,7 @@ kind = "target_intrinsic"
 [operations.specializations.lowering.target]
 target_family = "wasm"
 target_id = "f32x4.add"
+required_capabilities = []
 required_target_features = ["simd128"]
 
 [[operations]]

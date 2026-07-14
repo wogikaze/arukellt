@@ -29,7 +29,8 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
   ビューであり、authoritative データではない。
 - `exposure` を三軸に分離する:
   - `visibility` (`public` / `internal`)
-  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `normal_stdlib` / `target_raw`)
+  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `target_raw`)
+    `normal_stdlib` は CoreOpRegistry には登録せず、移行後に `core_op_id` を削除する。
   - `binding` (`policy` = `required` / `optional` / `forbidden`)
 - `signature` は receiver 非依存の `inputs` 列に統一し、`receiver_index` で receiver を示す。
 - 型式は `TypeExpr` として `kind` discriminator で表す。`String` → `type_id = "string"`、
@@ -37,8 +38,11 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 - lowering variant ごとに必要な payload を定義する:
   - `normal_call` — `[fallback]` の `implementation_symbol`
   - `mir_op` — `[lowering.mir]` の `opcode` / `operation`
-  - `runtime_call` — `[lowering.runtime]` の `function` / `abi` / `interface` / `version`
-  - `target_intrinsic` — `[lowering.target]` の `target_family` / `target_id` / `required_capabilities` / `required_target_features`
+  - `runtime_call` — `[lowering.runtime]` の discriminated union:
+    - `kind = "internal"` — `symbol` + `abi_version`
+    - `kind = "wit"` — `package` + `interface` + `function` + `version`
+    - `kind = "native"` — `backend` + `symbol` + `abi_version`
+  - `target_intrinsic` — `[lowering.target]` の `target_family` / `target_id` / `required_capabilities` / `required_target_features`。`target_id` は backend-owned handler key
 - portable `std::simd` 操作は `target_intrinsic` ではなく `normal_call` + `specializations` とする。
 - specialization は `priority`、`when` 条件、完全な `lowering` variant を含む。
 - この段階では既存の callee 文字列 dispatch をそのままにしておく。
