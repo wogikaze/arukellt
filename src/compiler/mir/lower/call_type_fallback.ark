@@ -47,7 +47,7 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     // left a ref-typed dest (i32-vs-ref on method calls like vec.len()).
     if mono_vt == value_types::VT_I32() || mono_vt == value_types::VT_I64() || mono_vt == value_types::VT_F64() || mono_vt == value_types::VT_F32() {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
-    } else if len(resolved_type) == 0 || !type_name_is_ref_type(ctx, clone(resolved_type)) {
+    } else if len(resolved_type) == 0 || !is_ref_type_name(ctx, clone(resolved_type)) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
     }
 }
@@ -158,7 +158,7 @@ fn set_ref_vt_for_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     if len(type_name) == 0 {
         return
     }
-    if !type_name_is_ref_type(ctx, clone(type_name)) {
+    if !is_ref_type_name(ctx, clone(type_name)) {
         return
     }
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -176,7 +176,7 @@ fn mir_promote_gc_enum_container_vt(ctx: LowerCtx, local_idx: i32) {
     }
     let tn = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
     if len(tn) > 0 {
-        if type_name_is_ref_type(ctx, tn) {
+        if is_ref_type_name(ctx, tn) {
             set_ref_vt_for_type_name(ctx, local_idx, tn)
         }
         return
@@ -184,7 +184,7 @@ fn mir_promote_gc_enum_container_vt(ctx: LowerCtx, local_idx: i32) {
     ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
 }
 
-fn type_name_is_ref_type(ctx: LowerCtx, type_name: String) -> bool {
+fn is_ref_type_name(ctx: LowerCtx, type_name: String) -> bool {
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return true
     }

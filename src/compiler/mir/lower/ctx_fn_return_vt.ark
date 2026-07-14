@@ -54,7 +54,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
 }
 
 fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
-    if ctx_is_void_builtin(clone(bare_name)) {
+    if is_void_returning_builtin(clone(bare_name)) {
         return value_types::VT_VOID()
     }
     if eq(clone(bare_name), "to_string") ||
@@ -118,7 +118,7 @@ fn ctx_bare_builtin_name(name: String) -> String {
     bare_name
 }
 
-fn ctx_is_void_builtin(bare_name: String) -> bool {
+fn is_void_returning_builtin(bare_name: String) -> bool {
     if eq(clone(bare_name), "__hm_si_set_size") || eq(clone(bare_name), "__hm_si_set_flag") || eq(clone(bare_name), "__hm_si_set_val") || eq(clone(bare_name), "__hm_si_set_key") {
         return true
     }
