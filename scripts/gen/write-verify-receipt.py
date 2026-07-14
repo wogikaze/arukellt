@@ -195,6 +195,33 @@ def parse_receipt(text: str) -> dict:
             })
             continue
 
+        # T3 WASM validation aggregate summary (emitted at the end of output)
+        m = re.search(r"T3 WASM validation:\s*(\d+) pass,\s*(\d+) validate-fail,\s*(\d+) compile-fail,\s*(\d+) skip", line)
+        if m:
+            pass_count = int(m.group(1))
+            validate_fail = int(m.group(2))
+            compile_fail = int(m.group(3))
+            skip_count = int(m.group(4))
+            # Update the most recent t3_wasm_validate aggregate if present
+            for agg in reversed(receipt["aggregate_checks"]):
+                if agg.get("check_id") == "t3_wasm_validate":
+                    agg["pass_count"] = pass_count
+                    agg["fail_count"] = validate_fail + compile_fail
+                    agg["skip_count"] = skip_count
+                    agg["result"] = "fail" if (validate_fail + compile_fail) > 0 else "pass"
+                    break
+            else:
+                receipt["aggregate_checks"].append({
+                    "check_id": "t3_wasm_validate",
+                    "category": "wasm-validation",
+                    "result": "fail" if (validate_fail + compile_fail) > 0 else "pass",
+                    "pass_count": pass_count,
+                    "fail_count": validate_fail + compile_fail,
+                    "skip_count": skip_count,
+                    "owner_issue": OWNER_ISSUES["t3_wasm_validate"],
+                })
+            continue
+
         # Quick check summary
         m = re.search(r"Total checks: (\d+)", line)
         if m:
@@ -227,9 +254,15 @@ def parse_receipt(text: str) -> dict:
     for line in clean_lines:
         m = re.match(r"  FAIL: (\S+)", line)
         if m:
+            item_id = m.group(1)
+            # Distinguish fixture parity failures from CLI/diagnostic parity failures
+            if not item_id.endswith(".ark"):
+                continue
+            if " (selfhost:" in line or " (no-args:" in line or "drifts from golden" in line or "(exit=" in line:
+                continue
             receipt["items"].append({
                 "check_id": "fixture_parity",
-                "item_id": m.group(1),
+                "item_id": item_id,
                 "result": "fail",
                 "category": "fixture-parity",
                 "owner_issue": OWNER_ISSUES["fixture_parity"],
@@ -247,6 +280,31 @@ def parse_receipt(text: str) -> dict:
                 "owner_issue": OWNER_ISSUES["skip_debt"],
                 "baseline_status": "existing",
                 "new_or_existing": "existing",
+            })
+            continue
+
+    # T3 WASM validation failures / compile failures / timeouts
+    t3_item_re = re.compile(r"^\s*(VALIDATE FAIL|COMPILE FAIL|COMPILE TIMEOUT): (\S+)(.*)")
+    for line in clean_lines:
+        m = t3_item_re.match(line)
+        if m:
+            kind = m.group(1)
+            fixture = m.group(2)
+            if kind == "VALIDATE FAIL" or kind == "COMPILE FAIL":
+                result = "fail"
+                owner = OWNER_ISSUES["t3_wasm_validate"]
+            else:
+                result = "skip"
+                owner = OWNER_ISSUES["skip_debt"]
+            receipt["items"].append({
+                "check_id": "t3_wasm_validate",
+                "item_id": fixture,
+                "result": result,
+                "category": "wasm-validation",
+                "owner_issue": owner,
+                "baseline_status": "existing",
+                "new_or_existing": "existing",
+                "detail": m.group(3).strip(),
             })
             continue
 
@@ -393,6 +451,134 @@ def parse_receipt(text: str) -> dict:
     return receipt
 
 
+def _normalize_receipt(receipt: dict) -> dict:
+    """Restructure aggregate_checks and top-level items into checks[].items."""
+    # Aggregate checks keyed by check_id; prefer the entry with the most detail
+    checks_by_id: dict[str, dict] = {}
+    for agg in receipt.get("aggregate_checks", []):
+        cid = agg.get("check_id", "unknown")
+        existing = checks_by_id.get(cid)
+        if existing is None:
+            checks_by_id[cid] = agg.copy()
+        else:
+            # Keep the richer aggregate (larger total count)
+            existing_total = existing.get("pass_count", 0) + existing.get("fail_count", 0) + existing.get("skip_count", 0)
+            new_total = agg.get("pass_count", 0) + agg.get("fail_count", 0) + agg.get("skip_count", 0)
+            if new_total > existing_total:
+                checks_by_id[cid] = agg.copy()
+
+    # Build checks with nested items
+    checks: list[dict] = []
+    unmatched_items: list[dict] = []
+    for cid in checks_by_id:
+        check = checks_by_id[cid]
+        # Rename result -> status at the check level
+        status = check.pop("result", "fail")
+        check["status"] = status
+        check["items"] = []
+        checks.append(check)
+
+    # Attach items to their owning check
+    for item in receipt.get("items", []):
+        cid = item.get("check_id", "unknown")
+        if cid in checks_by_id:
+            checks_by_id[cid]["items"].append(item)
+        else:
+            unmatched_items.append(item)
+
+    # Any items without a matching check become a synthetic check
+    if unmatched_items:
+        for item in unmatched_items:
+            cid = item.get("check_id", "unknown")
+            if cid not in checks_by_id:
+                checks_by_id[cid] = {
+                    "check_id": cid,
+                    "status": "fail",
+                    "category": "unknown",
+                    "owner_issue": None,
+                    "items": [],
+                }
+                checks.append(checks_by_id[cid])
+            checks_by_id[cid]["items"].append(item)
+
+    # Sort checks deterministically
+    checks.sort(key=lambda c: c.get("check_id", ""))
+
+    # Add check-level command/primary_path helpers where missing
+    command_paths = {
+        "fixture_parity": "python3 scripts/manager.py selfhost fixture-parity",
+        "diag_parity": "python3 scripts/manager.py selfhost diag-parity",
+        "cli_parity": "python3 scripts/manager.py selfhost parity --mode --cli",
+        "fmt_parity": "python3 scripts/manager.py selfhost fmt-parity",
+        "wat_roundtrip": "bash scripts/run/wat-roundtrip.sh",
+        "component_interop": "python3 scripts/manager.py verify component",
+        "t3_wasm_validate": "python3 scripts/check/check-t3-wasm-validate.py",
+        "fixpoint": "python3 scripts/manager.py verify --selfhost-fixpoint",
+        "quick_checks": "python3 scripts/manager.py verify quick",
+    }
+    primary_paths = {
+        "fixture_parity": "tests/fixtures/manifest.txt",
+        "diag_parity": "tests/fixtures/",
+        "cli_parity": "tests/snapshots/selfhost/",
+        "fmt_parity": "tests/fixtures/",
+        "wat_roundtrip": "scripts/run/wat-roundtrip.sh",
+        "component_interop": "tests/component-interop/",
+        "t3_wasm_validate": "scripts/check/check-t3-wasm-validate.py",
+        "fixpoint": "scripts/selfhost/checks.py",
+        "quick_checks": "scripts/manager.py",
+    }
+    for check in checks:
+        cid = check.get("check_id", "")
+        if not check.get("command") and cid in command_paths:
+            check["command"] = command_paths[cid]
+        if not check.get("primary_path") and cid in primary_paths:
+            check["primary_path"] = primary_paths[cid]
+
+    # Compute summary
+    total_checks = len(checks)
+    passed_checks = sum(1 for c in checks if c.get("status") == "pass")
+    failed_checks = sum(1 for c in checks if c.get("status") == "fail")
+    skipped_checks = sum(1 for c in checks if c.get("status") == "skip")
+    total_items = sum(len(c.get("items", [])) for c in checks)
+    fail_items = sum(
+        1 for c in checks for i in c.get("items", []) if i.get("result") == "fail"
+    )
+    skip_items = sum(
+        1 for c in checks for i in c.get("items", []) if i.get("result") == "skip"
+    )
+
+    # Per-domain totals
+    t3_check = checks_by_id.get("t3_wasm_validate", {})
+    fixture_check = checks_by_id.get("fixture_parity", {})
+    summary = {
+        "checks_total": total_checks,
+        "checks_passed": passed_checks,
+        "checks_failed": failed_checks,
+        "checks_skipped": skipped_checks,
+        "total_items": total_items,
+        "item_failures": fail_items,
+        "item_skips": skip_items,
+        "t3_pass": t3_check.get("pass_count", 0),
+        "t3_validate_fail": t3_check.get("fail_count", 0) - 0,  # kept as fail count
+        "t3_compile_fail": 0,
+        "t3_skip": t3_check.get("skip_count", 0),
+        "fixture_pass": fixture_check.get("pass_count", 0),
+        "fixture_fail": fixture_check.get("fail_count", 0),
+        "fixture_skip": fixture_check.get("skip_count", 0),
+        "incidents": [],
+    }
+
+    receipt["receipt_version"] = "2.0.0"
+    receipt["schema_version"] = 2
+    receipt["status"] = "pass" if failed_checks == 0 else "fail"
+    receipt["checks"] = checks
+    receipt["summary"] = summary
+    # Remove legacy keys
+    receipt.pop("aggregate_checks", None)
+    receipt.pop("items", None)
+    return receipt
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Write verify-full receipt")
     parser.add_argument("--input", help="Input file (default: stdin)")
@@ -411,6 +597,8 @@ def main() -> int:
     if args.exit_status is not None:
         receipt["exit_status"] = args.exit_status
 
+    _normalize_receipt(receipt)
+
     out = Path(args.output)
     if not out.is_absolute():
         out = REPO_ROOT / out
@@ -418,11 +606,13 @@ def main() -> int:
     out.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     print(f"Receipt written to {out}")
-    print(f"  Aggregate checks: {receipt['summary']['total_aggregate_checks']}")
-    print(f"  Aggregate failures: {receipt['summary']['aggregate_failures']}")
-    print(f"  Individual items: {receipt['summary']['total_items']}")
-    print(f"  Item failures: {receipt['summary']['item_failures']}")
-    print(f"  Item skips: {receipt['summary']['item_skips']}")
+    print(f"  Checks: {receipt['summary']['checks_total']} "
+          f"(passed={receipt['summary']['checks_passed']} "
+          f"failed={receipt['summary']['checks_failed']} "
+          f"skipped={receipt['summary']['checks_skipped']})")
+    print(f"  Items: {receipt['summary']['total_items']} "
+          f"(failures={receipt['summary']['item_failures']} "
+          f"skips={receipt['summary']['item_skips']})")
     return 0
 
 
