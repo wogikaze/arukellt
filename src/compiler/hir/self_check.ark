@@ -4,7 +4,7 @@ use hir::node_record
 use hir::type_contracts
 use hir::types_format
 
-pub fn issue504_hir_self_check() -> String {
+pub fn trait_hir_self_check() -> String {
     let foo_trait = type_contracts::HirType_named(commands::TY_TRAIT(), String_from("Foo"))
     let self_ty = type_contracts::HirType_named(commands::TY_STRUCT(), String_from("MyStruct"))
     let type_param = items::HirTypeParam_new(String_from("T"))
