@@ -414,7 +414,7 @@ verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "52967b17ace3f63cc2fe59ac9bbf5f0202445106"
 verified_at = "2026-07-14"
 stale_after_days = 30
-affected_count = 3
+affected_count = 2
 incident_id = "incident_selfhost_cli_parity"
 blocker_category = "bootstrap"
 blocker_scope = "full"
@@ -422,7 +422,7 @@ blocker_owner = "selfhost CLI"
 blocker_issue = "#811"
 first_seen_commit = "a80b4181"
 platforms = ["linux"]
-note = "CLI parity drifts for --help, lint, and compose --validate"
+note = "CLI parity drifts for --help and compose --validate"
 
 [[checks]]
 id = "check_selfhost_diag_parity"
@@ -438,7 +438,7 @@ verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "52967b17ace3f63cc2fe59ac9bbf5f0202445106"
 verified_at = "2026-07-14"
 stale_after_days = 30
-affected_count = 1
+affected_count = 3
 incident_id = "incident_selfhost_diag_parity"
 blocker_category = "bootstrap"
 blocker_scope = "full"
