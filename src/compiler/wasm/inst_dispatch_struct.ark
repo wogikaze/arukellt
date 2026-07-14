@@ -1,6 +1,4 @@
 use mir::inst_accessors_shape
-// Arukellt Selfhost - struct/array MIR instruction dispatch.
-
 use wasm::inst_array
 use wasm::inst_dispatch_result
 use wasm::inst_struct_record

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering AST node adapter.
-
 use parser::ast
 
 fn node_kind(node: AstNode) -> i32 { ast::ast_node_kind(node) }

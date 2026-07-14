@@ -1,5 +1,3 @@
-// Arukellt Selfhost - stdin read intrinsic handlers.
-
 use wasm::emit_target
 use wasm::intrinsic_stdio_read_buffer
 use wasm::intrinsic_stdio_read_gc

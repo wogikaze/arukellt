@@ -1,5 +1,3 @@
-// Arukellt Parser - function signature syntax facade
-
 use parser::fn_annotations
 use parser::fn_sig_clause
 use parser::fn_sig_decl

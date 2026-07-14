@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component collection allow queries.
-
 fn ComponentContractAllows_allow_list_first(allows: ComponentContractAllows) -> bool {
     allows.collection_allows.allow_list_first
 }

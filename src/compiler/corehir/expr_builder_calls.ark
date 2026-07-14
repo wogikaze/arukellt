@@ -1,7 +1,5 @@
 use corehir::expr_factory
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR call, match, and closure expression constructors.
-
 use corehir::value_types
 
 fn corehir_expr_call(callee_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {

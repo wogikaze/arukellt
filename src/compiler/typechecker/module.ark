@@ -1,5 +1,3 @@
-// Arukellt Typechecker - module-level declaration collection facade
-
 use typechecker::module_enums
 use typechecker::module_errors
 use typechecker::module_fns

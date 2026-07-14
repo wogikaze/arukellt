@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - struct field lookup facade.
-
 use mir::lower::ctx_struct_lookup_index
 use mir::lower::ctx_struct_lookup_meta
 use mir::lower::ctx_struct_lookup_type

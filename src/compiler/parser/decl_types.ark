@@ -1,5 +1,3 @@
-// Arukellt Parser - struct, resource, and enum declaration facade
-
 use parser::decl_enum
 use parser::decl_resource
 use parser::decl_struct

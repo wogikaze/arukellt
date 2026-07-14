@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR value type helpers.
-
 use corehir::value_types
 
 fn corehir_vt_from_type_name(type_name: String) -> i32 {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - DAP request dispatch.
-
 use dap::json_fields
 use dap::responses
 use dap::state

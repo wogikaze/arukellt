@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - atomic prefix expression parsing.
-
 use parser::core_types
 use parser::expr_prefix
 use parser::token_state

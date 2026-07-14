@@ -1,5 +1,3 @@
-// Arukellt Selfhost - DAP JSON integer parsing
-
 use std::json
 
 fn dap_parse_int_at(s: String, pos: i32) -> i32 {

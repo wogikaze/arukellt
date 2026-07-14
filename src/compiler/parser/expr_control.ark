@@ -1,5 +1,3 @@
-// Arukellt Parser - if/match control expression facade.
-
 use parser::expr_control_if
 use parser::expr_control_match
 

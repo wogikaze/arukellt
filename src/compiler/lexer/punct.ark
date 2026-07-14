@@ -1,5 +1,3 @@
-// Arukellt Lexer - punctuation token facade
-
 use lexer::cursor
 use lexer::punct_compound
 use lexer::punct_single

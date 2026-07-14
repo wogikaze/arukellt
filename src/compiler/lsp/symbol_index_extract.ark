@@ -1,5 +1,3 @@
-// Arukellt LSP - extract top-level symbols from parsed declarations.
-
 use lsp::kinds
 use lsp::symbol_index_record
 use parser::ast

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON low-level parsing facade
-
 use lsp::json_parse_int
 use lsp::json_parse_string
 use lsp::json_parse_utils

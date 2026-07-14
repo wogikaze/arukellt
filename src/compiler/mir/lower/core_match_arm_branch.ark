@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR non-final match arm MIR lowering.
-
 use mir::inst_structured_control
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns

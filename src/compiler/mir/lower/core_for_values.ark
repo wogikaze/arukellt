@@ -3,8 +3,6 @@ use mir::lower::loop_conditions
 use mir::lower::loop_vec
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR values for-loop MIR lowering.
-
 use mir::lower::core_expr_shape_accessors
 use mir::value_types
 

@@ -1,5 +1,4 @@
 use mir::opcodes
-// Arukellt Selfhost - MIR control opcode display names.
 
 fn mir_control_op_name(op: i32) -> String {
     if op == opcodes::MIR_BR() {

@@ -1,5 +1,4 @@
 use parser::core_ast_children
-// Arukellt Parser - where-backed multi-clause binding block append.
 
 fn append_where_bindings(block_node: AstNode, where_bindings: Vec<AstNode>) {
     for wi in 0..len(where_bindings) {

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - shared Vec_new heap layout emission.
 //
 // GC target: emits struct.new + array.new_default for Vec<T> GC representation.
 //   Vec<T> = (struct (field (mut (ref null (array (mut i32))))  ;; data array

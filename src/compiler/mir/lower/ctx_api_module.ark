@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering module context API.
-
 use mir::lower::ctx_module
 use mir::post_pass_type_propagate
 use mir::typed_mir_sync_module

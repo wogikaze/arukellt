@@ -1,5 +1,3 @@
-// Arukellt Selfhost - main namespace: dispatch
-
 use std::host::process
 use std::host::stdio
 use main::args_record
@@ -12,7 +10,6 @@ use main::compile
 use main::dispatch_aux
 use main::project_build
 use main::project_run
-// Arukellt Selfhost - CLI command dispatch
 
 pub fn dispatch(opts: CliOptions) {
     let command = args_record::cli_command(opts)
@@ -21,8 +18,6 @@ pub fn dispatch(opts: CliOptions) {
     }
     dispatch_route(opts, command)
 }
-
-// Arukellt Selfhost - CLI dispatch preflight checks.
 
 fn dispatch_preflight(opts: CliOptions, command: i32) -> bool {
     if command == kinds::CMD_NOT_YET() {
@@ -54,8 +49,6 @@ fn dispatch_command_allows_missing_input(opts: CliOptions, command: i32) -> bool
     command == kinds::CMD_LSP() ||
     command == kinds::CMD_DAP()
 }
-
-// Arukellt Selfhost - CLI command route selection.
 
 fn dispatch_route(opts: CliOptions, command: i32) {
     if dispatch_aux::dispatch_aux_command(opts, command) {

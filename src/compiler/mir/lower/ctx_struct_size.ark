@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - struct byte-size helpers.
-
 use mir::lower::ctx_struct_storage
 
 fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {

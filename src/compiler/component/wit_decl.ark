@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WIT declaration view over frontend declarations.
-
 use component::ast_node
 use component::naming
 use component::type_node

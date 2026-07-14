@@ -1,6 +1,4 @@
 use mir::lower::ctx_fn_mono
-// Arukellt Selfhost - MIR lowering monomorphized call rewrite registration
-
 use mir::lower::ctx_types
 use mir::mono
 use mir::mono_instance_shape

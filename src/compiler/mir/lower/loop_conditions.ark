@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR loop condition and local update helpers.
-
 use mir::lower::loop_conditions_break
 use mir::lower::loop_conditions_locals
 

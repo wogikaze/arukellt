@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR body builder for control-flow expressions.
-
 use corehir::body_control_block
 use corehir::body_control_branch
 use corehir::body_control_children

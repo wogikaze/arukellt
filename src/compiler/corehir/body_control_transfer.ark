@@ -1,7 +1,5 @@
 use corehir::expr_builder_control_transfer
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR transfer expression builders.
-
 use corehir::expr_predicates
 use corehir::expr_node_access
 

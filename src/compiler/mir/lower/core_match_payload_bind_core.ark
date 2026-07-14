@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR match payload variant field binding.
-
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_api_local_types

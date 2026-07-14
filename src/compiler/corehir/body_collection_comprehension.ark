@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR comprehension builder.
-
 use corehir::expr_builder_collections
 use corehir::expr_predicates
 use corehir::expr_node_access

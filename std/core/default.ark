@@ -63,7 +63,6 @@ impl Default for String {
         String_from("")
     }
 }
-// issue #715 in-file tests
 test mod "default_docs" {
     test "trait_exists" { assert(1 == 1) }
     test "i32_zero_literal" { assert(0 == 0) }

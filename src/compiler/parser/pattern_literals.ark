@@ -2,8 +2,6 @@ use lexer::tokens
 use parser::ast_kind_fields
 use parser::core_ast_factory
 use parser::core_ast_literal_factory
-// Arukellt Parser - wildcard and literal patterns
-
 use parser::core_api_expect
 use parser::kinds
 use parser::token_state

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm call namespace: call_fallback
-
 use wasm::opcodes
 use wasm::inst_ctx
 use wasm::inst_store

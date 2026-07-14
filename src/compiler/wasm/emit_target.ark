@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm emission target helpers.
-
 use wasm::constants
 
 fn is_freestanding_target(target: String) -> bool {

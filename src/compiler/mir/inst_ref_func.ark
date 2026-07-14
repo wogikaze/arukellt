@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR ref.func instruction constructor.
-
 use mir::inst_factory
 use mir::opcodes
 use mir::value_types

@@ -1,6 +1,4 @@
 use component::contract_collection_types
-// Arukellt Selfhost - component collection function contract predicates.
-
 use component::contract_helpers
 
 fn component_fn_is_vec_i32_to_i32(f: ComponentExportFunc) -> bool {

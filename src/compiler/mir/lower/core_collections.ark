@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR collection expression lowering.
-
 use mir::lower::core_array_lit
 use mir::lower::core_comprehension_lit
 use mir::lower::core_tuple_lit

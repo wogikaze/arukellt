@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component string scan queries.
 use component::contract_string_scan
 
 fn ComponentStringScan_has_string_general_multi(scan: ComponentStringScan) -> bool {

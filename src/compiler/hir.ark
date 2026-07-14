@@ -1,10 +1,8 @@
 use hir::kinds
-// Arukellt Selfhost — HIR (High-level Intermediate Representation)
 //
 // Typed AST representation produced by the typechecker.
 // Each node carries resolved type information.
 use std::host::stdio
-
 use hir::dump
 use hir::items
 use hir::node_children_record
@@ -14,6 +12,7 @@ use hir::self_check
 use hir::type_contracts
 use hir::types_format
 
+/// Exercises trait bounds and implementation records and returns a deterministic summary.
 pub fn issue504_hir_self_check() -> String {
     self_check::issue504_hir_self_check()
 }

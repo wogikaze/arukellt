@@ -1,8 +1,6 @@
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::constants
-// Arukellt Selfhost - fs write shared Result emission.
-
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - formatter comment preservation (#343).
-
 use fmt::whitespace
 
 fn fmt_is_full_line_comment(trimmed: String) -> bool {

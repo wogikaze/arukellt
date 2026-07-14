@@ -5,8 +5,6 @@ use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::function_return_view
 use mir::function_identity
-// Arukellt Selfhost - closure binding registry.
-
 use mir::inst_const_i32
 use mir::lower::closure_storage
 use mir::value_types

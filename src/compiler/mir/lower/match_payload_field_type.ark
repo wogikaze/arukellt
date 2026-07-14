@@ -1,8 +1,6 @@
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR match payload field value-type selection.
-
 use mir::value_types
 
 fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {

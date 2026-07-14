@@ -1,5 +1,3 @@
-// Arukellt Selfhost - general multi-export f32 canonical ABI adapter core module.
-
 use component::adapter_body
 use component::export_shapes_f32_general
 use component::export_shapes_kinds

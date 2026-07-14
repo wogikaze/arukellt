@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering entry body result emission.
-
 use mir::lower::entry_body_input
 use mir::inst_return
 use mir::lower::entry_body_value

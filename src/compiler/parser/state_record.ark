@@ -1,5 +1,3 @@
-// Arukellt Parser - parser cursor and diagnostic state record.
-
 use diagnostics::record
 use parser::token_record
 

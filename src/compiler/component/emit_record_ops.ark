@@ -1,5 +1,3 @@
-// Arukellt Selfhost - record point operation component wrapper facade
-
 use component::adapters_record
 use component::component_base
 use component::constants_sections_linkage

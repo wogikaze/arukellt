@@ -1,5 +1,3 @@
-// Arukellt Lexer - string escape decoding.
-
 fn escaped_string_fragment(lex: Lexer, esc: i32) -> String {
     if esc == 110 {
         return String_from("\n")

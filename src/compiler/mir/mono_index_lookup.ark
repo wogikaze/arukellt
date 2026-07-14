@@ -1,5 +1,3 @@
-// Arukellt Selfhost - monomorphization index lookup.
-
 use mir::mono_index_types
 
 fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {

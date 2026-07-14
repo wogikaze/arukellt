@@ -1,5 +1,3 @@
-// Arukellt Selfhost - thin re-export of loader module graph API.
-
 use loader::mod
 
 pub fn load_source(path: String) -> Result<String, String> {

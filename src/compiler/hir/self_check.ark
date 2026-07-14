@@ -1,6 +1,4 @@
 use hir::kinds
-// Arukellt HIR - self-checks
-
 use hir::items
 use hir::node_record
 use hir::type_contracts

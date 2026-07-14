@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Option and Result intrinsic facade.
-
 use mir::inst_accessors_operands
 use wasm::ctx_record
 use wasm::ctx_scratch

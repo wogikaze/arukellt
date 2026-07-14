@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR verifier local checks (W001, W005, W006).
-
 use corehir::mir_value_type
 use corehir::type_id
 use mir::function_identity

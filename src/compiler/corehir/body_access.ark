@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR body builder for aggregate access expressions.
-
 use corehir::expr_builder_collections
 use corehir::expr_predicates
 use corehir::expr_node_access

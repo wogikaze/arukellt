@@ -1,7 +1,5 @@
 use collections::vec_extend
 use typechecker::kinds
-// Arukellt Typechecker - function declaration to signature.
-
 use typechecker::ast_access
 use typechecker::contract_fn_sig
 use typechecker::contract_type_constructors

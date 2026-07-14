@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR control-flow child expression builder.
-
 use corehir::expr_node_access
 use corehir::expr_predicates
 

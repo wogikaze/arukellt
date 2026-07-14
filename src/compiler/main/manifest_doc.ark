@@ -1,5 +1,3 @@
-// Arukellt Selfhost - manifest-backed doc command (#456).
-
 use std::host::env
 use std::host::fs
 use std::host::process

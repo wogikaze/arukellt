@@ -1,5 +1,3 @@
-// Arukellt Analysis - doc comment scanning above declarations.
-
 fn line_start(text: String, offset: i32) -> i32 {
     let mut pos = offset
     while pos > 0 {

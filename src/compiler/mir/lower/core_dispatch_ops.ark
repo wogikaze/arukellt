@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR operator lowering dispatch.
-
 use mir::lower::core_binary
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_ops

@@ -2,8 +2,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
-// Arukellt Selfhost - MIR struct iterator payload extraction.
-
 use mir::inst_struct_get
 use mir::inst_gc_struct
 use mir::inst_local_get

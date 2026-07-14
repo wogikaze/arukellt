@@ -1,4 +1,3 @@
-// Arukellt Selfhost - GC shape registry: collects struct/array shapes from MIR
 // and builds GC type definitions for the type section.
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 

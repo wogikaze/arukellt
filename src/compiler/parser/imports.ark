@@ -1,5 +1,3 @@
-// Arukellt Parser - import/use declaration syntax
-
 use parser::imports_import
 use parser::imports_use
 

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - struct MIR instruction emission.
 //
 // GC target: emit_struct_new uses GC struct.new only when dest is VT_GC_REF.
 //            emit_struct_get/set always use linear-memory path (struct type

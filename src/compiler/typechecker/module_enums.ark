@@ -1,5 +1,3 @@
-// Arukellt Typechecker - enum definition collection.
-
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::contract_enum_info

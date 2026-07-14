@@ -1,5 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - sequence unique duplicate detection loop.
 
 fn emit_seq_unique_loop(
     w: WasmWriter,

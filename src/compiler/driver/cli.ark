@@ -1,5 +1,3 @@
-// Arukellt Selfhost - legacy standalone driver CLI
-
 use std::host::env
 use std::host::fs
 use std::host::process

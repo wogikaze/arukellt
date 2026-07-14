@@ -2,8 +2,6 @@ use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::block_inst_access
 use mir::block_phi_access
-// Arukellt Selfhost - MIR SSA value discovery.
-
 use mir::phi_access
 use mir::value_types
 

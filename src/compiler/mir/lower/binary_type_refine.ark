@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR binary value-type refinement from locals.
-
 use mir::value_types
 
 fn mir_refine_binop_vt_from_local(ctx: LowerCtx, current_vt: i32, local_idx: i32) -> i32 {

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 6b LocalAllocator.
 //
 // Phase 6b intermediate stage: a LocalAllocator that maps MIR local
 // indices to Wasm local indices and provides symbolic scratch slot

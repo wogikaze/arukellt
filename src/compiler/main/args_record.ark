@@ -1,7 +1,4 @@
-// Arukellt Selfhost - main namespace: args_record
-
 use main::kinds
-// Arukellt Selfhost - CLI option data record.
 
 struct CliOptions {
     command: i32,
@@ -92,8 +89,6 @@ fn cli_output_file(opts: CliOptions) -> String { clone(opts.output_file) }
 fn cli_output_file_len(opts: CliOptions) -> i32 { len(opts.output_file) }
 fn cli_has_input_file(opts: CliOptions) -> bool { cli_input_file_len(opts) > 0 }
 fn cli_has_output_file(opts: CliOptions) -> bool { cli_output_file_len(opts) > 0 }
-
-// Arukellt Selfhost - CLI option setter record helpers.
 
 fn cli_set_command(opts: CliOptions, command: i32) {
     opts.command = command

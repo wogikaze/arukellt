@@ -1,5 +1,3 @@
-// Arukellt Selfhost - typechecker display names
-
 use typechecker::name_compare
 use typechecker::name_display
 use typechecker::name_tags

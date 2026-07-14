@@ -1,4 +1,3 @@
-// Arukellt Selfhost - CoreHIR match payload field bind emission.
 // Extracted from core_match_payload_bind_core.ark to reduce import fan-out.
 
 use mir::lower::ctx_api_emit

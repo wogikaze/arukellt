@@ -1,7 +1,5 @@
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
-// Arukellt Selfhost - local-set MIR instruction dispatch.
-
 use wasm::inst_locals
 use wasm::local_opcodes
 use wasm::writer_core

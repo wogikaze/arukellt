@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - tuple component wrappers
-
 use component::adapters_tuple
 use component::component_base
 use component::export_sections_entries

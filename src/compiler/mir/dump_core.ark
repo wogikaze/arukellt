@@ -1,8 +1,6 @@
+use std::host::stdio
 use mir::function_identity
 use mir::function_locals_view
-// Arukellt Selfhost - MIR dump core output
-
-use std::host::stdio
 use mir::dominance
 use mir::dump_core_blocks
 use mir::function_block_queries

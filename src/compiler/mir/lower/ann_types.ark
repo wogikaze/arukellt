@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering annotation type helpers
-
 use mir::lower::ann_shape
 use mir::value_types
 

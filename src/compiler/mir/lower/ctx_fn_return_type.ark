@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - function struct return type lookup.
-
 use mir::lower::ctx_fn_index
 
 fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {

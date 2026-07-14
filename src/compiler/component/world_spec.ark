@@ -1,5 +1,3 @@
-// Arukellt Selfhost - standard WASI world specs for --world.
-
 use std::text
 use component::constants_world_spec
 

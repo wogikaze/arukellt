@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component numeric and tuple allow queries.
-
 fn ComponentContractAllows_allow_f32_square(allows: ComponentContractAllows) -> bool {
     allows.numeric_allows.allow_f32_square
 }

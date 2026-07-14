@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP text position helpers
-
 use diagnostics::source_map_offsets
 
 pub struct LspPosition {

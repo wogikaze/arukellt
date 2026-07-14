@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 interned semantic type table (INV-TT-1 canonical intern).
-
 use corehir::type_id
 use corehir::kinds
 

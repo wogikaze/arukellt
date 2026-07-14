@@ -1,5 +1,3 @@
-// Arukellt Selfhost - sequence intrinsic handler facade
-
 use wasm::intrinsic_seq_binary_search
 use wasm::intrinsic_seq_count
 use wasm::intrinsic_seq_extremum

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm GC type section Phase 7 sig helpers.
-
 fn gc_struct_ref_array_offset() -> i32 {
     24
 }

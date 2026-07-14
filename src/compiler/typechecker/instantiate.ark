@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - generic type instantiation helpers
-
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
 use typechecker::contract_type_mutation

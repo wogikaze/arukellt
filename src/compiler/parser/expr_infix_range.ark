@@ -2,8 +2,6 @@ use parser::core_ast_span_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - range infix expression helper.
-
 use parser::expr_infix_result
 use parser::pratt
 

@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - function existence lookup.
-
 use mir::lower::ctx_fn_index
 
 fn ctx_has_fn_name(ctx: LowerCtx, name: String) -> bool {

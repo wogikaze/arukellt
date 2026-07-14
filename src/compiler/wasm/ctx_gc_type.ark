@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC type index tracking for the emitter context.
-
 use wasm::ctx_record
 use wasm::ctx_gc_type_locals
 use wasm::ctx_gc_type_vec_ref

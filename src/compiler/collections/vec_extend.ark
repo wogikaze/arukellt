@@ -1,8 +1,6 @@
-// Arukellt Selfhost - Vec_extend helpers.
 //
 // Replaces manual `while i < len(src) { push(dst, get_unchecked(src, i)); i = i + 1 }`
 // boilerplate with a single call. Monomorphized per element type because
-// Arukellt does not yet support generics (#697).
 
 use diagnostics::record
 use mir::inst_record

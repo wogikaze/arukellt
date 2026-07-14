@@ -1,5 +1,3 @@
-// Arukellt HIR - recursive node dump.
-
 use std::host::stdio
 use std::text
 use hir::dump_names

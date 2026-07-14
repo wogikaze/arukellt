@@ -1,5 +1,3 @@
-// Arukellt Selfhost - metadata.code.gc_hint custom section emission.
-
 use wasm::ctx_gc_hint
 use wasm::opcodes
 use wasm::writer_core

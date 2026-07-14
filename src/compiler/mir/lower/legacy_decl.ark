@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR legacy declaration adapter.
-
 use corehir::decl_entry_shape
 use mir::lower::legacy_body
 

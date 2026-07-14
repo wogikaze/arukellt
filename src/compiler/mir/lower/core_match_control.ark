@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR match arm control-flow emission helpers.
-
 use mir::inst_structured_control
 
 fn core_emit_match_end_nested_ifs(ctx: LowerCtx, if_depth: i32) {

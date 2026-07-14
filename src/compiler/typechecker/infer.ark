@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - expression and statement inference facade
-
 use typechecker::contract_type_access
 use typechecker::infer_compound
 use typechecker::infer_leaf

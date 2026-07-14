@@ -1,5 +1,3 @@
-// Arukellt Selfhost - formatter structural indentation.
-
 use std::text
 
 struct FmtIndentScan {

@@ -1,4 +1,3 @@
-// Arukellt Selfhost — Resolver (Name Binding and Imports)
 //
 // Walks the AST and builds a scope chain, binding each identifier
 // to its declaration. Reports undefined and duplicate names.
@@ -6,6 +5,7 @@ use std::host::stdio
 use resolver::mod
 
 // ── Path Helpers ─────────────────────────────────────────────────────────────
+/// Extracts the local module binding introduced by a `use` path.
 pub fn use_module_short_name(path: String) -> String {
 
     mod::use_module_short_name(path)
@@ -18,6 +18,7 @@ pub fn use_module_short_name(path: String) -> String {
 //
 //   is_pub = true  → accessible cross-module (pub fn/struct/enum)
 //   is_pub = false → private; resolver will emit a visibility error on access
+/// Registers one imported symbol and preserves its visibility for later access checks.
 pub fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
     mod::register_module_export(ctx, module_name, symbol_name, kind, is_pub)
 }
@@ -41,6 +42,7 @@ struct AstNode {
     is_pub: bool,
 }
 
+/// Associates parsed declarations with the module name used by qualified resolution.
 pub fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
     mod::ModuleDecls_new(name, decls)
 }
@@ -59,10 +61,12 @@ pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths
     mod::resolve_program(decls, modules, wit_paths)
 }
 
+/// Resolves a program with target-specific capability and import availability checks.
 pub fn resolve_program_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String) -> ResolveCtx {
     mod::resolve_program_for_target(decls, modules, wit_paths, target)
 }
 
+/// Counts user declarations without compiler-provided prelude symbols.
 pub fn count_user_symbols(ctx: ResolveCtx) -> i32 {
     mod::count_user_symbols(ctx)
 }

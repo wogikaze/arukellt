@@ -1,4 +1,3 @@
-// Arukellt Selfhost - diagnostic JSON serialization.
 //
 // Uses std::json JsonValue DOM for structured JSON construction.
 

@@ -3,8 +3,6 @@ use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_emit
 use mir::lower_kinds
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR match arm and guard helpers.
-
 use mir::inst_structured_control
 
 fn mir_match_is_catchall(pat: AstNode) -> bool {

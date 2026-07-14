@@ -1,5 +1,3 @@
-// Arukellt Selfhost - dominance fixture string-intern smoke output.
-
 use std::host::stdio
 use mir::module_strings
 

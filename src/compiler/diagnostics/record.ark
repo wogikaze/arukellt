@@ -1,5 +1,3 @@
-// Arukellt Selfhost - diagnostic data record.
-
 use diagnostics::severity
 
 struct DiagnosticSpan {

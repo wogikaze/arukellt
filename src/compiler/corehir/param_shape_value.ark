@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR parameter value type selection.
-
 use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind

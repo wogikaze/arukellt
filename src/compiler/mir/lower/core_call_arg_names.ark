@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR call argument name classification.
-
 fn mir_core_is_printlike_callee(name: String) -> bool {
     eq(clone(name), "stdio::println") ||
     eq(clone(name), "println") ||

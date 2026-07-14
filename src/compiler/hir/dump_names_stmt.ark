@@ -1,5 +1,3 @@
-// Arukellt HIR - statement dump tag names.
-
 use hir::kinds
 
 fn hir_stmt_tag_name(tag: i32) -> String {

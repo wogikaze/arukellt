@@ -1,5 +1,3 @@
-// Arukellt HIR - node child list helpers.
-
 use hir::node_record
 
 fn hir_node_child_count(node: HirNode) -> i32 {

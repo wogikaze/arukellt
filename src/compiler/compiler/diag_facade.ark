@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Diagnostics facade for session pipeline.
-
 use diagnostics::severity
 use diagnostics::source_map_offsets
 use diagnostics::mod as diag_mod

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR declaration annotation shape contract.
-
 use corehir::decl_ann_children
 use corehir::decl_ann_member
 use corehir::decl_ann_name

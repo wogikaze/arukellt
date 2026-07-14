@@ -3,8 +3,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_types
 use mir::lower_kinds
-// Arukellt MIR lowering body - non-final match arm.
-
 use mir::inst_structured_control
 use mir::lower::body_match_compare_or
 use mir::lower::body_match_compare_single

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR i32 constant instruction constructors.
-
 use mir::inst_factory
 use mir::opcodes
 use mir::types

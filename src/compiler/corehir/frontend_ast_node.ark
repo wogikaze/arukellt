@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parser AST node adapter for CoreHIR frontend.
-
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_ast_literals

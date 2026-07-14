@@ -1,5 +1,3 @@
-// Arukellt Selfhost - typed HIR dump output
-
 use std::host::stdio
 use typechecker::contract_mono
 use typechecker::contract_result_state

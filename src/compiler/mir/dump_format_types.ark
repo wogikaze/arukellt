@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump value type formatting
-
 use mir::value_types
 
 fn mir_value_type_name(vt: i32) -> String {

@@ -1,5 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - control keyword display names.
 
 fn token_control_keyword_name(kind: i32) -> String {
     if kind == tokens::TK_IF() {

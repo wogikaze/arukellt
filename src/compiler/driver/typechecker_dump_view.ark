@@ -1,5 +1,3 @@
-// Arukellt Selfhost - typechecker dump view for driver debug output.
-
 use typechecker::dump
 
 fn driver_dump_typed_hir(result: TypeCheckResult) {

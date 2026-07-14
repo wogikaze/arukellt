@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component export contract special signatures
 use component::contract_allows_numeric_tuple_query
 use component::contract_allows_string_query
 use component::contract_helpers

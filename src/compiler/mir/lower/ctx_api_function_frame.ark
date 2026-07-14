@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering current function API.
-
 use mir::lower::ctx_locals_fn
 
 fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) { ctx_locals_fn::ctx_push_func_param(ctx, ml) }

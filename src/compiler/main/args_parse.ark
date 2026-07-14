@@ -1,4 +1,3 @@
-// Arukellt Selfhost - main namespace: args_parse
 use main::args_parse_flags
 use main::args_parse_opts
 use main::args_parse_opts_cache
@@ -27,7 +26,6 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
     opts
 }
 
-// Arukellt Selfhost - CLI initial command parsing.
 fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {
     let cmd_str = get_unchecked(argv, 1)
     let cmd_is_check = arg_is_check_command(clone(cmd_str))
@@ -61,7 +59,6 @@ fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {
     }
 }
 
-// Arukellt Selfhost - CLI flag and command spelling helpers.
 fn arg_is_check_command(arg: String) -> bool {
     if len(clone(arg)) != 5 {
         return false
@@ -248,4 +245,3 @@ fn parse_input_or_error(opts: CliOptions, arg: String) {
         args_record::cli_set_error(opts, concat(String_from("unexpected argument: "), clone(arg)))
     }
 }
-// Arukellt Selfhost - CLI argument parser.

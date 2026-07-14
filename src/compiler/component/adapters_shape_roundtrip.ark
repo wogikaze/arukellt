@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shape roundtrip adapter core module
-
 use component::adapter_body
 use component::adapter_memory
 use component::sections

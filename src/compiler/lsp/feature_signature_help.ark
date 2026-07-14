@@ -1,5 +1,3 @@
-// Arukellt LSP - signature help request handling.
-
 use lsp::feature_request
 use lsp::framing
 use lsp::qualified_name

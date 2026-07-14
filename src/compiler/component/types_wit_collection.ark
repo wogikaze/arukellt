@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - WIT collection type encoders
-
 use component::writer_core
 
 fn comp_wit_list_type(elem_type_idx: i32) -> Vec<i32> {

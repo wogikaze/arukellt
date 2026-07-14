@@ -1,5 +1,3 @@
-// Arukellt Selfhost - editor symbol lookup and hover rendering facade
-
 use std::text
 use analysis::doc_scan
 use analysis::ident_span

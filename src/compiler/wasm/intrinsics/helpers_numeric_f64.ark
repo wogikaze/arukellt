@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm f64 numeric helper recipes.
-
 use wasm::writer_core
 
 fn emit_f64_const_words(w: WasmWriter, lo: i32, hi: i32) {

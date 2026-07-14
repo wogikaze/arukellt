@@ -1,4 +1,3 @@
-// Arukellt Selfhost - shared vec type resolution for GC intrinsics.
 //
 // When a function has mixed Vec<i32> and Vec<String> (or Vec<v128>) locals,
 // the function-level vec_type_for_ctx heuristic returns the wrong type for

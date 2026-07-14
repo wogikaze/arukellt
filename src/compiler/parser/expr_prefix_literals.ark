@@ -4,8 +4,6 @@ use parser::core_ast_literal_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_literal_factory
-// Arukellt Parser - literal prefix expression parsing.
-
 use parser::core_api_expect
 use parser::fstring
 use parser::token_state

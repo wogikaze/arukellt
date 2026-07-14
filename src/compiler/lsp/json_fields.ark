@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON field extraction helpers
-
 use lsp::json_parse_core
 use lsp::json_parse_string
 fn extract_string_field(json: String, key: String) -> String {

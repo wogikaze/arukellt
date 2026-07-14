@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry body projection.
-
 use corehir::mir_body_source
 use mir::lower::entry_view_record
 

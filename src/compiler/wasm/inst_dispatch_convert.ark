@@ -1,7 +1,5 @@
 use mir::inst_accessors_shape
 use mir::opcodes
-// Arukellt Selfhost - conversion/control-like MIR instruction dispatch.
-
 use wasm::inst_convert
 use wasm::inst_dispatch_result
 

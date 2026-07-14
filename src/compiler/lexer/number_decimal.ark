@@ -1,5 +1,3 @@
-// Arukellt Lexer - decimal integer and float literals
-
 use lexer::number_decimal_float
 use lexer::number_decimal_finish
 use lexer::number_decimal_int

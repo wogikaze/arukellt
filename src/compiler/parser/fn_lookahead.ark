@@ -1,5 +1,3 @@
-// Arukellt Parser - function clause lookahead facade.
-
 use parser::fn_lookahead_clause
 use parser::fn_lookahead_named
 

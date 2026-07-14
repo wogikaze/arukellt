@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI compose command (#443 scaffold + Phase 2 WIT validation).
-
 use std::host::fs
 use std::host::process
 use std::host::stdio

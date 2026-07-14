@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function reachability pruning facade
-
 use mir::reachability_entry
 use mir::types
 

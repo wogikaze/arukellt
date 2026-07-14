@@ -1,4 +1,3 @@
-// Arukellt Selfhost - deprecated API/target mapping table.
 //
 // Central registry of deprecated module paths, prelude function names,
 // and target aliases.  Used by lint::checks for W0009 and W0002.
@@ -195,7 +194,6 @@ pub fn deprecated_target_message(target: String) -> String {
     }
     String_new()
 }
-// issue #715 in-file tests
 test mod "deprecated" {
     test "io" { assert(len(deprecated_use_message("std::io")) > 0) }
     test "fs" { assert(len(deprecated_use_message("std::fs")) > 0) }

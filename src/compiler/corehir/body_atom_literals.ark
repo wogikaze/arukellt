@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR literal atom builders.
-
 use corehir::body_atom_int
 use corehir::expr_builder_atoms
 use corehir::expr_node_access

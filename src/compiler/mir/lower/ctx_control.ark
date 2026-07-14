@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - control-flow scope state facade.
-
 use mir::lower::ctx_control_storage
 
 fn ctx_current_nesting_depth(ctx: LowerCtx) -> i32 {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - compose plug WIT import/export validation (#443 Phase 2).
-
 use std::host::fs
 use component::wit_parse_flags
 

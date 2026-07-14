@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - result component wrapper facade
-
 use component::adapters_result
 use component::adapters_result_string
 use component::component_base

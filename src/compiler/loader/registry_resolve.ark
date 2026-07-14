@@ -1,5 +1,3 @@
-// Arukellt Selfhost - package registry resolution (#639, ADR-023).
-
 use std::host::fs
 use std::host::http
 use loader::registry_config

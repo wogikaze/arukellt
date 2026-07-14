@@ -1,5 +1,3 @@
-// Arukellt LSP - lifecycle method dispatch.
-
 use lsp::framing
 use lsp::init_workspace
 use lsp::json_fields

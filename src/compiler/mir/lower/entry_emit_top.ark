@@ -6,8 +6,6 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::lower::mono_param_subst
 use mir::function_factory
-// Arukellt Selfhost - top-level function MIR body emission.
-
 use mir::lower::entry_body_result
 use mir::lower::entry_params
 use mir::lower::entry_view

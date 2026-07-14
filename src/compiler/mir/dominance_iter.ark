@@ -1,6 +1,4 @@
 use mir::block_pred_access
-// Arukellt Selfhost - MIR dominance fixed-point iteration.
-
 use mir::dom_sets
 use mir::block_dominance_access
 use mir::block_dominance_mutation

@@ -3,8 +3,6 @@ use parser::core_ast_span_fields
 use parser::core_ast_literal_fields
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - function body and guard annotations
-
 use parser::kinds
 
 fn make_fn_guard_annotation(guard: AstNode) -> AstNode {

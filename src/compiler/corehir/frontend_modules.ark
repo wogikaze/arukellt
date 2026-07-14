@@ -1,5 +1,3 @@
-// Arukellt Selfhost - build CoreHIR module index from module metadata slices.
-
 use corehir::raw_dto
 
 fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, main_decl_count: i32) -> Vec<CoreHirModuleInfo> {

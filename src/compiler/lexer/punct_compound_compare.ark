@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - comparison and shift punctuation
-
 use lexer::cursor
 use lexer::punct_compound_peek
 

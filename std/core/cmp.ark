@@ -1,4 +1,4 @@
-/// Comparison utilities for core scalar values.
+//! Comparison utilities for core scalar values.
 use std::core
 
 /// Trait for types that support equality comparison.

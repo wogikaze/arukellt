@@ -1,5 +1,3 @@
-// Arukellt Parser self-checks for issue #652 (WIT import grammar).
-
 use lexer::scan
 use parser::ast_kind_fields
 use parser::core_api_token

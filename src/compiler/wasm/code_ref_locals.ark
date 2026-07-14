@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC reference local type inference.
-
 use mir::function_return_view
 use mir::function_locals_view
 use mir::local_access

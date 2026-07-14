@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared string-to-numeric adapter core module emitter
-
 use component::adapter_body
 use component::adapter_memory
 use component::adapters_string_body

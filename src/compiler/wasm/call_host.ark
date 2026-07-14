@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm host call dispatch
-
 use wasm::call_host_assert
 use wasm::call_host_convert
 use wasm::call_host_io

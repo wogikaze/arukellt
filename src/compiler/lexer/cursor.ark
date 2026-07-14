@@ -1,5 +1,3 @@
-// Arukellt Lexer - cursor state and character access.
-
 pub struct Lexer {
     src: String,
     pos: i32,

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - target-aware Wasm import index helpers.
-
 use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target

@@ -1,5 +1,3 @@
-// Arukellt LSP - shared symbol request resolution.
-
 use analysis::symbols
 use analysis::symbol_types
 use lsp::feature_request

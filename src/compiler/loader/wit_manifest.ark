@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ark.toml WIT package dependency resolution (#663).
-
 use std::host::fs
 use loader::module_paths
 use loader::module_package_root

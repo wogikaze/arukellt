@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - function/local frame switching.
-
 use mir::block_alloc
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_index_storage

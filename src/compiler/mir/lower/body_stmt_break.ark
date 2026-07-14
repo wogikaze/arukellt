@@ -1,8 +1,6 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_loop_query
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - break/continue statement lowering.
-
 use mir::lower::control
 
 fn lower_break_stmt(ctx: LowerCtx, node: AstNode) -> i32 {

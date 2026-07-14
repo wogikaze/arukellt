@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parser dump view for driver debug output.
-
 use parser::dump
 
 fn driver_print_ast(node: AstNode, indent: i32) {

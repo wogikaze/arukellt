@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component tuple contract allow data.
-
 pub struct ComponentTupleAllows {
     allow_tuple_swap: bool,
     allow_tuple_i64_swap: bool,

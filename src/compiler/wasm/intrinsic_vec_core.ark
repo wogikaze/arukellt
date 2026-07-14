@@ -1,4 +1,3 @@
-// Arukellt Selfhost - vec allocation/length intrinsic handlers
 //
 // GC target: Vec<T> = (struct (field (mut (ref null (array (mut i32))))
 //                              (field (mut i32)))

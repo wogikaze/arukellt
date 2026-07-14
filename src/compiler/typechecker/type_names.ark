@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - concrete type name resolution
-
 use typechecker::contract_type_constructors
 use typechecker::contract_type_access
 use typechecker::type_name_aliases

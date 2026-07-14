@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI init command.
-
 use std::host::fs
 use std::host::process
 use std::host::stdio

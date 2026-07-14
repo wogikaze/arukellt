@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump phi formatting
-
 use std::text
 use mir::dump_format_local
 use mir::dump_format_types

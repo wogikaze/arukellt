@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm type section type signature detail helpers.
 // Extracted from sections_types_sigs.ark
 
 use mir::function_param_view

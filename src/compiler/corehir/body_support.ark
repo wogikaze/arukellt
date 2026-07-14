@@ -1,6 +1,4 @@
 use corehir::expr_access_children
-// Arukellt Selfhost - CoreHIR body support validation.
-
 use corehir::expr_predicates
 
 fn expr_tree_is_supported(exprs: Vec<CoreHirExpr>, root: i32) -> bool {

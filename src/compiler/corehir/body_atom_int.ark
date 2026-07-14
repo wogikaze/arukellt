@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR integer literal atom helpers.
-
 use corehir::body_int_decimal
 use corehir::body_int_suffix
 use corehir::expr_builder_atoms

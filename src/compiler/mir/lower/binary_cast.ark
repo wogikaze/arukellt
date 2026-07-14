@@ -2,8 +2,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR binary operand widening helpers.
-
 use mir::inst_convert
 use mir::value_types
 

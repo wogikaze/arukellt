@@ -1,5 +1,3 @@
-// Arukellt Parser - token and parser state constructors.
-
 use parser::state_record
 use parser::token_record
 

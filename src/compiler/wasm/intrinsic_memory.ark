@@ -1,4 +1,3 @@
-// Arukellt Selfhost - memory intrinsic handlers
 // Handler for: memory_copy
 fn emit_memory_copy(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, 252)

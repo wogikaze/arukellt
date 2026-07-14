@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering for supported CoreHIR expression DTOs.
-
 use mir::lower::core_bindings
 use mir::lower::core_dispatch_aggregate
 use mir::lower::core_dispatch_call

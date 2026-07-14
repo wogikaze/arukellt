@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 function registry identifier.
-
 struct FunctionId {
     raw: i32,
 }

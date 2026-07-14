@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::opcodes
-// Arukellt Selfhost - CoreHIR match pattern condition emit helpers.
-
 use mir::inst_local_get
 use mir::inst_op
 use mir::inst_structured_control

@@ -1,5 +1,3 @@
-// Arukellt Parser - top-level module parsing.
-
 use lexer::tokens
 use parser::core_api_cursor
 use parser::decl_dispatch

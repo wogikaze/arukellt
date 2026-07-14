@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm emission context construction.
-
 use wasm::strings
 use wasm::ctx_record
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm string writer helpers.
-
 use wasm::writer_core
 
 fn emit_string(w: writer_core::WasmWriter, s: String) {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR for-loop MIR lowering.
-
 use mir::lower::core_for_iter
 use mir::lower::core_for_range
 use mir::lower::core_for_values

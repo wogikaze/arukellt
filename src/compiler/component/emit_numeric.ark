@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - numeric component wrapper facade
-
 use component::adapters_numeric
 use component::component_base
 use component::constants_sections_linkage

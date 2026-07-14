@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA renaming facade.
-
 use mir::ssa_rename_block
 use mir::ssa_rename_entry
 

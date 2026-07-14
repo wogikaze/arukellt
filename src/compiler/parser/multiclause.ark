@@ -1,7 +1,5 @@
 use parser::core_ast_span_fields
 use parser::core_ast_children
-// Arukellt Parser - multi-clause function desugaring
-
 use parser::multiclause_base
 use parser::multiclause_plain
 use parser::multiclause_where

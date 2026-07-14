@@ -1,4 +1,3 @@
-// Arukellt Selfhost - compile session artifact store.
 //
 // Owns the post-typecheck CoreHIR artifact shared by the driver pipeline
 // and LSP analysis. Consumers query the session instead of rebuilding the

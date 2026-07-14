@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - unknown or builtin call fallback inference.
-
 use typechecker::ast_access
 use typechecker::builtins
 use typechecker::contract_type_access

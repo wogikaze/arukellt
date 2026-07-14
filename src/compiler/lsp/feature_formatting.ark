@@ -1,5 +1,3 @@
-// Arukellt LSP - formatting request handling (#216).
-
 use lsp::formatting
 use lsp::framing
 use lsp::json_fields

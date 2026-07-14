@@ -1,8 +1,6 @@
 use lexer::tokens
 use parser::core_ast_factory
 use parser::core_ast_type_ann
-// Arukellt Parser - generic type parameter parsing.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds

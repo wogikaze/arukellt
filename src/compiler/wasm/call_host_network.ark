@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm call namespace: host HTTP and sockets dispatch.
-
 use wasm::inst_store
 use wasm::intrinsic_http
 use wasm::intrinsic_sockets

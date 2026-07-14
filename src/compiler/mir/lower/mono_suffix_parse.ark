@@ -1,5 +1,3 @@
-// Arukellt Selfhost - mono mangled-name suffix parsing helpers.
-
 fn split_mono_suffix(suffix: String) -> Vec<String> {
     let result = Vec_new_String()
     let slen = len(suffix)

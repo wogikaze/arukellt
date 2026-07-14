@@ -1,17 +1,15 @@
+use std::text
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering tuple aggregate emission
-
 use mir::inst_const_i32
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::inst_local_get
 use mir::value_types
 use mir::lower::ctx_api_local_types
-use std::text
 
 fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, total_bytes: i32) -> i32 {
     let child_count = len(field_locals)

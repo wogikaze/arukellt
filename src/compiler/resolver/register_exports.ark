@@ -1,5 +1,3 @@
-// Arukellt Resolver - qualified module export registration
-
 use resolver::scope_define
 
 fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {

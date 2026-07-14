@@ -1,5 +1,3 @@
-// Arukellt Selfhost - minimal scalar library component emitter (bootstrap-safe).
-
 use std::text
 use mir::function_identity
 use mir::function_param_view

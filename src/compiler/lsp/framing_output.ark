@@ -1,5 +1,3 @@
-// Arukellt LSP - JSON-RPC output framing.
-
 use lsp::state_record
 
 fn frame(body: String) -> String {

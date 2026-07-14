@@ -1,5 +1,3 @@
-// Arukellt HIR - function item records.
-
 use hir::item_param_record
 use hir::item_type_param_record
 use hir::node_record

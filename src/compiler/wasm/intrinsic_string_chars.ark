@@ -1,4 +1,3 @@
-// Arukellt Selfhost - string chars intrinsic handler
 //
 // GC target delegated to intrinsic_string_chars_gc.ark.
 

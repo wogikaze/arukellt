@@ -1,5 +1,3 @@
-// Arukellt Selfhost - legacy standalone driver CLI argument parsing.
-
 use driver::cli_arg_options
 use driver::cli_arg_position
 

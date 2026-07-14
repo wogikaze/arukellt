@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parse diagnostic result builder.
-
 use compiler::phases
 use driver::errors_phase
 use driver::result_record

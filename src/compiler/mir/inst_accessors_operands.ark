@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR instruction operand accessors.
-
 use mir::inst_record
 
 fn MirInst_dest(inst: MirInst) -> i32 {

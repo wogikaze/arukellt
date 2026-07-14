@@ -1,5 +1,3 @@
-// Arukellt LSP - URI and filesystem path helpers for symbol indexing.
-
 use std::toml
 
 pub fn file_path_to_uri(path: String) -> String {

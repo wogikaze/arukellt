@@ -1,5 +1,3 @@
-// Arukellt LSP - completion request handling.
-
 use lsp::completion
 use lsp::feature_request
 use lsp::framing

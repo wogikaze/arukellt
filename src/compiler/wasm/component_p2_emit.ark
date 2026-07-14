@@ -1,5 +1,3 @@
-// Arukellt Selfhost - self-contained WASI P2 command component emitter for bootstrap.
-
 use wasm::component_p2_stubs
 use wasm::component_p2_stubs_clock
 use wasm::writer_core

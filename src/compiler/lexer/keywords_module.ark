@@ -1,5 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - module and bound keyword lookup.
 
 pub fn keyword_kind_module(word: String) -> i32 {
     if eq(word, "pub") {

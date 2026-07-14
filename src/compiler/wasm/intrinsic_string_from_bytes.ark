@@ -1,4 +1,3 @@
-// Arukellt Selfhost - string_from_bytes intrinsic handler.
 // Converts Vec<i32> (byte buffer) → String in O(n) with a single allocation.
 
 use mir::inst_accessors_operands

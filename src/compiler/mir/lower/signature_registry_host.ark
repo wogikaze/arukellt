@@ -1,5 +1,3 @@
-// Arukellt Selfhost - register host intrinsic stubs into signature registry (diff observation).
-
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry

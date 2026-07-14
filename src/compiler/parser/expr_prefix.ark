@@ -1,5 +1,3 @@
-// Arukellt Parser - aggregate prefix expression facade.
-
 use parser::expr_prefix_array
 use parser::expr_prefix_struct
 use parser::expr_prefix_tuple

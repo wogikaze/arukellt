@@ -1,5 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - string literals without escapes.
 
 fn lex_plain_string(lex: Lexer, start: i32, content_start: i32) -> Token {
     while lex.pos < lex.src_len {

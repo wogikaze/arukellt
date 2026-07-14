@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump block edge formatting
-
 use std::text
 
 fn mir_format_block_ids(ids: Vec<i32>) -> String {

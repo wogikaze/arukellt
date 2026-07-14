@@ -1,4 +1,3 @@
-// Arukellt Selfhost - numeric string component wrappers
 use component::adapters_string_numeric
 use component::adapters_string_to_numeric_core
 use component::component_base

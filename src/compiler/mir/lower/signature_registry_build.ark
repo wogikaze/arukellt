@@ -1,5 +1,3 @@
-// Arukellt Selfhost - build signature registry entries from fn_index source (approximate mirror).
-
 use corehir::kinds
 use corehir::mir_signature_method
 use corehir::signature_registry

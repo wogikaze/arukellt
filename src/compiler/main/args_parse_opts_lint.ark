@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI lint option parsing helpers.
-
 use main::args_record
 
 pub fn parse_lint_allow_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {

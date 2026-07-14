@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WIT resource own<handle> component wrappers (#473).
-
 use component::component_base
 use component::constants_sections_linkage
 use component::export_sections

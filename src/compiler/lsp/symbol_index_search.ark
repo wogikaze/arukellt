@@ -1,5 +1,3 @@
-// Arukellt LSP - workspace symbol search over project index.
-
 use lsp::state_record
 use lsp::symbol_index_record
 

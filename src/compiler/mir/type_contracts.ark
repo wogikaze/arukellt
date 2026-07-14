@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering typecheck DTO compatibility facade.
-
 use corehir::type_contracts
 
 fn TypeInfo_tag(ty: TypeInfo) -> i32 {

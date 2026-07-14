@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block phi query API.
-
 use mir::phi_record
 use mir::types_block
 

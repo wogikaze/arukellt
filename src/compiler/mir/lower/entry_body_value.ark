@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering entry body value selection.
-
 use mir::lower::entry_body_core_value
 use mir::lower::entry_body_fallback
 use mir::lower::entry_body_input

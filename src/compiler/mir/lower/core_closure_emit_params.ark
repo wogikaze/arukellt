@@ -2,8 +2,6 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_types
 use mir::local_factory
-// Arukellt Selfhost - CoreHIR closure explicit parameter emission.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::value_types

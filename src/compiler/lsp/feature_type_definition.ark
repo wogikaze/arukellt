@@ -1,5 +1,3 @@
-// Arukellt LSP - type definition request handling.
-
 use lsp::feature_request
 use lsp::feature_symbol
 use lsp::framing

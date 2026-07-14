@@ -1,4 +1,3 @@
-// Arukellt Selfhost - main namespace: editor
 use std::host::fs
 use std::host::process
 use std::host::stdio
@@ -22,7 +21,6 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
     }
 }
 
-// Arukellt Selfhost - CLI DAP command implementation
 pub fn cmd_dap(opts: CliOptions) {
     if !args_record::cli_has_input_file(opts) {
         stdio::print(dap::run_dap_session(stdio::read_stdin()))
@@ -41,7 +39,6 @@ pub fn cmd_dap(opts: CliOptions) {
     }
 }
 
-// Arukellt Selfhost - CLI LSP command implementation
 pub fn cmd_lsp(opts: CliOptions) {
     if !args_record::cli_has_input_file(opts) {
         stdio::print(lsp::run_session(stdio::read_stdin()))
@@ -59,4 +56,3 @@ pub fn cmd_lsp(opts: CliOptions) {
         },
     }
 }
-// Arukellt Selfhost - CLI IDE analyze command implementation

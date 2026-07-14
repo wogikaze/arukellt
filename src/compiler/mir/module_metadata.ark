@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR module metadata API.
-
 use mir::types
 
 fn MirModule_mono_pruned_count(m: MirModule) -> i32 {

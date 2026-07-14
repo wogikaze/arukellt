@@ -1,5 +1,3 @@
-// Arukellt Parser - import declaration dispatch (WIT string vs local ident).
-
 use lexer::tokens
 use parser::core_ast_factory
 use parser::core_api_cursor

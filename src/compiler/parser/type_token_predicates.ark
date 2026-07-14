@@ -1,7 +1,5 @@
 use lexer::tokens
 
-// Arukellt Parser - type parser token predicates.
-
 fn is_named_start(kind: i32) -> bool {
     kind == tokens::TK_IDENT() || kind == tokens::TK_SELF()
 }

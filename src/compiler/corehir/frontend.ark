@@ -1,5 +1,3 @@
-// Arukellt Selfhost - typed frontend output to CoreHIR adapter.
-
 use corehir::body_roots
 use corehir::export_surface
 use corehir::frontend_decls

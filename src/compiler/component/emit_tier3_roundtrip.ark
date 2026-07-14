@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Tier 3 fixture round-trip component dispatch (#651, #473).
-
 use component::emit_flags as flags
 use component::emit_resource as resource
 

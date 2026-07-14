@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR println call-argument conversion checks.
-
 use mir::lower::core_call_arg_names
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_calls

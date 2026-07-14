@@ -3,8 +3,6 @@ use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
 use std::text
-// Arukellt Selfhost - WAT function formatting.
-
 use wasm::wat_function_body
 use wasm::wat_types
 

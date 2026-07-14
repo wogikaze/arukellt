@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering for direct CoreHIR call arguments.
-
 use mir::lower::core_call_args
 use mir::lower::ctx_types
 

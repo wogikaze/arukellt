@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR parameter AST node accessors.
-
 use corehir::decl_ann_member
 use corehir::frontend_ast_identity
 use corehir::frontend_expr_kind

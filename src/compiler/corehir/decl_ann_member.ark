@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR declaration annotation member access.
-
 use corehir::frontend_ast_type_ann
 
 fn decl_ann_count(node: AstNode) -> i32 {

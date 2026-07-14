@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm module section construction.
-
 use wasm::code
 use wasm::wasm_context
 use wasm::wasm_start

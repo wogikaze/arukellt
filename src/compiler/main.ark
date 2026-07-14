@@ -1,4 +1,3 @@
-// Arukellt Selfhost — CLI Entry Point
 //
 // Command surface for the self-hosted compiler.
 // Supports: parse, compile, check subcommands.

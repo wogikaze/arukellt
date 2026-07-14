@@ -1,5 +1,3 @@
-// Arukellt LSP - completion prefix extraction and response assembly.
-
 use std::json::parser
 use lsp::completion_providers
 use lsp::positions

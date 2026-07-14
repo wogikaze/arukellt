@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared compiler phase display tags.
-
 use compiler::phases
 
 pub fn lex_phase_tag() -> String {

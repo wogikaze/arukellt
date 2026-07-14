@@ -1,5 +1,4 @@
 use mir::lower_kinds
-// Arukellt Selfhost - HOF call plan data contract.
 
 struct MirHofCallPlan {
     kind: i32,

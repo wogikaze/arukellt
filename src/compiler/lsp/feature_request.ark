@@ -1,5 +1,3 @@
-// Arukellt LSP - shared text document position request context.
-
 use lsp::feature_position
 use lsp::json_fields
 use lsp::positions

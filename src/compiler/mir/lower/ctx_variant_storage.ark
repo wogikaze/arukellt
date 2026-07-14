@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - variant tag and payload storage.
-
 fn ctx_variant_count(ctx: LowerCtx) -> i32 {
     len(ctx.variant_names)
 }

@@ -1,7 +1,6 @@
-// Arukellt Selfhost - WAT text format compatibility facade.
-
 use wasm
 
+/// Emits the textual Wasm representation for a validated MIR module and target.
 pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
     wasm::emit_wat(mir, target, opt_level)
 }

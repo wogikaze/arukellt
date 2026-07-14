@@ -4,8 +4,6 @@ use mir::ssa_state_values
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::local_access
-// Arukellt Selfhost - MIR SSA instruction renaming.
-
 use mir::ssa_rename_inst
 use mir::ssa_state_types
 

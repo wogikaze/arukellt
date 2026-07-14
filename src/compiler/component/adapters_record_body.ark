@@ -1,5 +1,3 @@
-// Arukellt Selfhost - record adapter function body emission
-
 use component::adapter_body
 use component::adapter_memory
 use component::writer_core

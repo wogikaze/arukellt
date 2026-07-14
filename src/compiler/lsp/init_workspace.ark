@@ -1,5 +1,3 @@
-// Arukellt LSP - workspace initialization and project index build.
-
 use std::host::fs
 use lsp::lsp_package_definition
 use lsp::state_record

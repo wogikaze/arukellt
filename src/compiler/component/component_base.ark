@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared component wrapper base sections
-
 use component::constants_sections_linkage
 use component::wasi_stub
 use component::wasi_p2_stub

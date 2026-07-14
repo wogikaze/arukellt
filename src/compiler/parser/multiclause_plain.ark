@@ -1,8 +1,6 @@
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - synthetic-argument multi-clause desugaring.
-
 use parser::multiclause_arms
 use parser::multiclause_params
 use parser::multiclause_scrutinee

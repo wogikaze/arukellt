@@ -1,4 +1,2 @@
-// Arukellt Selfhost - driver public data contracts.
-
 use driver::config_record
 use driver::result_record

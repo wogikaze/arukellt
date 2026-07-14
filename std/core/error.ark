@@ -61,7 +61,6 @@ pub fn error_message(e: Error) -> String {
     }
 }
 
-// issue #715 in-file tests
 test mod "error_message" {
     test "invalid" { assert(len(error_message(Error::InvalidArgument("x"))) > 0) }
     test "not_found" { assert(len(error_message(Error::NotFound("m"))) > 0) }

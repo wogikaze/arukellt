@@ -1,5 +1,3 @@
-// Arukellt LSP - read document text for URI position mapping.
-
 use std::host::fs
 use lsp::state_docs
 use lsp::state_record

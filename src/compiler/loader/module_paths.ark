@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module path helpers
-
 use loader::module_path_local
 use loader::module_path_stdlib
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR match payload binding facade.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::core_match_payload_bind_core

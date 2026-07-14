@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR unreachable function pruning.
-
 use mir::module_functions
 use mir::module_metadata
 use mir::types

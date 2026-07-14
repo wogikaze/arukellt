@@ -1,6 +1,4 @@
 use mir::function_identity
-// Arukellt Selfhost - Wasm duplicate function name call resolution.
-
 use mir::function_block_queries
 use mir::block_inst_access
 use mir::inst_accessors_shape

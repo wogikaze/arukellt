@@ -1,4 +1,3 @@
-// Arukellt Selfhost - LSP lifecycle response builders.
 use std::text
 
 fn build_initialize_response(id: i32) -> String {

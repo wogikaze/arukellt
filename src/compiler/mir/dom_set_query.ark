@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block-id set query helpers.
-
 fn mir_block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
     let count = len(ids)
     let mut i = 0

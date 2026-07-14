@@ -5,7 +5,6 @@ use mir::lower::ctx_fn_return_vt
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::value_types
-// Arukellt Selfhost - MIR lowering print argument conversion checks.
 
 fn mir_print_arg_is_string_type(lt: String) -> bool {
     eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string")

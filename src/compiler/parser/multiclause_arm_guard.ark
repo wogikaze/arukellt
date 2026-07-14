@@ -3,7 +3,6 @@ use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
 use parser::core_ast_type_ann
-// Arukellt Parser - multi-clause arm guard extraction.
 
 fn append_clause_guard(arm: AstNode, clause: AstNode, fn_span: Span) {
     let mut guard_node = AstNode_new(kinds::NK_IDENT(), fn_span)

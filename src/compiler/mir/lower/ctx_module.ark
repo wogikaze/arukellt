@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - module mutation facade.
-
 use mir::module_functions
 use mir::module_strings
 use mir::lower::ctx_current_storage

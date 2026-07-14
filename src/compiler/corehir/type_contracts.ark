@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR typecheck DTO contracts.
-
 struct MonoInstance {
     fn_name: String,
     mangled_name: String,

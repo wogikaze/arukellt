@@ -1,5 +1,3 @@
-// Arukellt Selfhost - manifest-backed doc lookup records (#456).
-
 struct DocFnEntry {
     name: String,
     module: String,

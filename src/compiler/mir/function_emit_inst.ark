@@ -1,6 +1,4 @@
 use mir::block_inst_mutation
-// Arukellt Selfhost - MIR function instruction append API.
-
 use mir::function_block_queries
 use mir::types
 

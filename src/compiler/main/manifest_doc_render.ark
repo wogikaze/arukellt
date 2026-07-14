@@ -1,5 +1,3 @@
-// Arukellt Selfhost - manifest doc text/json rendering (#456).
-
 use std::host::stdio
 use std::text
 use lsp::json_escape

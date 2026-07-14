@@ -1,5 +1,3 @@
-// Arukellt Selfhost - local module source file lookup.
-
 use std::host::fs
 use loader::module_paths
 

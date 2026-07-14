@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - SIMD intrinsic builtin call return types.
-
 use typechecker::builtins_simd_lanes
 use typechecker::contract_type_access
 use typechecker::contract_type_constructors

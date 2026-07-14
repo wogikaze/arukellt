@@ -1,5 +1,3 @@
-// Arukellt Typechecker - monomorphization call-site registry.
-
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_type_constructors

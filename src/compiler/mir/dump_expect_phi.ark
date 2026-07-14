@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump phi expectations
-
 use mir::dump_expect_phi_args
 use mir::dump_expect_phi_format
 use mir::dump_expect_phi_one

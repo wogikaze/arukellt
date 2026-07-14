@@ -1,5 +1,3 @@
-// Arukellt Selfhost - integer literal suffix classification.
-
 fn mir_int_literal_has_small_suffix(raw_text: String, raw_len: i32) -> bool {
     if raw_len >= 2 {
         let last = char_at(raw_text, raw_len - 1)

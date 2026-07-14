@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block construction.
-
 use mir::block_record
 use mir::types_block
 

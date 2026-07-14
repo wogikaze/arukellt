@@ -1,5 +1,3 @@
-// Arukellt LSP - definition lookup via project/stdlib symbol index.
-
 use lsp::kinds
 use lsp::state_record
 use lsp::symbol_index_record

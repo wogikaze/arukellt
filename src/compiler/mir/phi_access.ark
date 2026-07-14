@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR phi access API.
-
 use mir::phi_record
 use mir::types
 

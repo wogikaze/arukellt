@@ -1,5 +1,3 @@
-// Arukellt Parser - public AST type annotation API.
-
 use parser::ast_node_record
 
 fn AstNode_push_type_ann(node: AstNode, ann: AstNode) {

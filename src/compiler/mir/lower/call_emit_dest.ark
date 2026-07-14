@@ -2,8 +2,6 @@ use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR direct call destination local selection.
-
 use mir::value_types
 
 fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String) -> i32 {

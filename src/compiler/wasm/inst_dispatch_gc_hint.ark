@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR GC hint instruction Wasm dispatch (metadata-only).
-
 use mir::inst_accessors_shape
 use mir::inst_gc_hint
 use mir::types

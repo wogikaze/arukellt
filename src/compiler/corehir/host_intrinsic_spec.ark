@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 host intrinsic spec (type definition).
-
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id

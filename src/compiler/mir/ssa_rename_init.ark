@@ -3,8 +3,6 @@ use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
 use mir::local_mutation
-// Arukellt Selfhost - MIR SSA function initialization.
-
 use mir::ssa_phi
 use mir::ssa_state_types
 

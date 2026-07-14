@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC vec ref type index accessors (ADR-040 Phase 7).
-
 use wasm::ctx_record
 use wasm::sections_types_gc_phase7
 

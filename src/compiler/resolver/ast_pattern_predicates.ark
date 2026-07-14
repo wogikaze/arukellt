@@ -1,6 +1,4 @@
 use resolver::kinds
-// Arukellt Resolver - pattern AST predicates.
-
 use resolver::ast_access
 
 fn node_is_pat_ident(node: AstNode) -> bool {

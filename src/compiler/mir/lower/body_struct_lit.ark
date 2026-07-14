@@ -4,8 +4,6 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_variants
 use mir::lower_kinds
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - struct literals.
-
 use mir::inst_const_i32
 use mir::inst_local_set
 use mir::lower::struct_lit

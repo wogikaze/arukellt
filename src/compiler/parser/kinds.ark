@@ -1,5 +1,3 @@
-// Arukellt Parser - AST node and operator kind constants.
-
 // Declaration AST node kinds.
 fn NK_FN_DECL() -> i32 { 50 }
 fn NK_STRUCT_DECL() -> i32 { 51 }

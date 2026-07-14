@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout declaration helpers.
-
 use corehir::kinds
 use corehir::layout_decl_record
 

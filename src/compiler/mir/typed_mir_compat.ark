@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 Typed MIR legacy compat (val_type <-> MirValueType).
-
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id

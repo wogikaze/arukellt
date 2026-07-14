@@ -1,4 +1,3 @@
-// Arukellt Selfhost - array MIR instruction emission.
 //
 // GC target: use array.new_default/get/set for all arrays.
 // Linear-memory target: bump allocator + i32 load/store.

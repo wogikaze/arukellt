@@ -1,12 +1,9 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm code section emission facade.
-
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::code_body
 use wasm::function_indices
 use wasm::ctx_record
-
 use mir::module_wit_imports
 
 fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, main_idx: i32, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {

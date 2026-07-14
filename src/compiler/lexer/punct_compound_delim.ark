@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - delimiter-like compound punctuation
-
 use lexer::cursor
 use lexer::punct_compound_peek
 

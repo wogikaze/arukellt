@@ -1,5 +1,3 @@
-// Arukellt MIR lowering body - aggregate expression facade.
-
 use mir::lower::aggregate
 use mir::lower::ast_node
 use mir::lower::body_aggregate_comprehension

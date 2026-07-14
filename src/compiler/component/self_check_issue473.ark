@@ -1,5 +1,3 @@
-// Arukellt Selfhost - issue #473 WIT resource self-check.
-
 use component::wit_parse_import
 use component::wit_parse_resource
 

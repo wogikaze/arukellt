@@ -1,8 +1,4 @@
-// Arukellt Selfhost - main namespace: commands
-
 use main::kinds
-
-// Arukellt Selfhost - CLI command name parsing
 
 fn parse_command(name: String) -> i32 {
     let ascii_cmd = parse_ascii_core_command(name)
@@ -11,8 +7,6 @@ fn parse_command(name: String) -> i32 {
     }
     parse_named_command(name)
 }
-
-// Arukellt Selfhost - CLI command ASCII fast path.
 
 fn parse_ascii_core_command(name: String) -> i32 {
     let name_len = len(clone(name))
@@ -47,8 +41,6 @@ fn parse_ascii_core_command(name: String) -> i32 {
     }
     kinds::CMD_UNKNOWN()
 }
-
-// Arukellt Selfhost - CLI command string fallback parsing.
 
 fn parse_named_command(name: String) -> i32 {
     let implemented = parse_implemented_command(clone(name))
@@ -133,8 +125,6 @@ fn parse_service_command(name: String) -> i32 {
 fn parse_reserved_command(name: String) -> i32 {
     kinds::CMD_UNKNOWN()
 }
-
-// Arukellt Selfhost - CLI command string helpers
 
 fn cli_str_eq(a: String, b: String) -> bool {
     let n = len(clone(a))

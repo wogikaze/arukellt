@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR declaration info helpers.
-
 use corehir::kinds
 use corehir::fn_info
 

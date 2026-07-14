@@ -1,5 +1,3 @@
-// Arukellt Selfhost - AST binary deserialization for per-module parse cache.
-
 // ── Deserialization ──────────────────────────────────────────────────
 
 // Read i32 from string at position, return (value, new_pos)

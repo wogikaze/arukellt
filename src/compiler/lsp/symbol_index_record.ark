@@ -1,5 +1,3 @@
-// Arukellt LSP - project-wide symbol index records.
-
 pub struct IndexedSymbol {
     uri: String,
     name: String,

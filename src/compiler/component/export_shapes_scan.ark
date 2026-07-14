@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Component single export shape scan facade
 use component::export_shapes_kinds
 use component::export_shapes_select
 

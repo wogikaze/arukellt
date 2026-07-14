@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR reachability roots.
-
 use mir::reachability_names
 use mir::types
 

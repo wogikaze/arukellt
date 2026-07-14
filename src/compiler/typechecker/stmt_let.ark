@@ -1,9 +1,5 @@
 use typechecker::kinds
-// Arukellt Typechecker - let statement checking.
-
 use diagnostics::codes
-use diagnostics::mod as diag_mod
-use diagnostics::record as diag_record
 use typechecker::ast_access
 use typechecker::ast_expr_predicates
 use typechecker::contract_env_record
@@ -11,6 +7,8 @@ use typechecker::contract_type_access
 use typechecker::scope
 use typechecker::types
 use typechecker::unify
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
 
 fn check_let_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) {
     let bind_name = ast_access::node_text(node)

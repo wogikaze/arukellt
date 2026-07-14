@@ -5,8 +5,6 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering payload enum variant values.
-
 use mir::inst_const_i32
 use mir::inst_struct_new
 use mir::inst_struct_set

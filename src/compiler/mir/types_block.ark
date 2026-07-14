@@ -1,4 +1,2 @@
-// Arukellt Selfhost - MIR block and phi contracts.
-
 use mir::block_record
 use mir::phi_record

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR struct allocation instruction constructors.
-
 use mir::inst_factory
 use mir::opcodes
 use mir::types

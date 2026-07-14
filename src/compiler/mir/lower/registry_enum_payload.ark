@@ -2,8 +2,6 @@ use mir::lower::ctx_struct_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering enum payload layout registration.
-
 use corehir::layout_decl_payload
 use corehir::layout_variant
 

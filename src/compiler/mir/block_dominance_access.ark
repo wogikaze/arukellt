@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block dominance query API.
-
 use mir::types_block
 
 fn MirBlock_idom(block: MirBlock) -> i32 {

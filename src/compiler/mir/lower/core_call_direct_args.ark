@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering for direct CoreHIR call argument loop.
-
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit
 use mir::lower::core_call_args

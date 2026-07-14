@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry fallback body adapter.
-
 struct MirLowerEntryFallbackBody {
     body: MirLowerLegacyBody,
     has_body: bool,

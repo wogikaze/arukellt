@@ -1,5 +1,3 @@
-// Arukellt Selfhost - numeric component adapter facade
-
 use component::adapter_body
 use component::sections
 use component::writer_core

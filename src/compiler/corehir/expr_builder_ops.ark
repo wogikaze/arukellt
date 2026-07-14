@@ -1,8 +1,6 @@
 use corehir::expr_factory
 use corehir::expr_access_types
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR binding, assignment, and operator expression constructors.
-
 use corehir::value_types
 
 fn corehir_expr_let(binding_name: String, val_type: i32, type_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {

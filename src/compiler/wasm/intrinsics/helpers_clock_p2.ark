@@ -1,5 +1,3 @@
-// Arukellt Selfhost - P2 wall-clock datetime to epoch-ms conversion.
-
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i64_arith

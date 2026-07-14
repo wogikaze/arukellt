@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering tuple destructuring let statements.
-
 use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types

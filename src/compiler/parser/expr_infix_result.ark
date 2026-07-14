@@ -1,5 +1,3 @@
-// Arukellt Parser - Pratt infix parse result contract.
-
 struct ParserInfixResult {
     matched: bool,
     node: AstNode,

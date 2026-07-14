@@ -1,4 +1,3 @@
-// Arukellt Selfhost — Compilation Driver
 //
 // Orchestrates the compilation pipeline:
 //   source → tokens → AST → resolve → typecheck → CoreHIR → MIR → Wasm
@@ -19,16 +18,19 @@ fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
 }
 
 // ── Driver Configuration ─────────────────────────────────────────────────────
+/// Creates the driver configuration used when no CLI override is supplied.
 pub fn DriverConfig_default() -> DriverConfig {
     config_record::DriverConfig_default()
 }
 
 // ── Pipeline Orchestration ───────────────────────────────────────────────────
+/// Compiles source through the configured frontend and backend, stopping at the first failed phase.
 pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     pipeline_backend::compile_source(source, config)
 }
 
 // ── Compile File ─────────────────────────────────────────────────────────────
+/// Reads and compiles a file, reporting read failures through `CompileResult`.
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     file::compile_file(path, config)
 }

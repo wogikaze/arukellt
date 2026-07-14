@@ -1,4 +1,3 @@
-// Arukellt Selfhost - W0010 prefer-use-import lint.
 //
 // When a module-style qualified path (snake_case::symbol) appears many times
 // in one file, recommend importing via `use` and calling the short name.

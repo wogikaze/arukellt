@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - control and statement prefix expression parsing.
-
 use parser::core_api_cursor
 use parser::expr_control
 use parser::stmt

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - wasi:cli/command run wrapper for P2 native components.
-
 use component::constants_sections_linkage
 use component::writer_core
 

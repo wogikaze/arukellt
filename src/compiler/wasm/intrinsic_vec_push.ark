@@ -1,4 +1,3 @@
-// Arukellt Selfhost - vec push intrinsic handler
 //
 // GC path delegated to intrinsic_vec_push_gc.ark for line-limit compliance.
 

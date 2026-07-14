@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component numeric declaration scan.
-
 use component::contract_helpers
 
 pub struct ComponentNumericScan {

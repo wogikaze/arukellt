@@ -1,5 +1,3 @@
-// Arukellt Typechecker - generic call inference shared facade.
-
 use typechecker::call_generic_resolve
 use typechecker::call_generic_vars
 

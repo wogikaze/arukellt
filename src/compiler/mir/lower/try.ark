@@ -4,8 +4,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::try_from_conversion
-// Arukellt Selfhost - MIR lowering try expression helper
-
 use mir::inst_struct_get
 use mir::inst_return
 use mir::inst_structured_control

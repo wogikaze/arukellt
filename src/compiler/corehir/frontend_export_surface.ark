@@ -1,5 +1,3 @@
-// Arukellt Selfhost - build CoreHIR export surface from parsed declarations.
-
 use corehir::export_surface
 use corehir::decl_node_identity
 use corehir::frontend_decl_kind

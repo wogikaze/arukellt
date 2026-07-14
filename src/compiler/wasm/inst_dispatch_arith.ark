@@ -1,7 +1,5 @@
 use mir::inst_accessors_shape
 use mir::opcodes
-// Arukellt Selfhost - arithmetic MIR instruction dispatch.
-
 use wasm::inst_compare
 use wasm::inst_dispatch_result
 use wasm::inst_logic

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver error result builder facade.
-
 use driver::errors_parse
 use driver::errors_phase
 

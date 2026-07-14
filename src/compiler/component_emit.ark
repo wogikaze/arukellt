@@ -1,7 +1,6 @@
-// Arukellt Selfhost - component emission compatibility facade.
-
 use component
 
+/// Wraps a core Wasm module using the selected component target, host profile, and world.
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     component::emit_component(core_wasm, mir, target, wasi_version, world)
 }

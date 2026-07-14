@@ -1,6 +1,4 @@
 use mir::opcodes
-// Arukellt Selfhost - MIR structured control instruction constructors.
-
 use mir::inst_factory
 use mir::types
 use mir::value_types

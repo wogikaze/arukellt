@@ -1,5 +1,3 @@
-// Arukellt LSP - index local import graph reachable from an open file.
-
 use std::host::fs
 use compiler::session_parse
 use lsp::state_record

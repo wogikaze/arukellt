@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block predecessor query API.
-
 use mir::types_block
 
 fn MirBlock_pred_count(block: MirBlock) -> i32 {

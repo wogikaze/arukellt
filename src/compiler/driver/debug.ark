@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver namespace: debug
-
 use std::host::stdio
 use std::time
 use driver::config_record
@@ -9,8 +7,6 @@ use driver::typechecker_dump_view
 use mir
 use lexer::names
 use lexer::token_state
-
-// Arukellt Selfhost - driver AST dump output
 
 pub fn dump_ast(decls: Vec<AstNode>) {
     stdio::eprintln(String_from("=== AST ==="))
@@ -22,8 +18,6 @@ pub fn dump_ast(decls: Vec<AstNode>) {
         j = j + 1
     }
 }
-
-// Arukellt Selfhost - driver debug dump routing.
 
 fn dump_tokens_if_enabled(config: DriverConfig, tokens: Vec<Token>) {
     if config_record::config_dump_tokens(config) {
@@ -57,19 +51,13 @@ fn dump_mir_if_enabled(config: DriverConfig, mir_module: MirModule) {
     }
 }
 
-// Arukellt Selfhost - resolver dump facade for driver debug output.
-
 fn dump_resolved_scope(ctx: ResolveCtx) {
     resolver_dump_view::driver_dump_scope(ctx)
 }
 
-// Arukellt Selfhost - typechecker dump facade for driver debug output.
-
 fn dump_checked_hir(result: TypeCheckResult) {
     typechecker_dump_view::driver_dump_typed_hir(result)
 }
-
-// Arukellt Selfhost - driver lexer diagnostics and dumps
 
 pub fn dump_tokens(tokens: Vec<Token>) {
     stdio::eprintln(String_from("=== TOKENS ==="))
@@ -81,8 +69,6 @@ pub fn dump_tokens(tokens: Vec<Token>) {
         i = i + 1
     }
 }
-
-// Arukellt Selfhost - driver phase timing output
 
 pub fn emit_phase_timing(t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64, t_emit: i64) {
     stdio::eprintln(concat(String_from("[arukellt] lex: "), concat(to_string(time::duration_ms(t0, t_lex)), String_from(".000ms"))))

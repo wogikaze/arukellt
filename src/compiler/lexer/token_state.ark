@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - token constructors.
-
 use lexer::token_record
 
 fn Token_new(kind: i32, text: String, start: i32, end: i32) -> Token {

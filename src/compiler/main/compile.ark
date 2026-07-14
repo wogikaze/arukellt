@@ -1,4 +1,3 @@
-// Arukellt Selfhost - CLI compile/check/parse command dispatch.
 use main::args_record
 use main::commands
 use main::compile_all

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 5e Step 2: tracer removed.
 //
 // The instruction tracer (infer_ref_local_gc_type_depth) has been
 // replaced by the structured block scan in code_ref_locals_block_scan.ark.

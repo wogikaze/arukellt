@@ -1,4 +1,3 @@
-// Arukellt Resolver - __intrinsic_* builtin symbol names.
 // All __intrinsic_* names used across std/ and src/compiler/ are registered
 // here so the resolver can resolve them without prelude auto-import.
 // Names already registered in builtins_convert.ark or builtins_hash.ark

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - package root discovery for qualified imports.
-
 use std::host::fs
 use loader::module_path_local
 

@@ -3,8 +3,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower_kinds
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering expression type peek helpers
-
 use mir::value_types
 fn mir_literal_kind_type_name(kind: i32) -> String {
     if kind == lower_kinds::NK_INT_LIT() {

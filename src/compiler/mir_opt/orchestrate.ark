@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR optimization orchestration at O2+.
 //
 // T3 (wasm32-wasi-p2) gates loop_unroll and licm until independently verified
 // GC-safe. gc_hint is unlocked for T3 (#650) — see docs/compiler/t3-reachability.md.

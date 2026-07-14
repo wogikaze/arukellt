@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - same-name function clause lookahead.
-
 use parser::core_api_cursor
 use parser::token_state
 

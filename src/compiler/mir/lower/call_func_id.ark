@@ -1,5 +1,3 @@
-// Arukellt Selfhost - attach func_id to MIR CALL from module signature registry (PR-3).
-
 use corehir::function_id
 use corehir::signature_registry
 use mir::inst_record

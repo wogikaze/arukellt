@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - control-flow scope storage.
-
 fn ctx_control_nesting_depth(ctx: LowerCtx) -> i32 {
     ctx.nesting_depth
 }

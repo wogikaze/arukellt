@@ -1,5 +1,3 @@
-// Arukellt Selfhost - TypeInfo tag to TypeKind (ADR-040 PR-1 conservative approximation).
-
 use corehir::type_contracts
 use corehir::kinds
 

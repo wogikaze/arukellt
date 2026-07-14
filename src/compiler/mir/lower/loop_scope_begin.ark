@@ -3,8 +3,6 @@ use mir::lower::ctx_api_loop_state
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR loop scope begin emission.
-
 use mir::inst_structured_control
 use mir::lower::loop_scope_types
 use mir::value_types

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering entry parameter binding helpers.
-
 use mir::lower::entry_view_fn
 use mir::lower::entry_view_method
 use mir::lower::params_fn

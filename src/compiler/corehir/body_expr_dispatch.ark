@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR expression body dispatch.
-
 use corehir::body_dispatch_access
 use corehir::body_dispatch_aggregate
 use corehir::body_dispatch_call

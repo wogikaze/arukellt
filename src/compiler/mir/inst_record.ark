@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR instruction data record.
-
 use corehir::mir_value_type
 use mir::typed_mir_compat
 

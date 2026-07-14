@@ -1,6 +1,4 @@
 use mir::inst_accessors_literals
-// Arukellt Selfhost - Wasm call instruction dispatch
-
 use wasm::call_fallback
 use wasm::call_host
 use wasm::call_parse

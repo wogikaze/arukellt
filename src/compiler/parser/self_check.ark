@@ -1,5 +1,3 @@
-// Arukellt Parser standalone self-checks.
-
 use std::host::stdio
 use lexer::scan
 use parser::core_api_token

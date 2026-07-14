@@ -9,61 +9,61 @@ recheck_after = "2026-08-31"
 
 [[exceptions]]
 path = "src/compiler/component/contract_allows_numeric.ark"
-sha256 = "8e629e33ce8cbe8342a870a8829b82fcff21ab904728ec0d53ccaad437d2708c"
+sha256 = "f15aeacdcff6e798aaf78d73231f9ea3002bd4f04abde049d7227ffe39d532a5"
 [[exceptions]]
 path = "src/compiler/component/contract_allows_tuple.ark"
-sha256 = "be629193ea5741e8878bf53847dfd293745eb7d48469d1fc1eb2f90ef202ef2b"
+sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
 [[exceptions]]
 path = "src/compiler/component/emit_resource.ark"
-sha256 = "cde466d4a4ff1cb2894e5ec9cd0f669b0f760bd619a97452b79920f5106a036a"
+sha256 = "17f492dce69b2fe1196de8c4c960464e0c80da9f40656251e5d8cfd3a07fa5cb"
 [[exceptions]]
 path = "src/compiler/component/emit_tier3_roundtrip.ark"
-sha256 = "0c077a76cc167031b471f0d54bcd4d39d1f4d29639f1513d327e7dac5e6e5f03"
+sha256 = "6698556fa0557a14870ff9a71c2ef561361d55853c568c5cc125d6d5e5443893"
 [[exceptions]]
 path = "src/compiler/diagnostics/codes.ark"
-sha256 = "6647ed1e52544f316b30452155d744a4a8174c84ade5c8471a90c135b335dd8a"
+sha256 = "4fcf2f36f51d1321db375c5940b73a49afd1d9cf512fd8483e69795bd901a721"
 [[exceptions]]
 path = "src/compiler/diagnostics/format.ark"
-sha256 = "97d5ee3b1d8a7a924b284b193d69386fb18596f0bcf78d8cc42939bef5d103aa"
+sha256 = "d193f1c517f6ce8b93ad372f2509631b987458f9c4ac9bb236e3e218fbb4ec0a"
 [[exceptions]]
 path = "src/compiler/main/manifest_doc_site.ark"
-sha256 = "267f3bcc24d9b84df527349c168587299ce1109ee6f020ca0814c7d16c2b5f8d"
+sha256 = "415fe77287f5d53e193c960065abe3fdb9a11ccd4211d16e0499a1dfdafa8a01"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_if.ark"
-sha256 = "0419b4dc9b170bf7aa4de69a8fa505291a753b9db50ea70fc4ac4c3ff92882fe"
+sha256 = "95defdf29f925549db26c04c746917768141312f79750221d3c2509e55fcf5bb"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match.ark"
-sha256 = "67e9d43dca2ba7c07773a0a2d28f55050c30da8b79b9f868321364db54e5ce47"
+sha256 = "792d3438b34096515ad7e5854e085753fe67f3009dae4d93ebf0e089c5291248"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match_arm_last.ark"
-sha256 = "ba4b081206ec28f06c8c30fcdb783532c6596df7d4581b905d805e83324e5f77"
+sha256 = "e8ebb50d63373d2e2a3058ad459164275804ced734b3534bad05e21ba565a644"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match_arm_nonlast.ark"
-sha256 = "84129a71ddd85f49deafd1384d0da640c31523a5cc907efd0ecf589014739313"
+sha256 = "5e5f3e98e379b5cd6ee2a97da5a5a31991b364958044b7290a8c7cb1f2362700"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match_compare_or.ark"
-sha256 = "8d5357ec3344e43cf867097237a9c40c2b241c0ead18ec1856ec9a30d02f70cd"
+sha256 = "1067c0553f9ef9f0540e95193da9979bd00264fd78ff22a69d736944f3571f11"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match_compare_single.ark"
-sha256 = "e96f4834f461f7f32d596c833b933a94f4340c92200d540b20f38a660b4d4243"
+sha256 = "1c2074ba7115fc7a129196612abda1b2116cea15ded3bdd21275fe8918e5b433"
 [[exceptions]]
 path = "src/compiler/mir/lower/core_if.ark"
-sha256 = "62c9ab4bec371c2efc2498dfa87faea1437cb9345ea3f1e9cb6f44187b473b93"
+sha256 = "6aa07f22a117fd761e70f92bf2690fd23bb4df38eca1b7b0b2cbcda7d5d29bf9"
 [[exceptions]]
 path = "src/compiler/typechecker/infer_compound.ark"
-sha256 = "da22c0203548657b94ba80fda71ed951f8cf5910d3626703a98715db090b1b53"
+sha256 = "7659160d0dacde35449e41936661b8614c8275aaea70814115fe1554d077f74e"
 [[exceptions]]
 path = "src/compiler/typechecker/returns.ark"
-sha256 = "c8393c66ece8f15592ffaafeaf061284c91d10a219e27ee34653b26805fac6b1"
+sha256 = "49dd76cebbc19e13e0301e16c2f8f8c1e6532f9a8f1a83ca99bf8af97ce4949c"
 [[exceptions]]
 path = "src/compiler/wasm/wat.ark"
-sha256 = "484eb8f8597922eb2cf7276d68dab36fad122cb8f3d1801eaed1644bc82dd950"
+sha256 = "0ad0c1cd8c0f13212ca534fdda3b699b9a71768935c0603968e98f7557992649"
 [[exceptions]]
 path = "src/compiler/wasm/wat_function_body.ark"
-sha256 = "3ef75ad31c7d3e320f7a27a512dbd3abab3a7537c60784debbf0ee223b08916b"
+sha256 = "5c2fbe5d2ae337d1dcb97258533c64952147a015188266c57151bd76ae2dd9c4"
 [[exceptions]]
 path = "src/compiler/wasm/wat_functions.ark"
-sha256 = "de469aff5b3e9ee0a16899f70775902637cda90e7e92a1b7e179a9a7d61b376b"
+sha256 = "9733ef7d5406efe96c0d025e78e1746a27f549708e2cec9b259e3b2d0f12d764"
 [[exceptions]]
 path = "std/core/iter.ark"
 sha256 = "cfd891d9cb5bfc66c2ebbf391bc130320a1f8391845daff6bfe121239383fe89"

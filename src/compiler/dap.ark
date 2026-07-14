@@ -1,9 +1,8 @@
-// Arukellt Selfhost - Debug Adapter Protocol facade.
-
 use dap::framing
 use dap::session
 use dap::state_record
 
+/// Processes a complete DAP byte stream and returns all framed protocol responses.
 pub fn run_dap_session(input: String) -> String {
     session::run_dap_session(input)
 }

@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - trait bound checking.
-
 use typechecker::contract_fn_sig
 use typechecker::contract_type_param_bounds
 use typechecker::contract_trait_impl

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR atomic node kind checks.
-
 use corehir::expr_kind_predicates
 
 fn corehir_atomic_node_kind(kind: i32) -> bool {

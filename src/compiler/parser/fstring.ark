@@ -1,5 +1,3 @@
-// Arukellt Parser - f-string desugaring
-
 use parser::fstring_concat
 use parser::fstring_segments
 

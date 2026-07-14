@@ -1,10 +1,10 @@
-// Arukellt Selfhost — Wasm Binary Emitter
 //
 // Compatibility facade for the Wasm emission entrypoint.
 
 use wasm
 use resolver::wit_import_bind
 
+/// Emits core Wasm without component import bindings through the compatibility boundary.
 pub fn emit_wasm(mir: MirModule, target: String, wasi_version: String, opt_level: i32) -> Vec<i32> {
     wasm::emit_wasm(mir, target, wasi_version, opt_level, Vec_new_WitImportBinding())
 }

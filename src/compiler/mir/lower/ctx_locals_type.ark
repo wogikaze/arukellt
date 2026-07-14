@@ -2,8 +2,6 @@ use mir::function_locals_view
 use mir::function_local_mutation
 use mir::local_access
 use mir::local_mutation
-// Arukellt MIR lowering context - local type metadata.
-
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_type_storage
 use mir::lower::ctx_typed_mir_sync

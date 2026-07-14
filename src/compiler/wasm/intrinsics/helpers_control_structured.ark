@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm intrinsic structured control helper recipes.
-
 use wasm::constants
 use wasm::writer_core
 

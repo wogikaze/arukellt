@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - type annotation node predicates.
-
 use typechecker::ast_access
 
 fn node_is_type_generic(node: AstNode) -> bool {

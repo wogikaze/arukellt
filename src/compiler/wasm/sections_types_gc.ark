@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm type section GC type entry emission.
 //
 // Type sig format:
 //   A_{elem}      - array type with element type {elem}

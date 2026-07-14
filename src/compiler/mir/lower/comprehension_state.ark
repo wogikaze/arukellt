@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR list comprehension state contract.
-
 struct ComprehensionState {
     result_local: i32,
     idx_local: i32,

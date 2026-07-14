@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA slot index helpers.
-
 use mir::ssa_state_types
 
 fn mir_ssa_exit_index(state: ssa_state_types::MirSsaRenameState, block_id: i32, local_id: i32) -> i32 {

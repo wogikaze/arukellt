@@ -85,7 +85,6 @@ pub fn rope_line_count(r: String) -> i32 {
     }
     count
 }
-// issue #715 in-file tests
 test mod "rope" {
     test "new" { assert(rope_len(rope_new()) == 0) }
     test "from" { assert(eq(rope_to_string(rope_from_string("hi")), "hi")) }

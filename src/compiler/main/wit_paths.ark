@@ -1,5 +1,3 @@
-// Arukellt Selfhost - merge CLI --wit paths with ark.toml WIT dependencies (#663).
-
 use loader::wit_manifest
 use driver::config_record
 use main::args_record

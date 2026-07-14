@@ -1,5 +1,3 @@
-// Arukellt LSP - import state from parsed use declarations.
-
 use compiler::session_parse
 use loader::module_import_paths
 

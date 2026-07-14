@@ -1,12 +1,10 @@
+use std::host::env
+use std::host::stdio
+use std::text
 use mir::lower::ctx_api_local_frame
 use mir::function_return_view
 use mir::function_param_view
 use mir::function_locals_view
-// Arukellt Selfhost - MIR Lowering Trace Helpers
-
-use std::host::env
-use std::host::stdio
-use std::text
 use mir::function_block_queries
 use mir::lower::ctx_types
 

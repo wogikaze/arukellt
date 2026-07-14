@@ -1,5 +1,3 @@
-// Arukellt Selfhost - vec intrinsic handler facade
-
 use wasm::intrinsic_vec_access
 use wasm::intrinsic_vec_core
 use wasm::intrinsic_vec_empty

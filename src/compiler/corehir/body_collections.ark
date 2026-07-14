@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR body builder for collection expressions.
-
 use corehir::body_collection_array
 use corehir::body_collection_comprehension
 use corehir::body_collection_tuple

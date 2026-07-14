@@ -1,5 +1,3 @@
-// Arukellt Selfhost - issue #443 compose WIT validation self-check.
-
 use component::compose_wit_validate
 
 fn issue443_compose_wit_match_self_check() -> bool {

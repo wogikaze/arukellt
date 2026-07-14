@@ -1,5 +1,3 @@
-// Arukellt Selfhost - impl block self / owner type resolution.
-
 use corehir::decl_ann_member
 use corehir::decl_ann_name
 use corehir::decl_node_identity

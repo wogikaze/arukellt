@@ -170,7 +170,6 @@ pub fn combine(h1: i32, h2: i32) -> i32 {
 }
 
 // Simple multiplicative hash (Knuth variant)
-// issue #715 in-file tests
 test mod "hash" {
     test "i32_zero" { assert(0.hash() >= 0) }
     test "i32_neg" { assert((-1).hash() >= 0) }

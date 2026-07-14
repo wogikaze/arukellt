@@ -1,5 +1,3 @@
-// Arukellt Resolver - compile-target gates for std host modules.
-
 use resolver::ctx_record
 use resolver::scope_error
 

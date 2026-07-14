@@ -1,5 +1,3 @@
-// Arukellt Typechecker - resolver error view.
-
 use resolver::context
 
 fn typecheck_resolve_errors(resolve_ctx: ResolveCtx) -> Vec<String> {

@@ -5,8 +5,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
-// Arukellt MIR lowering - infer closure return type from body result local.
-
 use mir::value_types
 
 fn mir_set_closure_return_from_local(ctx: LowerCtx, f: MirFunction, res_idx: i32) {

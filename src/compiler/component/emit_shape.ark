@@ -1,6 +1,5 @@
+use std::text
 use component::constants_wit_values
-// Arukellt Selfhost - shape component wrapper facade
-
 use component::adapter_body
 use component::adapter_memory
 use component::adapters_single_export_sections
@@ -13,7 +12,6 @@ use component::type_section_entries
 use component::types_wit_compound
 use component::types_wit_func
 use component::writer_core
-use std::text
 
 fn emit_shape_component(core_wasm: Vec<i32>, export_name: String, kind: i32, result_type: i32, needs_memory: bool) -> Vec<i32> {
     let out = component_base::comp_new_component_writer()

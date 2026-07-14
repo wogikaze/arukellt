@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR immediate dominator computation.
-
 use mir::dom_sets
 use mir::block_dominance_access
 use mir::block_dominance_mutation

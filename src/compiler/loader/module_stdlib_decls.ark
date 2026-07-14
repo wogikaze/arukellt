@@ -1,5 +1,3 @@
-// Arukellt Selfhost - stdlib module declaration registration.
-
 use loader::module_state_loading
 use loader::module_state_modules
 use loader::module_file_load_stdlib

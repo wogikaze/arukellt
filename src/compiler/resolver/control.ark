@@ -1,5 +1,3 @@
-// Arukellt Resolver - scoped control-flow walkers.
-
 use resolver::control_block
 use resolver::control_comprehension
 use resolver::control_for

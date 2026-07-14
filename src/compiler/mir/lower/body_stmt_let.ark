@@ -1,6 +1,4 @@
 use mir::lower::ast_node
-// Arukellt MIR lowering body - let statement lowering.
-
 use mir::lower::stmt_let
 use mir::lower::stmt_let_tuple
 use mir::lower_kinds

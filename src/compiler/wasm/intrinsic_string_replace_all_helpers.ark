@@ -1,4 +1,3 @@
-// Arukellt Selfhost - string replace non-GC helpers.
 // Extracted from intrinsic_string_replace_all.ark
 
 use wasm::intrinsics::helpers_control

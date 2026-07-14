@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering call target rewrites
-
 use mir::lower::call_mono
 use mir::lower::call_mono_by_type
 use mir::lower::call_rewrite_method

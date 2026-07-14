@@ -7,8 +7,6 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
-// Arukellt Selfhost - CoreHIR closure capture parameter emission.
-
 use mir::value_types
 
 fn core_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {

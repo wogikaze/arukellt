@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR nested phi insertion smoke check.
-
 use std::host::process
 use std::host::stdio
 use mir::dominance

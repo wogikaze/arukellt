@@ -4,7 +4,6 @@ use parser::core_ast_children
 use parser::core_ast_text_fields
 use parser::core_ast_span_fields
 use parser::core_ast_literal_fields
-// Arukellt Parser - `test` declarations (ADR-041).
 //
 // `test` is a contextual keyword (lexer keeps it as TK_IDENT). Three forms:
 //   test "name" { ... }              -- standalone test (file scope)

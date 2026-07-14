@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering entry declaration emission.
-
 use corehir::mir_signature_method
 use corehir::mod
 use mir::lower::entry_body_source

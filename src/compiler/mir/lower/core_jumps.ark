@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_loop_query
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR jump and return lowering.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::control
 

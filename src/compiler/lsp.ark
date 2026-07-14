@@ -2,6 +2,7 @@ use lsp::dispatch
 use lsp::framing
 use lsp::state_record
 
+/// Processes framed LSP input until exit or an incomplete frame and returns accumulated output.
 pub fn run_session(input: String) -> String {
     let state = state_record::LspState_new()
     let n = len(input)

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - compiler parse session queries.
-
 use compiler::session_frontend_query
 use compiler::session_parse_tokens
 

@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - equality and bang punctuation
-
 use lexer::cursor
 use lexer::punct_compound_peek
 

@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - list comprehension setup flow emission.
-
 use mir::inst_branch
 use mir::inst_call
 use mir::inst_local_get

@@ -1,5 +1,3 @@
-// Arukellt LSP - stdlib source span lookup for definition/hover.
-
 use std::host::fs
 use compiler::session_parse
 use lsp::symbol_index_extract

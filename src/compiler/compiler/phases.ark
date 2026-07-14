@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared compiler phase tags.
-
 pub fn PHASE_LEX() -> i32 {
     1
 }
@@ -27,7 +25,6 @@ pub fn PHASE_EMIT() -> i32 {
 pub fn PHASE_LINT() -> i32 {
     7
 }
-// issue #715 in-file tests
 test mod "phases" {
     test "lex_parse" { assert(PHASE_LEX() < PHASE_PARSE()) }
     test "parse_resolve" { assert(PHASE_PARSE() < PHASE_RESOLVE()) }

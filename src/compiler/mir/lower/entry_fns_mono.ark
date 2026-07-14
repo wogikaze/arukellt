@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry top-level mono function body emission loop.
-
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
 use mir::lower::entry_emit_top

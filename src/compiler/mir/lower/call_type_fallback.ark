@@ -7,7 +7,6 @@ use mir::lower::ctx_types
 use mir::lower::mono_return_vt
 use mir::lower::mono_suffix_parse
 use mir::lower::call_type_fallback_stdlib
-// Arukellt Selfhost - MIR call result type fallback propagation.
 use mir::value_types
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).

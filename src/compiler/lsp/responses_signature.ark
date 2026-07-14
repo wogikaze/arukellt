@@ -1,5 +1,3 @@
-// Arukellt LSP - signature help response builders.
-
 use std::text
 use lsp::responses_json
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - compiler parse session query from tokens.
-
 use diagnostics::record
 use parser
 

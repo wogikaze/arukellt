@@ -1,8 +1,6 @@
 use mir::lower_kinds
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR statement-like expression dispatch.
-
 use mir::inst_misc_control
 use mir::lower::body_control
 use mir::lower::body_stmt

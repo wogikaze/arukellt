@@ -1,5 +1,3 @@
-// Arukellt Parser - public AST declaration flag field API.
-
 use parser::ast_fields_record
 
 fn AstNode_set_is_pub(node: AstNode, is_pub: bool) { ast_fields_record::ast_node_set_is_pub(node, is_pub) }

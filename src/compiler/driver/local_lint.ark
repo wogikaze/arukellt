@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parse-only local lint stage (`arukellt lint --local`).
-
 use collections::vec_extend
 use compiler::phases
 use driver::config_record

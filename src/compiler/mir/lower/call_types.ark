@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering call result type propagation facade.
-
 use mir::lower::call_type_fallback
 use mir::lower::call_type_hash
 use mir::lower::call_type_vec

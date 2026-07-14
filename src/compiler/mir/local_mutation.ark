@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR local DTO mutation.
-
 use mir::local_record
 
 fn MirLocal_set_ssa(local: MirLocal, ssa_name: String, ssa_version: i32) {

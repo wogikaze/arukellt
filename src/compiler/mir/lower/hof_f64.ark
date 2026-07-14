@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering for f64 higher-order sequence helpers.
-
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::hof_loop

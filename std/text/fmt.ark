@@ -1,11 +1,8 @@
-/// Format utilities — primitive-to-string conversion, padding, and the
-/// `Debug` formatting ecosystem (issue #696).
-///
-/// The `Debug` trait itself and scalar impls live in `std::core::convert`.
-/// This module provides the `format!` / `write!` equivalents
-/// (`format_debug`, `write_debug_to`) and monomorphic `Debug` helpers for
-/// container types (`Vec<T>`, `Option<T>`, `Result<T, E>`) that cannot yet
-/// receive generic trait impls.
+//! Primitive-to-string conversion, padding, and the `Debug` formatting ecosystem.
+//!
+//! The `Debug` trait and scalar implementations live in `std::core::convert`.
+//! This module owns the formatting equivalents and monomorphic helpers for
+//! container types that cannot yet receive generic trait implementations.
 use std::core::convert
 
 /// Formats an `i32` as a decimal string.

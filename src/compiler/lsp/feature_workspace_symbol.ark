@@ -1,5 +1,3 @@
-// Arukellt LSP - workspace/symbol request handler.
-
 use std::host::fs
 use lsp::framing
 use lsp::json_fields

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Vec_new dest/store-target GC type resolution.
-
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::block_inst_access

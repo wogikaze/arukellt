@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component specialized export-shape dispatch facade
 use component::emit_list
 use component::emit_numeric
 use component::emit_option

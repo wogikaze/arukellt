@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR loop scope emission facade.
-
 use mir::lower::loop_scope_begin
 use mir::lower::loop_scope_end
 use mir::lower::loop_scope_types

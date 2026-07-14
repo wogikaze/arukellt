@@ -1,5 +1,3 @@
-// Arukellt Selfhost - HOF call classifier orchestration.
-
 use mir::lower_kinds
 use mir::lower::hof_call_plan
 

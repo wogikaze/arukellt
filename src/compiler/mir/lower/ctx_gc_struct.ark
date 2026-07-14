@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR lowering GC struct type registration.
 use std::text
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types

@@ -1,5 +1,3 @@
-// Arukellt Typechecker - type annotation resolution facade
-
 use typechecker::type_ann
 use typechecker::type_generic
 use typechecker::type_names

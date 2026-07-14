@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - function signature index storage.
-
 fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
     len(ctx.fn_names)
 }

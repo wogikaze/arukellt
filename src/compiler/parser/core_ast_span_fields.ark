@@ -1,5 +1,3 @@
-// Arukellt Parser - public AST span field API.
-
 use parser::ast_fields_record
 
 fn AstNode_span(node: AstNode) -> Span { ast_fields_record::ast_node_span(node) }

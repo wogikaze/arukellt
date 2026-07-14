@@ -1,5 +1,3 @@
-// Arukellt Selfhost - named TypeInfo comparisons.
-
 use typechecker::contract_type_access
 
 fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {

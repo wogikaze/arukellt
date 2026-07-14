@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR type annotation node predicates.
-
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind

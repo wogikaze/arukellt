@@ -1,5 +1,3 @@
-// Arukellt Selfhost - formatter program pipeline.
-
 use fmt::comments
 use fmt::indent
 use fmt::parse_gate

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR type fact helpers.
-
 struct CoreHirTypeFacts {
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,

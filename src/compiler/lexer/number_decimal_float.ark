@@ -1,5 +1,3 @@
-// Arukellt Lexer - decimal float markers and suffixes.
-
 use lexer::char_class
 
 fn scan_decimal_float_parts(lex: Lexer) -> bool {

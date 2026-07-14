@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR return annotation value type mapping.
-
 use corehir::decl_ann_name
 use corehir::return_ann_shape
 use corehir::value_types

@@ -1,5 +1,3 @@
-// Arukellt Lexer - token record.
-
 pub struct Token {
     kind: i32,
     text: String,

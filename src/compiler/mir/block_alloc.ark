@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function block allocation.
-
 use mir::block_factory
 use mir::function_block_mutation
 use mir::types

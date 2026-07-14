@@ -1,5 +1,3 @@
-// Arukellt Selfhost - semantic fix pipeline (#440).
-
 use fmt::prune_imports
 
 fn apply_semantic_fixes(input: String) -> Option<String> {

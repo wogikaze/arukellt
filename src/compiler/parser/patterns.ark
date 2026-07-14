@@ -1,8 +1,6 @@
 use lexer::tokens
 use parser::core_ast_children
 use parser::core_ast_factory
-// Arukellt Parser - pattern syntax parsing
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::pattern_ident

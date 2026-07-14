@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm local GC struct/named type declarations.
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals

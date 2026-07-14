@@ -1,7 +1,5 @@
 use mir::lower::ast_node
 use mir::lower_kinds
-// Arukellt MIR lowering body - direct function calls
-
 use mir::lower::call_args
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit

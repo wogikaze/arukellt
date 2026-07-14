@@ -1,5 +1,3 @@
-// Arukellt Selfhost — compilation target registry (#641).
-
 fn is_native_target(target: String) -> bool {
     eq(clone(target), String_from("native"))
 }

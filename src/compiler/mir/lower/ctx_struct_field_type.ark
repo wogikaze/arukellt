@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - struct field type queries.
-
 use mir::lower::ctx_struct_storage
 
 fn ctx_struct_field_type_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry top-level function emission loop.
-
 use mir::lower::entry_body_source
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_fn

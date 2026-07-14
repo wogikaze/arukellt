@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parser public boundary.
-
 use parser::decl
 use parser::program
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR match payload extraction facade.
-
 use mir::lower::match_payload_bind
 use mir::lower::match_payload_prepare
 

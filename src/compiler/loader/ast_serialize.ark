@@ -1,4 +1,3 @@
-// Arukellt Selfhost - AST binary serialization for per-module parse cache.
 //
 // Format (all integers little-endian):
 //   Header: magic[4] = "ASTC", version:i32 = 1

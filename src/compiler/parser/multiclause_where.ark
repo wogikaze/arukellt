@@ -1,8 +1,6 @@
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - where-backed multi-clause desugaring.
-
 use parser::multiclause_where_bindings
 use parser::multiclause_where_match
 use parser::multiclause_where_param

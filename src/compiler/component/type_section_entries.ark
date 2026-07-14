@@ -1,7 +1,5 @@
 use component::constants_sections_linkage
 use component::constants_wit_values
-// Arukellt Selfhost - component single WIT type/export section helpers.
-
 use component::sections
 use component::types_wit_compound
 use component::writer_core

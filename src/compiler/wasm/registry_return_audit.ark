@@ -1,5 +1,3 @@
-// Arukellt Selfhost - PR-4-wide-audit: registry vs legacy VT observation (emit unchanged).
-
 use mir::legacy_vt_compat
 use wasm::ctx_record
 use wasm::registry_return_guard

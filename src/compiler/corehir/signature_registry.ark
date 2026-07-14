@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 central function signature registry.
-
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::signature_entry

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - function body instruction emission helpers.
 // Extracted from code_body.ark
 
 use wasm::opcodes

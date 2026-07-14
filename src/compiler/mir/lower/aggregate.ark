@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering aggregate helper facade
-
 use mir::lower::aggregate_array
 use mir::lower::aggregate_field
 use mir::lower::aggregate_tuple

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA phi utilities.
-
 use mir::ssa_assign
 use mir::ssa_join_phi
 use mir::ssa_value

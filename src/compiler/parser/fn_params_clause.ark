@@ -2,8 +2,6 @@ use parser::ast_kind_fields
 use lexer::tokens
 use parser::kinds
 use parser::core_ast_children
-// Arukellt Parser - multi-clause function parameter patterns
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::patterns

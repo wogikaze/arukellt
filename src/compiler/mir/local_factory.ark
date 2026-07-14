@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR local DTO construction.
-
 use mir::local_record
 
 fn MirLocal_new(name: String, val_type: i32, type_name: String) -> MirLocal {

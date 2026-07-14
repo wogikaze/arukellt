@@ -5,8 +5,6 @@ use mir::lower::closure_registry
 use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_types
 use mir::function_return_mutation
-// Arukellt MIR lowering body - closure expression emission facade.
-
 use mir::lower::body_closure_capture
 use mir::lower::body_closure_context
 use mir::lower::body_closure_params

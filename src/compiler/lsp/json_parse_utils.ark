@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON scanner utilities
-
 fn json_skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut p = pos

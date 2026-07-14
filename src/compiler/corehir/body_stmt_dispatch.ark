@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR statement body dispatch.
-
 use corehir::body_bindings
 use corehir::body_control
 use corehir::body_for

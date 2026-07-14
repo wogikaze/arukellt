@@ -1,6 +1,4 @@
 use mir::function_factory
-// Arukellt Selfhost - MIR lowering context initialization.
-
 use mir::lower::ctx_types
 use wasm::emit_target
 

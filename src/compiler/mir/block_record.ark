@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block data record.
-
 use mir::opcodes
 use mir::phi_record
 use mir::inst_record

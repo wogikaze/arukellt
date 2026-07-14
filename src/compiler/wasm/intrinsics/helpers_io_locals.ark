@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm intrinsic I/O local primitive recipes.
-
 use wasm::writer_core
 
 fn emit_local_get(w: WasmWriter, local: i32) {

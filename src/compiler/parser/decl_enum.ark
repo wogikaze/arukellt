@@ -1,5 +1,3 @@
-// Arukellt Parser - enum declaration syntax
-
 use parser::decl_enum_body
 use parser::decl_enum_header
 use parser::type_params

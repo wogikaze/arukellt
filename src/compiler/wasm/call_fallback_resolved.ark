@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm call fallback: resolved call emission.
 // Extracted from call_fallback.ark to reduce import fan-out.
 // Opcode constants inlined to avoid extra import (values from mir::opcodes).
 

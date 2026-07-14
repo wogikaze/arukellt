@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm section emitter facade bundling section modules.
-
 use wasm::sections_tail
 use wasm::sections_exports
 use wasm::sections_functions

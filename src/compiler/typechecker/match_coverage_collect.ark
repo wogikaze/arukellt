@@ -1,5 +1,3 @@
-// Arukellt Typechecker - match pattern coverage collection.
-
 use typechecker::ast_pattern_predicates
 use typechecker::match_coverage_literal
 use typechecker::match_coverage_mark_record

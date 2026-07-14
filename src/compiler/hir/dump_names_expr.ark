@@ -1,5 +1,4 @@
 use hir::kinds
-// Arukellt HIR - expression dump tag names.
 
 fn hir_expr_tag_name(tag: i32) -> String {
     if tag == commands::HIR_INT_LIT() { return String_from("IntLit") }

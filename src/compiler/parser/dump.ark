@@ -1,12 +1,10 @@
+use std::host::stdio
+use std::text
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
 use parser::core_ast_literal_fields
 use parser::kinds
 use parser::core_ast_children
-// Arukellt Parser AST dump helpers.
-use std::host::stdio
-use std::text
-
 use parser::core_types
 use parser::names
 

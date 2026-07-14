@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 5e Step 1: post-lowering type propagation.
 //
 // Propagates variant_slot and type_name through LOCAL_SET chains and
 // direct dest assignments so the emitter can resolve GC ref types

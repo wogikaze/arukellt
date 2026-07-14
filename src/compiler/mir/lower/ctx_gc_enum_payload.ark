@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering GC enum payload variant registration.
-
 use std::text
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig

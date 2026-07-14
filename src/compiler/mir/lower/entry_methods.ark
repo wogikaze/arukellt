@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry impl method emission loop.
-
 use mir::lower::entry_body_source
 use mir::lower::entry_methods_mono
 use mir::lower::entry_view_method

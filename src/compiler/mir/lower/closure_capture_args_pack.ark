@@ -1,4 +1,3 @@
-// Arukellt Selfhost - closure capture name packing.
 use std::text
 
 fn closure_pack_caps(caps: Vec<String>) -> String {

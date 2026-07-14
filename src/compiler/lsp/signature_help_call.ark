@@ -1,5 +1,3 @@
-// Arukellt LSP - call-site context at cursor for signature help.
-
 struct CallContext {
     found: bool,
     callee: String,

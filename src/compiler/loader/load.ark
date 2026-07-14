@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module loading phase.
-
 use loader::module_graph
 use loader::module_state
 use loader::module_state_modules

@@ -1,5 +1,3 @@
-// Arukellt Lexer - binary integer literals.
-
 use lexer::number_suffix
 
 fn lex_binary_number(lex: Lexer, start: i32) -> Token {

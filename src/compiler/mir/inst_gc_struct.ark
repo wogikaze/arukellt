@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR GC struct instruction constructors.
 //
 // type_slot: enum variant slot resolved at wasm emit to gc_type_base + fixed + slot.
 

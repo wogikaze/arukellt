@@ -1,7 +1,5 @@
 use wasm::opcodes
 use wasm::constants
-// Arukellt Selfhost - f64 parse finalization facade.
-
 use wasm::intrinsic_parse_result
 
 fn emit_parse_f64_finalize(w: WasmWriter) {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - phase error result builders.
-
 use compiler::phases
 use diagnostics::record
 use driver::result_record

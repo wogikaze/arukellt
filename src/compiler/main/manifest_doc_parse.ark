@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parse std/manifest.toml for doc lookup (#456).
-
 use lsp::symbol_index_paths
 use lsp::symbol_index_stdlib
 use main::manifest_doc_record

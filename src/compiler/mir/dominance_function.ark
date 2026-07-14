@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR per-function dominance analysis facade.
-
 use mir::dom_pred
 use mir::dominance_frontier
 use mir::dominance_idom

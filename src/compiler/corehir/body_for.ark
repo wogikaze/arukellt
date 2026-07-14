@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR body builder for for-loop expressions.
-
 use corehir::body_for_iter
 use corehir::body_for_range
 use corehir::body_for_values

@@ -3,7 +3,6 @@ use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - index suffixes
 
 pub fn parse_index_suffix(p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1

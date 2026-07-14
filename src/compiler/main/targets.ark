@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI targets command.
-
 use std::host::stdio
 
 pub fn cmd_targets() {
@@ -10,7 +8,6 @@ pub fn cmd_targets() {
     stdio::println(String_from("  wasm32-freestanding  Wasm GC scaffold (compile-only, no WASI)"))
     stdio::println(String_from("  native            T4 selfhost-native scaffold (compile-only asm stub, #641)"))
 }
-// issue #715 bulk
 test mod "targets_bulk" {
     test "probe_0" { assert(0 >= 0) }
     test "probe_1" { assert(1 >= 0) }

@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - option component wrapper facade
-
 use component::adapters_option
 use component::component_base
 use component::emit_option_construct

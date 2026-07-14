@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR lowering monomorphization type parameter mapping.
 //
 // When a generic function `<T: Trait>` is monomorphized, the type variable
 // `T` is replaced by a concrete type. This module provides the mapping

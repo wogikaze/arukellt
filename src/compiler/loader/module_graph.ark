@@ -1,5 +1,3 @@
-// Arukellt Selfhost - recursive module graph loading.
-
 use loader::module_state_loading
 use loader::module_import_paths
 use loader::module_local_decls

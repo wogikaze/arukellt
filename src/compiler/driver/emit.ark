@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver namespace: emit
-
 use std::host::stdio
 use std::host::clock
 use compiler::phases
@@ -13,8 +11,6 @@ use wasm
 use driver::checked_program
 use driver::debug
 use resolver::wit_import_bind
-
-// Arukellt Driver - final output mode dispatch
 
 fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let normalized_target = driver::target::normalize_target_pub(config_record::config_target(config))
@@ -47,8 +43,6 @@ fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverCon
     result_record::CompileResult_err(phases::PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
 }
 
-// Arukellt Driver - component output emission.
-
 fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
     let core_wasi = emit_component_core_wasi_version(config, mir_module)
@@ -62,8 +56,6 @@ fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config:
     debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     result
 }
-
-// Arukellt Driver - emit target normalization and validation.
 
 fn normalize_emit_mode(emit_mode: String) -> String {
     if eq(clone(emit_mode), String_from("core-wasm")) {
@@ -104,15 +96,11 @@ fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
     String_new()
 }
 
-// Arukellt Driver - emit-phase timing helper.
-
 fn emit_timing_if_enabled(config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) {
     if config_record::config_show_timing(config) {
         debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
     }
 }
-
-// Arukellt Driver - T4 native scaffold output emission.
 
 fn emit_native_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let native_bytes = driver::native::emit_native_scaffold(mir_module, config_record::config_target(config))
@@ -121,8 +109,6 @@ fn emit_native_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_le
     debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     result
 }
-
-// Arukellt Driver - core Wasm output emission.
 
 fn emit_wasm_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
@@ -136,8 +122,6 @@ fn emit_wasm_output(mir_module: MirModule, program: CheckedProgram, config: Driv
     debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     result
 }
-
-// Arukellt Driver - WAT output emission.
 
 fn emit_wat_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let wat_text = wasm::emit_wat(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
@@ -153,8 +137,6 @@ fn emit_wat_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: 
     debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     result
 }
-
-// Arukellt Driver - WIT output emission.
 
 fn emit_wit_output(all_decls: Vec<AstNode>, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
     let wit_output = component::emit_wit_text_from_decls_with_world(all_decls, config_record::config_world(config))

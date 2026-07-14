@@ -1,5 +1,3 @@
-// Arukellt Selfhost - option projection adapter facade
-
 use component::adapter_body
 use component::adapters_single_export_sections
 use component::sections

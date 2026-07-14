@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Component result export shape predicates
 use component::export_function_view
 use component::naming
 use mir::value_types

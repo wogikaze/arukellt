@@ -1,6 +1,4 @@
 use component::contract_record_point_scan
-// Arukellt Selfhost - component Point record export contract
-
 use component::contract_helpers
 use component::contract_record_fn
 

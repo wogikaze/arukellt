@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Component export shape kind ids
-
 fn LIST_I32_TO_I32() -> i32 { 1 }
 fn I32_TO_LIST_I32() -> i32 { 2 }
 fn LIST_I32_TO_LIST_I32() -> i32 { 3 }

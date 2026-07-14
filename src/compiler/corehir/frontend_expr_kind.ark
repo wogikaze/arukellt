@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parser AST expression kind adapter for CoreHIR frontend.
-
 use corehir::frontend_kind_map
 
 fn corehir_kind_is_expr_int_lit(kind: i32) -> bool { kind == frontend_kind_map::nk_int_lit() }

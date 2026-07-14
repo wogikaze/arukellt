@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Common env intrinsic helpers facade.
-
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory

@@ -4,8 +4,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR list comprehension setup.
-
 use mir::inst_structured_control
 use mir::lower::comprehension_begin_flow
 use mir::lower::comprehension_state

@@ -1,9 +1,5 @@
-// Arukellt Selfhost - Wasm call namespace: call_host_convert
-
 use wasm::inst_store
 use wasm::intrinsic_cast
-
-// Arukellt Selfhost - Wasm host scalar conversion call dispatch
 
 fn try_emit_host_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_host_int_convert_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -15,8 +11,6 @@ fn try_emit_host_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx:
     false
 }
 
-// Arukellt Selfhost - floating cast host call dispatch.
-
 fn try_emit_host_float_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "f32_to_f64") || eq(clone(callee), "f64_to_f32") || eq(clone(callee), "__intrinsic_f32_to_f64") || eq(clone(callee), "__intrinsic_f64_to_f32") {
         let _result_on_stack = intrinsic_cast::emit_f32_to_f64(w, inst, ctx)
@@ -25,8 +19,6 @@ fn try_emit_host_float_convert_call(w: WasmWriter, callee: String, inst: MirInst
     }
     false
 }
-
-// Arukellt Selfhost - integer cast host call dispatch.
 
 fn try_emit_host_int_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_host_int_widen_convert_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -40,8 +32,6 @@ fn try_emit_host_int_convert_call(w: WasmWriter, callee: String, inst: MirInst, 
     }
     false
 }
-
-// Arukellt Selfhost - integer narrowing cast host call dispatch.
 
 fn try_emit_host_int_narrow_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "i64_to_i32") {
@@ -57,8 +47,6 @@ fn try_emit_host_int_narrow_convert_call(w: WasmWriter, callee: String, inst: Mi
     false
 }
 
-// Arukellt Selfhost - unsigned integer cast host call dispatch.
-
 fn try_emit_host_int_unsigned_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "u32_to_u64") {
         let _result_on_stack = intrinsic_cast::emit_u32_to_u64(w, inst, ctx)
@@ -72,8 +60,6 @@ fn try_emit_host_int_unsigned_convert_call(w: WasmWriter, callee: String, inst: 
     }
     false
 }
-
-// Arukellt Selfhost - integer widening cast host call dispatch.
 
 fn try_emit_host_int_widen_convert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "i32_to_i64") {

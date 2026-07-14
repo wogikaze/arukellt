@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm Component section helpers
 //
 // Small section encoders shared by component adapter builders.
 

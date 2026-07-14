@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component non-record contract allow scan groups
 use component::contract_allows_collection_record
 use component::contract_allows_numeric
 use component::contract_allows_string_record

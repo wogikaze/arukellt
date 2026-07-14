@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - declaration header helpers
-
 use parser::core_api_cursor
 use parser::decl_headers_impl
 use parser::decl_headers_trait

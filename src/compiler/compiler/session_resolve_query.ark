@@ -1,5 +1,3 @@
-// Arukellt Selfhost - compiler resolve session query.
-
 use resolver::program
 use resolver::context
 use resolver::scope_metrics

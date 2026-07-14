@@ -1,5 +1,3 @@
-// Arukellt Selfhost - method return TypeInfo for mono index prepass.
-
 use mir::lower::mono_suffix_parse
 use mir::lower_kinds
 use mir::type_contracts

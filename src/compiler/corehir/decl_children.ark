@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR declaration child accessors.
-
 use corehir::frontend_ast_node
 
 fn decl_child_count(node: AstNode) -> i32 {

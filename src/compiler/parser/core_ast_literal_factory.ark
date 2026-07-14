@@ -1,5 +1,3 @@
-// Arukellt Parser - numeric literal AST construction API.
-
 use parser::ast_node_record
 use parser::kinds
 

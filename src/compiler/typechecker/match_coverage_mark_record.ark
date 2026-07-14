@@ -1,5 +1,3 @@
-// Arukellt Typechecker - match coverage mutation helpers.
-
 use typechecker::match_coverage_record
 
 fn match_coverage_mark_wildcard(coverage: MatchCoverage) {

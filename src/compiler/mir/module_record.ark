@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR module data record.
-
 use corehir::signature_registry
 use corehir::type_table
 use mir::function_core_record

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component export contract helpers
-
 use component::ast_node
 use component::type_node
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump phi argument expectations.
-
 use std::host::process
 use std::host::stdio
 use std::text

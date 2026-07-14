@@ -1,5 +1,3 @@
-// Arukellt Selfhost - backend typecheck stage.
-
 use std::host::clock
 use collections::vec_extend
 use compiler::phases

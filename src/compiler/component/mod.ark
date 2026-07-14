@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component public boundary.
-
 use component::contract
 use component::contract_preflight
 use component::emit

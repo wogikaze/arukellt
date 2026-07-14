@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component string contract allow data.
-
 pub struct ComponentStringAllows {
     allow_string_greet: bool,
     allow_string_general_multi: bool,

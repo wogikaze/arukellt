@@ -1,5 +1,3 @@
-// Arukellt Selfhost - static HTML stdlib documentation generator.
-
 use std::text
 use main::manifest_doc_record
 

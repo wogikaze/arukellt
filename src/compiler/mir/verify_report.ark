@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR verifier warning report (aggregate counts).
-
 struct MirVerifyReport {
     w001: i32,
     w002: i32,

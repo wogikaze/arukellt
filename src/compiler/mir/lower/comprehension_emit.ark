@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR list comprehension body/result emission.
-
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_loop_state
 use mir::lower::ctx_api_emit

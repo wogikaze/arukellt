@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering local allocation API.
-
 use mir::lower::ctx_locals_alloc
 
 fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 { ctx_locals_alloc::ctx_alloc_local(ctx, name, vt) }

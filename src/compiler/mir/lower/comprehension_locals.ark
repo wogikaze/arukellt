@@ -1,5 +1,3 @@
-// Arukellt Selfhost - list comprehension local initialization helpers.
-
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit

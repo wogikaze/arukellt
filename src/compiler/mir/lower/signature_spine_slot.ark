@@ -1,5 +1,3 @@
-// Arukellt Selfhost - PR-1 signature spine side storage (not on LowerCtx; emit-unused).
-
 use corehir::signature_registry
 use corehir::type_table
 use mir::lower::signature_spine

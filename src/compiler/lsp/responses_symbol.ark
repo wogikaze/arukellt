@@ -1,5 +1,3 @@
-// Arukellt LSP - workspace/symbol response builders.
-
 use std::text
 use lsp::json_escape
 use lsp::positions

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm table and element section emission for funcref HOF support.
-
 use mir::local_access
 use mir::module_functions
 use mir::function_param_view

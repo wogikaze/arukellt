@@ -5,8 +5,6 @@ use mir::lower::core_expr_shape_calls
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR let binding local type inference.
-
 use mir::value_types
 
 fn infer_core_let_type_name_is_string(type_name: String) -> bool {

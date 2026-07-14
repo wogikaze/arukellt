@@ -1,5 +1,3 @@
-// Arukellt Typechecker - call argument inference helpers.
-
 use typechecker::ast_access
 
 fn infer_call_args(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, start: i32, count: i32) {

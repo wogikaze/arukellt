@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR reachability pruning entry
-
 use mir::reachability_prune
 use mir::reachability_roots
 use mir::reachability_walk

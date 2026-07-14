@@ -1,5 +1,3 @@
-// Arukellt Typechecker - function signature construction
-
 use typechecker::sig_bounds
 use typechecker::sig_decl
 use typechecker::sig_lookup

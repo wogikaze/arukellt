@@ -33,7 +33,6 @@ pub fn builder_build(sb: String) -> String {
 pub fn builder_len(sb: String) -> i32 {
     len(sb)
 }
-// issue #715 in-file tests
 test mod "builder" {
     test "new" { assert(builder_len(builder_new()) == 0) }
     test "append" { assert(builder_len(builder_append(builder_new(), "a")) == 1) }

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component composite type support
-
 use component::contract_allows_collection_query
 use component::contract_allows_numeric_tuple_query
 use component::contract_collection_types

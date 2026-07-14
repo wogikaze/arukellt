@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 4 GcLayoutTable lookup helpers for SelfEmitCtx.
-
 use wasm::ctx_record
 use wasm::gc_layout_table
 use corehir::mir_value_type

@@ -1,5 +1,3 @@
-// Arukellt Lexer - whitespace and comment skipping.
-
 use lexer::char_class
 
 fn skip_whitespace_impl(lex: Lexer) {

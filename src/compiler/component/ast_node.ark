@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component-layer AST adapter.
 use parser::ast
 use parser::kinds
 

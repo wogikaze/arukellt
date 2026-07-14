@@ -2,7 +2,6 @@ use parser::ast_kind_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - multi-clause arm pattern construction.
 
 fn clause_param_to_arm_pattern(param: AstNode) -> AstNode {
     if ast_kind_fields::AstNode_kind(param) == kinds::NK_IDENT() {

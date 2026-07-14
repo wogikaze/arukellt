@@ -1,5 +1,3 @@
-// Arukellt Selfhost - PR-4a/PR-4b registry return guard.
-
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry

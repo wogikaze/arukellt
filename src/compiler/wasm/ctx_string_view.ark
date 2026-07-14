@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm emitter context string table view.
-
 use wasm::ctx_record
 
 fn SelfEmitCtx_string_offset_count(ctx: SelfEmitCtx) -> i32 {

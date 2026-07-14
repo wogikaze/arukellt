@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component record and variant contract allow data.
-
 pub struct ComponentRecordAllows {
     allow_record_point: bool,
     allow_record_distance: bool,

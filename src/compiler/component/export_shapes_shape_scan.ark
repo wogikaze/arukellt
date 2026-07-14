@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Component shape export shape scan.
 use component::export_function_view
 use component::naming
 use mir::module_functions

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering input adapter.
-
 use mir::lower::entry_body_source
 
 struct MirLowerInput {

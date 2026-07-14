@@ -1,5 +1,3 @@
-// Arukellt Lexer - numeric literal facade
-
 use lexer::number_decimal
 use lexer::number_prefixed
 

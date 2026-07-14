@@ -1,6 +1,4 @@
 use parser::core_ast_children
-// Arukellt Parser - multi-clause match arm construction.
-
 use parser::multiclause_arm_build
 
 fn append_clause_match_arms(match_node: AstNode, clauses: Vec<AstNode>, fn_span: Span) {

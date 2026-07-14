@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR raw program data contract.
-
 struct CoreHirRawProgram {
     decl_infos: Vec<CoreHirDeclInfo>,
     fn_infos: Vec<CoreHirFnInfo>,

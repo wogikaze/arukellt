@@ -1,5 +1,3 @@
-// Arukellt Selfhost - struct type name parsing for Wasm local declarations.
-
 fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1

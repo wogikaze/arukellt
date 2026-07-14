@@ -1,5 +1,3 @@
-// Arukellt LSP - semantic rename workspace edits (#339).
-
 use std::text
 use analysis::symbol_references
 use lsp::json_escape

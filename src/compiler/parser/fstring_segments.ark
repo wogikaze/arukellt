@@ -1,5 +1,3 @@
-// Arukellt Parser - f-string segment scanning.
-
 use lexer::scan
 use parser::core_api_token
 use parser::fstring_nodes

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA rename state data record.
-
 use mir::ssa_state_vec
 
 pub struct MirSsaRenameState {

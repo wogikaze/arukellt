@@ -1,5 +1,3 @@
-// Arukellt Selfhost - diagnostic severity contract.
-
 fn SEV_ERROR() -> i32 {
     1
 }

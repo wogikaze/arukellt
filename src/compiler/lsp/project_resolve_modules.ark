@@ -1,5 +1,3 @@
-// Arukellt LSP - build resolver ModuleDecls from indexed workspace files.
-
 use std::host::fs
 use compiler::session_parse
 use lsp::state_docs

@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - closure return emission.
-
 use mir::inst_return
 
 fn mir_emit_closure_return(ctx: LowerCtx, body: AstNode) -> i32 {

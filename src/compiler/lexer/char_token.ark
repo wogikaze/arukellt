@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - character literal token construction.
-
 use lexer::cursor
 use lexer::token_state
 

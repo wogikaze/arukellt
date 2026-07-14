@@ -1,7 +1,5 @@
 use mir::function_locals_view
 use mir::local_access
-// Arukellt Selfhost - MIR function local queries and transforms.
-
 use mir::value_types
 
 fn mir_locals_replace_at(locals: Vec<MirLocal>, at: i32, new_l: MirLocal) -> Vec<MirLocal> {

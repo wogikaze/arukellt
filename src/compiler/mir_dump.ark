@@ -1,7 +1,6 @@
-// Arukellt Selfhost - MIR dump production facade.
-
 use mir
 
+/// Writes the canonical diagnostic rendering of a MIR module.
 pub fn dump_mir(m: MirModule) {
     mir::dump_mir(m)
 }

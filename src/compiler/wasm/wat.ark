@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WAT text format emitter facade.
-
 use wasm::wat_functions
 use mir::module_functions
 use std::text

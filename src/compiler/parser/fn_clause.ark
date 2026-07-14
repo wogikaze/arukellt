@@ -4,7 +4,6 @@ use parser::core_ast_flag_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - multi-clause function declaration helpers
 
 fn make_clause_error_stub(clause: AstNode, is_pub: bool, is_async: bool) -> AstNode {
     let stub = core_ast_factory::AstNode_new(kinds::NK_FN_DECL(), core_ast_span_fields::AstNode_span(clause))

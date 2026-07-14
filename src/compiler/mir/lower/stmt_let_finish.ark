@@ -3,8 +3,6 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR let statement local allocation and initializer store.
-
 use mir::lower::ann_types
 use mir::lower::stmt_let_closure
 use mir::lower::stmt_let_store

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR return annotation index type names.
-
 use corehir::decl_ann_children
 use corehir::decl_ann_name
 use corehir::return_ann_shape

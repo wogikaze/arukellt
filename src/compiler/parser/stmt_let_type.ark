@@ -1,5 +1,3 @@
-// Arukellt Parser - let statement type annotation.
-
 use lexer::tokens
 use parser::core_ast_type_ann
 use parser::core_api_cursor

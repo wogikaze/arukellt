@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 5e Step 1: stack producer scanning.
 //
 // Backward scan helper for stack-based LOCAL_SET type propagation.
 // Extracted from post_pass_type_propagate.ark to stay within the

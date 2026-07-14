@@ -1,5 +1,3 @@
-// Arukellt Lexer - diagnostic error code identifiers.
-
 fn LEX_E_UNTERMINATED_STRING() -> i32 {
     1
 }

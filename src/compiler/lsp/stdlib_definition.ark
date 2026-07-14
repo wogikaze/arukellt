@@ -1,5 +1,3 @@
-// Arukellt LSP - stdlib definition resolution helpers.
-
 use lsp::positions
 use lsp::source_text
 use lsp::symbol_index_lookup

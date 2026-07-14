@@ -1,5 +1,3 @@
-// Arukellt LSP - structure feature dispatch (#219).
-
 use lsp::feature_folding_range
 use lsp::feature_selection_range
 

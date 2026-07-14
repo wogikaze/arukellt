@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component named type support
-
 use component::contract_allows_numeric_tuple_query
 use component::contract_allows_record_query
 use component::contract_allows_string_query

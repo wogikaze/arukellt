@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component export contract feature gates
-
 use component::contract_allows_root_record
 use component::contract_allows_record_record
 use component::contract_allows_scan_groups

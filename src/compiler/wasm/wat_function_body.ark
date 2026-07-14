@@ -1,8 +1,6 @@
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::local_access
-// Arukellt Selfhost - WAT function body formatting.
-
 use wasm::wat_ops
 use wasm::wat_types
 use mir::function_block_queries

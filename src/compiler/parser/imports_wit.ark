@@ -1,5 +1,3 @@
-// Arukellt Parser - WIT string import declaration syntax (#652).
-
 use lexer::tokens
 use parser::core_ast_factory
 use parser::core_ast_literal_fields

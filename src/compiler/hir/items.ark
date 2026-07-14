@@ -1,5 +1,3 @@
-// Arukellt HIR - item and module data contracts.
-
 use hir::item_functions
 use hir::item_module
 use hir::item_trait_record

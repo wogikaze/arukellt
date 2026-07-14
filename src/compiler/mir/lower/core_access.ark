@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR aggregate access lowering.
-
 use mir::lower::aggregate
 use mir::lower::binary_emit
 use mir::lower::binary_type_names

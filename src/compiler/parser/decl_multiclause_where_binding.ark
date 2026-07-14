@@ -2,8 +2,6 @@ use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - multi-clause where binding syntax.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::expr

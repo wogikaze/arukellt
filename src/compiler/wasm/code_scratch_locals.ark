@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm scratch local declarations and counts.
-
 use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref

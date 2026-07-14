@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering call argument helpers
-
 use mir::lower::call_arg_print_convert
 use mir::lower::call_arg_print_needs
 use mir::lower::ctx_api_emit

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering top-level function index prepass.
-
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 

@@ -2,8 +2,6 @@ use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_field_type
-// Arukellt Selfhost - MIR lowering struct layout registration.
-
 use corehir::layout_decl_fields
 use corehir::layout_decl_name
 use corehir::layout_field

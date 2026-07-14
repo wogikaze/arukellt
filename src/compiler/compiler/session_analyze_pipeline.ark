@@ -1,5 +1,3 @@
-// Arukellt Selfhost - compiler analysis session pipeline.
-
 use std::text
 use analysis::diagnostic_record
 use analysis::snapshot_state_record

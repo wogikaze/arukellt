@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout declaration payload query.
-
 use corehir::layout_decl_variants
 use corehir::layout_variant
 

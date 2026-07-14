@@ -1,5 +1,3 @@
-// Arukellt LSP - completion item providers from index and keywords.
-
 use lsp::completion_items
 use lsp::import_graph
 use lsp::state_record

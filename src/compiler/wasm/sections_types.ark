@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm type section emission.
-
 use mir::module_wit_imports
 use mir::module_gc_enum
 use mir::module_gc_struct

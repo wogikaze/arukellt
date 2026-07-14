@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm type section GC type sig override helpers.
-
 use wasm::emit_target
 use wasm::sections_types_gc
 

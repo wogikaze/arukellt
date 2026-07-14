@@ -1,5 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - Pratt expression stop tokens.
 
 pub fn is_expr_stop_token(kind: i32) -> bool {
     if kind == tokens::TK_EOF() ||

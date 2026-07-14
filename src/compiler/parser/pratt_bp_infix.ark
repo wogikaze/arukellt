@@ -1,5 +1,3 @@
-// Arukellt Parser - Pratt infix binding powers.
-
 use parser::pratt_bp_infix_left
 use parser::pratt_bp_infix_right
 

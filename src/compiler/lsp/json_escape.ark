@@ -1,4 +1,3 @@
-// Arukellt Selfhost - LSP JSON string escaping helpers
 fn json_escape(s: String) -> String {
     let n = len(s)
     let mut out = String_new()

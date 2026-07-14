@@ -1,6 +1,4 @@
 use mir::function_identity
-// Arukellt Selfhost - Wasm Binary Emitter: context helpers.
-
 use wasm::call_resolve
 use wasm::ctx_record
 use wasm::ctx_vec_locals

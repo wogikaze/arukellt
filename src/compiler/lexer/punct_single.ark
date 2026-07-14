@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - single-character punctuation and operators
-
 use lexer::cursor
 
 fn lex_single_punct_or_error(lex: Lexer, start: i32, c: i32) -> Token {

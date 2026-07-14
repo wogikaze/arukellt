@@ -1,5 +1,3 @@
-// Arukellt Parser - resource declaration syntax
-
 use parser::decl_resource_header
 use parser::decl_struct_body
 use parser::type_params

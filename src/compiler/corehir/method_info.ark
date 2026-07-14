@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR method info helpers.
-
 use corehir::param
 use corehir::value_types
 struct CoreHirMethodInfo {

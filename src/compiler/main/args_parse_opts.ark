@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI valued option parsing helpers.
-
 use main::args_record
 use main::args_record_opt
 use main::commands

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - formatter range extraction (#347).
-
 use std::text
 use fmt::program
 use fmt::whitespace

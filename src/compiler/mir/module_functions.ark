@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR module function collection API.
-
 use mir::function_core_record
 use mir::module_record
 use mir::types

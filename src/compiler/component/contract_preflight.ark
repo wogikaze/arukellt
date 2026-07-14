@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component mode preflight validation.
-
 use component::contract
 use component::wit_text
 use component::world_spec

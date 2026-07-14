@@ -1,5 +1,3 @@
-// Arukellt Selfhost - vec access GC ref cast target resolution.
-
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - auxiliary CLI command dispatch routes.
-
 use main::args_record
 use main::component_cmd
 use main::compose_cmd

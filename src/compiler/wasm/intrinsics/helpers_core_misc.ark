@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Core misc helpers facade (calls, heap, stack).
-
 use wasm::intrinsics::helpers_core_calls
 use wasm::intrinsics::helpers_core_heap
 use wasm::intrinsics::helpers_core_stack

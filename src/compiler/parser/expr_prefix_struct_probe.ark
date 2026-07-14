@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - struct literal lookahead for identifier prefixes.
-
 use parser::core_api_cursor
 use parser::token_state
 

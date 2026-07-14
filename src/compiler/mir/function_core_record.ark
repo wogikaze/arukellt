@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function data record.
-
 use mir::types_block
 use mir::value_types
 

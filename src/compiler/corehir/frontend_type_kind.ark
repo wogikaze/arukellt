@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR type annotation kind adapter.
-
 use corehir::frontend_kind_map
 
 fn corehir_kind_is_type_named(kind: i32) -> bool { kind == frontend_kind_map::nk_type_named() }

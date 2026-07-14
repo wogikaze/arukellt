@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver configuration data contract.
-
 struct DriverConfig {
     target: String,
     wasi_version: String,

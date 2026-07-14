@@ -1,5 +1,3 @@
-// Arukellt Selfhost - analysis facade.
-
 use std::text
 use analysis::diagnostic_record
 use analysis::snapshot_state_record
@@ -7,34 +5,42 @@ use compiler::session_analyze_pipeline
 use compiler::phase_tags
 use compiler::phases
 
+/// Identifies diagnostics produced before a token stream is available.
 pub fn PHASE_LEX() -> i32 {
     phases::PHASE_LEX()
 }
 
+/// Identifies diagnostics produced while constructing the syntax tree.
 pub fn PHASE_PARSE() -> i32 {
     phases::PHASE_PARSE()
 }
 
+/// Identifies diagnostics produced while binding names and modules.
 pub fn PHASE_RESOLVE() -> i32 {
     phases::PHASE_RESOLVE()
 }
 
+/// Identifies diagnostics produced while checking types and calls.
 pub fn PHASE_TYPECHECK() -> i32 {
     phases::PHASE_TYPECHECK()
 }
 
+/// Identifies non-fatal diagnostics produced by the lint pass.
 pub fn PHASE_LINT() -> i32 {
     phases::PHASE_LINT()
 }
 
+/// Analyzes one source document without imported module declarations.
 pub fn analyze(uri: String, text: String) -> AnalysisSnapshot {
     session_analyze_pipeline::run_session_analyze(uri, text)
 }
 
+/// Analyzes a source document with the supplied imported-module declarations.
 pub fn analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {
     session_analyze_pipeline::run_session_analyze_with_modules(uri, text, modules)
 }
 
+/// Serializes an analysis snapshot in the stable line-oriented IDE summary format.
 pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
     let mut out = String_from("analysis ")
     out = text::builder_append(out, snapshot_state_record::snapshot_uri(snap))

@@ -1086,13 +1086,11 @@ pub fn leb128_decode_u64(c: Vec<i32>) -> i64 {
     }
     result
 }
-// issue #715 in-file tests
 test mod "bytes" {
     test "new_empty" { assert(bytes_len(bytes_new()) == 0) }
     test "from_str" { assert(bytes_len(bytes_from_string("ab")) == 2) }
     test "push" { assert(bytes_len(bytes_push(bytes_new(), 255)) == 1) }
 }
-// issue #715 bulk
 test mod "bytes_bulk" {
     test "probe_0" { assert(0 >= 0) }
     test "probe_1" { assert(1 >= 0) }

@@ -1,8 +1,6 @@
-use mir::block_pred_access
-// Arukellt Selfhost - MIR dominance smoke expectations.
-
 use std::host::process
 use std::host::stdio
+use mir::block_pred_access
 use mir::dump_format_edges
 use mir::block_dominance_access
 use mir::function_block_queries

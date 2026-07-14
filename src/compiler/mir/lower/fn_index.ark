@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering function index prepass
-
 struct MirLowerFnIndex {
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,

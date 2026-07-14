@@ -1,5 +1,3 @@
-// Arukellt Lexer - character classification helpers
-
 use lexer::char_class
 use lexer::char_skip
 

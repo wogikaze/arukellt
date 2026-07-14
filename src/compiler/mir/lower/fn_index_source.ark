@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function index source over CoreHIR view.
-
 use corehir::mir_decl_source
 use corehir::mir_signature_fn
 use corehir::mir_signature_method

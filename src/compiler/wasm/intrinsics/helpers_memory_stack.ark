@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm string stack memory helper recipes.
-
 use wasm::writer_core
 use wasm::writer_leb
 use wasm::intrinsics::helpers_memory_access

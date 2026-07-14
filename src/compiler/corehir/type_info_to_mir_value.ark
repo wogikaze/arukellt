@@ -1,5 +1,3 @@
-// Arukellt Selfhost - TypeInfo to MirValueType bridge (PR-1 flat conservative approximation).
-
 use corehir::mir_value_type
 use corehir::kinds
 use corehir::type_contracts

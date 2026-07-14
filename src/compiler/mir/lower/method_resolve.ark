@@ -2,8 +2,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR method callee monomorphization resolution.
-
 use mir::mono
 use mir::value_types
 

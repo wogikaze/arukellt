@@ -1,10 +1,6 @@
-// Arukellt Selfhost - main namespace: output_json
-
 use std::text
 use diagnostics::mod
 use diagnostics::record
-
-// Arukellt Selfhost - CLI JSON output formatting.
 
 pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {
     let mut out = String_from("{\"file\":\"")

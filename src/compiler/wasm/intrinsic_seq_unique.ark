@@ -1,6 +1,4 @@
 use mir::inst_accessors_operands
-// Arukellt Selfhost - sequence unique intrinsic facade
-
 use wasm::ctx_scratch
 use wasm::inst_ctx
 use wasm::intrinsic_seq_unique_loop

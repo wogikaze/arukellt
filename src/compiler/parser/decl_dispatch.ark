@@ -1,6 +1,4 @@
 use parser::core_ast_flag_fields
-// Arukellt Parser - top-level declaration dispatch.
-
 use parser::core_api_cursor
 use parser::decl_const
 use parser::decl_headers

@@ -2,7 +2,6 @@ use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use mir::opcodes
-// Arukellt Selfhost - MIR instruction to WAT text mapping.
 
 fn mir_op_to_wat(inst: MirInst) -> String {
     let value_op = mir_value_op_to_wat(inst)

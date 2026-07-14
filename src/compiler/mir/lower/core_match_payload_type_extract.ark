@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR match payload type extraction helpers.
-
 use mir::lower::ctx_api_local_types
 use mir::value_types
 

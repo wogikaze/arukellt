@@ -1,5 +1,3 @@
-// Arukellt Typechecker - function body return contract checks.
-
 use typechecker::ast_stmt_predicates
 use typechecker::ast_access
 use typechecker::contract_fn_sig

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm call namespace: call_vec
-
 use wasm::inst_store
 use wasm::intrinsic_vec
 use wasm::intrinsic_vec_remove
@@ -8,8 +6,6 @@ use wasm::intrinsic_vec_contains
 use wasm::intrinsic_vec_numeric
 use wasm::ctx_record
 use wasm::emit_target
-
-// Arukellt Selfhost - Wasm vector call dispatch
 
 fn try_emit_vec_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_vec_core_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -23,8 +19,6 @@ fn try_emit_vec_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmit
     }
     false
 }
-
-// Arukellt Selfhost - Wasm vector core call dispatch
 
 fn try_emit_vec_core_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_vec_base_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -42,8 +36,6 @@ fn try_emit_vec_core_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Sel
     false
 }
 
-// Arukellt Selfhost - Wasm vector access call dispatch
-
 fn try_emit_vec_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "vec_get_unchecked") || eq(clone(callee), "get_unchecked") {
         let _result_on_stack = intrinsic_vec::emit_get_unchecked(w, inst, ctx)
@@ -58,8 +50,6 @@ fn try_emit_vec_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: S
     false
 }
 
-// Arukellt Selfhost - Wasm vector base call dispatch
-
 fn try_emit_vec_base_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "Vec_new_i64") || eq(clone(callee), "Vec_new_f64") || eq(clone(callee), "Vec_new_v128") {
         let _result_on_stack = intrinsic_vec::emit_Vec_new_i64(w, inst, ctx)
@@ -73,8 +63,6 @@ fn try_emit_vec_base_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Sel
     }
     false
 }
-
-// Arukellt Selfhost - Wasm vector mutation call dispatch
 
 fn try_emit_vec_core_mutation_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "vec_pop") {
@@ -98,8 +86,6 @@ fn try_emit_vec_core_mutation_call(w: WasmWriter, callee: String, inst: MirInst,
     false
 }
 
-// Arukellt Selfhost - Wasm vector push call dispatch
-
 fn try_emit_vec_push_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "vec_push") {
         let is_void_push = vec_push_is_void(ctx, inst, next_op, next_arg0, next_arg1, next2_op)
@@ -122,8 +108,6 @@ fn vec_push_is_void(ctx: SelfEmitCtx, inst: MirInst, next_op: i32, next_arg0: i3
     false
 }
 
-// Arukellt Selfhost - Wasm numeric vector call dispatch
-
 fn try_emit_vec_numeric_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_vec_numeric_push_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
@@ -133,8 +117,6 @@ fn try_emit_vec_numeric_call(w: WasmWriter, callee: String, inst: MirInst, ctx: 
     }
     false
 }
-
-// Arukellt Selfhost - Wasm numeric vector access call dispatch
 
 fn try_emit_vec_numeric_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "vec_get_unchecked_i64") {
@@ -149,8 +131,6 @@ fn try_emit_vec_numeric_access_call(w: WasmWriter, callee: String, inst: MirInst
     }
     false
 }
-
-// Arukellt Selfhost - Wasm numeric vector push call dispatch
 
 fn try_emit_vec_numeric_push_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "vec_push_i64") {
@@ -171,8 +151,6 @@ fn try_emit_vec_numeric_push_call(w: WasmWriter, callee: String, inst: MirInst, 
     false
 }
 
-// Arukellt Selfhost - Wasm vector collection call dispatch
-
 fn try_emit_vec_collection_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_vec_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
@@ -186,8 +164,6 @@ fn try_emit_vec_collection_call(w: WasmWriter, callee: String, inst: MirInst, ct
     false
 }
 
-// Arukellt Selfhost - Wasm vector mutation call dispatch
-
 fn try_emit_vec_mutate_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "remove_i32") {
         let _result_on_stack = intrinsic_vec_remove::emit_remove_i32(w, inst, ctx)
@@ -197,8 +173,6 @@ fn try_emit_vec_mutate_call(w: WasmWriter, callee: String, inst: MirInst, ctx: S
     false
 }
 
-// Arukellt Selfhost - Wasm vector ordering call dispatch
-
 fn try_emit_vec_order_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "reverse_i32") {
         let _result_on_stack = intrinsic_vec_reverse::emit_reverse_i32(w, inst, ctx)
@@ -207,8 +181,6 @@ fn try_emit_vec_order_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Se
     }
     false
 }
-
-// Arukellt Selfhost - Wasm vector search call dispatch
 
 fn try_emit_vec_search_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if eq(clone(callee), "contains_i32") || eq(clone(callee), "seq::seq_contains") {

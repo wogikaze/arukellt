@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR staged direct call argument emission.
-
 use mir::inst_convert
 use mir::inst_local_get
 

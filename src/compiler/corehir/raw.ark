@@ -1,5 +1,3 @@
-// Arukellt Selfhost - raw frontend declaration adapter for CoreHIR facts.
-
 use corehir::raw_bodies
 use corehir::raw_decls
 use corehir::raw_record

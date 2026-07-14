@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR Lowering for atomic expression values
-
 use mir::lower::ast_node
 use mir::inst_const_string
 use mir::inst_local_get

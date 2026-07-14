@@ -1,5 +1,3 @@
-// Arukellt Selfhost - signature registry entry construction (fn/method params, returns).
-
 use corehir::kinds
 use corehir::function_id
 use corehir::mir_signature_fn

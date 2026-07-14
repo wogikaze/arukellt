@@ -1,8 +1,6 @@
 use lexer::tokens
 use parser::core_api_expect
 
-// Arukellt Parser - type parser token expectations.
-
 fn expect_ident(p: Parser) -> Token {
     core_api_expect::expect_token(p, tokens::TK_IDENT())
 }

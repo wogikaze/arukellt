@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 signature spine bundle (TypeTable + SignatureRegistry + MonoInstanceTable).
-
 use corehir::signature_registry
 use corehir::type_table
 use mir::lower::mono_instance_table

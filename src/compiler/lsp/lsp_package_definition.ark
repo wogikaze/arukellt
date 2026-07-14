@@ -1,5 +1,3 @@
-// Arukellt LSP - multi-root workspace package discovery from ark.toml graphs.
-
 use std::host::fs
 use lsp::symbol_index_paths
 

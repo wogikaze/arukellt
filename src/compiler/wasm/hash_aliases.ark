@@ -1,5 +1,3 @@
-// Arukellt Selfhost - emitter aliases for monomorphic hash collection builtins.
-
 fn hashmap_builtin_alias(name: String) -> String {
     let i32_i32 = hashmap_i32_i32_builtin_alias(clone(name))
     if !eq(clone(i32_i32), clone(name)) {

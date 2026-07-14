@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - match expression inference
-
 use typechecker::ast_access
 use typechecker::match_coverage_collect
 use typechecker::match_coverage_record

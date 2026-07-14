@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - character literal tokens.
-
 use lexer::char_escape
 use lexer::char_token
 

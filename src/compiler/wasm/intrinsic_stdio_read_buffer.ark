@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared stdin buffer helpers for read intrinsics.
-
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory

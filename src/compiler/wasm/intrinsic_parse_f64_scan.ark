@@ -1,6 +1,5 @@
 use wasm::opcodes
 use wasm::constants
-// Arukellt Selfhost - f64 parse scan loop.
 
 fn emit_parse_f64_scan_loop(w: WasmWriter, s_str: i32, s_len_local: i32) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())

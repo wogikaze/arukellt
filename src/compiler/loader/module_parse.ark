@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module source parsing with AST cache.
-
 use std::host::fs
 use std::core::hash
 use compiler::session_parse

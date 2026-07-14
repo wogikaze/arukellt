@@ -1,5 +1,3 @@
-// Arukellt Selfhost - signature registry mono-variant indexing (ADR-040).
-
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry

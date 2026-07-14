@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm Binary Emitter: numeric arithmetic instruction handlers.
-
 use mir::inst_accessors_shape
 use mir::value_types
 use wasm::ctx_record

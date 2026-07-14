@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering for CoreHIR match expressions.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_names

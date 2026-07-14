@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR instruction result_types accessors.
-
 use mir::inst_record
 
 fn MirInst_result_types(inst: MirInst) -> Vec<MirValueType> {

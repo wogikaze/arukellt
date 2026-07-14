@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module name helpers.
-
 use resolver
 
 fn module_short_name(path: String) -> String {

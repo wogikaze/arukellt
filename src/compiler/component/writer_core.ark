@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Component byte-buffer core writer.
-
 pub struct ComponentWriter {
     bytes: Vec<i32>,
 }

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 5e Step 2: structured GC type
 // inference for ref locals (replaces the instruction tracer).
 //
 // This file contains the depth-aware recursive inference function and

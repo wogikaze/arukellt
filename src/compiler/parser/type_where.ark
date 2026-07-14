@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - where clause placeholder parsing.
-
 use parser::core_api_cursor
 
 fn parse_optional_where_clause_stub(p: Parser) {

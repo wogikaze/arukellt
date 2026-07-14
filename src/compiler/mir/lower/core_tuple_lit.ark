@@ -2,8 +2,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR tuple literal lowering.
-
 use mir::inst_local_set
 use mir::lower::aggregate
 use mir::lower::core_expr_shape_accessors

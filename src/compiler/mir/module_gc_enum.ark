@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR module GC enum metadata accessors.
-
 use mir::module_record
 
 fn MirModule_gc_enum_variant_sig_count(m: MirModule) -> i32 {

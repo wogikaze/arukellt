@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm LEB128 writer helpers.
-
 use wasm::writer_core
 
 fn emit_leb128_u(w: writer_core::WasmWriter, v: i32) {

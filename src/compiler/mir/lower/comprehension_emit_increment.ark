@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR list comprehension index increment.
-
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::opcodes

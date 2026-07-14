@@ -3,8 +3,6 @@ use parser::core_ast_text_fields
 use parser::core_ast_op_fields
 use parser::kinds
 use parser::core_ast_children
-// Arukellt Parser self-checks for issue 499 closure parsing.
-
 use parser::self_check_issue499_parse
 
 fn issue499_parser_self_check() -> String {

@@ -1,7 +1,6 @@
 use mir::inst_accessors_operands
 use mir::function_locals_view
 use mir::local_access
-// Arukellt Selfhost — Wasm Binary Emitter: Emit Inst Locals
 //
 // Extracted from emitter.ark for module-level organization.
 

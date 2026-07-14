@@ -1,5 +1,3 @@
-// Arukellt Selfhost - frontend parameter nodes to CoreHIR parameter facts.
-
 use corehir::param
 use corehir::param_shape_local
 use corehir::param_shape_node

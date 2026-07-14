@@ -1,6 +1,4 @@
 use mir::inst_accessors_operands
-// Arukellt Selfhost - Wasm local store policy after MIR instruction emission.
-
 use wasm::inst_store_policy
 use wasm::constants
 use wasm::opcodes

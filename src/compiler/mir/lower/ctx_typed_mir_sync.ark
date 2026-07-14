@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 Typed MIR enrichment during lowering (Phase 3b hub).
-
 use mir::function_locals_view
 use mir::local_access
 use mir::local_mutation

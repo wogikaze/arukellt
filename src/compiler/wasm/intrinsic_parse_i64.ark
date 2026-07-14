@@ -1,7 +1,5 @@
 use wasm::opcodes
 use wasm::constants
-// Arukellt Selfhost - i64 parse intrinsic handler
-
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target

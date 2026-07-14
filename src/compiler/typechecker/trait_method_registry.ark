@@ -1,4 +1,3 @@
-// Arukellt Typechecker - trait method signature registry.
 //
 // Collects method signatures from `trait` declarations and stores them
 // in `env.trait_methods` so that generic functions with `<T: Trait>`

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering higher-order sequence helpers
-
 use mir::lower::hof_f64
 use mir::lower::hof_i32
 use mir::lower::hof_i64

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering helpers for struct literals.
-
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit

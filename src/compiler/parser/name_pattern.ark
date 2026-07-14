@@ -1,5 +1,3 @@
-// Arukellt Parser - pattern AST node display names
-
 use parser::kinds
 
 fn pattern_node_kind_name(kind: i32) -> String {

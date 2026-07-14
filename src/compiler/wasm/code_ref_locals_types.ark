@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC reference local type name helpers.
-
 fn is_gc_container_type_name(type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
         return true

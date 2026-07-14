@@ -1,7 +1,5 @@
 use corehir::expr_factory
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR block/branch expression constructors.
-
 use corehir::value_types
 
 fn corehir_expr_block(span_start: i32, children: Vec<i32>) -> CoreHirExpr {

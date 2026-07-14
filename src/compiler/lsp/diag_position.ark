@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP diagnostic position mapping.
-
 use diagnostics::source_map_offsets
 
 struct LspDiagPosition {

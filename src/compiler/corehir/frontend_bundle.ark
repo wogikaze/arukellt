@@ -1,5 +1,3 @@
-// Arukellt Selfhost - typed frontend bundle for CoreHIR construction.
-
 struct FrontendBundle {
     decls: Vec<AstNode>,
     check_result: TypeCheckResult,

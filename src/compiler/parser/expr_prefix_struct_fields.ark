@@ -2,8 +2,6 @@ use parser::core_ast_text_fields
 use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
-// Arukellt Parser - struct literal field list parsing.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::expr_prefix_struct_base

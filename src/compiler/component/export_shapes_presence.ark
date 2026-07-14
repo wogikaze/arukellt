@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Component export-name presence predicates
 fn comp_has_shape_area_exports_impl(names: Vec<String>) -> bool {
     len(names) == 1 && eq(get_unchecked(names, 0), String_from("area"))
 }

@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR layout registration from CoreHIR view.
-
 use corehir::mir_layout_source
 use corehir::mod
 use mir::lower::registry_enums

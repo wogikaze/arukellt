@@ -1,8 +1,6 @@
 use mir::function_locals_view
 use mir::function_local_mutation
 use mir::local_factory
-// Arukellt Selfhost - MIR SSA value slot definition helpers.
-
 use mir::ssa_phi
 use mir::ssa_state_slots
 use mir::ssa_state_types

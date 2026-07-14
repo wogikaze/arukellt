@@ -1,5 +1,3 @@
-// Arukellt LSP - hover, definition, and completion requests.
-
 use lsp::feature_completion
 use lsp::feature_code_lens
 use lsp::feature_definition

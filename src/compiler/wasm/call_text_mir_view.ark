@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Mir local view facade for call_text.
-
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types

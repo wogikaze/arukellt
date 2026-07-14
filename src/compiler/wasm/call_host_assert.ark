@@ -1,13 +1,9 @@
-// Arukellt Selfhost - Wasm call namespace: call_host_assert
-
 use mir::opcodes
 use wasm::call_host_io
 use wasm::inst_store
 use wasm::intrinsic_assert
 use wasm::intrinsic_option_result
 use wasm::intrinsics::helpers_core
-
-// Arukellt Selfhost - Wasm option/result/assert/process host call dispatch facade.
 
 fn try_emit_option_assert_call(
     w: WasmWriter,
@@ -30,8 +26,6 @@ fn try_emit_option_assert_call(
     }
     call_host_io::try_emit_process_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
 }
-
-// Arukellt Selfhost - option/result host call dispatch.
 
 fn try_emit_option_result_call(
     w: WasmWriter,
@@ -72,8 +66,6 @@ fn emit_option_receiver_if_needed(w: WasmWriter, prev_op: i32, prev_arg0: i32, p
     }
 }
 
-// Arukellt Selfhost - option/result status host call dispatch.
-
 fn try_emit_option_status_call(
     w: WasmWriter,
     callee: String,
@@ -101,8 +93,6 @@ fn try_emit_option_status_call(
     }
     false
 }
-
-// Arukellt Selfhost - option/result unwrap host call dispatch.
 
 fn try_emit_option_unwrap_call(
     w: WasmWriter,

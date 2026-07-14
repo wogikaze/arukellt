@@ -1,5 +1,3 @@
-// Arukellt LSP - incremental symbol index updates.
-
 use compiler::session_parse
 use lsp::state_record
 use lsp::symbol_index_extract

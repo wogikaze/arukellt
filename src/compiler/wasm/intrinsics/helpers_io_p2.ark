@@ -1,6 +1,4 @@
 use wasm::constants
-// Arukellt Selfhost - Wasm intrinsic WASI Preview 2 stdio recipes (canonical ABI list<u8>).
-
 use wasm::intrinsics::helpers_io_calls
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout

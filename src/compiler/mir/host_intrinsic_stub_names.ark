@@ -1,5 +1,3 @@
-// Arukellt Selfhost - canonical host intrinsic stub name list (shared with wasm emitter).
-
 fn host_intrinsic_stub_count() -> i32 {
     // read_to_string / write_string / write_bytes are stdlib wrappers that
     // call __intrinsic_fs_* — do not treat them as GC unreachable stubs

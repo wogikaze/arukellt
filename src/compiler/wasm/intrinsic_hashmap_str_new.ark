@@ -1,5 +1,3 @@
-// Arukellt Selfhost - HashMap new/create emitters for String/i32/i32/String/String/String variants.
-
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI script list rendering.
-
 use std::host::stdio
 
 pub fn print_script_list(scripts_content: String) {

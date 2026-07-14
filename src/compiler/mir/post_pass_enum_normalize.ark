@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 5e: multi-variant local normalization.
 // When a local receives values from more than one enum variant slot,
 // clear variant_slot and keep an open enum type_name so local declaration
 // (enum_open) matches stores without ref.cast to a specific variant.

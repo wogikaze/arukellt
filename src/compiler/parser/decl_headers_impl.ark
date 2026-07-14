@@ -1,5 +1,3 @@
-// Arukellt Parser - impl declaration header.
-
 use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_factory

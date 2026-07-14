@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR non-statement expression dispatch.
-
 use mir::lower_kinds
 use mir::lower::body_aggregate
 use mir::lower::body_binary

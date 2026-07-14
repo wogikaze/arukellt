@@ -1,5 +1,3 @@
-// Arukellt Selfhost - PR-4b MonoInstanceTable return VT via MonoInstanceId (lowering).
-
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_table

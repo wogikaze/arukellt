@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI cache-dir option parsing.
-
 use main::args_record
 
 pub fn parse_cache_dir_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {

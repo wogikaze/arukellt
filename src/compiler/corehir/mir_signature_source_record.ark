@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR signature source data contract for MIR views.
-
 struct CoreHirMirSignatureSource {
     fn_infos: Vec<CoreHirFnInfo>,
     method_infos: Vec<CoreHirMethodInfo>,

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - const/local-get MIR instruction dispatch.
-
 use wasm::inst_accessors_facade
 use mir::function_identity
 use mir::value_types

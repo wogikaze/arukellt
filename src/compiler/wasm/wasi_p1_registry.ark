@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WASI Preview 1 syscall name registry (#073).
-
 fn wasi_p1_syscall_names() -> Vec<String> {
     let mut names = Vec_new()
     push(names, String_from("args_get"))

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON string parsing
-
 use lsp::json_parse_string_escape
 
 struct JsonStrResult {

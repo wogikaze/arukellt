@@ -1,8 +1,6 @@
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::opcodes
-// Arukellt Selfhost - local result store action policy.
-
 use wasm::constants
 
 fn store_result_action(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> i32 {

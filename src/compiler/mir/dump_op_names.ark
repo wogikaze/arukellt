@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR opcode display name facade.
-
 use mir::dump_op_names_aggregate
 use mir::dump_op_names_arith
 use mir::dump_op_names_call

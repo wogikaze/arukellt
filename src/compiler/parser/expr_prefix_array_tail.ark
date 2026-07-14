@@ -2,8 +2,6 @@ use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - array literal comma tail.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 

@@ -1,5 +1,3 @@
-// Arukellt Lexer - keyword lookup
-
 use lexer::keywords_control
 use lexer::keywords_decl
 use lexer::keywords_literals

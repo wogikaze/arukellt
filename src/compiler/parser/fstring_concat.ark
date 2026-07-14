@@ -1,5 +1,3 @@
-// Arukellt Parser - f-string concat folding.
-
 use parser::fstring_nodes
 
 fn fstring_concat_segments(nodes: Vec<AstNode>, span: Span) -> AstNode {

@@ -1,5 +1,3 @@
-// Arukellt LSP - document formatting responses (#216).
-
 use std::text
 use fmt
 use lsp::json_escape

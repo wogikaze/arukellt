@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR impl/trait method callee resolution from receiver type.
 //
 // Direct calls like `to_string(t)` or `eq(a, b)` must resolve to the
 // monomorphized impl method (e.g. "Token::to_string", "Point::eq") when the

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver public entry point.
-
 use driver::config_record
 use driver::file
 use driver::pipeline_backend

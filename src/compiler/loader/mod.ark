@@ -1,5 +1,3 @@
-// Arukellt Selfhost - source and module graph loading public API.
-
 use std::host::fs
 use loader::load
 use loader::module_decls

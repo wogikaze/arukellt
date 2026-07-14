@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR local annotation type names.
-
 use corehir::type_ann_node
 
 fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {

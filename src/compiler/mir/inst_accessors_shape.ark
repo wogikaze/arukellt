@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR instruction opcode/type accessors.
-
 use mir::inst_record
 
 fn MirInst_val_type(inst: MirInst) -> i32 {

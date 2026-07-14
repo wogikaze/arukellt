@@ -1,7 +1,5 @@
 use mir::lower::ast_node
 use mir::lower_kinds
-// Arukellt Selfhost - MIR match payload binding emission
-
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::lower::match_payload_field_type

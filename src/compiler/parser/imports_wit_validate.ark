@@ -1,5 +1,3 @@
-// Arukellt Parser - WIT package id validation and default alias (#652).
-
 fn wit_find_char(s: String, ch: i32, from: i32) -> i32 {
     let n = len(s)
     let mut i = from

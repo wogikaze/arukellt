@@ -1,5 +1,3 @@
-// Arukellt LSP - resolve function signatures for signature help.
-
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm type section canon entry emission.
-
 use wasm::constants
 use wasm::opcodes
 use wasm::sections_type_plan

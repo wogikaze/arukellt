@@ -1,5 +1,3 @@
-// Arukellt Parser - statement and control-flow syntax facade
-
 use parser::stmt_block
 use parser::stmt_control
 use parser::stmt_dispatch

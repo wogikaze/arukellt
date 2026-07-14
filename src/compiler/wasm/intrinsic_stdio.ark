@@ -1,5 +1,3 @@
-// Arukellt Selfhost - stdio intrinsic handlers
-
 use mir::inst_accessors_operands
 use mir::opcodes
 use wasm::ctx_record

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 4 MirValueType -> WasmValueType lowering.
-
 use corehir::mir_value_type
 use corehir::kinds
 use corehir::type_id

@@ -1,5 +1,3 @@
-// Arukellt Parser - token stream to parse result entrypoint.
-
 use diagnostics::record
 use parser::core_api_token
 use parser::core_types

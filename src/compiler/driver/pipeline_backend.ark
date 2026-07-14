@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver namespace: pipeline_backend
-
 use std::host::clock
 use driver::config_record
 use driver::errors_phase
@@ -15,8 +13,6 @@ use loader::mod
 use loader::module_decls
 use mir_opt::optimize_module
 use mir::mod as mir_api
-
-// Arukellt Selfhost - compilation pipeline orchestration.
 
 fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let frontend = pipeline_frontend::run_frontend(source, config)
@@ -39,8 +35,6 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         t_parse
     )
 }
-
-// Arukellt Selfhost - driver load, resolve, typecheck, lower, and emit stages.
 
 fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> CompileResult {
     let resolved = backend_resolve::backend_resolve(source, config, decls)

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - analysis symbol result types.
-
 pub struct SymbolInfo {
     found: bool,
     name: String,

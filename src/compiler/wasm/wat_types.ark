@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WAT type names.
-
 use mir::value_types
 
 fn val_type_name(vt: i32) -> String {

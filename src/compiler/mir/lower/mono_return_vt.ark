@@ -1,4 +1,3 @@
-// Arukellt Selfhost - mono return type lookup for call sites (#707).
 //
 // When a generic function returning T is monomorphized, the fn_index
 // registers the variant with the base return type (i32 for T). This
