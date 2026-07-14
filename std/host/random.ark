@@ -32,7 +32,7 @@ pub fn random_bool() -> bool {
 }
 
 /// Returns a host-provided random f64 in the range [0.0, 1.0).
-/// Stub: returns 0.0 until __intrinsic_random_next_f64 is wired in the T1 emitter.
+/// Stub: returns 0.0 until __intrinsic_random_next_f64 is wired in the wasm32 emitter.
 pub fn next_f64() -> f64 {
     0.0
 }
