@@ -15,9 +15,17 @@ def _env():
     env = dict(os.environ)
     if "ARUKELLT_SELFHOST_WASM" in env:
         return env
-    pinned = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
-    if pinned.is_file():
-        env["ARUKELLT_SELFHOST_WASM"] = str(pinned.resolve())
+    # Prefer built stage-2 (recent source) over committed pinned bootstrap,
+    # which may be stale for target canonicalization checks.
+    for candidate in (
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2.wasm",
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s3.wasm",
+        REPO_ROOT / ".bootstrap-build" / "arukellt-s2.wasm",
+        REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm",
+    ):
+        if candidate.is_file():
+            env["ARUKELLT_SELFHOST_WASM"] = str(candidate.resolve())
+            return env
     return env
 
 def _entries(kind):

@@ -34,10 +34,9 @@ SANITY_NAME_RE = re.compile(r'test\s+"sanity"')
 TRIVIAL_ASSERT_RES = [
     re.compile(r'assert\(\s*\d+\s*>=\s*0\s*\)'),          # assert(N >= 0) for literal N
     re.compile(r'assert\(\s*true\s*\)'),                    # assert(true)
-    re.compile(r'assert\(\s*1\s*==\s*1\s*\)'),              # assert(1 == 1)
-    re.compile(r'assert\(\s*0\s*==\s*0\s*\)'),              # assert(0 == 0)
-    re.compile(r'assert\(\s*false\s*==\s*false\s*\)'),      # assert(false == false)
-    re.compile(r'assert\(\s*\d+\s*==\s*\d+\s*\)'),          # assert(N == N) for same literal N
+    re.compile(r'assert\(\s*true\s*==\s*true\s*\)'),      # assert(true == true)
+    re.compile(r'assert\(\s*false\s*==\s*false\s*\)'),    # assert(false == false)
+    re.compile(r'assert\(\s*(\d+)\s*==\s*\1\s*\)'),      # assert(N == N) for same literal N
 ]
 
 # Self-comparison pattern: assert(x == x) where both sides are the same identifier

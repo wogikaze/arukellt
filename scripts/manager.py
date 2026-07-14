@@ -4462,6 +4462,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-false-done-hygiene.py",
         ),
         (
+            "operational target drift",
+            "python3 scripts/check/check-operational-target-drift.py",
+        ),
+        (
             "docs-runtime contract audit gate (#679)",
             "ARUKELLT_GATE_679_SKIP_DOCS_CONSISTENCY=1 "
             "python3 scripts/check/gate-679-docs-runtime-contract-audit.py",

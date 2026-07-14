@@ -732,7 +732,7 @@ match body {
                 "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
                 "native WASI P2 sockets by "
                 "[#139](../../../issues/done/139-std-wasi-sockets-p2.md). "
-                "Importing this module on `wasm32` (legacy alias `wasm32`) emits E0500."
+                "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500."
             ),
             "highlights": [
                 ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
@@ -765,14 +765,14 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
         "current selfhost compile path — see",
         "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
-        "Importing this module on `wasm32` (legacy alias `wasm32`) emits E0500.",
+        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
     ],
     "std::host::udp": [
         "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
         "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
-        "Importing this module on `wasm32` (legacy alias `wasm32`) emits E0500.",
+        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
     ],
 }
 

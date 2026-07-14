@@ -62,6 +62,7 @@ ALLOWED_FILES = {
     "scripts/check/check-docs-consistency.py",
     "scripts/check/gate-765-docs-ci-hard-gates.py",
     "scripts/check/check-operational-target-drift.py",
+    "scripts/gen/generate-docs.py",
     "scripts/selfhost/checks_broken.py",
     "docs/data/project-state.toml",
     "docs/current-state.md",
@@ -72,6 +73,8 @@ ALLOWED_FILES = {
     "docs/playground/dist/t2-runner.js",
     "docs/data/release-guarantees.toml",
     "docs/data/release-guarantees.md",
+    "src/compiler/main/target_contract_generated.ark",
+    "extensions/arukellt-all-in-one/src/target-contract.generated.js",
 }
 
 # File extensions to scan
