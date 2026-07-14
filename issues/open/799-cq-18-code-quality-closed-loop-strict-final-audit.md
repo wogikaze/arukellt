@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-14
-Updated: 2026-07-14
+Updated: 2026-07-15
 ID: 799
 Track: code-quality
 Depends on: "715, 796, 797"
@@ -132,7 +132,7 @@ and `Orchestration upstream: 715` are correct and will remain until
 10. **~~verify full receipt not machine-readable~~** (RESOLVED):
     `docs/data/verify-full-receipt.json` saved with schema v2, generated
     by `scripts/gen/write-verify-receipt.py`. Contains 9 aggregate
-    checks and 1163 individual items:
+    checks and 1416 individually identified items:
     - size (#422): 1 pass
     - quick_checks: 165 pass, 1 fail
     - t3_wasm_validate (#808): 210 pass, 213 fail, 23 skip
@@ -141,12 +141,12 @@ and `Orchestration upstream: 715` are correct and will remain until
     - cli_parity (#811): 17 pass, 2 fail
     - diag_parity (#812): 29 pass, 3 fail, 26 skip
     - fixpoint (#813): 1 fail
-    - component_interop (#810): 103 fail
-    verified_commit matches current HEAD. `started_at` is non-null and
-    every identity/aggregate invariant is checked and passes.
+    - component_interop (#810): 0 pass, 103 fail, 0 skip
+    verified_commit matches `2b37c3bb`. `started_at` is non-null and every
+    identity/aggregate invariant is checked and passes (exit_status=1).
 11. **~~Owner issues lack machine-readable baselines~~** (RESOLVED):
     All owner issues #807-#815 now reference `docs/data/verify-full-receipt.json`
-    with specific `check_id` and `items[]`/`aggregate_checks[]` paths.
+    with specific `check_id` and `items[]` paths.
 12. **~~Diagnostic parity counts inconsistent~~** (RESOLVED):
     `release-guarantees.toml` corrected: diag_parity 1→3, cli_parity 3→2.
     All sources now agree: #812=3, #811=2, current-state.md=3/2,
@@ -156,14 +156,18 @@ and `Orchestration upstream: 715` are correct and will remain until
     added to detect future drift. Old names allowed only in alias contracts,
     compat tests, migration/history text, ADR/RFC/spec docs.
 14. **~~#715 adoption checker not separated~~** (RESOLVED):
-    `check-infile-test-adoption.py` rewritten with Phase 1/2 breakdown.
-    Phase 1: 34/180 meaningful (below-target). Phase 2: 13/60 meaningful
-    (below-target). #715 remains open as hard dependency.
+    `check-infile-test-adoption.py` rewritten to scan inside `test mod`
+    bodies, support function-bound tests, and ignore comments/strings.
+    Phase 1: 34/180 meaningful (below-target). Phase 2: 10/60 meaningful
+    (below-target). Unit tests added. #715 remains open as hard dependency.
 15. **~~Manual samples not saved as machine-readable~~** (RESOLVED):
-    `docs/data/cq18-manual-sample.json` saved with 194 samples (50
-    wrapper + 20 hotspot + 20 A API + 36 B API + 20 C API + 8 target
+    `docs/data/cq18-manual-sample.json` saved with 174 samples (50
+    wrapper + 20 hotspot + 20 A API + 20 C API + 36 B API + 8 target
     aliases + 4 generated views + 4 comment policy fixtures + 12 SSOT
-    knowledge categories), all judgment=correct.
+    knowledge categories). 110 are reviewed `correct` (wrapper/hotspot/A
+    API/C API); 64 new categories are `pending` human review. The generator
+    fills expected/evidence/selection metadata but does not auto-approve
+    `actual` or `judgment`.
 
 ## Validation commands
 
@@ -203,7 +207,7 @@ assigned to open owner issues:
 
 | Domain | Failures | Owner issue | Category |
 |---|---:|---|---|
-| quick (T3 WASM validate) | 213 | #808 | T3/Wasm validation |
+| t3_wasm_validate | 213 | #808 | T3/Wasm validation |
 | selfhost fixture parity | 367 | #807 | fixture parity |
 | WAT roundtrip | 6 | #809 | wasm backend |
 | component interop | 103 | #810 | component model |
@@ -211,7 +215,8 @@ assigned to open owner issues:
 | selfhost diag parity | 3 | #812 | diag parity |
 | selfhost fixpoint | 1 | #813 | fixpoint not reached |
 | formatter/parser exceptions | 23 | #814 | format exceptions |
-| diagnostic/T3 compile skips | 26 | #815 | skip debt |
+| diagnostic parity skips | 26 | #815 | skip debt |
+| T3 compile skips | 23 | #815 | skip debt |
 
 Previous assignment to done issues (#287, #459, #529) or `known` was invalid.
 New open remediation issues #807-#815 now own each failure category with
@@ -223,10 +228,10 @@ exact scope, baseline, removal condition, and ratchet.
 |---|---|---|---|---|---|---|
 | Formatter/parser exceptions (23 files) | CQ-FMT-001/CQ-LINT-001 | 23 Ark files | compiler-tooling | #814 | canonical formatter parses file | YES (SHA256) |
 | Ark quality baseline | CQ-STRUCT-001 | src/compiler/ metrics | compiler-tooling | #794 | lower-only ratchet | NO (counts) |
-| Fixture parity baseline (367) | check_fixture_harness | 434 fixtures | compiler/runtime | #807 | fix individual fixtures | NO (snapshot) |
-| Fixture parity skips (3) | run_fixture_parity | 3 SIMD/f64 fixtures | compiler/runtime | #815 | fix GC push / SIMD extract_lane | NO (path) |
-| Diagnostic parity skips (23) | run_diag_parity | 23 diag fixtures | compiler/runtime | #815 | implement missing diagnostics | NO (path) |
-| T3 compile skips (23) | check-t3-wasm-validate | 23 fixtures | compiler/runtime | #808 | implement compile path | NO (path) |
+| Fixture parity baseline (367) | check_fixture_harness | 367 fixtures | compiler/runtime | #807 | fix individual fixtures | NO (snapshot) |
+| Fixture parity skips (417) | run_fixture_parity | 417 fixtures | compiler/runtime | #807 | fix individual fixture paths | NO (path) |
+| Diagnostic parity skips (26) | run_diag_parity | 26 diag fixtures | compiler/runtime | #815 | implement missing diagnostics | NO (path) |
+| T3 compile skips (23) | check-t3-wasm-validate | 23 fixtures | compiler/runtime | #815 | implement compile path | NO (path) |
 | Generated-file exclusions (79) | CQ-STRUCT-007 | 79 generated files | docs/tooling | directory-ownership | remove if no longer generated | NO (path) |
 | Docs skip-doc-check budget (242) | gate-765 | 29 files, 242 skips | docs | #765 | ratchet down over time | NO (budget) |
 | Deprecated vocab exclusions | gate-765 | docs/history, rfcs, plans | docs | #765 | tighten scope | NO (pattern) |

@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "generated_at": "2026-07-14",
+  "schema_version": 2,
+  "generated_at": "2026-07-14T15:14:45.035938+00:00",
   "samples": {
     "wrapper_classification": [
       {
@@ -10,7 +10,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.079986+00:00"
       },
       {
         "index": 2,
@@ -19,7 +23,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.079995+00:00"
       },
       {
         "index": 3,
@@ -28,7 +36,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.079997+00:00"
       },
       {
         "index": 4,
@@ -37,7 +49,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.079999+00:00"
       },
       {
         "index": 5,
@@ -46,7 +62,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080001+00:00"
       },
       {
         "index": 6,
@@ -55,7 +75,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080003+00:00"
       },
       {
         "index": 7,
@@ -64,7 +88,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080004+00:00"
       },
       {
         "index": 8,
@@ -73,7 +101,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080006+00:00"
       },
       {
         "index": 9,
@@ -82,7 +114,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080008+00:00"
       },
       {
         "index": 10,
@@ -91,7 +127,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080009+00:00"
       },
       {
         "index": 11,
@@ -100,7 +140,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080011+00:00"
       },
       {
         "index": 12,
@@ -109,7 +153,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080013+00:00"
       },
       {
         "index": 13,
@@ -118,7 +166,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080015+00:00"
       },
       {
         "index": 14,
@@ -127,7 +179,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080016+00:00"
       },
       {
         "index": 15,
@@ -136,7 +192,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080018+00:00"
       },
       {
         "index": 16,
@@ -145,7 +205,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080020+00:00"
       },
       {
         "index": 17,
@@ -154,7 +218,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080022+00:00"
       },
       {
         "index": 18,
@@ -163,7 +231,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080023+00:00"
       },
       {
         "index": 19,
@@ -172,7 +244,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080025+00:00"
       },
       {
         "index": 20,
@@ -181,7 +257,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080027+00:00"
       },
       {
         "index": 21,
@@ -190,7 +270,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080029+00:00"
       },
       {
         "index": 22,
@@ -199,7 +283,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080031+00:00"
       },
       {
         "index": 23,
@@ -208,7 +296,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080032+00:00"
       },
       {
         "index": 24,
@@ -217,7 +309,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080034+00:00"
       },
       {
         "index": 25,
@@ -226,7 +322,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, record field accessor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080036+00:00"
       },
       {
         "index": 26,
@@ -235,7 +335,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080037+00:00"
       },
       {
         "index": 27,
@@ -244,7 +348,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, constant constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080039+00:00"
       },
       {
         "index": 28,
@@ -253,7 +361,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080041+00:00"
       },
       {
         "index": 29,
@@ -262,7 +374,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080043+00:00"
       },
       {
         "index": 30,
@@ -271,7 +387,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080044+00:00"
       },
       {
         "index": 31,
@@ -280,7 +400,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080046+00:00"
       },
       {
         "index": 32,
@@ -289,7 +413,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080048+00:00"
       },
       {
         "index": 33,
@@ -298,7 +426,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080050+00:00"
       },
       {
         "index": 34,
@@ -307,7 +439,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080051+00:00"
       },
       {
         "index": 35,
@@ -316,7 +452,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080053+00:00"
       },
       {
         "index": 36,
@@ -325,7 +465,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080055+00:00"
       },
       {
         "index": 37,
@@ -334,7 +478,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080057+00:00"
       },
       {
         "index": 38,
@@ -343,7 +491,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080060+00:00"
       },
       {
         "index": 39,
@@ -352,7 +504,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080064+00:00"
       },
       {
         "index": 40,
@@ -361,7 +517,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080068+00:00"
       },
       {
         "index": 41,
@@ -370,7 +530,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080072+00:00"
       },
       {
         "index": 42,
@@ -379,7 +543,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080074+00:00"
       },
       {
         "index": 43,
@@ -388,7 +556,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080076+00:00"
       },
       {
         "index": 44,
@@ -397,7 +569,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, type constructor",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080078+00:00"
       },
       {
         "index": 45,
@@ -406,7 +582,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, pure forwarder",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080080+00:00"
       },
       {
         "index": 46,
@@ -415,7 +595,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, pure forwarder",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080082+00:00"
       },
       {
         "index": 47,
@@ -424,7 +608,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, pure forwarder",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080083+00:00"
       },
       {
         "index": 48,
@@ -433,7 +621,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "one-line body, pure forwarder",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080085+00:00"
       },
       {
         "index": 49,
@@ -442,7 +634,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "module-boundary facade, pure forwarder",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080087+00:00"
       },
       {
         "index": 50,
@@ -451,7 +647,11 @@
         "expected_classification": "thin_wrapper",
         "actual_classification": "thin_wrapper",
         "evidence": "module-boundary facade, pure forwarder",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080089+00:00"
       }
     ],
     "hotspot_top20": [
@@ -470,7 +670,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080091+00:00"
       },
       {
         "index": 2,
@@ -485,7 +689,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080093+00:00"
       },
       {
         "index": 3,
@@ -500,7 +708,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine MIR return-type dispatch complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080095+00:00"
       },
       {
         "index": 4,
@@ -515,7 +727,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080097+00:00"
       },
       {
         "index": 5,
@@ -529,7 +745,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080098+00:00"
       },
       {
         "index": 6,
@@ -543,7 +763,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080100+00:00"
       },
       {
         "index": 7,
@@ -558,7 +782,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC ref cast dispatch complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080102+00:00"
       },
       {
         "index": 8,
@@ -574,7 +802,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine MIR return-type dispatch complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080104+00:00"
       },
       {
         "index": 9,
@@ -588,7 +820,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080105+00:00"
       },
       {
         "index": 10,
@@ -603,7 +839,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type system complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080107+00:00"
       },
       {
         "index": 11,
@@ -619,7 +859,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine call type fallback complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080109+00:00"
       },
       {
         "index": 12,
@@ -635,7 +879,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine call type fallback complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080110+00:00"
       },
       {
         "index": 13,
@@ -650,7 +898,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine call type fallback complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080112+00:00"
       },
       {
         "index": 14,
@@ -666,7 +918,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC struct layout complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080113+00:00"
       },
       {
         "index": 15,
@@ -680,7 +936,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine call type fallback complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080115+00:00"
       },
       {
         "index": 16,
@@ -696,7 +956,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC enum variant complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080117+00:00"
       },
       {
         "index": 17,
@@ -711,7 +975,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine call type dispatch complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080118+00:00"
       },
       {
         "index": 18,
@@ -727,7 +995,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine MIR return-type dispatch complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080120+00:00"
       },
       {
         "index": 19,
@@ -741,7 +1013,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine call type fallback complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080121+00:00"
       },
       {
         "index": 20,
@@ -756,7 +1032,11 @@
         "expected_classification": "hotspot",
         "actual_classification": "hotspot",
         "evidence": "genuine GC type section complexity",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-14T14:49:35.080123+00:00"
       }
     ],
     "a_api": [
@@ -768,7 +1048,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 2,
@@ -778,7 +1062,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 3,
@@ -788,7 +1076,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 4,
@@ -798,7 +1090,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 5,
@@ -808,7 +1104,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 6,
@@ -818,7 +1118,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 7,
@@ -828,7 +1132,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 8,
@@ -838,7 +1146,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 9,
@@ -848,7 +1160,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 10,
@@ -858,7 +1174,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 11,
@@ -868,7 +1188,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 12,
@@ -878,7 +1202,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 13,
@@ -888,7 +1216,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 14,
@@ -898,7 +1230,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 15,
@@ -908,7 +1244,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 16,
@@ -918,7 +1258,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 17,
@@ -928,7 +1272,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 18,
@@ -938,7 +1286,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 19,
@@ -948,7 +1300,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 20,
@@ -958,7 +1314,11 @@
         "expected_classification": "A_API",
         "actual_classification": "A_API",
         "evidence": "registered in std/manifest.toml",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       }
     ],
     "c_api": [
@@ -969,7 +1329,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 2,
@@ -978,7 +1342,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 3,
@@ -987,7 +1355,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 4,
@@ -996,7 +1368,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 5,
@@ -1005,7 +1381,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 6,
@@ -1014,7 +1394,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 7,
@@ -1023,7 +1407,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 8,
@@ -1032,7 +1420,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 9,
@@ -1041,7 +1433,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 10,
@@ -1050,7 +1446,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 11,
@@ -1059,7 +1459,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 12,
@@ -1068,7 +1472,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 13,
@@ -1077,7 +1485,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 14,
@@ -1086,7 +1498,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 15,
@@ -1095,7 +1511,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 16,
@@ -1104,7 +1524,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 17,
@@ -1113,7 +1537,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 18,
@@ -1122,7 +1550,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 19,
@@ -1131,7 +1563,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       },
       {
         "index": 20,
@@ -1140,7 +1576,11 @@
         "expected_classification": "C_API",
         "actual_classification": "C_API",
         "evidence": "internal cross-module pub fn, advisory only",
-        "judgment": "correct"
+        "judgment": "correct",
+        "selected_by": "generator",
+        "selection_rule": "historical",
+        "reviewed_by": null,
+        "reviewed_at": null
       }
     ],
     "B API": [
@@ -1149,324 +1589,468 @@
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_LEX",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 2,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_PARSE",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 3,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_RESOLVE",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 4,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_TYPECHECK",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 5,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_LINT",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 6,
         "path": "src/compiler/analysis.ark",
         "symbol": "analyze",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 7,
         "path": "src/compiler/analysis.ark",
         "symbol": "analyze_with_modules",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 8,
         "path": "src/compiler/analysis.ark",
         "symbol": "snapshot_summary",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 9,
         "path": "src/compiler/component_emit.ark",
         "symbol": "emit_component",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 10,
         "path": "src/compiler/component_emitter.ark",
         "symbol": "emit_component",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 11,
         "path": "src/compiler/dap.ark",
         "symbol": "run_dap_session",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 12,
         "path": "src/compiler/driver.ark",
         "symbol": "DriverConfig_default",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 13,
         "path": "src/compiler/driver.ark",
         "symbol": "compile_source",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 14,
         "path": "src/compiler/driver.ark",
         "symbol": "compile_file",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 15,
         "path": "src/compiler/emit_wat.ark",
         "symbol": "emit_wat",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 16,
         "path": "src/compiler/emitter.ark",
         "symbol": "emit_wasm",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 17,
         "path": "src/compiler/hir.ark",
         "symbol": "trait_hir_self_check",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 18,
         "path": "src/compiler/lsp.ark",
         "symbol": "run_session",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 19,
         "path": "src/compiler/mir_dump.ark",
         "symbol": "dump_mir",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 20,
         "path": "src/compiler/mir_lower.ark",
         "symbol": "lower_to_mir",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 21,
         "path": "src/compiler/mir_lower.ark",
         "symbol": "lower_to_mir_no_prune",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 22,
         "path": "src/compiler/parser.ark",
         "symbol": "parse_program",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 23,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_decls",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 24,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_decl_count",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 25,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_error_count",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 26,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_error_at",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 27,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_errors",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 28,
         "path": "src/compiler/parser.ark",
         "symbol": "parse_module",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 29,
         "path": "src/compiler/resolver.ark",
         "symbol": "use_module_short_name",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 30,
         "path": "src/compiler/resolver.ark",
         "symbol": "register_module_export",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 31,
         "path": "src/compiler/resolver.ark",
         "symbol": "ModuleDecls_new",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 32,
         "path": "src/compiler/resolver.ark",
         "symbol": "resolve_module",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 33,
         "path": "src/compiler/resolver.ark",
         "symbol": "resolve_program",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 34,
         "path": "src/compiler/resolver.ark",
         "symbol": "resolve_program_for_target",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 35,
         "path": "src/compiler/resolver.ark",
         "symbol": "count_user_symbols",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 36,
         "path": "src/compiler/typechecker.ark",
         "symbol": "typecheck_module",
         "expected_classification": "B API",
-        "actual_classification": "B API",
+        "actual_classification": null,
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all pub fn in src/compiler/*.ark",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       }
     ],
     "target_alias": [
@@ -1475,72 +2059,104 @@
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi-p1",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=wasm32, policy=warning, compatibility_status=deprecated",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 2,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=wasm32, policy=warning, compatibility_status=deprecated",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 3,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi-p2",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 4,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm-gc",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 5,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm-gc-wasi-p2",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 6,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi-p3",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 7,
         "path": "docs/data/project-state.toml",
         "symbol": "native",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=n/a, policy=error, compatibility_status=rejected-ambiguous",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 8,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-freestanding",
         "expected_classification": "target alias",
-        "actual_classification": "target alias",
+        "actual_classification": null,
         "evidence": "canonical_target=n/a, policy=error, compatibility_status=rejected",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "all entries in project-state.toml [[target_aliases]]",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       }
     ],
     "generated_view": [
@@ -1549,36 +2165,52 @@
         "path": "src/compiler/main/target_contract_generated.ark",
         "symbol": "target_contract_generated.ark",
         "expected_classification": "generated view",
-        "actual_classification": "generated view",
-        "evidence": "whole-file generated view listed in .generated-files",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "whole-file generated view; registered in .generated-files; file exists",
+        "selected_by": "generator",
+        "selection_rule": "whole-file target-contract views from .generated-files",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 2,
         "path": "extensions/arukellt-all-in-one/src/target-contract.generated.js",
         "symbol": "target-contract.generated.js",
         "expected_classification": "generated view",
-        "actual_classification": "generated view",
-        "evidence": "whole-file generated view listed in .generated-files",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "whole-file generated view; registered in .generated-files; file exists",
+        "selected_by": "generator",
+        "selection_rule": "whole-file target-contract views from .generated-files",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 3,
         "path": "docs/data/target-contract-summary.md",
         "symbol": "target-contract-summary.md",
         "expected_classification": "generated view",
-        "actual_classification": "generated view",
-        "evidence": "whole-file generated view listed in .generated-files",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "whole-file generated view; registered in .generated-files; file exists",
+        "selected_by": "generator",
+        "selection_rule": "whole-file target-contract views from .generated-files",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 4,
         "path": "docs/current-state.md",
         "symbol": "current-state.md target table",
         "expected_classification": "generated view",
-        "actual_classification": "generated view",
-        "evidence": "partial generated section tracked by generate-docs.py --check (BEGIN/END GENERATED:CURRENT_STATE_TARGETS markers)",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "partial generated section tracked by generate-docs.py --check (BEGIN/END GENERATED:CURRENT_STATE_TARGETS markers present)",
+        "selected_by": "generator",
+        "selection_rule": "partial generated section in docs/current-state.md",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       }
     ],
     "comment_policy_fixture": [
@@ -1587,36 +2219,52 @@
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_api_classification_and_boundary_doc_contract",
         "expected_classification": "comment policy fixture",
-        "actual_classification": "comment policy fixture",
-        "evidence": "test covers API classification and boundary doc contract",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers API classification and boundary doc contract",
+        "selected_by": "generator",
+        "selection_rule": "representative test_comment_policy.py test methods",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 2,
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_missing_boundary_doc_is_error_but_internal_pub_is_not",
         "expected_classification": "comment policy fixture",
-        "actual_classification": "comment policy fixture",
-        "evidence": "test covers missing boundary doc is error but internal pub is not",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers missing boundary doc is error but internal pub is not",
+        "selected_by": "generator",
+        "selection_rule": "representative test_comment_policy.py test methods",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 3,
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_comment_findings_distinguish_hard_and_advisory_cases",
         "expected_classification": "comment policy fixture",
-        "actual_classification": "comment policy fixture",
-        "evidence": "test covers comment findings distinguish hard and advisory cases",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers comment findings distinguish hard and advisory cases",
+        "selected_by": "generator",
+        "selection_rule": "representative test_comment_policy.py test methods",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 4,
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_structured_todo_allows_descriptive_quoted_removal_condition",
         "expected_classification": "comment policy fixture",
-        "actual_classification": "comment policy fixture",
-        "evidence": "test covers structured TODO allows descriptive quoted removal condition",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers structured TODO allows descriptive quoted removal condition",
+        "selected_by": "generator",
+        "selection_rule": "representative test_comment_policy.py test methods",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       }
     ],
     "ssot_12": [
@@ -1625,139 +2273,175 @@
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "compiler phases/numbers",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "compiler/phases.ark; six unused driver.ark copies removed",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "`compiler/phases.ark`; six unused `driver.ark` copies removed",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 2,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "phase display tags",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "compiler/phase_tags.ark; derived locally from phase IDs",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "`compiler/phase_tags.ark`; derived locally from phase IDs",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 3,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "target/profile/capability",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "project-state.toml owns target profiles, host profiles, aliases; capabilities.toml owns host capabilities",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "`project-state.toml` uniquely owns target profiles, host profiles, alias input/policy/replacement; `capabilities.toml` owns host capabilities",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 4,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "builtin/intrinsic/stdlib symbols",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "std/manifest.toml owns public paths/docs/stability/deprecation; core-ops.toml is ADR-042 proposal scaffold",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "current public-path/docs/stability/deprecation owner is `std/manifest.toml`; compiler-local semantic registration remains migration debt; `core-ops.toml` is only the proposed ADR-042 scaffold tracked by #798",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 5,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "primitive/vec/GC type spelling",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "ctx_gc_type.ark; exact duplicate Vec GC resolver removed",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "compatibility aliases stay at input predicates; exact duplicate Vec GC resolver removed from `ctx_gc_type_locals.ark`, owner is `ctx_gc_type.ark`",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 6,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "MIR/CoreHIR/Wasm opcode and tags",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "subsystem-local kinds/opcodes; coincidental numeric similarity not centralized",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "subsystem-local `kinds`/`opcodes`; coincidental numeric similarity not centralized",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 7,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "diagnostics/warnings",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
+        "actual_classification": null,
         "evidence": "existing diagnostics/warnings registries; no new registry",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 8,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "scratch/local/GC offsets",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "subsystem-local layout constants; not moved to mega-registry",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "subsystem-local layout constants; not moved to a mega-registry",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 9,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "WIT canonical ABI",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
+        "actual_classification": null,
         "evidence": "component/WIT subsystem and existing manifests",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 10,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "CLI options/subcommands",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "docs/data/cli-surface.toml and generated views",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "`docs/data/cli-surface.toml` and generated views",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 11,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "parser token/precedence",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
+        "actual_classification": null,
         "evidence": "parser-local tables; not globalized",
-        "judgment": "correct"
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       },
       {
         "index": 12,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "public exports/docs lists",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": "SSOT knowledge category",
-        "evidence": "std/manifest.toml; publication checks remain canonical",
-        "judgment": "correct"
+        "actual_classification": null,
+        "evidence": "`std/manifest.toml`; publication checks remain canonical",
+        "selected_by": "generator",
+        "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "judgment": "pending"
       }
     ]
   },
   "summary": {
-    "wrapper_classification": {
-      "total": 50,
-      "correct": 50,
-      "false_positive": 0,
-      "false_negative": 0,
-      "ambiguous": 0
+    "total": 174,
+    "by_category": {
+      "wrapper_classification": 50,
+      "hotspot_top20": 20,
+      "a_api": 20,
+      "c_api": 20,
+      "B API": 36,
+      "target_alias": 8,
+      "generated_view": 4,
+      "comment_policy_fixture": 4,
+      "ssot_12": 12
     },
-    "hotspot_top20": {
-      "total": 20,
-      "correct": 20,
-      "false_positive": 0,
-      "false_negative": 0,
-      "ambiguous": 0
-    },
-    "a_api": {
-      "total": 20,
-      "correct": 20,
-      "false_positive": 0,
-      "false_negative": 0,
-      "ambiguous": 0
-    },
-    "c_api": {
-      "total": 20,
-      "correct": 20,
-      "false_positive": 0,
-      "false_negative": 0,
-      "ambiguous": 0
+    "by_judgment": {
+      "correct": 110,
+      "pending": 64
     }
   }
 }
