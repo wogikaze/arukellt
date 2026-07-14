@@ -4,8 +4,8 @@ Created: 2026-06-15
 Updated: 2026-06-15
 ID: 473
 Track: component-model
-Depends on: 074, 124
-Orchestration class: design-ready
+Depends on: 124
+Orchestration class: done
 Orchestration upstream: None
 Blocks v{N}: none
 Source: missing issue referenced by #618 and #262; docs/current-state.md E0402 resource rejection

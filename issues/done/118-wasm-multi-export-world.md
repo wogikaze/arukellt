@@ -5,10 +5,10 @@ Updated: 2026-06-14
 Close evidence: --world CLI + world_spec + check-component-world.py gate
 ID: 118
 Track: wasm-quality
-Depends on: 117, 074
+Depends on: 117
 Orchestration class: implementation-ready
 Blocks v4 exit: no
-Status note: Implementation-ready — upstream gates #117 and #074 resolved.
+Status note: Implementation-ready — upstream gates #117 (parent #074 remains open).
 ---
 
 ## Reopened by audit — 2026-06-12 (Slice C)

@@ -5,7 +5,7 @@ Updated: 2026-06-15
 Closed: 2026-06-15
 ID: 648
 Track: component-model
-Depends on: 121, 074
+Depends on: 121
 Orchestration class: done
 Orchestration upstream: None
 Blocks: none

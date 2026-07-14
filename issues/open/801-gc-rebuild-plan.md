@@ -5,7 +5,7 @@ Updated: 2026-07-14
 ID: 801
 Track: gc
 Depends on: "686"
-Orchestration class: ready
+Orchestration class: blocked
 Orchestration upstream: 686
 Blocks v{N}: none
 Priority: 2

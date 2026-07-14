@@ -55,8 +55,8 @@ incidents, not by individual checks.
 | `check_close_gate_076` | — | 🔴 yes | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `fd14539c23288d3ed993c03600aeed36cd478d06` | `python3 scripts/check/check-false-done-close-gates.py` |
 | `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_t3_wasm_validate` | `fd14539c23288d3ed993c03600aeed36cd478d06` | `python3 scripts/check/check-t3-wasm-validate.py` |
 | `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `exhaustive` | 1 | `incident_selfhost_fixpoint` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `python3 scripts/manager.py selfhost fixpoint --build` |
-| `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_cli_parity` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `python3 scripts/manager.py selfhost parity --mode --cli` |
-| `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_selfhost_diag_parity` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `python3 scripts/manager.py selfhost diag-parity` |
+| `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 2 | `incident_selfhost_cli_parity` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `python3 scripts/manager.py selfhost parity --mode --cli` |
+| `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_diag_parity` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `python3 scripts/manager.py selfhost diag-parity` |
 | `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_wat_roundtrip` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `bash scripts/run/wat-roundtrip.sh` |
 | `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 103 | `incident_component_interop_103` | `52967b17ace3f63cc2fe59ac9bbf5f0202445106` | `python3 scripts/manager.py verify component-interop` |
 | `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |

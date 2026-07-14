@@ -4,7 +4,7 @@ Created: 2026-06-16
 Updated: 2026-06-16
 ID: 666
 Track: component-model
-Depends on: 074, 618
+Depends on: 618
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none

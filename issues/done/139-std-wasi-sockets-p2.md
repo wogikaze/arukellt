@@ -4,7 +4,7 @@ Created: 2026-03-29
 Updated: 2026-06-15
 Closed: 2026-06-15
 ID: 139
-Depends on: 074, 137
+Depends on: 137
 Track: wasi-feature
 Orchestration class: done
 Orchestration upstream: None

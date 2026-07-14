@@ -5,7 +5,7 @@ ID: 124
 Track: language-design
 Orchestration class: implementation-ready
 Orchestration upstream: None
-Depends on: "074 (wasi-p2-native-component)"
+Depends on: none
 Blocks: 034, 473, 651
 Blocks v4 exit: yes
 ADR candidate: yes

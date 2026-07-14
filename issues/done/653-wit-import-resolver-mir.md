@@ -4,7 +4,7 @@ Created: 2026-06-15
 ID: 653
 Track: language-design
 Parent: 124
-Depends on: 652, 074
+Depends on: 652
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no

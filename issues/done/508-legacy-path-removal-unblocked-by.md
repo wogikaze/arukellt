@@ -5,9 +5,9 @@ Updated: 2026-05-16
 ID: 508
 Depends on: 593
 Track: corehir
-Orchestration class: blocked-by-upstream
+Orchestration class: ready
 Blocks: completion of issue 285 acceptance item "all fixtures pass legacy-less"
-Orchestration upstream: #529
+Orchestration upstream: none
 Priority: 4
 Implementation target: "Use Ark (src/compiler/*.ark) instead of Rust crates (crates/*) per #529 100% selfhost transition plan."
 Operational lane: legacy removal / selfhost transition. Keep separate from #125/#126 trusted-base compiler default-path correction and from #099 selfhost frontend design.

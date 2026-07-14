@@ -1,12 +1,12 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-05
 Updated: 2026-07-07
 ID: 716
 Progress: 10/10 stubs completed
 Track: gc-native
 Depends on: "686"
-Orchestration class: implementation-backfill
+Orchestration class: blocked
 Orchestration upstream: "#686 Wasm GC Selfhost Implementation"
 Blocks v{N}: none
 Priority: 1

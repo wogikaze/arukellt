@@ -5,7 +5,7 @@ Closed: 2026-06-15
 ID: 658
 Track: wasi-feature
 Parent: 139
-Depends on: 074, 137
+Depends on: 137
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none

@@ -4,7 +4,7 @@ Created: 2026-06-15
 ID: 652
 Track: language-design
 Parent: 124
-Depends on: "#074"
+Depends on: none
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
