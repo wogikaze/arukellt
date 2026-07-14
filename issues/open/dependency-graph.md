@@ -50,11 +50,19 @@ graph LR
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I796["796 796 — CQ-16: duplicated knowledge and SSOT consolidation"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
+  I807["807 807 — Fixture parity: 367 remaining failures"]
+  I809["809 809 — WAT roundtrip failure"]
+  I810["810 810 — Component interop failures"]
+  I811["811 811 — Selfhost CLI parity drift"]
+  I812["812 812 — Selfhost diagnostic parity drift"]
+  I813["813 813 — Selfhost fixpoint not reached"]
+  I815["815 815 — Diagnostic/T3 compile skips (23 fixtures)"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I801["801 GC 完了までのプラン"]
+  I808["808 808 — T3/Wasm validation failures"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
@@ -63,6 +71,7 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
+  I814["814 814 — Formatter/parser exceptions (23 files)"]
   I797["797 797 — CQ-17: public API and comment audit"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
@@ -79,6 +88,7 @@ graph LR
   I667 --> I673
   I680 --> I682
   I686 --> I801
+  I686 --> I808
   I690 --> I694
   I691 --> I697
   I695 --> I697
@@ -90,6 +100,7 @@ graph LR
   I715 --> I719
   I724 --> I726
   I791 --> I800
+  I791 --> I814
   I796 --> I797
   I682 --> I683
   I691 --> I709
@@ -135,7 +146,7 @@ graph LR
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: 801
+- **686** depends on: none; blocks: 801, 808
 - **687** depends on: 495; blocks: none
 - **690** depends on: 688; blocks: 694
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710
@@ -157,14 +168,22 @@ graph LR
 - **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
-- **791** depends on: 785; blocks: 800
+- **791** depends on: 785; blocks: 800, 814
 - **796** depends on: 795; blocks: 797
 - **798** depends on: none; blocks: none
+- **807** depends on: 287, framework); blocks: none
+- **809** depends on: none; blocks: none
+- **810** depends on: none; blocks: none
+- **811** depends on: none; blocks: none
+- **812** depends on: none; blocks: none
+- **813** depends on: 459, framework); blocks: none
+- **815** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **801** depends on: 686; blocks: none
+- **808** depends on: 686; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
@@ -173,6 +192,7 @@ graph LR
 - **719** depends on: 715; blocks: none
 - **726** depends on: 724; blocks: 730
 - **800** depends on: 791; blocks: none
+- **814** depends on: 791; blocks: none
 - **797** depends on: 796; blocks: 799
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713

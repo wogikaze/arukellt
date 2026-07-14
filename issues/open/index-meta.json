@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T10:02:32Z",
+  "generated_at": "2026-07-14T10:07:04Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -400,7 +400,8 @@
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [
-        "801"
+        "801",
+        "808"
       ],
       "acceptance": {
         "checked": 12,
@@ -836,7 +837,8 @@
         "785"
       ],
       "blocks_issue_ids": [
-        "800"
+        "800",
+        "814"
       ],
       "acceptance": {
         "checked": 0,
@@ -883,6 +885,131 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "ADR-042 acceptance"
+      }
+    },
+    {
+      "id": "807",
+      "path": "807-fixture-parity-367-remaining-failures.md",
+      "title": "807 — Fixture parity: 367 remaining failures",
+      "track": "selfhost",
+      "status": "open",
+      "depends_on": [
+        "287",
+        "framework)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "809",
+      "path": "809-wat-roundtrip-failure.md",
+      "title": "809 — WAT roundtrip failure",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "810",
+      "path": "810-component-interop-failures.md",
+      "title": "810 — Component interop failures",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "811",
+      "path": "811-selfhost-cli-parity-drift.md",
+      "title": "811 — Selfhost CLI parity drift",
+      "track": "selfhost",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "812",
+      "path": "812-selfhost-diagnostic-parity-drift.md",
+      "title": "812 — Selfhost diagnostic parity drift",
+      "track": "selfhost",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "813",
+      "path": "813-selfhost-fixpoint-not-reached.md",
+      "title": "813 — Selfhost fixpoint not reached",
+      "track": "selfhost",
+      "status": "open",
+      "depends_on": [
+        "459",
+        "framework)"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "815",
+      "path": "815-diagnostic-t3-compile-skips.md",
+      "title": "815 — Diagnostic/T3 compile skips (23 fixtures)",
+      "track": "selfhost",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
       }
     },
     {
@@ -972,6 +1099,25 @@
       "path": "801-gc-rebuild-plan.md",
       "title": "GC 完了までのプラン",
       "track": "gc",
+      "status": "open",
+      "depends_on": [
+        "686"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": 686
+      }
+    },
+    {
+      "id": "808",
+      "path": "808-t3-wasm-validation-failures.md",
+      "title": "808 — T3/Wasm validation failures",
+      "track": "compiler",
       "status": "open",
       "depends_on": [
         "686"
@@ -1148,6 +1294,25 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "814",
+      "path": "814-formatter-parser-exceptions.md",
+      "title": "814 — Formatter/parser exceptions (23 files)",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "791"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
         "unchecked": 0
       },
       "orchestration": {

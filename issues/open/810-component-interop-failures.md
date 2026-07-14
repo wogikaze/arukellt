@@ -1,0 +1,56 @@
+---
+Status: open
+Created: 2026-07-14
+Updated: 2026-07-14
+ID: 810
+Track: compiler
+Depends on: none
+Orchestration class: ready
+Orchestration upstream: None
+Blocks v{N}: none
+Priority: 3
+Source: CQ-18 audit — unresolved verify full failures need open owner
+---
+
+# 810 — Component interop failures
+
+## Summary
+
+`verify full` reports 103 component interop failures. The selfhost
+compiler's component model output does not pass component validation or
+interop checks.
+
+## Exact failure scope
+
+103 fixtures fail component interop checks. The specific fixture IDs are
+captured in the verify full receipt.
+
+## Machine-readable baseline
+
+The component interop check produces the list of failing fixture IDs.
+
+## Owner
+
+compiler team (component model)
+
+## Removal condition
+
+Each fixture passes when the selfhost compiler emits a valid component
+that passes `wasm-tools validate --component` and interop checks.
+
+## Validation command
+
+```bash
+python3 scripts/manager.py verify full
+```
+
+(Component interop is a sub-check within verify full)
+
+## Current count
+
+103 failing fixtures
+
+## New-failure ratchet
+
+No new component interop failures may be added. The count must only
+decrease.

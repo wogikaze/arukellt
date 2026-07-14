@@ -1,0 +1,55 @@
+---
+Status: open
+Created: 2026-07-14
+Updated: 2026-07-14
+ID: 809
+Track: compiler
+Depends on: none
+Orchestration class: ready
+Orchestration upstream: None
+Blocks v{N}: none
+Priority: 3
+Source: CQ-18 audit — unresolved verify full failures need open owner
+---
+
+# 809 — WAT roundtrip failure
+
+## Summary
+
+`verify full` reports 1 WAT roundtrip failure. The selfhost compiler
+produces Wasm that cannot be roundtripped through `wasm-tools print` and
+re-validated.
+
+## Exact failure scope
+
+1 fixture fails the WAT roundtrip check. The specific fixture ID is
+captured in the verify full receipt.
+
+## Machine-readable baseline
+
+The WAT roundtrip check produces the failing fixture ID.
+
+## Owner
+
+compiler team (wasm backend)
+
+## Removal condition
+
+The WAT roundtrip passes when the selfhost compiler emits Wasm that
+survives `wasm-tools print` and subsequent `wasm-tools validate`.
+
+## Validation command
+
+```bash
+python3 scripts/manager.py verify full
+```
+
+(WAT roundtrip is a sub-check within verify full)
+
+## Current count
+
+1 failing fixture
+
+## New-failure ratchet
+
+No new WAT roundtrip failures may be added. The count must only decrease.

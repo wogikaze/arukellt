@@ -144,32 +144,35 @@ All commands listed in the CQ-18 work order, including the single-process
 ### verify full failure identity classification
 
 `verify full` completed in a single uninterrupted process. Exit 1 is expected
-due to known release blockers. All failures are identity-classified and matched
-against existing owner issues:
+due to known release blockers. All failures are identity-classified and
+assigned to open owner issues:
 
 | Domain | Failures | Owner issue | Category |
 |---|---:|---|---|
-| quick (T3 WASM validate) | 192 | #686 | fixture parity |
-| selfhost fixture parity | 1 (aggregate) | #287 | fixture parity |
-| WAT roundtrip | 1 | known | wasm backend |
-| component interop | 103 | known | component model |
-| selfhost CLI parity | 3 | known | CLI parity drift |
-| selfhost diag parity | 3 | known | diag parity |
-| selfhost fixpoint | 1 | #459 | fixpoint not reached |
+| quick (T3 WASM validate) | 192 | #808 | T3/Wasm validation |
+| selfhost fixture parity | 367 | #807 | fixture parity |
+| WAT roundtrip | 1 | #809 | wasm backend |
+| component interop | 103 | #810 | component model |
+| selfhost CLI parity | 3 | #811 | CLI parity drift |
+| selfhost diag parity | 3 | #812 | diag parity |
+| selfhost fixpoint | 1 | #813 | fixpoint not reached |
+| formatter/parser exceptions | 23 | #814 | format exceptions |
+| diagnostic/T3 compile skips | 26 | #815 | skip debt |
 
-No new failure identities were introduced. All failures map to existing owner
-issues (#686, #287, #459) or known pre-existing categories.
+Previous assignment to done issues (#287, #459, #529) or `known` was invalid.
+New open remediation issues #807-#815 now own each failure category with
+exact scope, baseline, removal condition, and ratchet.
 
 ### Baseline and exception inventory
 
 | Exception | Rule ID | Scope | Owner | Issue | Removal condition | Content-addressed |
 |---|---|---|---|---|---|---|
-| Formatter/parser exceptions (23 files) | CQ-FMT-001/CQ-LINT-001 | 23 Ark files | compiler-tooling | #791 | canonical formatter parses file | YES (SHA256) |
+| Formatter/parser exceptions (23 files) | CQ-FMT-001/CQ-LINT-001 | 23 Ark files | compiler-tooling | #814 | canonical formatter parses file | YES (SHA256) |
 | Ark quality baseline | CQ-STRUCT-001 | src/compiler/ metrics | compiler-tooling | #794 | lower-only ratchet | NO (counts) |
-| Fixture parity baseline (367) | check_fixture_harness | 434 fixtures | compiler/runtime | #287 | fix individual fixtures | NO (snapshot) |
-| Fixture parity skips (3) | run_fixture_parity | 3 SIMD/f64 fixtures | compiler/runtime | #529 | fix GC push / SIMD extract_lane | NO (path) |
-| Diagnostic parity skips (23) | run_diag_parity | 23 diag fixtures | compiler/runtime | #529/#459 | implement missing diagnostics | NO (path) |
-| T3 compile skips (23) | check-t3-wasm-validate | 23 fixtures | compiler/runtime | various | implement compile path | NO (path) |
+| Fixture parity baseline (367) | check_fixture_harness | 434 fixtures | compiler/runtime | #807 | fix individual fixtures | NO (snapshot) |
+| Fixture parity skips (3) | run_fixture_parity | 3 SIMD/f64 fixtures | compiler/runtime | #815 | fix GC push / SIMD extract_lane | NO (path) |
+| Diagnostic parity skips (23) | run_diag_parity | 23 diag fixtures | compiler/runtime | #815 | implement missing diagnostics | NO (path) |
+| T3 compile skips (23) | check-t3-wasm-validate | 23 fixtures | compiler/runtime | #808 | implement compile path | NO (path) |
 | Generated-file exclusions (79) | CQ-STRUCT-007 | 79 generated files | docs/tooling | directory-ownership | remove if no longer generated | NO (path) |
 | Docs skip-doc-check budget (242) | gate-765 | 29 files, 242 skips | docs | #765 | ratchet down over time | NO (budget) |
 | Deprecated vocab exclusions | gate-765 | docs/history, rfcs, plans | docs | #765 | tighten scope | NO (pattern) |
@@ -179,6 +182,9 @@ issues (#686, #287, #459) or known pre-existing categories.
 | Gate open skip | _gate_open_skip.py | issue-conditional | tooling | dynamic | close blocking issue | NO (issue) |
 | Bootstrap P2 import skip | gate_bootstrap_component | wasm-tools validate | compiler/runtime | bootstrap gap | bootstrap gains P2 host imports | NO (conditional) |
 
+Previous owner assignments to done issues (#287, #459, #529) or `known`/
+`various`/`dynamic` were invalid. All failure categories now have open owner
+issues (#807-#815) with exact scope, baseline, removal condition, and ratchet.
 No unowned exceptions, no file-wide disables, no `|| true`, no permanent count
 baselines that allow new violations. All baselines are ratchet-only (lower or
 equal). New additions: 0.
