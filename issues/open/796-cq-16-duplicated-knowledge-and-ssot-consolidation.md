@@ -5,7 +5,7 @@ Updated: 2026-07-14
 ID: 796
 Track: code-quality
 Depends on: "795"
-Orchestration class: blocked
+Orchestration class: ready
 Orchestration upstream: 795
 Blocks v{N}: none
 Priority: 1
@@ -27,6 +27,26 @@ same-knowledge duplication, and add deterministic drift checks where views are d
   compatibility spelling.
 - Consolidate only genuine synchronization obligations.
 
+### Scope correction (2026-07-14)
+
+The original issue incorrectly treated two different obligations as one:
+
+- ADR-007 is **ACCEPTED**. Target aliases, canonical targets, and host profiles
+  therefore remain in CQ-16 and must be implemented from one product-contract SSOT.
+- ADR-042 is **PROPOSED**. Its D1-D8 semantic-operation migration is not an
+  implementation obligation and is tracked separately by #798, whose start
+  condition is ADR-042 acceptance.
+
+`docs/data/core-ops.toml` remains a `status = "scaffold"` future semantic
+registry, not an authoritative compiler input. Today `std/manifest.toml` owns
+public paths, documentation, stability, and deprecation, while resolver,
+typechecker, and emitter registrations remain migration debt. CQ-16 completes
+when every audited category has a disposition and same-knowledge duplication
+within **accepted** contracts has one owner; it does not silently adopt a
+proposed architecture. This corrects the contract boundary rather than
+weakening Acceptance. The larger architecture migration has its own owner,
+dependency ADR, acceptance, and rollback boundary in #798.
+
 ## Non-goals
 
 - No mega-registry, speculative global schema, or unification of coincidentally
@@ -35,8 +55,8 @@ same-knowledge duplication, and add deterministic drift checks where views are d
 
 ## Acceptance
 
-- [ ] Every listed knowledge category has a recorded disposition
-- [ ] Same-knowledge duplication has one owner
+- [ ] Every listed knowledge category has a recorded disposition under the corrected accepted-contract scope
+- [ ] Same-knowledge duplication in accepted contracts has one owner
 - [ ] Compatibility aliases are separated from canonical representation
 - [ ] Derived views have deterministic generation and drift checks
 - [ ] Existing registries are reused and local knowledge remains local

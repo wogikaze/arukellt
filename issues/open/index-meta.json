@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T04:00:54Z",
+  "generated_at": "2026-07-14T04:16:48Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -857,8 +857,25 @@
         "unchecked": 7
       },
       "orchestration": {
-        "class": "blocked",
+        "class": "ready",
         "upstream_notes": 795
+      }
+    },
+    {
+      "id": "798",
+      "path": "798-adr-042-semantic-operation-registry-migration.md",
+      "title": "798 — ADR-042 semantic operation registry migration",
+      "track": "architecture",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "ADR-042 acceptance"
       }
     },
     {

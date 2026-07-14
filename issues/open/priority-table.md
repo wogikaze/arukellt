@@ -73,3 +73,4 @@ Scoring criteria (0-5 each, total 25):
 | 60 | 796 | 796 — CQ-16: duplicated knowledge and SSOT consolidation | code-quality | 1 | 0 | 1 | 1 | 3 | 6 |
 | 61 | 669 | 669 — WIT import IDE and formatter surface | lsp-navigation | 0 | 0 | 1 | 1 | 3 | 5 |
 | 62 | 699 | 699 — T4 LLVM native SIMD lowering for std::simd | native-feature | 0 | 0 | 1 | 1 | 3 | 5 |
+| 63 | 798 | 798 — ADR-042 semantic operation registry migration | architecture | 0 | 0 | 1 | 1 | 3 | 5 |
