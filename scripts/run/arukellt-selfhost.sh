@@ -31,9 +31,15 @@ resolve_selfhost_wasm() {
   if [[ -n "${ARUKELLT_SELFHOST_WASM:-}" ]] && [[ -f "$ARUKELLT_SELFHOST_WASM" ]]; then
     echo "$ARUKELLT_SELFHOST_WASM"; return 0
   fi
+  # Prefer the heap-patched s2-runtime wasm (4 GiB linear memory) over the
+  # unpatched s3 wasm (512 MiB).  The s3 wasm is the fixpoint self-recompile
+  # output but lacks the heap-grow patch, causing OOM when linting or
+  # compiling large file sets.  s2-runtime is the same compiler with the
+  # heap-grow-patcher applied, so it is functionally equivalent for
+  # lint/compile/run invocations.
   for cand in \
-    "$REPO_ROOT/.build/selfhost/arukellt-s3.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-s2-runtime.wasm" \
+    "$REPO_ROOT/.build/selfhost/arukellt-s3.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-s2.wasm" \
     "$REPO_ROOT/.bootstrap-build/arukellt-s2.wasm" \
     "$REPO_ROOT/.build/selfhost/arukellt-pinned-bootstrap.wasm" \
