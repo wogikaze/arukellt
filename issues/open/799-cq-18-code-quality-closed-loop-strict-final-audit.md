@@ -246,6 +246,12 @@ No false positives, false negatives, or classification ambiguities found.
 - **Required status checks** (`.github/rulesets/master-quality.json`):
   `quality-format`, `quality-lint`, `verify-quick`, `Final gate`. Strict
   policy, no bypass actors.
+- **Live ruleset readback** (`2026-07-14T10:33:00Z`): ruleset id `18894318`
+  `master quality gates`, `enforcement: active`, target `~DEFAULT_BRANCH`.
+  Required contexts from `gh api repos/wogikaze/arukellt/rulesets/18894318`:
+  `quality-format`, `quality-lint`, `verify-quick`, `Final gate`.
+  Pull request rule: 1 approving review, code owner review required, stale
+  review dismissal on push, required review thread resolution.
 - **CODEOWNERS** (`.github/CODEOWNERS`): `/src/compiler/`, `/std/`,
   `/docs/data/`, `/scripts/gen/` → `@wogikaze`. Consistent with directory
   ownership.
