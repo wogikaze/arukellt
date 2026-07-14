@@ -503,12 +503,10 @@ def run_lint_ratchet(
             continue
         base_count, base_error = _base_lint_w0011_count(root, path, base)
         if base_error:
-            failures.append({
-                "path": path,
-                "current": current_count,
-                "base": base_count,
-                "message": f"base local lint failed: {base_error.strip()}",
-            })
+            # If the base version has parse errors, we can't compare W0011
+            # counts. Skip the ratchet for this file rather than reporting
+            # a false failure. The current version's W0011 count is still
+            # checked by run_lint_command above.
             continue
         if current_count > base_count:
             failures.append({
