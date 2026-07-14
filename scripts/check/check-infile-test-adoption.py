@@ -3,14 +3,16 @@
 
 Reports test adoption broken down by:
 - test module count (test mod "name" { ... })
-- executable test case count (test "name" { ... })
+- executable test case count (test "name" { ... } and test <fn> "name" { ... })
 - meaningful test case count (excludes trivial asserts)
 - Phase 1 target modules (std/core, std/collections, std/text, std/bytes)
 - Phase 2 target modules (lexer, parser, resolver, typechecker, mir, diagnostics)
 - Out-of-scope modules (host, component, lsp, dap, wasm emitter body, simd)
 
 The scanner ignores line comments, block comments, and string literals, so
-commented-out examples or prose cannot inflate test counts.
+commented-out examples or prose cannot inflate test counts. It recursively
+scans inside `test mod` bodies so inner test cases are counted, and it handles
+the function-bound form `test <identifier> "name" { ... }`.
 """
 from __future__ import annotations
 
@@ -53,30 +55,32 @@ OUT_OF_SCOPE_DIRS = {
 
 # Trivial assert patterns (same as check-trivial-tests.py)
 TRIVIAL_ASSERT_RES = [
-    re.compile(r'assert\(\s*\d+\s*>=\s*0\s*\)'),
-    re.compile(r'assert\(\s*true\s*\)'),
-    re.compile(r'assert\(\s*1\s*==\s*1\s*\)'),
-    re.compile(r'assert\(\s*0\s*==\s*0\s*\)'),
-    re.compile(r'assert\(\s*false\s*==\s*false\s*\)'),
-    re.compile(r'assert\(\s*\d+\s*==\s*\d+\s*\)'),
+    re.compile(r"assert\(\s*\d+\s*>=\s*0\s*\)"),
+    re.compile(r"assert\(\s*true\s*\)"),
+    re.compile(r"assert\(\s*1\s*==\s*1\s*\)"),
+    re.compile(r"assert\(\s*0\s*==\s*0\s*\)"),
+    re.compile(r"assert\(\s*false\s*==\s*false\s*\)"),
+    re.compile(r"assert\(\s*\d+\s*==\s*\d+\s*\)"),
 ]
-SELF_CMP_RE = re.compile(r'assert\(\s*(\w+)\s*==\s*\1\s*\)')
+SELF_CMP_RE = re.compile(r"assert\(\s*(\w+)\s*==\s*\1\s*\)")
 PROBE_NAME_RE = re.compile(r'test\s+"probe_\d+"')
-SANITY_NAME_RE = re.compile(r'test\s+"sanity"')
 
 
 def _strip_comments_and_strings(text: str) -> str:
-    """Return text with line comments, block comments, and string literals
-    replaced by spaces. This preserves character positions and line numbers."""
+    """Return text with line comments, block comments, and string literal
+    contents replaced by spaces. Opening/closing quotes are preserved so that
+    brace matching later sees only structural braces. Character positions and
+    line numbers are preserved.
+    """
     out = []
     i = 0
     n = len(text)
     in_line_comment = False
     in_block_comment = False
     in_string = False
+    string_backslashes = 0
     while i < n:
         ch = text[i]
-        prev = text[i - 1] if i > 0 else ""
 
         if in_line_comment:
             if ch == "\n":
@@ -101,10 +105,22 @@ def _strip_comments_and_strings(text: str) -> str:
             continue
 
         if in_string:
-            if ch == '"' and prev != "\\":
-                out.append(ch)
-                in_string = False
-            elif ch == "\n":
+            if ch == "\\":
+                out.append(" ")
+                string_backslashes += 1
+                i += 1
+                continue
+            if ch == '"':
+                if string_backslashes % 2 == 1:
+                    out.append(" ")
+                else:
+                    out.append(ch)
+                    in_string = False
+                string_backslashes = 0
+                i += 1
+                continue
+            string_backslashes = 0
+            if ch == "\n":
                 out.append(ch)
             else:
                 out.append(" ")
@@ -114,6 +130,7 @@ def _strip_comments_and_strings(text: str) -> str:
         if ch == '"':
             out.append(ch)
             in_string = True
+            string_backslashes = 0
             i += 1
             continue
 
@@ -170,62 +187,95 @@ def _read_string_literal(text: str, i: int) -> tuple[str, int]:
     return text[start:], i
 
 
+def _find_matching_brace(code: str, open_idx: int) -> int:
+    """Return the index of the matching `}` for the `{` at open_idx, or -1."""
+    n = len(code)
+    depth = 1
+    k = open_idx + 1
+    while k < n:
+        if code[k] == "{":
+            depth += 1
+        elif code[k] == "}":
+            depth -= 1
+            if depth == 0:
+                return k
+        k += 1
+    return -1
+
+
 def _extract_test_blocks(text: str) -> list[tuple[str, bool, str, int]]:
     """Extract test mod declarations and test cases from a source file.
 
     Returns a list of (name, is_mod, body_text, start_line). The scanner skips
-    line comments, block comments, and string literals, so only actual test
-    declarations are counted.
+    line comments, block comments, and string literal contents, then recursively
+    scans inside `test mod` bodies. The function-bound form
+    `test <identifier> "name" { ... }` is treated as a test case.
     """
-    blocks: list[tuple[str, bool, str, int]] = []
     code = _strip_comments_and_strings(text)
+    return _extract_test_blocks_impl(code, text, 1)
+
+
+def _extract_test_blocks_impl(
+    code: str, text: str, base_line: int
+) -> list[tuple[str, bool, str, int]]:
+    blocks: list[tuple[str, bool, str, int]] = []
     n = len(code)
     i = 0
-    line_no = 1
+    line_no = base_line
     while i < n:
         ch = code[i]
         if ch == "\n":
             line_no += 1
-        # Detect the keyword `test` as a bare word.
+
         if ch.isalpha() or ch == "_":
             ident, end = _read_identifier(code, i)
             if ident == "test":
+                test_start = i
                 j = _skip_whitespace(code, end)
                 is_mod = False
+
                 if j < n and (code[j].isalpha() or code[j] == "_"):
                     next_ident, after = _read_identifier(code, j)
                     if next_ident == "mod":
                         is_mod = True
-                        j = _skip_whitespace(code, after)
+                    j = _skip_whitespace(code, after)
+
                 if j < n and code[j] == '"':
-                    name, after_name = _read_string_literal(code, j)
+                    name, after_name = _read_string_literal(text, j)
                     j = _skip_whitespace(code, after_name)
                     if j < n and code[j] == "{":
-                        # Find the matching closing brace in the de-commented
-                        # code. Strings are already replaced, so braces inside
-                        # original strings are harmless here.
-                        brace_depth = 1
-                        k = j + 1
-                        while k < n:
-                            c = code[k]
-                            if c == "{":
-                                brace_depth += 1
-                            elif c == "}":
-                                brace_depth -= 1
-                                if brace_depth == 0:
-                                    break
-                            k += 1
-                        body = code[i : k + 1]
-                        blocks.append((name, is_mod, body, line_no))
-                        i = k + 1
-                        continue
+                        open_brace = j
+                        close_brace = _find_matching_brace(code, open_brace)
+                        if close_brace != -1:
+                            body_start = open_brace + 1
+                            body_end = close_brace
+                            inner_code = code[body_start:body_end]
+                            inner_text = text[body_start:body_end]
+                            line_of_open_brace = line_no + code[test_start:open_brace].count("\n")
+                            inner_base_line = line_of_open_brace
+
+                            body = inner_code
+                            blocks.append((name, is_mod, body, line_no))
+                            if is_mod:
+                                blocks.extend(
+                                    _extract_test_blocks_impl(
+                                        inner_code, inner_text, inner_base_line
+                                    )
+                                )
+
+                            line_no += code[test_start : close_brace + 1].count("\n")
+                            i = close_brace + 1
+                            continue
             i = end
             continue
+
         i += 1
+
     return blocks
 
 
 def is_trivial_assert(line: str) -> bool:
+    """Check if a single assert line is a trivial always-true assertion."""
     for pattern in TRIVIAL_ASSERT_RES:
         if pattern.search(line):
             return True
@@ -235,10 +285,14 @@ def is_trivial_assert(line: str) -> bool:
 
 
 def is_trivial_test(name: str, body: str) -> bool:
-    """Check if a test case is trivial (probe_N, sanity with trivial asserts, or only trivial asserts)."""
+    """Check if a test case is trivial (probe_N or only trivial asserts).
+
+    Assert calls inside line/block comments or string literals are ignored.
+    """
     if PROBE_NAME_RE.search(f'test "{name}"'):
         return True
-    assert_lines = [l.strip() for l in body.splitlines() if "assert(" in l]
+    stripped_body = _strip_comments_and_strings(body)
+    assert_lines = [l.strip() for l in stripped_body.splitlines() if "assert(" in l]
     if not assert_lines:
         return False
     return all(is_trivial_assert(l) for l in assert_lines)
