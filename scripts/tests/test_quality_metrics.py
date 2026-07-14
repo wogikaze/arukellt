@@ -1,5 +1,6 @@
 """Focused tests for deterministic CQ-13 metrics and baseline handling."""
 
+import subprocess
 import tempfile
 import unittest
 from dataclasses import asdict
@@ -225,6 +226,23 @@ class TestMetricsBaseline(unittest.TestCase):
 
 
 class TestCanonicalToolExitContracts(unittest.TestCase):
+    def test_tool_timeout_normalizes_byte_output(self):
+        from scripts.quality.checks import _run_tool
+
+        timeout = subprocess.TimeoutExpired(
+            cmd=("formatter",),
+            timeout=60,
+            output=b"partial stdout\n",
+            stderr=b"partial stderr\n",
+        )
+        with mock.patch("scripts.quality.checks.subprocess.run", side_effect=timeout):
+            result = _run_tool(Path("/tmp"), "sample.ark", ("formatter",), False)
+
+        self.assertEqual(result.returncode, 124)
+        self.assertIn("timeout after 60s", result.output)
+        self.assertIn("partial stdout", result.output)
+        self.assertIn("partial stderr", result.output)
+
     def test_fmt_check_propagates_pass_and_failure(self):
         from scripts.quality.checks import ToolResult, run_fmt
 

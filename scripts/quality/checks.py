@@ -169,7 +169,12 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool) ->
             timeout=60,
         )
     except subprocess.TimeoutExpired as exc:
-        output = (exc.stdout or "") + (exc.stderr or "")
+        def timeout_text(value: str | bytes | None) -> str:
+            if isinstance(value, bytes):
+                return value.decode("utf-8", errors="replace")
+            return value or ""
+
+        output = timeout_text(exc.stdout) + timeout_text(exc.stderr)
         return ToolResult(path, command, 124, f"timeout after 60s\n{output}")
     output = result.stdout + result.stderr
     output = "\n".join(
