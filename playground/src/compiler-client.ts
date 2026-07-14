@@ -169,7 +169,7 @@ export async function createCompilerClient(
   };
 }
 
-/** Whether compiled output looks runnable by the T2 runner. */
+/** Whether compiled output looks runnable by the wasm32 runner. */
 export function isRunnableT2Output(wasmBytes: Uint8Array | null): boolean {
   return wasmBytes !== null && moduleImportsArukelltIo(wasmBytes);
 }

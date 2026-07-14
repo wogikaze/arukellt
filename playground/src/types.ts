@@ -196,9 +196,9 @@ export interface Playground {
   tokenize(source: string): TokenizeResponse;
   /** Type-check Arukellt source and return diagnostics. */
   typecheck(source: string): TypecheckResponse;
-  /** Compile Arukellt source to T2 Wasm (requires compiler asset). */
+  /** Compile Arukellt source to wasm32 Wasm (requires compiler asset). */
   compile(source: string, options?: CompileOptions): Promise<CompileResult>;
-  /** Run compiled T2 Wasm through the `arukellt_io` host. */
+  /** Run compiled wasm32 Wasm through the `arukellt_io` host. */
   run(wasmBytes: Uint8Array, options?: RunOptions): Promise<RunResult>;
   /** Compile then run when compilation succeeds. */
   runSource(

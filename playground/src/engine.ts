@@ -509,7 +509,7 @@ export function engineVersion(): string {
   return VERSION;
 }
 
-/** Compile Arukellt source to T2 Wasm using the configured compiler asset. */
+/** Compile Arukellt source to wasm32 Wasm using the configured compiler asset. */
 export async function compileSource(
   source: string,
   options: CompileOptions = {},
@@ -520,7 +520,7 @@ export async function compileSource(
   return compileWithCompilerWasm(configuredCompilerBytes, source, options);
 }
 
-/** Run compiled T2 Wasm through the ADR-017 `arukellt_io` host bridge. */
+/** Run compiled wasm32 Wasm through the ADR-017 `arukellt_io` host bridge. */
 export async function runWasm(
   wasmBytes: Uint8Array,
   options: RunOptions = {},

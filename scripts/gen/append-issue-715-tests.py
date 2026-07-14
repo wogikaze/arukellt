@@ -232,37 +232,6 @@ test mod "init_templates" {
 }
 
 
-def bulk_fill() -> None:
-    """Add numbered sanity tests to bytes/mod until std count >= 180."""
-    rel = "std/bytes/mod.ark"
-    path = os.path.join(REPO, rel)
-    with open(path, encoding="utf-8") as f:
-        text = f.read()
-    if "// issue #715 bulk" in text:
-        return
-    extra = ["\n// issue #715 bulk\n", "test mod \"bytes_bulk\" {\n"]
-    for i in range(21):
-        extra.append(f'    test "probe_{i}" {{ assert({i} >= 0) }}\n')
-    extra.append("}\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(text.rstrip() + "".join(extra))
-
-
-def bulk_compiler_fill() -> None:
-    rel = "src/compiler/main/targets.ark"
-    path = os.path.join(REPO, rel)
-    with open(path, encoding="utf-8") as f:
-        text = f.read()
-    if "// issue #715 bulk" in text:
-        return
-    extra = ["\n// issue #715 bulk\n", "test mod \"targets_bulk\" {\n"]
-    for i in range(21):
-        extra.append(f'    test "probe_{i}" {{ assert({i} >= 0) }}\n')
-    extra.append("}\n")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(text.rstrip() + "".join(extra))
-
-
 def main() -> None:
     ok = 0
     for rel, block in BLOCKS.items():
@@ -281,7 +250,7 @@ def main() -> None:
                 continue
             with open(os.path.join(dirpath, fn), encoding="utf-8") as f:
                 t = f.read()
-            if MARKER.strip() in t or "// issue #715 bulk" in t:
+            if MARKER.strip() in t:
                 std_n += count_tests(t)
     for dirpath, _, files in os.walk(os.path.join(REPO, "src/compiler")):
         for fn in files:
@@ -292,25 +261,11 @@ def main() -> None:
             if MARKER.strip() in t:
                 comp_n += count_tests(t)
 
-    if std_n < 180:
-        bulk_fill()
-        if passes("std/bytes/mod.ark"):
-            with open(os.path.join(REPO, "std/bytes/mod.ark"), encoding="utf-8") as f:
-                std_n = 0
-            for dirpath, _, files in os.walk(os.path.join(REPO, "std")):
-                for fn in files:
-                    if fn.endswith(".ark"):
-                        with open(os.path.join(dirpath, fn), encoding="utf-8") as f:
-                            t = f.read()
-                        if "issue #715" in t:
-                            std_n += count_tests(t)
-
-    if comp_n < 60:
-        bulk_compiler_fill()
-        if passes("src/compiler/main/targets.ark"):
-            comp_n += 21
-
     print(f"TOTAL std={std_n} comp={comp_n} files_ok={ok}")
+    if std_n < 180:
+        print(f"WARNING: std test count {std_n} below #715 Phase 1 target 180")
+    if comp_n < 60:
+        print(f"WARNING: compiler test count {comp_n} below #715 Phase 2 target 60")
 
 
 if __name__ == "__main__":

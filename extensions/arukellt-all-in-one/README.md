@@ -68,7 +68,7 @@ for the full DAP workflow.
 
 These match [docs/debug-support.md](../../docs/debug-support.md):
 
-- T1/T3 smoke programs support **live Wasm locals** via `arukellt_debug::breakpoint` hooks
+- wasm32 and wasm32-gc smoke programs support **live Wasm locals** via `arukellt_debug::breakpoint` hooks
 - Step In / Step Out behave the same as Step Over (no call-level granularity)
 - No watch expressions, evaluate support, or conditional breakpoints
 - Single main thread only

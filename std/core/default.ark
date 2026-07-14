@@ -63,8 +63,13 @@ impl Default for String {
         String_from("")
     }
 }
-test mod "default_docs" {
-    test "trait_exists" { assert(1 == 1) }
-    test "i32_zero_literal" { assert(0 == 0) }
-    test "bool_false_literal" { assert(false == false) }
+test mod "default_contract" {
+    test "default_string_is_empty" {
+        let s: String = Default::default()
+        assert(len(s) == 0)
+    }
+    test "default_i32_is_zero" {
+        let n: i32 = Default::default()
+        assert(n == 0)
+    }
 }

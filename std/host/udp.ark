@@ -1,8 +1,9 @@
 //! UDP datagram helpers via the WASI Preview 2 `wasi:sockets/udp` interface.
 //!
-//! These APIs are host-bound and only available on wasm32-wasi-p2 (T3) targets.
-//! On T1 (wasm32-wasi-p1) a compile-time error (E0500) is emitted by the resolver
-//! because WASI Preview 1 does not expose the `wasi:sockets/udp` interface.
+//! These APIs are host-bound and only available on `wasm32-gc` with host profile
+//! `wasi-p2` targets. On `wasm32` with host profile `wasi-p1` a compile-time
+//! error (E0500) is emitted by the resolver because WASI Preview 1 does not
+//! expose the `wasi:sockets/udp` interface.
 //!
 //! # Status
 //!

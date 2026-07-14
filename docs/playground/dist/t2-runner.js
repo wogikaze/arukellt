@@ -1,5 +1,5 @@
 /**
- * Browser/Node runner for compiled T2 (`wasm32-freestanding`) Wasm modules.
+ * Browser/Node runner for compiled `wasm32` (non-GC) Wasm modules.
  *
  * @module
  */
@@ -74,7 +74,7 @@ function createStdinReader(stdin, mode) {
     };
 }
 /**
- * Instantiate and execute T2 Wasm bytes with an `arukellt_io` stdio host.
+ * Instantiate and execute wasm32 Wasm bytes with an `arukellt_io` stdio host.
  */
 export async function runT2Wasm(wasmBytes, options = {}) {
     const started = performance.now();
@@ -119,14 +119,14 @@ export async function runT2Wasm(wasmBytes, options = {}) {
         const instance = getWasmInstance(instantiated);
         const memory = instance.exports.memory;
         if (!memory) {
-            throw new Error("T2 module does not export memory");
+            throw new Error("wasm32 module does not export memory");
         }
         activeMemory = memory;
         const start = instance.exports._start;
         const main = instance.exports.main;
         const entry = start ?? main;
         if (typeof entry !== "function") {
-            throw new Error("T2 module does not export _start or main");
+            throw new Error("wasm32 module does not export _start or main");
         }
         entry();
     }
@@ -143,7 +143,7 @@ export async function runT2Wasm(wasmBytes, options = {}) {
         elapsedMs: performance.now() - started,
     };
 }
-/** Return true when a Wasm module imports the T2 stdio surface. */
+/** Return true when a Wasm module imports the wasm32 stdio surface. */
 export function moduleImportsArukelltIo(bytes) {
     const needle = new TextEncoder().encode("arukellt_io");
     for (let i = 0; i <= bytes.length - needle.length; i++) {

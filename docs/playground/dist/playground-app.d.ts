@@ -96,7 +96,7 @@ export interface PlaygroundApp {
     readonly runOutputPanel: RunOutputPanel | null;
     /** Virtual stdin panel for Run (below the editor). */
     readonly stdinPanel: StdinPanel;
-    /** Whether a prior build produced runnable T2 Wasm. */
+    /** Whether a prior build produced runnable wasm32 Wasm. */
     readonly canRun: boolean;
     /** Force an immediate re-parse of the current editor content. */
     parse(): void;
