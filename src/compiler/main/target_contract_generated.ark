@@ -67,6 +67,16 @@ fn target_alias_canonical_target(input: String) -> String {
     input
 }
 
+fn target_default_host_profile(input: String) -> String {
+    if eq(clone(input), String_from("wasm32")) {
+        return String_from("wasi-p1")
+    }
+    if eq(clone(input), String_from("wasm32-gc")) {
+        return String_from("wasi-p2")
+    }
+    String_new()
+}
+
 fn target_alias_host_profile(input: String) -> String {
     if eq(clone(input), String_from("wasm32-wasi-p1")) {
         return String_from("wasi-p1")

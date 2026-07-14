@@ -9,10 +9,6 @@ use wasm::opcodes
 use wasm::writer_core
 
 fn emit_clock_now(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core::emit_unreachable(w)
-        return true
-    }
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_core::emit_call(w, constants::P2_IMPORT_MONOTONIC_NOW())
         return true
@@ -23,10 +19,6 @@ fn emit_clock_now(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_clock_now_ms(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core::emit_unreachable(w)
-        return true
-    }
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_core::emit_call(w, constants::P2_IMPORT_WALL_NOW())
         helpers_clock_p2::emit_wall_datetime_to_ms(w, ctx)

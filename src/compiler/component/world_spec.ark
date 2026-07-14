@@ -48,7 +48,7 @@ fn world_spec_wit_export_name(func_name: String, world: String) -> String {
 }
 
 fn world_spec_uses_p2_command_component(world: String, wasi_version: String) -> bool {
-    if eq(clone(wasi_version), String_from("p2")) {
+    if eq(clone(wasi_version), String_from("wasi-p2")) {
         if len(clone(world)) == 0 { return true }
         return world_spec_is_cli_command(clone(world))
     }
@@ -59,7 +59,6 @@ fn world_target_error(world: String, target: String, emit_mode: String) -> Strin
     if len(world) == 0 { return String_new() }
     let unknown = world_spec_parse_error(clone(world))
     if len(unknown) > 0 { return unknown }
-    if contains(clone(target), String_from("-p3")) { return String_from("--world requires --target wasm32-wasi-p2 (T5 not supported)") }
-    if !contains(clone(target), String_from("-p2")) { return String_from("--world requires --target wasm32-wasi-p2") }
+    if !eq(clone(target), String_from("wasm32-gc")) { return String_from("--world requires --target wasm32-gc") }
     String_new()
 }

@@ -1491,7 +1491,16 @@ def render_compiler_target_contract(state: dict) -> str:
                 f'        return String_from("{_ark_string(alias["canonical_target"])}")',
                 "    }",
             ])
-    lines.extend(["    input", "}", "", "fn target_alias_host_profile(input: String) -> String {"])
+    lines.extend(["    input", "}", "", "fn target_default_host_profile(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        host = profile.get("default_host_profile")
+        if host:
+            lines.extend([
+                f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+                f'        return String_from("{_ark_string(host)}")',
+                "    }",
+            ])
+    lines.extend(["    String_new()", "}", "", "fn target_alias_host_profile(input: String) -> String {"])
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([

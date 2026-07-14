@@ -13,12 +13,9 @@ use driver::debug
 use resolver::wit_import_bind
 
 fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
-    let normalized_target = driver::target::normalize_target_pub(config_record::config_target(config))
-    config_record::config_set_target(config, clone(normalized_target))
     if driver::target::is_native_target_pub(config_record::config_target(config)) {
         return emit_native_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
     }
-    normalize_wasi_version(config)
     let emit_mode = normalize_emit_mode(config_record::config_emit_mode(config))
     let world_error = world_target_error(config, clone(emit_mode))
     if len(world_error) > 0 {
@@ -71,27 +68,16 @@ fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule)
     config_record::config_wasi_version(config)
 }
 
-fn normalize_wasi_version(config: DriverConfig) {
-    let tgt = config_record::config_target(config)
-    if contains(clone(tgt), String_from("-p3")) {
-        config_record::config_set_wasi_version(config, String_from("p3"))
-    } else if contains(clone(tgt), String_from("-p2")) {
-        config_record::config_set_wasi_version(config, String_from("p2"))
-    } else {
-        config_record::config_set_wasi_version(config, String_from("p1"))
-    }
-}
-
 fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
     world_spec::world_target_error(config_record::config_world(config), config_record::config_target(config), clone(emit_mode))
 }
 
 fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
-    if contains(config_record::config_target(config), String_from("-p3")) {
-        return String_from("wasm32-wasi-p3 (T5) is not yet implemented")
+    if eq(config_record::config_wasi_version(config), String_from("wasi-p3")) {
+        return String_from("host profile wasi-p3 is not yet implemented")
     }
-    if eq(clone(emit_mode), "component") && !contains(config_record::config_target(config), String_from("-p2")) {
-        return String_from("component model requires --target wasm32-wasi-p2")
+    if eq(clone(emit_mode), "component") && !eq(config_record::config_target(config), String_from("wasm32-gc")) {
+        return String_from("component model requires --target wasm32-gc")
     }
     String_new()
 }

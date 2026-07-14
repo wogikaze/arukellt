@@ -1,33 +1,25 @@
 use wasm::constants
 
-fn is_freestanding_target(target: String) -> bool {
-    contains(clone(target), String_from("freestanding"))
-}
-
 fn is_gc_target(target: String) -> bool {
-    if is_freestanding_target(clone(target)) { return true }
-    if contains(clone(target), String_from("-p2")) { return true }
-    if contains(clone(target), String_from("-p3")) { return true }
-    false
+    eq(clone(target), String_from("wasm32-gc"))
 }
 
 fn is_simd_target(target: String) -> bool {
-    // SIMD (v128) is available on all targets — wasmtime supports v128
-    // natively regardless of WASI profile.  T1 (wasm32-wasi-p1) uses
-    // native SIMD instructions instead of scalar expansion.
+    // SIMD is available on both canonical Wasm targets; host profile does not
+    // change the value representation.
     true
 }
 
 fn is_p2_wasi(wasi_version: String) -> bool {
-    eq(clone(wasi_version), String_from("p2"))
+    eq(clone(wasi_version), String_from("wasi-p2"))
 }
 
 fn is_component_stub_wasi(wasi_version: String) -> bool {
     eq(clone(wasi_version), String_from("p1-component"))
 }
 
-// Default wasm32-wasi modules without arukellt_host use the same 7-import
-// WASI surface as pinned bootstrap and p1-component stubs (ADR-029 parity).
+// Canonical wasm32 modules without arukellt_host use the same 7-import WASI
+// surface as pinned bootstrap and p1-component stubs (ADR-029 parity).
 fn is_minimal_p1_wasi(wasi_version: String, needs_arukellt_host: i32) -> bool {
     if is_p2_wasi(clone(wasi_version)) {
         return false
@@ -77,9 +69,6 @@ fn wasi_host_type_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32)
 }
 
 fn host_import_count(target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
-    if is_freestanding_target(clone(target)) {
-        return constants::NUM_T2_IMPORTS()
-    }
     if is_p2_wasi(clone(wasi_version)) {
         return p2_host_import_count(needs_arukellt_host, needs_wasi_http_outgoing)
     }
@@ -96,9 +85,6 @@ fn host_import_count(target: String, wasi_version: String, needs_arukellt_host: 
 }
 
 fn host_type_count(target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
-    if is_freestanding_target(clone(target)) {
-        return constants::NUM_T2_TYPES()
-    }
     if is_p2_wasi(clone(wasi_version)) {
         return p2_host_type_count(needs_arukellt_host, needs_wasi_http_outgoing)
     }

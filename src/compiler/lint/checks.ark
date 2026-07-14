@@ -139,8 +139,6 @@ pub fn run_post_resolve_lint(decls: Vec<AstNode>, target: String) -> Vec<Diagnos
     vec_extend::Vec_extend_Diagnostic(warnings, prefer_else_if_warns)
     let dep_api_warns = checks_extra::check_deprecated_api(decls)
     vec_extend::Vec_extend_Diagnostic(warnings, dep_api_warns)
-    let dep_target_warns = checks_extra::check_deprecated_target_alias(target)
-    vec_extend::Vec_extend_Diagnostic(warnings, dep_target_warns)
     let unused_sym_warns = checks_extra::check_unused_symbols(decls)
     vec_extend::Vec_extend_Diagnostic(warnings, unused_sym_warns)
     let cap_stub_warns = checks_extra::check_capability_stubs(decls, target)

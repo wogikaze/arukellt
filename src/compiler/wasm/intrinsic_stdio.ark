@@ -37,9 +37,7 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
         helpers_core::emit_local_get(w, arg0)
     }
     helpers_core::emit_local_set(w, string_local)
-    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
-    } else if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
         helpers_io_p2::emit_p2_write_newline(w, 0)
     } else {
@@ -56,9 +54,7 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
         helpers_core::emit_local_get(w, arg0)
     }
     helpers_core::emit_local_set(w, string_local)
-    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
-    } else if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
@@ -82,9 +78,7 @@ fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32
         helpers_core::emit_local_get(w, arg0)
     }
     helpers_core::emit_local_set(w, string_local)
-    if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 1)
-    } else if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
         helpers_io_p2::emit_p2_write_newline(w, 0)
     } else {

@@ -118,11 +118,7 @@ fn build_type_sigs(
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> Vec<String> {
     let type_sigs = Vec_new_String()
-    if emit_target::is_freestanding_target(clone(target)) {
-        sections_types_sigs::append_t2_type_sigs(type_sigs)
-    } else {
-        sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
-    }
+    sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)

@@ -1,13 +1,5 @@
 fn is_native_target(target: String) -> bool {
-    eq(clone(target), String_from("native"))
-}
-
-fn is_freestanding_target(target: String) -> bool {
-    contains(clone(target), String_from("freestanding"))
-}
-
-fn is_p3_target(target: String) -> bool {
-    contains(clone(target), String_from("-p3"))
+    eq(clone(target), String_from("native-cpp")) || eq(target, String_from("native-llvm"))
 }
 
 fn is_wasm_target(target: String) -> bool {
@@ -21,19 +13,10 @@ fn target_run_supported(target: String) -> bool {
     if is_native_target(clone(target)) {
         return false
     }
-    if is_freestanding_target(clone(target)) {
-        return false
-    }
-    if is_p3_target(clone(target)) {
-        return false
-    }
     true
 }
 
 fn normalize_target(target: String) -> String {
-    if eq(clone(target), String_from("native-x86_64")) {
-        return String_from("native")
-    }
     target
 }
 

@@ -5,6 +5,8 @@ use main::args_parse_opts_lint
 use main::args_record
 use main::commands
 use main::kinds
+use main::target_contract_generated
+use std::host::stdio
 
 fn parse_args(argv: Vec<String>) -> CliOptions {
     let opts = args_record::CliOptions_default()
@@ -23,7 +25,32 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
     parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
+    canonicalize_target_input(opts)
     opts
+}
+
+fn canonicalize_target_input(opts: CliOptions) {
+    let input = args_record::cli_target(opts)
+    let policy = target_contract_generated::target_alias_policy(clone(input))
+    if eq(clone(policy), String_from("error")) {
+        args_record::cli_set_error(opts, target_contract_generated::target_alias_message(input))
+        return
+    }
+    if eq(clone(policy), String_from("warning")) {
+        stdio::eprintln(target_contract_generated::target_alias_message(clone(input)))
+        args_record::cli_set_target(opts, target_contract_generated::target_alias_canonical_target(clone(input)))
+        if !args_record::cli_has_wasi_version(opts) {
+            args_record::cli_set_wasi_version(opts, target_contract_generated::target_alias_host_profile(input))
+        }
+        return
+    }
+    if !target_contract_generated::target_is_canonical(clone(input)) {
+        args_record::cli_set_error(opts, concat(String_from("unknown target: "), input))
+        return
+    }
+    if !args_record::cli_has_wasi_version(opts) {
+        args_record::cli_set_wasi_version(opts, target_contract_generated::target_default_host_profile(input))
+    }
 }
 
 fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {

@@ -56,11 +56,12 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
             0
         )
     }
-    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules_for_target(
+    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules_for_target_and_host(
         decls,
         module_state_modules::LoadState_modules(load_state),
         config_record::config_wit_paths(config),
-        config_record::config_target(config)
+        config_record::config_target(config),
+        config_record::config_wasi_version(config)
     )
     debug::dump_resolved_hir_if_enabled(config, resolve_ctx)
     let resolve_error_count = session_resolve_query::session_resolve_reported_error_count(resolve_ctx)

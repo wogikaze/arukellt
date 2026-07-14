@@ -9,6 +9,7 @@ struct ResolveCtx {
     diagnostics: Vec<Diagnostic>,
     next_decl_index: i32,
     target: String,
+    host_profile: String,
     ref_index: RefIndex,
     use_alias_shorts: Vec<String>,
     use_alias_targets: Vec<String>,
@@ -22,7 +23,8 @@ fn ResolveCtx_new_empty() -> ResolveCtx {
         errors: Vec_new_String(),
         diagnostics: Vec_new_Diagnostic(),
         next_decl_index: 0,
-        target: String_from("wasm32-wasi-p2"),
+        target: String_from("wasm32-gc"),
+        host_profile: String_from("wasi-p2"),
         ref_index: ref_index::RefIndex_new(),
         use_alias_shorts: Vec_new_String(),
         use_alias_targets: Vec_new_String()
@@ -61,6 +63,14 @@ fn resolve_ctx_target(ctx: ResolveCtx) -> String {
 
 fn resolve_ctx_set_target(ctx: ResolveCtx, target: String) {
     ctx.target = target
+}
+
+fn resolve_ctx_host_profile(ctx: ResolveCtx) -> String {
+    clone(ctx.host_profile)
+}
+
+fn resolve_ctx_set_host_profile(ctx: ResolveCtx, host_profile: String) {
+    ctx.host_profile = host_profile
 }
 
 fn resolve_ctx_push_depth(ctx: ResolveCtx) {

@@ -5,12 +5,18 @@ use resolver::kinds
 use resolver::ctx_record
 
 fn ResolveCtx_new() -> ResolveCtx {
-    ResolveCtx_new_for_target(String_from("wasm32-wasi-p2"))
+    ResolveCtx_new_for_target_and_host(String_from("wasm32-gc"), String_from("wasi-p2"))
 }
 
 fn ResolveCtx_new_for_target(target: String) -> ResolveCtx {
+    let host_profile = if eq(clone(target), String_from("wasm32")) { String_from("wasi-p1") } else { String_from("wasi-p2") }
+    ResolveCtx_new_for_target_and_host(target, host_profile)
+}
+
+fn ResolveCtx_new_for_target_and_host(target: String, host_profile: String) -> ResolveCtx {
     let mut ctx = ctx_record::ResolveCtx_new_empty()
     ctx_record::resolve_ctx_set_target(ctx, target)
+    ctx_record::resolve_ctx_set_host_profile(ctx, host_profile)
     ctx_record::resolve_ctx_push_scope_value(ctx, scope_stack_scopes::Scope_new(0 - 1))
     register_builtins(ctx)
     ctx

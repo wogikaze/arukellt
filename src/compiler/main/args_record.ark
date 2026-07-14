@@ -38,7 +38,7 @@ fn CliOptions_default() -> CliOptions {
         component_action: kinds::COMP_ACTION_BUILD(),
         input_file: String_new(),
         output_file: String_new(),
-        target: String_from("wasm32-wasi-p2"),
+        target: String_from("wasm32-gc"),
         wasi_version: String_new(),
         wit_paths: Vec_new_String(),
         opt_level: 0,

@@ -13,9 +13,20 @@ pub fn parse_target_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i3
 pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) -> i32 {
     let next = i + 1
     if next < argc {
-        args_record::cli_set_wasi_version(opts, clone(get_unchecked(argv, next)))
+        let input = clone(get_unchecked(argv, next))
+        if eq(clone(input), String_from("p1")) {
+            args_record::cli_set_wasi_version(opts, String_from("wasi-p1"))
+        } else if eq(clone(input), String_from("p2")) {
+            args_record::cli_set_wasi_version(opts, String_from("wasi-p2"))
+        } else if eq(clone(input), String_from("p3")) {
+            args_record::cli_set_wasi_version(opts, String_from("wasi-p3"))
+        } else if eq(clone(input), String_from("wasi-p1")) || eq(clone(input), String_from("wasi-p2")) || eq(clone(input), String_from("wasi-p3")) {
+            args_record::cli_set_wasi_version(opts, input)
+        } else {
+            args_record::cli_set_error(opts, String_from("--wasi-version requires wasi-p1, wasi-p2, or wasi-p3"))
+        }
     } else {
-        args_record::cli_set_error(opts, String_from("--wasi-version requires p1 or p2"))
+        args_record::cli_set_error(opts, String_from("--wasi-version requires wasi-p1, wasi-p2, or wasi-p3"))
     }
     next
 }

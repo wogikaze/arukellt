@@ -122,7 +122,7 @@ fn session_record_typecheck_diagnostics(snap: AnalysisSnapshot, check_result: Ty
 // analysis diagnostics so the LSP can publish them via textDocument/publishDiagnostics.
 fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
     // Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
-    let lint_warns = lint_checks::run_post_resolve_lint(decls, String_from("wasm32-wasi-p1"))
+    let lint_warns = lint_checks::run_post_resolve_lint(decls, String_from("wasm32"))
     let lw_count = len(lint_warns)
     let mut li = 0
     while li < lw_count {

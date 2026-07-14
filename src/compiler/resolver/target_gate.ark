@@ -1,8 +1,9 @@
 use resolver::ctx_record
 use resolver::scope_error
 
-fn target_is_t1(target: String) -> bool {
-    eq(clone(target), String_from("wasm32-wasi-p1")) || eq(target, String_from("p1"))
+fn target_uses_wasi_p1(ctx: ResolveCtx) -> bool {
+    eq(ctx_record::resolve_ctx_target(ctx), String_from("wasm32")) &&
+    eq(ctx_record::resolve_ctx_host_profile(ctx), String_from("wasi-p1"))
 }
 
 fn module_is_t3_only(module_path: String) -> bool {
@@ -13,7 +14,7 @@ fn module_is_t3_only(module_path: String) -> bool {
 }
 
 fn reject_target_gated_use(ctx: ResolveCtx, module_path: String) {
-    if !target_is_t1(ctx_record::resolve_ctx_target(ctx)) {
+    if !target_uses_wasi_p1(ctx) {
         return
     }
     if module_is_t3_only(clone(module_path)) {
