@@ -45,6 +45,7 @@ from verify.harness import GREEN, NC, RED, YELLOW, Harness  # noqa: E402
 from selfhost.checks import (  # noqa: E402
     SelfhostFixpointResult,
     _ensure_bootstrap_compiler_wasm,
+    _ensure_runtime_compiler_wasm,
     _find_pinned_wasm,
     run_diag_parity,
     run_fixpoint,
@@ -4256,20 +4257,23 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     dry_run: bool = args.dry_run
     h = Harness(repo_root=root, dry_run=dry_run)
 
-    # ── Ensure heap-patched bootstrap wasm is available ───────────────────────
-    # The wrapper script (arukellt-selfhost.sh) prefers s2-runtime.wasm, then
-    # s3.wasm, then s2.wasm, then the pinned bootstrap.  If the fixpoint build
-    # failed (exit 2), none of the built wasms exist, so the wrapper falls back
-    # to the unpatched pinned wasm (512 MiB limit).  Preparing the heap-patched
-    # bootstrap wasm here and setting ARUKELLT_SELFHOST_WASM ensures the
-    # wrapper always uses a 4 GiB wasm, preventing OOM crashes during parallel
-    # lint/compile checks.
+    # ── Ensure heap-patched wasm is available ─────────────────────────────────
+    # The wrapper script (arukellt-selfhost.sh) resolves wasms in priority order.
+    # If the fixpoint build succeeded, s2.wasm exists but is unpatched (512 MiB
+    # linear memory limit), causing OOM crashes during parallel lint in verify
+    # quick.  _run_tool would override ARUKELLT_SELFHOST_WASM to s2.wasm,
+    # bypassing any caller-provided value.
+    #
+    # Strategy: if s2.wasm exists, create a heap-patched s2-runtime.wasm (4 GiB)
+    # and set ARUKELLT_SELFHOST_WASM to it.  The patched s2-runtime wasm
+    # supports current lint syntax (unlike the pinned bootstrap wasm) and has
+    # sufficient memory for large file sets.
     if not dry_run:
-        pinned = _find_pinned_wasm(root)
-        if pinned is not None:
-            patched = _ensure_bootstrap_compiler_wasm(root, pinned)
-            if patched is not None and patched.is_file():
-                os.environ["ARUKELLT_SELFHOST_WASM"] = str(patched)
+        s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+        if s2.is_file():
+            runtime = _ensure_runtime_compiler_wasm(root, s2)
+            if runtime is not None and runtime.is_file():
+                os.environ["ARUKELLT_SELFHOST_WASM"] = str(runtime)
 
     # ── Fixture manifest completeness check ──────────────────────────────────
     print(f"\n{YELLOW}[manifest] Checking fixture manifest completeness...{NC}")
