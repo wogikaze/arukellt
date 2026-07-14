@@ -46,6 +46,7 @@ fn dispatch_command_allows_missing_input(opts: CliOptions, command: i32) -> bool
     command == kinds::CMD_TARGETS() ||
     command == kinds::CMD_SCRIPT() ||
     command == kinds::CMD_COMPOSE() ||
+    command == kinds::CMD_FMT() ||
     command == kinds::CMD_LSP() ||
     command == kinds::CMD_DAP()
 }

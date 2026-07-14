@@ -93,20 +93,13 @@ elif [ ! -x "$SELFHOST_CLI" ]; then
   echo "FAIL: $SELFHOST_CLI not executable; required for staged .ark fmt check." >&2
   FAIL=1
 else
-  FMT_FAIL=0
-  for ark in "${ARK_FILES[@]}"; do
-    set +e
-    FMT_OUTPUT=$("$SELFHOST_CLI" fmt --check "$ark" 2>&1)
-    FMT_RC=$?
-    set -e
-    if [ "$FMT_RC" -ne 0 ]; then
-      echo "FAIL: $ark is not formatted." >&2
-      echo "$FMT_OUTPUT" | tail -20 >&2
-      echo "  Run: scripts/run/arukellt-selfhost.sh fmt $ark, then re-stage." >&2
-      FMT_FAIL=1
-    fi
-  done
-  if [ "$FMT_FAIL" -ne 0 ]; then
+  set +e
+  FMT_OUTPUT=$("$SELFHOST_CLI" fmt --check "${ARK_FILES[@]}" 2>&1)
+  FMT_RC=$?
+  set -e
+  if [ "$FMT_RC" -ne 0 ]; then
+    echo "$FMT_OUTPUT" | tail -40 >&2
+    echo "  Run: scripts/run/arukellt-selfhost.sh fmt ${ARK_FILES[*]}, then re-stage." >&2
     FAIL=1
   else
     step "OK"

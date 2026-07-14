@@ -266,6 +266,10 @@ fn parse_world_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) ->
 }
 
 fn parse_input_or_error(opts: CliOptions, arg: String) {
+    if args_record::cli_command(opts) == kinds::CMD_FMT() {
+        args_record::cli_add_fmt_input(opts, arg)
+        return
+    }
     if args_record::cli_input_file_len(opts) == 0 {
         args_record::cli_set_input_file(opts, clone(arg))
     } else {

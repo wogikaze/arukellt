@@ -151,7 +151,7 @@ def _empty_selection_failure(root: Path, selected: list[str], label: str) -> int
     return 1
 
 
-def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool) -> ToolResult:
+def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, timeout: int = 60) -> ToolResult:
     if dry_run:
         return ToolResult(path, command, 0, "DRY-RUN: " + " ".join(command))
     env = os.environ.copy()
@@ -166,7 +166,7 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool) ->
             text=True,
             check=False,
             env=env,
-            timeout=60,
+            timeout=timeout,
         )
     except subprocess.TimeoutExpired as exc:
         def timeout_text(value: str | bytes | None) -> str:
@@ -175,7 +175,7 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool) ->
             return value or ""
 
         output = timeout_text(exc.stdout) + timeout_text(exc.stderr)
-        return ToolResult(path, command, 124, f"timeout after 60s\n{output}")
+        return ToolResult(path, command, 124, f"timeout after {timeout}s\n{output}")
     output = result.stdout + result.stderr
     output = "\n".join(
         line
@@ -187,11 +187,16 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool) ->
     return ToolResult(path, command, result.returncode, output)
 
 
-def _run_parallel(root: Path, jobs: list[tuple[str, tuple[str, ...]]], dry_run: bool) -> list[ToolResult]:
+def _run_parallel(
+    root: Path,
+    jobs: list[tuple[str, tuple[str, ...]]],
+    dry_run: bool,
+    timeout: int = 60,
+) -> list[ToolResult]:
     workers = min(16, max(1, os.cpu_count() or 1))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
-            executor.submit(_run_tool, root, path, command, dry_run)
+            executor.submit(_run_tool, root, path, command, dry_run, timeout)
             for path, command in jobs
         ]
         return [future.result() for future in futures]
@@ -275,22 +280,115 @@ def _apply_parser_failure_baseline(root: Path, results: list[ToolResult]) -> lis
     return adjusted
 
 
+def _chunk(paths: list[str], size: int):
+    for i in range(0, len(paths), size):
+        yield paths[i:i + size]
+
+
+def _match_batch_path(rest: str, batch_paths: list[str]) -> str | None:
+    for path in batch_paths:
+        if rest == path:
+            return path
+    return None
+
+
+_FMT_BATCH_STATUS_PREFIXES: tuple[tuple[str, int], ...] = (
+    ("ok: ", 0),
+    ("formatted: ", 0),
+    ("fixed: ", 0),
+    ("fmt check failed: ", 1),
+    ("fmt parse error: ", 1),
+)
+
+
+def _split_batch_fmt_result(result: ToolResult, batch_paths: list[str]) -> list[ToolResult]:
+    """Deinterleave one multi-file ``arukellt fmt`` run into per-file results.
+
+    ``arukellt fmt`` emits a status line per file (``ok: <path>``,
+    ``fmt check failed: <path>``, ``fmt parse error: <path>``, ``formatted: ``,
+    ``fixed: ``) followed by an optional ``fmt: checked=N failed=M`` summary.
+    Parse-error detail lines (``E0001:`` …) attach to the preceding parse-error
+    file.  When the output cannot be parsed (timeout, crash), the batch result
+    is returned unchanged so the failure is still reported.
+    """
+    if result.returncode == 124:
+        return [result]
+    by_path: dict[str, int] = {}
+    detail_by_path: dict[str, list[str]] = {}
+    current_error_path: str | None = None
+    for line in result.output.splitlines():
+        matched_prefix: str | None = None
+        for prefix, rc in _FMT_BATCH_STATUS_PREFIXES:
+            if line.startswith(prefix):
+                matched_prefix = prefix
+                rest = line[len(prefix):]
+                path = _match_batch_path(rest, batch_paths)
+                if path is not None:
+                    by_path[path] = rc
+                    detail_by_path[path] = []
+                    current_error_path = path if prefix == "fmt parse error: " else None
+                break
+        if matched_prefix is not None:
+            continue
+        if current_error_path is not None:
+            detail_by_path[current_error_path].append(line)
+    if not by_path:
+        return [result]
+    results: list[ToolResult] = []
+    for path in batch_paths:
+        if path in by_path:
+            detail = detail_by_path.get(path, [])
+            detail_text = ("\n".join(detail) + "\n") if detail else ""
+            results.append(ToolResult(path, result.command, by_path[path], detail_text))
+        else:
+            results.append(ToolResult(path, result.command, result.returncode, ""))
+    return results
+
+
 def run_fmt(root: Path, paths: list[str], check: bool, dry_run: bool, json_output: bool) -> int:
     wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
     selected = ark_paths(root, paths)
     if _empty_selection_failure(root, selected, "fmt"):
         return 1
-    jobs = []
-    for path in selected:
+    # Baseline (known parser-exception) files need per-file results so their
+    # content hash can be checked against ark-formatter-baseline.toml.  All
+    # other files are batched into one ``arukellt fmt`` invocation per batch to
+    # amortize the wasmtime cold-start cost (one process per ~80 files instead
+    # of one per file).
+    baseline = {} if dry_run else _formatter_baseline(root)
+    baseline_paths = [p for p in selected if p in baseline]
+    other_paths = [p for p in selected if p not in baseline]
+    workers = min(16, max(1, os.cpu_count() or 1))
+    batch_count = max(1, workers * 2)
+    batch_size = max(1, (len(other_paths) + batch_count - 1) // batch_count) if other_paths else 1
+    jobs: list[tuple[str, tuple[str, ...]]] = []
+    batch_groups: list[list[str]] = []
+    for path in baseline_paths:
         args = [wrapper, "fmt"]
         if check:
             args.append("--check")
         args.append(path)
         jobs.append((path, tuple(args)))
-    results = _run_parallel(root, jobs, dry_run)
+    for batch in _chunk(other_paths, batch_size):
+        label = f"batch:{len(batch_groups)}"
+        args = [wrapper, "fmt"]
+        if check:
+            args.append("--check")
+        args.extend(batch)
+        jobs.append((label, tuple(args)))
+        batch_groups.append(list(batch))
+    results = _run_parallel(root, jobs, dry_run, timeout=180)
+    per_file: list[ToolResult] = []
+    batch_idx = 0
+    for (job_path, _), result in zip(jobs, results):
+        if job_path.startswith("batch:"):
+            per_file.extend(_split_batch_fmt_result(result, batch_groups[batch_idx]))
+            batch_idx += 1
+        else:
+            per_file.append(result)
     if not dry_run:
-        results = _apply_parser_failure_baseline(root, results)
-    return _print_results("fmt", results, json_output)
+        per_file = _apply_parser_failure_baseline(root, per_file)
+    return _print_results("fmt", per_file, json_output)
 
 
 def run_lint(
