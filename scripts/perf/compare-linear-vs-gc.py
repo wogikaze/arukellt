@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """compare-linear-vs-gc.py — Linear memory vs Wasm GC performance comparison.
 
-Compares ADR-002 fixtures across two compilation targets (wasm32-wasi-p1
-linear memory, wasm32-wasi-p2 Wasm GC) and three runtimes (wasmtime, Node.js,
+Compares ADR-002 fixtures across two compilation targets (wasm32
+linear memory, wasm32-gc Wasm GC) and three runtimes (wasmtime, Node.js,
 headless Chrome browser).
 
 Usage:
@@ -38,8 +38,8 @@ FIXTURES = [
 ]
 
 TARGETS = {
-    "linear": "wasm32-wasi-p1",
-    "gc": "wasm32-wasi-p2",
+    "linear": "wasm32",
+    "gc": "wasm32-gc",
 }
 
 
@@ -324,8 +324,8 @@ def generate_markdown_report(results: dict) -> str:
     lines.append("")
     lines.append("## Notes")
     lines.append("")
-    lines.append("- **Linear** = `wasm32-wasi-p1` (linear memory + bump allocator)")
-    lines.append("- **GC** = `wasm32-wasi-p2` (Wasm GC types, ADR-035 Phase 1 partial)")
+    lines.append("- **Linear** = `wasm32` (linear memory + bump allocator)")
+    lines.append("- **GC** = `wasm32-gc` (Wasm GC types, ADR-035 Phase 1 partial)")
     lines.append("- **wasmtime** = wasmtime-py (Cranelift), instantiate once + repeated _start calls")
     lines.append("- **node** = Node.js v23 (V8 12.9) native WebAssembly API")
     lines.append("- **browser** = headless Chrome 147 (V8) via puppeteer-core")

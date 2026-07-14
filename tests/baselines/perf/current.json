@@ -3,7 +3,7 @@
   "generated_at": "2026-06-09T15:42:05+00:00",
   "mode": "full",
   "mode_description": "default local benchmark profile",
-  "target": "wasm32-wasi-p1",
+  "target": "wasm32",
   "thresholds": {
     "compile_ms": 20,
     "run_ms": 10,
@@ -65,7 +65,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/fib.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/fib.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/fib.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/fib.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/fib.ark"
         ]
@@ -119,7 +119,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/binary_tree.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/binary_tree.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/binary_tree.ark"
         ]
@@ -173,7 +173,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/vec_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/vec_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/vec_ops.ark"
         ]
@@ -227,7 +227,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/string_concat.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/string_concat.wasm /home/wogikaze/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/legacy/string_concat.ark"
         ]
@@ -282,7 +282,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/parse_tree_distance.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/parse_tree_distance.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark"
         ]
@@ -337,7 +337,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/enum_dispatch.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/enum_dispatch.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark"
         ]
@@ -392,7 +392,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/struct_graph.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/struct_graph.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark"
         ]
@@ -447,7 +447,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/error_chain.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/error_chain.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark"
         ]
@@ -502,7 +502,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/closure_map.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/closure_map.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark"
         ]
@@ -558,7 +558,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/http_parser.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/http_parser.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_http_parser.ark"
         ]
@@ -614,7 +614,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/log_processor.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/log_processor.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_log_processor.ark"
         ]
@@ -670,7 +670,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/config_loader.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/config_loader.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_config_loader.ark"
         ]
@@ -726,7 +726,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/data_pipeline.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/data_pipeline.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark"
         ]
@@ -782,7 +782,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/template_engine.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_template_engine.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/template_engine.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_application_template_engine.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_application_template_engine.ark"
         ]
@@ -836,7 +836,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/file_io.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_io_file_io.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/file_io.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_io_file_io.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_io_file_io.ark"
         ]
@@ -891,7 +891,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/json_parse.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_json_parse.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/json_parse.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_json_parse.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_json_parse.ark"
         ]
@@ -946,7 +946,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/text_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_text_ops.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/text_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_text_ops.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_text_ops.ark"
         ]
@@ -1001,7 +1001,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/hash_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_hash_ops.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/hash_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_hash_ops.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_hash_ops.ark"
         ]
@@ -1056,7 +1056,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/toml_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_toml.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/toml_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_toml.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_toml.ark"
         ]
@@ -1110,7 +1110,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32-wasi-p1 -o /tmp/arukellt-bench-bfd7psek/time_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_time.ark",
+        "command": "/home/wogikaze/wgkz/arukellt/target/release/arukellt compile --time --target wasm32 -o /tmp/arukellt-bench-bfd7psek/time_ops.wasm /home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_time.ark",
         "stderr_head": [
           "error: unexpected argument: home/wogikaze/wgkz/arukellt/benchmarks/bench_stdlib_time.ark"
         ]

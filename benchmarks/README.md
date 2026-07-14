@@ -115,7 +115,7 @@ issue tracking) to their JSON Schema paths:
 | `peak_memory_bytes`    | `benchmarks[].compile.max_rss_kb * 1024` or `runtime.max_rss_kb * 1024` | bytes | Peak resident set size (compile or runtime phase) |
 | `metadata.mode`        | `mode`                        | enum    | Run mode (`quick`, `full`, `compare`, `ci`, `update-baseline`, `reproducibility`) |
 | `metadata.generated_at`| `generated_at`               | ISO 8601| Timestamp of the run                         |
-| `metadata.target`      | `target`                      | string  | Compilation target (e.g. `wasm32-wasi-p1`)   |
+| `metadata.target`      | `target`                      | string  | Compilation target (e.g. `wasm32`)   |
 | `metadata.environment` | `environment`                 | object  | Platform, kernel, Python version, machine    |
 
 Memory fields are `null` when `/usr/bin/time` is unavailable on the host.
@@ -326,7 +326,7 @@ fastest native reference.
 ### Linear memory vs Wasm GC cross-runtime comparison
 
 The `scripts/perf/compare-linear-vs-gc.{sh,py}` script compares ADR-002 fixtures
-across two compilation targets (`wasm32-wasi-p1` linear memory, `wasm32-wasi-p2`
+across two compilation targets (`wasm32` linear memory, `wasm32-gc`
 Wasm GC) and three runtimes (wasmtime, Node.js, headless Chrome browser):
 
 ```bash

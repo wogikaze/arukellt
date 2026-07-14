@@ -54,7 +54,7 @@ def main() -> int:
         "compile",
         str(FIXTURE.relative_to(REPO_ROOT)),
         "--target",
-        "wasm32-wasi-p2",
+        "wasm32-gc",
         "--emit",
         "wit",
         "-o",

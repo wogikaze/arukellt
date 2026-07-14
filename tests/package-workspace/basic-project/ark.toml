@@ -7,7 +7,7 @@ description = "Test fixture: basic project with all standard fields"
 name = "basic-project"
 path = "src/main.ark"
 
-[targets.wasm32-wasi-p2]
+[targets.wasm32-gc]
 opt_level = 1
 
 [scripts]

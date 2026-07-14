@@ -15,8 +15,8 @@ for f in benchmarks/*.ark; do
     t1_out="$TMPDIR/${base}.t1.wasm"
     t3_out="$TMPDIR/${base}.t3.wasm"
 
-    "$ARUKELLT" compile --target wasm32-wasi-p1 -o "$t1_out" "$f" 2>/dev/null || continue
-    "$ARUKELLT" compile --target wasm32-wasi-p2 -o "$t3_out" "$f" 2>/dev/null || continue
+    "$ARUKELLT" compile --target wasm32 -o "$t1_out" "$f" 2>/dev/null || continue
+    "$ARUKELLT" compile --target wasm32-gc -o "$t3_out" "$f" 2>/dev/null || continue
 
     t1_size=$(stat -c %s "$t1_out" 2>/dev/null || stat -f %z "$t1_out")
     t3_size=$(stat -c %s "$t3_out" 2>/dev/null || stat -f %z "$t3_out")

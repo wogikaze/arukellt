@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_TARGET = "wasm32-wasi-p1"
+DEFAULT_TARGET = "wasm32"
 DEFAULT_CURRENT_RESULTS = ROOT / "tests" / "baselines" / "perf" / "current.json"
 DEFAULT_BASELINE_RESULTS = ROOT / "tests" / "baselines" / "perf" / "baselines.json"
 DEFAULT_RESULTS_MARKDOWN = ROOT / "docs" / "history" / "benchmarks" / "benchmark-results.md"
@@ -2025,7 +2025,7 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 # ── History / trend helpers ────────────────────────────────────────────────
 
 def _target_short(target: str) -> str:
-    """Extract short suffix from target: wasm32-wasi-p1 → p1."""
+    """Extract short suffix from target: wasm32 → p1."""
     return target.split("-")[-1] if "-" in target else target
 
 

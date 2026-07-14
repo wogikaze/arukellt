@@ -62,7 +62,7 @@ def parse_harness_report(content, baseline_file=None, text_output=False):
     if m:
         arukellt_bin = m.group(1).strip()
 
-    # Target filter: Target: wasm32-wasi-p2
+    # Target filter: Target: wasm32-gc
     m = re.search(r'^Target:\s*(\S+)', content, re.MULTILINE)
     if m:
         target = m.group(1).strip()

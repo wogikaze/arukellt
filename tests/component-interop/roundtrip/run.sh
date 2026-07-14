@@ -60,9 +60,9 @@ emit_wit() {
   local src_rel="$1"
   local out_path="$2"
   if [[ "$(basename "$ARUKELLT")" == "arukellt-selfhost.sh" ]]; then
-    bash "$ARUKELLT" compile "$src_rel" --target wasm32-wasi-p2 --emit wit -o "$out_path"
+    bash "$ARUKELLT" compile "$src_rel" --target wasm32-gc --emit wit -o "$out_path"
   else
-    "$ARUKELLT" compile "$src_rel" --target wasm32-wasi-p2 --emit wit -o "$out_path"
+    "$ARUKELLT" compile "$src_rel" --target wasm32-gc --emit wit -o "$out_path"
   fi
 }
 
@@ -142,9 +142,9 @@ for scenario_dir in "$FIXTURE_ROOT"/*/; do
   fi
 
   if [[ "$(basename "$ARUKELLT")" == "arukellt-selfhost.sh" ]]; then
-    bash "$ARUKELLT" compile "$src_rel" --target wasm32-wasi-p1 --emit wasm -o "$core_wasm_rel"
+    bash "$ARUKELLT" compile "$src_rel" --target wasm32 --emit wasm -o "$core_wasm_rel"
   else
-    "$ARUKELLT" compile "$src_rel" --target wasm32-wasi-p1 --emit wasm -o "$core_wasm_rel"
+    "$ARUKELLT" compile "$src_rel" --target wasm32 --emit wasm -o "$core_wasm_rel"
   fi
   "$WT" component embed "$provider_wit_rel" "$core_wasm_rel" -o "$embed_wasm_rel"
   "$WT" component new "$embed_wasm_rel" --adapt "wasi_snapshot_preview1=$ADAPTER" -o "$provider_wasm_rel"

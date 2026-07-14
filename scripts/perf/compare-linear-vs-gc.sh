@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/perf/compare-linear-vs-gc.sh — Linear vs GC performance comparison wrapper.
 #
-# Compiles ADR-002 fixtures to both wasm32-wasi-p1 (linear) and wasm32-wasi-p2 (GC),
+# Compiles ADR-002 fixtures to both wasm32 (linear) and wasm32-gc (GC),
 # then measures execution time across wasmtime, Node.js, and headless Chrome.
 #
 # Usage:

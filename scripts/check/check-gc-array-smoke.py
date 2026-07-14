@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GC array smoke gate: compile + run array_gc fixture with --target wasm32-wasi-p2"""
+"""GC array smoke gate: compile + run array_gc fixture with --target wasm32-gc"""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def main() -> int:
     # 2. Compile fixture with GC target
     out_rel = OUT_WASM.relative_to(REPO_ROOT)
     r = subprocess.run(
-        [str(wrapper), "compile", "--target", "wasm32-wasi-p2", str(FIXTURE), "-o", str(out_rel)],
+        [str(wrapper), "compile", "--target", "wasm32-gc", str(FIXTURE), "-o", str(out_rel)],
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,

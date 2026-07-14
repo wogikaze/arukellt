@@ -3,7 +3,7 @@
   "generated_at": "2026-05-14T04:49:22+00:00",
   "mode": "update-baseline",
   "mode_description": "measure current results and replace baseline",
-  "target": "wasm32-wasi-p1",
+  "target": "wasm32",
   "thresholds": {
     "compile_ms": 20,
     "run_ms": 10,
@@ -74,7 +74,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21672,
         "binary_bytes": 767,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/fib.wasm /home/wgkz/arukellt/benchmarks/legacy/fib.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/fib.wasm /home/wgkz/arukellt/benchmarks/legacy/fib.ark",
         "wasm_sections": {
           "type": 45,
           "import": 246,
@@ -169,7 +169,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21704,
         "binary_bytes": 747,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/binary_tree.wasm /home/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/binary_tree.wasm /home/wgkz/arukellt/benchmarks/legacy/binary_tree.ark",
         "wasm_sections": {
           "type": 45,
           "import": 246,
@@ -264,7 +264,7 @@
         "variance_unstable": false,
         "max_rss_kb": 21608,
         "binary_bytes": 1694,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/vec_ops.wasm /home/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/vec_ops.wasm /home/wgkz/arukellt/benchmarks/legacy/vec_ops.ark",
         "wasm_sections": {
           "type": 40,
           "import": 246,
@@ -359,7 +359,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21792,
         "binary_bytes": 784,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/string_concat.wasm /home/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/string_concat.wasm /home/wgkz/arukellt/benchmarks/legacy/string_concat.ark",
         "wasm_sections": {
           "type": 40,
           "import": 246,
@@ -455,7 +455,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21976,
         "binary_bytes": 4030,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/parse_tree_distance.wasm /home/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/parse_tree_distance.wasm /home/wgkz/arukellt/benchmarks/bench_parse_tree_distance.ark",
         "wasm_sections": {
           "type": 52,
           "import": 246,
@@ -542,7 +542,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/enum_dispatch.wasm /home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/enum_dispatch.wasm /home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark",
         "stderr_head": [
           "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: 22 parse error(s)",
           "home/wgkz/arukellt/benchmarks/bench_cpu_enum_dispatch.ark: error[E0001|parse]: expected token kind 81, got 72",
@@ -615,7 +615,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21864,
         "binary_bytes": 1346,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/struct_graph.wasm /home/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/struct_graph.wasm /home/wgkz/arukellt/benchmarks/bench_memory_struct_graph.ark",
         "wasm_sections": {
           "type": 70,
           "import": 246,
@@ -702,7 +702,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/error_chain.wasm /home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/error_chain.wasm /home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark",
         "stderr_head": [
           "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: 7 resolve error(s)",
           "home/wgkz/arukellt/benchmarks/bench_compute_error_chain.ark: error[E0100|resolve]: undefined module: Result",
@@ -764,7 +764,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/closure_map.wasm /home/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/closure_map.wasm /home/wgkz/arukellt/benchmarks/bench_cpu_closure_map.ark",
         "stderr_head": [
           "Error: failed to run main module `/home/wgkz/arukellt/bootstrap/arukellt-selfhost.wasm`",
           "",
@@ -829,7 +829,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/http_parser.wasm /home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/http_parser.wasm /home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark",
         "stderr_head": [
           "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: 12 parse error(s)",
           "home/wgkz/arukellt/benchmarks/bench_application_http_parser.ark: error[E0001|parse]: unexpected token in expression: 83",
@@ -903,7 +903,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21784,
         "binary_bytes": 1598,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/log_processor.wasm /home/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/log_processor.wasm /home/wgkz/arukellt/benchmarks/bench_application_log_processor.ark",
         "wasm_sections": {
           "type": 50,
           "import": 246,
@@ -991,7 +991,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/config_loader.wasm /home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/config_loader.wasm /home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark",
         "stderr_head": [
           "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: 12 parse error(s)",
           "home/wgkz/arukellt/benchmarks/bench_application_config_loader.ark: error[E0001|parse]: unexpected token in expression: 83",
@@ -1056,7 +1056,7 @@
         "median_ms": null,
         "max_rss_kb": null,
         "binary_bytes": null,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/data_pipeline.wasm /home/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/data_pipeline.wasm /home/wgkz/arukellt/benchmarks/bench_application_data_pipeline.ark",
         "stderr_head": [
           "Error: failed to run main module `/home/wgkz/arukellt/bootstrap/arukellt-selfhost.wasm`",
           "",
@@ -1130,7 +1130,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21868,
         "binary_bytes": 2407,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/template_engine.wasm /home/wgkz/arukellt/benchmarks/bench_application_template_engine.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/template_engine.wasm /home/wgkz/arukellt/benchmarks/bench_application_template_engine.ark",
         "wasm_sections": {
           "type": 46,
           "import": 246,
@@ -1207,7 +1207,7 @@
         "variance_unstable": true,
         "max_rss_kb": 21780,
         "binary_bytes": 2899,
-        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-1at3p82u/file_io.wasm /home/wgkz/arukellt/benchmarks/bench_io_file_io.ark",
+        "command": "/home/wgkz/arukellt/target/release/arukellt compile --target wasm32 -o /tmp/arukellt-bench-1at3p82u/file_io.wasm /home/wgkz/arukellt/benchmarks/bench_io_file_io.ark",
         "wasm_sections": {
           "type": 45,
           "import": 246,

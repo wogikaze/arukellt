@@ -205,7 +205,7 @@ def run_repro(
         return (0, "")
 
     fixture_path = fixture or "tests/fixtures/hello/hello.ark"
-    target_str = target or "wasm32-wasi-p1"
+    target_str = target or "wasm32"
 
     out_lines: list[str] = []
 
@@ -389,9 +389,9 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     ok("Docs checks")
 
     # ── 3. T3 Fixtures ──
-    step(3, "Fixtures T3 (wasm32-wasi-p2)")
+    step(3, "Fixtures T3 (wasm32-gc)")
     env3 = env.copy()
-    env3["ARUKELLT_TARGET"] = "wasm32-wasi-p2"
+    env3["ARUKELLT_TARGET"] = "wasm32-gc"
     rc, out = _run([sys.executable, "scripts/manager.py", "verify", "--fixtures"], root, env=env3)
     out_lines.append(out)
     if rc != 0:
@@ -406,9 +406,9 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
     ok("T3 fixtures")
 
     # ── 4. T1 Fixtures (non-blocking) ──
-    step(4, "Fixtures T1 (wasm32-wasi-p1, non-blocking)")
+    step(4, "Fixtures T1 (wasm32, non-blocking)")
     env4 = env.copy()
-    env4["ARUKELLT_TARGET"] = "wasm32-wasi-p1"
+    env4["ARUKELLT_TARGET"] = "wasm32"
     rc, out = _run([sys.executable, "scripts/manager.py", "verify", "--fixtures"], root, env=env4)
     out_lines.append(out)
     if rc == 0:
@@ -468,7 +468,7 @@ def run_local(root: Path, dry_run: bool, skip_ext: bool = False) -> tuple[int, s
             tmp_a, tmp_b = ta.name, tb.name
         try:
             bin_path = "./target/release/arukellt"
-            for tgt, label in [("wasm32-wasi-p2", "T3"), ("wasm32-wasi-p1", "T1")]:
+            for tgt, label in [("wasm32-gc", "T3"), ("wasm32", "T1")]:
                 _run([bin_path, "compile", "--target", tgt, "--output", tmp_a, str(hello_ark)], root)
                 _run([bin_path, "compile", "--target", tgt, "--output", tmp_b, str(hello_ark)], root)
                 rc, out = _run(["diff", tmp_a, tmp_b], root)

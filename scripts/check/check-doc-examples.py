@@ -6,7 +6,7 @@ Usage:
 
 - Extracts ```ark ... ``` fenced code blocks (language tag exactly "ark").
 - Skips blocks immediately preceded by an HTML comment <!-- skip-doc-check -->.
-- Runs `arukellt check <snippet> --target wasm32-wasi-p1` on each block.
+- Runs `arukellt check <snippet> --target wasm32` on each block.
 - Reports failures as "FAIL: <file> block <N>: <error>".
 - Exits 0 if all non-skipped blocks pass, non-zero otherwise.
 """
@@ -146,8 +146,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--target",
-        default="wasm32-wasi-p1",
-        help="Compile target passed to arukellt check (default: wasm32-wasi-p1)",
+        default="wasm32",
+        help="Compile target passed to arukellt check (default: wasm32)",
     )
     args = parser.parse_args()
 

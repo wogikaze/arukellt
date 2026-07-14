@@ -38,7 +38,7 @@ PROVIDER_REL="examples/rust/host-provider/target/wasm32-wasip1/release/wit_impor
 echo "[2/4] compile Ark consumer socket (WIT import)"
 examples_compile "$ARUKELLT" modern compile \
     "$CONSUMER_ARK" \
-    --target wasm32-wasi-p2 \
+    --target wasm32-gc \
     --wasi-version p2 \
     --emit component \
     -o "$SOCKET_REL"

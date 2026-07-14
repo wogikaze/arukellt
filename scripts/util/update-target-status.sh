@@ -14,7 +14,7 @@
 #
 # INPUT JSON FORMAT
 #   The input file must be a JSON object keyed by Arukellt target identifier
-#   (e.g. "wasm32-wasi-p1", "wasm32-wasi-p2").  Each value is an object mapping
+#   (e.g. "wasm32", "wasm32-gc").  Each value is an object mapping
 #   surface names (matching the "Surface" column of the target's table in
 #   docs/target-contract.md) to either:
 #
@@ -24,13 +24,13 @@
 #
 #   Example:
 #     {
-#       "wasm32-wasi-p1": {
+#       "wasm32": {
 #         "parse":               { "status": "guaranteed", "pass": 209, "fail": 0 },
 #         "typecheck":           "guaranteed",
 #         "compile (core Wasm)": "guaranteed",
 #         "run (wasmtime)":      { "status": "smoke", "pass": 205, "fail": 4 }
 #       },
-#       "wasm32-wasi-p2": {
+#       "wasm32-gc": {
 #         "compile (core Wasm)": "guaranteed",
 #         "run (wasmtime)":      "guaranteed"
 #       }
@@ -209,7 +209,7 @@ with open(contract_file, "r", encoding="utf-8") as fh:
 lines = list(original_lines)
 
 # ── Find section boundaries keyed by target identifier ───────────────────────
-# Section headers look like:  ### T1 — `wasm32-wasi-p1` (CLI default)
+# Section headers look like:  ### T1 — `wasm32` (CLI default)
 SECTION_RE = re.compile(r"^###\s+\S+\s+.*?`([^`]+)`")
 TABLE_ROW_RE = re.compile(r"^\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|")
 TABLE_HEADER_RE = re.compile(r"^\|\s*Surface\s*\|\s*Status\s*\|\s*Detail\s*\|", re.IGNORECASE)

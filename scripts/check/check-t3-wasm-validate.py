@@ -2,7 +2,7 @@
 """T3 fixture WASM validation gate.
 
 Compiles every ``t3-compile:`` and ``t3-run:`` fixture in the manifest
-with the selfhost compiler (``--target wasm32-wasi-p2``) and validates
+with the selfhost compiler (``--target wasm32-gc``) and validates
 the output with ``wasm-tools validate --features gc``.
 
 This catches emitter bugs that produce invalid WASM — the most common
@@ -31,7 +31,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
-T3_TARGET = "wasm32-wasi-p2"
+T3_TARGET = "wasm32-gc"
 VALIDATE_FEATURES = "gc"
 COMPILE_TIMEOUT = 60  # seconds per fixture
 VALIDATE_TIMEOUT = 30  # seconds per fixture

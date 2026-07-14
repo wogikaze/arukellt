@@ -78,7 +78,7 @@ def main():
             print(f"pass: {rel} golden structure")
         world = "wasi:cli/command" if "command" in rel else "wasi:http/proxy"
         out = REPO_ROOT / f".build/component-world-{Path(rel).stem}.wit"
-        rc, msg = _compile(["compile", f"tests/fixtures/{rel}", "--target", "wasm32-wasi-p2", "--emit", "wit", "--world", world, "-o", str(out.relative_to(REPO_ROOT))])
+        rc, msg = _compile(["compile", f"tests/fixtures/{rel}", "--target", "wasm32-gc", "--emit", "wit", "--world", world, "-o", str(out.relative_to(REPO_ROOT))])
         if rc != 0:
             if "unexpected argument" in msg:
                 print(f"note: {rel} emit skipped (bootstrap wasm lacks --world)")
@@ -91,7 +91,7 @@ def main():
                 print(f"pass: {rel} emit matches golden")
             out.unlink(missing_ok=True)
     for rel in _entries("component-world-error"):
-        rc, msg = _compile(["compile", f"tests/fixtures/{rel}", "--target", "wasm32-wasi-p2", "--emit", "component", "--world", "wasi:cli/command"])
+        rc, msg = _compile(["compile", f"tests/fixtures/{rel}", "--target", "wasm32-gc", "--emit", "component", "--world", "wasi:cli/command"])
         if rc == 0:
             print(f"FAIL {rel}: expected error", file=sys.stderr); failures += 1
         elif "wasi:cli/run/run" in msg or "requires export" in msg:
@@ -100,7 +100,7 @@ def main():
             print(f"note: {rel} error test skipped (bootstrap wasm)")
         else:
             print(f"FAIL {rel}: {msg}", file=sys.stderr); failures += 1
-    rc, msg = _compile(["compile", "tests/fixtures/component/world_command.ark", "--target", "wasm32-wasi-p2", "--emit", "wit", "--world", "wasi:unknown/world"])
+    rc, msg = _compile(["compile", "tests/fixtures/component/world_command.ark", "--target", "wasm32-gc", "--emit", "wit", "--world", "wasi:unknown/world"])
     if rc == 0:
         print("FAIL unknown world should error", file=sys.stderr); failures += 1
     elif "unknown world" in msg:

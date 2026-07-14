@@ -732,7 +732,7 @@ match body {
                 "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
                 "native WASI P2 sockets by "
                 "[#139](../../../issues/done/139-std-wasi-sockets-p2.md). "
-                "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500."
+                "Importing this module on `wasm32` (legacy alias `wasm32`) emits E0500."
             ),
             "highlights": [
                 ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
@@ -765,14 +765,14 @@ HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
         "current selfhost compile path — see",
         "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
-        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
+        "Importing this module on `wasm32` (legacy alias `wasm32`) emits E0500.",
     ],
     "std::host::udp": [
         "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
         "current selfhost compile path — see",
         "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
         "",
-        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
+        "Importing this module on `wasm32` (legacy alias `wasm32`) emits E0500.",
     ],
 }
 
@@ -3203,9 +3203,9 @@ def format_signature(params: list[str], returns: str) -> str:
 def _canonicalize_target_name(name: str) -> str:
     """Map legacy CLI/manifest target aliases to ADR-007 canonical names."""
     aliases = {
-        "wasm32-wasi-p1": "wasm32",
+        "wasm32": "wasm32",
         "wasm32-wasi": "wasm32",
-        "wasm32-wasi-p2": "wasm32-gc",
+        "wasm32-gc": "wasm32-gc",
         "wasm-gc": "wasm32-gc",
         "wasm-gc-wasi-p2": "wasm32-gc",
     }
@@ -3216,7 +3216,7 @@ def _availability_t3_only(funcs: list[dict]) -> bool:
     """Return True when all functions with ``availability`` data have ``t1 = false``.
 
     This detects modules whose entire public surface is restricted to the T3
-    (wasm32-wasi-p2 / component model) tier.  Functions with no ``availability``
+    (wasm32-gc / component model) tier.  Functions with no ``availability``
     key are ignored (they do not contribute to the verdict either way).
     """
     avail_entries = [f["availability"] for f in funcs if f.get("availability")]
@@ -3288,10 +3288,10 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
         t = f.get("target", [])
         if t:
             targets.update(t)
-    if not targets or targets in ({"wasm32-wasi-p1", "wasm32-wasi-p2"}, {"wasm32", "wasm32-gc"}):
+    if not targets or targets in ({"wasm32", "wasm32-gc"}, {"wasm32", "wasm32-gc"}):
         base = "Target availability: `wasm32` and `wasm32-gc`."
         return base + " " + axes
-    if targets in ({"wasm32-wasi-p2"}, {"wasm32-gc"}):
+    if targets in ({"wasm32-gc"}, {"wasm32-gc"}):
         base = "⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."
         return base + " " + axes
     canon = sorted({_canonicalize_target_name(x) for x in targets})

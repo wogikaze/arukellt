@@ -20,8 +20,8 @@ for f in benchmarks/*.ark; do
         continue
     fi
 
-    t1_out=$("$ARUKELLT" run --target wasm32-wasi-p1 "$f" 2>/dev/null) || t1_out="[T1 ERROR]"
-    t3_out=$("$ARUKELLT" run --target wasm32-wasi-p2 "$f" 2>/dev/null) || t3_out="[T3 ERROR]"
+    t1_out=$("$ARUKELLT" run --target wasm32 "$f" 2>/dev/null) || t1_out="[T1 ERROR]"
+    t3_out=$("$ARUKELLT" run --target wasm32-gc "$f" 2>/dev/null) || t3_out="[T3 ERROR]"
     exp=$(cat "$expected")
 
     if [ "$t1_out" = "$exp" ] && [ "$t3_out" = "$exp" ]; then

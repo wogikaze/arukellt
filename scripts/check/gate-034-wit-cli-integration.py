@@ -98,7 +98,7 @@ def _run_check() -> tuple[int, str]:
         "--wit",
         str(wit_path.relative_to(REPO_ROOT)),
         "--target",
-        "wasm32-wasi-p2",
+        "wasm32-gc",
     ]
     result = subprocess.run(
         cmd,

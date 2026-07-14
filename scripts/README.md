@@ -126,7 +126,7 @@ Python libraries for domain-specific logic:
 Many scripts honor these environment variables:
 
 - `ARUKELLT_BIN` - Path to arukellt binary (overrides default target/release/arukellt)
-- `ARUKELLT_TARGET` - Target triple for compilation (e.g., wasm32-wasi-p1)
+- `ARUKELLT_TARGET` - Target triple for compilation (e.g., wasm32)
 - `PLAYGROUND_WASM_LIMIT` - Playground Wasm size limit in bytes (default: 307200)
 - `PLAYGROUND_BUNDLE_LIMIT` - Playground JS bundle limit in bytes (default: 524288)
 

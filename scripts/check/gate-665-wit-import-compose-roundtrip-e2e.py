@@ -106,7 +106,7 @@ def _compile_socket(out: Path) -> tuple[int, str]:
         "compile",
         str(MAIN_ARK.relative_to(REPO_ROOT)),
         "--target",
-        "wasm32-wasi-p2",
+        "wasm32-gc",
         "--wasi-version",
         "p2",
         "--emit",

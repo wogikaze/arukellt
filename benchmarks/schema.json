@@ -33,7 +33,7 @@
     },
     "target": {
       "type": "string",
-      "description": "Compilation target (e.g. wasm32-wasi-p1)."
+      "description": "Compilation target (e.g. wasm32)."
     },
     "thresholds": {
       "type": "object",
