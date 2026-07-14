@@ -19,21 +19,28 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
   既存文字列 dispatch への legacy compatibility mapping を同時に追加する。
 - 既存の文字列 dispatch は削除しない。dispatch 削除は第 5 段階で行う。
 
-### 第 1 段階: registry schema と SignatureEntry 拡張
+### 第 1 段階: CoreOpRegistry schema と SignatureEntry 拡張
 
-- `data/core-ops.toml` を正規の production path に配置し、schema_version を上げる。
-- `SignatureEntry` に `core_op_id`、effect（直交属性セット）、`const semantics`、
-  `inline_policy`、lowering variant、fallback、signature、exposure、`binding_required` を追加する。
-- effect モデルは `pure` / `read` / `write` / `allocate` / `IO` / `noreturn` 等の
-  単一 enum にせず、memory / allocates / may_trap / noreturn / external_io /
-  nondeterminism / atomic / volatile の直交属性セットとする。
-- signature は receiver 非依存の `inputs` 列に統一し、`receiver_index` で receiver を示す。
+- `data/core-ops.toml` を schema_version = 4 に上げる。
+- `SignatureEntry` は `core_op_id`（optional）と function signature のみを持つ。
+  `CoreOpId` の metadata（effect、lowering、fallback、inline policy、semantics）
+  は `data/core-ops.toml`（CoreOpRegistry）から引く。
+- `CoreOpId` metadata は `SignatureEntry` へ複製しない。compiler cache は derived
+  ビューであり、authoritative データではない。
+- `exposure` を三軸に分離する:
+  - `visibility` (`public` / `internal`)
+  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `normal_stdlib` / `target_raw`)
+  - `binding` (`policy` = `required` / `optional` / `forbidden`)
+- `signature` は receiver 非依存の `inputs` 列に統一し、`receiver_index` で receiver を示す。
+- 型式は `TypeExpr` として `kind` discriminator で表す。`String` → `type_id = "string"`、
+  `()` → `unit` primitive、`std::wasm` の `v128` → `type_id = "wasm.v128"` に正規化する。
 - lowering variant ごとに必要な payload を定義する:
-  - `normal_call` — `fallback` の `implementation_symbol`
-  - `mir_op` — MIR `opcode` / `operation`
-  - `runtime_call` — `function` / `abi` / `interface` / `version`
-  - `target_intrinsic` — `target_family` / `target_id` / `required_features`
+  - `normal_call` — `[fallback]` の `implementation_symbol`
+  - `mir_op` — `[lowering.mir]` の `opcode` / `operation`
+  - `runtime_call` — `[lowering.runtime]` の `function` / `abi` / `interface` / `version`
+  - `target_intrinsic` — `[lowering.target]` の `target_family` / `target_id` / `required_capabilities` / `required_target_features`
 - portable `std::simd` 操作は `target_intrinsic` ではなく `normal_call` + `specializations` とする。
+- specialization は `priority`、`when` 条件、完全な `lowering` variant を含む。
 - この段階では既存の callee 文字列 dispatch をそのままにしておく。
   既存の挙動を変えない。
 
@@ -43,22 +50,27 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
   `LoweringKind` を割り当てる。
 - `std/manifest.toml` の `[[types]]` には `type_id`、`[[functions]]` には `core_op_id`
   を追加し、`data/core-ops.toml` を参照する。
+- 同じ `CoreOpId` を持つ複数 public binding（prelude alias と `std::*` 等）が
+  一貫していることを確認する。
 - 割り当てた mapping を手作業で検証する。
 - 同時に、旧文字列 dispatch と新 registry dispatch の結果を比較する shadow mode を
   実装し、最終的には一致率 100% を目指す。一致しない場合は mapping を修正する。
+- 旧 dispatch と新 dispatch の比較は、`lowering.kind` ではなく capability 解決後の
+  `EffectiveLoweringDecision` 同士を比較する。
 
-### 第 3 段階: registry と既存文字列 dispatch の shadow 検証
+### 第 3 段階: CoreOpRegistry と既存文字列 dispatch の shadow 検証
 
 - generator / checker が `data/core-ops.toml` と `std/manifest.toml` の参照整合性、
-  signature 互換、effect/lowering 整合、public binding の未参照・衝突、
-  fallback 条件を検査するよう整備する。
-- 検査は `operations.exposure` と `operations.binding_required` に応じて条件を変える。
-  `public` かつ `binding_required = true` の operation のみ manifest 参照を要求する。
+  signature 互換、effect/lowering 整合、binding policy 違反、
+  public binding の衝突、specialization ambiguity、fallback 条件を検査する。
+- 検査は `visibility` / `classification` / `binding` に応じて条件を変える。
+  `visibility = "public"` かつ `binding.policy = "required"` の operation のみ
+  manifest 参照を要求する。
 - shadow mode を CI または `verify quick` の一部として実行し、
   旧文字列 dispatch と新 registry dispatch の結果が一致率 100% になることを gate にする。
 - 検証を通過するまで第 4 段階に進めない。
 
-### 第 4 段階: emitter を FunctionId 経由の registry lookup へ切り替える
+### 第 4 段階: emitter を FunctionId 経由の CoreOpRegistry lookup へ切り替える
 
 - `call_dispatch_table.ark` / `inst_dispatch.ark` を、MIR に保存された `FunctionId`
   から `SignatureRegistry` を参照する形に書き換える。
@@ -78,7 +90,7 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 - host intrinsic（HTTP、fs、sockets、clock、random、process、stdio、env）を
   emitter から外し、runtime ABI / WIT import lowering へ統合する。
 - 小さな stdlib 専用 inliner を導入する（compiler-shipped core/std だけ、
-  再帰なし、MIR 命令数・code size 制限付き）。`inline_policy` は
+  再帰なし、MIR 命令数・code size 制限付き）。`inline.policy` は
   `always` を強い hint として解釈する。
 - pure operation（`gcd`、range 操作、`starts_with`/`ends_with`/`contains`/`index_of`、
   `trim`、`reverse`、any/find/fold、sort 等）を Ark stdlib へ移す。
@@ -89,7 +101,10 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 ### 第 7 段階: 検証と cleanup
 
 - `data/core-ops.toml` / `std/manifest.toml` / `docs/current-state.md` の整合を再確認する。
-- `python3 scripts/manager.py verify quick` が通ることを確認する。
+- 移行対象の targeted tests が pass し、T3 validation 失敗数が #808 baseline を
+  超えないことを確認する。
+- `python3 scripts/manager.py verify quick` は #808 解決後の最終 epic close で
+  global green を目指す。
 - GC/LM 二重 intrinsic ファイルの整理と sealed raw API 経由への移行は、
   本計画のスコープ外として [#817](../../issues/open/817-sealed-raw-api-module.md) で実施する。
 
@@ -196,8 +211,14 @@ semantic lowering には必ず Ark fallback body を残す。
 optimized lowering 版を同じ入力で実行し、結果と副作用が一致する
 differential test を置く。
 
+CoreOp ごとに `semantics.equivalence` で比較方法を指定する。
+整数や `bool` は `exact_bitwise` または `exact_bool`、
+浮動小数 SIMD 等は `float_value_nan_payload_ignored`、
+`noreturn` operation は `noreturn`、集合結果は `set_order_agnostic` 等。
+
 旧文字列 dispatch から新 `SignatureRegistry` dispatch への移行には、
 切り替え前に shadow mode で両者の結果を比較し、一致率 100% を gate とする。
+比較対象は `EffectiveLoweringDecision`（capability 解決後の正規化 lowering）とする。
 
 ## 検証コマンド
 
@@ -205,8 +226,12 @@ differential test を置く。
 python3 scripts/manager.py verify quick
 ```
 
+移行中は targeted migration tests と #808 baseline ratchet も gate とする。
+
 ## 関連
 
 - [ADR-042: Intrinsic Layer Separation](../adr/ADR-042-intrinsic-layer-separation.md)
 - [ADR-040: Semantic Type Spine](../adr/ADR-040-typed-mir-signature-registry.md)
 - [ADR-037: std::simd](../adr/ADR-037-std-simd.md)
+- RFC-003: NaN semantics (planned)
+- [issue #808: T3/Wasm validation failures](../../issues/open/808-t3-wasm-validation-failures.md)

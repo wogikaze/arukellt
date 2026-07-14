@@ -7,7 +7,7 @@
 # Fallback values are stable implementation symbol paths (or DefKey after name
 # resolution). Do not store compile-local FunctionId here.
 
-schema_version = 3
+schema_version = 4
 status = "scaffold"
 
 [registry]
@@ -23,11 +23,12 @@ planned_outputs = [
 [validation]
 # Conditions a generator/checker must satisfy before the registry can lose
 # status = "scaffold".
-check_unreferenced_public_bindings = true
+check_unreferenced_required_bindings = true
 check_public_binding_collisions = true
 check_signature_compat = true
 check_effect_lowering_consistency = true
 check_fallback_resolvable = true
+check_specialization_ambiguity = true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types
@@ -60,25 +61,37 @@ id = "simd.mask4"
 kind = "mask"
 lanes = 4
 
+[[types]]
+id = "wasm.v128"
+kind = "wasm_v128"
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Operations
 # ─────────────────────────────────────────────────────────────────────────────
 # id is the canonical CoreOpId. std/manifest.toml references it via core_op_id.
 # Example fallback values that do not yet resolve to a real implementation symbol
 # are prefixed with example.invalid so a future checker can reject them mechanically.
+#
+# visibility: public / internal
+# classification.layer: primitive / runtime / semantic_stdlib / normal_stdlib / target_raw
+# binding.policy: required / optional / forbidden
+#
+# A public binding with policy = required must be referenced from std/manifest.toml.
+# policy = optional must include binding.reason.
 
 [[operations]]
 id = "string.starts_with"
-exposure = "public"
-binding_required = true
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "required" }
 description = "Return true when the receiver string starts with the given prefix."
 [operations.signature]
 inputs = [
-  { name = "s", type = "string" },
-  { name = "prefix", type = "string" },
+  { name = "s", type = { kind = "ref", name = "string" } },
+  { name = "prefix", type = { kind = "ref", name = "string" } },
 ]
 receiver_index = 0
-outputs = [{ type = "bool" }]
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -86,6 +99,7 @@ const_evaluable = true
 overflow = "none"
 nan = "none"
 trap = "none"
+equivalence = "exact_bool"
 [operations.effect]
 memory = "read"
 allocates = false
@@ -104,13 +118,52 @@ implementation_symbol = "example.invalid.fallback.string.starts_with_impl"
 required = true
 
 [[operations]]
+id = "string.ends_with"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "required" }
+description = "Return true when the receiver string ends with the given suffix."
+[operations.signature]
+inputs = [
+  { name = "s", type = { kind = "ref", name = "string" } },
+  { name = "suffix", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = true
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bool"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "hint"
+[operations.lowering]
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "example.invalid.fallback.string.ends_with_impl"
+required = true
+
+[[operations]]
 id = "panic"
-exposure = "public"
-binding_required = true
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "required" }
 description = "Abort execution with a message, via the runtime panic handler."
 [operations.signature]
-inputs = [{ name = "message", type = "string" }]
-outputs = [{ type = "unit" }]
+inputs = [{ name = "message", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -118,6 +171,7 @@ const_evaluable = false
 overflow = "none"
 nan = "none"
 trap = "none"
+equivalence = "noreturn"
 [operations.effect]
 memory = "none"
 allocates = false
@@ -139,15 +193,16 @@ required = false
 
 [[operations]]
 id = "simd.i32x4.add"
-exposure = "public"
-binding_required = false
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration" }
 description = "Portable 4-lane i32 addition. Scalar fallback, native SIMD specialisation."
 [operations.signature]
 inputs = [
-  { name = "a", type = "simd.i32x4" },
-  { name = "b", type = "simd.i32x4" },
+  { name = "a", type = { kind = "ref", name = "simd.i32x4" } },
+  { name = "b", type = { kind = "ref", name = "simd.i32x4" } },
 ]
-outputs = [{ type = "simd.i32x4" }]
+outputs = [{ type = { kind = "ref", name = "simd.i32x4" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -155,6 +210,7 @@ const_evaluable = true
 overflow = "wrap"
 nan = "none"
 trap = "none"
+equivalence = "exact_bitwise"
 [operations.effect]
 memory = "none"
 allocates = false
@@ -168,25 +224,33 @@ volatile = false
 policy = "hint"
 [operations.lowering]
 kind = "normal_call"
-[[operations.specializations]]
-when = { portable_simd_lowering = "NativeSimd" }
-backend = "wasm"
-target_op = "i32x4.add"
 [operations.fallback]
 implementation_symbol = "example.invalid.fallback.simd_i32x4_add"
 required = true
+[[operations.specializations]]
+priority = 100
+[operations.specializations.when]
+backend = "wasm"
+portable_simd_lowering = "NativeSimd"
+[operations.specializations.lowering]
+kind = "target_intrinsic"
+[operations.specializations.lowering.target]
+target_family = "wasm"
+target_id = "i32x4.add"
+required_target_features = ["simd128"]
 
 [[operations]]
 id = "simd.i32x4.sub"
-exposure = "public"
-binding_required = false
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration" }
 description = "Portable 4-lane i32 subtraction. Scalar fallback, native SIMD specialisation."
 [operations.signature]
 inputs = [
-  { name = "a", type = "simd.i32x4" },
-  { name = "b", type = "simd.i32x4" },
+  { name = "a", type = { kind = "ref", name = "simd.i32x4" } },
+  { name = "b", type = { kind = "ref", name = "simd.i32x4" } },
 ]
-outputs = [{ type = "simd.i32x4" }]
+outputs = [{ type = { kind = "ref", name = "simd.i32x4" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -194,6 +258,7 @@ const_evaluable = true
 overflow = "wrap"
 nan = "none"
 trap = "none"
+equivalence = "exact_bitwise"
 [operations.effect]
 memory = "none"
 allocates = false
@@ -207,32 +272,41 @@ volatile = false
 policy = "hint"
 [operations.lowering]
 kind = "normal_call"
-[[operations.specializations]]
-when = { portable_simd_lowering = "NativeSimd" }
-backend = "wasm"
-target_op = "i32x4.sub"
 [operations.fallback]
 implementation_symbol = "example.invalid.fallback.simd_i32x4_sub"
 required = true
+[[operations.specializations]]
+priority = 100
+[operations.specializations.when]
+backend = "wasm"
+portable_simd_lowering = "NativeSimd"
+[operations.specializations.lowering]
+kind = "target_intrinsic"
+[operations.specializations.lowering.target]
+target_family = "wasm"
+target_id = "i32x4.sub"
+required_target_features = ["simd128"]
 
 [[operations]]
 id = "simd.f32x4.add"
-exposure = "public"
-binding_required = false
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "std::simd currently uses v128; bind after ADR-037 nominal type migration" }
 description = "Portable 4-lane f32 addition. Scalar fallback, native SIMD specialisation."
 [operations.signature]
 inputs = [
-  { name = "a", type = "simd.f32x4" },
-  { name = "b", type = "simd.f32x4" },
+  { name = "a", type = { kind = "ref", name = "simd.f32x4" } },
+  { name = "b", type = { kind = "ref", name = "simd.f32x4" } },
 ]
-outputs = [{ type = "simd.f32x4" }]
+outputs = [{ type = { kind = "ref", name = "simd.f32x4" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = true
 overflow = "ieee754"
-nan = "canonical"
+nan = "preserve_nan_class_payload_unspecified"
 trap = "none"
+equivalence = "float_value_nan_payload_ignored"
 [operations.effect]
 memory = "none"
 allocates = false
@@ -246,25 +320,33 @@ volatile = false
 policy = "hint"
 [operations.lowering]
 kind = "normal_call"
-[[operations.specializations]]
-when = { portable_simd_lowering = "NativeSimd" }
-backend = "wasm"
-target_op = "f32x4.add"
 [operations.fallback]
 implementation_symbol = "example.invalid.fallback.simd_f32x4_add"
 required = true
+[[operations.specializations]]
+priority = 100
+[operations.specializations.when]
+backend = "wasm"
+portable_simd_lowering = "NativeSimd"
+[operations.specializations.lowering]
+kind = "target_intrinsic"
+[operations.specializations.lowering.target]
+target_family = "wasm"
+target_id = "f32x4.add"
+required_target_features = ["simd128"]
 
 [[operations]]
 id = "wasm.v128.load"
-exposure = "public"
-binding_required = true
+visibility = "public"
+classification = { layer = "target_raw" }
+binding = { policy = "required" }
 description = "Load a 128-bit vector from linear memory at address + offset."
 [operations.signature]
 inputs = [
-  { name = "address", type = "i32" },
-  { name = "offset", type = "i32" },
+  { name = "address", type = { kind = "primitive", name = "i32" } },
+  { name = "offset", type = { kind = "primitive", name = "i32" } },
 ]
-outputs = [{ type = "v128" }]
+outputs = [{ type = { kind = "ref", name = "wasm.v128" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -272,6 +354,7 @@ const_evaluable = false
 overflow = "none"
 nan = "none"
 trap = "memory"
+equivalence = "exact_bitwise"
 [operations.effect]
 memory = "read"
 allocates = false
@@ -288,6 +371,7 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "v128.load"
-required_features = ["simd"]
+required_capabilities = ["wasm_raw_v128"]
+required_target_features = ["simd128"]
 [operations.fallback]
 required = false

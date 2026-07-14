@@ -164,6 +164,7 @@ doc_category = "string"
 [[functions]]
 name = "starts_with"
 kind = "prelude_wrapper"
+core_op_id = "string.starts_with"
 intrinsic = "__intrinsic_starts_with"
 params = ["String", "String"]
 returns = "bool"
@@ -174,6 +175,7 @@ doc_category = "string"
 [[functions]]
 name = "ends_with"
 kind = "prelude_wrapper"
+core_op_id = "string.ends_with"
 intrinsic = "__intrinsic_ends_with"
 params = ["String", "String"]
 returns = "bool"
@@ -1933,6 +1935,7 @@ name = "ends_with"
 module = "std::text"
 doc_category = "text"
 stability = "stable"
+core_op_id = "string.ends_with"
 intrinsic = "__intrinsic_ends_with"
 params = ["String", "String"]
 returns = "bool"

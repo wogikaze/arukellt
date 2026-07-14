@@ -5,7 +5,7 @@ Updated: 2026-07-15
 ID: 729
 Track: compiler-internal
 Depends on: "724, 727"
-Related: "718, 709, 798, 816, 817, ADR-040, ADR-036, ADR-042"
+Related: "718, 709, 798, 808, 816, 817, ADR-040, ADR-036, ADR-042"
 Orchestration class: blocked
 Orchestration upstream: ADR-042 acceptance
 Blocks v{N}: none
@@ -50,12 +50,16 @@ ADR-042 defines five layers:
 ## Child issues
 
 - **#798** — ADR-042 semantic operation registry migration (first implementation child)
-- **#816** — Prelude compilation restoration (RFC dependency)
-- **#817** — Sealed raw API module for Vec/String internal representation (RFC dependency)
 
 Additional implementation children (host ABI separation, stdlib inliner,
 pure stdlib migration, allocation-dependent stdlib migration) will be filed
 under this epic as the registry work in #798 completes.
+
+## Related issues
+
+- **#816** — Prelude compilation restoration (RFC dependency, out of scope)
+- **#817** — Sealed raw API module for Vec/String internal representation (RFC dependency, out of scope)
+- **#808** — T3/Wasm validation failures (global `verify quick` gate blocker)
 
 ## Acceptance
 
@@ -63,12 +67,12 @@ under this epic as the registry work in #798 completes.
 - [ ] All child issues of this epic are closed
 - [ ] Callee-string dispatch is removed from call lowering (semantic invariant, not just a file-name check)
 - [ ] No host intrinsics remain in the emitter; host operations are lowered through runtime ABI / WIT import
-- [ ] `SignatureEntry` carries `core_op_id`, effect, const semantics, `inline_policy`, lowering variant, signature, exposure, and fallback
-- [ ] `data/core-ops.toml` is the SSOT for semantic types / `CoreOpId` / effect / lowering / fallback
+- [ ] `SignatureEntry` carries only `core_op_id` and function signature; `CoreOpRegistry` metadata is not duplicated
+- [ ] `data/core-ops.toml` is the SSOT for semantic types / `CoreOpId` / visibility / classification / binding / effect / lowering / fallback
 - [ ] `std/manifest.toml` remains the SSOT for public path / docs / stability / deprecation, referencing `core-ops.toml` via `core_op_id` / `type_id`
 - [ ] stdlib-only inliner is operational
 - [ ] Migrated operations have Ark fallback bodies and pass differential tests
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [ ] Global `python3 scripts/manager.py verify quick` exits 0 (blocked by #808 until fixed)
 
 ## Close gate
 
@@ -81,13 +85,15 @@ specific file names or syntax:
 4. Host operations are lowered through the runtime ABI layer, not through `intrinsic_*.ark` files in the emitter.
 5. Public `std/manifest.toml` bindings are consistent with `data/core-ops.toml` `signature` and `effect`.
 6. Differential tests pass between Ark fallback and optimized lowering for all migrated operations.
-7. `python3 scripts/manager.py verify quick` passes.
+7. `python3 scripts/manager.py verify quick` passes (requires #808 closed).
 
 ## Notes
 
 - The detailed phase order is canonicalized in [`docs/plans/intrinsic-layer-separation.md`](../../docs/plans/intrinsic-layer-separation.md).
 - This issue is intentionally **not** a checklist of phases; phase-level
 checklists belong in child issues and the plan document.
+- #816 and #817 are **out of scope** for this epic. They are tracked as
+  separate RFC dependencies and are listed under Related issues only.
 
 ## Dependency Notes
 
@@ -99,8 +105,9 @@ checklists belong in child issues and the plan document.
   begins. Host intrinsic removal is shared scope with the child migration
   issues.
 - Related: **#798** — registry schema and `SignatureEntry` extension.
-- Related: **#816** — prelude compilation restoration (RFC dependency).
-- Related: **#817** — sealed raw API module (RFC dependency).
+- Related: **#808** — T3/Wasm validation failures (global `verify quick` blocker).
+- Related: **#816** — prelude compilation restoration (RFC dependency, out of scope).
+- Related: **#817** — sealed raw API module (RFC dependency, out of scope).
 - Related: **#718** (free-function → method migration) — the Ark stdlib
   migration target is the same; ADR-042 adds the semantic/inliner layer.
 - Related: **#709** (trait-first API policy) — trait-based generics replace
@@ -120,7 +127,7 @@ checklists belong in child issues and the plan document.
 - `docs/adr/ADR-036-trait-stdlib-redesign.md` — trait-based stdlib
 - `data/core-ops.toml` — semantic registry SSOT
 - `std/manifest.toml` — public API / docs / stability / deprecation SSOT
-- `src/compiler/wasm/call_dispatch.ark` — current string-based dispatch
+- `src/compiler/wasm/call_dispatch_table.ark` — current string-based dispatch
 - `src/compiler/wasm/intrinsic_*.ark` — intrinsic files
 - `src/compiler/corehir/signature_entry.ark` — SignatureEntry
 - `src/compiler/mir/inst_record.ark` — `func_id_raw` field
