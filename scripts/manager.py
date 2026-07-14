@@ -4261,12 +4261,15 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     # s3.wasm, then s2.wasm, then the pinned bootstrap.  If the fixpoint build
     # failed (exit 2), none of the built wasms exist, so the wrapper falls back
     # to the unpatched pinned wasm (512 MiB limit).  Preparing the heap-patched
-    # bootstrap wasm here ensures the wrapper always has a 4 GiB wasm to use,
-    # preventing OOM crashes during parallel lint/compile checks.
+    # bootstrap wasm here and setting ARUKELLT_SELFHOST_WASM ensures the
+    # wrapper always uses a 4 GiB wasm, preventing OOM crashes during parallel
+    # lint/compile checks.
     if not dry_run:
         pinned = _find_pinned_wasm(root)
         if pinned is not None:
-            _ensure_bootstrap_compiler_wasm(root, pinned)
+            patched = _ensure_bootstrap_compiler_wasm(root, pinned)
+            if patched is not None and patched.is_file():
+                os.environ["ARUKELLT_SELFHOST_WASM"] = str(patched)
 
     # ── Fixture manifest completeness check ──────────────────────────────────
     print(f"\n{YELLOW}[manifest] Checking fixture manifest completeness...{NC}")
