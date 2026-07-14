@@ -34,14 +34,9 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | 項目 | ADR / research | 現行 |
 |------|----------------|------|
-| `wasm32-freestanding` | ADR-007: 廃止。公開名はハードエラー | driver/emitter に旧 compile-only 実装が残存 → **削除対象** |
 | Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
-| CLI default | primary = `wasm32-gc`（ADR-013）。`project-state.toml` `cli_default` も `wasm32-gc` | 実装はまだ旧名 `wasm32-wasi-p2` を default 文字列として保持 → **alias 移行中** |
-| canonical alias policy | ADR-007 で決定済み（`wasm32-wasi-p1`→`wasm32` 等） | target parser は旧名を直接使用する箇所あり → **移行中** |
-| VS Code `arukellt.target` | ADR-007 canonical: `wasm32` / `wasm32-gc` | extension enum が `wasm32-wasi-p1` / `wasm32-wasi-p2` のみ → **alias 移行中** |
-| stdlib manifest / generated docs target labels | ADR-007 canonical 名をユーザー向けに使う | `availability` の内部キーは `t1`/`t3` のまま。生成ラベルは移行中 → **SSOT 移行中** |
 
 ### Proposed migration gaps（normative ではない）
 
@@ -50,7 +45,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | 項目 | 提案 ADR | 現行 |
 |------|----------|------|
 | Trait stdlib redesign | ADR-046 根絶 + ADR-036（D5 撤回）+ ADR-014 削除方針 | モノモルフィック / free 公開面が残存 → **移行前**（根絶方針は採択済み） |
-| Intrinsic layer | ADR-042: `docs/data/core-ops.toml` SSOT | manifest / resolver 二重面 → **移行前** |
+| Intrinsic layer | ADR-042（PROPOSED）が `docs/data/core-ops.toml` owner を提案 | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、移行は #798 |
 | SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
 | SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
 | Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |
@@ -103,9 +98,9 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 
 **ADR-007 では廃止済み**（公開ターゲット名はハードエラー。alias にもしない）。
 
-実装ギャップ: 旧 T2 相当の compile-only コードが `src/compiler/driver.ark` /
-emitter にまだ残っている場合がある。これは公開契約ではなく **削除対象のレガシー**である。
-検証・ドキュメント・CLI 案内では現行ターゲットとして扱わない。
+CLI boundary はこの名前を hard error とし、compiler 内部へ伝播させない。
+旧 compile-only target dispatch は削除済みであり、alias table、互換試験、履歴文書以外では
+現行ターゲットとして扱わない。
 正本のターゲット表は上記生成ブロックおよび [ADR-007](adr/ADR-007-targets.md)。
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->

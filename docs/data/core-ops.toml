@@ -1,9 +1,8 @@
-# Core semantic operations registry (SSOT) — ADR-042 D5
+# Future core semantic operations registry scaffold — ADR-042 (PROPOSED) D5
 # Human-readable overview: docs/compiler/core-ops-registry.md
 #
-# Responsibility split:
-#   this file     — semantic ID, type meaning, effect, lowering, fallback symbol
-#   std/manifest.toml — public path, docs, stability, deprecation (via semantic_id)
+# Proposed responsibility split; not authoritative until ADR-042 is accepted and
+# issue #798 completes the migration.
 #
 # Fallback values are stable symbol paths (or DefKey after name resolution).
 # Do not store compile-local FunctionId here.
@@ -13,7 +12,7 @@ status = "scaffold"
 
 [registry]
 description = "Core semantic operations registry"
-generated_outputs = [
+planned_outputs = [
   "compiler-type-table",
   "compiler-semantic-ops",
   "stdlib-manifest-validation",

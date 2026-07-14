@@ -1,20 +1,23 @@
 # Core Ops Registry
 
-> SSOT file: [`docs/data/core-ops.toml`](../data/core-ops.toml)  
-> Decision: [ADR-042](../adr/ADR-042-intrinsic-layer-separation.md) D5
+> Future registry scaffold: [`docs/data/core-ops.toml`](../data/core-ops.toml)
+> Proposed design: [ADR-042](../adr/ADR-042-intrinsic-layer-separation.md) D5
+> Migration owner: [issue #798](../../issues/open/798-adr-042-semantic-operation-registry-migration.md)
 
 ## Role
 
-`core-ops.toml` is the machine-readable semantic spine for types and operations
-that the compiler may specialise (effect, trap, const-eval, lowering, fallback).
+`core-ops.toml` sketches a future machine-readable semantic spine. Its
+`status = "scaffold"` means the compiler does not consume it as an authoritative
+input today.
 
 | Concern | Owner |
 |---------|-------|
-| Semantic ID, type meaning, effect, lowering, fallback symbol | `docs/data/core-ops.toml` |
+| Current semantic registration and lowering | resolver / typechecker / MIR / emitter code |
 | Public path, docs, stability, deprecation | `std/manifest.toml` |
+| Proposed future semantic metadata | `docs/data/core-ops.toml` scaffold (ADR-042) |
 
-Manifest entries **reference** core-ops by `semantic_id` / `type_id`.
-They are not generated wholesale from core-ops (see ADR-042 D5 reference model).
+Manifest `semantic_id` / `type_id` references shown below are proposed, not the
+current schema. Issue #798 owns adoption after ADR-042 acceptance.
 
 ```toml
 # std/manifest.toml (illustrative)
@@ -33,5 +36,5 @@ Compile-local `FunctionId` must not be persisted in the registry.
 ## Status
 
 Current `schema_version = 1` entries are **scaffold** examples for SIMD.
-Resolver / typechecker / MIR / docs generators will consume this file once
-implementation starts; until then the shape is normative, the op set is not.
+Resolver / typechecker / MIR / docs generators do not consume this file today.
+The schema and operation set are non-normative while ADR-042 remains PROPOSED.

@@ -1,5 +1,8 @@
 # Arukellt Standard Library Manifest
-# Single source of truth for all builtins, intrinsics, and prelude functions.
+# Current owner for public stdlib paths, documentation, stability, deprecation,
+# and the published prelude surface. Compiler semantic registrations remain in
+# resolver/typechecker/MIR/emitter code until proposed ADR-042 is accepted and
+# issue #798 performs an explicit ownership migration.
 #
 # Sources cross-referenced:
 #   - src/compiler/resolver.ark           (prelude symbols)
