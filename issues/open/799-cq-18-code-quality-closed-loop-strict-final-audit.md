@@ -79,6 +79,15 @@ a new refactor wave.
 The previous CQ-18 close was a false-done. The following blocking findings
 must be resolved before re-close:
 
+### Scope decision: #715 remains a hard dependency
+
+#715 (in-file test coverage) is a legitimate dependency of CQ-18 because
+the dummy/probe test inflation was a CQ-18 blocking finding (finding 9).
+CQ-18 cannot close while #715 is open, because the test count inflation
+invalidated the "no false-done" claim. `Orchestration class: blocked`
+and `Orchestration upstream: 715, 797` are correct and will remain until
+both #715 and #797 are resolved.
+
 1. **~~Live GitHub ruleset not confirmed~~** (RESOLVED): `gh api
    repos/wogikaze/arukellt/rulesets/18894318` executed. Live readback
    confirms: enforcement=active, target=~DEFAULT_BRANCH (master),

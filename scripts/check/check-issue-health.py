@@ -109,8 +109,18 @@ def check_issues(open_dir: Path, done_dir: Path, fix: bool) -> int:
                 print(f"UNCHECKED_IN_DONE: {p.name} has unchecked items")
                 errors += 1
 
-    # ── Check for dead dependency references ──────────────────────────────
-    all_ids = set(open_files.keys()) | set(done_files.keys())
+    # ── Build issue ID sets ───────────────────────────────────────────────
+    blocked_dir = REPO_ROOT / "issues" / "blocked"
+    blocked_files: dict[str, list[Path]] = {}
+    if blocked_dir.exists():
+        for p in blocked_dir.glob("*.md"):
+            m = ISSUE_ID_RE.match(p.name)
+            if m:
+                blocked_files.setdefault(m.group(1), []).append(p)
+    all_ids = set(open_files.keys()) | set(done_files.keys()) | set(blocked_files.keys())
+    open_ids = set(open_files.keys())
+
+    # ── Check for dead dependency / upstream references ────────────────────
     depends_re = re.compile(r'(?:Depends on|depends-on|blocked-by):\s*"?#?(\d{3})"?', re.MULTILINE)
     for label, store in [("open", open_files), ("done", done_files)]:
         for issue_id, paths in store.items():
@@ -121,6 +131,62 @@ def check_issues(open_dir: Path, done_dir: Path, fix: bool) -> int:
                     if dep_id not in all_ids:
                         print(f"DEAD_DEPENDENCY: {path.name} references #{dep_id} which does not exist")
                         errors += 1
+
+    # ── Check orchestration metadata consistency ──────────────────────────
+    def parse_upstream_ids(raw: str) -> set[str]:
+        ids: set[str] = set()
+        raw = raw.strip().strip('"')
+        if raw.lower() in ("", "none", "n/a"):
+            return ids
+        for token in raw.split(","):
+            token = token.strip().strip('"')
+            m = re.match(r'^#?(\d{3})', token)
+            if m:
+                ids.add(m.group(1))
+        return ids
+
+    for label, store in [("open", open_files), ("done", done_files)]:
+        for issue_id, paths in store.items():
+            for path in paths:
+                fm = parse_frontmatter(path)
+                status = fm.get("Status", "").lower()
+                orch_class = fm.get("Orchestration class", "").lower()
+                depends_raw = fm.get("Depends on", "")
+                upstream_raw = fm.get("Orchestration upstream", "")
+
+                depends_ids = set()
+                for m in re.finditer(r'\d{3}', depends_raw):
+                    depends_ids.add(m.group(0))
+
+                upstream_ids = parse_upstream_ids(upstream_raw)
+
+                upstream_raw_norm = upstream_raw.strip().lower()
+                upstream_present = upstream_raw_norm not in ("", "none", "n/a")
+
+                if status == "done":
+                    if orch_class == "blocked":
+                        print(f"DONE_BUT_BLOCKED: {path.name} has Status: done and Orchestration class: blocked")
+                        errors += 1
+                    if upstream_ids & open_ids:
+                        open_up = ", ".join(sorted(upstream_ids & open_ids))
+                        print(f"DONE_WITH_OPEN_UPSTREAM: {path.name} is done but upstream {open_up} is open")
+                        errors += 1
+                    if depends_ids & open_ids:
+                        open_dep = ", ".join(sorted(depends_ids & open_ids))
+                        print(f"DONE_WITH_OPEN_DEPENDENCY: {path.name} is done but Depends on {open_dep} is open")
+                        errors += 1
+
+                if orch_class == "blocked" and not upstream_present:
+                    print(f"BLOCKED_WITHOUT_UPSTREAM: {path.name} is blocked but Orchestration upstream is none")
+                    errors += 1
+                if orch_class == "ready" and upstream_present:
+                    print(f"READY_WITH_UPSTREAM: {path.name} is ready but Orchestration upstream is non-empty")
+                    errors += 1
+
+                if upstream_ids - depends_ids:
+                    extra = ", ".join(sorted(upstream_ids - depends_ids))
+                    print(f"UPSTREAM_NOT_IN_DEPENDS: {path.name} lists upstream {extra} not in Depends on")
+                    errors += 1
 
     if errors == 0:
         print("ISSUE_HEALTH: PASS")

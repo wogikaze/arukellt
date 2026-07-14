@@ -81,6 +81,39 @@ class IssueHealthTest(unittest.TestCase):
         )
         self.assertNotEqual(self._run(), 0)
 
+    def test_done_but_blocked(self) -> None:
+        (self.done_dir / "810-a.md").write_text(
+            "---\nStatus: done\nID: 810\nOrchestration class: blocked\nOrchestration upstream: 811\n---\n# test\n",
+            encoding="utf-8",
+        )
+        _write_issue(self.open_dir / "811-b.md", "811", "open")
+        self.assertNotEqual(self._run(), 0)
+
+    def test_done_with_open_upstream(self) -> None:
+        (self.done_dir / "820-a.md").write_text(
+            "---\nStatus: done\nID: 820\nOrchestration class: ready\nOrchestration upstream: none\nDepends on: \"821\"\n---\n# test\n",
+            encoding="utf-8",
+        )
+        _write_issue(self.open_dir / "821-b.md", "821", "open")
+        self.assertNotEqual(self._run(), 0)
+
+    def test_done_with_open_dependency(self) -> None:
+        (self.done_dir / "830-a.md").write_text(
+            "---\nStatus: done\nID: 830\nOrchestration class: ready\nOrchestration upstream: none\nDepends on: \"831\"\n---\n# test\n",
+            encoding="utf-8",
+        )
+        _write_issue(self.open_dir / "831-b.md", "831", "open")
+        self.assertNotEqual(self._run(), 0)
+
+    def test_upstream_not_in_depends(self) -> None:
+        (self.open_dir / "840-a.md").write_text(
+            "---\nStatus: open\nID: 840\nDepends on: \"841\"\nOrchestration class: blocked\nOrchestration upstream: 842\n---\n# test\n",
+            encoding="utf-8",
+        )
+        _write_issue(self.open_dir / "841-b.md", "841", "open")
+        _write_issue(self.open_dir / "842-b.md", "842", "open")
+        self.assertNotEqual(self._run(), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
