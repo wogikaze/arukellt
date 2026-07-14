@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T06:09:51Z",
+  "generated_at": "2026-07-14T09:39:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -830,7 +830,9 @@
       "depends_on": [
         "785"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "800"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 5
@@ -855,25 +857,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "ADR-042 acceptance"
-      }
-    },
-    {
-      "id": "799",
-      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
-      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "797"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "in-progress",
-        "upstream_notes": 797
       }
     },
     {
@@ -1087,6 +1070,25 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "800",
+      "path": "800-fmt-multi-file-batching.md",
+      "title": "800 — Batch multi-file fmt to amortize wasmtime cold-start",
+      "track": "tooling-contract",
+      "status": "open",
+      "depends_on": [
+        "791"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
       }
     },
     {
