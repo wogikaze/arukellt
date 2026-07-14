@@ -1,11 +1,11 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 796
 Track: code-quality
 Depends on: "795"
-Orchestration class: completed
+Orchestration class: ready
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
@@ -57,11 +57,33 @@ dependency ADR, acceptance, and rollback boundary in #798.
 
 - [x] Every listed knowledge category has a recorded disposition under the corrected accepted-contract scope
 - [x] Same-knowledge duplication in accepted contracts has one owner
-- [x] Compatibility aliases are separated from canonical representation
-- [x] Derived views have deterministic generation and drift checks
-- [x] Existing registries are reused and local knowledge remains local
-- [x] Code, tests, docs, and generated views are synchronized
-- [x] Before/after owner inventory is recorded below
+- [ ] Compatibility aliases are separated from canonical representation
+- [ ] Derived views have deterministic generation and drift checks
+- [ ] Existing registries are reused and local knowledge remains local
+- [ ] Code, tests, docs, and generated views are synchronized
+- [ ] Before/after owner inventory is recorded below
+
+## Reopened blocking findings (2026-07-14 CQ-18 audit)
+
+1. **core-ops.toml ownership contradiction**: Three documents disagree:
+   - `docs/data/core-ops.toml`: `status = "scaffold"`
+   - `docs/current-state.md`: current owner is manifest + compiler-local registration
+   - `docs/directory-ownership.md`: `core-ops.toml = product (SSOT input)`
+   While ADR-042 is PROPOSED, `core-ops.toml` must NOT be described as
+   `product (SSOT input)` or current compiler SSOT. `directory-ownership.md`
+   must be corrected to: future semantic registry scaffold, hand-maintained
+   proposal input, not consumed authoritatively by compiler, migration
+   owner: #798.
+2. **CQ-17 target documentation incomplete**: Active/user-facing surfaces
+   still contain old target names as current spec (see #797 blocking
+   findings). CQ-16 Acceptance "code, tests, docs, and generated views are
+   synchronized" is not met while active docs show deprecated names as
+   canonical.
+3. **generated-file registration claim is inaccurate**: Completion evidence
+   states all 4 target views are registered in `.generated-files`, but only
+   2 are registered. Partial-generation files (`target-contract-summary.md`,
+   `current-state.md` target section) are not in the manifest. Either extend
+   the schema or correct the claim.
 
 ## Validation commands
 

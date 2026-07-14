@@ -38,8 +38,8 @@ graph LR
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
+  I715["715 715 — In-file test coverage targets for compiler and stdlib"]
   I718["718 718 — Stdlib free-function → method/trait migration inventory"]
-  I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I722["722 Typed Function References (`call_ref`) ベンチマーク計測"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
@@ -48,6 +48,7 @@ graph LR
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
+  I796["796 796 — CQ-16: duplicated knowledge and SSOT consolidation"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
@@ -58,12 +59,15 @@ graph LR
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I668["668 668 — P2 native component polish (post-#074)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
+  I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
+  I797["797 797 — CQ-17: public API and comment audit"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I729["729 729 — Intrinsic layer separation: semantic stdlib + runtime ABI + Ark migration"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
+  I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -81,8 +85,10 @@ graph LR
   I714 --> I668
   I714 --> I727
   I675 --> I727
+  I715 --> I719
   I724 --> I726
   I791 --> I800
+  I796 --> I797
   I682 --> I683
   I691 --> I709
   I695 --> I709
@@ -91,6 +97,7 @@ graph LR
   I724 --> I729
   I727 --> I729
   I726 --> I730
+  I797 --> I799
   I691 --> I710
   I697 --> I710
   I709 --> I710
@@ -139,8 +146,8 @@ graph LR
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none
 - **714** depends on: 074, 510; blocks: 668, 727
+- **715** depends on: 041, done); blocks: 719
 - **718** depends on: 700, 701; blocks: none
-- **719** depends on: 715; blocks: none
 - **721** depends on: none; blocks: none
 - **722** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
@@ -149,6 +156,7 @@ graph LR
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 800
+- **796** depends on: 795; blocks: 797
 - **798** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none
@@ -159,12 +167,15 @@ graph LR
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **668** depends on: 074, 510, 714; blocks: none
 - **727** depends on: 714, 675; blocks: 729
+- **719** depends on: 715; blocks: none
 - **726** depends on: 724; blocks: 730
 - **800** depends on: 791; blocks: none
+- **797** depends on: 796; blocks: 799
 - **683** depends on: 679, 682; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **729** depends on: 724, 727; blocks: none
 - **730** depends on: 726; blocks: none
+- **799** depends on: 797; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713

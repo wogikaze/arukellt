@@ -1,12 +1,12 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 799
 Track: code-quality
 Depends on: "797"
-Orchestration class: completed
-Orchestration upstream: 797
+Orchestration class: blocked
+Orchestration upstream: 715, 796, 797
 Blocks v{N}: none
 Priority: 1
 Source: CQ closed-loop strict final audit
@@ -62,17 +62,54 @@ a new refactor wave.
 
 ## Acceptance
 
-- [x] CQ-01 through CQ-17 contain no false-done state
-- [x] CQ-16 and CQ-17 are closed in dependency order
-- [x] Target aliases canonicalize once and old spellings remain only in allowed scopes
-- [x] Proposed ADR-042 and current core-ops ownership are described accurately
-- [x] Commands, CI, rule registry, required checks, CODEOWNERS, and live ruleset agree
-- [x] No baseline increase or newly unowned exception exists
-- [x] Formatter, linter, structure, comment, docs, unit, and quick gates pass
-- [x] `verify full` completes once and all failures are identity-classified
-- [x] Docs regenerate without drift and issue indexes are generated
-- [x] Manual samples and ambiguity/false-positive/false-negative results are recorded
-- [x] Worktree is clean at a committed final HEAD
+- [ ] CQ-01 through CQ-17 contain no false-done state
+- [ ] CQ-16 and CQ-17 are closed in dependency order
+- [ ] Target aliases canonicalize once and old spellings remain only in allowed scopes
+- [ ] Proposed ADR-042 and current core-ops ownership are described accurately
+- [ ] Commands, CI, rule registry, required checks, CODEOWNERS, and live ruleset agree
+- [ ] No baseline increase or newly unowned exception exists
+- [ ] Formatter, linter, structure, comment, docs, unit, and quick gates pass
+- [ ] `verify full` completes once and all failures are identity-classified
+- [ ] Docs regenerate without drift and issue indexes are generated
+- [ ] Manual samples and ambiguity/false-positive/false-negative results are recorded
+- [ ] Worktree is clean at a committed final HEAD
+
+## Reopened blocking findings (2026-07-14 external audit)
+
+The previous CQ-18 close was a false-done. The following blocking findings
+must be resolved before re-close:
+
+1. **Live GitHub ruleset not confirmed**: `gh api` was not executed. Repository
+   JSON is not a substitute for live readback. This Acceptance stays unchecked
+   until `gh api repos/wogikaze/arukellt/rulesets` is run and enforcement,
+   branch, required contexts, strict policy, and bypass actors are confirmed.
+2. **Manual sample counts below requirement**: Required vs actual:
+   - wrapper: 50 required, 5 actual
+   - hotspot: top 20 required, 3 actual
+   - A API: 20 required, 5 actual
+   - B API: all 36 required, 36 actual (OK)
+   - C API: 20 required, 5 actual
+   Must redo with required counts and deterministic selection.
+3. **Unresolved failure owners are invalid**: `verify full` failures were
+   assigned to done issues (#287, #459, #529) or labeled `known`/`various`/
+   `dynamic` without a tracking issue. Each failure category needs an open
+   owner issue with: exact scope, machine-readable baseline, owner, removal
+   condition, validation command, current count, new-failure ratchet.
+4. **Issue ID #686 duplicated**: Two files share ID 686 in `issues/open/`.
+   `check-issue-health.py` does not detect cross-file duplicates. Must fix
+   checker, assign unique ID, update dependencies/index.
+5. **core-ops.toml ownership contradiction**: See #796 blocking finding 1.
+6. **CQ-17 target documentation incomplete**: See #797 blocking finding 1.
+7. **generated-file registration claim inaccurate**: See #796 blocking
+   finding 3.
+8. **current-state.md snapshot stale**: `Generated-At: 2026-07-11`,
+   `Implementation-Commit: a80b4181` does not match verified commit. Must
+   regenerate after all fixes.
+9. **#715 dummy/probe tests**: See #715 blocking findings. Test count
+   inflation invalidates CQ-18 "no false-done" claim for #715.
+10. **verify full receipt not machine-readable**: No exact fixture/check ID
+    baseline diff saved. Aggregate counts mixed with individual fixture
+    counts. Must save machine-readable receipt with exact identity set.
 
 ## Validation commands
 

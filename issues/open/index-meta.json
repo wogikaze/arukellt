@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T09:39:25Z",
+  "generated_at": "2026-07-14T09:53:36Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -659,6 +659,28 @@
       }
     },
     {
+      "id": "715",
+      "path": "715-in-file-test-coverage-targets.md",
+      "title": "715 — In-file test coverage targets for compiler and stdlib",
+      "track": "testing",
+      "status": "open",
+      "depends_on": [
+        "041",
+        "done)"
+      ],
+      "blocks_issue_ids": [
+        "719"
+      ],
+      "acceptance": {
+        "checked": 13,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "718",
       "path": "718-stdlib-free-function-method-migration.md",
       "title": "718 — Stdlib free-function → method/trait migration inventory",
@@ -675,25 +697,6 @@
       },
       "orchestration": {
         "class": "incremental",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "719",
-      "path": "719-test-execution-harness.md",
-      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
-      "track": "tooling",
-      "status": "open",
-      "depends_on": [
-        "715"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation",
         "upstream_notes": "None"
       }
     },
@@ -835,6 +838,27 @@
       ],
       "acceptance": {
         "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "796",
+      "path": "796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+      "title": "796 — CQ-16: duplicated knowledge and SSOT consolidation",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "795"
+      ],
+      "blocks_issue_ids": [
+        "797"
+      ],
+      "acceptance": {
+        "checked": 2,
         "unchecked": 5
       },
       "orchestration": {
@@ -1052,6 +1076,25 @@
       }
     },
     {
+      "id": "719",
+      "path": "719-test-execution-harness.md",
+      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
+      "track": "tooling",
+      "status": "open",
+      "depends_on": [
+        "715"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "726",
       "path": "726-t3-wasm-validation-32-failures.md",
       "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
@@ -1089,6 +1132,27 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "797",
+      "path": "797-cq-17-public-api-and-comment-audit.md",
+      "title": "797 — CQ-17: public API and comment audit",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "796"
+      ],
+      "blocks_issue_ids": [
+        "799"
+      ],
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": 796
       }
     },
     {
@@ -1175,6 +1239,25 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "799",
+      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
+      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
+      "track": "code-quality",
+      "status": "open",
+      "depends_on": [
+        "797"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "715, 796, 797"
       }
     },
     {

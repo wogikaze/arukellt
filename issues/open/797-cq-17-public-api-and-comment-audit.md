@@ -1,12 +1,12 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 797
 Track: code-quality
 Depends on: "796"
-Orchestration class: completed
-Orchestration upstream: None
+Orchestration class: blocked
+Orchestration upstream: 796
 Blocks v{N}: none
 Priority: 1
 Source: CQ closed-loop plan CQ-17
@@ -42,11 +42,39 @@ without blanket comments or compatibility breaks.
 - [x] External API documentation coverage is 100%
 - [x] Required stable-boundary contracts are documented
 - [x] Internal cross-module visibility is not blanket-failed
-- [x] Proven unnecessary public surface is removed without boundary bypass
-- [x] Boilerplate headers, issue-only comments, and commented-out production code are zero
-- [x] Remaining TODO/FIXME entries are structured
-- [x] Comment-policy checker and tests cover classification and attachment contracts
-- [x] Before/after visibility, documentation, and comment inventories are recorded below
+- [ ] Proven unnecessary public surface is removed without boundary bypass
+- [ ] Boilerplate headers, issue-only comments, and commented-out production code are zero
+- [ ] Remaining TODO/FIXME entries are structured
+- [ ] Comment-policy checker and tests cover classification and attachment contracts
+- [ ] Before/after visibility, documentation, and comment inventories are recorded below
+
+## Reopened blocking findings (2026-07-14 CQ-18 audit)
+
+1. **Active/user-facing target documentation still uses old names as current
+   spec**: The Completion evidence claims "compiler, generated target view,
+   extension configuration, commands, and README use canonical target names"
+   but the following active surfaces still contain deprecated names as
+   current specification (not alias/migration/history):
+   - `docs/overview.html`: primary = `wasm32-wasi-p2`, CLI default = T1,
+     `wasm32-freestanding` listed as current target, command examples use
+     `--target wasm32-wasi-p2`
+   - `docs/playground/dist/compiler-types.d.ts`: default = `wasm32-freestanding`
+   - `docs/playground/dist/t2-runner.js`: `wasm32-freestanding` runner
+   - `std/host/udp.ark`, `std/host/streams.ark`: T1/T3 and old target names
+     as current availability
+   - `README.md` and `docs/stdlib/` need audit
+   Current canonical names are: `wasm32`, `wasm32-gc`, `native-cpp`,
+   `native-llvm` (targets); `wasi-p1`, `wasi-p2`, `wasi-p3` (host profiles).
+   Old names may remain only in: explicit alias tables, warnings, compat
+   tests, migration text, changelog, history.
+2. **Full active-surface audit required**: Must audit ALL active/user-facing
+   surfaces, not just compiler source. Minimum scope: `docs/overview.html`,
+   `docs/debug-support.md`, `docs/playground/dist/*`, `std/host/*.ark`,
+   `extensions/arukellt-all-in-one/`, `README.md`, `docs/stdlib/`.
+3. **Generated files must be fixed at source**: If old names are in
+   generated output, fix the generator and regenerate, do not hand-edit.
+4. **Completion evidence must record grep results**: Active-surface old-name
+   grep results must be recorded in Completion evidence at re-close.
 
 ## Validation commands
 

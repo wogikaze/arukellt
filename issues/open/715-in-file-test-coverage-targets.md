@@ -1,7 +1,7 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-04
-Updated: 2026-07-04
+Updated: 2026-07-14
 ID: 715
 Track: testing
 Depends on: "041 (ADR, done)"
@@ -99,16 +99,35 @@ Priority modules where in-file tests add the most value:
 
 ## Acceptance
 
-- [x] Phase 1: ≥180 in-file `test` declarations in `std/` covering pure
+- [ ] Phase 1: ≥180 in-file `test` declarations in `std/` covering pure
       functions in core, collections, text, bytes
-- [x] Phase 2: ≥60 in-file `test` declarations in `src/compiler/` covering
+- [ ] Phase 2: ≥60 in-file `test` declarations in `src/compiler/` covering
       lexer, parser, resolver, typechecker, mir, diagnostics
-- [x] No in-file tests added to side-effectful modules (host, component,
+- [ ] No in-file tests added to side-effectful modules (host, component,
       lsp, dap, wasm emitter body) — those stay fixture-only
-- [x] Coverage target documented in ADR-041 or `docs/current-state.md`
-- [x] `arukellt test` discovery works on all modified files without
+- [ ] Coverage target documented in ADR-041 or `docs/current-state.md`
+- [ ] `arukellt test` discovery works on all modified files without
       typecheck errors
-- [x] `python3 scripts/manager.py verify quick` passes after each phase
+- [ ] `python3 scripts/manager.py verify quick` passes after each phase
+
+## Reopened blocking findings (2026-07-14 CQ-18 audit)
+
+1. **Dummy/probe tests inflating count**: At least 171 `probe_N { assert(N >= 0) }`
+   tests and 4 `sanity { assert(1 == 1) }` tests exist. `std/bytes/mod.ark` has
+   150 probe tests, `src/compiler/main/targets.ark` has 21. These are generated
+   by `scripts/gen/append-issue-715-tests.py` to meet count targets, not to
+   verify contracts, boundaries, or invariants. This violates the Acceptance
+   intent and AGENTS.md test conventions.
+2. **Trivial asserts**: `assert(0 == 0)`, `assert(false == false)`, `assert(true)`
+   patterns exist in generated tests. These provide zero verification value.
+3. **Removal required**: All probe_N, sanity, and trivial-assert tests must be
+   removed. `append-issue-715-tests.py` bulk-fill logic must be removed.
+4. **Recount required**: After removal, coverage must be remeasured counting
+   only tests that verify function contracts, boundary values, or invariants.
+   If count falls below Acceptance threshold, issue stays open.
+5. **Lint prevention**: A quality checker or lint rule must detect and reject
+   future `probe_N`, `sanity` with trivial asserts, `assert(literal >= 0)`,
+   `assert(x == x)` patterns. False-positive unit tests required.
 
 ## Dependencies
 
