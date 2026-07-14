@@ -77,6 +77,13 @@ without blanket comments or compatibility breaks.
 4. **~~Completion evidence must record grep results~~** (RESOLVED):
    Grep results recorded above. All remaining old-name occurrences are
    in allowed scopes (alias, migration, history, policy, archive).
+5. **~~Operational target drift not detected~~** (RESOLVED):
+   `test_target_contract.py` only checked `src/compiler/**/*.ark`.
+   Added `scripts/check/check-operational-target-drift.py` to detect
+   deprecated target names in operational scripts, tests, benchmarks,
+   examples, and fixture .flags files. All 70 operational files
+   canonicalized. Old names allowed only in alias contracts, compat
+   tests, migration/history text, ADR/RFC/spec docs.
 
 ## Validation commands
 
