@@ -66,7 +66,7 @@ a new refactor wave.
 - [ ] CQ-16 and CQ-17 are closed in dependency order
 - [ ] Target aliases canonicalize once and old spellings remain only in allowed scopes
 - [ ] Proposed ADR-042 and current core-ops ownership are described accurately
-- [ ] Commands, CI, rule registry, required checks, CODEOWNERS, and live ruleset agree
+- [x] Commands, CI, rule registry, required checks, CODEOWNERS, and live ruleset agree
 - [ ] No baseline increase or newly unowned exception exists
 - [ ] Formatter, linter, structure, comment, docs, unit, and quick gates pass
 - [ ] `verify full` completes once and all failures are identity-classified
@@ -79,10 +79,15 @@ a new refactor wave.
 The previous CQ-18 close was a false-done. The following blocking findings
 must be resolved before re-close:
 
-1. **Live GitHub ruleset not confirmed**: `gh api` was not executed. Repository
-   JSON is not a substitute for live readback. This Acceptance stays unchecked
-   until `gh api repos/wogikaze/arukellt/rulesets` is run and enforcement,
-   branch, required contexts, strict policy, and bypass actors are confirmed.
+1. **~~Live GitHub ruleset not confirmed~~** (RESOLVED): `gh api
+   repos/wogikaze/arukellt/rulesets/18894318` executed. Live readback
+   confirms: enforcement=active, target=~DEFAULT_BRANCH (master),
+   required_status_checks=[quality-format, quality-lint, verify-quick,
+   Final gate], strict_required_status_checks_policy=true,
+   bypass_actors=[] (empty), require_code_owner_review=true,
+   required_approving_review_count=1,
+   required_review_thread_resolution=true. All match
+   `.github/rulesets/master-quality.json`.
 2. **~~Manual sample counts below requirement~~** (RESOLVED): Redone
    with required counts using deterministic every-Nth sampling:
    - wrapper: 50/50 (was 5/50)
