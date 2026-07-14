@@ -1,6 +1,5 @@
 // Arukellt Parser - Pratt infix right binding powers.
 
-
 pub fn infix_bp_right(kind: i32) -> i32 {
     // TK_PIPEPIPE=53 TK_AMPAMP=52 TK_PIPE=56 TK_CARET=57 TK_AMP=55
     // TK_EQEQ=46 TK_BANGEQ=47 TK_LT=48 TK_LTEQ=49 TK_GT=50 TK_GTEQ=51

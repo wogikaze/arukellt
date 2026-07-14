@@ -2,9 +2,9 @@
 //
 // Uses std::json JsonValue DOM for structured JSON construction.
 
+use std::json::parser
 use diagnostics::record
 use diagnostics::severity
-use std::json::parser
 
 fn diagnostic_span_to_json(span: DiagnosticSpan) -> String {
     let fields = parser::json_obj_new()

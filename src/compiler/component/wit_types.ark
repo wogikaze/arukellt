@@ -1,6 +1,5 @@
 // Arukellt Selfhost - WIT type text lowering
 use std::text
-
 use component::type_node
 use component::wit_names
 

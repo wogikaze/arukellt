@@ -5,7 +5,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 // Arukellt MIR lowering body - overloaded binary dispatch.
 
-
 fn try_lower_overloaded_binary(ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_idx: i32) -> i32 {
     let ov_ltype = ctx_get_local_type(ctx, l_idx)
     let ov_is_primitive = binary_type_names::mir_is_primitive_operator_type(clone(ov_ltype))

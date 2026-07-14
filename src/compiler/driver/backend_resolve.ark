@@ -1,5 +1,6 @@
 // Arukellt Selfhost - backend module loading and resolve stage.
 
+use std::host::clock
 use compiler::phases
 use compiler::session_resolve_query
 use driver::config_record
@@ -9,7 +10,6 @@ use loader::load
 use loader::module_state_errors
 use loader::module_state_modules
 use driver::result_record
-use std::host::clock
 
 struct DriverResolveResult {
     should_return: bool,

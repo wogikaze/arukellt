@@ -1,7 +1,6 @@
 use lexer::tokens
 // Arukellt Lexer - base token display names.
 
-
 pub fn token_base_name(kind: i32) -> String {
     if kind == tokens::TK_EOF() {
         return String_from("EOF")

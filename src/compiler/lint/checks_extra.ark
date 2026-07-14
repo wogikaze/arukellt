@@ -1,7 +1,6 @@
 // Arukellt Selfhost - lint checks: deprecated API and unused symbols.
 
 use diagnostics::codes
-use diagnostics::mod as diag_mod
 use diagnostics::record
 use lint::deprecated_table
 use parser::ast
@@ -9,6 +8,7 @@ use resolver::ast_access
 use resolver::ast_decl_predicates
 use resolver::ast_expr_predicates
 use resolver::paths
+use diagnostics::mod as diag_mod
 
 pub fn check_deprecated_api(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let warnings = Vec_new_Diagnostic()

@@ -1,7 +1,7 @@
 // Arukellt LSP - signature help response builders.
 
-use lsp::responses_json
 use std::text
+use lsp::responses_json
 
 fn append_param_labels(items: String, params: Vec<String>) -> String {
     let n = len(params)

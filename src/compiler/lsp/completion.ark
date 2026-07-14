@@ -1,8 +1,8 @@
 // Arukellt LSP - completion prefix extraction and response assembly.
 
+use std::json::parser
 use lsp::completion_providers
 use lsp::positions
-use std::json::parser
 
 fn is_ident_char(ch: i32) -> bool {
     if ch >= 97 && ch <= 122 {

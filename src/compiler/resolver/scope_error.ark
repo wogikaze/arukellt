@@ -1,9 +1,9 @@
 // Arukellt Resolver - resolver diagnostic collection.
 
 use diagnostics::codes
-use diagnostics::mod as diag_mod
 use diagnostics::record
 use resolver::ctx_record
+use diagnostics::mod as diag_mod
 
 fn resolve_diagnostic(ctx: ResolveCtx, code: String, msg: String, span_start: i32, span_end: i32) {
     ctx_record::resolve_ctx_push_error(ctx, clone(msg))

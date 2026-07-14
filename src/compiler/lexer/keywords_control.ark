@@ -1,7 +1,6 @@
 use lexer::tokens
 // Arukellt Lexer - control-flow keyword lookup.
 
-
 pub fn keyword_kind_control(word: String) -> i32 {
     if eq(word, "if") {
         return tokens::TK_IF()

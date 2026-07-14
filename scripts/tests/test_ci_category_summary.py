@@ -22,24 +22,14 @@ class TestCiCategorySummary(unittest.TestCase):
 
     def test_summary_lists_named_categories_and_responsible_jobs(self):
         expected_rows = [
-            "| unit | ${{ needs['unit-tests'].result }} | [unit-tests]",
-            "| verification-harness | ${{ needs['verification-harness-quick'].result }} | [verification-harness-quick]",
-            "| fixture / target-contract (T3 primary) | ${{ needs['fixture-primary'].result }} | [fixture-primary]",
-            "| fixture / target-contract (T1 supported) | ${{ needs['fixture-supported'].result }} | [fixture-supported]",
-            "| integration | ${{ needs['integration'].result }} | [integration]",
-            "| packaging | ${{ needs['packaging'].result }} | [packaging]",
-            "| package-workspace | ${{ needs['verification-package-workspace'].result }} | [verification-package-workspace]",
-            "| determinism | ${{ needs['determinism'].result }} | [determinism]",
-            "| docs / size / WAT | ${{ needs['heavy-checks'].result }} | [heavy-checks]",
-            "| component-interop | ${{ needs['component-interop'].result }} | [component-interop]",
-            "| perf | ${{ needs['perf-baseline'].result }} | [perf-baseline]",
-            "| bootstrap | ${{ needs['selfhost-bootstrap'].result }} | [selfhost-bootstrap]",
-            "| selfhost-parity / CLI | ${{ needs['selfhost-cli-parity'].result }} | [selfhost-cli-parity]",
-            "| selfhost-parity / diagnostics | ${{ needs['selfhost-diag-parity'].result }} | [selfhost-diag-parity]",
-            "| diagnostics-snapshot | ${{ needs['fixture-primary'].result }} | [fixture-primary]",
+            "| formatting | ${{ needs['quality-format'].result }} | [quality-format]",
+            "| lint / quality contract | ${{ needs['quality-lint'].result }} | [quality-lint]",
+            "| quick verification | ${{ needs['verify-quick'].result }} | [verify-quick]",
+            "| verification / fixtures | ${{ needs['verification'].result }} | [verification]",
+            "| bootstrap / selfhost parity | ${{ needs['selfhost'].result }} | [selfhost]",
+            "| docs | ${{ needs['docs'].result }} | [docs]",
             "| editor-tooling / extension | ${{ needs['extension-tests'].result }} | [extension-tests]",
-            "| editor-tooling / LSP lifecycle | ${{ needs['verification-harness-quick'].result }} | [verification-harness-quick]",
-            "| target-contract drift | ${{ needs['target-contract-drift-check'].result }} | [target-contract-drift-check]",
+            "| release tag | ${{ needs['release-tag'].result }} | [release-tag]",
             "| final gate | ${{ needs['verify'].result }} | [verify]",
         ]
 

@@ -1,5 +1,6 @@
 // Arukellt Selfhost - editor symbol lookup and hover rendering facade
 
+use std::text
 use analysis::doc_scan
 use analysis::ident_span
 use analysis::symbol_signature
@@ -10,7 +11,6 @@ use parser::ast
 use parser::kinds
 use resolver::ref_record
 use resolver::ref_sites
-use std::text
 
 fn AT_NK_IDENT() -> i32 { kinds::NK_IDENT() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }

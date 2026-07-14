@@ -1,7 +1,6 @@
 use parser::kinds
 // Arukellt Parser - literal expression AST node display names
 
-
 fn expr_literal_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_INT_LIT() {
         return String_from("IntLit")

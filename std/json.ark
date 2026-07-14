@@ -372,4 +372,3 @@ pub fn json_as_string(v: parser::JsonValue) -> Option<String> {
 pub fn stringify(v: parser::JsonValue) -> String {
     parser::stringify(v)
 }
-

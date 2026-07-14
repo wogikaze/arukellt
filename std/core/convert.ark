@@ -176,7 +176,6 @@ pub fn parse_f64(s: String) -> Option<f64> {
     __intrinsic_parse_f64(s)
 }
 
-
 // ---------------------------------------------------------------------------
 // Integer trait — shared bit / power-of-two ops (ADR-046 trait-first / #718).
 // Prefer `n.is_power_of_two()` over free `math::is_power_of_two(n)`.
@@ -354,7 +353,6 @@ impl Integer for i64 {
         count
     }
 }
-
 
 // ---------------------------------------------------------------------------
 // Inherent impl blocks for scalar types — method syntax (approach (a) #700).

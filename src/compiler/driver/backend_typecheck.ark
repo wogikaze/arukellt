@@ -1,17 +1,17 @@
 // Arukellt Selfhost - backend typecheck stage.
 
+use std::host::clock
 use collections::vec_extend
 use compiler::phases
 use compiler::session_typecheck_query
-use diagnostics::mod as diag_mod
-use diagnostics::record as diag_record
 use driver::config_record
 use driver::debug
 use driver::errors
 use driver::result_record
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
 use lint::checks as lint_checks
 use lint::registry as lint_registry
-use std::host::clock
 
 struct DriverTypecheckResult {
     should_return: bool,

@@ -225,7 +225,7 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     if bootstrap_mir_has_library_exports(mir) {
-        // TODO(#666): enable after generic export unreachable is fixed in overlay s2.
+        // TODO(#666 owner=component removal=generic-export-reachable recheck=2026-08-31): enable this path.
         if false {
             return component_emit::bootstrap_emit_library_component(core_wasm, mir, target, String_from("p1"), world)
         }
@@ -3671,7 +3671,7 @@ def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
     for fixture in fixtures:
         ark_path = root / "tests" / "fixtures" / fixture
         expected_path = root / "tests" / "fixtures" / (fixture[:-4] + ".expected")
-        work_rel = str(Path("tests") / "fixtures" / (fixture[:-4] + ".fmt_work.ark"))
+        work_rel = str(Path(".build") / "fmt-parity" / fixture)
         work_path = root / work_rel
 
         if not ark_path.is_file():
@@ -3684,6 +3684,7 @@ def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
             continue
 
         expected = expected_path.read_text(encoding="utf-8")
+        work_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ark_path, work_path)
         try:
             r = _wasm_fmt(wasmtime, current, work_rel, root)

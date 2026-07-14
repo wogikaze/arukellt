@@ -68,7 +68,6 @@ fn is_valid_type_key(key: String) -> bool {
     false
 }
 
-
 fn resolve_mono_param_type_from_fn_name(fn_name: String, type_var_name: String, param_ordinal: i32) -> String {
     // For specialized mono functions (name contains "__"), extract the
     // concrete type from the function name suffix and map it to a wasm type sig.
@@ -218,4 +217,3 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     }
     String_new()
 }
-

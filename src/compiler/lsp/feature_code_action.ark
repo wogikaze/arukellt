@@ -1,5 +1,6 @@
 // Arukellt LSP - code action request handling.
 
+use std::text
 use analysis::ident_span
 use analysis::symbols
 use lsp::feature_request
@@ -12,8 +13,6 @@ use lsp::responses
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_record
-use std::text
-
 
 fn build_import_action(title: String, uri: String, import_path: String, text: String) -> String {
     let offset = import_graph::first_use_insert_offset(clone(text))

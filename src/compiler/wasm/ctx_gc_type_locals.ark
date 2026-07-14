@@ -162,4 +162,3 @@ fn ctx_has_vec_f64_local(ctx: SelfEmitCtx) -> bool {
     }
     false
 }
-

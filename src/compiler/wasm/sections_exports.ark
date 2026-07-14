@@ -12,7 +12,6 @@ use wasm::function_indices
 use wasm::start_names
 use mir::module_functions
 
-
 struct ExportSectionPlan {
     export_count: i32,
     main_idx: i32,

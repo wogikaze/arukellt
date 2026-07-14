@@ -1,8 +1,8 @@
 // WIT type mapping — WIT surface types to Arukellt type names (#653, #664).
 
+use std::text
 use component::wit_parse_flags
 use component::wit_parse_text
-use std::text
 
 fn wit_primitive_to_ark(wit_type: String) -> String {
     let t = wit_trim_type(wit_type)

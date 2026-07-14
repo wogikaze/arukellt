@@ -1,15 +1,15 @@
 // Arukellt Selfhost - driver namespace: emit
 
+use std::host::stdio
+use std::host::clock
 use compiler::phases
 use driver::config_record
 use driver::result_record
-use std::host::stdio
 use component
 use component::world_spec
 use driver::native
 use driver::target
 use wasm
-use std::host::clock
 use driver::checked_program
 use driver::debug
 use resolver::wit_import_bind

@@ -1,8 +1,8 @@
 // GC enum variant signature helpers.
+use std::text
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_field_type
 use mir::value_types
-use std::text
 
 fn gc_enum_field_sig_for_vt(vt: i32) -> String {
     if vt == value_types::VT_F64() {

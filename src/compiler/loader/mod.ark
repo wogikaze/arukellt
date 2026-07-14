@@ -1,13 +1,12 @@
 // Arukellt Selfhost - source and module graph loading public API.
 
+use std::host::fs
 use loader::load
 use loader::module_decls
 use loader::module_graph
 use loader::module_paths
 use loader::module_state
 use loader::module_state_modules
-
-use std::host::fs
 
 pub fn load_source(path: String) -> Result<String, String> {
     fs::read_to_string(path)

@@ -1,5 +1,6 @@
 // Arukellt LSP - workspace/symbol request handler.
 
+use std::host::fs
 use lsp::framing
 use lsp::json_fields
 use lsp::responses
@@ -8,7 +9,6 @@ use lsp::symbol_index_paths
 use lsp::symbol_index_record
 use lsp::state_docs
 use lsp::state_record
-use std::host::fs
 
 pub fn handle_workspace_symbol(state: LspState, body: String) {
     let id = json_fields::extract_int_field(clone(body), String_from("id"))

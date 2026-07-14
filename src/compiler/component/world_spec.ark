@@ -1,7 +1,7 @@
 // Arukellt Selfhost - standard WASI world specs for --world.
 
-use component::constants_world_spec
 use std::text
+use component::constants_world_spec
 
 fn world_spec_kind(world: String) -> i32 {
     if eq(clone(world), String_from("wasi:cli/command")) { return constants_world_spec::WORLD_KIND_CLI_COMMAND() }

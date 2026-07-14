@@ -266,7 +266,9 @@ diag:v0_constraints/no_method_call.ark
 diag:v0_constraints/no_operator_overload.ark
 diag:wit_import/parse/malformed.ark
 fmt:fmt/comments_preserved.ark
+fmt:fmt/delimiters_in_strings.ark
 fmt:fmt/if_else.ark
+fmt:fmt/imports_interleaved.ark
 fmt:fmt/imports_unsorted.ark
 mir-dump:wit_import/mir/call_add.ark
 module-diag:modules/circular/main.ark

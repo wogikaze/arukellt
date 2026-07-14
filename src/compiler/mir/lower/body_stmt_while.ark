@@ -3,7 +3,6 @@ use mir::lower::loop_scope
 use mir::lower::loop_conditions
 // Arukellt MIR lowering body - while and loop statements.
 
-
 fn lower_while_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
     if child_count >= 2 {

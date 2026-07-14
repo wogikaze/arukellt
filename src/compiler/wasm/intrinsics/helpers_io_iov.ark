@@ -5,7 +5,6 @@ use wasm::intrinsics::helpers_io_layout
 use wasm::constants
 // Arukellt Selfhost - Wasm intrinsic I/O vector recipes.
 
-
 fn emit_iov_from_string_local(w: WasmWriter, string_local: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_IOV())
     helpers_io_locals::emit_local_get(w, string_local)

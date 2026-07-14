@@ -11,7 +11,7 @@ severity = "error"
 gate = "local"
 autofix = true
 rationale = "Selfhost arukellt fmt is the sole .ark formatter"
-exception_policy = "generated and vendor trees only"
+exception_policy = "Exact-hash temporary parse exceptions require owner, issue, removal condition, and recheck date"
 owner = "compiler"
 adr = "ADR-047"
 
@@ -37,7 +37,7 @@ severity = "warning"
 gate = "local"
 autofix = false
 rationale = "Default lint warnings print and exit 0 unless denied"
-exception_policy = "suppression requires rule id, reason, owner, issue, expiry"
+exception_policy = "Exact-hash canonical parser exceptions are tracked by issue 791; lint suppression requires rule id, reason, owner, issue, expiry"
 owner = "compiler"
 adr = "ADR-047"
 
@@ -49,8 +49,8 @@ enforcer = "linter"
 severity = "error"
 gate = "quick"
 autofix = false
-rationale = "prefer-else-if (W0011) denied on staged/changed code via pre-commit and smoke"
-exception_policy = "narrow allow with full suppression fields only"
+rationale = "prefer-else-if (W0011) may not increase on staged/changed files; new files start at zero"
+exception_policy = "existing per-file count is a ratchet, not an ignore; narrow suppression still requires full fields"
 owner = "compiler"
 adr = "ADR-047"
 
@@ -75,10 +75,155 @@ enforcer = "custom-check"
 severity = "error"
 gate = "quick"
 autofix = false
-rationale = "tabs and extreme indent hard-fail; long lines and thin wrappers ratchet against baseline"
+rationale = "tabs and extreme indent hard-fail; long lines, thin wrappers, and single-function files use global and touched-file ratchets"
 exception_policy = "raise baseline only with tracking issue id"
 owner = "tooling"
 adr = "ADR-047"
+
+[[rules]]
+id = "CQ-STRUCT-002"
+scope = "compiler"
+category = "architecture"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Compiler-local import cycles violate the staged compiler contract"
+exception_policy = "Only accepted facade re-export cycles explicitly listed by the checker; remove an entry when the facade no longer re-exports its entry module"
+owner = "compiler"
+adr = "ADR-047"
+commands = ["quality_structure", "quality_quick"]
+ci_jobs = ["verify-quick"]
+
+[[rules]]
+id = "CQ-STRUCT-003"
+scope = "compiler"
+category = "architecture"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Compiler pipeline stages may not depend on explicitly later stages"
+exception_policy = "Change the accepted architecture before changing dependency direction"
+owner = "compiler"
+adr = "ADR-047"
+commands = ["quality_structure", "quality_quick"]
+ci_jobs = ["verify-quick"]
+
+[[rules]]
+id = "CQ-STRUCT-004"
+scope = "compiler"
+category = "architecture"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Production entry points must not reach smoke, fixture, or self-check modules"
+exception_policy = "none"
+owner = "compiler"
+adr = "ADR-047"
+commands = ["quality_structure", "quality_quick"]
+ci_jobs = ["verify-quick"]
+
+[[rules]]
+id = "CQ-STRUCT-005"
+scope = "compiler"
+category = "architecture"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Required namespaces, public mod.ark boundaries, and subsystem import boundaries remain explicit"
+exception_policy = "Accepted architecture change only"
+owner = "compiler"
+adr = "ADR-047"
+commands = ["quality_structure", "quality_quick"]
+ci_jobs = ["verify-quick"]
+
+[[rules]]
+id = "CQ-STRUCT-006"
+scope = "repo"
+category = "architecture"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Repository ownership and required boundary files are checked by the existing canonical checker"
+exception_policy = "Update the ownership SSOT, not the generated or checked view"
+owner = "tooling"
+adr = "ADR-047"
+commands = ["quality_structure"]
+
+[[rules]]
+id = "CQ-STRUCT-007"
+scope = "repo"
+category = "generated"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Generated outputs must match their canonical inputs"
+exception_policy = "none"
+owner = "docs"
+adr = "ADR-047"
+commands = ["quality_structure"]
+
+[[rules]]
+id = "CQ-STRUCT-008"
+scope = "compiler"
+category = "architecture"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "Existing compiler boundary contracts remain enforced by their canonical checker"
+exception_policy = "Accepted architecture change only"
+owner = "compiler"
+adr = "ADR-047"
+commands = ["quality_structure"]
+
+[[rules]]
+id = "CQ-STRUCT-009"
+scope = "repo"
+category = "contract"
+enforcer = "custom-check"
+severity = "error"
+gate = "quick"
+autofix = false
+rationale = "ADR, rule, tooling, command, generated views, CI jobs, and required checks must agree"
+exception_policy = "none"
+owner = "tooling"
+adr = "ADR-047"
+commands = ["quality_structure", "quality_quick"]
+ci_jobs = ["quality-format", "quality-lint", "verify-quick", "verify"]
+
+[[rules]]
+id = "CQ-METRIC-001"
+scope = "compiler"
+category = "maintainability"
+enforcer = "metrics"
+severity = "advisory"
+gate = "full"
+autofix = false
+rationale = "Size, complexity, dependency, churn, and wrapper metrics prioritize review; they are not quality scores"
+exception_policy = "Metric values do not require suppression because they are not hard gates"
+owner = "compiler"
+adr = "ADR-048"
+commands = ["quality_report", "quality_full"]
+
+[[rules]]
+id = "CQ-METRIC-002"
+scope = "repo"
+category = "maintainability"
+enforcer = "custom-check"
+severity = "error"
+gate = "full"
+autofix = false
+rationale = "Metrics baseline TOML must parse and contain the stable distribution keys"
+exception_policy = "Baseline increases require a tracking issue and reason"
+owner = "tooling"
+adr = "ADR-048"
+commands = ["quality_report", "quality_full"]
 
 [[rules]]
 id = "CQ-REV-001"
@@ -98,10 +243,23 @@ id = "CQ-DOC-001"
 scope = "repo"
 category = "docs"
 enforcer = "custom-check"
-severity = "warning"
+severity = "error"
 gate = "quick"
 autofix = false
-rationale = "TODO/FIXME should cite an issue id when present in scanned trees"
-exception_policy = "fixtures intentionally lacking issue tags"
+rationale = "TODO/FIXME requires issue, owner, removal condition, and recheck date"
+exception_policy = "fixtures and archived checks are outside the production scan"
+owner = "docs"
+adr = "ADR-047"
+
+[[rules]]
+id = "CQ-DOC-002"
+scope = "ark"
+category = "docs"
+enforcer = "custom-check"
+severity = "advisory"
+gate = "full"
+autofix = false
+rationale = "Public Ark API doc coverage is reported without forcing blanket internal comments"
+exception_policy = "Coverage is a hotspot signal; individual contracts are reviewed by API stability"
 owner = "docs"
 adr = "ADR-047"

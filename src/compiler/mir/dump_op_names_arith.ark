@@ -1,7 +1,6 @@
 use mir::opcodes
 // Arukellt Selfhost - MIR arithmetic opcode display names.
 
-
 fn mir_arith_op_name(op: i32) -> String {
     if op == opcodes::MIR_ADD() {
         return String_from("add")

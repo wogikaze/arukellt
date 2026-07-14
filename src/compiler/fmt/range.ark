@@ -1,8 +1,8 @@
 // Arukellt Selfhost - formatter range extraction (#347).
 
+use std::text
 use fmt::program
 use fmt::whitespace
-use std::text
 
 fn fmt_line_count(text: String) -> i32 {
     len(whitespace::fmt_split_lines(text))

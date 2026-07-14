@@ -1,12 +1,12 @@
 // Arukellt LSP - workspace initialization and project index build.
 
+use std::host::fs
 use lsp::lsp_package_definition
 use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_project
 use lsp::symbol_index_stdlib
 use lsp::symbol_index_update
-use std::host::fs
 
 fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
     let out = Vec_new_String()

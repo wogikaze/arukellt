@@ -3,7 +3,6 @@ use parser::core_ast_factory
 use parser::core_ast_children
 // Arukellt Parser - synthetic multi-clause parameter construction.
 
-
 fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
     let param_names = Vec_new_String()
     let mut pi = 0

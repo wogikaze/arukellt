@@ -1,10 +1,10 @@
 // Arukellt Selfhost - MIR lowering GC enum variant registration.
 
+use std::text
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_struct_field_type
 use mir::module_gc_enum
 use wasm::emit_target
-use std::text
 
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     emit_target::is_gc_target(clone(ctx.lower_target))
@@ -152,7 +152,6 @@ fn gc_enum_variant_is_vec_container(normalized: String) -> bool {
     let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
     eq(clone(bare), String_from("Array")) || eq(clone(bare), String_from("Table")) || eq(clone(bare), String_from("Object"))
 }
-
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
     let m = ctx.module

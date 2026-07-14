@@ -1,8 +1,8 @@
 // Arukellt Selfhost - main namespace: dispatch
 
-use main::args_record
 use std::host::process
 use std::host::stdio
+use main::args_record
 use main::commands
 use main::dispatch_ide
 use main::kinds

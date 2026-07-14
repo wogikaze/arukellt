@@ -2,7 +2,6 @@ use lexer::tokens
 use parser::core_ast_children
 // Arukellt Parser - parenthesized pattern payloads
 
-
 fn parse_pattern_payload(p: Parser, node: AstNode) {
     p.pos = p.pos + 1
     let mut first = true

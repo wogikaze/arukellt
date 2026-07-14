@@ -7,7 +7,6 @@ use mir::lower::call_type_fallback
 use mir::value_types
 // Arukellt Selfhost - MIR call result type propagation for vec-producing calls.
 
-
 fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     if starts_with(clone(callee_name), "Vec_new_") {
         let raw_elem = substring(callee_name, 8, len(callee_name))

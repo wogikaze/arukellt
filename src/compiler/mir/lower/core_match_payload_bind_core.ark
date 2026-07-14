@@ -138,4 +138,3 @@ fn core_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local:
         }
     }
 }
-

@@ -172,7 +172,7 @@ fi
 # Two lint tiers (ADR-047):
 #   - package modules (src/compiler, std): `lint --local` (parse + AST rules)
 #   - standalone programs: full `lint` (resolve/typecheck + local rules)
-# Prefer-else-if is denied so nested else { if } on staged files fails the commit.
+# W0011 uses a HEAD ratchet: existing findings stay visible, increases fail.
 banner "arukellt lint (staged .ark only)"
 if [ "${#ARK_FILES[@]}" -eq 0 ]; then
   step "No staged .ark files"
@@ -184,10 +184,10 @@ else
   LINT_LOCAL=0
   LINT_FULL=0
   for ark in "${ARK_FILES[@]}"; do
-    LINT_ARGS=(lint --deny prefer-else-if)
+    LINT_ARGS=(lint)
     case "$ark" in
       src/compiler/*|std/*)
-        LINT_ARGS=(lint --local --deny prefer-else-if)
+        LINT_ARGS=(lint --local)
         LINT_LOCAL=$((LINT_LOCAL + 1))
         ;;
       *)
@@ -201,7 +201,7 @@ else
     if [ "$LINT_RC" -ne 0 ]; then
       echo "FAIL: lint failed for $ark (exit $LINT_RC)." >&2
       echo "$LINT_OUTPUT" | tail -40 >&2
-      echo "  Fix W0011 (else if) or other denied/errors, then re-stage." >&2
+      echo "  Fix lint errors, then re-stage." >&2
       LINT_FAIL=1
     elif [ -n "$LINT_OUTPUT" ]; then
       # Surface remaining warnings without failing the hook.
@@ -212,6 +212,9 @@ else
     FAIL=1
   else
     step "OK (local=$LINT_LOCAL full=$LINT_FULL)"
+    if ! python3 scripts/check/check-ark-lint-ratchet.py --base HEAD "${ARK_FILES[@]}"; then
+      FAIL=1
+    fi
   fi
 fi
 

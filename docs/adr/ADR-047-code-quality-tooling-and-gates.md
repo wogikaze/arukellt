@@ -41,7 +41,7 @@ Arukellt には既に次がある。
 |----|------|------|------|
 | 書式 | formatter | 空白、改行、インデント、括弧、import 整形 | 常に自動修正・gate fail |
 | 静的品質 | linter / analyzer | 未使用、危険処理、曖昧構文、禁止パターン | 原則 gate fail（下記 severity） |
-| 構造 | repository check | 依存方向、SSOT、生成物、公開面、巨大化 ratchet | fail または ratchet |
+| 構造 | repository check | 依存方向、SSOT、生成物、公開面、実行契約 | hard gate |
 | 設計 | reviewer | 名前、抽象化、責務、API、変更容易性 | 人間・エージェントレビュー |
 | 傾向 | metrics | 複雑度、長さ、重複、churn、coupling | hotspot 抽出。単独では fail しない |
 
@@ -58,7 +58,7 @@ Arukellt には既に次がある。
 | autofix | 自動修正可能な rule は手動修正を要求しない。`.ark` 書式は `fmt`、lint に autofix が無い項目は `fmt` へ委譲するか未対応を明示 |
 | baseline | 既存違反は [`ark-code-quality-baseline.toml`](../data/ark-code-quality-baseline.toml) 等で件数固定。新規違反は禁止。天井緩和には根拠と追跡 issue ID |
 | suppression | allow/deny / ignore には rule ID、具体的理由、狭い対象、issue または ADR、owner、削除条件、期限または再評価条件を要する。`disable all`・無理由 file ignore・CI の `\|\| true`・永久 baseline は禁止 |
-| changed-code policy | staged / 変更ファイルは baseline より厳しく扱う。pre-commit は touched `.ark` に `fmt --check` と `--deny prefer-else-if`（package は `--local`） |
+| changed-code policy | staged / 変更ファイルは baseline より厳しく扱う。pre-commit / quick は touched `.ark` に `fmt --check` と W0011 件数 ratchet（新規ファイルは 0、増加禁止。package は `--local`） |
 | CI 階層 | **local**（開発者）→ **quick**（`verify quick` / PR）→ **full**（全体）→ **release**（release 契約）。canonical 入口は `scripts/manager.py` |
 | review 分業 | formatter / linter が処理できる項目を PR checklist から除外する。設計判断は [ADR-048](ADR-048-design-heuristics-application-order.md) の順序 |
 | emergency bypass | `--no-verify` や required check 回避の後は、同一作業単位で issue または incident 記録を必須とする。無記録 bypass は禁止 |
@@ -66,9 +66,19 @@ Arukellt には既に次がある。
 ### 3. ゲート階層（運用）
 
 1. **local**: `python3 scripts/manager.py fmt` と任意の `lint`
-2. **pre-commit**: staged `.ark` の `fmt --check` → lint 二層（`--local` または full）+ `--deny prefer-else-if` → `verify quick`
-3. **CI quick**: 品質専用 job（`quality-format` / `quality-lint`）と既存 verification。ローカルと同じ実装を呼ぶ
+2. **pre-commit**: staged `.ark` の `fmt --check` → lint 二層（`--local` または full）+ W0011 件数 ratchet → `verify quick`
+3. **CI quick**: `quality-format` / `quality-lint` / `verify-quick` と既存 verification。ローカルと同じ実装を呼ぶ
 4. **required checks**: 未通過 merge を拒否（repository ruleset。手順は [`docs/process/ci-required-checks.md`](../process/ci-required-checks.md)）
+
+`python3 scripts/manager.py quality structure` は import cycle、pipeline 逆方向依存、
+production から test-only module への到達、公開境界、生成物、machine-readable SSOT、
+rule / command / CI / required-check の整合をまとめる。個別 checker が既に判定を所有する
+項目はこの入口から呼び、判定を複製しない。`--json` は text と同じ finding model を出力する。
+
+`quality quick` は `fmt --check + lint + hard structure checks`、`quality full` はそれに
+repository-wide inventory と advisory な `quality report` を加える。CI の
+`quality-format` / `quality-lint` job はそれぞれ同じ `manager.py` の `fmt --check` / `lint`
+だけを品質判定の入口として呼ぶ。
 
 ### 4. 規約の置き場
 
@@ -84,7 +94,8 @@ Arukellt には既に次がある。
 ### 5. 段階強化
 
 - Stage A（全面強制）: tabs/spaces 混在、trailing whitespace、final newline、formatter 差分、生成物 dirty、明確な未使用 import 等
-- Stage B（baseline）: 長行、thin wrapper、複雑度信号等。件数固定 + 新規禁止 + touched ratchet
+- Stage B（baseline）: 既に ratchet 登録済みの長行・thin wrapper 件数は固定 + 新規禁止。
+  その他の長さ、複雑度、nesting、fan-out、hotspot score は advisory report のみ
 - Stage C（semantic cleanup）: 個別 issue。本 ADR の範囲外の実行計画
 
 ---

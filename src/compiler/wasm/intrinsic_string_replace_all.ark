@@ -30,4 +30,3 @@ fn emit_replace(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     intrinsic_string_replace_all_helpers::emit_replace_finish(w, s0, s3, s7, s8, s9)
     return true
 }
-

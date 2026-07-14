@@ -1,10 +1,10 @@
 // Arukellt Selfhost - MIR lowering GC struct type registration.
+use std::text
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_size
 use mir::module_gc_struct
-use std::text
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
 }

@@ -15,7 +15,6 @@
 //     flags:u8 (is_mut | is_pub<<1 | is_async<<2)
 
 use std::host::fs
-
 use loader::ast_serialize_parse
 
 // ── Byte buffer helpers ──────────────────────────────────────────────

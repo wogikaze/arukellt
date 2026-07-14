@@ -1,10 +1,10 @@
 // Arukellt Selfhost - semantic import pruning and sorting (#440).
 
+use std::text
 use fmt::parse_gate
 use resolver
 use resolver::ast_access
 use resolver::ast_decl_predicates
-use std::text
 
 struct PruneImportEntry {
     line_start: i32,

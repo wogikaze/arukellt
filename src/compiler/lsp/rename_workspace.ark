@@ -1,10 +1,9 @@
 // Arukellt LSP - semantic rename workspace edits (#339).
 
+use std::text
 use analysis::symbol_references
 use lsp::json_escape
 use lsp::positions
-use std::text
-
 
 fn append_text_edit(edits: String, text: String, start: i32, end: i32, new_text: String) -> String {
     let start_pos = positions::offset_to_position(clone(text), start)

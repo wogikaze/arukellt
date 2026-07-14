@@ -1,7 +1,6 @@
 use lexer::tokens
 // Arukellt Lexer - operator token display names.
 
-
 pub fn token_op_name(kind: i32) -> String {
     if kind == tokens::TK_PLUS() {
         return String_from("PLUS")

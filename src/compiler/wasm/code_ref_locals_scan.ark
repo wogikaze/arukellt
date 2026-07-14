@@ -158,4 +158,3 @@ fn local_inst_assigns_ref(f: MirFunction, inst: MirInst, local_idx: i32, depth: 
     }
     false
 }
-

@@ -81,10 +81,10 @@ def main():
     # Split the text: constants section vs rest
     # Lines 0-8: header/imports
     header_lines = lines[:9]  # Lines 0-8 (9 lines): comments + uses
-    
+
     # Lines 9-318 (0-indexed): constants (310 lines, 10-318 1-indexed)
     const_lines = lines[9:const_section_end + 1]
-    
+
     # Lines 319-end: struct defs + parsing functions + AST comments
     body_lines = lines[const_section_end + 1:]
 
@@ -143,7 +143,7 @@ def main():
         if "AST Node Kind Tags" in line:
             ast_tags_start = i
             break
-    
+
     if ast_tags_start is not None:
         # The AST tags section is comments only
         parser_kinds_lines.append("")

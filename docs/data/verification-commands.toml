@@ -1,12 +1,84 @@
 # Canonical verification command registry.
 
 [[commands]]
+id = "format_apply"
+canonical = "python3 scripts/manager.py fmt"
+aliases = []
+alias_status = "none"
+purpose = "Format all enforced Ark source roots"
+coverage = ["CQ-FMT-001"]
+
+[[commands]]
+id = "format_check"
+canonical = "python3 scripts/manager.py fmt --check"
+aliases = []
+alias_status = "none"
+purpose = "Check all enforced Ark source roots without writing"
+coverage = ["CQ-FMT-001", "quality-format"]
+
+[[commands]]
+id = "lint"
+canonical = "python3 scripts/manager.py lint"
+aliases = []
+alias_status = "none"
+purpose = "Lint all enforced Ark source roots"
+coverage = ["CQ-LINT-001", "CQ-LINT-002", "quality-lint"]
+
+[[commands]]
+id = "quality_changed"
+canonical = "python3 scripts/manager.py quality changed"
+aliases = []
+alias_status = "none"
+purpose = "Run format, lint, and repository checks for changed files"
+coverage = ["changed-code"]
+
+[[commands]]
+id = "quality_quick"
+canonical = "python3 scripts/manager.py quality quick"
+aliases = []
+alias_status = "none"
+purpose = "Run the PR quality gate"
+coverage = ["quality-format", "quality-lint", "quality-contract"]
+
+[[commands]]
+id = "quality_structure"
+canonical = "python3 scripts/manager.py quality structure"
+aliases = []
+alias_status = "none"
+purpose = "Run hard repository structure and cross-artifact contract checks"
+coverage = ["CQ-STRUCT-002", "CQ-STRUCT-003", "CQ-STRUCT-004", "CQ-STRUCT-005", "CQ-STRUCT-006", "CQ-STRUCT-007", "CQ-STRUCT-008", "CQ-STRUCT-009"]
+
+[[commands]]
+id = "quality_full"
+canonical = "python3 scripts/manager.py quality full"
+aliases = []
+alias_status = "none"
+purpose = "Run repository-wide formatting, lint, structure, and ratchet checks"
+coverage = ["quality-format", "quality-lint", "quality-structure"]
+
+[[commands]]
+id = "quality_report"
+canonical = "python3 scripts/manager.py quality report"
+aliases = []
+alias_status = "none"
+purpose = "Print advisory code-quality hotspot inventory"
+coverage = ["quality-metrics"]
+
+[[commands]]
 id = "verify_quick"
 canonical = "python3 scripts/manager.py verify quick"
 aliases = ["python3 scripts/manager.py verify --quick"]
 alias_status = "compatibility"
 purpose = "Run the fast local verification gate"
 coverage = ["quick"]
+
+[[commands]]
+id = "verify_release"
+canonical = "python3 scripts/manager.py verify release"
+aliases = []
+alias_status = "none"
+purpose = "Run full quality and every verification domain for release readiness"
+coverage = ["quality-full", "verify-full", "release"]
 
 [[commands]]
 id = "verify_fixtures"

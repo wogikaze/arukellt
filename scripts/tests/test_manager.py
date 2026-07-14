@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from scripts import manager
@@ -29,13 +30,13 @@ def _run(*args: str, extra_env: dict | None = None) -> subprocess.CompletedProce
 
 class TestVerifyQuick(unittest.TestCase):
     def test_verify_quick_exit_code_type(self):
-        result = _run("verify", "quick")
+        result = _run("verify", "quick", "--dry-run")
         self.assertIsNotNone(result.returncode)
         self.assertIsInstance(result.returncode, int)
-        self.assertIn(result.returncode, (0, 1))
+        self.assertEqual(result.returncode, 0)
 
     def test_verify_quick_stdout_has_summary(self):
-        result = _run("verify", "quick")
+        result = _run("verify", "quick", "--dry-run")
         combined = result.stdout + result.stderr
         self.assertTrue(
             any(
@@ -63,6 +64,128 @@ class TestVerifyDryRun(unittest.TestCase):
         result = _run("verify", "component", "--dry-run")
         self.assertEqual(result.returncode, 0, msg=result.stderr)
 
+    def test_verify_release_dry_run_includes_full_quality(self):
+        result = _run("verify", "release", "--dry-run")
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("check-code-quality-contract.py", result.stdout)
+        self.assertIn("run_fixpoint()", result.stdout)
+
+
+class TestQualityCommands(unittest.TestCase):
+    def test_quality_contract_covers_tracked_file_families(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        from scripts.quality.checks import check_quality_contract
+
+        with redirect_stdout(StringIO()):
+            self.assertEqual(check_quality_contract(REPO_ROOT), 0)
+
+    def test_quick_cache_fingerprints_dirty_tracked_content(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            tracked = root / "tracked.txt"
+            tracked.write_text("index\n", encoding="utf-8")
+            subprocess.run(["git", "add", "tracked.txt"], cwd=root, check=True)
+            tracked.write_text("worktree\n", encoding="utf-8")
+
+            previous = manager._VERIFY_QUICK_FILE_DIGESTS
+            try:
+                manager._VERIFY_QUICK_FILE_DIGESTS = None
+                manager._prime_quick_file_digest_cache(root)
+                digest = manager._VERIFY_QUICK_FILE_DIGESTS["tracked.txt"]
+            finally:
+                manager._VERIFY_QUICK_FILE_DIGESTS = previous
+
+            self.assertEqual(digest, f"worktree:{manager._file_sha256(tracked)}")
+
+    def test_fmt_check_dry_run_uses_canonical_entrypoint(self):
+        result = _run("fmt", "--check", "--dry-run", "src/compiler/fmt/range.ark")
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("fmt --check", result.stdout + result.stderr)
+
+    def test_lint_dry_run_selects_local_tier_for_package_module(self):
+        result = _run("lint", "--dry-run", "src/compiler/fmt/range.ark")
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        output = result.stdout + result.stderr
+        self.assertIn("lint --local", output)
+        self.assertNotIn("--deny", output)
+
+    def test_lint_can_deny_configured_warning(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        from scripts.quality.checks import run_lint
+
+        output = StringIO()
+        with redirect_stdout(output):
+            result = run_lint(
+                REPO_ROOT,
+                ["src/compiler/fmt/range.ark"],
+                fix=False,
+                dry_run=True,
+                json_output=False,
+                deny_prefer_else_if=True,
+            )
+
+        self.assertEqual(result, 0)
+        self.assertIn("--deny prefer-else-if", output.getvalue())
+
+    def test_w0011_ratchet_allows_existing_count_and_rejects_increase(self):
+        from scripts.quality.checks import run_lint_ratchet
+
+        with mock.patch(
+            "scripts.quality.checks._lint_w0011_count",
+            return_value=(0, 2, ""),
+        ), mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+            return_value=(2, ""),
+        ):
+            self.assertEqual(
+                run_lint_ratchet(REPO_ROOT, ["same.ark"], "HEAD", False, False),
+                0,
+            )
+
+        with mock.patch(
+            "scripts.quality.checks._lint_w0011_count",
+            return_value=(0, 3, ""),
+        ), mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+            return_value=(2, ""),
+        ):
+            self.assertEqual(
+                run_lint_ratchet(REPO_ROOT, ["increased.ark"], "HEAD", False, False),
+                1,
+            )
+
+    def test_baseline_update_requires_tracking_issue(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(REPO_ROOT / "scripts/check/check-ark-code-quality.py"),
+                "--write-baseline",
+            ],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("requires --issue", result.stderr)
+
+    def test_quality_commands_are_registered(self):
+        parser = manager.build_parser()
+        for command in ("changed", "quick", "structure", "full", "report"):
+            args = parser.parse_args(["quality", command, "--dry-run"])
+            self.assertEqual(args.domain, "quality")
+            self.assertEqual(args.subcommand, command)
+
+    def test_quality_report_declares_advisory_hotspot_purpose(self):
+        result = _run("quality", "report")
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertIn("not a quality score", result.stdout)
+        self.assertIn("top hotspots:", result.stdout)
+
 
 class TestCompilerRefactorGates(unittest.TestCase):
     def test_root_layout_gate_keeps_root_to_facades(self):
@@ -87,6 +210,7 @@ class TestCompilerRefactorGates(unittest.TestCase):
                 "corehir",
                 "diagnostics",
                 "driver",
+                "fmt",
                 "hir",
                 "lexer",
                 "mir",

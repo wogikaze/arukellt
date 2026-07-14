@@ -6,10 +6,10 @@ use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_locals_view
 use mir::local_access
-use mir::opcodes as mir_opcodes
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
+use mir::opcodes as mir_opcodes
 
 fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
     if local_idx < 0 {

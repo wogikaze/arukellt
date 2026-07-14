@@ -56,4 +56,3 @@ fn emit_trim_end(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     intrinsic_string_trim_helpers::emit_trim_copy_result(w, s0, 0, s3, s4)
     return true
 }
-

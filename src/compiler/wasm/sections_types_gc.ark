@@ -13,7 +13,6 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::sections_type_plan
 
-
 fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)

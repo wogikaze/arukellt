@@ -181,7 +181,7 @@ def parse_file(path):
     lines = content.splitlines()
     title = lines[0][2:].strip() if lines and lines[0].startswith('# ') else path.stem
     meta = merge_blockquote_metadata(post.metadata, lines)
-    
+
     issue_id = str(meta.get('ID', path.name.split('-')[0]))
     deps_raw = str(meta.get('Depends on', 'none'))
     deps = normalize_deps(deps_raw)

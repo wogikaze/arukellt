@@ -58,7 +58,7 @@ in_intrinsic_block = False
 
 while i < len(lines):
     indent, content = strip_indent(lines[i])
-    
+
     if in_intrinsic_block:
         # Track brace depth
         if content.rstrip().endswith('{') or content.rstrip().endswith('{ '):
@@ -70,7 +70,7 @@ while i < len(lines):
                 in_intrinsic_block = False
                 i += 1
                 continue
-        
+
         # Look for callee branch start
         if content.startswith('if eq(clone(callee)'):
             names = re.findall(r'eq\(clone\(callee\), "([^"]+)"\)', content)
@@ -89,11 +89,11 @@ while i < len(lines):
             if 'result_on_stack' in content:
                 current['has_result'] = True
             current['last_body_line'] = i
-        
+
         # Detect the fallthrough (resolve_fn_index)
         if 'resolve_fn_index' in content:
             in_intrinsic_block = False
-        
+
     elif content.startswith('if eq(clone(callee)'):
         in_intrinsic_block = True
         names = re.findall(r'eq\(clone\(callee\), "([^"]+)"\)', content)
@@ -114,7 +114,7 @@ while i < len(lines):
             depth = content[brace_idx:].count('{') - content[brace_idx:].count('}')
     elif 'resolve_fn_index' in content:
         break
-    
+
     i += 1
 
 print(f"\nFound {len(branches)} callee branches (+1 fallthrough)")

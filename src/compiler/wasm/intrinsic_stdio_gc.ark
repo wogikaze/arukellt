@@ -1,7 +1,6 @@
 // Arukellt Selfhost - GC-target stdio intrinsic handlers
 
 use mir::inst_accessors_operands
-use mir::opcodes as mir_opcodes
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::opcodes
@@ -9,6 +8,7 @@ use wasm::string_gc_helpers
 use wasm::writer_core
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_p2
+use mir::opcodes as mir_opcodes
 
 fn emit_gc_heap_get(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())

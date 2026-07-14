@@ -1,6 +1,7 @@
 // Arukellt Selfhost - driver namespace: debug
 
 use std::host::stdio
+use std::time
 use driver::config_record
 use driver::parser_dump_view
 use driver::resolver_dump_view
@@ -8,7 +9,6 @@ use driver::typechecker_dump_view
 use mir
 use lexer::names
 use lexer::token_state
-use std::time
 
 // Arukellt Selfhost - driver AST dump output
 

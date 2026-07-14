@@ -4,7 +4,6 @@ use corehir::expr_access_literals
 use corehir::expr_access_types
 // Arukellt Selfhost - MIR lowering CoreHIR expression field accessors.
 
-
 fn mir_core_expr_child(expr: CoreHirExpr, index: i32) -> i32 {
     expr_access_children::expr_child(expr, index)
 }

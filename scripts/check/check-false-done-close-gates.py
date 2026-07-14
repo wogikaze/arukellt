@@ -37,7 +37,7 @@ _GATE074_LOCK = REPO_ROOT / ".build" / "close-gate-074.lock"
 _GATE076_LOCK = REPO_ROOT / ".build" / "close-gate-076.lock"
 _PLAYGROUND_LOCK = REPO_ROOT / ".build" / "close-gate-playground.lock"
 _CACHE_DIR = REPO_ROOT / ".build" / "close-gate-cache"
-_CACHE_VERSION = "close-gate-v1"
+_CACHE_VERSION = "close-gate-v2"
 
 
 def _playground_env() -> dict[str, str]:
@@ -182,13 +182,11 @@ def _file_digest(rel: str) -> str:
 
 
 def _prime_file_digests() -> None:
-    """Build a rel-path -> content-hash map for tracked files.
+    """Build a rel-path -> content-hash map for index and worktree files.
 
-    Uses ``git ls-files -s`` to get blob OIDs for tracked files (fast — no
-    file I/O).  Untracked files are excluded because their content can change
-    between gate runs (e.g. gate output files), making cache keys unstable.
-    Tracked files are immutable within a single git state, so the cache key
-    is deterministic across processes.
+    Clean tracked paths use index blob OIDs. Dirty, staged, deleted, and
+    untracked paths use current content, preventing cached success from hiding
+    a worktree regression.
 
     Thread-safe: uses a lock to prevent concurrent priming from multiple
     ThreadPoolExecutor workers.
@@ -229,6 +227,30 @@ def _prime_file_digests() -> None:
             if rel.startswith(".build/"):
                 continue
             digests[rel] = f"git:{oid}"
+
+        changed: set[str] = set()
+        for args in (
+            ["diff", "--name-only", "--no-renames", "-z"],
+            ["diff", "--cached", "--name-only", "--no-renames", "-z"],
+            ["ls-files", "--others", "--exclude-standard", "-z"],
+        ):
+            result = subprocess.run(
+                ["git", *args],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                continue
+            changed.update(
+                raw.decode("utf-8", errors="surrogateescape")
+                for raw in result.stdout.split(b"\0")
+                if raw
+            )
+        for rel in changed:
+            if rel.startswith(".build/"):
+                continue
+            digests[rel] = f"worktree:{_file_digest(rel)}"
         _FILE_DIGESTS = digests
 
 
@@ -323,7 +345,10 @@ def _cache_lookup(issue_id: str, key: str) -> tuple[int, str] | None:
     if entry.get("key") != key:
         return None
     try:
-        return int(entry.get("rc", 1)), str(entry.get("msg", "cached"))
+        rc = int(entry.get("rc", 1))
+        if rc != 0:
+            return None
+        return rc, str(entry.get("msg", "cached"))
     except (TypeError, ValueError):
         return None
 

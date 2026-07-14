@@ -1,5 +1,4 @@
 use std::text
-
 use analysis
 use analysis::diagnostic_record
 use lsp::diag_position

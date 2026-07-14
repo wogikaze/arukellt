@@ -33,4 +33,3 @@ pub fn Vec_extend_EnumInfo(dst: Vec<EnumInfo>, src: Vec<EnumInfo>) {
 pub fn Vec_extend_AstNode(dst: Vec<AstNode>, src: Vec<AstNode>) {
     vec_extend::Vec_extend_AstNode(dst, src)
 }
-

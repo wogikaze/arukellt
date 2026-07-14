@@ -1,6 +1,5 @@
 // Arukellt Selfhost - WIT type definitions from declarations
 use std::text
-
 use component::type_node
 use component::wit_decl
 use component::wit_names

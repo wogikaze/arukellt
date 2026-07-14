@@ -1,7 +1,6 @@
 use lexer::tokens
 // Arukellt Parser - Pratt infix left binding powers.
 
-
 pub fn infix_bp_left(kind: i32) -> i32 {
     if kind == tokens::TK_PIPEPIPE() {
         return 3

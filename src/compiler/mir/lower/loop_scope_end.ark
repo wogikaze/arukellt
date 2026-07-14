@@ -9,7 +9,6 @@ use mir::inst_structured_control
 use mir::inst_local_get
 use mir::lower::loop_scope_types
 
-
 fn mir_emit_loop_back(ctx: LowerCtx) {
     ctx_emit(ctx, inst_branch::MirInst_br(0))
 }

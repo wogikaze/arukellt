@@ -58,7 +58,6 @@ fn registry_audit_candidate_count(ctx: SelfEmitCtx) -> i32 {
 //
 // Wired only from PR-4-switch. PR-4-wide-audit keeps emit on legacy path.
 
-
 fn registry_switch_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
     if registry_return_resolve::registry_should_use_matched_path(ctx, inst, callee, fn_legacy_vt) {
         return registry_return_resolve::registry_resolve_call_has_void_return(ctx, inst)

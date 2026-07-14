@@ -8,9 +8,9 @@
 //   allow = ["W0007", "unused-binding"]
 //   deny = ["W0004"]
 
-use collections::vec_extend
 use std::host::fs
 use std::toml
+use collections::vec_extend
 
 struct LintConfig {
     allow: Vec<String>,

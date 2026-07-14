@@ -279,7 +279,7 @@ pub fn parse_error_message(err: JsonParseError) -> String {
 // ─── Public parse / stringify ────────────────────────────────────────────────
 /// Parse a full JSON document from `s` and reject trailing non-whitespace after
 /// the first top-level value.
-/// 
+///
 /// Leading and trailing whitespace is ignored, but any non-whitespace
 /// characters after the first top-level value cause an error.
 fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
@@ -889,4 +889,3 @@ pub fn json_encode_string(s: String) -> String {
 // byte offsets within a `String` and never build a full DOM, making them
 // suitable for framed message parsing where only a handful of fields are
 // needed.
-

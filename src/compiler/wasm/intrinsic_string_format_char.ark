@@ -46,7 +46,6 @@ fn emit_char_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     string_gc_helpers::emit_gc_local_get(w, s_gc)
 }
 
-
 // Handler for: push_char
 fn emit_push_char(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -110,7 +109,6 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // The new array is lost; this is a known limitation of void push_char on GC targets.
     return true
 }
-
 
 // Handler for: String_new
 fn emit_String_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

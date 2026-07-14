@@ -1,7 +1,6 @@
 // Arukellt Selfhost - Wasm call namespace: call_text_extra
 
 use mir::inst_accessors_operands
-use mir::opcodes as mir_opcodes
 use wasm::inst_store
 use wasm::intrinsic_string_extra
 use wasm::intrinsic_string_format
@@ -10,35 +9,36 @@ use wasm::intrinsic_string_replace_all
 use wasm::intrinsic_string_transform
 use wasm::opcodes
 use wasm::writer_core
+use mir::opcodes as mir_opcodes
 
 // Arukellt Selfhost - Wasm extra text transform/search call dispatch
 
 fn try_emit_text_extra_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_text_extra_affix_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_extra_transform_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_extra_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_extra_format_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_text_extra_affix_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_extra_transform_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_extra_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_extra_format_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - extra text contains/affix call dispatch.
 
 fn try_emit_text_extra_affix_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_text_extra_affix_misc_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_extra_affix_edge_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_text_extra_affix_misc_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_extra_affix_edge_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - extra text edge/trim call dispatch.
@@ -76,43 +76,43 @@ fn try_emit_text_extra_affix_misc_call(w: WasmWriter, callee: String, inst: MirI
 // Arukellt Selfhost - extra text format call dispatch.
 
 fn try_emit_text_extra_format_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "f32_to_string") {
-            let _result_on_stack = intrinsic_string_format::emit_f32_to_string(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        false
+    if eq(clone(callee), "f32_to_string") {
+        let _result_on_stack = intrinsic_string_format::emit_f32_to_string(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
 }
 
 // Arukellt Selfhost - extra text search/replace call dispatch.
 
 fn try_emit_text_extra_search_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "index_of") || eq(clone(callee), "text::index_of") {
-            let _result_on_stack = intrinsic_string_index_of::emit_index_of(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        if eq(clone(callee), "replace") || eq(clone(callee), "text::replace") {
-            let _result_on_stack = intrinsic_string_replace_all::emit_replace(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        false
+    if eq(clone(callee), "index_of") || eq(clone(callee), "text::index_of") {
+        let _result_on_stack = intrinsic_string_index_of::emit_index_of(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "replace") || eq(clone(callee), "text::replace") {
+        let _result_on_stack = intrinsic_string_replace_all::emit_replace(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
 }
 
 // Arukellt Selfhost - extra text transform call dispatch.
 
 fn try_emit_text_extra_transform_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "repeat") || eq(clone(callee), "text::repeat") || eq(clone(callee), "string::repeat") {
-            let _result_on_stack = intrinsic_string_transform::emit_repeat(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        if eq(clone(callee), "to_uppercase") || eq(clone(callee), "to_upper") || eq(clone(callee), "text::to_upper") || eq(clone(callee), "text::to_uppercase") {
-            let _result_on_stack = intrinsic_string_transform::emit_to_upper(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        if eq(clone(callee), "to_lowercase") || eq(clone(callee), "to_lower") || eq(clone(callee), "text::to_lower") || eq(clone(callee), "text::to_lowercase") {
-            let _result_on_stack = intrinsic_string_transform::emit_to_lower(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        false
+    if eq(clone(callee), "repeat") || eq(clone(callee), "text::repeat") || eq(clone(callee), "string::repeat") {
+        let _result_on_stack = intrinsic_string_transform::emit_repeat(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "to_uppercase") || eq(clone(callee), "to_upper") || eq(clone(callee), "text::to_upper") || eq(clone(callee), "text::to_uppercase") {
+        let _result_on_stack = intrinsic_string_transform::emit_to_upper(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "to_lowercase") || eq(clone(callee), "to_lower") || eq(clone(callee), "text::to_lower") || eq(clone(callee), "text::to_lowercase") {
+        let _result_on_stack = intrinsic_string_transform::emit_to_lower(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
 }
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {

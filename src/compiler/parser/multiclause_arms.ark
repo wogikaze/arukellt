@@ -3,7 +3,6 @@ use parser::core_ast_children
 
 use parser::multiclause_arm_build
 
-
 fn append_clause_match_arms(match_node: AstNode, clauses: Vec<AstNode>, fn_span: Span) {
     for ci in 0..len(clauses) {
         let clause = get_unchecked(clauses, ci)

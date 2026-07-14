@@ -50,4 +50,3 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
     }
     mir_string_call_rewrite_new(rewritten, return_local)
 }
-

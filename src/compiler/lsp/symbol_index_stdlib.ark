@@ -1,12 +1,12 @@
 // Arukellt LSP - stdlib symbol indexing from std/manifest.toml.
 
+use std::host::env
+use std::host::fs
+use std::text
 use lsp::kinds
 use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
-use std::host::env
-use std::host::fs
-use std::text
 
 struct ManifestParseState {
     section: i32,

@@ -1,9 +1,9 @@
 // Arukellt Selfhost - CLI compose command (#443 scaffold + Phase 2 WIT validation).
 
-use component::compose_wit_validate
 use std::host::fs
 use std::host::process
 use std::host::stdio
+use component::compose_wit_validate
 use main::args_record
 use main::commands
 
@@ -89,9 +89,9 @@ fn compose_request_wac_plug(provider: String, socket: String, output: String) {
     stdio::println(concat(String_from("compose: socket "), clone(socket)))
     stdio::println(concat(String_from("compose: output "), clone(output)))
     stdio::println(concat(
-        String_from("compose: command "),
-        compose_wac_plug_command(clone(provider), clone(socket), clone(output))
-    ))
+            String_from("compose: command "),
+            compose_wac_plug_command(clone(provider), clone(socket), clone(output))
+        ))
 }
 
 pub fn cmd_compose(opts: CliOptions) {

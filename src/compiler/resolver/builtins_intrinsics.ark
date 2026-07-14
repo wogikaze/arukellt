@@ -127,7 +127,6 @@ fn push_intrinsic_io_env_process(names: Vec<String>) {
     push(names, String_from("__intrinsic_udp_send"))
 }
 
-
 fn push_intrinsic_prelude_wrappers(names: Vec<String>) {
     push(names, String_from("__intrinsic_len"))
     push(names, String_from("__intrinsic_push"))

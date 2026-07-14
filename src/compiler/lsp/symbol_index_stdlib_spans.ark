@@ -1,10 +1,10 @@
 // Arukellt LSP - stdlib source span lookup for definition/hover.
 
+use std::host::fs
 use compiler::session_parse
 use lsp::symbol_index_extract
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
-use std::host::fs
 
 struct SourceSpan {
     found: bool,

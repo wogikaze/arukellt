@@ -29,7 +29,6 @@
 //!   text) because the runtime lacks f64 infinity/nan constructors.
 //! - `\uXXXX` surrogate pairs are decoded as ASCII-only (matching std::json).
 
-
 // ─── TomlValue type ──────────────────────────────────────────────────────────
 pub enum TomlValue {
     String(String),

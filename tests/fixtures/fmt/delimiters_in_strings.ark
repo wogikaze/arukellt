@@ -1,0 +1,8 @@
+fn render() -> String {
+    let open = String_from("([{")
+    let close = String_from(")]}")
+    if len(open) > 0 {
+        return concat(open, close)
+    }
+    String_new()
+}

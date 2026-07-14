@@ -1,7 +1,6 @@
 // Arukellt Selfhost - Wasm call namespace: call_text_core
 
 use mir::inst_accessors_operands
-use mir::opcodes as mir_opcodes
 use wasm::intrinsic_string_access
 use wasm::inst_store
 use wasm::intrinsic_string_contains_bytes
@@ -12,38 +11,39 @@ use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
 use wasm::writer_core
 use wasm::opcodes
+use mir::opcodes as mir_opcodes
 
 // Arukellt Selfhost - Wasm core text/string call dispatch
 
 fn try_emit_text_core_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_text_basic_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_access_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_pad_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_text_basic_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_access_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_pad_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - text access/trim call dispatch.
 
 fn try_emit_text_access_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_text_access_trim_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_access_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_access_measure_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_access_chars_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_text_access_trim_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_access_search_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_access_measure_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_access_chars_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - text character access call dispatch.
@@ -97,16 +97,16 @@ fn try_emit_text_access_trim_call(w: WasmWriter, callee: String, inst: MirInst, 
 // Arukellt Selfhost - basic text call dispatch.
 
 fn try_emit_text_basic_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_text_construct_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_measure_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_text_compare_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_text_construct_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_measure_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_text_compare_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - text comparison/combination call dispatch.
@@ -170,15 +170,15 @@ fn try_emit_text_measure_call(w: WasmWriter, callee: String, inst: MirInst, ctx:
 // Arukellt Selfhost - text padding call dispatch.
 
 fn try_emit_text_pad_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "pad_left") || eq(clone(callee), "text::pad_left") {
-            let _result_on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        if eq(clone(callee), "pad_right") || eq(clone(callee), "text::pad_right") {
-            let _result_on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
-            return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        }
-        false
+    if eq(clone(callee), "pad_left") || eq(clone(callee), "text::pad_left") {
+        let _result_on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if eq(clone(callee), "pad_right") || eq(clone(callee), "text::pad_right") {
+        let _result_on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    false
 }
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {

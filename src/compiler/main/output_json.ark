@@ -1,8 +1,8 @@
 // Arukellt Selfhost - main namespace: output_json
 
+use std::text
 use diagnostics::mod
 use diagnostics::record
-use std::text
 
 // Arukellt Selfhost - CLI JSON output formatting.
 

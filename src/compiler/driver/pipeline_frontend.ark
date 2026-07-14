@@ -1,8 +1,8 @@
 // Arukellt Selfhost - driver namespace: pipeline_frontend
 
+use std::host::clock
 use compiler::phases
 use driver::result_record
-use std::host::clock
 use driver::config_record
 use compiler::session_frontend_query
 use compiler::session_lex_query

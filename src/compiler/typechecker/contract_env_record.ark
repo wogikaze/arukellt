@@ -1,13 +1,13 @@
 // Arukellt Typechecker - inference environment data contract.
 
 use diagnostics::codes
-use diagnostics::mod as diag_mod
 use diagnostics::record
 use typechecker::contract_mono
 use typechecker::contract_trait_impl_record
 use typechecker::contract_trait_method_record
 use typechecker::contract_type_param_bounds
 use typechecker::contract_typevar_record
+use diagnostics::mod as diag_mod
 
 struct TypeEnv {
     vars: Vec<TypeVar>,

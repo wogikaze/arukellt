@@ -3,7 +3,6 @@ use mir::local_access
 use mir::local_mutation
 // Arukellt Selfhost - MIR SSA local assignment helpers.
 
-
 fn mir_assign_local_ssa(f: MirFunction, local_id: i32, ssa_name: String, ssa_version: i32) {
     if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(f) {
         return

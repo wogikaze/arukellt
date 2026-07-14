@@ -2,7 +2,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 // Arukellt Selfhost - MIR call rewrite rules for Vec access.
 
-
 fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_get2 = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)

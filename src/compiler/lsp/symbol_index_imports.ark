@@ -1,12 +1,12 @@
 // Arukellt LSP - index local import graph reachable from an open file.
 
+use std::host::fs
 use compiler::session_parse
 use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_project
 use lsp::symbol_index_record
 use lsp::symbol_index_update
-use std::host::fs
 
 fn index_import_neighbors(state: LspState, file_path: String, project_root: String) {
     let read_result = fs::read_to_string(clone(file_path))

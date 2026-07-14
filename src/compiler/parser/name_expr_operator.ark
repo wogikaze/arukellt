@@ -1,7 +1,6 @@
 use parser::kinds
 // Arukellt Parser - operator expression AST node display names
 
-
 fn expr_operator_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_BINARY() {
         return String_from("Binary")

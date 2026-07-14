@@ -3,7 +3,6 @@ use mir::function_param_view
 use mir::function_identity
 // Arukellt Selfhost - Component export view over MIR function metadata.
 
-
 fn export_function_name(f: MirFunction) -> String {
     function_identity::MirFunction_name(f)
 }

@@ -1,7 +1,6 @@
 use typechecker::kinds
 // Arukellt Typechecker - operator classification helpers
 
-
 fn is_comparison_op(op: i32) -> bool {
     if op == kinds::OP_EQ() {
         return true

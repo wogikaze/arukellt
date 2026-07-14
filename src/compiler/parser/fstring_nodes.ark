@@ -4,7 +4,6 @@ use parser::core_ast_factory
 use parser::core_ast_children
 // Arukellt Parser - f-string AST node helpers.
 
-
 fn fstring_string_lit(text: String, span: Span) -> AstNode {
     let lit_node = core_ast_factory::AstNode_new(kinds::NK_STRING_LIT(), span)
     core_ast_text_fields::AstNode_set_text(lit_node, text)

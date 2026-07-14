@@ -2,7 +2,6 @@
 //
 // Public typecheck entrypoint and shared typechecker data contracts.
 use std::host::stdio
-
 use typechecker::mod
 
 struct Symbol {

@@ -1,0 +1,12 @@
+use std::collections::vec as v
+
+fn make_values() -> Vec<i32> {
+    v::Vec_new_i32()
+}
+
+use std::host::stdio
+
+fn main() {
+    let values = make_values()
+    stdio::println("imports")
+}

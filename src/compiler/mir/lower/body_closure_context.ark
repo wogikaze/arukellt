@@ -3,7 +3,6 @@ use mir::lower::ctx_types
 use mir::function_factory
 // Arukellt MIR lowering body - closure context switch helpers.
 
-
 fn mir_begin_closure_function_context(ctx: LowerCtx, synth: String) {
     let mf = function_factory::MirFunction_new(clone(synth))
     let _entry = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)

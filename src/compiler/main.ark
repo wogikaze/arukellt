@@ -4,11 +4,10 @@
 // Supports: parse, compile, check subcommands.
 // Exit code: 0 = success, 1 = failure.
 use std::host::env
-use main::args_record
-use main::args_parse
 use std::host::process
 use std::host::stdio
-
+use main::args_record
+use main::args_parse
 use main::dispatch
 use main::usage
 

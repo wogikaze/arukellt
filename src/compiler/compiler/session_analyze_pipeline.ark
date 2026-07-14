@@ -1,5 +1,6 @@
 // Arukellt Selfhost - compiler analysis session pipeline.
 
+use std::text
 use analysis::diagnostic_record
 use analysis::snapshot_state_record
 use compiler::diag_facade
@@ -11,9 +12,8 @@ use compiler::session
 use compiler::session_typecheck_query
 use corehir::frontend_bundle
 use corehir::mod
-use lint::checks as lint_checks
 use loader::load
-use std::text
+use lint::checks as lint_checks
 
 fn lex_diag_code_string(code: i32) -> String {
     if code == 1 {
@@ -60,91 +60,91 @@ fn lex_diag_code_message(code: i32) -> String {
 }
 
 fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_result: LexResult) {
-let lex_legacy_count = session_lex_query::session_lex_diagnostic_count(lex_result)
-let mut li = 0
-while li < lex_legacy_count {
-let ld = session_lex_query::session_lex_diagnostic_at(lex_result, li)
-let lstart = session_lex_query::session_lex_diagnostic_start(ld)
-let lend = session_lex_query::session_lex_diagnostic_end(ld)
-let lcode = session_lex_query::session_lex_diagnostic_code(ld)
-let dfile = snapshot_state_record::snapshot_uri(snap)
-let dcode = lex_diag_code_string(lcode)
-let mut rmsg = String_from("[")
-rmsg = text::builder_append(rmsg, clone(dcode))
-rmsg = text::builder_append(rmsg, String_from(" "))
-rmsg = text::builder_append(rmsg, severity::severity_name(severity::SEV_ERROR()))
-rmsg = text::builder_append(rmsg, String_from(" "))
-rmsg = text::builder_append(rmsg, source_map_offsets::location_text(clone(text), dfile, lstart))
-rmsg = text::builder_append(rmsg, String_from("] "))
-rmsg = text::builder_append(rmsg, lex_diag_code_message(lcode))
-snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LEX(), rmsg, lstart, lend))
-li = li + 1
-}
+    let lex_legacy_count = session_lex_query::session_lex_diagnostic_count(lex_result)
+    let mut li = 0
+    while li < lex_legacy_count {
+        let ld = session_lex_query::session_lex_diagnostic_at(lex_result, li)
+        let lstart = session_lex_query::session_lex_diagnostic_start(ld)
+        let lend = session_lex_query::session_lex_diagnostic_end(ld)
+        let lcode = session_lex_query::session_lex_diagnostic_code(ld)
+        let dfile = snapshot_state_record::snapshot_uri(snap)
+        let dcode = lex_diag_code_string(lcode)
+        let mut rmsg = String_from("[")
+        rmsg = text::builder_append(rmsg, clone(dcode))
+        rmsg = text::builder_append(rmsg, String_from(" "))
+        rmsg = text::builder_append(rmsg, severity::severity_name(severity::SEV_ERROR()))
+        rmsg = text::builder_append(rmsg, String_from(" "))
+        rmsg = text::builder_append(rmsg, source_map_offsets::location_text(clone(text), dfile, lstart))
+        rmsg = text::builder_append(rmsg, String_from("] "))
+        rmsg = text::builder_append(rmsg, lex_diag_code_message(lcode))
+        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LEX(), rmsg, lstart, lend))
+        li = li + 1
+    }
 }
 
 fn session_record_parse_diagnostics(snap: AnalysisSnapshot, parse_result: ParseResult) {
-let parse_err_count = session_parse_tokens::session_parse_error_count(parse_result)
-let mut pi = 0
-while pi < parse_err_count {
-let pe = session_parse_tokens::session_parse_error_at(parse_result, pi)
-snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_PARSE(), session_parse_tokens::session_parse_error_message(pe), session_parse_tokens::session_parse_error_start(pe), session_parse_tokens::session_parse_error_end(pe)))
-pi = pi + 1
-}
+    let parse_err_count = session_parse_tokens::session_parse_error_count(parse_result)
+    let mut pi = 0
+    while pi < parse_err_count {
+        let pe = session_parse_tokens::session_parse_error_at(parse_result, pi)
+        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_PARSE(), session_parse_tokens::session_parse_error_message(pe), session_parse_tokens::session_parse_error_start(pe), session_parse_tokens::session_parse_error_end(pe)))
+        pi = pi + 1
+    }
 }
 
 fn session_record_resolve_diagnostics(snap: AnalysisSnapshot, resolve_ctx: ResolveCtx) {
-let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
-let mut ri = 0
-while ri < res_err_count {
-let re = session_resolve_query::session_resolve_error_at(resolve_ctx, ri)
-snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_RESOLVE(), clone(re), 0, 0))
-ri = ri + 1
-}
+    let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
+    let mut ri = 0
+    while ri < res_err_count {
+        let re = session_resolve_query::session_resolve_error_at(resolve_ctx, ri)
+        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_RESOLVE(), clone(re), 0, 0))
+        ri = ri + 1
+    }
 }
 
 fn session_record_typecheck_diagnostics(snap: AnalysisSnapshot, check_result: TypeCheckResult, first_error: i32) {
-let tc_err_total = session_typecheck_query::session_typecheck_error_count(check_result)
-let mut ti = first_error
-while ti < tc_err_total {
-let te = session_typecheck_query::session_typecheck_error_at(check_result, ti)
-snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_TYPECHECK(), clone(te), 0, 0))
-ti = ti + 1
-}
+    let tc_err_total = session_typecheck_query::session_typecheck_error_count(check_result)
+    let mut ti = first_error
+    while ti < tc_err_total {
+        let te = session_typecheck_query::session_typecheck_error_at(check_result, ti)
+        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_TYPECHECK(), clone(te), 0, 0))
+        ti = ti + 1
+    }
 }
 
 // Record lint warnings (W0006 unused import, W0009 deprecated API, etc.) as
 // analysis diagnostics so the LSP can publish them via textDocument/publishDiagnostics.
 fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
-// Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
-let lint_warns = lint_checks::run_post_resolve_lint(decls, String_from("wasm32-wasi-p1"))
-let lw_count = len(lint_warns)
-let mut li = 0
-while li < lw_count {
-let w = get_unchecked(lint_warns, li)
-let code = diag_record::diagnostic_code(w)
-let msg = diag_record::diagnostic_message(w)
-let span = diag_record::diagnostic_span(w)
-let start = diag_record::diagnostic_span_start(span)
-let end = diag_record::diagnostic_span_end(span)
-let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
-snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
-li = li + 1
-}
-// Typecheck warnings (W0007 unused binding, W0001 shared-mut-alias)
-let tc_warns = session_typecheck_query::session_typecheck_warnings(check_result)
-let tw_count = len(tc_warns)
-let mut ti = 0
-while ti < tw_count {
-let w = get_unchecked(tc_warns, ti)
-let code = diag_record::diagnostic_code(w)
-let msg = diag_record::diagnostic_message(w)
-let span = diag_record::diagnostic_span(w)
-let start = diag_record::diagnostic_span_start(span)
-let end = diag_record::diagnostic_span_end(span)
-let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
-snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
-ti = ti + 1
-}
+    // Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
+    let lint_warns = lint_checks::run_post_resolve_lint(decls, String_from("wasm32-wasi-p1"))
+    let lw_count = len(lint_warns)
+    let mut li = 0
+    while li < lw_count {
+        let w = get_unchecked(lint_warns, li)
+        let code = diag_record::diagnostic_code(w)
+        let msg = diag_record::diagnostic_message(w)
+        let span = diag_record::diagnostic_span(w)
+        let start = diag_record::diagnostic_span_start(span)
+        let end = diag_record::diagnostic_span_end(span)
+        let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
+        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
+        li = li + 1
+    }
+    // Typecheck warnings (W0007 unused binding, W0001 shared-mut-alias)
+    let tc_warns = session_typecheck_query::session_typecheck_warnings(check_result)
+    let tw_count = len(tc_warns)
+    let mut ti = 0
+    while ti < tw_count {
+        let w = get_unchecked(tc_warns, ti)
+        let code = diag_record::diagnostic_code(w)
+        let msg = diag_record::diagnostic_message(w)
+        let span = diag_record::diagnostic_span(w)
+        let start = diag_record::diagnostic_span_start(span)
+        let end = diag_record::diagnostic_span_end(span)
+        let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
+        snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
+        ti = ti + 1
+    }
 }
 
 fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
@@ -152,19 +152,19 @@ fn run_session_analyze(uri: String, text: String) -> AnalysisSnapshot {
 }
 
 pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>) -> AnalysisSnapshot {
-let snap = snapshot_state_record::AnalysisSnapshot_new(uri)
-let lex_result = session_lex_query::session_lex(clone(text))
-session_record_lex_diagnostics(snap, text, lex_result)
-let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query::session_lex_tokens(lex_result))
-snapshot_state_record::snapshot_set_decl_count(snap, session_parse_tokens::session_parse_decl_count(parse_result))
-session_record_parse_diagnostics(snap, parse_result)
-let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
-let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, modules, Vec_new_String())
-snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))
-let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
-session_record_resolve_diagnostics(snap, resolve_ctx)
+    let snap = snapshot_state_record::AnalysisSnapshot_new(uri)
+    let lex_result = session_lex_query::session_lex(clone(text))
+    session_record_lex_diagnostics(snap, text, lex_result)
+    let parse_result = session_parse_tokens::session_parse_tokens(session_lex_query::session_lex_tokens(lex_result))
+    snapshot_state_record::snapshot_set_decl_count(snap, session_parse_tokens::session_parse_decl_count(parse_result))
+    session_record_parse_diagnostics(snap, parse_result)
+    let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
+    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, modules, Vec_new_String())
+    snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))
+    let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
+    session_record_resolve_diagnostics(snap, resolve_ctx)
     let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx, Vec_new_String())
-snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
+    snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
     session_record_typecheck_diagnostics(snap, check_result, res_err_count)
     // Record lint warnings (W0006 unused import, W0009 deprecated API, etc.)
     session_record_lint_diagnostics(snap, decls, check_result)

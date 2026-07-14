@@ -1,9 +1,9 @@
 // Arukellt Selfhost - Diagnostics facade for session pipeline.
 
-use diagnostics::mod as diag_mod
-use diagnostics::record as diag_record
 use diagnostics::severity
 use diagnostics::source_map_offsets
+use diagnostics::mod as diag_mod
+use diagnostics::record as diag_record
 
 fn Diagnostic_new(code: String, sev: i32, span: diag_record::DiagnosticSpan, msg: String) -> diag_mod::Diagnostic {
     diag_mod::Diagnostic_new(code, sev, span, msg)

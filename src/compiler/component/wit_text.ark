@@ -1,7 +1,6 @@
 // Arukellt Selfhost - WIT text generation facade
 use std::host::fs
 use std::text
-
 use component::wit_decl
 use component::wit_names
 use component::wit_type_defs

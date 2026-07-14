@@ -68,13 +68,22 @@ from gate_domain.checks import (  # noqa: E402
     run_pre_push,
     run_repro,
 )
+from quality.checks import run_fmt, run_lint_command, run_quality  # noqa: E402
+from quality.structure import (  # noqa: E402
+    _compiler_dependency_direction_violations,
+    _compiler_import_cycle_violations,
+    _compiler_namespace_layout_violations,
+    _compiler_production_test_reachability_violations,
+    _compiler_public_boundary_violations,
+    _compiler_root_layout_violations,
+)
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 _VERIFY_QUICK_MEMO_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-memo"
 _VERIFY_QUICK_MEMO_VERSION = "verify-quick-memo-v2"
 _VERIFY_QUICK_CHECK_CACHE_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-check-cache"
-_VERIFY_QUICK_CHECK_CACHE_VERSION = "verify-quick-check-cache-v1"
+_VERIFY_QUICK_CHECK_CACHE_VERSION = "verify-quick-check-cache-v2"
 _VERIFY_QUICK_FILE_DIGESTS: dict[str, str] | None = None
 
 
@@ -177,11 +186,11 @@ def _file_sha256(path: Path) -> str:
 
 
 def _prime_quick_file_digest_cache(root: Path) -> None:
-    """Build rel-path -> content-hash map using git blob OIDs (no file I/O).
+    """Build rel-path -> content hashes for the index plus dirty worktree.
 
-    Tracked files use ``git ls-files -s`` blob OIDs (fast, deterministic).
-    Untracked files are excluded — their content can change between runs,
-    making cache keys unstable.  This cuts priming from ~13s to ~0.05s.
+    Clean tracked files use index blob OIDs. Modified, staged, deleted, and
+    untracked paths use their current worktree content so a cached success can
+    never hide a dirty-tree regression.
     """
     global _VERIFY_QUICK_FILE_DIGESTS
 
@@ -211,6 +220,30 @@ def _prime_quick_file_digest_cache(root: Path) -> None:
         if rel.startswith(".build/"):
             continue
         _VERIFY_QUICK_FILE_DIGESTS[rel] = f"git:{oid}"
+
+    changed: set[str] = set()
+    for args in (
+        ["diff", "--name-only", "--no-renames", "-z"],
+        ["diff", "--cached", "--name-only", "--no-renames", "-z"],
+        ["ls-files", "--others", "--exclude-standard", "-z"],
+    ):
+        result = subprocess.run(
+            ["git", *args],
+            cwd=str(root),
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            continue
+        changed.update(
+            raw.decode("utf-8", errors="surrogateescape")
+            for raw in result.stdout.split(b"\0")
+            if raw
+        )
+    for rel in changed:
+        if rel.startswith(".build/"):
+            continue
+        _VERIFY_QUICK_FILE_DIGESTS[rel] = f"worktree:{_file_sha256(root / rel)}"
 
 
 def _path_matches_prefix(rel: str, prefix: str) -> bool:
@@ -341,9 +374,8 @@ def _cached_quick_check(
         try:
             entry = json.loads(cache_file.read_text(encoding="utf-8"))
             cached_rc = int(entry.get("returncode", 1))
-            # Never replay failures: fingerprints are git-OID based and miss
-            # untracked root junk (e.g. test-medium.ark), so a one-off fail
-            # would otherwise stick until scripts/ changes.
+            # Never replay failures; transient tool or environment failures
+            # must be re-evaluated on the next invocation.
             if cached_rc == 0:
                 return cached_rc, entry.get("output", "")
         except (OSError, json.JSONDecodeError, ValueError):
@@ -1408,177 +1440,6 @@ def _mir_core_lowering_boundary_violations(root: Path) -> list[tuple[str, int, s
                 stripped = line.strip()
                 if any(token in stripped for token in forbidden):
                     violations.append((rel, line_no, stripped))
-    return violations
-
-
-def _compiler_table_like_file(path: Path) -> bool:
-    """Return true for cohesive constant/opcode/tag tables.
-
-    These files intentionally group numeric compiler vocabulary. Splitting them
-    too aggressively hurts reviewability more than it helps local reasoning.
-    """
-    name = path.name
-    parts = set(path.parts)
-    table_tokens = (
-        "codes",
-        "constants",
-        "kind",
-        "kinds",
-        "opcode",
-        "opcodes",
-        "tag",
-        "tags",
-        "tokens",
-    )
-    if any(token in name for token in table_tokens):
-        return True
-    if "lexer" in parts and name.startswith("kind_"):
-        return True
-    return False
-
-
-def _compiler_root_layout_violations(root: Path) -> list[str]:
-    """Return root-level compiler files that should live behind namespaces.
-
-    The compiler root should be a small command/facade surface. Role-specific
-    implementation files belong under namespaces such as parser/, mir/, wasm/,
-    and component/ so humans can navigate by subsystem instead of prefix.
-    """
-    allowed = {
-        "analysis.ark",
-        "ark.toml",
-        "component_emit.ark",
-        "component_emitter.ark",
-        "corehir.ark",
-        "dap.ark",
-        "diagnostics.ark",
-        "driver.ark",
-        "emit_wat.ark",
-        "emitter.ark",
-        "hir.ark",
-        "lint.ark",
-        "lsp.ark",
-        "main.ark",
-        "mir_dump.ark",
-        "mir_lower.ark",
-        "native.ark",
-        "parser.ark",
-        "resolver.ark",
-        "target.ark",
-        "typechecker.ark",
-    }
-    compiler_root = root / "src" / "compiler"
-    return [
-        str(path.relative_to(root))
-        for path in sorted(compiler_root.glob("*.ark"))
-        if path.name not in allowed
-    ]
-
-
-def _compiler_namespace_layout_violations(root: Path) -> list[str]:
-    """Return missing or empty compiler namespace directories."""
-    required = (
-        "compiler",
-        "component",
-        "corehir",
-        "diagnostics",
-        "driver",
-        "fmt",
-        "hir",
-        "lexer",
-        "mir",
-        "mir/lower",
-        "parser",
-        "resolver",
-        "typechecker",
-        "wasm",
-        "wasm/intrinsics",
-    )
-    compiler_root = root / "src" / "compiler"
-    violations: list[str] = []
-    for rel in required:
-        directory = compiler_root / rel
-        if not directory.is_dir():
-            violations.append(f"missing directory: src/compiler/{rel}/")
-            continue
-        if not any(directory.glob("*.ark")):
-            violations.append(f"empty namespace: src/compiler/{rel}/")
-    return violations
-
-
-def _compiler_public_boundary_violations(root: Path) -> list[tuple[str, int, str]]:
-    """Return subsystem imports or pub APIs that bypass public mod.ark boundaries."""
-    required_mods = (
-        "src/compiler/component/mod.ark",
-        "src/compiler/corehir/mod.ark",
-        "src/compiler/wasm/mod.ark",
-        "src/compiler/mir/mod.ark",
-        "src/compiler/diagnostics/mod.ark",
-        "src/compiler/fmt/mod.ark",
-        "src/compiler/parser/mod.ark",
-        "src/compiler/resolver/mod.ark",
-        "src/compiler/typechecker/mod.ark",
-    )
-    violations: list[tuple[str, int, str]] = []
-    for rel in required_mods:
-        if not (root / rel).is_file():
-            violations.append((rel, 1, "missing public boundary mod.ark"))
-
-    public_mod_only_dirs = (
-        "src/compiler/component",
-        "src/compiler/wasm",
-        "src/compiler/mir",
-        "src/compiler/corehir",
-        "src/compiler/fmt",
-        "src/compiler/resolver",
-        "src/compiler/typechecker",
-    )
-    for rel_dir in public_mod_only_dirs:
-        subsystem_root = root / rel_dir
-        if not subsystem_root.is_dir():
-            continue
-        for path in sorted(subsystem_root.rglob("*.ark")):
-            if path.name == "mod.ark":
-                continue
-            rel = str(path.relative_to(root))
-            for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                stripped = line.strip()
-                if stripped.startswith("pub fn "):
-                    violations.append((rel, line_no, stripped))
-
-    forbidden_imports = (
-        "use component::emit",
-        "use component::wit_text",
-        "use component::contract",
-        "use wasm::wasm",
-        "use wasm::wat",
-        "use mir::lower",
-        "use mir::input",
-        "use mir::fallback_source",
-        "use mir::legacy_decl",
-        "use mir::reachability",
-        "use mir::dump_core",
-        "use corehir::frontend_checked",
-        "use corehir::mir_view",
-        "use component_emit",
-        "use component_emitter",
-        "use emit_wat",
-        "use emitter",
-        "use mir_dump",
-        "use mir_lower",
-    )
-    compiler_root = root / "src" / "compiler"
-    for path in sorted(compiler_root.rglob("*.ark")):
-        if not path.is_file():
-            continue
-        rel = str(path.relative_to(root))
-        rel_from_compiler = str(path.relative_to(compiler_root))
-        if rel_from_compiler.startswith(("component/", "corehir/", "wasm/", "mir/")):
-            continue
-        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            stripped = line.strip()
-            if any(stripped.startswith(prefix) for prefix in forbidden_imports):
-                violations.append((rel, line_no, stripped))
     return violations
 
 
@@ -4204,223 +4065,6 @@ def _diagnostics_source_map_fragmentation_violations(root: Path) -> list[tuple[s
     return violations
 
 
-def _compiler_file_size_violations(root: Path) -> list[tuple[str, int]]:
-    """Return compiler Ark files that exceed the context-sized module limit."""
-    default_limit = 249
-    table_limit = 500
-    violations: list[tuple[str, int]] = []
-    for path in sorted((root / "src" / "compiler").rglob("*.ark")):
-        if not path.is_file():
-            continue
-        limit = table_limit if _compiler_table_like_file(path) else default_limit
-        line_count = len(path.read_text(encoding="utf-8").splitlines())
-        if line_count > limit:
-            violations.append((str(path.relative_to(root)), line_count))
-    return violations
-
-
-def _compiler_function_size_violations(root: Path) -> list[tuple[str, int, int, str]]:
-    """Return compiler Ark functions that exceed the local reasoning limit."""
-    limit = 60
-    violations: list[tuple[str, int, int, str]] = []
-    for path in sorted((root / "src" / "compiler").rglob("*.ark")):
-        if not path.is_file():
-            continue
-        lines = path.read_text(encoding="utf-8").splitlines()
-        starts: list[int] = []
-        for idx, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped.startswith("fn ") or stripped.startswith("pub fn "):
-                starts.append(idx)
-        for pos, start in enumerate(starts):
-            end = starts[pos + 1] if pos + 1 < len(starts) else len(lines)
-            line_count = end - start
-            if line_count > limit:
-                violations.append(
-                    (str(path.relative_to(root)), start + 1, line_count, lines[start].strip())
-                )
-    return violations
-
-
-def _compiler_public_api_violations(root: Path) -> list[tuple[str, int]]:
-    """Return compiler Ark files with too many public functions."""
-    default_limit = 8
-    table_limit = 128
-    violations: list[tuple[str, int]] = []
-    for path in sorted((root / "src" / "compiler").rglob("*.ark")):
-        if not path.is_file():
-            continue
-        limit = table_limit if _compiler_table_like_file(path) else default_limit
-        pub_count = sum(
-            1
-            for line in path.read_text(encoding="utf-8").splitlines()
-            if line.strip().startswith("pub fn ")
-        )
-        if pub_count > limit:
-            violations.append((str(path.relative_to(root)), pub_count))
-    return violations
-
-
-def _compiler_dependency_direction_violations(root: Path) -> list[tuple[str, int, str]]:
-    """Return imports that point against the compiler pipeline direction."""
-    rules: list[tuple[str, tuple[str, ...]]] = [
-        (
-            "corehir*.ark",
-            ("use mir", "use mir::", "use mir_lower", "use emitter", "use emit_", "use component", "use driver"),
-        ),
-        (
-            "mir_lower*.ark",
-            ("use emitter", "use emit_", "use component", "use driver"),
-        ),
-        (
-            "emit*.ark",
-            ("use mir_lower", "use component", "use driver", "use parser", "use typechecker"),
-        ),
-        (
-            "emitter.ark",
-            ("use mir_lower", "use component", "use driver", "use parser", "use typechecker"),
-        ),
-        (
-            "component*.ark",
-            ("use mir_lower", "use driver", "use parser", "use typechecker"),
-        ),
-    ]
-    violations: list[tuple[str, int, str]] = []
-    compiler_root = root / "src" / "compiler"
-    for pattern, forbidden in rules:
-        paths = list(compiler_root.glob(pattern))
-        if pattern == "corehir*.ark":
-            paths.extend((compiler_root / "corehir").rglob("*.ark"))
-        for path in sorted(set(paths)):
-            if not path.is_file():
-                continue
-            rel = str(path.relative_to(root))
-            for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                stripped = line.strip()
-                if any(stripped.startswith(prefix) for prefix in forbidden):
-                    violations.append((rel, line_no, stripped))
-    return violations
-
-
-def _compiler_import_targets(compiler_root: Path, path: Path) -> list[Path]:
-    """Return compiler-local imports from one Ark source file."""
-    targets: list[Path] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped.startswith("use "):
-            continue
-        module = stripped[4:].split()[0]
-        if module.startswith("std::"):
-            continue
-        module_path = compiler_root / f"{module.replace('::', '/')}.ark"
-        if not module_path.is_file():
-            module_path = compiler_root / f"{module.split('::')[0]}.ark"
-        if module_path.is_file():
-            targets.append(module_path)
-    return targets
-
-
-_FACADE_REEXPORT_CYCLES = frozenset(
-    {
-        frozenset(
-            {
-                "src/compiler/resolver/program.ark",
-                "src/compiler/resolver.ark",
-                "src/compiler/resolver/mod.ark",
-            }
-        ),
-        frozenset(
-            {
-                "src/compiler/typechecker/entry.ark",
-                "src/compiler/typechecker.ark",
-                "src/compiler/typechecker/mod.ark",
-            }
-        ),
-    }
-)
-
-
-def _is_facade_reexport_cycle(cycle: list[str]) -> bool:
-    if len(cycle) < 2 or cycle[0] != cycle[-1]:
-        return False
-    return frozenset(cycle[:-1]) in _FACADE_REEXPORT_CYCLES
-
-
-def _compiler_import_cycle_violations(root: Path) -> list[list[str]]:
-    """Return compiler import cycles as relative file paths."""
-    compiler_root = root / "src" / "compiler"
-    graph: dict[Path, list[Path]] = {}
-    for path in sorted(compiler_root.rglob("*.ark")):
-        if path.is_file():
-            graph[path] = _compiler_import_targets(compiler_root, path)
-
-    visiting: set[Path] = set()
-    visited: set[Path] = set()
-    stack: list[Path] = []
-    cycles: list[list[str]] = []
-
-    def visit(path: Path) -> None:
-        if path in visited:
-            return
-        if path in visiting:
-            start = stack.index(path)
-            cycle_paths = stack[start:] + [path]
-            cycles.append([str(p.relative_to(root)) for p in cycle_paths])
-            return
-        visiting.add(path)
-        stack.append(path)
-        for dep in graph.get(path, []):
-            visit(dep)
-        stack.pop()
-        visiting.remove(path)
-        visited.add(path)
-
-    for path in sorted(graph):
-        if path not in visited:
-            visit(path)
-    return [cycle for cycle in cycles if not _is_facade_reexport_cycle(cycle)]
-
-
-def _compiler_import_fanout_violations(root: Path) -> list[tuple[str, int]]:
-    """Return compiler Ark files with too many direct compiler imports."""
-    # Raised from 13 during quality remediation so owner modules can absorb
-    # thin forwarding facades without forced over-splitting.
-    limit = 16
-    violations: list[tuple[str, int]] = []
-    compiler_root = root / "src" / "compiler"
-    for path in sorted(compiler_root.rglob("*.ark")):
-        if not path.is_file():
-            continue
-        import_count = len(_compiler_import_targets(compiler_root, path))
-        if import_count > limit:
-            violations.append((str(path.relative_to(root)), import_count))
-    return violations
-
-
-def _compiler_production_test_reachability_violations(root: Path) -> list[str]:
-    """Return test-only modules reachable from the compiler production entry."""
-    compiler_root = root / "src" / "compiler"
-    entry = compiler_root / "main.ark"
-    seen: set[Path] = set()
-    stack: list[Path] = [entry]
-
-    while stack:
-        path = stack.pop()
-        if path in seen or not path.is_file():
-            continue
-        seen.add(path)
-        for module_path in _compiler_import_targets(compiler_root, path):
-            stack.append(module_path)
-
-    violations: list[str] = []
-    for path in sorted(seen):
-        rel = str(path.relative_to(root))
-        name = path.name
-        if "smoke" in name or "fixture" in name or "self_check" in name:
-            violations.append(rel)
-    return violations
-
-
 def _mir_legacy_body_boundary_violations(root: Path) -> list[tuple[str, int, str]]:
     """Return direct legacy AST-body lowering calls outside the adapter."""
     allowed = "src/compiler/mir_lower_legacy_body_lower.ark"
@@ -4740,14 +4384,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/gate-765-docs-ci-hard-gates.py",
         ),
         (
-            "CI jobs doc freshness (#769)",
-            "python3 scripts/gen/generate-ci-jobs-doc.py --check",
-        ),
-        (
-            "structured state docs freshness (#770)",
-            "python3 scripts/gen/generate-structured-state-docs.py --check",
-        ),
-        (
             "guaranteed CLI smoke contracts",
             "python3 scripts/check/check-cli-guarantees.py all",
         ),
@@ -4774,14 +4410,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "bash scripts/check/check-asset-naming.sh",
         ),
         (
-            "repository structure (root scripts, scripts/ layout)",
-            "bash scripts/check/check-repo-structure.sh",
-        ),
-        (
-            "generated file boundary check",
-            "bash scripts/check/check-generated-files.sh",
-        ),
-        (
             "doc example check (ark blocks in docs/)",
             "python3 scripts/check/check-doc-examples.py docs/",
         ),
@@ -4798,8 +4426,8 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/manager.py selfhost fmt-parity",
         ),
         (
-            "ark lint smoke (W0011 / --deny exit contract)",
-            "python3 scripts/check/check-ark-lint-smoke.py",
+            "quality quick (changed fmt / lint contract / registry / whitespace)",
+            "python3 scripts/manager.py quality quick",
         ),
         (
             "selfhost LSP lifecycle gate (#569)",
@@ -4853,10 +4481,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "component standard-world gate (#118)",
             "python3 scripts/check/check-component-world.py",
-        ),
-        (
-            "compiler boundary check (CoreHIR/MIR separation)",
-            "python3 scripts/check/check-compiler-boundaries.py",
         ),
         (
             "ark code quality (tabs/indent/long-line/thin-wrapper ratchet)",
@@ -5890,46 +5514,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     else:
         h.check_pass("CoreHIR MIR body lowering excludes frontend and legacy body nodes")
 
-    root_layout_violations = _compiler_root_layout_violations(root)
-    if root_layout_violations:
-        h.check_fail(
-            "compiler root contains role-specific implementation files",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        print(f"  root-level implementation files: {len(root_layout_violations)}")
-        for rel in root_layout_violations[:30]:
-            print(f"  {rel}")
-    else:
-        h.check_pass("compiler root contains only entrypoint/facade files")
-
-    namespace_layout_violations = _compiler_namespace_layout_violations(root)
-    if namespace_layout_violations:
-        h.check_fail(
-            "compiler namespace directories are incomplete",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        for violation in namespace_layout_violations[:30]:
-            print(f"  {violation}")
-    else:
-        h.check_pass("compiler subsystems are organized into namespace directories")
-
-    public_boundary_violations = _compiler_public_boundary_violations(root)
-    if public_boundary_violations:
-        h.check_fail(
-            "compiler subsystem public boundaries are bypassed",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        for rel, line_no, line in public_boundary_violations[:30]:
-            print(f"  {rel}:{line_no}: {line}")
-    else:
-        h.check_pass("compiler subsystem public boundaries go through mod.ark facades")
-
     mir_corehir_view_violations = _mir_corehir_view_boundary_violations(root)
     if mir_corehir_view_violations:
         h.check_fail(
@@ -6376,58 +5960,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     # inventory tooling; do not re-enable hard fails that push over-fragmentation.
     # Format / thin-wrapper / long-line pressure lives in check-ark-code-quality.py.
     h.check_pass("compiler Ark file/function/pub-fn line-count gates disabled (readability policy)")
-
-    direction_violations = _compiler_dependency_direction_violations(root)
-    if direction_violations:
-        h.check_fail(
-            "compiler dependency direction gate",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        for rel, line_no, line in direction_violations[:20]:
-            print(f"  {rel}:{line_no}: {line}")
-    else:
-        h.check_pass("compiler dependency direction stays layered")
-
-    import_cycle_violations = _compiler_import_cycle_violations(root)
-    if import_cycle_violations:
-        h.check_fail(
-            "compiler import graph has cycles",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        for cycle in import_cycle_violations[:10]:
-            print("  " + " -> ".join(cycle))
-    else:
-        h.check_pass("compiler import graph is acyclic")
-
-    import_fanout_violations = _compiler_import_fanout_violations(root)
-    if import_fanout_violations:
-        h.check_fail(
-            "compiler Ark files exceed direct import fan-out limit",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/",
-        )
-        for rel, import_count in import_fanout_violations[:20]:
-            print(f"  {rel}: {import_count} imports")
-    else:
-        h.check_pass("compiler Ark direct import fan-out stays bounded")
-
-    test_reachability_violations = _compiler_production_test_reachability_violations(root)
-    if test_reachability_violations:
-        h.check_fail(
-            "compiler production graph reaches test-only modules",
-            category="compiler-boundary",
-            command="python3 scripts/manager.py verify quick",
-            primary_path="src/compiler/main.ark",
-        )
-        for rel in test_reachability_violations[:20]:
-            print(f"  {rel}")
-    else:
-        h.check_pass("compiler production graph excludes test-only modules")
 
     legacy_body_violations = _mir_legacy_body_boundary_violations(root)
     if legacy_body_violations:
@@ -6902,6 +6434,37 @@ def build_parser() -> argparse.ArgumentParser:
     sub_domain = parser.add_subparsers(dest="domain", metavar="<domain>")
     sub_domain.required = True
 
+    fmt_parser = sub_domain.add_parser("fmt", help="Format enforced source files")
+    fmt_parser.add_argument("--check", action="store_true", help="Check without writing")
+    fmt_parser.add_argument("--json", action="store_true", help="Emit JSON diagnostics")
+    fmt_parser.add_argument("--dry-run", action="store_true", help="Print commands only")
+    fmt_parser.add_argument("paths", nargs="*", help="Ark files or directories (default: enforced roots)")
+
+    lint_parser = sub_domain.add_parser("lint", help="Lint enforced source files")
+    lint_parser.add_argument("--fix", action="store_true", help="Apply safe formatter fixes before lint")
+    lint_parser.add_argument("--json", action="store_true", help="Emit JSON diagnostics")
+    lint_parser.add_argument("--dry-run", action="store_true", help="Print commands only")
+    lint_parser.add_argument("paths", nargs="*", help="Ark files or directories (default: enforced roots)")
+
+    quality_parser = sub_domain.add_parser("quality", help="Code-quality gates and reports")
+    quality_parser.add_argument("--dry-run", action="store_true")
+    quality_sub = quality_parser.add_subparsers(dest="subcommand", metavar="<subcommand>")
+    quality_sub.required = True
+    for name, help_text in [
+        ("changed", "Check changed files"),
+        ("quick", "Run the PR quality gate"),
+        ("structure", "Run repository structural contracts"),
+        ("full", "Run all repository quality checks"),
+        ("report", "Print advisory hotspot inventory"),
+    ]:
+        command = quality_sub.add_parser(name, help=help_text)
+        command.add_argument("--dry-run", action="store_true")
+        command.add_argument("--json", action="store_true", help="Emit JSON diagnostics where supported")
+    quality_sub.choices["report"].add_argument("--output", help="Write JSON report to this path")
+    quality_sub.choices["report"].add_argument("--write-baseline", action="store_true")
+    quality_sub.choices["report"].add_argument("--issue", type=int)
+    quality_sub.choices["report"].add_argument("--reason")
+
     # verify domain
     verify_parser = sub_domain.add_parser("verify", help="Verification commands")
 
@@ -6938,6 +6501,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("component-interop", "Run the Component Model interop fixture set"),
         ("component", "Compatibility alias for component-interop"),
         ("full", "Run all verification domains sequentially"),
+        ("release", "Run full quality and all verification domains"),
     ]:
         p = sub_verify.add_parser(name, help=help_text)
         p.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
@@ -7097,6 +6661,26 @@ def main() -> int:
     # for nested parsers, but guard in case of future restructuring).
     dry_run: bool = getattr(args, "dry_run", False)
 
+    if args.domain == "fmt":
+        return run_fmt(
+            _repo_root(), args.paths, args.check, dry_run, getattr(args, "json", False),
+        )
+    if args.domain == "lint":
+        return run_lint_command(
+            _repo_root(), args.paths, args.fix, dry_run, getattr(args, "json", False),
+        )
+    if args.domain == "quality":
+        return run_quality(
+            _repo_root(),
+            args.subcommand,
+            dry_run,
+            getattr(args, "json", False),
+            output=getattr(args, "output", None),
+            write_baseline=getattr(args, "write_baseline", False),
+            issue=getattr(args, "issue", None),
+            reason=getattr(args, "reason", None),
+        )
+
     dispatch_positional = {
         "quick":     cmd_verify_quick,
         "fixtures":  cmd_verify_fixtures,
@@ -7110,8 +6694,9 @@ def main() -> int:
         subcommand: str | None = getattr(args, "subcommand", None)
 
         # ── Positional subcommand takes priority when present ─────────────────
-        if subcommand == "full":
+        if subcommand in {"full", "release"}:
             args.full = True
+            args.release = subcommand == "release"
             subcommand = None
         if subcommand:
             handler = dispatch_positional.get(subcommand)
@@ -7149,6 +6734,10 @@ def main() -> int:
             return cmd_verify_quick(args)
 
         overall_rc = 0
+        if getattr(args, "release", False):
+            overall_rc = run_quality(
+                _repo_root(), "full", dry_run, getattr(args, "json", False),
+            )
         for flag, fn in steps:
             rc = fn(args)  # type: ignore[operator]
             if rc != 0:
@@ -7765,7 +7354,7 @@ def cmd_orch_repo_smoke(args: argparse.Namespace) -> int:
 
 def cmd_orch_reference_coverage(args: argparse.Namespace) -> int:
     """Stub: generate reference coverage report.
-    
+
     In a full implementation, this would run reference test suites (test262,
     spec tests, etc.) and report coverage gaps.
     """
@@ -7787,7 +7376,7 @@ def cmd_orch_reference_coverage(args: argparse.Namespace) -> int:
 
 def cmd_orch_gen_issues(args: argparse.Namespace) -> int:
     """Stub: generate issues from reference coverage gaps.
-    
+
     In a full implementation, this would parse coverage gaps and create issue
     files under issues/open/ with appropriate frontmatter.
     """

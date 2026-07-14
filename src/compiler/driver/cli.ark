@@ -2,10 +2,9 @@
 
 use std::host::env
 use std::host::fs
-use driver::config_record
 use std::host::process
 use std::host::stdio
-
+use driver::config_record
 use driver::file
 use driver::cli_args
 use driver::result_record

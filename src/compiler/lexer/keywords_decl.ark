@@ -1,7 +1,6 @@
 use lexer::tokens
 // Arukellt Lexer - declaration keyword lookup.
 
-
 pub fn keyword_kind_decl(word: String) -> i32 {
     if eq(word, "fn") {
         return tokens::TK_FN()
