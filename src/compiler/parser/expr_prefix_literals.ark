@@ -12,11 +12,11 @@ use parser::token_state
 
 fn is_literal_prefix(kind: i32) -> bool {
     kind == tokens::TK_INT()
-        || kind == tokens::TK_FLOAT()
-        || kind == tokens::TK_STRING()
-        || kind == tokens::TK_FSTRING()
-        || kind == tokens::TK_BOOL()
-        || kind == tokens::TK_CHAR()
+    || kind == tokens::TK_FLOAT()
+    || kind == tokens::TK_STRING()
+    || kind == tokens::TK_FSTRING()
+    || kind == tokens::TK_BOOL()
+    || kind == tokens::TK_CHAR()
 }
 
 fn parse_literal_prefix(p: Parser, t: Token) -> AstNode {

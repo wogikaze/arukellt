@@ -1,8 +1,8 @@
 /// Rope — large text editing buffer (Experimental).
-/// 
+///
 /// Stub implementation backed by a flat String.
 /// Provides O(n) insert/delete; a balanced tree implementation is planned.
-/// 
+///
 /// All APIs are Experimental and may change in v4+.
 /// Create a new empty Rope.
 pub fn rope_new() -> String {

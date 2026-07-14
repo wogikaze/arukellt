@@ -54,7 +54,7 @@ impl From<IoError> for String {
 }
 // ─── Reader ──────────────────────────────────────────────────────────────────
 /// Creates a Reader over the given byte buffer.
-/// 
+///
 /// Reader layout: `[cursor=0, b0, b1, …, bn]`
 pub fn reader_from_bytes(data: Vec<i32>) -> Vec<i32> {
     let r: Vec<i32> = Vec_new_i32()
@@ -76,7 +76,7 @@ pub fn reader_eof(r: Vec<i32>) -> bool {
 }
 
 /// Reads up to `n` bytes from the Reader, advancing its cursor.
-/// 
+///
 /// Returns the bytes actually read (fewer than `n` when near EOF).
 pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
     let cursor: i32 = get_unchecked(r, 0)
@@ -127,7 +127,7 @@ pub fn reader_read_all(r: Vec<i32>) -> Result<Vec<i32>, IoError> {
 }
 
 /// Reads bytes until a newline (`0x0A`) or EOF, returning the line as a String.
-/// 
+///
 /// The newline character is consumed but not included in the returned string.
 pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
     let cursor: i32 = get_unchecked(r, 0)
@@ -156,7 +156,7 @@ pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
 
 // ─── Standard I/O (stdin / stdout / stderr) ──────────────────────────────────
 /// Returns a Reader representing stdin.
-/// 
+///
 /// NOTE: WASI stdin reading is not available in the current runtime.
 /// The returned Reader is always empty. Use `read_stdin_line()` for a
 /// future-compatible placeholder.
@@ -181,7 +181,7 @@ pub fn stderr() -> Vec<i32> {
 }
 
 /// Reads a line from stdin.
-/// 
+///
 /// NOTE: WASI stdin reading is not available in the current runtime.
 /// Always returns `Ok("")`.
 pub fn read_stdin_line() -> Result<String, IoError> {
@@ -209,7 +209,7 @@ pub fn writer_new() -> Vec<i32> {
 }
 
 /// Writes `data` bytes to the Writer. Returns the number of bytes written.
-/// 
+///
 /// - Memory writers buffer the bytes.
 /// - stdout/stderr writers emit synchronously via print intrinsics.
 pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, IoError> {
@@ -277,7 +277,7 @@ pub fn write_string(w: Vec<i32>, s: String) -> Result<(), IoError> {
 }
 
 /// Flushes the Writer.
-/// 
+///
 /// stdout/stderr Writers already emit synchronously, so this is always a no-op.
 /// Memory Writers buffer locally; no underlying fd to flush.
 pub fn writer_flush(w: Vec<i32>) -> Result<(), IoError> {
@@ -290,7 +290,7 @@ pub fn flush(w: Vec<i32>) -> Result<(), IoError> {
 }
 
 /// Returns the buffered bytes of a memory Writer.
-/// 
+///
 /// For stdout/stderr Writers, returns an empty Vec (bytes were already emitted).
 pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
     let out: Vec<i32> = Vec_new_i32()
@@ -308,7 +308,7 @@ pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
 
 // ─── Buffered I/O ─────────────────────────────────────────────────────────────
 /// Creates a BufReader wrapping a Reader, with a read-ahead hint of `cap` bytes.
-/// 
+///
 /// BufReader layout: `[cursor=0, buf_cap, b0, b1, …, bn]`
 /// (The cap hint is stored but does not change in-memory behavior.)
 pub fn buf_reader_new(r: Vec<i32>, cap: i32) -> Vec<i32> {
@@ -330,7 +330,7 @@ pub fn buffered_reader(r: Vec<i32>, buf_size: i32) -> Vec<i32> {
 }
 
 /// Reads a line from a BufReader.
-/// 
+///
 /// BufReader bytes start at index 2. Newline is consumed but not included.
 pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
     let cursor: i32 = get_unchecked(br, 0)
@@ -351,7 +351,7 @@ pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
 }
 
 /// Creates a BufWriter wrapping a Writer, with a flush threshold of `cap` bytes.
-/// 
+///
 /// BufWriter layout: `[fd_tag, buf_cap, b0, b1, …, bn]`
 /// Auto-flushes when the buffer reaches `cap`.
 pub fn buf_writer_new(w: Vec<i32>, cap: i32) -> Vec<i32> {
@@ -368,7 +368,7 @@ pub fn buffered_writer(w: Vec<i32>, buf_size: i32) -> Vec<i32> {
 }
 
 /// Writes a string to a BufWriter.
-/// 
+///
 /// Auto-flushes to the underlying output when the buffer reaches buf_cap.
 pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
     let cap: i32 = get_unchecked(bw, 1)
@@ -386,7 +386,7 @@ pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, IoError> {
 }
 
 /// Flushes the BufWriter: emits all buffered bytes to the underlying output.
-/// 
+///
 /// - stdout/stderr: prints buffered content, then clears the buffer.
 /// - memory: clears the buffer (bytes are considered consumed by the caller).
 pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
@@ -422,7 +422,7 @@ pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
 
 // ─── Copy utility ─────────────────────────────────────────────────────────────
 /// Copies all remaining bytes from a Reader to a Writer.
-/// 
+///
 /// Returns the total number of bytes transferred.
 pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, IoError> {
     let cursor: i32 = get_unchecked(from, 0)

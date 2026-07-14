@@ -4,7 +4,7 @@ use compiler::session_frontend_query
 use compiler::session_parse_tokens
 
 pub fn session_parse_decls(text: String) -> Vec<AstNode> {
-let parsed_source = session_frontend_query::session_parse_source(text)
-let parse_result = session_frontend_query::frontend_result_parse(parsed_source)
-session_parse_tokens::session_parse_decls_from_result(parse_result)
+    let parsed_source = session_frontend_query::session_parse_source(text)
+    let parse_result = session_frontend_query::frontend_result_parse(parsed_source)
+    session_parse_tokens::session_parse_decls_from_result(parse_result)
 }

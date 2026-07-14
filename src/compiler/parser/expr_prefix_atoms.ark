@@ -7,8 +7,8 @@ use parser::token_state
 
 pub fn is_atom_prefix(kind: i32) -> bool {
     kind == tokens::TK_IDENT()
-        || kind == tokens::TK_LPAREN()
-        || kind == tokens::TK_LBRACKET()
+    || kind == tokens::TK_LPAREN()
+    || kind == tokens::TK_LBRACKET()
 }
 
 pub fn parse_atom_prefix(p: Parser, t: Token) -> AstNode {

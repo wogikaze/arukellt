@@ -12,18 +12,18 @@ use wasm::writer_core
 use wasm::intrinsics::helpers_core
 
 fn emit_parse_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-    // Do not reuse parse_i32_gc: that selects Result::Ok_i32 and makes
-    // TomlValue::Float construction see i32 where f64 is required (#726).
-    return emit_parse_f64_gc(w, inst, ctx)
-}
-let s_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
-let s_len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-emit_parse_f64_init(w, s_str, s_len_local)
-emit_parse_f64_prefix_validation(w, s_str, s_len_local)
-intrinsic_parse_f64_scan::emit_parse_f64_scan_loop(w, s_str, s_len_local)
-intrinsic_parse_f64_finalize::emit_parse_f64_finalize(w)
-return true
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // Do not reuse parse_i32_gc: that selects Result::Ok_i32 and makes
+        // TomlValue::Float construction see i32 where f64 is required (#726).
+        return emit_parse_f64_gc(w, inst, ctx)
+    }
+    let s_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_len_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    emit_parse_f64_init(w, s_str, s_len_local)
+    emit_parse_f64_prefix_validation(w, s_str, s_len_local)
+    intrinsic_parse_f64_scan::emit_parse_f64_scan_loop(w, s_str, s_len_local)
+    intrinsic_parse_f64_finalize::emit_parse_f64_finalize(w)
+    return true
 }
 
 // GC stub: consume the String arg and return null open-enum Result.

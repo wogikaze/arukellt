@@ -23,23 +23,23 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
                 if starts_with(clone(csig), String_from("Sub0_")) {
                     emit_open_sub_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
                 } else {
-                if starts_with(clone(csig), String_from("Sub")) {
-                    emit_sub_type_entry(type_sec, csig, gc_type_base, 0, gc_struct_type_map)
-                } else {
-                if starts_with(clone(csig), String_from("GS_f")) {
-                    emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
-                } else {
-                    if char_at(clone(csig), 0) == 65 {
-                        sections_types_gc::emit_array_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
+                    if starts_with(clone(csig), String_from("Sub")) {
+                        emit_sub_type_entry(type_sec, csig, gc_type_base, 0, gc_struct_type_map)
                     } else {
-                        writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
-                        let param_segments = sections_type_plan::type_sig_param_segments(csig)
-                        let result_seg = sections_type_plan::type_sig_result_segment(csig)
-                        emit_type_param_entries(type_sec, param_segments, gc_type_base, gc_struct_type_map)
-                        emit_type_result_entry(type_sec, result_seg, gc_type_base, gc_struct_type_map)
+                        if starts_with(clone(csig), String_from("GS_f")) {
+                            emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
+                        } else {
+                            if char_at(clone(csig), 0) == 65 {
+                                sections_types_gc::emit_array_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
+                            } else {
+                                writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())
+                                let param_segments = sections_type_plan::type_sig_param_segments(csig)
+                                let result_seg = sections_type_plan::type_sig_result_segment(csig)
+                                emit_type_param_entries(type_sec, param_segments, gc_type_base, gc_struct_type_map)
+                                emit_type_result_entry(type_sec, result_seg, gc_type_base, gc_struct_type_map)
+                            }
+                        }
                     }
-                }
-                }
                 }
             }
         }

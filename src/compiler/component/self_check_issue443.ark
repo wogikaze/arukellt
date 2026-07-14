@@ -16,7 +16,7 @@ fn issue443_compose_wit_name_mismatch_self_check() -> bool {
         String_from("tests/component-interop/compose/fixtures/socket-name-mismatch.wasm")
     )
     contains(clone(err), String_from("error: compose conflict:"))
-        && contains(clone(err), String_from("no matching provider export"))
+    && contains(clone(err), String_from("no matching provider export"))
 }
 
 fn issue443_compose_wit_type_mismatch_self_check() -> bool {
@@ -25,5 +25,5 @@ fn issue443_compose_wit_type_mismatch_self_check() -> bool {
         String_from("tests/component-interop/compose/fixtures/socket-type-mismatch.wasm")
     )
     contains(clone(err), String_from("error: compose conflict:"))
-        && contains(clone(err), String_from("type mismatch"))
+    && contains(clone(err), String_from("type mismatch"))
 }

@@ -25,7 +25,7 @@
 //! Directory and metadata operations (`read_dir`, `metadata`, `is_dir`) are not yet
 //! supported on any target.
 /// Reads the entire contents of a file into a UTF-8 string.
-/// 
+///
 /// Returns `Err` if the file does not exist, the path is not readable,
 /// or the content is not valid UTF-8.
 pub fn read_string(path: String) -> Result<String, String> {
@@ -33,7 +33,7 @@ pub fn read_string(path: String) -> Result<String, String> {
 }
 
 /// Writes a UTF-8 string to a file, creating or truncating it.
-/// 
+///
 /// Returns `Err` if the path is not writable or the parent directory
 /// does not exist.
 pub fn write_string(path: String, contents: String) -> Result<(), String> {

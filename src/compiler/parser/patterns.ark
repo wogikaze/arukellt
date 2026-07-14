@@ -15,9 +15,9 @@ fn parse_pattern(p: Parser) -> AstNode {
     let t = cur(p)
     let kind = token_state::Token_kind(t)
     if kind == tokens::TK_UNDERSCORE()
-        || kind == tokens::TK_INT()
-        || kind == tokens::TK_STRING()
-        || kind == tokens::TK_BOOL() {
+    || kind == tokens::TK_INT()
+    || kind == tokens::TK_STRING()
+    || kind == tokens::TK_BOOL() {
         return pattern_literals::parse_literal_pattern(p, t)
     }
     if kind == tokens::TK_LPAREN() {

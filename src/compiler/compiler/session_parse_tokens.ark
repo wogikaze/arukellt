@@ -4,45 +4,45 @@ use diagnostics::record
 use parser
 
 fn session_parse_tokens(tokens: Vec<Token>) -> ParseResult {
-parser::parse_program(tokens)
+    parser::parse_program(tokens)
 }
 
 fn session_parse_decls_from_result(result: ParseResult) -> Vec<AstNode> {
-parser::ParseResult_decls(result)
+    parser::ParseResult_decls(result)
 }
 
 fn session_parse_decl_count(result: ParseResult) -> i32 {
-parser::ParseResult_decl_count(result)
+    parser::ParseResult_decl_count(result)
 }
 
 fn session_parse_error_count(result: ParseResult) -> i32 {
-parser::ParseResult_error_count(result)
+    parser::ParseResult_error_count(result)
 }
 
 fn session_parse_error_at(result: ParseResult, index: i32) -> Diagnostic {
-parser::ParseResult_error_at(result, index)
+    parser::ParseResult_error_at(result, index)
 }
 
 fn session_parse_errors_from_result(result: ParseResult) -> Vec<Diagnostic> {
-parser::ParseResult_errors(result)
+    parser::ParseResult_errors(result)
 }
 
 fn session_parse_error_message(diag: Diagnostic) -> String {
-record::diagnostic_message(diag)
+    record::diagnostic_message(diag)
 }
 
 fn session_parse_error_code(diag: Diagnostic) -> String {
-record::diagnostic_code(diag)
+    record::diagnostic_code(diag)
 }
 
 fn session_parse_error_severity(diag: Diagnostic) -> i32 {
-record::diagnostic_severity(diag)
+    record::diagnostic_severity(diag)
 }
 
 fn session_parse_error_start(diag: Diagnostic) -> i32 {
-record::diagnostic_start(diag)
+    record::diagnostic_start(diag)
 }
 
 fn session_parse_error_end(diag: Diagnostic) -> i32 {
-record::diagnostic_end(diag)
+    record::diagnostic_end(diag)
 }

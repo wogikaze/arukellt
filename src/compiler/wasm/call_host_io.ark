@@ -10,13 +10,13 @@ use wasm::intrinsic_stdio
 // Arukellt Selfhost - Wasm environment host call dispatch
 
 fn try_emit_env_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_env_var_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_env_arg_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_env_var_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_env_arg_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - env argv host call dispatch.
@@ -69,16 +69,16 @@ fn try_emit_env_var_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 // Arukellt Selfhost - Wasm filesystem host call dispatch
 
 fn try_emit_fs_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_fs_query_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_fs_read_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_fs_write_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_fs_query_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_fs_read_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_fs_write_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - filesystem query host call dispatch.
@@ -139,32 +139,32 @@ fn try_emit_process_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 // Arukellt Selfhost - Wasm stdio host call dispatch
 
 fn try_emit_stdio_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "stdio::read_stdin") || eq(clone(callee), "stdin_read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
-            let _result_on_stack = intrinsic_stdio::emit_read_stdin_to_string(w, inst, ctx)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
-            let drop_stray_text_ref = gc_println_should_drop_stray_text_ref(prev_op, prev_callee)
-            let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        if eq(clone(callee), "stdio::print") || eq(clone(callee), "print") {
-            let _result_on_stack = intrinsic_stdio::emit_print(w, inst, ctx, prev_op)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        if eq(clone(callee), "stdio::eprintln") || eq(clone(callee), "eprintln") {
-            let _result_on_stack = intrinsic_stdio::emit_eprintln(w, inst, ctx, prev_op)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        if eq(clone(callee), "panic") {
-            let _exited = intrinsic_assert::emit_panic_message_exit(w, inst, ctx, prev_op, prev_arg0)
-            return true
-        }
-        false
+    if eq(clone(callee), "stdio::read_stdin") || eq(clone(callee), "stdin_read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
+        let _result_on_stack = intrinsic_stdio::emit_read_stdin_to_string(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
+        let drop_stray_text_ref = gc_println_should_drop_stray_text_ref(prev_op, prev_callee)
+        let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "stdio::print") || eq(clone(callee), "print") {
+        let _result_on_stack = intrinsic_stdio::emit_print(w, inst, ctx, prev_op)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "stdio::eprintln") || eq(clone(callee), "eprintln") {
+        let _result_on_stack = intrinsic_stdio::emit_eprintln(w, inst, ctx, prev_op)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "panic") {
+        let _exited = intrinsic_assert::emit_panic_message_exit(w, inst, ctx, prev_op, prev_arg0)
+        return true
+    }
+    false
 }
 
 fn gc_println_should_drop_stray_text_ref(prev_op: i32, prev_callee: String) -> bool {

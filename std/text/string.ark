@@ -1,5 +1,5 @@
 /// String sub-module — qualified string operations under `std::text::string`.
-/// 
+///
 /// Contains relocated prelude string functions and new string APIs.
 /// Prefer using these via `use std::text` and calling `text::split(...)` etc.
 // --- Relocated from prelude ---

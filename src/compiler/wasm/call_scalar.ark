@@ -11,50 +11,50 @@ use wasm::intrinsic_range
 // Arukellt Selfhost - Wasm scalar/range call dispatch
 
 fn try_emit_scalar_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_scalar_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_scalar_bits_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_range_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_scalar_memory_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_scalar_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_scalar_bits_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_range_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_scalar_memory_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - Wasm scalar bit call dispatch
 
 fn try_emit_scalar_bits_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "f64_bits_lo") {
-            let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_lo(w, inst, ctx)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        if eq(clone(callee), "f64_bits_hi") {
-            let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_hi(w, inst, ctx)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        false
+    if eq(clone(callee), "f64_bits_lo") {
+        let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_lo(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "f64_bits_hi") {
+        let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_hi(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - Wasm scalar math call dispatch
 
 fn try_emit_scalar_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_scalar_float_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_scalar_i32_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_scalar_loop_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_scalar_float_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_scalar_i32_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_scalar_loop_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - scalar floating math call dispatch.
@@ -131,29 +131,29 @@ fn try_emit_scalar_loop_math_call(w: WasmWriter, callee: String, inst: MirInst, 
 // Arukellt Selfhost - Wasm memory scalar call dispatch
 
 fn try_emit_scalar_memory_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "memory_copy") {
-            let _result_on_stack = intrinsic_memory::emit_memory_copy(w, inst, ctx)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        if eq(clone(callee), "memory_fill") {
-            let _result_on_stack = intrinsic_memory::emit_memory_fill(w, inst, ctx)
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
-        }
-        false
+    if eq(clone(callee), "memory_copy") {
+        let _result_on_stack = intrinsic_memory::emit_memory_copy(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "memory_fill") {
+        let _result_on_stack = intrinsic_memory::emit_memory_fill(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - Wasm range call dispatch
 
 fn try_emit_range_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_range_new_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_range_query_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_range_new_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_range_query_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
 
 // Arukellt Selfhost - scalar range construction call dispatch.

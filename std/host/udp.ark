@@ -10,11 +10,11 @@
 //! for a future release once `wasi:sockets/udp` host support is wired into
 //! the arukellt_host Wasmtime linker.
 /// Sends a UDP datagram to the given host and port.
-/// 
+///
 /// Returns `Ok(bytes_sent)` on success or `Err(message)` on failure.
-/// 
+///
 /// # Error strings
-/// 
+///
 /// | Situation | `Err` value |
 /// |---|---|
 /// | DNS resolution failure | `"udp: <host>:<port>: name or service not known"` |

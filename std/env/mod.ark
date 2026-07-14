@@ -20,7 +20,7 @@ pub fn arg_at(index: i32) -> Option<String> {
 }
 
 /// Looks up an environment variable by name.
-/// 
+///
 /// Returns `None` when the variable is unset or the target does not
 /// support environment variable access.
 pub fn var(name: String) -> Option<String> {
