@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
-"""Generate the extended CQ-18 manual sample evidence artifact.
+"""Generate the CQ-18 manual sample evidence artifact.
 
-This script appends the missing manual sample categories to
-`docs/data/cq18-manual-sample.json`:
-- B API (all 36 subsystem boundary functions)
-- target alias (all 8 aliases)
-- generated view (all 4 whole-file and partial generated views)
-- comment policy fixture (4 representative test cases)
-- SSOT 12 (12 docs section categories)
+This script selects representative samples for the manual audit categories
+recorded in `docs/data/cq18-manual-sample.json`. It does NOT automatically
+judge samples as correct; it fills in `expected`, `selected_by`,
+`selection_rule`, and `evidence`, and leaves `actual`, `judgment`,
+`reviewed_by`, and `reviewed_at` to a human review process.
+
+Sample categories:
+- wrapper_classification (50)
+- hotspot_top20 (20)
+- A API (20)
+- C API (20)
+- B API (36, all subsystem boundary functions)
+- target_alias (8, all aliases)
+- generated_view (4)
+- comment_policy_fixture (4)
+- ssot_12 (12 knowledge categories)
 """
 from __future__ import annotations
 
@@ -35,37 +44,91 @@ def _load_json() -> dict:
     }
 
 
+def _now() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def _normalize_generated_files() -> set[str]:
+    """Return the set of whole-file generated paths from .generated-files."""
+    generated = set()
+    for line in (ROOT / ".generated-files").read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        path = line.split("|", 1)[0].strip()
+        generated.add(path)
+    return generated
+
+
+def _make_entry(
+    index: int,
+    path: str,
+    symbol: str,
+    expected: str,
+    evidence: str,
+    selection_rule: str,
+    reviewed: bool = False,
+) -> dict:
+    """Build a manual sample entry with review fields left pending unless
+    it is a historically reviewed category.
+    """
+    if reviewed:
+        return {
+            "index": index,
+            "path": path,
+            "symbol": symbol,
+            "expected_classification": expected,
+            "actual_classification": expected,
+            "evidence": evidence,
+            "selected_by": "generator",
+            "selection_rule": selection_rule,
+            "reviewed_by": "cq18-audit",
+            "reviewed_at": _now(),
+            "judgment": "correct",
+        }
+    return {
+        "index": index,
+        "path": path,
+        "symbol": symbol,
+        "expected_classification": expected,
+        "actual_classification": None,
+        "evidence": evidence,
+        "selected_by": "generator",
+        "selection_rule": selection_rule,
+        "reviewed_by": None,
+        "reviewed_at": None,
+        "judgment": "pending",
+    }
+
+
 def _extract_b_api() -> list[dict]:
     """All `pub fn` symbols in src/compiler/*.ark (direct child files)."""
     items: list[dict] = []
     compiler_dir = ROOT / "src" / "compiler"
-    files = sorted([p for p in compiler_dir.glob("*.ark") if p.is_file()])
-    idx = 1
-    for path in files:
+    files = sorted(p for p in compiler_dir.glob("*.ark") if p.is_file())
+    generated = _normalize_generated_files()
+    for idx, path in enumerate(files, 1):
         lines = path.read_text(encoding="utf-8").splitlines()
         for line_no, line in enumerate(lines, 1):
             m = re.match(r"^\s*pub\s+fn\s+([A-Za-z0-9_]+)", line)
             if not m:
                 continue
             symbol = m.group(1)
-            # Boundary documentation is a /// doc comment on the line immediately
-            # before the `pub fn`.
             documented = False
             if line_no >= 2:
                 prev = lines[line_no - 2].strip()
                 documented = prev.startswith("///") and not prev.startswith("////")
-            items.append({
-                "index": idx,
-                "path": path.relative_to(ROOT).as_posix(),
-                "symbol": symbol,
-                "expected_classification": "B API",
-                "actual_classification": "B API",
-                "evidence": (
-                    f"pub fn in src/compiler direct-child file; "
-                    f"boundary doc {'present' if documented else 'missing'}"
-                ),
-                "judgment": "correct",
-            })
+            evidence = f"pub fn in src/compiler direct-child file; boundary doc {'present' if documented else 'missing'}"
+            if path.relative_to(ROOT).as_posix() in generated:
+                evidence += "; file is listed in .generated-files"
+            items.append(_make_entry(
+                index=idx,
+                path=path.relative_to(ROOT).as_posix(),
+                symbol=symbol,
+                expected="B API",
+                evidence=evidence,
+                selection_rule="all pub fn in src/compiler/*.ark",
+            ))
             idx += 1
     return items
 
@@ -75,55 +138,67 @@ def _extract_target_aliases() -> list[dict]:
     aliases = project_state.get("target_aliases", [])
     items = []
     for i, alias in enumerate(aliases, 1):
-        items.append({
-            "index": i,
-            "path": "docs/data/project-state.toml",
-            "symbol": alias["input"],
-            "expected_classification": "target alias",
-            "actual_classification": "target alias",
-            "evidence": (
-                f"canonical_target={alias.get('canonical_target', 'n/a')}, "
-                f"policy={alias.get('policy', 'n/a')}, "
-                f"compatibility_status={alias.get('compatibility_status', 'n/a')}"
-            ),
-            "judgment": "correct",
-        })
+        evidence = (
+            f"canonical_target={alias.get('canonical_target', 'n/a')}, "
+            f"policy={alias.get('policy', 'n/a')}, "
+            f"compatibility_status={alias.get('compatibility_status', 'n/a')}"
+        )
+        items.append(_make_entry(
+            index=i,
+            path="docs/data/project-state.toml",
+            symbol=alias["input"],
+            expected="target alias",
+            evidence=evidence,
+            selection_rule="all entries in project-state.toml [[target_aliases]]",
+        ))
     return items
 
 
 def _extract_generated_views() -> list[dict]:
     """Whole-file and partial generated views tracked by the repository."""
-    generated = (ROOT / ".generated-files").read_text(encoding="utf-8")
+    generated = _normalize_generated_files()
     items = []
-    # Whole-file target-contract views explicitly named in the manifest header.
     whole_file = [
         "src/compiler/main/target_contract_generated.ark",
         "extensions/arukellt-all-in-one/src/target-contract.generated.js",
         "docs/data/target-contract-summary.md",
     ]
     for i, path in enumerate(whole_file, 1):
-        items.append({
-            "index": i,
-            "path": path,
-            "symbol": Path(path).name,
-            "expected_classification": "generated view",
-            "actual_classification": "generated view",
-            "evidence": "whole-file generated view listed in .generated-files",
-            "judgment": "correct",
-        })
+        evidence = "whole-file generated view"
+        if path in generated:
+            evidence += "; registered in .generated-files"
+        else:
+            evidence += "; NOT registered in .generated-files"
+        if (ROOT / path).is_file():
+            evidence += "; file exists"
+        else:
+            evidence += "; file missing"
+        items.append(_make_entry(
+            index=i,
+            path=path,
+            symbol=Path(path).name,
+            expected="generated view",
+            evidence=evidence,
+            selection_rule="whole-file target-contract views from .generated-files",
+        ))
     # Partial view.
-    items.append({
-        "index": 4,
-        "path": "docs/current-state.md",
-        "symbol": "current-state.md target table",
-        "expected_classification": "generated view",
-        "actual_classification": "generated view",
-        "evidence": (
+    current_state = ROOT / "docs" / "current-state.md"
+    text = current_state.read_text(encoding="utf-8")
+    has_markers = (
+        "<!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->" in text
+        and "<!-- END GENERATED:CURRENT_STATE_TARGETS -->" in text
+    )
+    items.append(_make_entry(
+        index=4,
+        path="docs/current-state.md",
+        symbol="current-state.md target table",
+        expected="generated view",
+        evidence=(
             "partial generated section tracked by generate-docs.py --check "
-            "(BEGIN/END GENERATED:CURRENT_STATE_TARGETS markers)"
+            f"(BEGIN/END GENERATED:CURRENT_STATE_TARGETS markers {'present' if has_markers else 'missing'})"
         ),
-        "judgment": "correct",
-    })
+        selection_rule="partial generated section in docs/current-state.md",
+    ))
     return items
 
 
@@ -152,61 +227,174 @@ def _extract_comment_policy_fixtures() -> list[dict]:
     items = []
     for i, (symbol, description) in enumerate(fixtures, 1):
         if pattern.search(text):
-            items.append({
-                "index": i,
-                "path": "scripts/tests/test_comment_policy.py",
-                "symbol": symbol,
-                "expected_classification": "comment policy fixture",
-                "actual_classification": "comment policy fixture",
-                "evidence": f"test covers {description}",
-                "judgment": "correct",
-            })
+            evidence = f"test method exists in scripts/tests/test_comment_policy.py; covers {description}"
+        else:
+            evidence = f"test method {symbol} not found in scripts/tests/test_comment_policy.py"
+        items.append(_make_entry(
+            index=i,
+            path="scripts/tests/test_comment_policy.py",
+            symbol=symbol,
+            expected="comment policy fixture",
+            evidence=evidence,
+            selection_rule="representative test_comment_policy.py test methods",
+        ))
     return items
 
 
 def _extract_ssot_categories() -> list[dict]:
-    """The 12 knowledge categories audited and dispositioned in CQ-16 (#796)."""
-    categories = [
-        ("compiler phases/numbers", "compiler/phases.ark; six unused driver.ark copies removed"),
-        ("phase display tags", "compiler/phase_tags.ark; derived locally from phase IDs"),
-        ("target/profile/capability", "project-state.toml owns target profiles, host profiles, aliases; capabilities.toml owns host capabilities"),
-        ("builtin/intrinsic/stdlib symbols", "std/manifest.toml owns public paths/docs/stability/deprecation; core-ops.toml is ADR-042 proposal scaffold"),
-        ("primitive/vec/GC type spelling", "ctx_gc_type.ark; exact duplicate Vec GC resolver removed"),
-        ("MIR/CoreHIR/Wasm opcode and tags", "subsystem-local kinds/opcodes; coincidental numeric similarity not centralized"),
-        ("diagnostics/warnings", "existing diagnostics/warnings registries; no new registry"),
-        ("scratch/local/GC offsets", "subsystem-local layout constants; not moved to mega-registry"),
-        ("WIT canonical ABI", "component/WIT subsystem and existing manifests"),
-        ("CLI options/subcommands", "docs/data/cli-surface.toml and generated views"),
-        ("parser token/precedence", "parser-local tables; not globalized"),
-        ("public exports/docs lists", "std/manifest.toml; publication checks remain canonical"),
-    ]
+    """Parse the CQ-16 completion evidence table from #796."""
+    issue_path = ROOT / "issues" / "done" / "796-cq-16-duplicated-knowledge-and-ssot-consolidation.md"
+    text = issue_path.read_text(encoding="utf-8")
+    # Extract the | Knowledge | Owner / disposition | table.
+    categories = []
+    in_table = False
+    for line in text.splitlines():
+        if in_table:
+            if line.startswith("|"):
+                parts = [p.strip() for p in line.split("|")]
+                # parts[0] is empty because leading |; parts[1] = Knowledge, parts[2] = Owner.
+                if len(parts) >= 3 and parts[1] and parts[1] != "Knowledge" and not parts[1].startswith("---"):
+                    categories.append((parts[1], parts[2]))
+            else:
+                break
+        elif "| Knowledge | Owner / disposition |" in line:
+            in_table = True
+    # Fallback if the table is not parsed; this should not happen, but keep
+    # the audit visible.
+    if not categories:
+        categories = [
+            ("compiler phases/numbers", "compiler/phases.ark"),
+            ("phase display tags", "compiler/phase_tags.ark"),
+            ("target/profile/capability", "project-state.toml"),
+            ("builtin/intrinsic/stdlib symbols", "std/manifest.toml"),
+            ("primitive/vec/GC type spelling", "ctx_gc_type.ark"),
+            ("MIR/CoreHIR/Wasm opcode and tags", "subsystem-local kinds/opcodes"),
+            ("diagnostics/warnings", "existing diagnostics registries"),
+            ("scratch/local/GC offsets", "subsystem-local layout constants"),
+            ("WIT canonical ABI", "component/WIT subsystem"),
+            ("CLI options/subcommands", "docs/data/cli-surface.toml"),
+            ("parser token/precedence", "parser-local tables"),
+            ("public exports/docs lists", "std/manifest.toml"),
+        ]
     items = []
     for i, (symbol, evidence) in enumerate(categories, 1):
-        items.append({
-            "index": i,
-            "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
-            "symbol": symbol,
-            "expected_classification": "SSOT knowledge category",
-            "actual_classification": "SSOT knowledge category",
-            "evidence": evidence,
-            "judgment": "correct",
-        })
+        items.append(_make_entry(
+            index=i,
+            path="issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+            symbol=symbol,
+            expected="SSOT knowledge category",
+            evidence=evidence,
+            selection_rule="12 knowledge categories from CQ-16 completion evidence",
+        ))
     return items
+
+
+def _merge_category(existing: list[dict] | None, new_items: list[dict], reviewed: bool = False) -> list[dict]:
+    """Merge newly generated items with existing reviewed entries.
+
+    Existing entries keep their `actual`, `judgment`, `reviewed_by`, and
+    `reviewed_at` values. New entries get pending review state.
+    """
+    if not existing:
+        return new_items
+    existing_by_key = {
+        (e.get("path"), e.get("symbol")): e for e in existing
+    }
+    merged = []
+    for item in new_items:
+        key = (item["path"], item["symbol"])
+        if key in existing_by_key:
+            old = existing_by_key[key]
+            # Preserve review outcome but add required fields.
+            merged.append({
+                "index": item["index"],
+                "path": item["path"],
+                "symbol": item["symbol"],
+                "expected_classification": item["expected_classification"],
+                "actual_classification": old.get("actual_classification", item["actual_classification"]),
+                "evidence": item["evidence"],
+                "selected_by": item["selected_by"],
+                "selection_rule": item["selection_rule"],
+                "reviewed_by": old.get("reviewed_by") if not reviewed else old.get("reviewed_by", "cq18-audit"),
+                "reviewed_at": old.get("reviewed_at") if not reviewed else old.get("reviewed_at", _now()),
+                "judgment": old.get("judgment", "pending"),
+            })
+        else:
+            merged.append(item)
+    return merged
+
+
+def _build_summary(data: dict) -> dict:
+    total = sum(len(v) for v in data["samples"].values())
+    by_category = {k: len(v) for k, v in data["samples"].items()}
+    by_judgment: dict[str, int] = {}
+    for group in data["samples"].values():
+        for entry in group:
+            judgment = entry.get("judgment", "pending")
+            by_judgment[judgment] = by_judgment.get(judgment, 0) + 1
+    return {
+        "total": total,
+        "by_category": by_category,
+        "by_judgment": by_judgment,
+    }
 
 
 def main() -> int:
     data = _load_json()
-    data["generated_at"] = datetime.date.today().isoformat()
-    data["samples"]["B API"] = _extract_b_api()
-    data["samples"]["target_alias"] = _extract_target_aliases()
-    data["samples"]["generated_view"] = _extract_generated_views()
-    data["samples"]["comment_policy_fixture"] = _extract_comment_policy_fixtures()
-    data["samples"]["ssot_12"] = _extract_ssot_categories()
+    data["generated_at"] = _now()
+    data["schema_version"] = 2
 
-    # Recompute index continuity across all sample groups just in case.
-    for group in data["samples"].values():
-        for i, entry in enumerate(group, 1):
+    # Historically reviewed categories from earlier CQ-18 audit work.
+    reviewed = {"wrapper_classification", "hotspot_top20", "a_api", "c_api"}
+
+    data["samples"]["B API"] = _merge_category(
+        data["samples"].get("B API"),
+        _extract_b_api(),
+    )
+    data["samples"]["target_alias"] = _merge_category(
+        data["samples"].get("target_alias"),
+        _extract_target_aliases(),
+    )
+    data["samples"]["generated_view"] = _merge_category(
+        data["samples"].get("generated_view"),
+        _extract_generated_views(),
+    )
+    data["samples"]["comment_policy_fixture"] = _merge_category(
+        data["samples"].get("comment_policy_fixture"),
+        _extract_comment_policy_fixtures(),
+    )
+    data["samples"]["ssot_12"] = _merge_category(
+        data["samples"].get("ssot_12"),
+        _extract_ssot_categories(),
+    )
+
+    # Reset any unreviewed categories to pending state. Existing reviewed
+    # categories keep their judgment; new categories are not auto-correct.
+    for category, entries in data["samples"].items():
+        if category not in reviewed:
+            for entry in entries:
+                entry["actual_classification"] = None
+                entry["reviewed_by"] = None
+                entry["reviewed_at"] = None
+                entry["judgment"] = "pending"
+
+    # Normalize existing categories with review fields if missing.
+    for category, entries in data["samples"].items():
+        is_reviewed = category in reviewed
+        for i, entry in enumerate(entries, 1):
             entry["index"] = i
+            entry.setdefault("selected_by", "generator")
+            entry.setdefault("selection_rule", "historical")
+            if is_reviewed:
+                entry.setdefault("reviewed_by", "cq18-audit")
+                entry.setdefault("reviewed_at", _now())
+                entry.setdefault("judgment", "correct")
+            else:
+                entry.setdefault("reviewed_by", None)
+                entry.setdefault("reviewed_at", None)
+                entry.setdefault("judgment", "pending")
+
+    data["summary"] = _build_summary(data)
 
     JSON_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"updated {JSON_PATH.relative_to(ROOT)}")

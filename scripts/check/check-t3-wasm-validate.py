@@ -314,6 +314,7 @@ def _write_report(
     skip_count: int,
     details: list[str],
     skipped: list[str],
+    pass_fixtures: list[str],
 ) -> None:
     """Write a machine-readable report for the receipt writer.
 
@@ -322,6 +323,8 @@ def _write_report(
     human-readable stdout is truncated to the last 50 details.
     """
     items = []
+    for fixture in pass_fixtures:
+        items.append({"fixture": fixture, "status": "pass", "detail": ""})
     for line in details:
         # Lines are formatted by _process_fixture_worker as:
         #   VALIDATE FAIL: <fixture> — <msg>
@@ -418,6 +421,7 @@ def main() -> int:
         shutil.rmtree(str(stale), ignore_errors=True)
 
     pass_count = 0
+    pass_fixtures: list[str] = []
     fail_validate = 0
     fail_compile = 0
     skip_count = 0
@@ -447,6 +451,7 @@ def main() -> int:
                 cache_hits += 1
                 if status == "pass":
                     pass_count += 1
+                    pass_fixtures.append(fixture)
                 elif status == "validate-fail":
                     fail_validate += 1
                     fail_details.append(detail)
@@ -478,6 +483,7 @@ def main() -> int:
         for fixture, status, detail, key in results:
             if status == "pass":
                 pass_count += 1
+                pass_fixtures.append(fixture)
                 if use_cache:
                     _cache_store(fixture, key, "pass", "")
             elif status == "validate-fail":
@@ -517,6 +523,7 @@ def main() -> int:
         skip_count=skip_count,
         details=fail_details,
         skipped=skipped_fixtures,
+        pass_fixtures=pass_fixtures,
     )
 
     if fail_validate > 0 or fail_compile > 0:
