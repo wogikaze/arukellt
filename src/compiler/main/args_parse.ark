@@ -1,3 +1,4 @@
+use std::host::stdio
 use main::args_parse_flags
 use main::args_parse_opts
 use main::args_parse_opts_cache
@@ -6,7 +7,6 @@ use main::args_record
 use main::commands
 use main::kinds
 use main::target_contract_generated
-use std::host::stdio
 
 fn parse_args(argv: Vec<String>) -> CliOptions {
     let opts = args_record::CliOptions_default()
