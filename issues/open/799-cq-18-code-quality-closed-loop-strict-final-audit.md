@@ -1,12 +1,12 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 799
 Track: code-quality
-Depends on: "797"
+Depends on: "715, 796, 797"
 Orchestration class: blocked
-Orchestration upstream: 715, 796, 797
+Orchestration upstream: 715, 797
 Blocks v{N}: none
 Priority: 1
 Source: CQ closed-loop strict final audit

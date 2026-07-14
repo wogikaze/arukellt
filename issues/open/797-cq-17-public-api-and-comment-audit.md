@@ -1,12 +1,12 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 797
 Track: code-quality
 Depends on: "796"
-Orchestration class: blocked
-Orchestration upstream: 796
+Orchestration class: ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 1
 Source: CQ closed-loop plan CQ-17
