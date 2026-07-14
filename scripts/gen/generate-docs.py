@@ -1520,6 +1520,27 @@ def render_compiler_target_contract(state: dict) -> str:
             "    }",
         ])
     lines.extend(["    String_new()", "}", ""])
+    lines.extend(['test mod "target_contract_generated" {'])
+    for index, target in enumerate(canonical):
+        lines.append(
+            f'    test "canonical_{index}" {{ assert(target_is_canonical(String_from("{_ark_string(target)}"))) }}'
+        )
+    for index, alias in enumerate(aliases):
+        spelling = _ark_string(alias["input"])
+        lines.append(
+            f'    test "policy_{index}" {{ assert(eq(target_alias_policy(String_from("{spelling}")), String_from("{alias["policy"]}"))) }}'
+        )
+        if alias["policy"] == "warning":
+            lines.append(
+                f'    test "canonicalize_{index}" {{ assert(eq(target_alias_canonical_target(String_from("{spelling}")), String_from("{_ark_string(alias["canonical_target"])}"))) }}'
+            )
+            lines.append(
+                f'    test "host_{index}" {{ assert(eq(target_alias_host_profile(String_from("{spelling}")), String_from("{_ark_string(alias["host_profile"])}"))) }}'
+            )
+            lines.append(
+                f'    test "warning_{index}" {{ assert(contains(target_alias_message(String_from("{spelling}")), String_from("W0002"))) }}'
+            )
+    lines.extend(["}", ""])
     return "\n".join(lines)
 
 

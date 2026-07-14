@@ -126,3 +126,36 @@ fn target_alias_message(input: String) -> String {
     }
     String_new()
 }
+
+test mod "target_contract_generated" {
+    test "canonical_0" { assert(target_is_canonical(String_from("wasm32"))) }
+    test "canonical_1" { assert(target_is_canonical(String_from("wasm32-gc"))) }
+    test "canonical_2" { assert(target_is_canonical(String_from("native-cpp"))) }
+    test "canonical_3" { assert(target_is_canonical(String_from("native-llvm"))) }
+    test "policy_0" { assert(eq(target_alias_policy(String_from("wasm32-wasi-p1")), String_from("warning"))) }
+    test "canonicalize_0" { assert(eq(target_alias_canonical_target(String_from("wasm32-wasi-p1")), String_from("wasm32"))) }
+    test "host_0" { assert(eq(target_alias_host_profile(String_from("wasm32-wasi-p1")), String_from("wasi-p1"))) }
+    test "warning_0" { assert(contains(target_alias_message(String_from("wasm32-wasi-p1")), String_from("W0002"))) }
+    test "policy_1" { assert(eq(target_alias_policy(String_from("wasm32-wasi")), String_from("warning"))) }
+    test "canonicalize_1" { assert(eq(target_alias_canonical_target(String_from("wasm32-wasi")), String_from("wasm32"))) }
+    test "host_1" { assert(eq(target_alias_host_profile(String_from("wasm32-wasi")), String_from("wasi-p1"))) }
+    test "warning_1" { assert(contains(target_alias_message(String_from("wasm32-wasi")), String_from("W0002"))) }
+    test "policy_2" { assert(eq(target_alias_policy(String_from("wasm32-wasi-p2")), String_from("warning"))) }
+    test "canonicalize_2" { assert(eq(target_alias_canonical_target(String_from("wasm32-wasi-p2")), String_from("wasm32-gc"))) }
+    test "host_2" { assert(eq(target_alias_host_profile(String_from("wasm32-wasi-p2")), String_from("wasi-p2"))) }
+    test "warning_2" { assert(contains(target_alias_message(String_from("wasm32-wasi-p2")), String_from("W0002"))) }
+    test "policy_3" { assert(eq(target_alias_policy(String_from("wasm-gc")), String_from("warning"))) }
+    test "canonicalize_3" { assert(eq(target_alias_canonical_target(String_from("wasm-gc")), String_from("wasm32-gc"))) }
+    test "host_3" { assert(eq(target_alias_host_profile(String_from("wasm-gc")), String_from("wasi-p2"))) }
+    test "warning_3" { assert(contains(target_alias_message(String_from("wasm-gc")), String_from("W0002"))) }
+    test "policy_4" { assert(eq(target_alias_policy(String_from("wasm-gc-wasi-p2")), String_from("warning"))) }
+    test "canonicalize_4" { assert(eq(target_alias_canonical_target(String_from("wasm-gc-wasi-p2")), String_from("wasm32-gc"))) }
+    test "host_4" { assert(eq(target_alias_host_profile(String_from("wasm-gc-wasi-p2")), String_from("wasi-p2"))) }
+    test "warning_4" { assert(contains(target_alias_message(String_from("wasm-gc-wasi-p2")), String_from("W0002"))) }
+    test "policy_5" { assert(eq(target_alias_policy(String_from("wasm32-wasi-p3")), String_from("warning"))) }
+    test "canonicalize_5" { assert(eq(target_alias_canonical_target(String_from("wasm32-wasi-p3")), String_from("wasm32-gc"))) }
+    test "host_5" { assert(eq(target_alias_host_profile(String_from("wasm32-wasi-p3")), String_from("wasi-p3"))) }
+    test "warning_5" { assert(contains(target_alias_message(String_from("wasm32-wasi-p3")), String_from("W0002"))) }
+    test "policy_6" { assert(eq(target_alias_policy(String_from("native")), String_from("error"))) }
+    test "policy_7" { assert(eq(target_alias_policy(String_from("wasm32-freestanding")), String_from("error"))) }
+}
