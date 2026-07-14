@@ -6231,7 +6231,7 @@ def cmd_verify_size(args: argparse.Namespace) -> int:
             arukellt_bin,
             "compile",
             "tests/fixtures/hello/hello.ark",
-            "--target", "wasm32-wasi-p2",
+            "--target", "wasm32-gc",
             "--opt-level", "1",
             "-o", HELLO_WASM_OUT,
         ]

@@ -135,7 +135,8 @@ PATCHER_DIR_REL = "scripts/bootstrap/wasm-heap-grow-patcher"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
 SELFHOST_COMPILE_TIMEOUT = 900
-SELFHOST_TARGET = "wasm32-wasi-p1"
+SELFHOST_TARGET = "wasm32"
+SELFHOST_WASI_VERSION = "wasi-p1"
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
@@ -314,7 +315,7 @@ pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decl
 BOOTSTRAP_COMPONENT_WORLD_SPEC_STUB = """// Bootstrap overlay stub — world_spec excluded with component model.
 pub fn component_world_spec__world_target_error(world: String, target: String, emit_mode: String) -> String {
     if len(world) == 0 { return String_new() }
-    if !contains(clone(target), String_from("-p2")) { return String_from("--world requires --target wasm32-wasi-p2") }
+    if !contains(clone(target), String_from("wasm32-gc")) { return String_from("--world requires --target wasm32-gc") }
     String_new()
 }
 """
@@ -674,7 +675,7 @@ def _wasm_compile(
         run_flags = ["--wasm", "gc", "--wasm", "function-references"]
     result = _run(
         [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", SELFHOST_TARGET, "-o", guest_out, *cache_args],
+         "compile", src, "--target", SELFHOST_TARGET, "--wasi-version", SELFHOST_WASI_VERSION, "-o", guest_out, *cache_args],
         root,
         timeout=timeout,
     )
@@ -2175,7 +2176,7 @@ def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | N
     hop_s2 = work_dir / "hop-s2.wasm"
     compile = subprocess.run(
         [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", ".", "hop-compiler.wasm", "--",
-         "compile", "src/compiler/main.ark", "--target", SELFHOST_TARGET, "-o", "hop-s2.wasm"],
+         "compile", "src/compiler/main.ark", "--target", SELFHOST_TARGET, "--wasi-version", SELFHOST_WASI_VERSION, "-o", "hop-s2.wasm"],
         cwd=str(work_dir),
         capture_output=True,
         text=True,
@@ -3712,7 +3713,7 @@ def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
                 fail_count += 1
                 continue
 
-            check = _wasm_check(wasmtime, current, work_rel, root, extra_args=["--target", "wasm32-wasi-p1"])
+            check = _wasm_check(wasmtime, current, work_rel, root, extra_args=["--target", "wasm32", "--wasi-version", "wasi-p1"])
             if check.returncode != 0:
                 lines.append(f"  FAIL: {fixture} (formatted output does not parse)")
                 fail_count += 1
@@ -3849,10 +3850,10 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
             lines.append(f"  FAIL: {cmd} (no-args: expected non-zero, got {rc_s})")
             fail_count += 1
 
-    # Case 7: targets — must exit zero and mention wasm32-wasi-p2
+    # Case 7: targets — must exit zero and mention wasm32-gc
     rc_t, out_t = run_self("targets")
-    if rc_t == 0 and "wasm32-wasi-p2" in out_t:
-        lines.append(f"  pass: targets (exit 0, mentions wasm32-wasi-p2)")
+    if rc_t == 0 and "wasm32-gc" in out_t:
+        lines.append(f"  pass: targets (exit 0, mentions wasm32-gc)")
         pass_count += 1
     else:
         lines.append(f"  FAIL: targets (exit={rc_t}, output={out_t.strip()!r})")
