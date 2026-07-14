@@ -1,0 +1,1177 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-14",
+  "samples": {
+    "wrapper_classification": [
+      {
+        "index": 1,
+        "path": "src/compiler/analysis/diagnostic_record.ark",
+        "symbol": "analysis_diagnostic_message",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_span_file",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_span_line",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_message",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_code",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_severity",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_start",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_end",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 9,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "diagnostic_span",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 10,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "compile_result_success",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 11,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "compile_result_output_bytes",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 12,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "compile_result_error_count",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 13,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "compile_result_phase_reached",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 14,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "compile_result_diagnostics",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 15,
+        "path": "src/compiler/driver/checked_program.ark",
+        "symbol": "checked_program_session",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 16,
+        "path": "src/compiler/driver/checked_program.ark",
+        "symbol": "checked_program_core_program",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 17,
+        "path": "src/compiler/driver/checked_program.ark",
+        "symbol": "checked_program_export_surface",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 18,
+        "path": "src/compiler/driver/checked_program.ark",
+        "symbol": "checked_program_wit_decls",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 19,
+        "path": "src/compiler/hir/item_functions.ark",
+        "symbol": "HirFunction_name",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 20,
+        "path": "src/compiler/hir/item_functions.ark",
+        "symbol": "HirFunction_is_pub",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 21,
+        "path": "src/compiler/hir/node_value_record.ark",
+        "symbol": "hir_node_tag",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 22,
+        "path": "src/compiler/hir/node_value_record.ark",
+        "symbol": "hir_node_type",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 23,
+        "path": "src/compiler/hir/node_value_record.ark",
+        "symbol": "hir_node_text",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 24,
+        "path": "src/compiler/hir/type_contracts_record.ark",
+        "symbol": "hir_type_tag",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 25,
+        "path": "src/compiler/hir/type_contracts_record.ark",
+        "symbol": "hir_type_name",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, record field accessor",
+        "judgment": "correct"
+      },
+      {
+        "index": 26,
+        "path": "src/compiler/hir/items.ark",
+        "symbol": "HirTraitBound_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 27,
+        "path": "src/compiler/corehir/value_types.ark",
+        "symbol": "VT_I64",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, constant constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 28,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "CompileResult_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 29,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "CompileResult_ok",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 30,
+        "path": "src/compiler/driver/result_record.ark",
+        "symbol": "CompileResult_err",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 31,
+        "path": "src/compiler/driver/checked_program.ark",
+        "symbol": "CheckedProgram_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 32,
+        "path": "src/compiler/driver/backend_resolve.ark",
+        "symbol": "DriverResolveResult_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 33,
+        "path": "src/compiler/driver/backend_typecheck.ark",
+        "symbol": "DriverTypecheckResult_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 34,
+        "path": "src/compiler/driver/pipeline_frontend.ark",
+        "symbol": "DriverFrontendResult_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 35,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "Diagnostic_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 36,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "DiagnosticSpan_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 37,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "DiagnosticSpan_new_full",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 38,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "DiagnosticSpan_from_raw",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 39,
+        "path": "src/compiler/diagnostics/record.ark",
+        "symbol": "Diagnostic_new_parse",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 40,
+        "path": "src/compiler/hir/node_record.ark",
+        "symbol": "HirNode_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 41,
+        "path": "src/compiler/hir/item_functions.ark",
+        "symbol": "HirFunction_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 42,
+        "path": "src/compiler/hir/item_functions.ark",
+        "symbol": "HirParam_new",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 43,
+        "path": "src/compiler/hir/type_contracts_record.ark",
+        "symbol": "HirType_simple",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 44,
+        "path": "src/compiler/hir/type_contracts_record.ark",
+        "symbol": "HirType_named",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, type constructor",
+        "judgment": "correct"
+      },
+      {
+        "index": 45,
+        "path": "src/compiler/driver/source_file.ark",
+        "symbol": "load_source_file",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, pure forwarder",
+        "judgment": "correct"
+      },
+      {
+        "index": 46,
+        "path": "src/compiler/parser/stmt_block.ark",
+        "symbol": "parse_expr_or_block",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, pure forwarder",
+        "judgment": "correct"
+      },
+      {
+        "index": 47,
+        "path": "src/compiler/driver/modules.ark",
+        "symbol": "load_source",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, pure forwarder",
+        "judgment": "correct"
+      },
+      {
+        "index": 48,
+        "path": "src/compiler/driver/modules.ark",
+        "symbol": "parent_dir",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "one-line body, pure forwarder",
+        "judgment": "correct"
+      },
+      {
+        "index": 49,
+        "path": "src/compiler/driver/modules.ark",
+        "symbol": "release_module_asts",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "module-boundary facade, pure forwarder",
+        "judgment": "correct"
+      },
+      {
+        "index": 50,
+        "path": "src/compiler/lsp/feature_references.ark",
+        "symbol": "handle_document_highlight",
+        "expected_classification": "thin_wrapper",
+        "actual_classification": "thin_wrapper",
+        "evidence": "module-boundary facade, pure forwarder",
+        "judgment": "correct"
+      }
+    ],
+    "hotspot_top20": [
+      {
+        "index": 1,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_vec_type_for_local",
+        "complexity": 15,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "function_lines>=p95",
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_struct_type",
+        "complexity": 8,
+        "reason_signals": [
+          "complexity>=p95",
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "src/compiler/mir/lower/ctx_fn_return_vt.ark",
+        "symbol": "is_void_returning_builtin",
+        "complexity": 55,
+        "reason_signals": [
+          "complexity>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine MIR return-type dispatch complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_struct_type_by_name",
+        "complexity": 7,
+        "reason_signals": [
+          "nesting>=p95",
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_vec_type_for_ctx",
+        "complexity": 6,
+        "reason_signals": [
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_array_type_for_vec",
+        "complexity": 6,
+        "reason_signals": [
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "src/compiler/wasm/code_ref_locals.ark",
+        "symbol": "should_gc_ref_cast_to_dest",
+        "complexity": 20,
+        "reason_signals": [
+          "complexity>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC ref cast dispatch complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "src/compiler/mir/lower/ctx_fn_return_vt.ark",
+        "symbol": "ctx_fn_return_vt_builtin",
+        "complexity": 36,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine MIR return-type dispatch complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 9,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_enum_variant_type",
+        "complexity": 5,
+        "reason_signals": [
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 10,
+        "path": "src/compiler/wasm/ctx_gc_type.ark",
+        "symbol": "SelfEmitCtx_has_struct_type",
+        "complexity": 5,
+        "reason_signals": [
+          "nesting>=p95",
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type system complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 11,
+        "path": "src/compiler/mir/lower/call_type_fallback.ark",
+        "symbol": "mark_fallback_call_result_type",
+        "complexity": 16,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine call type fallback complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 12,
+        "path": "src/compiler/mir/lower/call_type_fallback.ark",
+        "symbol": "mark_mono_call_result_type",
+        "complexity": 14,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine call type fallback complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 13,
+        "path": "src/compiler/mir/lower/call_type_fallback.ark",
+        "symbol": "is_ref_type_name",
+        "complexity": 14,
+        "reason_signals": [
+          "complexity>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine call type fallback complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 14,
+        "path": "src/compiler/mir/lower/ctx_gc_struct.ark",
+        "symbol": "gc_struct_container_ref_suffix",
+        "complexity": 38,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC struct layout complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 15,
+        "path": "src/compiler/mir/lower/call_type_fallback.ark",
+        "symbol": "set_vt_for_resolved_type_name",
+        "complexity": 13,
+        "reason_signals": [
+          "complexity>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine call type fallback complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 16,
+        "path": "src/compiler/mir/lower/ctx_gc_enum.ark",
+        "symbol": "ctx_gc_enum_variant_slot",
+        "complexity": 7,
+        "reason_signals": [
+          "nesting>=p95",
+          "function_lines>=p95",
+          "fan_in>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC enum variant complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 17,
+        "path": "src/compiler/mir/lower/call_types.ark",
+        "symbol": "mir_callee_returns_string",
+        "complexity": 38,
+        "reason_signals": [
+          "complexity>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine call type dispatch complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 18,
+        "path": "src/compiler/mir/lower/ctx_fn_return_vt.ark",
+        "symbol": "ctx_fn_return_vt",
+        "complexity": 18,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "function_lines>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine MIR return-type dispatch complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 19,
+        "path": "src/compiler/mir/lower/call_type_fallback.ark",
+        "symbol": "is_mono_type_var_name",
+        "complexity": 10,
+        "reason_signals": [
+          "complexity>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine call type fallback complexity",
+        "judgment": "correct"
+      },
+      {
+        "index": 20,
+        "path": "src/compiler/wasm/sections_types_gc.ark",
+        "symbol": "struct_field_sigs",
+        "complexity": 10,
+        "reason_signals": [
+          "complexity>=p95",
+          "nesting>=p95",
+          "churn>=p95"
+        ],
+        "expected_classification": "hotspot",
+        "actual_classification": "hotspot",
+        "evidence": "genuine GC type section complexity",
+        "judgment": "correct"
+      }
+    ],
+    "a_api": [
+      {
+        "index": 1,
+        "path": "std/core/option.ark",
+        "symbol": "Option",
+        "doc_category": "core",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "std/prelude.ark",
+        "symbol": "i32_to_u16",
+        "doc_category": "scalar_conversion",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "std/prelude.ark",
+        "symbol": "sort_f64",
+        "doc_category": "collections",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "std/prelude.ark",
+        "symbol": "assert",
+        "doc_category": "assert",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "std/core/mod.ark",
+        "symbol": "range_contains",
+        "doc_category": "core",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "std/text/mod.ark",
+        "symbol": "trim",
+        "doc_category": "text",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "std/cli/mod.ark",
+        "symbol": "has_flag",
+        "doc_category": "cli",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "std/host/clock.ark",
+        "symbol": "now_ms",
+        "doc_category": "host_clock",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 9,
+        "path": "std/bytes/mod.ark",
+        "symbol": "hex_decode",
+        "doc_category": "bytes",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 10,
+        "path": "std/collections/hash.ark",
+        "symbol": "hashmap_contains",
+        "doc_category": "collections",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 11,
+        "path": "std/collections/hash_set.ark",
+        "symbol": "hashset_str_remove",
+        "doc_category": "collections",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 12,
+        "path": "std/wasm/mod.ark",
+        "symbol": "section_code",
+        "doc_category": "wasm",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 13,
+        "path": "std/wasm/mod.ark",
+        "symbol": "op_end",
+        "doc_category": "wasm",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 14,
+        "path": "std/json/parser.ark",
+        "symbol": "json_stringify_i32",
+        "doc_category": "json",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 15,
+        "path": "std/io/mod.ark",
+        "symbol": "writer_to_bytes",
+        "doc_category": "io",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 16,
+        "path": "std/collections/linear.ark",
+        "symbol": "pq_clear",
+        "doc_category": "collections",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 17,
+        "path": "std/toml.ark",
+        "symbol": "toml_as_bool",
+        "doc_category": "toml",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 18,
+        "path": "std/collections/compiler.ark",
+        "symbol": "arena_len",
+        "doc_category": "collections",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 19,
+        "path": "std/simd/f32x4.ark",
+        "symbol": "max",
+        "doc_category": "simd",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      },
+      {
+        "index": 20,
+        "path": "std/simd/f32x4.ark",
+        "symbol": "neg",
+        "doc_category": "simd",
+        "expected_classification": "A_API",
+        "actual_classification": "A_API",
+        "evidence": "registered in std/manifest.toml",
+        "judgment": "correct"
+      }
+    ],
+    "c_api": [
+      {
+        "index": 1,
+        "path": "src/compiler/analysis/doc_scan.ark",
+        "symbol": "doc_comment_before_offset",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 2,
+        "path": "src/compiler/collections/vec_extend.ark",
+        "symbol": "Vec_extend_String",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 3,
+        "path": "src/compiler/compiler/session_analyze_pipeline.ark",
+        "symbol": "run_session_analyze_with_modules",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 4,
+        "path": "src/compiler/diagnostics/codes.ark",
+        "symbol": "DIAG_WARN_DEPRECATED_TARGET_ALIAS",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 5,
+        "path": "src/compiler/driver/errors_phase.ark",
+        "symbol": "enrich_diagnostic",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 6,
+        "path": "src/compiler/hir/kinds.ark",
+        "symbol": "HIR_INT_LIT",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 7,
+        "path": "src/compiler/lexer/names.ark",
+        "symbol": "token_kind_name",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 8,
+        "path": "src/compiler/lexer/tokens.ark",
+        "symbol": "TK_ASYNC",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 9,
+        "path": "src/compiler/lexer/tokens.ark",
+        "symbol": "TK_TILDE",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 10,
+        "path": "src/compiler/loader/mod.ark",
+        "symbol": "load_imported_modules",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 11,
+        "path": "src/compiler/loader/module_state.ark",
+        "symbol": "LoadState_set_cache_dir",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 12,
+        "path": "src/compiler/lsp/feature_request.ark",
+        "symbol": "text_position_request_uri",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 13,
+        "path": "src/compiler/lsp/lsp_config.ark",
+        "symbol": "apply_initialize_config",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 14,
+        "path": "src/compiler/lsp/signature_help_call.ark",
+        "symbol": "call_context_found",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 15,
+        "path": "src/compiler/lsp/symbol_index_paths.ark",
+        "symbol": "extract_json_string_field",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 16,
+        "path": "src/compiler/main/compile_core.ark",
+        "symbol": "build_emit_config",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 17,
+        "path": "src/compiler/main/output.ark",
+        "symbol": "phase_error_tag",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 18,
+        "path": "src/compiler/parser/decl_const.ark",
+        "symbol": "parse_const_decl",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 19,
+        "path": "src/compiler/parser/expr_suffix.ark",
+        "symbol": "parse_dot_suffix",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      },
+      {
+        "index": 20,
+        "path": "src/compiler/parser/stmt_block.ark",
+        "symbol": "parse_expr_or_block",
+        "expected_classification": "C_API",
+        "actual_classification": "C_API",
+        "evidence": "internal cross-module pub fn, advisory only",
+        "judgment": "correct"
+      }
+    ]
+  },
+  "summary": {
+    "wrapper_classification": {
+      "total": 50,
+      "correct": 50,
+      "false_positive": 0,
+      "false_negative": 0,
+      "ambiguous": 0
+    },
+    "hotspot_top20": {
+      "total": 20,
+      "correct": 20,
+      "false_positive": 0,
+      "false_negative": 0,
+      "ambiguous": 0
+    },
+    "a_api": {
+      "total": 20,
+      "correct": 20,
+      "false_positive": 0,
+      "false_negative": 0,
+      "ambiguous": 0
+    },
+    "c_api": {
+      "total": 20,
+      "correct": 20,
+      "false_positive": 0,
+      "false_negative": 0,
+      "ambiguous": 0
+    }
+  }
+}
