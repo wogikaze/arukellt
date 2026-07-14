@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 793
 Track: tooling-contract
 Depends on: "787, 792"
-Orchestration class: ready
+Orchestration class: completed
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
@@ -41,6 +41,37 @@ parsing string metrics metadata as an inventory integer. Inventory and metrics
 writers also do not share a section-preserving TOML model. The prior completion
 evidence is retained below as history, but CQ-13 remains open until regression
 tests and all canonical commands pass again.
+
+### Closure regression repair (2026-07-14)
+
+- Reproduced the false-done regression: the inventory check treated the string
+  `metrics_baseline_reason` as an integer and raised `ValueError`.
+- Replaced both writers' hand-maintained parsing/serialization with the shared
+  `scripts/quality/baseline.py` model using Python `tomllib`.
+- Split the baseline into `[inventory]`, `[counts]`, `[metrics_metadata]`, and
+  `[metrics.*]`. Inventory writes preserve metrics metadata/distributions;
+  metrics writes preserve inventory metadata/counts. Both writers were run
+  consecutively against the repository baseline and the subsequent check and
+  report passed.
+- Malformed TOML, invalid types, and missing required keys now produce a
+  concise failure. Enforced Ark sources with zero selected inputs and missing
+  formatter/linter executions return failure instead of an empty success.
+- Added regression coverage for string metadata, section preservation in both
+  directions, malformed/type/missing-key failures, explicit-only writes,
+  lower-only inventory updates, no-history churn, zero selections, and missing
+  tools.
+- `python3 -m unittest discover -s scripts/tests -p 'test_*.py'`: 97 passed.
+- `python3 scripts/check/check-ark-code-quality.py`: pass after both explicit
+  writers; inventory remained 1,900 files / 10,201 functions, with legacy
+  ratchets `lines_ge_200 = 437`, `thin_wrappers = 1733`, and
+  `single_function_files = 530` preserved.
+- `python3 scripts/manager.py quality report`: pass; churn available in this
+  checkout, deterministic distributions and advisory hotspot wording retained.
+- `python3 scripts/manager.py quality full`: pass; formatter 1,981/1,981,
+  linter 1,981/1,981, structure 0 errors, and metrics report completed.
+- `python3 scripts/manager.py docs check`,
+  `python3 scripts/check/check-docs-consistency.py`, and
+  `python3 scripts/check/check-issue-health.py`: pass.
 
 - `scripts/quality/metrics.py` provides the sanitized scanner, deterministic distributions, git fallback, hotspot model, JSON output, and explicit baseline writer.
 - `docs/data/ark-code-quality-baseline.toml` retains `lines_ge_200 = 437` and `thin_wrappers = 1733` while adding all CQ-13 distribution keys with issue #793 metadata.

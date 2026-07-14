@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T02:29:52Z",
+  "generated_at": "2026-07-14T02:39:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -841,25 +841,24 @@
       }
     },
     {
-      "id": "793",
-      "path": "793-cq-13-code-quality-metrics-and-hotspots.md",
-      "title": "793 — CQ-13: code-quality metrics and hotspots",
-      "track": "tooling-contract",
+      "id": "794",
+      "path": "794-cq-14-mechanical-code-debt-cleanup.md",
+      "title": "794 — CQ-14: mechanical code debt cleanup",
+      "track": "code-quality",
       "status": "open",
       "depends_on": [
-        "787",
-        "792"
+        "793"
       ],
       "blocks_issue_ids": [
-        "794"
+        "795"
       ],
       "acceptance": {
-        "checked": 10,
-        "unchecked": 0
+        "checked": 0,
+        "unchecked": 8
       },
       "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
+        "class": "blocked",
+        "upstream_notes": 793
       }
     },
     {
@@ -1076,24 +1075,24 @@
       }
     },
     {
-      "id": "794",
-      "path": "794-cq-14-mechanical-code-debt-cleanup.md",
-      "title": "794 — CQ-14: mechanical code debt cleanup",
+      "id": "795",
+      "path": "795-cq-15-naming-and-control-flow-cleanup.md",
+      "title": "795 — CQ-15: naming and control-flow cleanup",
       "track": "code-quality",
       "status": "open",
       "depends_on": [
-        "793"
+        "794"
       ],
       "blocks_issue_ids": [
-        "795"
+        "796"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 8
+        "unchecked": 7
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": 793
+        "upstream_notes": 794
       }
     },
     {
@@ -1183,16 +1182,16 @@
       }
     },
     {
-      "id": "795",
-      "path": "795-cq-15-naming-and-control-flow-cleanup.md",
-      "title": "795 — CQ-15: naming and control-flow cleanup",
+      "id": "796",
+      "path": "796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
+      "title": "796 — CQ-16: duplicated knowledge and SSOT consolidation",
       "track": "code-quality",
       "status": "open",
       "depends_on": [
-        "794"
+        "795"
       ],
       "blocks_issue_ids": [
-        "796"
+        "797"
       ],
       "acceptance": {
         "checked": 0,
@@ -1200,7 +1199,7 @@
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": 794
+        "upstream_notes": 795
       }
     },
     {
@@ -1229,24 +1228,22 @@
       }
     },
     {
-      "id": "796",
-      "path": "796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
-      "title": "796 — CQ-16: duplicated knowledge and SSOT consolidation",
+      "id": "797",
+      "path": "797-cq-17-public-api-and-comment-audit.md",
+      "title": "797 — CQ-17: public API and comment audit",
       "track": "code-quality",
       "status": "open",
       "depends_on": [
-        "795"
+        "796"
       ],
-      "blocks_issue_ids": [
-        "797"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 7
+        "unchecked": 9
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": 795
+        "upstream_notes": 796
       }
     },
     {
@@ -1271,25 +1268,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
-      }
-    },
-    {
-      "id": "797",
-      "path": "797-cq-17-public-api-and-comment-audit.md",
-      "title": "797 — CQ-17: public API and comment audit",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "796"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": 796
       }
     },
     {
