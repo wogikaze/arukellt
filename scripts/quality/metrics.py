@@ -300,8 +300,8 @@ def _thin_wrapper_lines(code_lines: list[str]) -> set[int]:
 def scan_ark_source(path: str, text: str) -> tuple[FileMetric, list[FunctionMetric]]:
     raw_lines = text.splitlines()
     code_lines = sanitize_ark_lines(text)
-    # The count is an existing ratchet. Preserve its historical recognition
-    # boundary while the richer scanner uses fully sanitized lines elsewhere.
+    # Preserve the historical ratchet boundary. The richer CQ-14 classifier
+    # reports format-independent wrapper categories separately.
     thin_wrapper_lines = _thin_wrapper_lines([_strip_line_comment(line) for line in raw_lines])
     functions: list[FunctionMetric] = []
     index = 0
