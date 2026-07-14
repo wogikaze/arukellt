@@ -65,8 +65,8 @@ fn resolve_ctx_set_target(ctx: ResolveCtx, target: String) {
     ctx.target = target
 }
 
-fn resolve_ctx_host_profile(ctx: ResolveCtx) -> String {
-    clone(ctx.host_profile)
+fn resolve_ctx_has_target_and_host_profile(ctx: ResolveCtx, target: String, host_profile: String) -> bool {
+    eq(clone(ctx.target), target) && eq(clone(ctx.host_profile), host_profile)
 }
 
 fn resolve_ctx_set_host_profile(ctx: ResolveCtx, host_profile: String) {

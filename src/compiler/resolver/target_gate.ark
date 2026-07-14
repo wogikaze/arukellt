@@ -2,8 +2,11 @@ use resolver::ctx_record
 use resolver::scope_error
 
 fn target_uses_wasi_p1(ctx: ResolveCtx) -> bool {
-    eq(ctx_record::resolve_ctx_target(ctx), String_from("wasm32")) &&
-    eq(ctx_record::resolve_ctx_host_profile(ctx), String_from("wasi-p1"))
+    ctx_record::resolve_ctx_has_target_and_host_profile(
+        ctx,
+        String_from("wasm32"),
+        String_from("wasi-p1")
+    )
 }
 
 fn module_is_t3_only(module_path: String) -> bool {
