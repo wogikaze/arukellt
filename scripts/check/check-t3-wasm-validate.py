@@ -453,6 +453,10 @@ def main() -> int:
             print(f"  ... and {len(fail_details) - 50} more")
 
     if fail_validate > 0 or fail_compile > 0:
+        # Repeat the summary line after details so failure tail output from
+        # manager.py still captures the aggregate counts.
+        print(f"T3 WASM validation: {pass_count} pass, {fail_validate} validate-fail, "
+              f"{fail_compile} compile-fail, {skip_count} skip (total {total}){cache_info}")
         return 1
     return 0
 
