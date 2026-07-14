@@ -1872,8 +1872,16 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
 
 
 def _postprocess_selfhost_compiler_wasm(wasm_path: Path, root: Path) -> None:
-    """Normalize stage-2/3 selfhost wasm (duplicate exports without MIR prune)."""
+    """Normalize stage-2/3 selfhost wasm (dedupe exports + heap-grow patch).
+
+    The heap-grow-patcher expands the linear memory limit from the default
+    ~512 MiB to 4 GiB and inserts dynamic heap-grow calls.  Without it the
+    selfhost compiler crashes with ``out of bounds memory access`` when
+    linting or compiling large file sets (notably in CI where the
+    stage-3 wasm is used directly via the wrapper script).
+    """
     _dedupe_selfhost_wasm_exports(wasm_path, root)
+    _apply_heap_grow_patch(wasm_path, root)
 
 
 def _stage3_compiler_wasm(root: Path, pinned: Path, built_s2: Path) -> Path | None:
@@ -1901,6 +1909,33 @@ def _parity_runtime_compiler(root: Path, pinned: Path, built_s2: Path) -> Path |
     if runtime is not None:
         return runtime
     return built_s2 if built_s2.is_file() else None
+
+
+def _apply_heap_grow_patch(wasm_path: Path, root: Path) -> None:
+    """Apply the heap-grow-patcher in-place to a selfhost compiler wasm.
+
+    Unlike ``_ensure_runtime_compiler_wasm`` (which writes to a separate
+    ``s2-runtime.wasm``), this patches the given wasm in-place.  Used by
+    ``_postprocess_selfhost_compiler_wasm`` so that stage-3 output gets
+    the same 4 GiB memory + heap-grow treatment as the bootstrap and
+    runtime-compiler wasms.
+    """
+    patcher_bin = root / PATCHER_DIR_REL / "target" / "release" / "wasm-heap-grow-patcher"
+    if not patcher_bin.is_file():
+        # Fall back to the top-level target dir (CI build layout).
+        patcher_bin = root / "target" / "release" / "wasm-heap-grow-patcher"
+    if not patcher_bin.is_file():
+        return
+    staged = wasm_path.with_suffix(".heap.wasm")
+    patch = subprocess.run(
+        [str(patcher_bin), str(wasm_path), str(staged)],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+    )
+    if patch.returncode == 0 and staged.is_file():
+        shutil.copyfile(staged, wasm_path)
+        staged.unlink(missing_ok=True)
 
 
 def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
