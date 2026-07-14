@@ -55,6 +55,72 @@ class TestMetricsScanner(unittest.TestCase):
             self.assertTrue(all(item.churn is None for item in first.files))
 
 
+class TestWrapperClassification(unittest.TestCase):
+    def _category(self, body: str, path: str = "src/compiler/lower/helper.ark") -> str:
+        from scripts.quality.debt import classify_wrappers
+
+        return classify_wrappers(path, body)[0].category
+
+    def test_exact_same_argument_forwarder(self):
+        self.assertEqual(
+            self._category("fn alias(a: I32, b: String) -> I32 {\n    return impl::alias(a, b)\n}\n"),
+            "pure_forwarder",
+        )
+
+    def test_reordered_default_clone_and_conversion_are_semantic(self):
+        bodies = (
+            "fn f(a: I32, b: I32) {\n    impl::f(b, a)\n}\n",
+            "fn f(a: I32) {\n    impl::f(a, 0)\n}\n",
+            "fn f(a: String) {\n    impl::f(clone(a))\n}\n",
+            "fn f(a: I32) {\n    impl::f(i32_to_i64(a))\n}\n",
+        )
+        for body in bodies:
+            with self.subTest(body=body):
+                self.assertEqual(self._category(body), "semantic_wrapper")
+
+    def test_validation_is_semantic(self):
+        body = "fn f(a: I32) {\n    if a < 0 { return }\n    impl::f(a)\n}\n"
+        self.assertEqual(self._category(body), "semantic_wrapper")
+
+    def test_facade_constructor_and_accessor_are_preserved(self):
+        facade = "pub fn run(a: I32) {\n    impl::run(a)\n}\n"
+        constructor = "fn Request_new(a: I32) {\n    Request { value: a }\n}\n"
+        accessor = "fn request_value(a: Request) {\n    a.value\n}\n"
+        self.assertEqual(self._category(facade), "boundary_facade")
+        self.assertEqual(self._category(constructor), "record_accessor_or_constructor")
+        self.assertEqual(self._category(accessor), "record_accessor_or_constructor")
+
+    def test_comments_and_strings_do_not_create_forwarders(self):
+        body = '''fn f(a: I32) {
+    let sample = "impl::f(a)"
+    // impl::f(a)
+    return a
+}
+'''
+        self.assertNotEqual(self._category(body), "pure_forwarder")
+
+    def test_unused_wrapper_only_file_is_reported(self):
+        from scripts.quality.debt import collect_wrapper_debt
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            compiler = root / "src/compiler/lower"
+            compiler.mkdir(parents=True)
+            (compiler / "implementation.ark").write_text(
+                "fn run(a: I32) {\n    return a\n}\n", encoding="utf-8"
+            )
+            (compiler / "forwarder.ark").write_text(
+                "use lower::implementation\nfn run(a: I32) {\n    implementation::run(a)\n}\n",
+                encoding="utf-8",
+            )
+            inventory = collect_wrapper_debt(root)
+            self.assertEqual(len(inventory.unjustified_pure_forwarders), 1)
+            self.assertEqual(
+                inventory.wrapper_only_single_function_files,
+                ("src/compiler/lower/forwarder.ark",),
+            )
+
+
 class TestMetricsBaseline(unittest.TestCase):
     def _repository(self, root: Path) -> None:
         compiler = root / "src/compiler"

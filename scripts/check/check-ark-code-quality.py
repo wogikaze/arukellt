@@ -32,6 +32,7 @@ from quality.baseline import (  # noqa: E402
     write_baseline,
 )
 from quality.metrics import METRIC_NAMES, scan_ark_source  # noqa: E402
+from quality.debt import collect_wrapper_debt  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COMPILER_ROOT = REPO_ROOT / "src" / "compiler"
@@ -234,6 +235,7 @@ def main() -> int:
         print(f"FAIL: no enforced Ark sources were checked under {_rel(COMPILER_ROOT)}")
         return 1
     counts = inv.counts
+    wrapper_debt = collect_wrapper_debt(REPO_ROOT)
     print("ark code quality inventory:")
     for key, value in counts.items():
         print(f"  {key}: {value}")
@@ -257,9 +259,31 @@ def main() -> int:
         _print_sample("lines >= 200", inv.long_lines)
         _print_sample("thin wrappers", inv.thin_wrappers)
         _print_sample("single-function files", inv.single_function_files)
+        print("\nwrapper classifications:")
+        for category, count in wrapper_debt.categories.items():
+            print(f"  {category}: {count}")
+        _print_sample(
+            "unjustified pure forwarders",
+            list(wrapper_debt.unjustified_pure_forwarders),
+        )
+        _print_sample(
+            "wrapper-only single-function files",
+            list(wrapper_debt.wrapper_only_single_function_files),
+        )
         return 0
 
     failures: list[str] = []
+
+    if wrapper_debt.unjustified_pure_forwarders:
+        failures.append(
+            "unjustified pure forwarders: "
+            f"{len(wrapper_debt.unjustified_pure_forwarders)}"
+        )
+    if wrapper_debt.wrapper_only_single_function_files:
+        failures.append(
+            "wrapper-only single-function files: "
+            f"{len(wrapper_debt.wrapper_only_single_function_files)}"
+        )
 
     if counts["tabs_files"] > 0:
         failures.append(f"tabs forbidden: {counts['tabs_files']} files")
