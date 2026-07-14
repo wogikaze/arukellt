@@ -7,7 +7,7 @@
 > Updated: 2026-07-14.
 > Generated-At: 2026-07-14
 > Implementation-Commit: `fd14539c23288d3ed993c03600aeed36cd478d06`
-> Documentation-Commit: `fd14539c23288d3ed993c03600aeed36cd478d06`
+> Documentation-Commit: `b16119bc83e5518056c541d7ba8439a8e673fd29`
 > Fixture-Snapshot-Commit: `52967b17ace3f63cc2fe59ac9bbf5f0202445106`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**

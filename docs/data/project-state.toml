@@ -186,7 +186,7 @@ last_verified_at = "2026-07-14"
 #   documentation_commit  — the last commit that edited this SSOT
 #   fixture_snapshot_commit — the commit where the fixture harness was last run
 implementation_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
-documentation_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
+documentation_commit = "b16119bc83e5518056c541d7ba8439a8e673fd29"
 fixture_snapshot_commit = "52967b17ace3f63cc2fe59ac9bbf5f0202445106"
 # Legacy field kept for backward compat — same as implementation_commit
 source_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
