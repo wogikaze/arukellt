@@ -83,13 +83,14 @@ must be resolved before re-close:
    JSON is not a substitute for live readback. This Acceptance stays unchecked
    until `gh api repos/wogikaze/arukellt/rulesets` is run and enforcement,
    branch, required contexts, strict policy, and bypass actors are confirmed.
-2. **Manual sample counts below requirement**: Required vs actual:
-   - wrapper: 50 required, 5 actual
-   - hotspot: top 20 required, 3 actual
-   - A API: 20 required, 5 actual
+2. **~~Manual sample counts below requirement~~** (RESOLVED): Redone
+   with required counts using deterministic every-Nth sampling:
+   - wrapper: 50/50 (was 5/50)
+   - hotspot: 20/20 (was 3/20)
+   - A API: 20/20 (was 5/20)
    - B API: all 36 required, 36 actual (OK)
-   - C API: 20 required, 5 actual
-   Must redo with required counts and deterministic selection.
+   - C API: 20/20 (was 5/20)
+   All samples verified correct. No false positives or negatives.
 3. **~~Unresolved failure owners are invalid~~** (RESOLVED): `verify full`
    failures were assigned to done issues (#287, #459, #529) or labeled
    `known`/`various`/`dynamic` without a tracking issue. Created 9 open
@@ -196,46 +197,64 @@ equal). New additions: 0.
 
 ### Manual sample audit
 
-- **Wrapper classification (5 samples)**: thin wrapper detection verified
-  correct. `resolver/mod.ark` facade functions correctly classified as pure
-  forwarders. `dispatch.ark` correctly NOT classified as thin wrapper. No false
-  positives or negatives.
-- **Hotspot top 20 (3 verified)**: all 3 top hotspots
-  (`SelfEmitCtx_vec_type_for_local`, `SelfEmitCtx_struct_type`,
-  `is_void_returning_builtin`) are genuine complexity hotspots in GC type
-  system, struct layout, and builtin classification. No false positives.
-- **A API (5 samples)**: all 5 sampled external functions (`String_from`, `eq`,
-  `concat`, `clone`, `u8_to_i32`) have `doc_category` and are documented. A API
-  coverage 755/755 (100%).
-- **B API (all 36)**: B API defined as `src/compiler/` direct-child `.ark` files
-  with `pub fn`. 36/36 documented (100%). Coverage verified by
+- **Wrapper classification (50 samples, required 50)**: Deterministic
+  every-34th sample from 1726 thin wrappers. All 50 verified correct:
+  record accessors (`analysis_diagnostic_message`, `diagnostic_span_file`),
+  type constructors (`HirTraitBound_new`, `VT_I64`), forwarders
+  (`load_source_file`, `parse_expr_or_block`), and module-boundary facades
+  (`release_module_asts`, `handle_document_highlight`). No false positives
+  or false negatives. `dispatch.ark` functions correctly NOT classified as
+  thin wrapper.
+- **Hotspot top 20 (20 verified, required 20)**: all 20 top hotspots are
+  genuine complexity hotspots in GC type system (`ctx_gc_type.ark`:
+  `SelfEmitCtx_vec_type_for_local` cx=15, `SelfEmitCtx_struct_type` cx=8),
+  MIR lowering (`ctx_fn_return_vt.ark`: `is_void_returning_builtin`
+  cx=55, `ctx_fn_return_vt_builtin` cx=36), and call type fallback
+  (`call_type_fallback.ark`: `mark_fallback_call_result_type` cx=16).
+  No false positives. All hotspots have reason_signals (complexity>=p95,
+  nesting>=p95, fan_in>=p95, churn>=p95).
+- **A API (20 samples, required 20)**: Deterministic every-37th sample
+  from 755 manifest-registered APIs. All 20 sampled (`Option`, `i32_to_u16`,
+  `sort_f64`, `assert`, `range_contains`, `trim`, `has_flag`, `now_ms`,
+  `hex_decode`, `hashmap_contains`, `hashset_str_remove`, `section_code`,
+  `op_end`, `json_stringify_i32`, `writer_to_bytes`, `pq_clear`,
+  `toml_as_bool`, `arena_len`, `max`, `neg`) have `doc_category` and are
+  documented. A API coverage 755/755 (100%) verified by
   `check-comment-policy.py`.
-- **C API (5 samples)**: 5 sampled internal cross-module `pub fn` correctly
-  classified as C API (advisory only, no documentation requirement).
-- **Target alias (all 8)**: all 8 aliases in `project-state.toml` match ADR-007.
-  Generated `target_contract_generated.ark`, `target-contract.generated.js`,
-  `target-contract-summary.md`, and `current-state.md` targets section all
-  consistent with SSOT.
-- **Generated view (all types)**: 4 generated target-contract views verified
-  consistent with `docs/data/project-state.toml`.
-  - 3 whole-file generated views are registered in `.generated-files`:
-    `src/compiler/main/target_contract_generated.ark`,
-    `extensions/arukellt-all-in-one/src/target-contract.generated.js`,
-    `docs/data/target-contract-summary.md`. Owner: compiler-tooling.
-  - 1 partial generated section in `docs/current-state.md` (target table) is
-    tracked by `generate-docs.py --check`, not listed in `.generated-files`
-    (`.generated-files` scope is whole-file only).
-  - Drift detection: `python3 scripts/gen/generate-docs.py --check` and
-    `python3 scripts/manager.py docs regenerate`.
+- **B API (all 36)**: B API defined as `src/compiler/` direct-child `.ark`
+  files with `pub fn`. 36/36 documented (100%). Coverage verified by
+  `check-comment-policy.py`.
+- **C API (20 samples, required 20)**: Deterministic every-34th sample
+  from 693 internal cross-module `pub fn`. All 20 sampled
+  (`doc_comment_before_offset`, `Vec_extend_String`,
+  `run_session_analyze_with_modules`, `DIAG_WARN_DEPRECATED_TARGET_ALIAS`,
+  `enrich_diagnostic`, `HIR_INT_LIT`, `token_kind_name`, `TK_ASYNC`,
+  `TK_TILDE`, `load_imported_modules`, `LoadState_set_cache_dir`,
+  `text_position_request_uri`, `apply_initialize_config`,
+  `call_context_found`, `extract_json_string_field`, `build_emit_config`,
+  `phase_error_tag`, `parse_const_decl`, `parse_dot_suffix`,
+  `parse_expr_or_block`) correctly classified as C API (advisory only,
+  no documentation requirement).
+- **Target alias (all 8)**: all 8 aliases in `project-state.toml` match
+  ADR-007. Generated `target_contract_generated.ark`,
+  `target-contract.generated.js`, `target-contract-summary.md`, and
+  `current-state.md` targets section all consistent with SSOT.
+- **Generated view (all types)**: 2 whole-file generated views
+  (`target_contract_generated.ark`, `target-contract.generated.js`)
+  registered in `.generated-files`. 2 partial generations
+  (`target-contract-summary.md`, `current-state.md` target section)
+  tracked by drift checks. `generate-docs.py --check` and
+  `docs regenerate` pass.
 - **Comment policy fixtures**: normal and violation fixtures in
   `test_comment_policy.py` correctly test API classification, boundary doc
   contract, unstructured TODO, issue-only comment, commented-out code,
   boilerplate header, and detached doc comment.
-- **SSOT category (all 12)**: all 12 knowledge categories from CQ-16 have unique
-  owners. No duplicate knowledge owners. ADR-042 (PROPOSED) correctly separated
-  from current implementation ownership.
+- **SSOT category (all 12)**: all 12 knowledge categories from CQ-16 have
+  unique owners. No duplicate knowledge owners. ADR-042 (PROPOSED)
+  correctly separated from current implementation ownership.
 
 No false positives, false negatives, or classification ambiguities found.
+Sample selection is deterministic (every-Nth) and reproducible.
 
 ### CI and ruleset
 
