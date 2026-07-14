@@ -84,4 +84,4 @@ Not started. ADR-042 is PROPOSED, so implementation is blocked by design.
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
 - `docs/adr/ADR-047-code-quality-tooling-and-gates.md`
 - `docs/adr/ADR-048-design-heuristics-application-order.md`
-- `issues/open/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md`
+- `issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md`
