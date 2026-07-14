@@ -480,8 +480,18 @@ def run_lint_ratchet(
     if dry_run:
         print(f"DRY-RUN: W0011 ratchet ({len(paths)} files vs {base})")
         return 0
+    # Skip files with known parser failures (tracked in the formatter baseline).
+    # The lint ratchet runs lint on each file, but files in the baseline have
+    # known parse errors that cause lint to fail regardless of W0011 count.
+    # Without this skip, the ratchet reports false failures for baseline files.
+    baseline = _formatter_baseline(root)
     failures: list[dict[str, object]] = []
     for path in paths:
+        if path in baseline:
+            expected = baseline[path]
+            actual = _content_sha256(root / path)
+            if actual == expected:
+                continue
         current_rc, current_count, current_output = _lint_w0011_count(root, path)
         if current_rc != 0:
             failures.append({
