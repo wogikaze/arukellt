@@ -118,12 +118,12 @@ source_commit = "a80b4181"
 fixture_passed = 796
 fixture_skipped = 417
 fixture_failures = 367
-fixture_manifest_count = 2691
+fixture_manifest_count = 2693
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1580
-fixture_not_in_last_harness_snapshot = 1111
-fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2691 is tests/fixtures/manifest.txt registry size. The 1111 remainder were not part of that run (not proof they fail)."
+fixture_not_in_last_harness_snapshot = 1113
+fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2693 is tests/fixtures/manifest.txt registry size. The 1113 remainder were not part of that run (not proof they fail)."
 checks_passed = 175
 checks_total = 176
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
