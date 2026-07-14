@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T09:53:36Z",
+  "generated_at": "2026-07-14T10:02:32Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -399,7 +399,9 @@
       "track": "main",
       "status": "open",
       "depends_on": [],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "801"
+      ],
       "acceptance": {
         "checked": 12,
         "unchecked": 4
@@ -963,6 +965,25 @@
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "wasm-tools (CI install policy)"
+      }
+    },
+    {
+      "id": "801",
+      "path": "801-gc-rebuild-plan.md",
+      "title": "GC 完了までのプラン",
+      "track": "gc",
+      "status": "open",
+      "depends_on": [
+        "686"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": 686
       }
     },
     {

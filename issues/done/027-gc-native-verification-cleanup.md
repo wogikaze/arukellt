@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-03-27
 Updated: 2026-03-27
-ID: 23
+ID: 027
 Track: gc-native
 Depends on: 22
 Orchestration class: implementation-ready

@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-03-27
 Updated: 2026-03-30
-ID: 4
+ID: 004
 Track: main
 Depends on: 002, 003
 Orchestration class: implementation-ready

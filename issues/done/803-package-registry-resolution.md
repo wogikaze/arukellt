@@ -6,7 +6,7 @@ Track: compiler, module-system
 Orchestration class: implementation-ready
 Depends on: 039
 Closed: 2026-04-14
-ID: 487
+ID: 803
 Blocks v1 exit: no
 Priority: 50
 ---

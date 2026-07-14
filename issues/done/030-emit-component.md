@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-03-30
-ID: 24
+ID: 030
 Track: component-model
 Depends on: 029
 Orchestration class: implementation-ready

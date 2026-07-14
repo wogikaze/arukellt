@@ -1,3 +1,17 @@
+---
+Status: open
+Created: 2026-07-13
+Updated: 2026-07-14
+ID: 801
+Track: gc
+Depends on: "686"
+Orchestration class: ready
+Orchestration upstream: 686
+Blocks v{N}: none
+Priority: 2
+Source: GC rebuild plan for #686 unfinished items
+---
+
 # GC 完了までのプラン
 
 > 対象: issue #686 未完了項目、コンパイラ再ビルド、MIR 変更

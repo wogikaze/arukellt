@@ -206,23 +206,37 @@ def parse_file(path):
         'orchestration_upstream': orchestration_upstream,
     }
 
+_dup_errors = []
+
+def _check_dup(store, issue_id, path, label):
+    if issue_id in store:
+        _dup_errors.append(f"DUPLICATE_ID: issue {issue_id} already exists in {label}: {store[issue_id]['path']} vs {path.name}")
+
 for path in issue_files:
     try:
         data = parse_file(path)
+        _check_dup(issues, data['id'], path, "issues/open")
         issues[data['id']] = data
     except Exception as e:
         print(f"Warning: Failed to parse {path}: {e}", file=sys.stderr)
 
 for path in blocked_files:
     data = parse_file(path)
+    _check_dup(blocked_issues, str(data['id']), path, "issues/blocked")
     blocked_issues[str(data['id'])] = data
 
 for path in done_files:
     try:
         data = parse_file(path)
+        _check_dup(done_issues, str(data['id']), path, "issues/done")
         done_issues[str(data['id'])] = data
     except Exception as e:
         print(f"Warning: Failed to parse {path}: {e}", file=sys.stderr)
+
+if _dup_errors:
+    for msg in _dup_errors:
+        print(msg, file=sys.stderr)
+    sys.exit(1)
 
 for issue_id, data in issues.items():
     for dep in data['deps']:

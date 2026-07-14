@@ -54,6 +54,7 @@ graph LR
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
+  I801["801 GC 完了までのプラン"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
@@ -77,6 +78,7 @@ graph LR
   I649 --> I699
   I667 --> I673
   I680 --> I682
+  I686 --> I801
   I690 --> I694
   I691 --> I697
   I695 --> I697
@@ -133,7 +135,7 @@ graph LR
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: none
+- **686** depends on: none; blocks: 801
 - **687** depends on: 495; blocks: none
 - **690** depends on: 688; blocks: 694
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710
@@ -162,6 +164,7 @@ graph LR
 - **699** depends on: 649, 698; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
+- **801** depends on: 686; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709

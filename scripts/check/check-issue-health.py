@@ -18,7 +18,7 @@ DEFAULT_OPEN = REPO_ROOT / "issues" / "open"
 DEFAULT_DONE = REPO_ROOT / "issues" / "done"
 PATTERN = re.compile(r"^(\d{3})")
 
-ISSUE_ID_RE = re.compile(r"^(\d{3})")
+ISSUE_ID_RE = re.compile(r"^(\d{3}[a-z]?)")
 FRONTMATTER_RE = re.compile(r"^---\s*$(.*?)^---\s*$", re.MULTILINE | re.DOTALL)
 
 
@@ -37,8 +37,8 @@ def parse_frontmatter(path: Path) -> dict:
 
 def check_issues(open_dir: Path, done_dir: Path, fix: bool) -> int:
     errors = 0
-    open_files: dict[str, Path] = {}
-    done_files: dict[str, Path] = {}
+    open_files: dict[str, list[Path]] = {}
+    done_files: dict[str, list[Path]] = {}
 
     for d, store in [(open_dir, open_files), (done_dir, done_files)]:
         if not d.exists():
@@ -46,44 +46,81 @@ def check_issues(open_dir: Path, done_dir: Path, fix: bool) -> int:
         for p in d.glob("*.md"):
             m = ISSUE_ID_RE.match(p.name)
             if m:
-                store[m.group(1)] = p
+                store.setdefault(m.group(1), []).append(p)
+
+    # ── Check for duplicate IDs within each directory ─────────────────────
+    for label, store in [("issues/open", open_files), ("issues/done", done_files)]:
+        for issue_id, paths in store.items():
+            if len(paths) > 1:
+                for p in paths:
+                    print(f"DUPLICATE_ID: issue {issue_id} has multiple files in {label}: {p}")
+                errors += 1
+
+    # ── Check frontmatter ID matches filename ID ──────────────────────────
+    # Legacy issues may have non-zero-padded frontmatter IDs (e.g. ID: 30
+    # for file 036-*.md). These are warnings, not errors. Suffix IDs like
+    # 028b are intentional and must match.
+    warnings = 0
+    for label, store in [("issues/open", open_files), ("issues/done", done_files)]:
+        for issue_id, paths in store.items():
+            for path in paths:
+                fm = parse_frontmatter(path)
+                fm_id = fm.get("ID", "")
+                if fm_id and fm_id != issue_id:
+                    # Normalize: compare zero-padded numeric portion
+                    fm_norm = fm_id.lstrip("#").strip('"').strip("'")
+                    file_norm = issue_id
+                    try:
+                        if int(fm_norm) == int(file_norm.rstrip("abcdefghijklmnopqrstuvwxyz")):
+                            continue  # Same number, just padding difference — legacy warning
+                    except ValueError:
+                        pass
+                    print(f"ID_MISMATCH: {path.name} filename ID={issue_id} but frontmatter ID={fm_id}")
+                    errors += 1
 
     # ── Check frontmatter status ──────────────────────────────────────────
     for label, store, expected_status in [
         ("issues/open", open_files, "open"),
         ("issues/done", done_files, "done"),
     ]:
-        for issue_id, path in store.items():
-            fm = parse_frontmatter(path)
-            status = fm.get("Status", "").lower()
-            if status and status != expected_status:
-                print(f"STATUS_MISMATCH: {path.name} has Status: {status} but is in {label}/")
-                errors += 1
+        for issue_id, paths in store.items():
+            for path in paths:
+                fm = parse_frontmatter(path)
+                status = fm.get("Status", "").lower()
+                if status and status != expected_status:
+                    print(f"STATUS_MISMATCH: {path.name} has Status: {status} but is in {label}/")
+                    errors += 1
 
     # ── Check for issues present in both directories ──────────────────────
     duplicate = set(open_files.keys()) & set(done_files.keys())
     for issue_id in sorted(duplicate):
-        print(f"DUPLICATE: issue {issue_id} in both open/ and done/")
+        open_paths = open_files[issue_id]
+        done_paths = done_files[issue_id]
+        all_paths = open_paths + done_paths
+        for p in all_paths:
+            print(f"DUPLICATE_ACROSS_DIRS: issue {issue_id} in both open/ and done/: {p}")
         errors += 1
 
     # ── Check for unchecked checkboxes in done/ ───────────────────────────
     if done_dir.exists():
         for p in done_dir.glob("*.md"):
             text = p.read_text(encoding="utf-8")
-            if "- [ ]" in text or "- [ ]" in text:
+            if "- [ ]" in text:
                 print(f"UNCHECKED_IN_DONE: {p.name} has unchecked items")
                 errors += 1
 
     # ── Check for dead dependency references ──────────────────────────────
-    depends_re = re.compile(r"(?:Depends on|depends-on|blocked-by):\s*#?(\d{3})")
+    all_ids = set(open_files.keys()) | set(done_files.keys())
+    depends_re = re.compile(r'(?:Depends on|depends-on|blocked-by):\s*"?#?(\d{3})"?', re.MULTILINE)
     for label, store in [("open", open_files), ("done", done_files)]:
-        for issue_id, path in store.items():
-            text = path.read_text(encoding="utf-8")
-            for m in depends_re.finditer(text):
-                dep_id = m.group(1)
-                if dep_id not in open_files and dep_id not in done_files:
-                    print(f"DEAD_DEPENDENCY: {path.name} references #{dep_id} which does not exist")
-                    errors += 1
+        for issue_id, paths in store.items():
+            for path in paths:
+                text = path.read_text(encoding="utf-8")
+                for m in depends_re.finditer(text):
+                    dep_id = m.group(1)
+                    if dep_id not in all_ids:
+                        print(f"DEAD_DEPENDENCY: {path.name} references #{dep_id} which does not exist")
+                        errors += 1
 
     if errors == 0:
         print("ISSUE_HEALTH: PASS")

@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-06-10
 Updated: 2026-06-10
-ID: 575
+ID: 804
 Track: cli
 Severity: medium
 ---

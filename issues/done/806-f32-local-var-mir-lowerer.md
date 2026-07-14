@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-04-03
 Updated: 2026-04-10
-ID: 486
+ID: 806
 Track: compiler
 Depends on: 32
 Orchestration class: implementation-ready
