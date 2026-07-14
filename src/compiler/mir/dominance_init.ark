@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dominance set initialization.
-
 use mir::dom_sets
 use mir::block_dominance_mutation
 use mir::block_identity

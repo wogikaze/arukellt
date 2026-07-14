@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR return type helpers backed by TypeInfo
-
 use mir::typeinfo_shape
 use mir::lower::return_typeinfo_names
 use mir::value_types

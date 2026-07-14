@@ -1,8 +1,6 @@
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - where-backed multi-clause match statement assembly.
-
 use parser::multiclause_arms
 
 fn append_where_match_stmt(block_node: AstNode, clauses: Vec<AstNode>, param_name: String, fn_span: Span) {

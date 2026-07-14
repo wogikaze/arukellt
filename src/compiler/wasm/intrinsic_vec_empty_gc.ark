@@ -1,4 +1,3 @@
-// Arukellt Selfhost - GC vec emptiness intrinsic handler.
 //
 // GC target: is_empty → struct.get vec_type 1 (len) → eqz
 // For String arguments: is_empty → array.len → eqz

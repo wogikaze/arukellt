@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component contract type-node view.
-
 use component::ast_node
 
 struct ComponentTypeNode {

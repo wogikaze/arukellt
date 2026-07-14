@@ -6,8 +6,6 @@ use mir::lower::binary_cast
 use mir::lower::binary_emit
 use mir::opcodes
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - unary and binary expressions
-
 use mir::lower::body_binary_overload
 use mir::lower::body_short_circuit
 use mir::lower::expr_types

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR instruction literal accessors.
-
 use mir::inst_record
 
 fn MirInst_int_val(inst: MirInst) -> i32 {

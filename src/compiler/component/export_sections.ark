@@ -1,5 +1,3 @@
-// Arukellt Selfhost - generic component export sections
-
 use component::constants_sections_linkage
 use component::export_sections_entries
 use component::export_plan

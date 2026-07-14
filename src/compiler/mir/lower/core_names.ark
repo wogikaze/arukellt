@@ -3,8 +3,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR name/path value lowering.
-
 use mir::inst_const_i32
 use mir::inst_local_get
 use mir::inst_ref_func

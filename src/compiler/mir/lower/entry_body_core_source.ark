@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry CoreHIR body source adapter.
-
 use mir::lower::entry_core_body
 use mir::lower::entry_view_body
 

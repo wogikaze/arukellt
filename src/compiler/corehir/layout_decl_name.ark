@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout declaration name projection.
-
 use corehir::layout_decl_record
 
 fn layout_decl_name(decl: CoreHirLayoutDecl) -> String {

@@ -1,7 +1,5 @@
-// Arukellt Selfhost - compose plug WIT import/export validation (#443 Phase 2).
-
-use component::wit_parse_flags
 use std::host::fs
+use component::wit_parse_flags
 
 struct ComposeWitFuncSig {
     name: String,

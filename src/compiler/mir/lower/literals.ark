@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering literal facade.
-
 use mir::lower::literal_bool_pattern
 use mir::lower::literal_float_char
 use mir::lower::literal_int

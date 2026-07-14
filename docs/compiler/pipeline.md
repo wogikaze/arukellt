@@ -24,7 +24,7 @@ source (.ark)
 - `compile` / `run` は backend validation まで進む
 - `wasm32` は互換（linear-memory）パス、`wasm32-gc` は primary GC パス（ADR-007/013）
 - `--emit component` / `--emit wit` は `wasm32-gc` 側の追加出力
-- 旧 CLI 名 `wasm32-wasi-p1` / `wasm32-wasi-p2` は alias（移行中）
+- 旧 CLI 名は境界で一度だけ canonical target と host profile へ変換される互換 alias
 
 ## 設計上の境界
 

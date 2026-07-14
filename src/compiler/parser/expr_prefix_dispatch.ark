@@ -1,7 +1,5 @@
 use parser::kinds
 use parser::core_ast_factory
-// Arukellt Parser - prefix expression dispatch.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::expr_prefix_atoms

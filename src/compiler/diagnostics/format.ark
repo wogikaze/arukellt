@@ -1,5 +1,3 @@
-// Arukellt Selfhost - diagnostic text formatting.
-
 use diagnostics::record
 use diagnostics::severity
 use diagnostics::source_map_offsets

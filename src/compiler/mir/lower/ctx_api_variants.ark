@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering variant context API.
-
 use mir::lower::ctx_variants
 
 fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 { ctx_variants::ctx_variant_tag(ctx, name) }

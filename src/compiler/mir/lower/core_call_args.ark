@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR call argument lowering helpers.
-
 use mir::lower::core_call_arg_names
 use mir::lower::core_call_arg_print_convert
 use mir::lower::core_call_arg_print_needs

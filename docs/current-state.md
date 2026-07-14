@@ -4,15 +4,15 @@
 > including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-07-11.
-> Generated-At: 2026-07-11
-> Implementation-Commit: `a80b4181`
-> Documentation-Commit: `b68fc393`
-> Fixture-Snapshot-Commit: `89eb5eb4`
+> Updated: 2026-07-15.
+> Generated-At: 2026-07-15
+> Implementation-Commit: `2cd10f16`
+> Documentation-Commit: `148c1184`
+> Fixture-Snapshot-Commit: `2cd10f16`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 367 fixture failure(s), 1 verification check failure(s), 4 additional full-verification blocker group(s)
-> Distinct incidents: 6 (derived from incident_id in release-guarantees.toml; 6 failing checks)
+> Blocking: 367 fixture failure(s), 1 verification check failure(s), 5 additional full-verification blocker group(s)
+> Distinct incidents: 7 (derived from incident_id in release-guarantees.toml; 7 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -34,14 +34,9 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | 項目 | ADR / research | 現行 |
 |------|----------------|------|
-| `wasm32-freestanding` | ADR-007: 廃止。公開名はハードエラー | driver/emitter に旧 compile-only 実装が残存 → **削除対象** |
 | Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
-| CLI default | primary = `wasm32-gc`（ADR-013）。`project-state.toml` `cli_default` も `wasm32-gc` | 実装はまだ旧名 `wasm32-wasi-p2` を default 文字列として保持 → **alias 移行中** |
-| canonical alias policy | ADR-007 で決定済み（`wasm32-wasi-p1`→`wasm32` 等） | target parser は旧名を直接使用する箇所あり → **移行中** |
-| VS Code `arukellt.target` | ADR-007 canonical: `wasm32` / `wasm32-gc` | extension enum が `wasm32-wasi-p1` / `wasm32-wasi-p2` のみ → **alias 移行中** |
-| stdlib manifest / generated docs target labels | ADR-007 canonical 名をユーザー向けに使う | `availability` の内部キーは `t1`/`t3` のまま。生成ラベルは移行中 → **SSOT 移行中** |
 
 ### Proposed migration gaps（normative ではない）
 
@@ -50,7 +45,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | 項目 | 提案 ADR | 現行 |
 |------|----------|------|
 | Trait stdlib redesign | ADR-046 根絶 + ADR-036（D5 撤回）+ ADR-014 削除方針 | モノモルフィック / free 公開面が残存 → **移行前**（根絶方針は採択済み） |
-| Intrinsic layer | ADR-042: `docs/data/core-ops.toml` SSOT | manifest / resolver 二重面 → **移行前** |
+| Intrinsic layer | ADR-042（PROPOSED）が `data/core-ops.toml` owner を提案 | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、移行は #798 |
 | SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
 | SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
 | Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |
@@ -72,7 +67,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | Target | Support Tier | Implementation | Contract Stability | Run | Notes |
 |--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1) |
+| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
 | `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |
@@ -103,21 +98,21 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 
 **ADR-007 では廃止済み**（公開ターゲット名はハードエラー。alias にもしない）。
 
-実装ギャップ: 旧 T2 相当の compile-only コードが `src/compiler/driver.ark` /
-emitter にまだ残っている場合がある。これは公開契約ではなく **削除対象のレガシー**である。
-検証・ドキュメント・CLI 案内では現行ターゲットとして扱わない。
+CLI boundary はこの名前を hard error とし、compiler 内部へ伝播させない。
+旧 compile-only target dispatch は削除済みであり、alias table、互換試験、履歴文書以外では
+現行ターゲットとして扱わない。
 正本のターゲット表は上記生成ブロックおよび [ADR-007](adr/ADR-007-targets.md)。
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
-- Fixture harness (observed snapshot): 796 passed, 367 failed, 417 skipped (observed harness: 1580)
-- Fixture registry: 2691 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1111 registry entries (not proof they fail)
-- Accounting note: 796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2691 is tests/fixtures/manifest.txt registry size. The 1111 remainder were not part of that run (not proof they fail).
+- Fixture harness (observed snapshot): 804 passed, 367 failed, 417 skipped (observed harness: 1588)
+- Fixture registry: 2693 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1105 registry entries (not proof they fail)
+- Accounting note: 804+367+417=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 2cd10f16; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **175/176 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **165/166 checks pass**
 
 ### Active blockers
 
@@ -125,16 +120,35 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 
 | ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
-| `check_fixture_harness` | `full` | `fixture` | 367 | `incident_fixture_parity_367` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #287 | `89eb5eb4` | `89eb5eb4` | `fresh` |
-| `check_close_gate_076` | `quick` | `verification` | 1 | `incident_close_gate_076` | P2 filesystem close gate expected 'hello p2 fs' but produced NUL bytes | `python3 scripts/check/check-false-done-close-gates.py` | WASI P2 filesystem | #076 | `89eb5eb4` | `89eb5eb4` | `fresh` |
-| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #459 | `a80b4181` | `a80b4181` | `fresh` |
-| `check_selfhost_cli_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_cli_parity` | CLI parity drifts for --help, lint, and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #530 | `a80b4181` | `a80b4181` | `fresh` |
-| `check_wat_roundtrip` | `full` | `target-contract` | 1 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | unfiled | `a80b4181` | `a80b4181` | `fresh` |
-| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify component-interop` | component model | #074 | `a80b4181` | `a80b4181` | `fresh` |
+| `check_fixture_harness` | `full` | `fixture` | 367 | `incident_fixture_parity_367` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `2cd10f16` | `fresh` |
+| `check_t3_wasm_validate` | `quick` | `verification` | 1 | `incident_t3_wasm_validate` | T3 fixture Wasm validation fails for 213 run fixtures (func N failed to validate) | `python3 scripts/check/check-t3-wasm-validate.py` | Wasm backend | #808 | `fd14539c23288d3ed993c03600aeed36cd478d06` | `2cd10f16` | `fresh` |
+| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #813 | `a80b4181` | `2cd10f16` | `fresh` |
+| `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
+| `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
+| `check_wat_roundtrip` | `full` | `target-contract` | 6 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | #809 | `a80b4181` | `2cd10f16` | `fresh` |
+| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify component-interop` | component model | #810 | `a80b4181` | `2cd10f16` | `fresh` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
 
+- **Code-quality entrypoints:** `python3 scripts/manager.py fmt`, `fmt --check`,
+  `lint`, and `quality changed|quick|structure|full|report` are the canonical
+  local/CI commands (ADR-047). `quality structure` emits the hard repository
+  contracts as text or schema-versioned JSON. `quality report` emits advisory
+  distributions and deterministic hotspots without treating metric values as
+  quality scores. `quality quick` applies the touched-file ratchet and hard
+  structure checks; repository-wide format/lint and churn analysis belong to
+  `quality full`.
+- **Comment/API policy:** `python3 scripts/check/check-comment-policy.py` derives
+  manifest API (A), root compiler boundary (B), and internal visibility (C), and
+  enforces A/B documentation plus structured temporary comments. `--json` uses
+  the same finding model as text output.
+- **Canonical parser migration boundary:** 23 compiler/stdlib files are
+  content-addressed in `docs/data/ark-formatter-baseline.toml`. Only their exact
+  current hashes may skip a formatter parse failure;
+  any edit fails closed. Issue #791,
+  owner `compiler-tooling`, removal condition, and 2026-08-31 re-evaluation are
+  mandatory. This is an implementation gap, not canonical formatting.
 - **Opt-equivalence (O0 == O1):** `bash scripts/run/test-opt-equivalence.sh --quick` runs in `verify quick` background checks; release checklist item is no longer deferred.
 - **Stdlib scoreboard:** `docs/stdlib/scoreboard.md` is generated by `python3 scripts/gen/generate-docs.py` from `std/manifest.toml` and fixture coverage.
 - **Anchor fragments:** `python3 scripts/check/check-anchor-fragments.py` validates `path.md#anchor` links (ADR-019 §2) in the `verify quick` static pass.

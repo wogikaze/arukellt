@@ -1,9 +1,7 @@
-// Arukellt Selfhost - lint rule registry.
 //
 // Defines all lint rules with id, severity, category, and description.
 // Used by `arukellt lint --list` and severity override filtering.
 use std::text
-
 use diagnostics::codes
 use diagnostics::severity
 

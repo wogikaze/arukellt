@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR local DTO accessors.
-
 use mir::local_record
 
 fn MirLocal_val_type(local: MirLocal) -> i32 {

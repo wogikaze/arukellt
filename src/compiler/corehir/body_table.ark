@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR body table storage and primitive accessors.
-
 struct CoreHirBodyTable {
     exprs: Vec<CoreHirExpr>,
     fn_body_roots: Vec<i32>,

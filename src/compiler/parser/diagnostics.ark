@@ -1,5 +1,3 @@
-// Arukellt Parser - parse diagnostic construction.
-
 use diagnostics::codes
 use diagnostics::record
 use lexer::tokens

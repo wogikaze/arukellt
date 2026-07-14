@@ -1,7 +1,5 @@
 use mir::opcodes
 use mir::lower_kinds
-// Arukellt Selfhost - MIR operator method name mapping.
-
 
 fn mir_operator_method_name(mir_op: i32) -> String {
     if mir_op == opcodes::MIR_ADD() {

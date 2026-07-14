@@ -1,5 +1,8 @@
 # Arukellt Standard Library Manifest
-# Single source of truth for all builtins, intrinsics, and prelude functions.
+# Current owner for public stdlib paths, documentation, stability, deprecation,
+# and the published prelude surface. Compiler semantic registrations remain in
+# resolver/typechecker/MIR/emitter code until proposed ADR-042 is accepted and
+# issue #798 performs an explicit ownership migration.
 #
 # Sources cross-referenced:
 #   - src/compiler/resolver.ark           (prelude symbols)
@@ -47,11 +50,13 @@ generic_params = ["T", "E"]
 name = "String"
 prelude = true
 stability = "stable"
+type_id = "string"
 
 [[types]]
 name = "Vec"
 prelude = true
 generic_params = ["T"]
+type_id = "vec"
 
 # ─────────────────────────────────────────────
 # Prelude values (auto-imported)
@@ -159,6 +164,7 @@ doc_category = "string"
 [[functions]]
 name = "starts_with"
 kind = "prelude_wrapper"
+core_op_id = "string.starts_with"
 intrinsic = "__intrinsic_starts_with"
 params = ["String", "String"]
 returns = "bool"
@@ -169,6 +175,7 @@ doc_category = "string"
 [[functions]]
 name = "ends_with"
 kind = "prelude_wrapper"
+core_op_id = "string.ends_with"
 intrinsic = "__intrinsic_ends_with"
 params = ["String", "String"]
 returns = "bool"
@@ -551,6 +558,7 @@ doc_category = "math"
 name = "panic"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_panic"
+core_op_id = "panic"
 params = ["String"]
 returns = "()"
 prelude = true
@@ -1918,6 +1926,7 @@ module = "std::text"
 doc_category = "text"
 stability = "stable"
 intrinsic = "__intrinsic_starts_with"
+core_op_id = "string.starts_with"
 params = ["String", "String"]
 returns = "bool"
 
@@ -1926,6 +1935,7 @@ name = "ends_with"
 module = "std::text"
 doc_category = "text"
 stability = "stable"
+core_op_id = "string.ends_with"
 intrinsic = "__intrinsic_ends_with"
 params = ["String", "String"]
 returns = "bool"
@@ -6858,6 +6868,7 @@ name = "v128_load"
 module = "std::wasm"
 doc_category = "wasm"
 stability = "experimental"
+core_op_id = "wasm.v128.load"
 params = ["i32", "i32"]
 returns = "v128"
 doc = "Load a v128 from linear memory at ptr + offset."

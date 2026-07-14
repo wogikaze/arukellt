@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR CFG dominance analysis
-
 use mir::types
 use mir::dominance_collect
 use mir::dominance_function

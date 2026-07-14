@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering helpers for list comprehensions.
-
 use mir::lower::comprehension_begin
 use mir::lower::comprehension_emit
 use mir::lower::comprehension_state

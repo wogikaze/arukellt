@@ -1,16 +1,16 @@
 #!/bin/bash
 # WAT roundtrip verification: compile → wasm2wat → wat2wasm → WAT text diff
 #
-# Validates that the T1 emitter (wasm32-wasi-p1) produces well-formed core
+# Validates that the wasm32 (non-GC) emitter produces well-formed core
 # Wasm that survives a wasm2wat → wat2wasm roundtrip with no textual delta.
 #
 # Tool priority (core Wasm only):
 #   1. wasm-tools  (wasm-tools print / wasm-tools parse)
 #   2. wabt        (wasm2wat / wat2wasm) — installed at /usr/bin on this host
 #
-# Note: T3 Component Model output (wasm32-wasi-p2) requires wasm-tools ≥0.200
-# with full component-model support. wabt does not understand component types
-# (e.g. 0x5e), so T3 fixtures are skipped when only wabt is present.
+# Note: wasm32-gc output requires wasm-tools ≥0.200 with Wasm GC support. wabt
+# does not understand GC types (e.g. 0x5e), so GC fixtures are skipped when
+# only wabt is present.
 #
 # What a failure looks like:
 #   - "wasm2wat failed"  → the binary produced by the emitter is not parseable
@@ -69,12 +69,12 @@ fi
 
 echo "WAT roundtrip using: $TOOL_MODE"
 
-# wabt does not support the Component Model (T3); restrict to T1 core Wasm.
-COMPILE_TARGET="wasm32-wasi-p1"
+# wabt does not support Wasm GC; restrict to non-GC wasm32 core Wasm.
+COMPILE_TARGET="wasm32"
 if [ "$TOOL_MODE" = "wasm-tools" ]; then
-    ALSO_T3=true
+    ALSO_GC=true
 else
-    ALSO_T3=false
+    ALSO_GC=false
 fi
 
 FIXTURES_DIR="tests/fixtures"
@@ -171,19 +171,19 @@ while IFS=: read -r kind fixture_path || [ -n "$kind" ]; do
     label="$fixture_path"
     wasm_out="$WORK_DIR/$(echo "$label" | tr '/' '_').wasm"
 
-    # Compile T1 core Wasm
+    # Compile wasm32 core Wasm
     if ! "$ARUKELLT" compile --target "$COMPILE_TARGET" "$fixture" -o "$wasm_out" 2>/dev/null; then
         SKIP=$((SKIP + 1))
         continue
     fi
 
-    roundtrip_one "$label (T1)" "$wasm_out"
+    roundtrip_one "$label (wasm32)" "$wasm_out"
 
-    # Optionally also test T3 when wasm-tools is available
-    if [ "$ALSO_T3" = true ]; then
-        t3_out="$WORK_DIR/$(echo "$label" | tr '/' '_').component.wasm"
-        if "$ARUKELLT" compile --target wasm32-wasi-p2 "$fixture" -o "$t3_out" 2>/dev/null; then
-            roundtrip_one "$label (T3)" "$t3_out"
+    # Optionally also test wasm32-gc when wasm-tools is available
+    if [ "$ALSO_GC" = true ]; then
+        gc_out="$WORK_DIR/$(echo "$label" | tr '/' '_').gc.wasm"
+        if "$ARUKELLT" compile --target wasm32-gc "$fixture" -o "$gc_out" 2>/dev/null; then
+            roundtrip_one "$label (wasm32-gc)" "$gc_out"
         fi
     fi
 done < "$MANIFEST"

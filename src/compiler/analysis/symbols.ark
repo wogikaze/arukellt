@@ -1,5 +1,4 @@
-// Arukellt Selfhost - editor symbol lookup and hover rendering facade
-
+use std::text
 use analysis::doc_scan
 use analysis::ident_span
 use analysis::symbol_signature
@@ -10,7 +9,6 @@ use parser::ast
 use parser::kinds
 use resolver::ref_record
 use resolver::ref_sites
-use std::text
 
 fn AT_NK_IDENT() -> i32 { kinds::NK_IDENT() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }
@@ -114,7 +112,14 @@ fn find_decl_by_name(text: String, decls: Vec<AstNode>, name: String) -> symbol_
         let found = find_decl_in_node(get_unchecked(decls, i), clone(name))
         if symbol_types::symbol_info_found(found) {
             let doc = doc_scan::doc_comment_before_offset(clone(text), symbol_types::symbol_info_decl_start(found))
-            return symbol_types::SymbolInfo_found(name, symbol_types::symbol_info_kind(found), symbol_types::symbol_info_decl_start(found), symbol_types::symbol_info_decl_end(found), symbol_types::symbol_info_signature(found), doc)
+            return symbol_types::SymbolInfo_found(
+                name,
+                symbol_types::symbol_info_kind(found),
+                symbol_types::symbol_info_decl_start(found),
+                symbol_types::symbol_info_decl_end(found),
+                symbol_types::symbol_info_signature(found),
+                doc
+            )
         }
         if i == 0 { break }
         i = i - 1

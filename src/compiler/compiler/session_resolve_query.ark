@@ -1,46 +1,44 @@
-// Arukellt Selfhost - compiler resolve session query.
-
 use resolver::program
 use resolver::context
 use resolver::scope_metrics
 
 fn session_resolve_decls(decls: Vec<AstNode>) -> ResolveCtx {
-let empty_modules = Vec_new_ModuleDecls()
-program::resolve_program(decls, empty_modules, Vec_new_String())
+    let empty_modules = Vec_new_ModuleDecls()
+    program::resolve_program(decls, empty_modules, Vec_new_String())
 }
 
 fn session_resolve_decls_with_modules(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {
-program::resolve_program(decls, modules, wit_paths)
+    program::resolve_program(decls, modules, wit_paths)
 }
 
-fn session_resolve_decls_with_modules_for_target(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String) -> ResolveCtx {
-program::resolve_program_for_target(decls, modules, wit_paths, target)
+fn session_resolve_decls_with_modules_for_target_and_host(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>, target: String, host_profile: String) -> ResolveCtx {
+    program::resolve_program_for_target_and_host(decls, modules, wit_paths, target, host_profile)
 }
 
 fn session_empty_resolve_ctx() -> ResolveCtx {
-context::ResolveCtx_new()
+    context::ResolveCtx_new()
 }
 
 fn session_resolve_error_count(ctx: ResolveCtx) -> i32 {
-context::ResolveCtx_error_message_count(ctx)
+    context::ResolveCtx_error_message_count(ctx)
 }
 
 fn session_resolve_reported_error_count(ctx: ResolveCtx) -> i32 {
-context::ResolveCtx_reported_error_count(ctx)
+    context::ResolveCtx_reported_error_count(ctx)
 }
 
 fn session_resolve_errors(ctx: ResolveCtx) -> Vec<String> {
-context::ResolveCtx_errors(ctx)
+    context::ResolveCtx_errors(ctx)
 }
 
 fn session_resolve_diagnostics(ctx: ResolveCtx) -> Vec<Diagnostic> {
-context::ResolveCtx_diagnostics(ctx)
+    context::ResolveCtx_diagnostics(ctx)
 }
 
 fn session_count_user_symbols(ctx: ResolveCtx) -> i32 {
-scope_metrics::count_user_symbols(ctx)
+    scope_metrics::count_user_symbols(ctx)
 }
 
 fn session_resolve_error_at(ctx: ResolveCtx, index: i32) -> String {
-context::ResolveCtx_error_at(ctx, index)
+    context::ResolveCtx_error_at(ctx, index)
 }

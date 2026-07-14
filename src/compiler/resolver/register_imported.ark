@@ -1,5 +1,3 @@
-// Arukellt Resolver - imported module declaration registration
-
 use resolver::scope_lookup
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols

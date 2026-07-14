@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump block-level output.
-
 use std::host::stdio
 use std::text
 use mir::block_dominance_access
@@ -45,7 +43,15 @@ fn dump_mir_function_blocks(f: MirFunction) {
         let mut j = 0
         while j < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, j)
-            stdio::eprintln(concat(String_from("      "), concat(dump_op_names::mir_op_name(inst_accessors_shape::MirInst_op(inst)), concat(String_from(" -> "), dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst))))))
+            stdio::eprintln(
+                concat(
+                    String_from("      "),
+                    concat(
+                        dump_op_names::mir_op_name(inst_accessors_shape::MirInst_op(inst)),
+                        concat(String_from(" -> "), dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst)))
+                    )
+                )
+            )
             j = j + 1
         }
         b = b + 1

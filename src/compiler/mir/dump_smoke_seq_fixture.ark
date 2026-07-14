@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared sequential definition fixture for MIR dump smoke tests.
-
 use mir::block_alloc
 use mir::function_emit_inst
 use mir::function_factory

@@ -1,9 +1,16 @@
-// Arukellt Selfhost - MIR lowering top-level function index prepass.
-
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 
-fn mir_index_top_level_fn(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, decl_index: i32, decl_name: String, fn_index: i32, source: MirLowerFnIndexSource, midx: MonoIndex) -> i32 {
+fn mir_index_top_level_fn(
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    decl_index: i32,
+    decl_name: String,
+    fn_index: i32,
+    source: MirLowerFnIndexSource,
+    midx: MonoIndex
+) -> i32 {
     let mut typed_index = fn_index
     let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
     if fn_info_index >= 0 {

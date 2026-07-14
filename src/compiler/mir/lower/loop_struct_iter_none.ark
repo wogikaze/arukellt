@@ -2,8 +2,6 @@ use mir::lower::ctx_api_emit
 use mir::opcodes
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
-// Arukellt Selfhost - MIR struct iterator None-branch emission.
-
 use mir::inst_struct_get
 use mir::inst_gc_struct
 use mir::inst_const_i32

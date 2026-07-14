@@ -1,5 +1,3 @@
-// Arukellt CoreHIR - expression kind identifiers.
-
 // Declaration kinds.
 fn COREHIR_DECL_UNKNOWN() -> i32 { 0 }
 fn COREHIR_DECL_FN() -> i32 { 1 }

@@ -47,8 +47,8 @@ These fields are mandatory regardless of role:
 | `requires` | list of strings | Required host capabilities (e.g. `host.stdout`, `host.env`). |
 | `implementation` | table | Per-target coverage: `implemented` / `missing-adapter` / `unimplemented`. |
 | `implementation_status` | string | Semantic completeness: `functional`, `limited`, `stub`, or `unreachable`. If omitted, the generator derives a conservative status from kind and documented limitations. This axis is displayed separately from lifecycle stability for every public API. |
-| `semantic_id` | string | Reference into `docs/data/core-ops.toml` `[[operations]]` (ADR-042). Public path stays in manifest only. |
-| `type_id` | string | Reference into `docs/data/core-ops.toml` `[[types]]`. |
+| `core_op_id` | string | Reference into `data/core-ops.toml` `[[operations]]` by canonical `id` (ADR-042). Public path stays in manifest only. Multiple public bindings (e.g. prelude alias and `std::text` function) may share the same `core_op_id`. |
+| `type_id` | string | Reference into `data/core-ops.toml` `[[types]]` (ADR-042). |
 | `deprecated_by` | string | Replacement identifier. Signals that this entry is superseded. |
 | `deprecated_since` | string | Release that started deprecation (W0009). |
 | `remove_in` | string | Earliest release that may delete the entry. |

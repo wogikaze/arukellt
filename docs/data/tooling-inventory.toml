@@ -1,4 +1,6 @@
-# File-family tooling inventory (CQ-02)
+# File-family tooling inventory (CQ-02).
+# Cross-family structure and metrics entrypoints are registered in
+# verification-commands.toml as quality_structure and quality_report.
 
 # status: enforced | deferred
 # formatter/linter may be empty string when none.
@@ -10,7 +12,10 @@ linter = "arukellt lint"
 canonical_fmt = "python3 scripts/manager.py fmt"
 canonical_lint = "python3 scripts/manager.py lint"
 status = "enforced"
+owner = "compiler-tooling"
 notes = "Selfhost CLI via scripts/run/arukellt-selfhost.sh; package modules use lint --local"
+roots = ["src/compiler/", "std/"]
+exclude_globs = []
 
 [[families]]
 ext = ".md"
@@ -19,6 +24,7 @@ linter = "markdownlint-cli2"
 canonical_fmt = ""
 canonical_lint = "npx markdownlint-cli2"
 status = "enforced"
+owner = "docs"
 notes = "No markdown formatter enforced; layout-sensitive tables must not be blindly rewritten"
 
 [[families]]
@@ -28,6 +34,7 @@ linter = "ruff check"
 canonical_fmt = "ruff format"
 canonical_lint = "ruff check"
 status = "deferred"
+owner = "tooling"
 notes = "Assigned canonical; not installed/enforced in CQ-01..11 wave"
 
 [[families]]
@@ -37,6 +44,7 @@ linter = "biome"
 canonical_fmt = "biome format"
 canonical_lint = "biome check"
 status = "deferred"
+owner = "editor-tooling"
 notes = "Single Biome stack when introduced; do not pair with Prettier"
 
 [[families]]
@@ -46,6 +54,7 @@ linter = "biome"
 canonical_fmt = "biome format"
 canonical_lint = "biome check"
 status = "deferred"
+owner = "editor-tooling"
 
 [[families]]
 ext = ".json"
@@ -54,6 +63,7 @@ linter = ""
 canonical_fmt = ""
 canonical_lint = ""
 status = "deferred"
+owner = "tooling"
 notes = "Key order may be semantic; schema checks separate"
 
 [[families]]
@@ -63,6 +73,7 @@ linter = ""
 canonical_fmt = "taplo format"
 canonical_lint = ""
 status = "deferred"
+owner = "tooling"
 notes = "Manifest meaning checks stay in custom scripts"
 
 [[families]]
@@ -72,6 +83,7 @@ linter = "yamllint"
 canonical_fmt = ""
 canonical_lint = "yamllint"
 status = "deferred"
+owner = "tooling"
 
 [[families]]
 ext = ".yaml"
@@ -80,6 +92,7 @@ linter = "yamllint"
 canonical_fmt = ""
 canonical_lint = "yamllint"
 status = "deferred"
+owner = "tooling"
 
 [[families]]
 ext = ".sh"
@@ -88,3 +101,231 @@ linter = "shellcheck"
 canonical_fmt = "shfmt"
 canonical_lint = "shellcheck"
 status = "deferred"
+owner = "tooling"
+
+[[families]]
+ext = ".rs"
+formatter = "rustfmt"
+linter = "clippy"
+canonical_fmt = "cargo fmt"
+canonical_lint = "cargo clippy"
+status = "deferred"
+owner = "host-tooling"
+notes = "One Rust formatter; crate-specific build and test gates remain canonical behavior checks"
+
+[[families]]
+ext = ".wit"
+formatter = ""
+linter = "wasm-tools component wit"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify component-interop"
+status = "enforced"
+owner = "component-model"
+notes = "No rewriting formatter; component verification owns syntax and semantic checks"
+
+[[families]]
+ext = ".wat"
+formatter = ""
+linter = "wasm-tools validate"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify wat"
+status = "enforced"
+owner = "wasm-backend"
+notes = "Round-trip verification is canonical; handwritten layout is preserved"
+
+[[families]]
+ext = ".mjs"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+owner = "editor-tooling"
+
+[[families]]
+ext = ".html"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+owner = "web-tooling"
+
+[[families]]
+ext = ".css"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+owner = "web-tooling"
+
+[[families]]
+ext = ".jsonc"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+owner = "editor-tooling"
+notes = "JSON-with-comments stays on the same web stack; key ordering is not forced"
+
+[[families]]
+ext = ".c"
+formatter = "clang-format"
+linter = "clang-tidy"
+canonical_fmt = "clang-format"
+canonical_lint = "clang-tidy"
+status = "deferred"
+owner = "bootstrap-tooling"
+
+[[families]]
+ext = ".grain"
+formatter = "grain format"
+linter = "grain check"
+canonical_fmt = "grain format"
+canonical_lint = "grain check"
+status = "deferred"
+owner = "examples"
+
+[[families]]
+ext = ".mdc"
+formatter = ""
+linter = "markdownlint-cli2"
+canonical_fmt = ""
+canonical_lint = "npx markdownlint-cli2"
+status = "deferred"
+owner = "editor-tooling"
+notes = "Editor command documentation; no rewriting formatter"
+
+[[families]]
+ext = ".expected"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify fixtures"
+status = "enforced"
+owner = "testing"
+notes = "Golden output is intentionally byte-sensitive and is never independently formatted"
+
+[[families]]
+ext = ".diag"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify fixtures"
+status = "enforced"
+owner = "testing"
+
+[[families]]
+ext = ".analysis-expected"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify fixtures"
+status = "enforced"
+owner = "testing"
+
+[[families]]
+ext = ".lsp-expected"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify quick"
+status = "enforced"
+owner = "lsp"
+
+[[families]]
+ext = ".lsp-script"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify quick"
+status = "enforced"
+owner = "lsp"
+
+[[families]]
+ext = ".dap-expected"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify quick"
+status = "enforced"
+owner = "dap"
+
+[[families]]
+ext = ".dap-script"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify quick"
+status = "enforced"
+owner = "dap"
+
+[[families]]
+ext = ".flags"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify fixtures"
+status = "enforced"
+owner = "testing"
+
+[[families]]
+ext = ".mir"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify fixtures"
+status = "enforced"
+owner = "mir"
+
+[[families]]
+ext = ".txt"
+formatter = ""
+linter = "repository checks"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify quick"
+status = "enforced"
+owner = "tooling"
+notes = "Manifest and snapshot text is checked by its owning repository gate"
+
+[[families]]
+ext = ".lock"
+formatter = ""
+linter = "package manager"
+canonical_fmt = ""
+canonical_lint = "cargo metadata or npm ci"
+status = "deferred"
+owner = "dependency-management"
+notes = "Generated lockfiles are owned by their package manager"
+
+[[families]]
+ext = ".wasm"
+formatter = ""
+linter = "wasm-tools validate"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify quick"
+status = "enforced"
+owner = "bootstrap-tooling"
+notes = "Binary artifact; provenance and validation checks replace formatting"
+
+[[families]]
+ext = ".bin"
+formatter = ""
+linter = "fixture harness"
+canonical_fmt = ""
+canonical_lint = "python3 scripts/manager.py verify fixtures"
+status = "enforced"
+owner = "testing"
+notes = "Binary fixture; byte identity is intentional"
+
+[[families]]
+ext = ".png"
+formatter = ""
+linter = ""
+canonical_fmt = ""
+canonical_lint = ""
+status = "deferred"
+owner = "docs"
+notes = "Binary image; no source formatter applies"

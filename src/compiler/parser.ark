@@ -1,35 +1,41 @@
-// Arukellt Parser — Self-hosted recursive descent + Pratt parser.
 //
 // Consumes a Vec<Token> from the lexer and produces an AST.
 // Uses i32 tag constants for node kinds (same pattern as lexer).
 
 use parser::mod
 
+/// Parses a complete token stream and retains recoverable diagnostics in the result.
 pub fn parse_program(tokens: Vec<Token>) -> ParseResult {
     mod::parse_program(tokens)
 }
 
+/// Borrows the declaration sequence recorded by a parse result.
 pub fn ParseResult_decls(result: ParseResult) -> Vec<AstNode> {
     mod::ParseResult_decls(result)
 }
 
+/// Reports the number of declarations retained after parser recovery.
 pub fn ParseResult_decl_count(result: ParseResult) -> i32 {
     mod::ParseResult_decl_count(result)
 }
 
+/// Reports the number of parse diagnostics retained by the result.
 pub fn ParseResult_error_count(result: ParseResult) -> i32 {
     mod::ParseResult_error_count(result)
 }
 
+/// Retrieves a parse diagnostic; `index` must be less than `ParseResult_error_count`.
 pub fn ParseResult_error_at(result: ParseResult, index: i32) -> Diagnostic {
     mod::ParseResult_error_at(result, index)
 }
 
+/// Borrows all diagnostics in source order.
 pub fn ParseResult_errors(result: ParseResult) -> Vec<Diagnostic> {
     mod::ParseResult_errors(result)
 }
 
 // ── Top-level Module ─────────────────────────────────────────────────────────
+/// Parses module declarations from the parser's current token position.
 pub fn parse_module(p: Parser) -> Vec<AstNode> {
     mod::parse_module(p)
 }

@@ -1,5 +1,3 @@
-// Arukellt Resolver - symbol definition policy.
-
 use resolver::kinds
 use resolver::ref_sites
 use resolver::scope_error

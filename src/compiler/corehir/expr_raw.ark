@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR expression raw record.
-
 struct CoreHirExpr {
     kind: i32,
     text: String,

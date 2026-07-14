@@ -2,15 +2,22 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering for i32 higher-order sequence helpers.
-
 use mir::inst_local_set
 use mir::value_types
 use mir::lower::hof_loop
 use mir::lower::hof_loop_steps
 use mir::lower::hof_results
 
-fn mir_lower_hof_i32(ctx: LowerCtx, hof_callee_text: String, hof32_fn_name: String, hof32_vec_local: i32, hof32_init_idx: i32, is_map_i32_i32: bool, is_filter_i32: bool, is_fold_i32_i32: bool) -> i32 {
+fn mir_lower_hof_i32(
+    ctx: LowerCtx,
+    hof_callee_text: String,
+    hof32_fn_name: String,
+    hof32_vec_local: i32,
+    hof32_init_idx: i32,
+    is_map_i32_i32: bool,
+    is_filter_i32: bool,
+    is_fold_i32_i32: bool
+) -> i32 {
     // map_String_String / filter_String ride the i32 HOF plan but operate on
     // Vec<String>; their element and mapped values are GC string refs.
     let hof32_is_string = eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String")

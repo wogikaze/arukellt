@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - control and statement prefix expression parsing.
-
 use parser::core_api_cursor
 use parser::expr_control
 use parser::stmt
@@ -9,14 +7,14 @@ use parser::token_state
 
 pub fn is_control_prefix(kind: i32) -> bool {
     kind == tokens::TK_IF()
-        || kind == tokens::TK_MATCH()
-        || kind == tokens::TK_LOOP()
-        || kind == tokens::TK_WHILE()
-        || kind == tokens::TK_FOR()
-        || kind == tokens::TK_LBRACE()
-        || kind == tokens::TK_RETURN()
-        || kind == tokens::TK_BREAK()
-        || kind == tokens::TK_CONTINUE()
+    || kind == tokens::TK_MATCH()
+    || kind == tokens::TK_LOOP()
+    || kind == tokens::TK_WHILE()
+    || kind == tokens::TK_FOR()
+    || kind == tokens::TK_LBRACE()
+    || kind == tokens::TK_RETURN()
+    || kind == tokens::TK_BREAK()
+    || kind == tokens::TK_CONTINUE()
 }
 
 pub fn parse_control_prefix(p: Parser) -> AstNode {

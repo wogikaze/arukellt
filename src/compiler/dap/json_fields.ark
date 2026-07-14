@@ -1,4 +1,3 @@
-// Arukellt Selfhost - DAP JSON field extraction helpers.
 //
 // Delegates to std::json (issue #704).
 

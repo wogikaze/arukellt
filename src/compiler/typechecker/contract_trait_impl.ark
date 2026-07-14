@@ -1,5 +1,3 @@
-// Arukellt Typechecker - trait implementation contract API.
-
 use typechecker::contract_trait_impl_record
 
 fn TraitImplInfo_new(trait_name: String, self_ty: TypeInfo) -> TraitImplInfo {

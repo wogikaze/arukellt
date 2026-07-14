@@ -1,6 +1,4 @@
 use mir::function_identity
-// Arukellt Selfhost - MIR reachability name matching
-
 use mir::types
 use resolver
 

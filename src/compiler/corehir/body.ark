@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR body table builder for simple typed expression DTOs.
-
 use corehir::body_expr_dispatch
 use corehir::body_support
 use corehir::body_stmt_dispatch

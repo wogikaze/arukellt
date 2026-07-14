@@ -3,8 +3,6 @@ use mir::lower::ctx_api_init
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::lower::wit_ctx_init
-// Arukellt Selfhost - MIR lowering entry context preparation.
-
 use mir::lower::entry_trace
 use mir::lower::fn_index
 use mir::lower::mono_calls

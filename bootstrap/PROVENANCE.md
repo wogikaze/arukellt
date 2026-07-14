@@ -16,7 +16,7 @@ the four gates do **not** require the legacy Rust binary
 | Size | 1 968 692 bytes (≈ 1.88 MiB) |
 | sha256 | `8e33faa7c47c0f1ae3570070c935bd00d4f8c28e99ee38d61f3311270406dad4` |
 | Built from commit | `cc0c5f579` — fix(resolver): fix register_headers nesting + typecheck const decls + pin const-aware wasm; refreshed from prior pinned reference (`eee048b…`) via stage-2 bootstrap + stage-3 fixpoint verification |
-| Build target | `wasm32-wasi-p1` |
+| Build target | `wasm32` |
 | Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-2→3 fixpoint (`sha256(s2) == sha256(s3)`); includes const declaration syntax support with __return type annotation, pub use re-export semantics, opcodes.ark split into 4 categorized modules, enum-with-payload GC support, Phase 2 control flow modernization (match + for-in), Phase 3 boilerplate reduction (Vec_extend helpers, struct literals), and std/text bootstrap overlay |
 
 ## Reproducibility recipe
@@ -32,7 +32,7 @@ git checkout cc0c5f579
 mkdir -p .build/selfhost
 wasmtime run --dir=. bootstrap/arukellt-selfhost.wasm -- \
   compile src/compiler/main.ark \
-  --target wasm32-wasi-p1 \
+  --target wasm32 \
   -o .build/selfhost/arukellt-s2.wasm
 
 # 3. Verify byte-for-byte identity with the pinned wasm
@@ -45,7 +45,7 @@ A Stage-3 round confirms the fixpoint:
 ```bash
 wasmtime run --dir=. .build/selfhost/arukellt-s2.wasm -- \
   compile src/compiler/main.ark \
-  --target wasm32-wasi-p1 \
+  --target wasm32 \
   -o .build/selfhost/arukellt-s3.wasm
 sha256sum .build/selfhost/arukellt-s2.wasm .build/selfhost/arukellt-s3.wasm
 # ⇒ identical sums = fixpoint reached

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI component inspect/validate helpers.
-
 use std::host::process
 use std::host::stdio
 use main::args_record
@@ -22,5 +20,6 @@ pub fn cmd_component_validate(opts: CliOptions) {
 
 pub fn cmd_component_build(opts: CliOptions) {
     args_record::cli_set_emit_mode(opts, String_from("component"))
-    args_record::cli_set_target(opts, String_from("wasm32-wasi-p2"))
+    args_record::cli_set_target(opts, String_from("wasm32-gc"))
+    args_record::cli_set_wasi_version(opts, String_from("wasi-p2"))
 }

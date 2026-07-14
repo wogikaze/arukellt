@@ -2,8 +2,6 @@ use mir::lower::ast_node
 use mir::lower::ctx_api_local_alloc
 use mir::lower_kinds
 use mir::lower::ctx_types
-// Arukellt Selfhost - AST closure free-variable collection.
-
 
 fn closure_is_param_name(clos: AstNode, name: String) -> bool {
     let c = ast_node::node_child_count(clos)

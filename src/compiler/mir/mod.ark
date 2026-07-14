@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR public boundary.
-
 use mir::dump_core
 use mir::fallback_source
 use mir::input

@@ -3,7 +3,7 @@
 Shows the **compile-once, call-from-anywhere** path:
 
 1. `calculator.ark` defines `pub fn` exports with component-compatible scalar types.
-2. `arukellt compile --target wasm32-wasi-p2 --emit component` produces
+2. `arukellt compile --target wasm32-gc --emit component` produces
    `calculator.component.wasm` with inline WIT metadata and canonical-ABI exports.
 3. Any host with component-model support invokes exports (wasmtime, Rust, JS).
 
@@ -26,7 +26,7 @@ or `examples_compile … modern` as in `run.sh`).
 ```bash
 scripts/run/arukellt-selfhost.sh compile \
   examples/ark/export-library/calculator.ark \
-  --target wasm32-wasi-p2 --emit component \
+  --target wasm32-gc --emit component \
   -o .build/examples/ark-export/calculator.component.wasm
 
 wasm-tools component wit .build/examples/ark-export/calculator.component.wasm
@@ -44,7 +44,7 @@ externally:
 ```bash
 scripts/run/arukellt-selfhost.sh compile \
   examples/ark/export-library/calculator.ark \
-  --target wasm32-wasi-p1 --emit wasm \
+  --target wasm32 --emit wasm \
   -o .build/examples/ark-export/calculator.core.wasm
 
 wasm-tools component embed examples/ark/export-library/calculator.wit \

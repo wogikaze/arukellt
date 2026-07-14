@@ -1,21 +1,12 @@
-// Arukellt Selfhost — Compilation Driver
 //
 // Orchestrates the compilation pipeline:
 //   source → tokens → AST → resolve → typecheck → CoreHIR → MIR → Wasm
 // Error propagation stops at first phase failure.
 use driver::file
 use driver::config_record
-use compiler::phases
 use driver::pipeline_backend
 use driver::result_record
 use driver::types
-
-fn PHASE_LEX() -> i32 { phases::PHASE_LEX() }
-fn PHASE_PARSE() -> i32 { phases::PHASE_PARSE() }
-fn PHASE_RESOLVE() -> i32 { phases::PHASE_RESOLVE() }
-fn PHASE_TYPECHECK() -> i32 { phases::PHASE_TYPECHECK() }
-fn PHASE_LOWER() -> i32 { phases::PHASE_LOWER() }
-fn PHASE_EMIT() -> i32 { phases::PHASE_EMIT() }
 
 // ── Compilation Result ───────────────────────────────────────────────────────
 fn CompileResult_ok(phase: i32) -> CompileResult {
@@ -27,16 +18,19 @@ fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
 }
 
 // ── Driver Configuration ─────────────────────────────────────────────────────
+/// Creates the driver configuration used when no CLI override is supplied.
 pub fn DriverConfig_default() -> DriverConfig {
     config_record::DriverConfig_default()
 }
 
 // ── Pipeline Orchestration ───────────────────────────────────────────────────
+/// Compiles source through the configured frontend and backend, stopping at the first failed phase.
 pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     pipeline_backend::compile_source(source, config)
 }
 
 // ── Compile File ─────────────────────────────────────────────────────────────
+/// Reads and compiles a file, reporting read failures through `CompileResult`.
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     file::compile_file(path, config)
 }

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR legacy body lowering adapter.
-
 use mir::lower::body
 use mir::lower::legacy_body
 

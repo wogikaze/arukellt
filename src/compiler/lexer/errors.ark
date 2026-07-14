@@ -1,5 +1,3 @@
-// Arukellt Lexer - diagnostic error facade.
-
 use lexer::error_classify
 use lexer::error_codes
 

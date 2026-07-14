@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering for indirect (funcref) call emission.
-
 use mir::inst_call_indirect
 use mir::inst_local_get
 use mir::lower::ast_node

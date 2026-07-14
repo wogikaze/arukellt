@@ -1,5 +1,3 @@
-// Arukellt Selfhost - identifier span at cursor.
-
 pub struct IdentSpan {
     found: bool,
     name: String,
@@ -30,7 +28,6 @@ pub fn ident_span_start(span: IdentSpan) -> i32 {
 pub fn ident_span_end(span: IdentSpan) -> i32 {
     span.end
 }
-// issue #715 in-file tests
 test mod "ident_span" {
     test "none" { assert(ident_span_found(IdentSpan_none()) == false) }
     test "found" {

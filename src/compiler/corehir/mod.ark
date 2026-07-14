@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR public boundary.
-
 use corehir::frontend_bundle
 use corehir::frontend_checked
 use corehir::frontend_export_surface

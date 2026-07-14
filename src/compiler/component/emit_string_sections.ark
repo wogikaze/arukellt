@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - string ABI component sections
-
 use component::export_sections_entries
 use component::export_sections
 use component::naming

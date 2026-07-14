@@ -1,5 +1,3 @@
-// Arukellt Lexer - character literal escape decoding.
-
 fn escaped_char_value(esc: i32) -> i32 {
     if esc == 110 {
         return 10

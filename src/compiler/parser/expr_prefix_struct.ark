@@ -1,6 +1,4 @@
 use parser::kinds
-// Arukellt Parser - identifier and struct literal prefix facade.
-
 use parser::core_api_expect
 use parser::core_ast_factory
 use parser::expr_prefix_struct_fields

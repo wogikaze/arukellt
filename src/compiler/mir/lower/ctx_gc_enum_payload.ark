@@ -1,9 +1,7 @@
-// Arukellt Selfhost - MIR lowering GC enum payload variant registration.
-
+use std::text
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_sig
 use mir::lower::ctx_struct_field_type
-use std::text
 
 fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>) -> i32 {
     let payload_found = ctx_gc_enum::ctx_gc_enum_variant_slot_for_payload(ctx, clone(variant_name), payload_vts)

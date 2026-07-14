@@ -42,6 +42,10 @@
 | `docs/data/release-guarantees.toml` | product (SSOT input) | hand-maintained | Release guarantees SSOT |
 | `docs/data/warnings.toml` | product (SSOT input) | hand-maintained | Diagnostic identity and lifecycle SSOT |
 | `docs/data/verification-commands.toml` | product (SSOT input) | hand-maintained | Canonical verification command registry |
+| `docs/data/code-quality-rules.toml` | internal (SSOT input) | hand-maintained | Executable code-quality rule registry |
+| `docs/data/tooling-inventory.toml` | internal (SSOT input) | hand-maintained | Canonical formatter/linter ownership by file family |
+| `docs/data/ark-code-quality-baseline.toml` | internal (SSOT input) | hand-maintained via checker | Ark structural metric ratchet ceilings |
+| `docs/data/ark-formatter-baseline.toml` | internal (SSOT input) | hand-maintained | Content-addressed temporary formatter parse exceptions |
 | `docs/data/docs-gate-config.toml` | internal (SSOT input) | hand-maintained | Documentation hard-gate policy and ratchets |
 | `docs/capability-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From capabilities.toml |
 | `docs/data/cli-surface.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From cli-surface.toml |
@@ -49,7 +53,8 @@
 | `docs/data/component-availability.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From component-availability.toml |
 | `docs/data/release-guarantees.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From release-guarantees.toml |
 | `docs/data/target-contract-summary.md` | generated | `scripts/gen/generate-docs.py` | Generated from project-state.toml |
-| `docs/data/core-ops.toml` | product (SSOT input) | hand-maintained | Core ops registry input |
+| `docs/data/verify-full-receipt.json` | internal (receipt) | hand-maintained via parser | Machine-readable verify full receipt with exact failure/skip identity set |
+| `data/core-ops.toml` | product (SSOT input) | hand-maintained | Future semantic registry SSOT for ADR-042 (PROPOSED). Not consumed authoritatively by compiler until ADR-042 is accepted and #798 completes. Current semantic registration owner is `std/manifest.toml` + compiler-local registration. Migration owner: #798. |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/adr/` | product | — | Architecture Decision Records |
 | `docs/rfcs/` | product | — | 詳細設計提案・仕様草案（ADR の長文側） |

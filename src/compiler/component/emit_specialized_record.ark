@@ -1,4 +1,3 @@
-// Arukellt Selfhost - record and color specialized component dispatch
 use component::emit_color
 use component::emit_record_ops
 use component::export_shapes_color_scan

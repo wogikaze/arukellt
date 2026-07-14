@@ -1,5 +1,3 @@
-// Arukellt Selfhost - PR-4a/PR-4b registry legacy return VT resolution via compat table.
-
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry

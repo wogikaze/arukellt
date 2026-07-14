@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR expression AST accessors.
-
 use corehir::frontend_ast_children
 use corehir::frontend_ast_identity
 use corehir::frontend_ast_literals

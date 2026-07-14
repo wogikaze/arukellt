@@ -191,7 +191,6 @@ pub fn deque_to_vec(d: Vec<i32>) -> Vec<i32> {
 // Layout: [count, ...heap_data]
 // Sift up
 // Sift down
-// issue #715 in-file tests
 test mod "deque" {
     test "new_count" {
         let d = deque_new()

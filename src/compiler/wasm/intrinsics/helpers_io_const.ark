@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm intrinsic I/O constant primitive recipes.
-
 use wasm::writer_core
 
 fn emit_i32_const(w: WasmWriter, value: i32) {

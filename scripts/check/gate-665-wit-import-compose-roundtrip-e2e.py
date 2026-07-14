@@ -82,6 +82,16 @@ def _build_provider() -> tuple[int, str]:
     cargo = _find_tool("cargo")
     if not cargo:
         return 2, "cargo not in PATH"
+    # Check that `cargo component` subcommand is available.
+    probe = subprocess.run(
+        [cargo, "component", "--version"],
+        cwd=str(PROVIDER_CARGO),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if probe.returncode != 0:
+        return 2, "cargo component subcommand not installed (run `cargo install cargo-component`)"
     result = subprocess.run(
         [cargo, "component", "build", "--release"],
         cwd=str(PROVIDER_CARGO),
@@ -106,7 +116,7 @@ def _compile_socket(out: Path) -> tuple[int, str]:
         "compile",
         str(MAIN_ARK.relative_to(REPO_ROOT)),
         "--target",
-        "wasm32-wasi-p2",
+        "wasm32-gc",
         "--wasi-version",
         "p2",
         "--emit",

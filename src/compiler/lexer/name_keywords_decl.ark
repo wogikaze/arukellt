@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - declaration keyword display names.
-
 
 fn token_decl_keyword_name(kind: i32) -> String {
     if kind == tokens::TK_FN() {

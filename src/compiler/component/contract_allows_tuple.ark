@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component tuple contract allow derivation
-
 use component::contract_allows_tuple_record
 use component::contract_tuple_scan
 

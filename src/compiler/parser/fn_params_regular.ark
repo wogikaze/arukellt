@@ -3,8 +3,6 @@ use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
 use parser::core_ast_type_ann
-// Arukellt Parser - regular function parameter syntax
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::token_state

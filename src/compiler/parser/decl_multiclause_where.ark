@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - multi-clause function where bindings.
-
 use parser::core_api_cursor
 use parser::decl_multiclause_where_binding
 use parser::decl_multiclause_where_probe

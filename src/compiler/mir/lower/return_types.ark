@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering return type facade
-
 use mir::lower::return_typeinfo
 
 fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {

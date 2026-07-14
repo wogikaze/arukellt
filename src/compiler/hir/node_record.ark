@@ -1,5 +1,3 @@
-// Arukellt HIR - node data record.
-
 use hir::type_contracts_record
 
 struct HirNode {

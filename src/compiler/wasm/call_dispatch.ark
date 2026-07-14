@@ -1,6 +1,4 @@
 use mir::inst_accessors_literals
-// Arukellt Selfhost - Wasm call instruction dispatch
-
 use wasm::call_fallback
 use wasm::call_host
 use wasm::call_parse
@@ -11,30 +9,30 @@ use wasm::call_text
 use wasm::call_vec
 
 fn emit_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
-        let callee = normalize_callee_name(clone(inst_accessors_literals::MirInst_str_val(inst)))
-        if call_host::try_emit_host_call(w, callee, inst, ctx, -1, -1, String_from(""), next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        if call_seq::try_emit_seq_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        if call_text::try_emit_text_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        if call_scalar::try_emit_scalar_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        if call_parse::try_emit_parse_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        if call_vec::try_emit_vec_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        if call_simd::try_emit_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return
-        }
-        call_fallback::emit_fallback_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+    let callee = normalize_callee_name(clone(inst_accessors_literals::MirInst_str_val(inst)))
+    if call_host::try_emit_host_call(w, callee, inst, ctx, -1, -1, String_from(""), next_op, next_arg0, next_arg1, next2_op) {
         return
+    }
+    if call_seq::try_emit_seq_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    if call_text::try_emit_text_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    if call_scalar::try_emit_scalar_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    if call_parse::try_emit_parse_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    if call_vec::try_emit_vec_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    if call_simd::try_emit_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return
+    }
+    call_fallback::emit_fallback_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+    return
 }
 
 fn normalize_callee_name(raw_callee: String) -> String {

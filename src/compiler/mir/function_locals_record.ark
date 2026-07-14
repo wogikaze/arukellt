@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function local record helpers.
-
 use mir::function_core_record
 use mir::local_record
 

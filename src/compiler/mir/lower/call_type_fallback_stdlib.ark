@@ -1,5 +1,3 @@
-// Arukellt Selfhost - stdlib call result type inference helpers.
-
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::value_types
@@ -87,7 +85,18 @@ fn mark_host_sockets_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:vec:i32:String"))
         return true
     }
-    if eq(clone(cn), "connect") || eq(clone(cn), "sockets_connect") || eq(clone(cn), "__intrinsic_sockets_connect") || eq(clone(cn), "write") || eq(clone(cn), "sockets_write") || eq(clone(cn), "__intrinsic_sockets_write") || eq(clone(cn), "listen") || eq(clone(cn), "sockets_listen") || eq(clone(cn), "__intrinsic_sockets_listen") || eq(clone(cn), "accept") || eq(clone(cn), "sockets_accept") || eq(clone(cn), "__intrinsic_sockets_accept") {
+    if eq(clone(cn), "connect") ||
+    eq(clone(cn), "sockets_connect") ||
+    eq(clone(cn), "__intrinsic_sockets_connect") ||
+    eq(clone(cn), "write") ||
+    eq(clone(cn), "sockets_write") ||
+    eq(clone(cn), "__intrinsic_sockets_write") ||
+    eq(clone(cn), "listen") ||
+    eq(clone(cn), "sockets_listen") ||
+    eq(clone(cn), "__intrinsic_sockets_listen") ||
+    eq(clone(cn), "accept") ||
+    eq(clone(cn), "sockets_accept") ||
+    eq(clone(cn), "__intrinsic_sockets_accept") {
         set_stdlib_result_type(ctx, dest, String_from("result:i32:String"))
         return true
     }

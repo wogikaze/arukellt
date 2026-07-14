@@ -1,5 +1,3 @@
-// Arukellt Lexer - token display names facade.
-
 use lexer::name_base
 use lexer::name_delims
 use lexer::name_keywords

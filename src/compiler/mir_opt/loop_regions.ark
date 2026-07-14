@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR loop region discovery for opt passes.
-
 use mir::inst_accessors_shape
 use mir::opcodes
 use mir::types

@@ -4,8 +4,6 @@ use parser::kinds
 use parser::core_ast_span
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - array comprehension prefix expression.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::token_state

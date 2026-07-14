@@ -1,4 +1,3 @@
-// Arukellt Parser - AST data contract.
 //
 // Keep this module free of parser cursor/token helper logic so downstream
 // contracts can depend on AST shape without importing the parser engine.

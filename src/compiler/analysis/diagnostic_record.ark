@@ -1,5 +1,3 @@
-// Arukellt Selfhost - analysis diagnostic data record.
-
 pub struct AnalysisDiagnostic {
     phase: i32,
     message: String,

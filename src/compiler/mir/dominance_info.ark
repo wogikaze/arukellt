@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dominance info DTO.
-
 struct MirDomInfo {
     idom: Vec<i32>,
     frontier_offsets: Vec<i32>,

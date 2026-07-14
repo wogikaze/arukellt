@@ -1,6 +1,4 @@
-// Arukellt Selfhost - Component names and WIT value type mapping
 use std::text
-
 use component::constants_wit_values
 use mir::function_return_view
 use mir::local_access

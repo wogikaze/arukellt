@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR optimization target gating helpers.
-
 fn mir_opt_is_t3_target(target: String) -> bool {
     contains(clone(target), String_from("-p2"))
 }

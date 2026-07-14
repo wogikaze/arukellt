@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR atomic and operator expression dispatch.
-
 use corehir::body_atoms
 use corehir::body_ops
 use corehir::expr_node_access

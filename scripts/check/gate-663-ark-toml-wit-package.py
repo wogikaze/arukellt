@@ -46,7 +46,7 @@ def _check_fixture() -> tuple[int, str]:
         return 2, "no compiler"
     fixture = REPO_ROOT / "tests/fixtures/wit_import/ark_manifest/main.ark"
     result = subprocess.run(
-        [*compiler, "check", str(fixture.relative_to(REPO_ROOT)), "--target", "wasm32-wasi-p2"],
+        [*compiler, "check", str(fixture.relative_to(REPO_ROOT)), "--target", "wasm32-gc"],
         cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=180, env=_compile_env(),
     )
     if result.returncode != 0:

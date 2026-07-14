@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm Binary Emitter control instruction facade.
 //
 // Extracted from emitter.ark for module-level organization.
 

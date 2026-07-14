@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI doc command usage text.
-
 use std::host::stdio
 
 pub fn print_doc_usage() {
@@ -9,16 +7,12 @@ pub fn print_doc_usage() {
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Options:"))
     stdio::eprintln(String_from("      --json              Output as JSON"))
-    stdio::eprintln(String_from("      --target <TARGET>   Filter availability (wasm32-wasi-p1, wasm32-wasi-p2)"))
+    stdio::eprintln(String_from("      --target <TARGET>   Filter availability (wasm32, wasm32-gc)"))
     stdio::eprintln(String_from(""))
     stdio::eprintln(String_from("Examples:"))
     stdio::eprintln(String_from("  arukellt doc println"))
     stdio::eprintln(String_from("  arukellt doc std::host::http::get"))
     stdio::eprintln(String_from("  arukellt doc std::host::http"))
     stdio::eprintln(String_from("  arukellt doc --json println"))
-    stdio::eprintln(String_from("  arukellt doc --target wasm32-wasi-p1 std::host::sockets::connect"))
-}
-// issue #715 in-file tests
-test mod "doc_usage" {
-    test "sanity" { assert(1 == 1) }
+    stdio::eprintln(String_from("  arukellt doc --target wasm32 std::host::sockets::connect"))
 }

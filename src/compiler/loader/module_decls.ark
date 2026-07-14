@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module declaration aggregation
-
 use collections::vec_extend
 use loader::module_state_modules
 use loader::module_state

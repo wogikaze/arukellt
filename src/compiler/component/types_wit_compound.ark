@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WIT compound type encoders
-
 use component::constants_wit_values
 use component::writer_core
 

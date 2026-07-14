@@ -1,5 +1,3 @@
-// Arukellt Parser - public cursor facade.
-
 use parser::cursor
 
 fn cur(p: Parser) -> Token { cursor::cur(p) }

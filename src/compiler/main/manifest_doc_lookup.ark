@@ -1,5 +1,3 @@
-// Arukellt Selfhost - manifest doc symbol lookup helpers (#456).
-
 use main::manifest_doc_record
 
 fn doc_last_segment(path: String) -> String {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - monomorphization instance shape adapter.
-
 use mir::type_contracts
 use mir::typeinfo_shape
 

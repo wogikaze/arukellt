@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR callable signature source over MIR-facing views.
-
 use corehir::mir_signature_source_record
 
 fn mir_signature_source_from_parts(fn_infos: Vec<CoreHirFnInfo>, method_infos: Vec<CoreHirMethodInfo>) -> CoreHirMirSignatureSource {

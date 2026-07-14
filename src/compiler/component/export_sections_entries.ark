@@ -1,5 +1,3 @@
-// Arukellt Selfhost - generic component export section entry writers.
-
 use component::constants_sections_linkage
 use component::writer_core
 

@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - sort intrinsic handlers.
-
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target

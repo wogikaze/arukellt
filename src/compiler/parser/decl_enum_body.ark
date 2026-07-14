@@ -1,8 +1,5 @@
 use lexer::tokens
 use parser::core_ast_children
-
-// Arukellt Parser - enum declaration body syntax.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::decl_enum_variants

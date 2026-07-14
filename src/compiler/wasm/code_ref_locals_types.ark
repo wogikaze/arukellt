@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC reference local type name helpers.
-
 fn is_gc_container_type_name(type_name: String) -> bool {
     if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
         return true
@@ -8,23 +6,41 @@ fn is_gc_container_type_name(type_name: String) -> bool {
 }
 
 fn is_option_type_name(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) || eq(clone(type_name), String_from("enum:Option")) {
+    if starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) ||
+    eq(clone(type_name), String_from("enum:Option")) {
         return true
     }
     false
 }
 
 fn mir_fn_returns_option_by_name(fn_name: String) -> bool {
-    if eq(clone(fn_name), String_from("hashmap_get_option")) || eq(clone(fn_name), String_from("hash::hashmap_get_option")) || eq(clone(fn_name), String_from("HashMap_i32_i32_get")) || eq(clone(fn_name), String_from("hashmap_i32_i32_get")) || eq(clone(fn_name), String_from("hash_map::hashmap_i32_i32_get")) {
+    if eq(clone(fn_name), String_from("hashmap_get_option")) ||
+    eq(clone(fn_name), String_from("hash::hashmap_get_option")) ||
+    eq(clone(fn_name), String_from("HashMap_i32_i32_get")) ||
+    eq(clone(fn_name), String_from("hashmap_i32_i32_get")) ||
+    eq(clone(fn_name), String_from("hash_map::hashmap_i32_i32_get")) {
         return true
     }
-    if eq(clone(fn_name), String_from("hashmap_remove")) || eq(clone(fn_name), String_from("hash::hashmap_remove")) || eq(clone(fn_name), String_from("HashMap_i32_i32_remove")) || eq(clone(fn_name), String_from("hashmap_i32_i32_remove")) || eq(clone(fn_name), String_from("hash_map::hashmap_i32_i32_remove")) {
+    if eq(clone(fn_name), String_from("hashmap_remove")) ||
+    eq(clone(fn_name), String_from("hash::hashmap_remove")) ||
+    eq(clone(fn_name), String_from("HashMap_i32_i32_remove")) ||
+    eq(clone(fn_name), String_from("hashmap_i32_i32_remove")) ||
+    eq(clone(fn_name), String_from("hash_map::hashmap_i32_i32_remove")) {
         return true
     }
-    if eq(clone(fn_name), String_from("hash_string::hashmap_str_get")) || eq(clone(fn_name), String_from("hashmap_str_get")) || eq(clone(fn_name), String_from("hash::hashmap_str_get")) || eq(clone(fn_name), String_from("HashMap_String_i32_get")) {
+    if eq(clone(fn_name), String_from("hash_string::hashmap_str_get")) ||
+    eq(clone(fn_name), String_from("hashmap_str_get")) ||
+    eq(clone(fn_name), String_from("hash::hashmap_str_get")) ||
+    eq(clone(fn_name), String_from("HashMap_String_i32_get")) {
         return true
     }
-    if eq(clone(fn_name), String_from("hash_string::hashmap_str_remove")) || eq(clone(fn_name), String_from("hashmap_str_remove")) || eq(clone(fn_name), String_from("hash::hashmap_str_remove")) || eq(clone(fn_name), String_from("HashMap_String_i32_remove")) {
+    if eq(clone(fn_name), String_from("hash_string::hashmap_str_remove")) ||
+    eq(clone(fn_name), String_from("hashmap_str_remove")) ||
+    eq(clone(fn_name), String_from("hash::hashmap_str_remove")) ||
+    eq(clone(fn_name), String_from("HashMap_String_i32_remove")) {
         return true
     }
     if eq(clone(fn_name), String_from("hashmap_str_val_get")) || eq(clone(fn_name), String_from("HashMap_i32_String_get")) {
@@ -36,7 +52,12 @@ fn mir_fn_returns_option_by_name(fn_name: String) -> bool {
     if eq(clone(fn_name), String_from("hashmap_str_str_remove")) || eq(clone(fn_name), String_from("HashMap_String_String_remove")) {
         return true
     }
-    if eq(clone(fn_name), String_from("parse_i32")) || eq(clone(fn_name), String_from("convert::parse_i32")) || eq(clone(fn_name), String_from("parse_i64")) || eq(clone(fn_name), String_from("convert::parse_i64")) || eq(clone(fn_name), String_from("parse_f64")) || eq(clone(fn_name), String_from("convert::parse_f64")) {
+    if eq(clone(fn_name), String_from("parse_i32")) ||
+    eq(clone(fn_name), String_from("convert::parse_i32")) ||
+    eq(clone(fn_name), String_from("parse_i64")) ||
+    eq(clone(fn_name), String_from("convert::parse_i64")) ||
+    eq(clone(fn_name), String_from("parse_f64")) ||
+    eq(clone(fn_name), String_from("convert::parse_f64")) {
         return true
     }
     false

@@ -1,6 +1,6 @@
 
 #
-# --- T3 compile-only fixtures (wasm32-wasi-p2 compile correctness) ---
+# --- T3 compile-only fixtures (wasm32-gc compile correctness) ---
 # Benchmark suite (in benchmarks/ directory, not test fixtures)
 # Categories: scalars, strings, vecs, structs, closures, modules, traits,
 # Component Model compile-only tests
@@ -26,7 +26,7 @@
 # opportunistic: proves return_call emission via the let-call-return pattern (#090).
 # std::host shared capabilities T1/T3 smoke matrix (#138)
 # tail-call pass does NOT rewrite these; the T3 emitter's opportunistic
-# tail_call: uses T3/WasmGC emitter (wasm32-wasi-p2) which emits return_call for tail recursion.
+# tail_call: uses T3/WasmGC emitter (wasm32-gc) which emits return_call for tail recursion.
 # tail_call_ref: proves return_call_ref emission for indirect tail calls
 # try_emit_let_call_tail_return detects and emits return_call instead.
 # via typed GC function references (FnRef local in tail position, #492).
@@ -266,7 +266,9 @@ diag:v0_constraints/no_method_call.ark
 diag:v0_constraints/no_operator_overload.ark
 diag:wit_import/parse/malformed.ark
 fmt:fmt/comments_preserved.ark
+fmt:fmt/delimiters_in_strings.ark
 fmt:fmt/if_else.ark
+fmt:fmt/imports_interleaved.ark
 fmt:fmt/imports_unsorted.ark
 mir-dump:wit_import/mir/call_add.ark
 module-diag:modules/circular/main.ark

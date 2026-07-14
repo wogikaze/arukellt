@@ -1,8 +1,6 @@
+use std::host::stdio
 use mir::inst_accessors_operands
 use mir::block_inst_access
-// Arukellt Selfhost - MIR SSA sequential definition smoke check
-
-use std::host::stdio
 use mir::dominance
 use mir::dump_core
 use mir::dump_expect

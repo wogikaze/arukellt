@@ -4,8 +4,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
-// Arukellt Selfhost - CoreHIR literal value lowering.
-
 use mir::inst_const_i32
 use mir::inst_const_i64
 use mir::inst_const_string

@@ -1,5 +1,3 @@
-// Arukellt Parser - expression postfix suffixes
-
 use parser::expr_suffix_call
 use parser::expr_suffix_dot
 use parser::expr_suffix_index

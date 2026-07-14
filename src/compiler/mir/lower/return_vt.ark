@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR fn_info return value type queries.
-
 use corehir::fn_info
 use mir::value_types
 

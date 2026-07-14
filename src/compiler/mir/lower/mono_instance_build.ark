@@ -1,5 +1,3 @@
-// Arukellt Selfhost - build MonoInstanceTable entries from mono instances (PR-3).
-
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::type_info_to_type_id
@@ -8,7 +6,14 @@ use mir::lower::mono_instance_table
 use mir::mono_names
 use mir::type_contracts
 
-fn mono_instance_table_register_from_instances(table: MonoInstanceTable, type_table: TypeTable, mono_instances: Vec<MonoInstance>, mangled: String, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>) -> i32 {
+fn mono_instance_table_register_from_instances(
+    table: MonoInstanceTable,
+    type_table: TypeTable,
+    mono_instances: Vec<MonoInstance>,
+    mangled: String,
+    param_types: Vec<MirValueType>,
+    return_types: Vec<MirValueType>
+) -> i32 {
     let inst = mono_find_instance(mono_instances, clone(mangled))
     if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
         return 0 - 1

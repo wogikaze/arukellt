@@ -1,5 +1,3 @@
-// Arukellt Parser - public AST literal field API.
-
 use parser::ast_fields_record
 
 fn AstNode_int_val(node: AstNode) -> i32 { ast_fields_record::ast_node_int_val(node) }

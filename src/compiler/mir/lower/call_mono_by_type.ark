@@ -1,8 +1,6 @@
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_api_local_types
 use mir::value_types
-// Arukellt Selfhost - MIR monomorphized call target resolution by arg type.
-
 use mir::mono
 
 fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx: i32) -> String {

@@ -1,15 +1,41 @@
-// Arukellt Selfhost - CoreHIR call argument name classification.
-
 fn mir_core_is_printlike_callee(name: String) -> bool {
-    eq(clone(name), "stdio::println") || eq(clone(name), "println") || eq(clone(name), "stdio::print") || eq(clone(name), "print") || eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") || eq(clone(name), "__intrinsic_println") || eq(clone(name), "__intrinsic_eprintln") || eq(clone(name), "__intrinsic_print")
+    eq(clone(name), "stdio::println") ||
+    eq(clone(name), "println") ||
+    eq(clone(name), "stdio::print") ||
+    eq(clone(name), "print") ||
+    eq(clone(name), "stdio::eprintln") ||
+    eq(clone(name), "eprintln") ||
+    eq(clone(name), "__intrinsic_println") ||
+    eq(clone(name), "__intrinsic_eprintln") ||
+    eq(clone(name), "__intrinsic_print")
 }
 
 fn mir_core_call_bool_result_name(name: String) -> bool {
-    eq(clone(name), "contains_i32") || eq(clone(name), "contains_string") || eq(clone(name), "contains_String") || eq(clone(name), "contains") || eq(clone(name), "is_empty") || eq(clone(name), "is_some") || eq(clone(name), "is_none") || eq(clone(name), "starts_with") || eq(clone(name), "ends_with")
+    eq(clone(name), "contains_i32") ||
+    eq(clone(name), "contains_string") ||
+    eq(clone(name), "contains_String") ||
+    eq(clone(name), "contains") ||
+    eq(clone(name), "is_empty") ||
+    eq(clone(name), "is_some") ||
+    eq(clone(name), "is_none") ||
+    eq(clone(name), "starts_with") ||
+    eq(clone(name), "ends_with")
 }
 
 fn mir_core_call_i32_result_name(name: String) -> bool {
-    eq(clone(name), "len") || eq(clone(name), "parse_i32") || eq(clone(name), "abs") || eq(clone(name), "min") || eq(clone(name), "max") || eq(clone(name), "sum_i32") || eq(clone(name), "product_i32") || eq(clone(name), "index_of") || eq(clone(name), "clamp_i32") || eq(clone(name), "get_unchecked") || eq(clone(name), "vec_get_unchecked_i32") || eq(clone(name), "bytes_get") || eq(clone(name), "bytes_len")
+    eq(clone(name), "len") ||
+    eq(clone(name), "parse_i32") ||
+    eq(clone(name), "abs") ||
+    eq(clone(name), "min") ||
+    eq(clone(name), "max") ||
+    eq(clone(name), "sum_i32") ||
+    eq(clone(name), "product_i32") ||
+    eq(clone(name), "index_of") ||
+    eq(clone(name), "clamp_i32") ||
+    eq(clone(name), "get_unchecked") ||
+    eq(clone(name), "vec_get_unchecked_i32") ||
+    eq(clone(name), "bytes_get") ||
+    eq(clone(name), "bytes_len")
 }
 
 fn mir_core_call_short_name(name: String) -> String {
@@ -25,7 +51,18 @@ fn mir_core_call_short_name(name: String) -> String {
 }
 
 fn mir_core_call_string_result_name(name: String) -> bool {
-    if eq(clone(name), "String_from") || eq(clone(name), "concat") || eq(clone(name), "text::concat") || eq(clone(name), "to_string") || eq(clone(name), "slice") || eq(clone(name), "substring") || eq(clone(name), "trim") || eq(clone(name), "replace") || eq(clone(name), "to_upper") || eq(clone(name), "to_lower") || eq(clone(name), "to_uppercase") || eq(clone(name), "to_lowercase") {
+    if eq(clone(name), "String_from") ||
+    eq(clone(name), "concat") ||
+    eq(clone(name), "text::concat") ||
+    eq(clone(name), "to_string") ||
+    eq(clone(name), "slice") ||
+    eq(clone(name), "substring") ||
+    eq(clone(name), "trim") ||
+    eq(clone(name), "replace") ||
+    eq(clone(name), "to_upper") ||
+    eq(clone(name), "to_lower") ||
+    eq(clone(name), "to_uppercase") ||
+    eq(clone(name), "to_lowercase") {
         return true
     }
     if ends_with(clone(name), "_to_string") || ends_with(clone(name), "_from_string") || ends_with(clone(name), "_from_bytes") || ends_with(clone(name), "_encode") {
@@ -35,7 +72,12 @@ fn mir_core_call_string_result_name(name: String) -> bool {
     if eq(clone(short), "greet") || eq(clone(short), "component_model_version") || eq(clone(short), "string_from_bytes") || eq(clone(short), "hex_encode") || eq(clone(short), "rope_new") {
         return true
     }
-    if eq(clone(short), "rope_to_string") || eq(clone(short), "rope_from_string") || eq(clone(short), "rope_slice") || eq(clone(short), "rope_insert") || eq(clone(short), "rope_delete") || eq(clone(short), "rope_concat") {
+    if eq(clone(short), "rope_to_string") ||
+    eq(clone(short), "rope_from_string") ||
+    eq(clone(short), "rope_slice") ||
+    eq(clone(short), "rope_insert") ||
+    eq(clone(short), "rope_delete") ||
+    eq(clone(short), "rope_concat") {
         return true
     }
     false

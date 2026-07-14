@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm local GC struct/named type declarations.
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
@@ -30,7 +29,15 @@ fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, typ
             return true
         }
     }
-    if starts_with(clone(type_name), String_from("enum:")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("enum:")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         emit_gc_enum_open_local(body, ctx)
         return true
     }
@@ -92,7 +99,10 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             return true
         }
     }
-    if starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option:")) || starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
@@ -105,7 +115,10 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
 }
 // GC-target local val type for struct:/raw struct names, with inference fallback.
 fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) || starts_with(clone(type_name), String_from("struct:HashMap:")) || starts_with(clone(type_name), String_from("struct:HashSet:")) {
+    if eq(clone(type_name), String_from("HashMap")) ||
+    eq(clone(type_name), String_from("HashSet")) ||
+    starts_with(clone(type_name), String_from("struct:HashMap:")) ||
+    starts_with(clone(type_name), String_from("struct:HashSet:")) {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         return true

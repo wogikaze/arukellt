@@ -1,4 +1,3 @@
-// Arukellt Selfhost - try `?` From::from conversion helpers.
 // Extracted from try.ark to reduce import fan-out.
 
 use mir::lower::ctx_api_local_alloc

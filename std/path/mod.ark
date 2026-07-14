@@ -91,7 +91,7 @@ pub fn parent(p: String) -> String {
 }
 
 /// Returns the file stem (the file name without the final extension).
-/// 
+///
 /// Examples:
 /// stem("hello.txt")    -> "hello"
 /// stem("foo.tar.gz")   -> "foo.tar"
@@ -108,7 +108,7 @@ pub fn stem(p: String) -> String {
 }
 
 /// Resolves `.` and `..` components and collapses redundant `/` separators.
-/// 
+///
 /// Examples:
 /// normalize("/foo/./bar/../baz")  -> "/foo/baz"
 /// normalize("a/b/../c")          -> "a/c"
@@ -141,7 +141,7 @@ pub fn normalize(p: String) -> String {
 }
 
 /// Returns the non-empty path segments split by `/`.
-/// 
+///
 /// Examples:
 /// components("/usr/local/bin")  -> ["usr", "local", "bin"]
 /// components("a/b/c")          -> ["a", "b", "c"]

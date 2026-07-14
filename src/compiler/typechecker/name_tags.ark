@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Selfhost - typechecker tag display names.
-
 
 fn type_tag_name(tag: i32) -> String {
     if tag == commands::TY_I32() { return String_from("i32") }

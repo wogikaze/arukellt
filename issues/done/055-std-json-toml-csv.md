@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-06-15
-ID: 45
+ID: 055
 Track: stdlib
 Depends on: 039, 042, 044
 Blocks v3 exit: "no (Experimental — json Stable candidate)"

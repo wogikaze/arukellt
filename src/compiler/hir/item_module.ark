@@ -1,5 +1,3 @@
-// Arukellt HIR - module data contract.
-
 use hir::item_function_core_record
 use hir::item_trait_record
 
@@ -13,7 +11,14 @@ struct HirModule {
 }
 
 fn HirModule_new() -> HirModule {
-    HirModule { functions: Vec_new_HirFunction(), structs: Vec_new_HirStructDef(), enums: Vec_new_HirEnumDef(), traits: Vec_new_HirTraitDecl(), impls: Vec_new_HirImplBlock(), imports: Vec_new_String() }
+    HirModule {
+        functions: Vec_new_HirFunction(),
+        structs: Vec_new_HirStructDef(),
+        enums: Vec_new_HirEnumDef(),
+        traits: Vec_new_HirTraitDecl(),
+        impls: Vec_new_HirImplBlock(),
+        imports: Vec_new_String()
+    }
 }
 
 fn HirModule_push_function(module: HirModule, func: HirFunction) {

@@ -43,6 +43,8 @@ DOCS = ROOT / "docs"
 DATA = DOCS / "data"
 PROJECT_STATE = DATA / "project-state.toml"
 TARGET_CONTRACT = DOCS / "data" / "target-contract-summary.md"
+COMPILER_TARGET_CONTRACT = ROOT / "src" / "compiler" / "main" / "target_contract_generated.ark"
+EXTENSION_TARGET_CONTRACT = ROOT / "extensions" / "arukellt-all-in-one" / "src" / "target-contract.generated.js"
 SECTIONS_FILE = DATA / "sections.toml"
 STDLIB_MANIFEST = ROOT / "std" / "manifest.toml"
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
@@ -1427,6 +1429,147 @@ def render_host_profile_table(state: dict) -> str:
     return "\n".join(rows)
 
 
+def validate_target_contract(state: dict) -> list[str]:
+    errors: list[str] = []
+    canonical = {p.get("id") for p in state.get("target_profiles", [])}
+    hosts = {p.get("id") for p in state.get("host_profiles", [])}
+    seen: set[str] = set()
+    for alias in state.get("target_aliases", []):
+        spelling = alias.get("input")
+        if not isinstance(spelling, str) or not spelling:
+            errors.append("target alias input must be a non-empty string")
+            continue
+        if spelling in seen:
+            errors.append(f"duplicate target alias input: {spelling}")
+        seen.add(spelling)
+        policy = alias.get("policy")
+        if policy not in {"warning", "error"}:
+            errors.append(f"target alias {spelling}: policy must be warning or error")
+        if policy == "warning":
+            if alias.get("warning_id") != "W0002":
+                errors.append(f"target alias {spelling}: warning policy requires W0002")
+            if alias.get("canonical_target") not in canonical:
+                errors.append(f"target alias {spelling}: unknown canonical_target")
+            if alias.get("host_profile") not in hosts:
+                errors.append(f"target alias {spelling}: unknown host_profile")
+        if not alias.get("replacement"):
+            errors.append(f"target alias {spelling}: replacement is required")
+    return errors
+
+
+def _ark_string(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def render_compiler_target_contract(state: dict) -> str:
+    aliases = state.get("target_aliases", [])
+    canonical = [p["id"] for p in state.get("target_profiles", [])]
+    lines = [
+        "// Generated from docs/data/project-state.toml by scripts/gen/generate-docs.py.",
+        "// Do not edit by hand.",
+        "",
+        "fn target_is_canonical(input: String) -> bool {",
+    ]
+    for target in canonical:
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(target)}")) {{',
+            "        return true",
+            "    }",
+        ])
+    lines.extend(["    false", "}", "", "fn target_alias_policy(input: String) -> String {"])
+    for alias in aliases:
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
+            f'        return String_from("{_ark_string(alias["policy"])}")',
+            "    }",
+        ])
+    lines.extend(["    String_new()", "}", "", "fn target_alias_canonical_target(input: String) -> String {"])
+    for alias in aliases:
+        if alias["policy"] == "warning":
+            lines.extend([
+                f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
+                f'        return String_from("{_ark_string(alias["canonical_target"])}")',
+                "    }",
+            ])
+    lines.extend(["    input", "}", "", "fn target_default_host_profile(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        host = profile.get("default_host_profile")
+        if host:
+            lines.extend([
+                f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+                f'        return String_from("{_ark_string(host)}")',
+                "    }",
+            ])
+    lines.extend(["    String_new()", "}", "", "fn target_alias_host_profile(input: String) -> String {"])
+    for alias in aliases:
+        if alias["policy"] == "warning":
+            lines.extend([
+                f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
+                f'        return String_from("{_ark_string(alias["host_profile"])}")',
+                "    }",
+            ])
+    lines.extend(["    String_new()", "}", "", "fn target_alias_message(input: String) -> String {"])
+    for alias in aliases:
+        if alias["policy"] == "warning":
+            message = f'W0002: target `{alias["input"]}` is deprecated; use `{alias["replacement"]}`'
+        else:
+            message = f'target `{alias["input"]}` is not accepted; {alias["replacement"]}'
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
+            f'        return String_from("{_ark_string(message)}")',
+            "    }",
+        ])
+    lines.extend(["    String_new()", "}", "", "fn target_display_line(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        target_id = _ark_string(profile["id"])
+        display = _ark_string(profile.get("display", profile.get("role", "")))
+        lines.extend([
+            f'    if eq(clone(input), String_from("{target_id}")) {{',
+            f'        return String_from("  {target_id}  {display}")',
+            "    }",
+        ])
+    lines.extend(["    String_new()", "}", ""])
+    lines.extend(['test mod "target_contract_generated" {'])
+    for index, target in enumerate(canonical):
+        lines.append(
+            f'    test "canonical_{index}" {{ assert(target_is_canonical(String_from("{_ark_string(target)}"))) }}'
+        )
+    for index, alias in enumerate(aliases):
+        spelling = _ark_string(alias["input"])
+        lines.append(
+            f'    test "policy_{index}" {{ assert(eq(target_alias_policy(String_from("{spelling}")), String_from("{alias["policy"]}"))) }}'
+        )
+        if alias["policy"] == "warning":
+            lines.append(
+                f'    test "canonicalize_{index}" {{ assert(eq(target_alias_canonical_target(String_from("{spelling}")), String_from("{_ark_string(alias["canonical_target"])}"))) }}'
+            )
+            lines.append(
+                f'    test "host_{index}" {{ assert(eq(target_alias_host_profile(String_from("{spelling}")), String_from("{_ark_string(alias["host_profile"])}"))) }}'
+            )
+            lines.append(
+                f'    test "warning_{index}" {{ assert(contains(target_alias_message(String_from("{spelling}")), String_from("W0002"))) }}'
+            )
+    lines.extend(["}", ""])
+    return "\n".join(lines)
+
+
+def render_extension_target_contract(state: dict) -> str:
+    import json
+
+    payload = {
+        "canonicalTargets": [p["id"] for p in state.get("target_profiles", [])],
+        "defaultTarget": state["targets"]["cli_default"],
+        "componentTarget": state["targets"]["component_target"],
+        "aliases": state.get("target_aliases", []),
+    }
+    return "\n".join([
+        "// Generated from docs/data/project-state.toml by scripts/gen/generate-docs.py.",
+        "// Do not edit by hand.",
+        f"module.exports = {json.dumps(payload, indent=2, sort_keys=True)}",
+        "",
+    ])
+
+
 def write_target_contract_summary(state: dict, check: bool, stale: list[Path]) -> None:
     """Generate docs/data/target-contract-summary.md from project-state.toml (SSOT)."""
     lines = [
@@ -1452,6 +1595,8 @@ def write_target_contract_summary(state: dict, check: bool, stale: list[Path]) -
         "",
     ]
     write_file(TARGET_CONTRACT, "\n".join(lines), check, stale)
+    write_file(COMPILER_TARGET_CONTRACT, render_compiler_target_contract(state), check, stale)
+    write_file(EXTENSION_TARGET_CONTRACT, render_extension_target_contract(state), check, stale)
 
 
 def render_current_state_targets(state: dict) -> str:
@@ -3058,9 +3203,9 @@ def format_signature(params: list[str], returns: str) -> str:
 def _canonicalize_target_name(name: str) -> str:
     """Map legacy CLI/manifest target aliases to ADR-007 canonical names."""
     aliases = {
-        "wasm32-wasi-p1": "wasm32",
+        "wasm32": "wasm32",
         "wasm32-wasi": "wasm32",
-        "wasm32-wasi-p2": "wasm32-gc",
+        "wasm32-gc": "wasm32-gc",
         "wasm-gc": "wasm32-gc",
         "wasm-gc-wasi-p2": "wasm32-gc",
     }
@@ -3071,7 +3216,7 @@ def _availability_t3_only(funcs: list[dict]) -> bool:
     """Return True when all functions with ``availability`` data have ``t1 = false``.
 
     This detects modules whose entire public surface is restricted to the T3
-    (wasm32-wasi-p2 / component model) tier.  Functions with no ``availability``
+    (wasm32-gc / component model) tier.  Functions with no ``availability``
     key are ignored (they do not contribute to the verdict either way).
     """
     avail_entries = [f["availability"] for f in funcs if f.get("availability")]
@@ -3143,10 +3288,10 @@ def build_target_constraints(page_modules: list[str], funcs: list[dict]) -> str:
         t = f.get("target", [])
         if t:
             targets.update(t)
-    if not targets or targets in ({"wasm32-wasi-p1", "wasm32-wasi-p2"}, {"wasm32", "wasm32-gc"}):
+    if not targets or targets in ({"wasm32", "wasm32-gc"}, {"wasm32", "wasm32-gc"}):
         base = "Target availability: `wasm32` and `wasm32-gc`."
         return base + " " + axes
-    if targets in ({"wasm32-wasi-p2"}, {"wasm32-gc"}):
+    if targets in ({"wasm32-gc"}, {"wasm32-gc"}):
         base = "⚠ **`wasm32-gc` only** — WASI P2 / component host profile required."
         return base + " " + axes
     canon = sorted({_canonicalize_target_name(x) for x in targets})
@@ -3774,6 +3919,12 @@ def main() -> int:
     args = parser.parse_args()
 
     state = load_toml(PROJECT_STATE)
+    target_contract_errors = validate_target_contract(state)
+    if target_contract_errors:
+        print("project-state.toml target contract FAILED:", file=sys.stderr)
+        for error in target_contract_errors:
+            print(f"  ✗ {error}", file=sys.stderr)
+        return 1
     state["diagnostics"] = load_toml(WARNINGS_TOML)["diagnostics"]
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()

@@ -1,12 +1,10 @@
-// Arukellt LSP - build resolver ModuleDecls from indexed workspace files.
-
+use std::host::fs
 use compiler::session_parse
 use lsp::state_docs
 use lsp::state_record
 use lsp::symbol_index_paths
 use loader::load
 use resolver
-use std::host::fs
 
 fn ark_stem_from_path(path: String) -> String {
     let n = len(path)

@@ -1,7 +1,5 @@
-use typechecker::kinds
 use std::text
-// Arukellt Typechecker - generic method call inference.
-
+use typechecker::kinds
 use typechecker::ast_access
 use typechecker::call_generic_common
 use typechecker::call_generic_method_args

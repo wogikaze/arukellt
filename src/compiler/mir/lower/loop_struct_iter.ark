@@ -2,8 +2,6 @@ use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_loop_state
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering helpers for struct iterator loops.
-
 use mir::inst_structured_control
 use mir::lower::loop_scope
 use mir::lower::loop_struct_iter_locals

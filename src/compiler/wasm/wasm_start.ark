@@ -1,7 +1,5 @@
 use mir::function_return_view
 use mir::function_identity
-// Arukellt Selfhost - Wasm start function selection.
-
 use mir::module_functions
 use wasm::start_names
 

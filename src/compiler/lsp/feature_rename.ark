@@ -1,5 +1,3 @@
-// Arukellt LSP - rename and prepareRename request handling (#339).
-
 use lsp::framing
 use lsp::json_fields
 use lsp::rename_semantic

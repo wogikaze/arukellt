@@ -1,5 +1,3 @@
-// Arukellt Parser - AST node record and constructors.
-
 use parser::ast_span_record
 
 pub struct AstNode {
@@ -18,17 +16,69 @@ pub struct AstNode {
 }
 
 fn AstNode_new(kind: i32, span: Span) -> AstNode {
-    AstNode { kind: kind, span: span, name_span: ast_span_record::Span_empty(), text: String_new(), int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false, is_async: false }
+    AstNode {
+        kind: kind,
+        span: span,
+        name_span: ast_span_record::Span_empty(),
+        text: String_new(),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+        is_async: false
+    }
 }
 
 fn AstNode_leaf(kind: i32, text: String, span: Span) -> AstNode {
-    AstNode { kind: kind, span: span, name_span: ast_span_record::Span_empty(), text: text, int_val: 0, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false, is_async: false }
+    AstNode {
+        kind: kind,
+        span: span,
+        name_span: ast_span_record::Span_empty(),
+        text: text,
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+        is_async: false
+    }
 }
 
 fn AstNode_int(kind: i32, val: i32, span: Span) -> AstNode {
-    AstNode { kind: kind, span: span, name_span: ast_span_record::Span_empty(), text: String_new(), int_val: val, float_val: 0.0, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false, is_async: false }
+    AstNode {
+        kind: kind,
+        span: span,
+        name_span: ast_span_record::Span_empty(),
+        text: String_new(),
+        int_val: val,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+        is_async: false
+    }
 }
 
 fn AstNode_float(kind: i32, val: f64, span: Span) -> AstNode {
-    AstNode { kind: kind, span: span, name_span: ast_span_record::Span_empty(), text: String_new(), int_val: 0, float_val: val, op: 0, children: Vec_new_AstNode(), type_ann: Vec_new_AstNode(), is_mut: false, is_pub: false, is_async: false }
+    AstNode {
+        kind: kind,
+        span: span,
+        name_span: ast_span_record::Span_empty(),
+        text: String_new(),
+        int_val: 0,
+        float_val: val,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+        is_async: false
+    }
 }

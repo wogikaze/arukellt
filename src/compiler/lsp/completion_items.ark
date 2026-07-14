@@ -1,10 +1,7 @@
-// Arukellt Selfhost - LSP completion item JSON builders.
-
+use std::text
 use lsp::import_graph
 use lsp::json_escape
 use lsp::positions
-use std::text
-
 
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
     let mut out = String_from("{\"label\":")

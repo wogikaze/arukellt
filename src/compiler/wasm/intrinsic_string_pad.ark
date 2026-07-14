@@ -230,4 +230,3 @@ fn emit_pad_gc_copy_source(w: WasmWriter, g_result: i32, g_str: i32, s_slen: i32
     helpers_core::emit_local_get(w, s_slen)
     writer_gc::emit_gc_array_copy(w, string_type, string_type)
 }
-

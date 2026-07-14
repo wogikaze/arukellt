@@ -1,6 +1,7 @@
 const vscode = require('vscode')
 const path = require('path')
 const fs = require('fs')
+const TARGET_CONTRACT = require('./target-contract.generated')
 
 const COMMAND_GRAPH_WORKFLOW = [
   {
@@ -145,7 +146,7 @@ function createOpsSurfaces(deps) {
         id: 'target',
         label: 'Default target',
         status: 'pass',
-        detail: String(config.get('target', 'wasm32-wasi-p1')),
+        detail: String(config.get('target', TARGET_CONTRACT.defaultTarget)),
       },
       {
         id: 'emit',
@@ -171,7 +172,7 @@ function createOpsSurfaces(deps) {
     const { command: resolvedBinary } = discoverBinary(config.get('server.path', 'arukellt'))
     const projects = detectProjects()
     const profile = projects[0] || {
-      target: config.get('target', 'wasm32-wasi-p1'),
+      target: config.get('target', TARGET_CONTRACT.defaultTarget),
       emit: config.get('emit', 'core-wasm'),
     }
 
@@ -179,7 +180,7 @@ function createOpsSurfaces(deps) {
       label: 'Local (VS Code)',
       binary: resolvedBinary,
       extraArgs: extraArgs.length > 0 ? extraArgs.join(' ') : '(none)',
-      target: String(config.get('target', 'wasm32-wasi-p1')),
+      target: String(config.get('target', TARGET_CONTRACT.defaultTarget)),
       emit: String(config.get('emit', 'core-wasm')),
       selfhostWasm: process.env.ARUKELLT_SELFHOST_WASM || '(unset)',
       traceServer: String(config.get('trace.server', 'off')),
@@ -189,7 +190,7 @@ function createOpsSurfaces(deps) {
       label: projects.length > 1 ? `Profile (${projects[0].folder.name})` : 'Profile (workspace)',
       binary: resolvedBinary,
       extraArgs: extraArgs.length > 0 ? extraArgs.join(' ') : '(none)',
-      target: String(profile.target ?? 'wasm32-wasi-p1'),
+      target: String(profile.target ?? TARGET_CONTRACT.defaultTarget),
       emit: String(profile.emit ?? 'core-wasm'),
       selfhostWasm: process.env.ARUKELLT_SELFHOST_WASM || '(unset)',
       traceServer: String(config.get('trace.server', 'off')),

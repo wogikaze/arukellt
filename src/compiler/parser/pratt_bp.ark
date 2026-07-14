@@ -1,5 +1,3 @@
-// Arukellt Parser - Pratt binding power facade.
-
 use parser::pratt_bp_infix
 use parser::pratt_bp_prefix
 

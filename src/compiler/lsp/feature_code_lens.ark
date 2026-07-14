@@ -1,5 +1,3 @@
-// Arukellt LSP - codeLens request handling.
-
 use lsp::feature_request
 use lsp::framing
 use lsp::json_fields

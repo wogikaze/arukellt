@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout source over MIR-facing program views.
-
 use corehir::layout_decl
 
 struct CoreHirMirLayoutSource {

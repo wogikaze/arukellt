@@ -6,6 +6,9 @@ Policy: [ADR-048](../adr/ADR-048-design-heuristics-application-order.md),
 Do **not** re-check formatter or linter items here. Run
 `python3 scripts/manager.py fmt --check` and
 `python3 scripts/manager.py lint` (or pre-commit) first.
+Run `python3 scripts/manager.py quality structure` for hard repository
+contracts. Use `quality report` hotspots only to prioritize review; a high
+score or p95 metric is not itself a defect or rejection reason.
 
 ## Design order (fixed)
 
@@ -17,14 +20,16 @@ Do **not** re-check formatter or linter items here. Run
 6. If the same knowledge, apply DRY to a single authority.
 7. If change reasons differ, apply local SOLID / split only then.
 8. Are there extension points or interfaces without a second real example?
-9. Is public surface widened without need?
-10. Are errors, side effects, rollback, and compatibility clear?
-11. Do tests prove the contract, not the current implementation shape?
-12. Do comments preserve reasons the code cannot express?
-13. Are docs, manifest, generated output, and issues in sync?
+9. Do comments or an ADR preserve only constraints and decisions the code cannot express?
 
-Items 1–8 match ADR-048 steps 1–8; 9–13 are review-only follow-through
-(ADR-048 step 9 covers comments/ADR for non-code constraints).
+These nine items match ADR-048 without reordering. After that fixed design
+sequence, review the following integration details:
+
+10. Do names communicate role and unit without relying on comments?
+11. Is public surface widened without need?
+12. Are errors, side effects, rollback, and compatibility clear?
+13. Do tests prove the contract, not the current implementation shape?
+14. Are docs, manifest, generated output, and issues in sync?
 
 Forbidden review comments: "violates SOLID", "not DRY" without naming the
 concrete sync risk, mixed responsibility, or dependency problem.

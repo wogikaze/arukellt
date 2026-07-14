@@ -1,5 +1,3 @@
-// Arukellt Selfhost - IDE command dispatch (LSP/DAP/analyze only).
-
 use main::args_record
 use main::editor
 use main::kinds

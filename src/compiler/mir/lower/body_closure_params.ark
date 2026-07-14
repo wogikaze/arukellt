@@ -4,8 +4,6 @@ use mir::lower::ctx_api_function_frame
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::local_factory
-// Arukellt MIR lowering body - closure explicit parameter emission.
-
 use mir::value_types
 
 fn mir_emit_closure_params(ctx: LowerCtx, clos: AstNode, child_count: i32) {

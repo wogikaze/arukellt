@@ -2,8 +2,6 @@ use parser::core_ast_span_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - struct literal base spread field.
-
 use parser::core_api_cursor
 
 pub fn parse_struct_lit_base_spread(p: Parser, node: AstNode) {

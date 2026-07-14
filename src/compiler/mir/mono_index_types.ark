@@ -1,5 +1,3 @@
-// Arukellt Selfhost - monomorphization index data contract.
-
 pub struct MonoIndex {
     names: Vec<String>,
     counts: Vec<i32>,

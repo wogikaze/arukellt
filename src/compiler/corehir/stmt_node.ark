@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR statement node predicates.
-
 use corehir::frontend_ast_node
 use corehir::frontend_stmt_kind
 

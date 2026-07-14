@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC struct MIR instruction emission.
-
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals

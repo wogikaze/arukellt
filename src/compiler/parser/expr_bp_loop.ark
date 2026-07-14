@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - Pratt expression loop.
-
 use parser::core_api_cursor
 use parser::expr_bp_suffix
 use parser::expr_infix

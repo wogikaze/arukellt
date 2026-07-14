@@ -3,8 +3,6 @@ use parser::core_ast_op_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - binary infix expression helper.
-
 use parser::expr_infix_result
 use parser::pratt
 

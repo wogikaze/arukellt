@@ -1,5 +1,3 @@
-// Arukellt Selfhost - list roundtrip component adapter core modules
-
 use component::adapter_body
 use component::adapter_memory
 use component::adapters_list_core_sections

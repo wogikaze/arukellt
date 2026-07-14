@@ -66,7 +66,7 @@ def _check_fixture() -> tuple[int, str]:
             "--wit",
             str(wit_path.relative_to(REPO_ROOT)),
             "--target",
-            "wasm32-wasi-p2",
+            "wasm32-gc",
         ],
         cwd=str(REPO_ROOT),
         capture_output=True,

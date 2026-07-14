@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm i64 compare helper recipes.
-
 use wasm::opcodes
 use wasm::writer_core
 

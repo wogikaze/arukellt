@@ -10,8 +10,6 @@ use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_lookup
-// Arukellt Selfhost - MIR struct pattern field binding.
-
 use mir::value_types
 
 fn mir_emit_struct_pattern_binds_if_needed(ctx: LowerCtx, pat: AstNode, scrut_idx: i32) {

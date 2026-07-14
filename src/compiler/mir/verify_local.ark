@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR verifier local checks (W001, W005, W006).
-
 use corehir::mir_value_type
 use corehir::type_id
 use mir::function_identity
@@ -51,7 +49,10 @@ fn verify_one_local(local: MirLocal, report: MirVerifyReport, verbose: bool, fn_
     if verify_local_missing_value_type(vt, tn, local) {
         mir_verify_report_add_w006(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W006 missing-value-type "), concat(fn_name, concat(String_from(" "), concat(kind, concat(String_from(" tn=["), concat(tn, String_from("]"))))))))
+            mir_verify_report_push_detail(
+                report,
+                concat(String_from("W006 missing-value-type "), concat(fn_name, concat(String_from(" "), concat(kind, concat(String_from(" tn=["), concat(tn, String_from("]")))))))
+            )
         }
     }
 }

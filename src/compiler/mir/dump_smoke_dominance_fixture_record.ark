@@ -1,5 +1,3 @@
-// Arukellt Selfhost - dominance CFG smoke fixture record.
-
 pub struct MirDumpDominanceFixture {
     module: MirModule,
     function: MirFunction,

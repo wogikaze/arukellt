@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - expectation and parse diagnostic helpers.
-
 use parser::diagnostics
 use parser::ast_span_record
 use parser::cursor

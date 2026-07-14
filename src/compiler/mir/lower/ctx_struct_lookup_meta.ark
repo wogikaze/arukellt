@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - struct field metadata lookup.
-
 use mir::lower::ctx_struct_storage
 
 fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {

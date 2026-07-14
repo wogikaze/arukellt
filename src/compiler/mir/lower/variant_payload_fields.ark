@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering variant payload fields.
-
 use mir::inst_struct_set
 use mir::inst_local_get
 use mir::inst_convert

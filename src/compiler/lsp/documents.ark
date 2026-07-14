@@ -1,5 +1,3 @@
-// Arukellt LSP - document notifications and diagnostics publication.
-
 use analysis
 use lsp::diagnostics
 use lsp::framing

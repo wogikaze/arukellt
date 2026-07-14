@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function local allocation API.
-
 use mir::function_locals_record
 
 fn MirFunction_next_local(f: MirFunction) -> i32 {

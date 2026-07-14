@@ -1,6 +1,5 @@
 use mir::opcodes
 use mir::lower_kinds
-// Arukellt Selfhost - parser binary operator to MIR opcode mapping.
 
 fn binop_to_mir(op: i32) -> i32 {
     let arith = binop_to_arith_mir(op)

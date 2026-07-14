@@ -146,7 +146,10 @@ fn payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("Vec_")) || eq(clone(type_name), String_from("Vec")) {
+    if starts_with(clone(type_name), String_from("vec:")) ||
+    starts_with(clone(type_name), String_from("Vec<")) ||
+    starts_with(clone(type_name), String_from("Vec_")) ||
+    eq(clone(type_name), String_from("Vec")) {
         return true
     }
     if starts_with(clone(type_name), String_from("hashmap:")) {

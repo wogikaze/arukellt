@@ -1,5 +1,3 @@
-// Arukellt Selfhost - monomorphization lookup helpers for MIR lowering
-
 use mir::mono_index_build
 use mir::mono_index_lookup
 use mir::mono_index_types

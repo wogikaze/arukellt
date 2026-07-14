@@ -1,5 +1,3 @@
-// Arukellt Selfhost - register host intrinsic stubs into signature registry (diff observation).
-
 use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
@@ -41,7 +39,11 @@ fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, na
     let returns = Vec_new_MirValueType()
     push(returns, ret_mv)
     let params = Vec_new_MirValueType()
-    let receiver = mir_value_type::MirValueType_new(type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
+    let receiver = mir_value_type::MirValueType_new(
+        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()),
+        kinds::VALUE_REPR_SCALAR(),
+        kinds::NULLABILITY_NOT_REF()
+    )
     let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(name), params, returns, false, receiver, 0 - 1, 0 - 1, 0 - 1, kinds::ABI_KIND_HOST_INTRINSIC())
     signature_registry::signature_registry_register(registry, entry, name)
 }

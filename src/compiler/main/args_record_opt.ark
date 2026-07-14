@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CLI opt-level parsing helper.
-
 pub fn parse_opt_level_value(value: String, current: i32) -> i32 {
     if len(clone(value)) != 1 {
         return current

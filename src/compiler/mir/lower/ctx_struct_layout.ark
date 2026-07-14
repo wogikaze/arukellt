@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - struct byte layout helpers.
-
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_offset
 use mir::lower::ctx_struct_storage

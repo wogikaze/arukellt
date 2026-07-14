@@ -2,13 +2,10 @@ use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_loop_state
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR loop scope back-edge and end emission.
-
 use mir::inst_branch
 use mir::inst_structured_control
 use mir::inst_local_get
 use mir::lower::loop_scope_types
-
 
 fn mir_emit_loop_back(ctx: LowerCtx) {
     ctx_emit(ctx, inst_branch::MirInst_br(0))

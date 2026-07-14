@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering entry view over CoreHIR data.
-
 use corehir::mod
 use mir::lower::entry_view_record
 

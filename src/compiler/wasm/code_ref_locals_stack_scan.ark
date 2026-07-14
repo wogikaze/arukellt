@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Stack value source scanning for GC type inference.
 //
 // Extracted from the former tracer (code_ref_locals_infer.ark) to support
 // the structured block scan in code_ref_locals_block_scan.ark.

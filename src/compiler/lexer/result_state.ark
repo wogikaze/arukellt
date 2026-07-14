@@ -1,5 +1,3 @@
-// Arukellt Lexer - diagnostic and lex result constructors.
-
 use lexer::token_record
 
 pub struct LexDiagnostic {

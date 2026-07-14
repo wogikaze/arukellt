@@ -1,5 +1,3 @@
-// Arukellt Selfhost - sync fn_index mono return VTs from MonoInstanceTable (ADR-040 PR-4).
-
 use mir::legacy_vt_compat
 use mir::lower::mono_instance_table
 

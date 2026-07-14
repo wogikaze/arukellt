@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - token stream driver.
-
 use lexer::char_class
 use lexer::char_skip
 use lexer::char

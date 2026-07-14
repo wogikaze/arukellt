@@ -1,54 +1,46 @@
-// Arukellt Selfhost - Wasm call namespace: call_parse
-
 use wasm::inst_store
 use wasm::intrinsic_parse_f64
 use wasm::intrinsic_parse_i32
 use wasm::intrinsic_parse_i64
 
-// Arukellt Selfhost - Wasm parse call dispatch
-
 fn try_emit_parse_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if try_emit_parse_float_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if try_emit_parse_int_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        false
+    if try_emit_parse_float_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if try_emit_parse_int_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    false
 }
-
-// Arukellt Selfhost - Wasm floating-point parse call dispatch
 
 fn try_emit_parse_float_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "parse_f64") || eq(clone(callee), "text::parse_f64") {
-            let _result_on_stack = intrinsic_parse_f64::emit_parse_f64(w, inst, ctx)
-            if !_result_on_stack {
-                return false
-            }
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
+    if eq(clone(callee), "parse_f64") || eq(clone(callee), "text::parse_f64") {
+        let _result_on_stack = intrinsic_parse_f64::emit_parse_f64(w, inst, ctx)
+        if !_result_on_stack {
+            return false
         }
-        false
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
 }
 
-// Arukellt Selfhost - Wasm integer parse call dispatch
-
 fn try_emit_parse_int_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-        if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") {
-            let _result_on_stack = intrinsic_parse_i32::emit_parse_i32(w, inst, ctx)
-            if !_result_on_stack {
-                return false
-            }
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
+    if eq(clone(callee), "parse_i32") || eq(clone(callee), "convert::parse_i32") {
+        let _result_on_stack = intrinsic_parse_i32::emit_parse_i32(w, inst, ctx)
+        if !_result_on_stack {
+            return false
         }
-        if eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") {
-            let _result_on_stack = intrinsic_parse_i64::emit_parse_i64(w, inst, ctx)
-            if !_result_on_stack {
-                return false
-            }
-            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-            return true
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i64") {
+        let _result_on_stack = intrinsic_parse_i64::emit_parse_i64(w, inst, ctx)
+        if !_result_on_stack {
+            return false
         }
-        false
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    false
 }

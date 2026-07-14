@@ -813,7 +813,7 @@
       <dl class="hero-meta">
         <div>
           <dt>Primary target</dt>
-          <dd>wasm32-wasi-p2 (T3)</dd>
+          <dd>wasm32-gc (host: wasi-p2)</dd>
         </div>
         <div>
           <dt>Source</dt>
@@ -841,7 +841,7 @@
 
       <div class="trait-row">
         <span class="trait"><i></i>静的型付け</span>
-        <span class="trait"><i></i>Wasm-first / GC-native (T3)</span>
+        <span class="trait"><i></i>Wasm-first / GC-native</span>
         <span class="trait"><i></i>LLM-friendly (import/use 二層)</span>
         <span class="trait"><i></i>Self-hosting compiler</span>
         <span class="trait"><i></i>Component Model / WIT</span>
@@ -854,7 +854,7 @@
           <p><code>fn</code> / <code>let</code> / <code>match</code> / <code>Result</code>・<code>Option</code> / <code>?</code>。struct・enum・ジェネリクス（制限付きモノモーフ化）。</p>
         </div>
         <div class="fact">
-          <h3>メモリモデル (T3)</h3>
+          <h3>メモリモデル (wasm32-gc)</h3>
           <p>全値が Wasm GC ヒープ。線形メモリは I/O マーシャリング用。</p>
         </div>
         <div class="fact">
@@ -968,7 +968,7 @@
       <p class="sec-label">03 · Targets</p>
       <h2>ターゲット階層</h2>
       <p class="sec-lead">
-        ADR-013 により primary は T3（<code>wasm32-wasi-p2</code>）。CLI のデフォルトは互換のため T1。
+        ADR-007 により primary target は <code>wasm32-gc</code>（host profile: <code>wasi-p2</code>）。他の canonical target は <code>wasm32</code>、<code>native-cpp</code>、<code>native-llvm</code>。旧名 (<code>wasm32-wasi-p2</code> 等) は非推奨 alias。
       </p>
 
       <div class="table-wrap">
@@ -976,7 +976,7 @@
           <thead>
             <tr>
               <th>Target</th>
-              <th>Tier</th>
+              <th>Host profile</th>
               <th>Status</th>
               <th>Run</th>
               <th>Notes</th>
@@ -984,43 +984,39 @@
           </thead>
           <tbody>
             <tr>
-              <td><code>wasm32-wasi-p1</code></td>
-              <td>T1</td>
-              <td><span class="badge badge-ok">stable</span></td>
+              <td><code>wasm32-gc</code></td>
+              <td><code>wasi-p2</code></td>
+              <td><span class="badge badge-primary">primary</span></td>
               <td>Yes</td>
-              <td>互換パス。競技・AtCoder 向け。CLI default。</td>
+              <td>GC-native。全 CI ゲート対象。Canonical primary target。</td>
             </tr>
             <tr>
-              <td><code>wasm32-freestanding</code></td>
-              <td>T2</td>
+              <td><code>wasm32</code></td>
+              <td><code>wasi-p1</code></td>
+              <td><span class="badge badge-ok">supported</span></td>
+              <td>Yes</td>
+              <td>互換パス。競技・AtCoder 向け。</td>
+            </tr>
+            <tr>
+              <td><code>native-cpp</code></td>
+              <td>—</td>
               <td><span class="badge badge-mute">scaffold</span></td>
               <td>No</td>
-              <td>compile-only。最小 Wasm スタブ。</td>
+              <td>compile-only。C++ トランスパイル scaffold。</td>
             </tr>
             <tr>
-              <td><code>wasm32-wasi-p2</code></td>
-              <td>T3</td>
-              <td><span class="badge badge-primary">stable · primary</span></td>
-              <td>Yes</td>
-              <td>GC-native。全 CI ゲート対象。Canonical。</td>
-            </tr>
-            <tr>
-              <td><code>native</code></td>
-              <td>T4</td>
+              <td><code>native-llvm</code></td>
+              <td>—</td>
               <td><span class="badge badge-mute">scaffold</span></td>
               <td>No</td>
-              <td>compile-only asm stub。フル lowering は未完。</td>
-            </tr>
-            <tr>
-              <td><code>wasm32-wasi-p3</code></td>
-              <td>T5</td>
-              <td><span class="badge badge-mute">not-started</span></td>
-              <td>No</td>
-              <td>target id のみ。async / P3 は将来。</td>
+              <td>compile-only LLVM scaffold。フル lowering は未完。</td>
             </tr>
           </tbody>
         </table>
       </div>
+      <p class="sec-note">
+        旧名 <code>wasm32-wasi-p2</code> → <code>wasm32-gc</code>、<code>wasm32-wasi-p1</code> → <code>wasm32</code>、<code>wasm32-wasi-p3</code> → <code>wasm32-gc</code> (host <code>wasi-p3</code>)、<code>wasm32-freestanding</code> は拒否 (error)。<code>native</code> は曖昧のため拒否。詳細は <code>docs/data/target-contract-summary.md</code> 参照。
+      </p>
     </section>
 
     <!-- REPO -->
@@ -1104,9 +1100,9 @@
 <span class="cm"># 実行</span>
 <span class="c">scripts/run/arukellt-selfhost.sh</span> run hello.ark
 
-<span class="cm"># T3 向けコンパイル</span>
+<span class="cm"># GC-native 向けコンパイル</span>
 <span class="c">scripts/run/arukellt-selfhost.sh</span> compile \
-  --target wasm32-wasi-p2 hello.ark
+  --target wasm32-gc hello.ark
 
 <span class="cm"># 型チェックのみ</span>
 <span class="c">scripts/run/arukellt-selfhost.sh</span> check hello.ark
@@ -1121,7 +1117,7 @@ python3 <span class="c">scripts/manager.py</span> verify quick
 <span class="cm"># フル</span>
 python3 <span class="c">scripts/manager.py</span> verify full
 
-<span class="cm"># T3 WASM validation</span>
+<span class="cm"># Wasm GC validation</span>
 python3 <span class="c">scripts/check/check-t3-wasm-validate.py</span>
           </div>
         </div>
@@ -1129,11 +1125,11 @@ python3 <span class="c">scripts/check/check-t3-wasm-validate.py</span>
           <h3>Component / WIT</h3>
           <div class="cmd-block">
 <span class="c">scripts/run/arukellt-selfhost.sh</span> compile \
-  --target wasm32-wasi-p2 \
+  --target wasm32-gc \
   --emit component hello.ark
 
 <span class="c">scripts/run/arukellt-selfhost.sh</span> compile \
-  --target wasm32-wasi-p2 \
+  --target wasm32-gc \
   --emit wit hello.ark --wit host.wit
           </div>
         </div>

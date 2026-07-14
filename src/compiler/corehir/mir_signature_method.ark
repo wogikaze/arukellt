@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR MIR signature projection for methods.
-
 use corehir::method_info
 use corehir::mir_signature_source_record
 

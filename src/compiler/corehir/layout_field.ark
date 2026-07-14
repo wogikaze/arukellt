@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout field helpers.
-
 struct CoreHirLayoutField {
     name: String,
     type_name: String,

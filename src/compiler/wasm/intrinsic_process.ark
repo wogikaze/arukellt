@@ -1,5 +1,3 @@
-// Arukellt Selfhost - process intrinsic handlers
-
 use wasm::constants
 use wasm::ctx_string_view
 use wasm::intrinsics::helpers_core

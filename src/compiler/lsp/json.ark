@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON helper facade
-
 use lsp::json_escape
 use lsp::json_fields
 use lsp::json_parse_core

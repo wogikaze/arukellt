@@ -1,5 +1,3 @@
-// Arukellt LSP - organize imports detection facade (#341, #440).
-
 use fmt::prune_imports
 
 pub fn pruned_import_block(input: String) -> Option<String> {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Component adapter memory helpers
-
 use component::adapter_body
 use component::writer_core
 

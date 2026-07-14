@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component export contract feature gates
-
 use component::contract_allows_root_record
 use component::contract_allows_record_record
 use component::contract_allows_scan_groups
@@ -17,7 +15,7 @@ fn component_record_allows(record_point: ComponentRecordPointScan, record_color:
         contract_record_color_scan::ComponentRecordColorScan_allows_code(record_color),
         contract_record_color_scan::ComponentRecordColorScan_allows_roundtrip(record_color),
         contract_record_variant_scan::ComponentRecordVariantScan_allows_area(record_variant),
-        contract_record_variant_scan::ComponentRecordVariantScan_allows_roundtrip(record_variant),
+        contract_record_variant_scan::ComponentRecordVariantScan_allows_roundtrip(record_variant)
     )
 }
 
@@ -28,7 +26,12 @@ fn component_record_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractA
     component_record_allows(record_point, record_color, record_variant)
 }
 
-fn component_contract_allows_from_groups(record_allows: ComponentRecordAllows, string_allows: ComponentStringAllows, collection_allows: ComponentCollectionAllows, numeric_allows: ComponentNumericAllows, tuple_allows: ComponentTupleAllows) -> ComponentContractAllows {
+fn component_contract_allows_from_groups(
+    record_allows: ComponentRecordAllows,
+    string_allows: ComponentStringAllows,
+    collection_allows: ComponentCollectionAllows,
+    numeric_allows: ComponentNumericAllows,
+    tuple_allows: ComponentTupleAllows) -> ComponentContractAllows {
     contract_allows_root_record::ComponentContractAllows_new(record_allows, string_allows, collection_allows, numeric_allows, tuple_allows)
 }
 

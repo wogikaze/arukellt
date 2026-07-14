@@ -1,6 +1,4 @@
 use corehir::kinds
-// Arukellt Selfhost - MIR lowering CoreHIR pattern shape predicates.
-
 use corehir::expr_predicates
 
 fn mir_core_expr_is_pat_literal(expr: CoreHirExpr) -> bool {

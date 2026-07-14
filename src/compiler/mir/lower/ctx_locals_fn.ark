@@ -2,8 +2,6 @@ use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
 use mir::function_param_view
-// Arukellt MIR lowering context - current function signature mutation.
-
 use mir::lower::ctx_current_storage
 use mir::value_types
 

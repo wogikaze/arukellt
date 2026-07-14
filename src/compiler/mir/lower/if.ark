@@ -3,8 +3,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering helpers for if expressions.
-
 use mir::inst_structured_control
 use mir::inst_local_set
 use mir::value_types

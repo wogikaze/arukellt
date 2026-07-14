@@ -1,0 +1,6 @@
+# Compiler, standard-library, quality SSOT, and generator changes require the
+# repository owner who maintains their contracts.
+/src/compiler/ @wogikaze
+/std/ @wogikaze
+/docs/data/ @wogikaze
+/scripts/gen/ @wogikaze

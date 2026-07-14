@@ -72,7 +72,7 @@ def validate_component(comp: list[int]) -> list[str]:
 def build_component(core_path: Path) -> bytes:
     """Build a component binary from a core wasm module using the same
     algorithm as component_emitter.ark:emit_component."""
-    
+
     core_wasm = list(core_path.read_bytes())
     core_size = len(core_wasm)
 

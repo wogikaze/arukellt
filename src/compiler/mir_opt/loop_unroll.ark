@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR loop unrolling for constant-trip counted loops (O2+).
-
 use collections::vec_extend
 use mir::block_inst_access
 use mir::block_inst_mutation

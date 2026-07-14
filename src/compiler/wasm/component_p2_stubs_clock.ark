@@ -1,5 +1,3 @@
-// Arukellt Selfhost - clock/random stub core modules for P2 component emission.
-
 use wasm::writer_core
 use wasm::component_p2_stubs
 

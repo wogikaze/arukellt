@@ -1,10 +1,9 @@
-// Arukellt Selfhost - MIR lowering GC struct type registration.
+use std::text
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_size
 use mir::module_gc_struct
-use std::text
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
 }
@@ -127,7 +126,11 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
 // Map container type names to the fixed GC type-section offsets used by
 // sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
 fn gc_struct_container_ref_suffix(type_name: String) -> String {
-    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) || eq(clone(type_name), String_from("Vec<String>")) || eq(clone(type_name), String_from("Vec<string>")) || eq(clone(type_name), String_from("Vec_String")) {
+    if eq(clone(type_name), String_from("vec:String")) ||
+    eq(clone(type_name), String_from("vec:string")) ||
+    eq(clone(type_name), String_from("Vec<String>")) ||
+    eq(clone(type_name), String_from("Vec<string>")) ||
+    eq(clone(type_name), String_from("Vec_String")) {
         // Vec<String> fixed GC slot is gcref19 (GS_f0_ref15_f1_i32 in
         // sections_types_gc — string-array vec, not the A_ref0 at offset 15).
         return String_from("_ref19")

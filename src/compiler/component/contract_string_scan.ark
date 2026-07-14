@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component string declaration scan.
 use component::contract_helpers
 use component::contract_string_fn
 
@@ -18,8 +17,36 @@ pub struct ComponentStringScan {
     export_count: i32,
 }
 
-fn ComponentStringScan_new(has_string_unary: bool, has_string_general_multi: bool, all_string_unary: bool, has_i32_to_string: bool, has_string_to_i32: bool, has_string_to_narrow_i32: bool, has_string_to_bool: bool, has_string_to_char: bool, has_string_to_f64: bool, has_string_to_i64: bool, has_string_to_u64: bool, has_string_to_f32: bool, export_count: i32) -> ComponentStringScan {
-    ComponentStringScan { has_string_unary: has_string_unary, has_string_general_multi: has_string_general_multi, all_string_unary: all_string_unary, has_i32_to_string: has_i32_to_string, has_string_to_i32: has_string_to_i32, has_string_to_narrow_i32: has_string_to_narrow_i32, has_string_to_bool: has_string_to_bool, has_string_to_char: has_string_to_char, has_string_to_f64: has_string_to_f64, has_string_to_i64: has_string_to_i64, has_string_to_u64: has_string_to_u64, has_string_to_f32: has_string_to_f32, export_count: export_count }
+fn ComponentStringScan_new(
+    has_string_unary: bool,
+    has_string_general_multi: bool,
+    all_string_unary: bool,
+    has_i32_to_string: bool,
+    has_string_to_i32: bool,
+    has_string_to_narrow_i32: bool,
+    has_string_to_bool: bool,
+    has_string_to_char: bool,
+    has_string_to_f64: bool,
+    has_string_to_i64: bool,
+    has_string_to_u64: bool,
+    has_string_to_f32: bool,
+    export_count: i32
+) -> ComponentStringScan {
+    ComponentStringScan {
+        has_string_unary: has_string_unary,
+        has_string_general_multi: has_string_general_multi,
+        all_string_unary: all_string_unary,
+        has_i32_to_string: has_i32_to_string,
+        has_string_to_i32: has_string_to_i32,
+        has_string_to_narrow_i32: has_string_to_narrow_i32,
+        has_string_to_bool: has_string_to_bool,
+        has_string_to_char: has_string_to_char,
+        has_string_to_f64: has_string_to_f64,
+        has_string_to_i64: has_string_to_i64,
+        has_string_to_u64: has_string_to_u64,
+        has_string_to_f32: has_string_to_f32,
+        export_count: export_count
+    }
 }
 
 fn ComponentStringScan_empty() -> ComponentStringScan {

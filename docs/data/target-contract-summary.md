@@ -13,7 +13,7 @@
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 | Target | Support Tier | Implementation | Contract Stability | Run | Notes |
 |--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1) |
+| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
 | `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |

@@ -1,4 +1,1 @@
-// Arukellt Selfhost - LSP response JSON helpers.
-
 use lsp::json_escape
-

@@ -1,9 +1,7 @@
-// Arukellt LSP - workspace/symbol response builders.
-
+use std::text
 use lsp::json_escape
 use lsp::positions
 use lsp::symbol_index_record
-use std::text
 
 fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i32) -> String {
     let start = positions::offset_to_position(clone(text), decl_start)
@@ -29,7 +27,10 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
     out = text::builder_append(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
     out = text::builder_append(out, String_from(",\"location\":"))
     if len(text) > 0 && symbol_index_record::indexed_symbol_decl_end(sym) > symbol_index_record::indexed_symbol_decl_start(sym) {
-        out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym)))
+        out = text::builder_append(
+            out,
+            symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), text, symbol_index_record::indexed_symbol_decl_start(sym), symbol_index_record::indexed_symbol_decl_end(sym))
+        )
     } else {
         out = text::builder_append(out, symbol_location_json(symbol_index_record::indexed_symbol_uri(sym), String_new(), 0, 0))
     }

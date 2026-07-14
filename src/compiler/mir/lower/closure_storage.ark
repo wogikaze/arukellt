@@ -1,5 +1,3 @@
-// Arukellt Selfhost - closure binding registry storage.
-
 fn closure_storage_clear_pending_bind(ctx: LowerCtx) {
     ctx.closure_last_synth = String_new()
     ctx.closure_last_caps = String_new()

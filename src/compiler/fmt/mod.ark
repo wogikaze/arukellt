@@ -1,5 +1,3 @@
-// Arukellt Selfhost - formatter public boundary.
-
 use fmt::parse_gate
 use fmt::program
 use fmt::prune_imports

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC reference local type inference.
-
 use mir::function_return_view
 use mir::function_locals_view
 use mir::local_access
@@ -23,10 +21,7 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     // Phase 5e: variant_slot set → structured type known, cast needed
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     if variant_slot >= 0 {
-        if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-            return false
-        }
-        return true
+        return !eq(clone(type_name), String_from("string")) && !eq(clone(type_name), String_from("String"))
     }
     if code_ref_locals_types::is_gc_container_type_name(clone(type_name)) {
         return false
@@ -34,7 +29,10 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     if code_ref_locals_types::is_option_type_name(clone(type_name)) {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result:")) || starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<")) {
         return true
     }
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
@@ -47,17 +45,12 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
         return true
     }
     let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    if storage == open {
-        // Phase 5e: if type_name maps to a specific GC type (not open),
-        // a ref.cast is needed to narrow from open to the specific type.
-        if len(type_name) > 0 {
-            let tn_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
-            if tn_gc >= 0 && tn_gc != open {
-                return true
-            }
-        }
+    if storage != open || len(type_name) == 0 {
+        return false
     }
-    false
+    // A concrete layout narrows an open-enum storage reference.
+    let type_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, type_name)
+    type_gc >= 0 && type_gc != open
 }
 
 fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
@@ -97,7 +90,10 @@ fn mir_function_returns_enum_open(f: MirFunction) -> bool {
         return false
     }
     let ret_name = function_return_view::MirFunction_return_type_name(f)
-    if starts_with(clone(ret_name), String_from("Result_")) || starts_with(clone(ret_name), String_from("result:")) || starts_with(clone(ret_name), String_from("Result:")) || starts_with(clone(ret_name), String_from("Result<")) {
+    if starts_with(clone(ret_name), String_from("Result_")) ||
+    starts_with(clone(ret_name), String_from("result:")) ||
+    starts_with(clone(ret_name), String_from("Result:")) ||
+    starts_with(clone(ret_name), String_from("Result<")) {
         return true
     }
     if starts_with(clone(ret_name), String_from("enum:")) {

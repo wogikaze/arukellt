@@ -1,36 +1,23 @@
-// Arukellt Selfhost - CLI targets command.
-
 use std::host::stdio
 
 pub fn cmd_targets() {
     stdio::println(String_from("Available targets:"))
-    stdio::println(String_from("  wasm32-wasi-p1    WebAssembly + WASI Preview 1 (32-bit)"))
-    stdio::println(String_from("  wasm32-wasi-p2    WebAssembly + WASI Preview 2 (32-bit, default)"))
-    stdio::println(String_from("  wasm32-wasi-p3    WebAssembly + WASI Preview 3 (T5, not yet implemented)"))
-    stdio::println(String_from("  wasm32-freestanding  Wasm GC scaffold (compile-only, no WASI)"))
-    stdio::println(String_from("  native            T4 selfhost-native scaffold (compile-only asm stub, #641)"))
+    stdio::println(target_contract_generated::target_display_line(String_from("wasm32")))
+    stdio::println(target_contract_generated::target_display_line(String_from("wasm32-gc")))
+    stdio::println(target_contract_generated::target_display_line(String_from("native-cpp")))
+    stdio::println(target_contract_generated::target_display_line(String_from("native-llvm")))
 }
-// issue #715 bulk
-test mod "targets_bulk" {
-    test "probe_0" { assert(0 >= 0) }
-    test "probe_1" { assert(1 >= 0) }
-    test "probe_2" { assert(2 >= 0) }
-    test "probe_3" { assert(3 >= 0) }
-    test "probe_4" { assert(4 >= 0) }
-    test "probe_5" { assert(5 >= 0) }
-    test "probe_6" { assert(6 >= 0) }
-    test "probe_7" { assert(7 >= 0) }
-    test "probe_8" { assert(8 >= 0) }
-    test "probe_9" { assert(9 >= 0) }
-    test "probe_10" { assert(10 >= 0) }
-    test "probe_11" { assert(11 >= 0) }
-    test "probe_12" { assert(12 >= 0) }
-    test "probe_13" { assert(13 >= 0) }
-    test "probe_14" { assert(14 >= 0) }
-    test "probe_15" { assert(15 >= 0) }
-    test "probe_16" { assert(16 >= 0) }
-    test "probe_17" { assert(17 >= 0) }
-    test "probe_18" { assert(18 >= 0) }
-    test "probe_19" { assert(19 >= 0) }
-    test "probe_20" { assert(20 >= 0) }
+test mod "targets_contract" {
+    test "canonical_targets_are_non_empty" {
+        let line = target_contract_generated::target_display_line(String_from("wasm32-gc"))
+        assert(len(line) > 0)
+    }
+    test "wasm32_gc_display_contains_gc" {
+        let line = target_contract_generated::target_display_line(String_from("wasm32-gc"))
+        assert(contains(line, String_from("wasm32-gc")))
+    }
+    test "native_cpp_display_contains_cpp" {
+        let line = target_contract_generated::target_display_line(String_from("native-cpp"))
+        assert(contains(line, String_from("native-cpp")))
+    }
 }

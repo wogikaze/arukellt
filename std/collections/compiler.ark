@@ -129,7 +129,3 @@ pub fn interner_lookup(i: Vec<String>, sym: i32) -> Option<String> {
 pub fn interner_len(i: Vec<String>) -> i32 {
     len(i)
 }
-// issue #715 in-file tests
-test mod "collections_compiler" {
-    test "sanity" { assert(1 == 1) }
-}

@@ -5,8 +5,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::call_types
 use mir::lower::ctx_fn_return_vt
-// Arukellt Selfhost - MIR method call emission.
-
 use mir::inst_call
 use mir::value_types
 

@@ -97,4 +97,3 @@ fn emit_string_unary_component(core_wasm: Vec<i32>, export_name: String) -> Vec<
     string_sections::emit_string_abi_export_section(out, clone(export_name))
     writer_core::comp_writer_bytes(out)
 }
-// Arukellt Selfhost - basic string specialized component dispatch

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - SIMD emit helpers (shared by native and scalar paths).
-
 use mir::inst_accessors_operands
 use wasm::inst_store
 use wasm::opcodes

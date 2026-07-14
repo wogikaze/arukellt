@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR phi representation smoke check.
-
 use std::host::stdio
 use mir::dominance
 use mir::dump_core

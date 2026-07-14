@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block data record.
-
 use mir::opcodes
 use mir::phi_record
 use mir::inst_record
@@ -18,5 +16,16 @@ pub struct MirBlock {
 }
 
 fn MirBlock_new(id: i32) -> MirBlock {
-    MirBlock { id: id, phis: Vec_new_MirPhi(), instructions: Vec_new_MirInst(), terminator: opcodes::MIR_RETURN(), succ0: 0 - 1, succ1: 0 - 1, preds: Vec_new_i32(), idom: 0 - 1, dom_set: Vec_new_i32(), dom_frontier: Vec_new_i32() }
+    MirBlock {
+        id: id,
+        phis: Vec_new_MirPhi(),
+        instructions: Vec_new_MirInst(),
+        terminator: opcodes::MIR_RETURN(),
+        succ0: 0 - 1,
+        succ1: 0 - 1,
+        preds: Vec_new_i32(),
+        idom: 0 - 1,
+        dom_set: Vec_new_i32(),
+        dom_frontier: Vec_new_i32()
+    }
 }

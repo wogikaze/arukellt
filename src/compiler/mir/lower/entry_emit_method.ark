@@ -6,13 +6,22 @@ use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::lower::mono_param_subst
 use mir::function_factory
-// Arukellt Selfhost - method MIR body emission.
-
 use mir::lower::entry_body_result
 use mir::lower::entry_params
 use mir::lower::ctx_struct_layout
 
-fn mir_emit_method_body(ctx: LowerCtx, body_input: MirLowerEntryBodyInput, struct_name: String, mangled: String, emit_method_name: String, method_param_count: i32, entry_view: MirLowerEntryView, method_info_index: i32, return_vt: i32, rt_type_name: String) {
+fn mir_emit_method_body(
+    ctx: LowerCtx,
+    body_input: MirLowerEntryBodyInput,
+    struct_name: String,
+    mangled: String,
+    emit_method_name: String,
+    method_param_count: i32,
+    entry_view: MirLowerEntryView,
+    method_info_index: i32,
+    return_vt: i32,
+    rt_type_name: String
+) {
     let mf = function_factory::MirFunction_new(emit_method_name)
     let _entry_fn = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
     entry_params::mir_bind_method_params(ctx, entry_view, method_info_index, struct_name, method_param_count)

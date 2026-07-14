@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP response builders
-
 use lsp::positions
 use lsp::responses_lifecycle
 use lsp::responses_navigation

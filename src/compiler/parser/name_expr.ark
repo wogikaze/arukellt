@@ -1,5 +1,3 @@
-// Arukellt Parser - expression AST node display names
-
 use parser::name_expr_access
 use parser::name_expr_aggregate
 use parser::name_expr_control

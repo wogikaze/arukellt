@@ -81,15 +81,22 @@
 
 ---
 
-## 将来候補（この調査では決定しない）
+## 実装済みの追跡
+
+`python3 scripts/manager.py quality report` は CQ-13 で file/function size、
+parameter count、nesting、近似 complexity、compiler-local fan-in/fan-out、public
+function、thin wrapper、長行、TODO/FIXME、lint suppression、git churn、dependency
+centrality を収集する。分布は `docs/data/ark-code-quality-baseline.toml` に明示操作でのみ
+保存し、hotspot は ADR-048 の正規化式で並べる。値自体を新しい hard gate にはしない。
+
+## 実装後も条件付きで残る候補
 
 1. **CODEOWNERS / rulesets** — 領域責任者が増え、パス単位の承認がボトルネックより
    価値が高くなったとき。
-2. **複雑度・保守性メトリクスの追跡** — PR 単位の増加警戒、release 単位の hotspot
-   推移。合否ゲートではなくダッシュボード / issue 起票トリガとして。
-3. **公開 API の doc comment 規約の段階強制** — stdlib / 公開モジュールから
-   `///` 要約を必須化し、内部実装コメントは Why のみ（AGENTS と整合）。
-4. **lint ルールの fail 範囲拡大** — 新規違反から fail、既存は baseline 削減
+2. **公開 API 契約の追加分類** — CQ-17 は manifest API（A）、root facade（B）、内部
+   cross-module visibility（C）を既存情報から導出する。新しい公開境界がこの導出で表せなく
+   なった場合だけ分類元を拡張する。
+3. **lint ルールの fail 範囲拡大** — 新規違反から fail、既存は baseline 削減
    （ADR-047 の段階強化方針に従う）。
 
 実装・設定変更は別 issue / plan で追跡する。

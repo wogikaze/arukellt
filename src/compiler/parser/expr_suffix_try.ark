@@ -2,8 +2,6 @@ use parser::core_ast_span_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - try suffixes
-
 
 pub fn parse_try_suffix(p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1

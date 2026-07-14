@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR function info helpers.
-
 struct CoreHirFnInfo {
     decl_index: i32,
     typed_fn_index: i32,

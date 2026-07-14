@@ -18,7 +18,7 @@ fi
 mkdir -p "$OUT"
 [[ -f "$ADAPTER" ]] || curl -fsSL -o "$ADAPTER" \
   "https://github.com/bytecodealliance/wasmtime/releases/download/v39.0.1/wasi_snapshot_preview1.reactor.wasm"
-bash "$ARUKELLT" compile --target wasm32-wasi-p1 --emit wasm "$FIXTURE/math_lib.ark" -o "$OUT/math-lib.core.wasm"
+bash "$ARUKELLT" compile --target wasm32 --emit wasm "$FIXTURE/math_lib.ark" -o "$OUT/math-lib.core.wasm"
 "$WT" component embed "$FIXTURE/wit/math-lib.wit" "$OUT/math-lib.core.wasm" -o "$OUT/math-lib.embed.wasm"
 "$WT" component new "$OUT/math-lib.embed.wasm" --adapt "wasi_snapshot_preview1=$ADAPTER" -o "$OUT/math-lib-component.wasm"
 [[ "$(wasmtime run --wasm gc --wasm component-model --invoke 'add(40,2)' "$OUT/math-lib-component.wasm")" == "42" ]]

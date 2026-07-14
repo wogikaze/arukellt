@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering for atomic CoreHIR expression values.
-
 use mir::lower::core_literals
 use mir::lower::core_names
 

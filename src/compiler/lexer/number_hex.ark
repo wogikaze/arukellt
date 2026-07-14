@@ -1,5 +1,3 @@
-// Arukellt Lexer - hexadecimal integer literals.
-
 use lexer::char_class
 use lexer::number_suffix
 

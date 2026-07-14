@@ -1,5 +1,4 @@
-// Arukellt LSP - project file discovery and indexing via import graph.
-
+use std::host::fs
 use loader::module_file_load_local
 use loader::module_import_paths
 use loader::module_package_root
@@ -8,7 +7,6 @@ use lsp::state_record
 use lsp::symbol_index_paths
 use lsp::symbol_index_record
 use lsp::symbol_index_update
-use std::host::fs
 use compiler::session_parse
 
 fn pending_contains(pending: Vec<String>, path: String) -> bool {

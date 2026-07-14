@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR call and closure lowering dispatch.
-
 use mir::lower::core_call_direct
 use mir::lower::core_call_method
 use mir::lower::core_closure

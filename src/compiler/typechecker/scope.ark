@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - local scope bindings
-
 use typechecker::contract_scope
 use typechecker::contract_type_constructors
 

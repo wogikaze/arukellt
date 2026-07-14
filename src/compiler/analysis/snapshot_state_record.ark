@@ -1,5 +1,3 @@
-// Arukellt Selfhost - analysis snapshot state record.
-
 use analysis::diagnostic_record
 
 pub struct AnalysisSnapshot {

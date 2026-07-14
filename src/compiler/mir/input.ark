@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lower input facade.
-
 use mir::lower::input
 
 fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>, target: String) -> MirLowerInput {

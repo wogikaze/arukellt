@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm GC instruction emission helpers.
-
 use wasm::opcodes
 use wasm::writer_core
 

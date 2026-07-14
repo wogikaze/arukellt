@@ -1,8 +1,6 @@
-// Arukellt Selfhost — Type Checker
 //
 // Public typecheck entrypoint and shared typechecker data contracts.
 use std::host::stdio
-
 use typechecker::mod
 
 struct Symbol {
@@ -27,6 +25,7 @@ struct ResolveCtx {
     next_decl_index: i32,
 }
 
+/// Checks one resolved module and returns typed declarations with accumulated diagnostics.
 pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
     mod::typecheck_module(decls, resolve_ctx, wit_paths)
 }

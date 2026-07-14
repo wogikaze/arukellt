@@ -1,10 +1,8 @@
-use mir::opcodes
-use mir::block_phi_access
-// Arukellt Selfhost - MIR dump single phi expectation.
-
 use std::host::process
 use std::host::stdio
 use std::text
+use mir::opcodes
+use mir::block_phi_access
 use mir::dump_format_types
 use mir::dump_format_phi
 use mir::function_block_queries

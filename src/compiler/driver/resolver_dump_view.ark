@@ -1,5 +1,3 @@
-// Arukellt Selfhost - resolver dump view for driver debug output.
-
 use resolver::dump
 
 fn driver_dump_scope(ctx: ResolveCtx) {

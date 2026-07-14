@@ -85,10 +85,10 @@ fn wit_push_bindings_for_doc(bindings: Vec<WitImportBinding>, alias: String, doc
     for fi in 0..len(doc.funcs) {
         let func = get_unchecked(doc.funcs, fi)
         push(bindings, WitImportBinding_new(
-            wit_register::wit_binding_type_sig(func, doc),
-            clone(interface_id),
-            clone(func.wit_name),
-            wit_register::wit_binding_qualified_name(clone(alias), func)
-        ))
+                wit_register::wit_binding_type_sig(func, doc),
+                clone(interface_id),
+                clone(func.wit_name),
+                wit_register::wit_binding_qualified_name(clone(alias), func)
+            ))
     }
 }

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - compile-file entrypoint.
-
 use loader::module_paths
 use loader::wit_manifest
 use driver::config_record

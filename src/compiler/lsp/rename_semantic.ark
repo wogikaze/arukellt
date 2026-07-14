@@ -1,5 +1,4 @@
-// Arukellt LSP - semantic rename and prepareRename (#339).
-
+use std::text
 use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
@@ -9,8 +8,6 @@ use lsp::json_fields
 use lsp::positions
 use lsp::rename_workspace
 use lsp::responses
-use std::text
-
 
 fn null_result(id: i32) -> String {
     responses::build_null_response(id)

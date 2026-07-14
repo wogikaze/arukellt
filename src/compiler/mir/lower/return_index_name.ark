@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR fn_info return index type name queries.
-
 use corehir::fn_info
 
 fn mir_fn_info_return_type_name(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: String) -> String {

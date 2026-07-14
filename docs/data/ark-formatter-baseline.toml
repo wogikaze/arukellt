@@ -1,0 +1,78 @@
+# Existing Ark files that the canonical parser used by fmt and lint cannot parse yet.
+# Every exception is content-addressed: any edit invalidates the exception and
+# makes fmt fail. Remove entries as issue #791 repairs the parser/input gap.
+
+owner = "compiler-tooling"
+issue = 791
+removal_condition = "canonical formatter parses, formats, and reparses the file"
+recheck_after = "2026-08-31"
+
+[[exceptions]]
+path = "src/compiler/component/contract_allows_numeric.ark"
+sha256 = "f15aeacdcff6e798aaf78d73231f9ea3002bd4f04abde049d7227ffe39d532a5"
+[[exceptions]]
+path = "src/compiler/component/contract_allows_tuple.ark"
+sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
+[[exceptions]]
+path = "src/compiler/component/emit_resource.ark"
+sha256 = "17f492dce69b2fe1196de8c4c960464e0c80da9f40656251e5d8cfd3a07fa5cb"
+[[exceptions]]
+path = "src/compiler/component/emit_tier3_roundtrip.ark"
+sha256 = "6698556fa0557a14870ff9a71c2ef561361d55853c568c5cc125d6d5e5443893"
+[[exceptions]]
+path = "src/compiler/diagnostics/codes.ark"
+sha256 = "4fcf2f36f51d1321db375c5940b73a49afd1d9cf512fd8483e69795bd901a721"
+[[exceptions]]
+path = "src/compiler/diagnostics/format.ark"
+sha256 = "d193f1c517f6ce8b93ad372f2509631b987458f9c4ac9bb236e3e218fbb4ec0a"
+[[exceptions]]
+path = "src/compiler/main/manifest_doc_site.ark"
+sha256 = "cb09b0dd146dab844ae3f081bf57393fbe200e3eeb6708dcc4899159891e0cde"
+[[exceptions]]
+path = "src/compiler/mir/lower/body_if.ark"
+sha256 = "95defdf29f925549db26c04c746917768141312f79750221d3c2509e55fcf5bb"
+[[exceptions]]
+path = "src/compiler/mir/lower/body_match.ark"
+sha256 = "792d3438b34096515ad7e5854e085753fe67f3009dae4d93ebf0e089c5291248"
+[[exceptions]]
+path = "src/compiler/mir/lower/body_match_arm_last.ark"
+sha256 = "e8ebb50d63373d2e2a3058ad459164275804ced734b3534bad05e21ba565a644"
+[[exceptions]]
+path = "src/compiler/mir/lower/body_match_arm_nonlast.ark"
+sha256 = "5e5f3e98e379b5cd6ee2a97da5a5a31991b364958044b7290a8c7cb1f2362700"
+[[exceptions]]
+path = "src/compiler/mir/lower/body_match_compare_or.ark"
+sha256 = "1067c0553f9ef9f0540e95193da9979bd00264fd78ff22a69d736944f3571f11"
+[[exceptions]]
+path = "src/compiler/mir/lower/body_match_compare_single.ark"
+sha256 = "1c2074ba7115fc7a129196612abda1b2116cea15ded3bdd21275fe8918e5b433"
+[[exceptions]]
+path = "src/compiler/mir/lower/core_if.ark"
+sha256 = "6aa07f22a117fd761e70f92bf2690fd23bb4df38eca1b7b0b2cbcda7d5d29bf9"
+[[exceptions]]
+path = "src/compiler/typechecker/infer_compound.ark"
+sha256 = "7659160d0dacde35449e41936661b8614c8275aaea70814115fe1554d077f74e"
+[[exceptions]]
+path = "src/compiler/typechecker/returns.ark"
+sha256 = "49dd76cebbc19e13e0301e16c2f8f8c1e6532f9a8f1a83ca99bf8af97ce4949c"
+[[exceptions]]
+path = "src/compiler/wasm/wat.ark"
+sha256 = "0ad0c1cd8c0f13212ca534fdda3b699b9a71768935c0603968e98f7557992649"
+[[exceptions]]
+path = "src/compiler/wasm/wat_function_body.ark"
+sha256 = "5c2fbe5d2ae337d1dcb97258533c64952147a015188266c57151bd76ae2dd9c4"
+[[exceptions]]
+path = "src/compiler/wasm/wat_functions.ark"
+sha256 = "9733ef7d5406efe96c0d025e78e1746a27f549708e2cec9b259e3b2d0f12d764"
+[[exceptions]]
+path = "std/core/iter.ark"
+sha256 = "cfd891d9cb5bfc66c2ebbf391bc130320a1f8391845daff6bfe121239383fe89"
+[[exceptions]]
+path = "std/seq/mod.ark"
+sha256 = "a3c27cada87db8b3bdbfbcf697aa99c967e8ae3eea8631c15df5177395381f71"
+[[exceptions]]
+path = "std/toml.ark"
+sha256 = "a247c67f95d82f2427f74a3beb56d1d72898736b91a87eb9b8c36ba6760c3bd1"
+[[exceptions]]
+path = "std/wit/printer.ark"
+sha256 = "8e2f11021b4fe0195d7fdc8d5dd26bd0ab46a991e9b04cf2ef1a31f23beec10c"

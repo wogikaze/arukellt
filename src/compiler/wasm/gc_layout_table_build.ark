@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 4 GcLayoutTable population during type-section emit.
-
 use corehir::kinds
 use corehir::type_id
 use corehir::type_table

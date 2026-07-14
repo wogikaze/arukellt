@@ -1,6 +1,4 @@
 use component::constants_wit_values
-// Arukellt Selfhost - color component wrappers
-
 use component::component_base
 use component::export_sections_entries
 use component::export_sections

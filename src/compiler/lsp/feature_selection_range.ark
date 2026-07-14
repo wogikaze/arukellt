@@ -1,5 +1,4 @@
-// Arukellt LSP - selection range request handling (#219).
-
+use std::text
 use lsp::feature_request
 use lsp::framing
 use lsp::json_fields
@@ -8,7 +7,6 @@ use lsp::responses
 use lsp::state_record
 use lsp::state_docs
 use lsp::source_text
-use std::text
 
 pub fn handle_selection_range(state: LspState, body: String) {
     let req_id = json_fields::extract_int_field(clone(body), String_from("id"))

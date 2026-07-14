@@ -1,7 +1,5 @@
 use mir::ssa_state_factory
 use mir::function_locals_view
-// Arukellt Selfhost - MIR SSA function/module rename entrypoints.
-
 use mir::function_block_queries
 use mir::module_functions
 use mir::ssa_rename_block

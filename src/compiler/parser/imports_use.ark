@@ -1,5 +1,3 @@
-// Arukellt Parser - use declaration syntax.
-
 use parser::core_ast_text_fields
 use lexer::tokens
 use parser::core_ast_factory

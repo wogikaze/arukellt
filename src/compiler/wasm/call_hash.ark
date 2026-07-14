@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm hash collection call dispatch.
-
 use wasm::intrinsic_hashmap_str
 use wasm::intrinsic_i31_box
 

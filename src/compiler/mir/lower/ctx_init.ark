@@ -1,6 +1,4 @@
 use mir::function_factory
-// Arukellt Selfhost - MIR lowering context initialization.
-
 use mir::lower::ctx_types
 use wasm::emit_target
 
@@ -11,7 +9,7 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
 fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
     let mut effective_target = clone(target)
     if len(effective_target) == 0 {
-        effective_target = String_from("wasm32-wasi-p2")
+        effective_target = String_from("wasm32-gc")
     }
     LowerCtx {
         module: m,

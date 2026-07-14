@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR call rewrite rules for Vec intrinsics.
-
 use mir::lower::call_rewrite_vec_access
 use mir::lower::call_rewrite_vec_push
 use mir::lower::ctx_api_local_types

@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR body builder for pattern DTOs.
-
 use corehir::expr_builder_patterns
 use corehir::expr_predicates
 use corehir::pattern_node

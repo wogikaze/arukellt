@@ -29,7 +29,7 @@ mkdir -p "$OUT"
 
 echo "[1/3] compile calculator.ark -> component (native --emit component)"
 examples_compile "$ARUKELLT" modern compile "$SOURCE" \
-    --target wasm32-wasi-p2 \
+    --target wasm32-gc \
     --emit component \
     -o "$COMPONENT_REL"
 echo "      wrote $COMPONENT_REL ($(wc -c < "$OUT/calculator.component.wasm") bytes)"

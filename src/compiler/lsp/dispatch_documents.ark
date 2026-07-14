@@ -1,5 +1,3 @@
-// Arukellt LSP - document sync method dispatch.
-
 use lsp::documents
 use lsp::state_record
 

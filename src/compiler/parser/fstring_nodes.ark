@@ -2,8 +2,6 @@ use parser::core_ast_text_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - f-string AST node helpers.
-
 
 fn fstring_string_lit(text: String, span: Span) -> AstNode {
     let lit_node = core_ast_factory::AstNode_new(kinds::NK_STRING_LIT(), span)

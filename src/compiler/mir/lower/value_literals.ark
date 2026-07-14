@@ -1,7 +1,5 @@
 use mir::lower::ast_node
 use mir::lower_kinds
-// Arukellt Selfhost - MIR lowering atomic literal values.
-
 use mir::lower::literals
 
 fn lower_atomic_literal(ctx: LowerCtx, node: AstNode) -> i32 {

@@ -1,7 +1,5 @@
 use lexer::tokens
 use parser::kinds
-// Arukellt Parser - array literal and comprehension prefix facade.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::core_ast_factory

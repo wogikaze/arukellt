@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA current and block-exit slots.
-
 use mir::ssa_state_current
 use mir::ssa_state_exit
 use mir::ssa_state_slot_index

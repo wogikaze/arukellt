@@ -1,4 +1,3 @@
-// Arukellt Selfhost - CoreHIR shared data contracts.
 //
 // CoreHIR is the compiler-owned boundary for typed facts shared by later
 // pipeline stages. Construction and query helpers live in focused

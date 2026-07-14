@@ -1,5 +1,3 @@
-// Arukellt HIR - dump helpers
-
 use hir::dump_node
 use hir::dump_names
 

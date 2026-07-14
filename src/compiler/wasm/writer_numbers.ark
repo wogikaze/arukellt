@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm numeric writer helpers.
-
 use wasm::writer_core
 
 fn parse_decimal_as_i64_emitter(text: String) -> i64 {

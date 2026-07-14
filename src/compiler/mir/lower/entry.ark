@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_module
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
-// Arukellt Selfhost - MIR lowering entry assembly
-
 use mir::lower::decl_source
 use mir::lower::entry_context
 use mir::lower::entry_decls

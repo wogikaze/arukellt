@@ -1,5 +1,3 @@
-// Arukellt Selfhost - checked frontend result to CoreHIR adapter.
-
 use corehir::frontend
 use corehir::frontend_bundle
 use corehir::frontend_export_surface

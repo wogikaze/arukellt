@@ -1,6 +1,4 @@
 use parser::kinds
-// Arukellt Parser - Pratt arithmetic binary operator mapping.
-
 
 fn token_to_arith_binop(kind: i32) -> i32 {
     // TK_PLUS=40 TK_MINUS=41 TK_STAR=42 TK_SLASH=43 TK_PERCENT=44

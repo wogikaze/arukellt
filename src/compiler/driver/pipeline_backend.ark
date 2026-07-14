@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver namespace: pipeline_backend
-
 use std::host::clock
 use driver::config_record
 use driver::errors_phase
@@ -16,8 +14,6 @@ use loader::module_decls
 use mir_opt::optimize_module
 use mir::mod as mir_api
 
-// Arukellt Selfhost - compilation pipeline orchestration.
-
 fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let frontend = pipeline_frontend::run_frontend(source, config)
     if pipeline_frontend::frontend_result_should_return(frontend) {
@@ -26,10 +22,19 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     if config_record::config_lint_local_only(config) {
         return local_lint::run_local_lint_stage(clone(source), config, pipeline_frontend::frontend_result_decls(frontend))
     }
-    run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))
+    let decls = pipeline_frontend::frontend_result_decls(frontend)
+    let t0: i64 = pipeline_frontend::frontend_result_t0(frontend)
+    let t_lex: i64 = pipeline_frontend::frontend_result_t_lex(frontend)
+    let t_parse: i64 = pipeline_frontend::frontend_result_t_parse(frontend)
+    run_backend(
+        source,
+        config,
+        decls,
+        t0,
+        t_lex,
+        t_parse
+    )
 }
-
-// Arukellt Selfhost - driver load, resolve, typecheck, lower, and emit stages.
 
 fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> CompileResult {
     let resolved = backend_resolve::backend_resolve(source, config, decls)

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - DAP response and event body builders.
-
 use std::text
 
 fn dap_init_resp(seq: i32, request_seq: i32) -> String {

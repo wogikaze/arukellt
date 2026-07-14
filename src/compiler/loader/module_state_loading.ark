@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module loading stack state.
-
 fn vec_has(v: Vec<String>, name: String) -> bool {
     let count = len(v)
     let mut i = 0

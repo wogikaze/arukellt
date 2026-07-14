@@ -1,4 +1,3 @@
-// Arukellt Selfhost - TOML section/value helpers for script command.
 //
 // Delegates to std::toml (issue #705).
 

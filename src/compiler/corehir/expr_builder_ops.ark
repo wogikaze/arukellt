@@ -1,8 +1,6 @@
 use corehir::expr_factory
 use corehir::expr_access_types
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR binding, assignment, and operator expression constructors.
-
 use corehir::value_types
 
 fn corehir_expr_let(binding_name: String, val_type: i32, type_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
@@ -10,7 +8,16 @@ fn corehir_expr_let(binding_name: String, val_type: i32, type_name: String, span
 }
 
 fn corehir_expr_assign(target_name: String, value_expr: CoreHirExpr, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_ASSIGN(), target_name, 0, 0.0, expr_access_types::expr_val_type(value_expr), expr_access_types::expr_type_name(value_expr), span_start, children)
+    expr_factory::CoreHirExpr_new(
+        commands::COREHIR_EXPR_ASSIGN(),
+        target_name,
+        0,
+        0.0,
+        expr_access_types::expr_val_type(value_expr),
+        expr_access_types::expr_type_name(value_expr),
+        span_start,
+        children
+    )
 }
 
 fn corehir_expr_binary(op: i32, left_expr: CoreHirExpr, right_expr: CoreHirExpr, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
@@ -26,5 +33,14 @@ fn corehir_expr_binary(op: i32, left_expr: CoreHirExpr, right_expr: CoreHirExpr,
 }
 
 fn corehir_expr_unary(op: i32, operand_expr: CoreHirExpr, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_UNARY(), String_new(), op, 0.0, expr_access_types::expr_val_type(operand_expr), expr_access_types::expr_type_name(operand_expr), span_start, children)
+    expr_factory::CoreHirExpr_new(
+        commands::COREHIR_EXPR_UNARY(),
+        String_new(),
+        op,
+        0.0,
+        expr_access_types::expr_val_type(operand_expr),
+        expr_access_types::expr_type_name(operand_expr),
+        span_start,
+        children
+    )
 }

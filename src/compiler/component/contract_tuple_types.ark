@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component tuple type predicates
 use component::contract_helpers
 use component::type_node
 

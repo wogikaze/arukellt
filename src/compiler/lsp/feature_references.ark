@@ -1,5 +1,3 @@
-// Arukellt LSP - semantic references and documentHighlight (#338).
-
 use lsp::framing
 use lsp::json_fields
 use lsp::references_semantic

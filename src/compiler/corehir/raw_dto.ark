@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR raw program extension DTOs.
-
 struct CoreHirModuleInfo {
     name: String,
     decl_start: i32,

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR aggregate expression dispatch.
-
 use corehir::body_collections
 use corehir::body_struct_lit
 use corehir::expr_node_predicates

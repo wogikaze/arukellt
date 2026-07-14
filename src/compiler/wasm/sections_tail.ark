@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm tail section facade (gc_hint + data).
-
 use wasm::sections_branch_hint
 use wasm::sections_data
 use wasm::sections_gc_hint

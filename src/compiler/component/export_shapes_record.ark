@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Component record export shape facade
 use component::export_shapes_record_scan
 
 fn comp_function_is_point_to_i32_export(f: MirFunction) -> bool {

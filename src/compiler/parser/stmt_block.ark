@@ -2,8 +2,6 @@ use lexer::tokens
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - block and expression-or-block parsing.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 

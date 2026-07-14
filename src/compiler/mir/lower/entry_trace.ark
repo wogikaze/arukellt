@@ -1,8 +1,6 @@
+use std::host::stdio
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering entry trace helpers.
-
-use std::host::stdio
 
 fn mir_lower_entry_trace_enabled() -> i32 {
     let mut mir_tr = MIR_LOWER_TRACE_FORCE()

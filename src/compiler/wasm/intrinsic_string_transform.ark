@@ -1,5 +1,3 @@
-// Arukellt Selfhost - extended string transform intrinsic facade.
-
 use wasm::intrinsic_string_case
 use wasm::intrinsic_string_repeat
 

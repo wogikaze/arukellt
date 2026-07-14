@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR declaration/member identity accessors.
-
 use corehir::frontend_ast_node
 
 fn decl_name(node: AstNode) -> String {

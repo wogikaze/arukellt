@@ -1,5 +1,3 @@
-// Arukellt Selfhost - linear memory slot helpers for HashMap<String,i32> storage builtins.
-
 use wasm::opcodes
 use wasm::writer_core
 use wasm::ctx_scratch

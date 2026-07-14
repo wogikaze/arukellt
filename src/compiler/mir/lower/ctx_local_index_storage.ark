@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - local name/index storage.
-
 fn ctx_local_index_push(ctx: LowerCtx, name: String, index: i32) {
     push(ctx.local_names, name)
     push(ctx.local_indices, index)

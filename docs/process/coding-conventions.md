@@ -49,6 +49,31 @@
 
 テストの命名・fixture 分割・巨大 1 行期待値の禁止など読みやすさ寄りの規則は `AGENTS.md` の「コード品質規約」に従う。
 
+Repository-level dependency and SSOT contracts are enforced by
+`python3 scripts/manager.py quality structure`. File/function size, parameter
+count, nesting, approximate complexity, fan-in/fan-out, wrapper, churn, and
+centrality values from `quality report` are review-priority signals, not
+absolute design limits.
+
+## コメントの三分類
+
+コメントは次の三種類に限定し、役割を混ぜない。
+
+| 種類 | 保存する内容 | 書かない内容 |
+|------|--------------|--------------|
+| API documentation | 公開契約、入力制約、戻り値、error、副作用、重要な性能特性 | 型・関数名の言い換え |
+| implementation comment | コードで表せない理由、不変条件、順序制約、互換性上の罠 | 直後の処理の実況 |
+| TODO / FIXME | issue ID、残る制約、owner、削除条件、再評価期限 | 所有者不明の「後で直す」 |
+
+公開面は `std/manifest.toml` 登録 API（A）、`src/compiler/*.ark` の安定 subsystem
+boundary（B）、内部 cross-module visibility（C）から導出する。C の全関数へコメントを
+要求しない。機械検査は A/B の documentation contract、構造化 TODO / FIXME、
+issue-only marker、high-confidence commented-out code、doc comment attachment に限定する。
+parser recovery、resolver 探索順、type inference の停止条件、MIR 表現不変条件、
+ABI / scratch memory / target 互換分岐など、削除すると判断を再発明する制約を優先して残す。
+判定入口は `python3 scripts/check/check-comment-policy.py` で、`--json` も text と同じ
+finding modelを使用する。
+
 ## 互換性と現行名
 
 - 新しいコード、テスト、診断、ドキュメントでは canonical target 名だけを使用する。`wasm32-wasi-p1`、`wasm32-wasi-p2`、T1–T5 などの旧名を新しい内部 identity として追加しない。

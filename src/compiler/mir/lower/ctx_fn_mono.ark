@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - monomorphized call lookup.
-
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_mono_rewrites

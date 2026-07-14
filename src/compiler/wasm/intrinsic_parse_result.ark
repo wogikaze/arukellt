@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parse intrinsic Result construction facade.
-
 use wasm::intrinsic_parse_result_errors
 use wasm::opcodes
 use wasm::intrinsics::helpers_core

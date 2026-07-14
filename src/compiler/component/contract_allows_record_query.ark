@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component record/color/shape allow queries.
-
 fn ComponentContractAllows_allow_record_point(allows: ComponentContractAllows) -> bool {
     allows.record_allows.allow_record_point
 }

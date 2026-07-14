@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - wrapper expression inference.
-
 use typechecker::ast_stmt_predicates
 use typechecker::ast_expr_predicates
 use typechecker::ast_access

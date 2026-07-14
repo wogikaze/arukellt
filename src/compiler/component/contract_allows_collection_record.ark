@@ -35,5 +35,20 @@ fn ComponentCollectionAllows_from_scans(list_scan: ComponentCollectionListScan, 
     let allow_result_string_param = contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_string_to_i32(result_scan)
     let allow_result_roundtrip = contract_collection_result_scan::ComponentCollectionResultScan_allows_result_i32_i32_to_result_i32_i32(result_scan)
     let allow_result_bool = contract_collection_result_scan::ComponentCollectionResultScan_allows_bool_to_result_bool_bool(result_scan)
-    ComponentCollectionAllows { allow_list_first: allow_list_first, allow_list_result: allow_list_result, allow_list_roundtrip: allow_list_roundtrip, allow_option_maybe: allow_option_maybe, allow_option_param: allow_option_param, allow_option_roundtrip: allow_option_roundtrip, allow_option_bool: allow_option_bool, allow_option_i64: allow_option_i64, allow_option_i64_param: allow_option_i64_param, allow_result_safe_div: allow_result_safe_div, allow_result_param: allow_result_param, allow_result_string_param: allow_result_string_param, allow_result_roundtrip: allow_result_roundtrip, allow_result_bool: allow_result_bool }
+    ComponentCollectionAllows {
+        allow_list_first: allow_list_first,
+        allow_list_result: allow_list_result,
+        allow_list_roundtrip: allow_list_roundtrip,
+        allow_option_maybe: allow_option_maybe,
+        allow_option_param: allow_option_param,
+        allow_option_roundtrip: allow_option_roundtrip,
+        allow_option_bool: allow_option_bool,
+        allow_option_i64: allow_option_i64,
+        allow_option_i64_param: allow_option_i64_param,
+        allow_result_safe_div: allow_result_safe_div,
+        allow_result_param: allow_result_param,
+        allow_result_string_param: allow_result_string_param,
+        allow_result_roundtrip: allow_result_roundtrip,
+        allow_result_bool: allow_result_bool
+    }
 }

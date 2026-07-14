@@ -1,5 +1,3 @@
-// Arukellt Selfhost - pre-encoded inner wasi:cli/run component for P2 command wrappers.
-
 fn p2_run_inner_component_bytes() -> Vec<i32> {
     p2_run_bytes_from_hex(String_from("0061736d0d000100070501400001000a1401000f696d706f72742d66756e632d72756e0100070501400001000b0b01000372756e0100010101"))
 }

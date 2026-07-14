@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm intrinsic I/O scratch/string layout recipes.
-
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_memory
 

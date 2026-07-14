@@ -1,5 +1,3 @@
-// Arukellt Lexer - diagnostic error text classification.
-
 use lexer::error_codes
 
 fn classify_lex_error_text(text: String) -> i32 {

@@ -1,8 +1,6 @@
 use corehir::expr_factory
 use corehir::expr_access_types
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR struct literal expression constructors.
-
 use corehir::value_types
 
 fn corehir_expr_struct_base(struct_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
@@ -10,7 +8,16 @@ fn corehir_expr_struct_base(struct_name: String, span_start: i32, children: Vec<
 }
 
 fn corehir_expr_struct_field(field_name: String, value_expr: CoreHirExpr, span_start: i32, children: Vec<i32>) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_STRUCT_FIELD(), field_name, 0, 0.0, expr_access_types::expr_val_type(value_expr), expr_access_types::expr_type_name(value_expr), span_start, children)
+    expr_factory::CoreHirExpr_new(
+        commands::COREHIR_EXPR_STRUCT_FIELD(),
+        field_name,
+        0,
+        0.0,
+        expr_access_types::expr_val_type(value_expr),
+        expr_access_types::expr_type_name(value_expr),
+        span_start,
+        children
+    )
 }
 
 fn corehir_expr_struct_lit(struct_name: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {

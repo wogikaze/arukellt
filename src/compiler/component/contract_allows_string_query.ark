@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component string allow queries.
-
 fn ComponentContractAllows_allow_string_greet(allows: ComponentContractAllows) -> bool {
     allows.string_allows.allow_string_greet
 }

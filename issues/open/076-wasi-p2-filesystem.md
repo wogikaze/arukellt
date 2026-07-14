@@ -2,7 +2,7 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-07-12
-ID: 62
+ID: 076
 Track: wasi-feature
 Depends on: 074, 510
 Orchestration class: implementation-ready

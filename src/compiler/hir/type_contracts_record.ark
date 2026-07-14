@@ -1,5 +1,3 @@
-// Arukellt HIR - type representation data record.
-
 use hir::kinds
 
 struct HirType {

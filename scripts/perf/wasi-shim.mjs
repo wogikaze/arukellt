@@ -3,8 +3,8 @@
 // Used by run-node-bench.mjs and run-browser-bench.mjs to provide the host
 // imports that Arukellt wasm modules expect. Two flavors are exported:
 //
-//   * buildWasiP1Shims(memory)  — for wasm32-wasi-p1 (linear memory) modules
-//   * buildWasiP2Shims(memory)  — for wasm32-wasi-p2 (GC) modules
+//   * buildWasiP1Shims(memory)  — for wasm32 (linear memory) modules
+//   * buildWasiP2Shims(memory)  — for wasm32-gc (GC) modules
 //
 // Both shims collect stdout into a buffer and expose it via `getStdout()`.
 

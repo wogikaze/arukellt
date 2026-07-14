@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 7 host intrinsic adapter.
 //
 // Maps host intrinsic names to HostIntrinsicSpec entries and provides
 // ABI-aware result emission for GC targets.  The adapter converts the

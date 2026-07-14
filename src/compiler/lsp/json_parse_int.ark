@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON integer parsing
-
 use lsp::json_parse_utils
 
 fn json_parse_int_at(s: String, pos: i32) -> i32 {

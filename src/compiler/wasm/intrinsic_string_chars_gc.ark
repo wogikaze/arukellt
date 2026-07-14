@@ -1,4 +1,3 @@
-// Arukellt Selfhost - GC string chars intrinsic handler.
 //
 // GC target: text::chars creates Vec<char> as a GC Vec.
 //   Vec<char> = (struct (field (mut (ref null (array (mut i32))))

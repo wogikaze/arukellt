@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - current module/function/block storage.
-
 fn ctx_current_func_value(ctx: LowerCtx) -> MirFunction {
     ctx.func
 }

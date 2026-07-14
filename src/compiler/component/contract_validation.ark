@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component export surface validation.
-
 use component::contract_allows
 use component::contract_helpers
 use component::contract_special

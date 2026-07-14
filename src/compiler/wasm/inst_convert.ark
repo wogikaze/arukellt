@@ -1,6 +1,5 @@
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
-use mir::opcodes as mir_opcodes
 use mir::value_types
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -9,10 +8,9 @@ use wasm::emit_target
 use wasm::inst_locals
 use wasm::code_ref_locals
 use wasm::opcodes
-// Arukellt Selfhost - conversion/control-like instruction emitters.
-
 use wasm::writer_core
 use wasm::writer_gc
+use mir::opcodes as mir_opcodes
 
 fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     emit_return_with_prev(w, inst, ctx, 0 - 1, 0 - 1)

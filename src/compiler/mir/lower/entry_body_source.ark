@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry body source adapter.
-
 use mir::lower::entry_body_core_source
 use mir::lower::entry_fallback_body
 use mir::lower::entry_body_input

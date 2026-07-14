@@ -21,9 +21,9 @@ snippets, command palette workflows, and the `arukellt lsp` language server.
 - `Arukellt: Check Current File`
 - `Arukellt: Compile Current File`
 - `Arukellt: Run Current File`
-- `Arukellt: Build Component (wasm32-wasi-p2, all outputs)`
+- `Arukellt: Build Component (wasm32-gc, all outputs)`
 - `Arukellt: Build Component - Show WIT Interface`
-- `Arukellt: Run Component (wasm32-wasi-p2)`
+- `Arukellt: Run Component (wasm32-gc)`
 - `Arukellt: Open in Playground`
 
 ## Extension Settings
@@ -35,7 +35,7 @@ and can be configured in `.vscode/settings.json` or VS Code's Settings UI.
 |---------|------|---------|-------------|
 | `arukellt.server.path` | `string` | `"arukellt"` | Path to the arukellt CLI used to launch the language server. |
 | `arukellt.server.args` | `string[]` | `[]` | Additional arguments passed before the built-in `lsp` subcommand. |
-| `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | Default compilation target passed to the LSP server and to check/compile/run commands. `null` means auto-detect from `ark.toml`. |
+| `arukellt.target` | `"wasm32"` \| `"wasm32-gc"` \| `"native-cpp"` \| `"native-llvm"` \| `null` | `null` | Canonical compilation target passed to the LSP server and to check/compile/run commands. `null` means auto-detect from `ark.toml`. |
 | `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind passed by extension compile commands. |
 | `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Base URL used by the `Open in Playground` command. Only the repo-proved route (`docs/playground/index.html` on GitHub Pages) is supported. |
 | `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. |
@@ -53,8 +53,10 @@ Six settings are forwarded to the LSP server via `initializationOptions` and
 
 | Target | Status | Notes |
 |--------|--------|-------|
-| `wasm32-wasi-p1` | supported | Compatibility target for core Wasm run/check/compile workflows. |
-| `wasm32-wasi-p2` | primary | Component Model and WIT workflows use this target. |
+| `wasm32` | supported | Linear-memory Wasm workflows with the WASI P1 host profile. |
+| `wasm32-gc` | primary | Component Model and WIT workflows with the WASI P2 host profile. |
+| `native-cpp` | scaffold | Native C++ backend experiment. |
+| `native-llvm` | scaffold | Native LLVM backend experiment. |
 
 ## Debugging
 
@@ -66,7 +68,7 @@ for the full DAP workflow.
 
 These match [docs/debug-support.md](../../docs/debug-support.md):
 
-- T1/T3 smoke programs support **live Wasm locals** via `arukellt_debug::breakpoint` hooks
+- wasm32 and wasm32-gc smoke programs support **live Wasm locals** via `arukellt_debug::breakpoint` hooks
 - Step In / Step Out behave the same as Step Over (no call-level granularity)
 - No watch expressions, evaluate support, or conditional breakpoints
 - Single main thread only
@@ -86,7 +88,7 @@ These match [docs/debug-support.md](../../docs/debug-support.md):
 |---------|--------|
 | Language server does not start | Set `arukellt.server.path` to the absolute path of a runnable `arukellt` binary. |
 | Commands fail in Remote or Codespaces | Install `arukellt` in the remote environment or point `arukellt.server.path` at the remote binary. |
-| Component commands fail | Verify `wasm32-wasi-p2` is selected and required Component Model tools are installed for the current workflow. |
+| Component commands fail | Verify `wasm32-gc` is selected and required Component Model tools are installed for the current workflow. |
 | Diagnostics do not update | Run `Arukellt: Restart Language Server` and check the Arukellt output channel. |
 
 ## Packaging and Release

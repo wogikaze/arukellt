@@ -74,8 +74,8 @@ def collect_perf_baseline() -> dict:
         t1_out = TMP_DIR / "arukellt-baseline-t1.wasm"
         t3_out = TMP_DIR / "arukellt-baseline-t3.wasm"
         check_result = benchmark_command([str(BIN), "check", rel_case])
-        compile_t1 = benchmark_command([str(BIN), "compile", rel_case, "--target", "wasm32-wasi-p1", "--output", str(t1_out.relative_to(ROOT))])
-        compile_t3 = benchmark_command([str(BIN), "compile", rel_case, "--target", "wasm32-wasi-p2", "--output", str(t3_out.relative_to(ROOT))])
+        compile_t1 = benchmark_command([str(BIN), "compile", rel_case, "--target", "wasm32", "--output", str(t1_out.relative_to(ROOT))])
+        compile_t3 = benchmark_command([str(BIN), "compile", rel_case, "--target", "wasm32-gc", "--output", str(t3_out.relative_to(ROOT))])
         t1_size = t1_out.stat().st_size if t1_out.exists() else None
         t3_size = t3_out.stat().st_size if t3_out.exists() else None
         rows.append(

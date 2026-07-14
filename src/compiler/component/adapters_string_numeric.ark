@@ -1,12 +1,8 @@
-// Arukellt Selfhost - numeric string component adapter core modules
-
 use component::adapter_body
 use component::adapter_memory
 use component::adapters_string_body
 use component::sections
 use component::writer_core
-
-// Arukellt Selfhost - numeric-to-string component adapter core modules
 
 fn comp_i32_to_string_adapter_core_module(export_name: String) -> Vec<i32> {
     let out = sections::comp_new_core_module_writer()

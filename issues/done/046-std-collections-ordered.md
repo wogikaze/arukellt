@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-14
-ID: 38
+ID: 046
 Track: stdlib
 Depends on: 039, 041
 Orchestration class: implementation-ready

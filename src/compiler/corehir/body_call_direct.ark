@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR direct call builder.
-
 use corehir::expr_builder_calls
 use corehir::expr_predicates
 use corehir::expr_node_access

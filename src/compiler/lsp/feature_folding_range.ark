@@ -1,5 +1,4 @@
-// Arukellt LSP - folding range request handling (#219).
-
+use std::text
 use lsp::feature_request
 use lsp::framing
 use lsp::json_fields
@@ -7,7 +6,6 @@ use lsp::responses
 use lsp::source_text
 use lsp::state_docs
 use lsp::state_record
-use std::text
 
 fn line_has_open_brace(text: String, line: i32) -> bool {
     let mut i = 0

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - scan declarations for resolved call sites.
-
 use corehir::raw_dto
 use corehir::frontend_ast_identity
 use corehir::frontend_ast_children

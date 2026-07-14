@@ -1,5 +1,3 @@
-// Arukellt Parser - Pratt binary operator mapping.
-
 use parser::pratt_binops_arith
 use parser::pratt_binops_compare
 use parser::pratt_binops_logic

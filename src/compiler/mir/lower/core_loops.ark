@@ -1,7 +1,5 @@
 use mir::lower::loop_scope
 use mir::lower::loop_conditions
-// Arukellt Selfhost - MIR lowering for CoreHIR loop expressions.
-
 use mir::lower::core_expr_shape_accessors
 
 fn lower_core_while(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {

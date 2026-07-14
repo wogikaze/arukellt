@@ -1,5 +1,3 @@
-// Arukellt Parser self-check shared parse fixture for issue 499.
-
 use lexer::scan
 use parser::core_api_token
 use parser::decl

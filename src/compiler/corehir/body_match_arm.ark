@@ -1,7 +1,5 @@
 use corehir::expr_factory
 use corehir::expr_access_types
-// Arukellt Selfhost - CoreHIR body builder for match arms.
-
 use corehir::body_patterns
 use corehir::expr_predicates
 use corehir::expr_builder_calls
@@ -33,5 +31,8 @@ fn corehir_build_match_arm_expr(table: CoreHirBodyTable, arm: AstNode) -> i32 {
     if expr_predicates::expr_is_unsupported(body_expr) {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(match_arm_node::match_arm_span_start(arm)))
     }
-    corehir_push_expr(table, expr_builder_calls::corehir_expr_match_arm(expr_access_types::expr_val_type(body_expr), expr_access_types::expr_type_name(body_expr), match_arm_node::match_arm_span_start(arm), children))
+    corehir_push_expr(
+        table,
+        expr_builder_calls::corehir_expr_match_arm(expr_access_types::expr_val_type(body_expr), expr_access_types::expr_type_name(body_expr), match_arm_node::match_arm_span_start(arm), children)
+    )
 }

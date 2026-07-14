@@ -1,5 +1,3 @@
-// Arukellt Typechecker - match pattern coverage data record.
-
 struct MatchCoverage {
     has_wildcard: bool,
     has_bool_true: bool,

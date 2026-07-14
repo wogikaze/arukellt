@@ -1,7 +1,5 @@
 use mir::inst_accessors_shape
 use mir::opcodes
-// Arukellt Selfhost - MIR control instruction dispatch.
-
 use wasm::inst_control
 
 fn try_emit_control_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

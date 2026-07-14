@@ -1,6 +1,4 @@
 use mir::lower::ast_node
-// Arukellt MIR lowering body - return statement lowering.
-
 use mir::lower::control
 
 fn lower_return_stmt(ctx: LowerCtx, node: AstNode) -> i32 {

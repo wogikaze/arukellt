@@ -1,6 +1,4 @@
 use typechecker::kinds
-// Arukellt Typechecker - type unification
-
 use typechecker::contract_type_access
 use typechecker::names
 use typechecker::unify_bind

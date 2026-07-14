@@ -1,5 +1,3 @@
-// Arukellt LSP - LSP SymbolKind constants for workspace symbol responses.
-
 fn LSP_SYMBOL_FILE() -> i32 { 1 }
 fn LSP_SYMBOL_FUNCTION() -> i32 { 12 }
 fn LSP_SYMBOL_METHOD() -> i32 { 6 }

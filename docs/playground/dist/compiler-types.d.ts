@@ -5,7 +5,7 @@
  */
 /** Options for a compile request. */
 export interface CompileOptions {
-    /** Compilation target. Defaults to `wasm32-freestanding`. */
+    /** Compilation target. Defaults to `wasm32-gc`. */
     target?: string;
     /** Virtual input path inside the worker filesystem. */
     inputPath?: string;
@@ -71,7 +71,7 @@ export interface FormatResult {
 }
 /** How virtual stdin is delivered through `arukellt_io.read`. */
 export type StdinMode = "stream" | "line";
-/** Options for running compiled T2 Wasm. */
+/** Options for running compiled wasm32 Wasm. */
 export interface RunOptions {
     /** Stdin bytes supplied to `arukellt_io.read`. */
     stdin?: Uint8Array;
@@ -85,7 +85,7 @@ export interface RunOptions {
     /** Wall-clock timeout in milliseconds. */
     timeoutMs?: number;
 }
-/** Result of running compiled T2 Wasm. */
+/** Result of running compiled wasm32 Wasm. */
 export interface RunResult {
     /** Whether instantiation and execution completed without trap. */
     ok: boolean;
@@ -106,7 +106,7 @@ export interface CompilerRuntimeAvailability {
     compilerAssetPresent: boolean;
     /** Whether WebAssembly is available in this environment. */
     wasmSupported: boolean;
-    /** Whether the T2 runner can execute (compiler + wasm). */
+    /** Whether the wasm32 runner can execute (compiler + wasm). */
     runSupported: boolean;
     /** User-facing reason when build/run is unavailable. */
     reason: string | null;

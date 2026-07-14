@@ -1,5 +1,3 @@
-// Arukellt Selfhost - sockets_connect result emission helpers.
-
 use wasm::constants
 use wasm::intrinsic_http_result
 use wasm::intrinsic_sockets_vec

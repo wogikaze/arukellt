@@ -1,4 +1,3 @@
-// Arukellt Parser — Self-hosted recursive descent + Pratt parser.
 //
 // Consumes a Vec<Token> from the lexer and produces an AST.
 // Uses i32 tag constants for node kinds (same pattern as lexer).

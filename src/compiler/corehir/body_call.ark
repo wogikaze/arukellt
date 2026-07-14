@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR body builder for call-like expressions.
-
 use corehir::body_call_direct
 use corehir::body_call_method
 use corehir::body_call_try

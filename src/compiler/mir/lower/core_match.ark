@@ -1,7 +1,5 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering for CoreHIR match expressions.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_names
@@ -45,7 +43,18 @@ fn lower_core_match(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -
     core_match_result::core_emit_match_result_get(ctx, result)
 }
 
-fn lower_core_match_arm(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, arm_node: CoreHirExpr, pat: CoreHirExpr, body: i32, scrut_idx: i32, result: i32, payload_info: CoreMatchPayloadInfo, if_depth: i32, is_last: bool) -> i32 {
+fn lower_core_match_arm(
+    ctx: LowerCtx,
+    exprs: Vec<CoreHirExpr>,
+    arm_node: CoreHirExpr,
+    pat: CoreHirExpr,
+    body: i32,
+    scrut_idx: i32,
+    result: i32,
+    payload_info: CoreMatchPayloadInfo,
+    if_depth: i32,
+    is_last: bool
+) -> i32 {
     if is_last {
         return core_match_arm_last::lower_core_match_last_arm(ctx, exprs, arm_node, pat, body, scrut_idx, result, payload_info, if_depth)
     }

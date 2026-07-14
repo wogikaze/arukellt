@@ -1,5 +1,3 @@
-// Arukellt Typechecker - covered enum variant queries
-
 use typechecker::match_coverage_read_record
 
 fn is_variant_covered(coverage: MatchCoverage, vname: String) -> bool {

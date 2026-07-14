@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR parameter annotation type names.
-
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::type_ann_node

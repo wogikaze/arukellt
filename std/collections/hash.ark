@@ -586,7 +586,6 @@ pub fn hashset_str_len(s: Vec<String>) -> i32 {
 pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
     len(s) == 0
 }
-// issue #715 in-file tests
 test mod "hashmap" {
     test "new_empty" { assert(hashmap_is_empty(hashmap_new())) }
     test "insert_get" {

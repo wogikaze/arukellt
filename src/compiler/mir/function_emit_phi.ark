@@ -1,6 +1,4 @@
 use mir::block_phi_mutation
-// Arukellt Selfhost - MIR function phi append API.
-
 use mir::function_block_queries
 use mir::types
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm function index translation.
-
 use wasm::emit_target
 
 fn defined_function_index(function_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering helpers for method calls.
-
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_fn_exists
 use mir::lower::ctx_mono_type_params

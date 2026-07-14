@@ -1,6 +1,4 @@
 use resolver::kinds
-// Arukellt Resolver - declaration AST predicates.
-
 use resolver::ast_access
 use parser::ast
 

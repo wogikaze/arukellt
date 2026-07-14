@@ -4,8 +4,6 @@ use mir::lower::ctx_api_emit
 use mir::lower_kinds
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering atomic pattern values.
-
 use mir::inst_const_i32
 use mir::value_types
 

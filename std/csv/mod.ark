@@ -9,7 +9,7 @@ pub fn csv_split_line(line: String) -> Vec<String> {
 
 // ─── RFC 4180 row parser ─────────────────────────────────────────────────────
 /// Parse a single CSV line into fields, handling RFC 4180 quoted fields.
-/// 
+///
 /// Quoted fields may contain embedded commas, double-quotes (escaped as `""`),
 /// and newlines.
 pub fn csv_parse_row(line: String) -> Vec<String> {
@@ -60,7 +60,7 @@ pub fn csv_parse_row(line: String) -> Vec<String> {
 }
 
 /// Serialize a row of fields back to a CSV line.
-/// 
+///
 /// Fields that contain commas, double-quotes, or newlines are quoted.
 pub fn csv_stringify_row(fields: Vec<String>) -> String {
     let n = len(fields)
@@ -159,11 +159,11 @@ pub fn csv_stringify(rows: Vec<Vec<String>>) -> String {
 }
 
 /// Parse a CSV document with a header row.
-/// 
+///
 /// Returns `(header_fields, rows)` — the first row becomes the header and
 /// the remaining rows are returned as separate Vec<String> rows packed into
 /// a flat Vec<String> with field_count-wide strides.
-/// 
+///
 /// NOTE: the simple flat encoding means row `i` starts at
 /// `header.len() * i` in the body vector.
 pub fn csv_parse_with_header(s: String) -> Result<Vec<String>, String> {

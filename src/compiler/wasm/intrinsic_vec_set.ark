@@ -1,5 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - vec set intrinsic handler.
 //
 // GC target delegated to intrinsic_vec_set_gc.ark.
 

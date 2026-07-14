@@ -1,5 +1,3 @@
-// Arukellt Lexer - source to diagnostic lex result entrypoint.
-
 use lexer::diagnostics
 use lexer::scan
 

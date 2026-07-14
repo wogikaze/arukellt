@@ -90,7 +90,7 @@ TypeKind::WasmV128                    // std::wasm::V128 のみ
   公開 path → TypeId 解決の後、MIR は TypeId / MirValueType のみを持つ。
 - **不変条件:** 同一の generated CoreTypeSpec（または同等の registry）から
   TypeTable 登録と stdlib 公開情報を生成し、手作業で二重登録しない。
-  型エントリの正本は [`docs/data/core-ops.toml`](../data/core-ops.toml) の `[[types]]`
+  型エントリの正本は [`data/core-ops.toml`](../../data/core-ops.toml) の `[[types]]`
   （ADR-042 D5）。manifest は `type_id` で参照するのみ。
 
 #### 1.2 Well-formedness（初期 = 128-bit）

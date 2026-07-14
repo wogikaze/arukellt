@@ -1,5 +1,3 @@
-// Arukellt LSP - definition request handling.
-
 use lsp::feature_request
 use lsp::feature_symbol
 use lsp::framing
@@ -47,13 +45,29 @@ pub fn handle_definition(state: LspState, body: String) {
     let qualified = qualified_name::lookup_name_at_offset(clone(req_text), req_offset)
     let short_name = lookup_short_name(clone(req_text), req_offset)
     if len(short_name) > 0 && stdlib_definition::lookup_stdlib_definition(state, clone(short_name)) {
-        framing::append_framed(state, responses::build_definition_response(feature_request::text_position_request_id(req), stdlib_definition::stdlib_definition_uri(state, clone(short_name)), stdlib_definition::stdlib_definition_start(state, clone(short_name)), stdlib_definition::stdlib_definition_end(state, clone(short_name))))
+        framing::append_framed(
+            state,
+            responses::build_definition_response(
+                feature_request::text_position_request_id(req),
+                stdlib_definition::stdlib_definition_uri(state, clone(short_name)),
+                stdlib_definition::stdlib_definition_start(state, clone(short_name)),
+                stdlib_definition::stdlib_definition_end(state, clone(short_name))
+            )
+        )
         return
     }
     let sym = feature_symbol::resolve_symbol_request(state, body)
     let use_local_def = feature_symbol::symbol_request_found(sym) && !contains(clone(qualified), String_from("::"))
     if use_local_def {
-        framing::append_framed(state, responses::build_definition_response(feature_symbol::symbol_request_id(sym), feature_symbol::symbol_request_uri(sym), feature_symbol::symbol_request_start(sym), feature_symbol::symbol_request_end(sym)))
+        framing::append_framed(
+            state,
+            responses::build_definition_response(
+                feature_symbol::symbol_request_id(sym),
+                feature_symbol::symbol_request_uri(sym),
+                feature_symbol::symbol_request_start(sym),
+                feature_symbol::symbol_request_end(sym)
+            )
+        )
         return
     }
     let def = symbol_index_lookup::lookup_definition(state, clone(short_name))

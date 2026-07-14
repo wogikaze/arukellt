@@ -5,7 +5,6 @@ use mir::lower::ctx_fn_return_vt
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::value_types
-// Arukellt Selfhost - MIR lowering print argument conversion checks.
 
 fn mir_print_arg_is_string_type(lt: String) -> bool {
     eq(clone(lt), "String") || eq(clone(lt), "str") || eq(clone(lt), "string")
@@ -23,7 +22,9 @@ fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i
             return false
         }
         if len(rtn) > 0 {
-            if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I32() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I64() || ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_F64() {
+            if ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I32() ||
+            ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_I64() ||
+            ctx_fn_return_vt::ctx_fn_return_vt(ctx, cn) == value_types::VT_F64() {
                 return true
             }
         }
@@ -41,7 +42,11 @@ fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i
             return true
         }
     }
-    let mut needs_convert = ast_node::node_kind_is(arg, lower_kinds::NK_INT_LIT()) || ast_node::node_kind_is(arg, lower_kinds::NK_BOOL_LIT()) || ast_node::node_kind_is(arg, lower_kinds::NK_CHAR_LIT()) || ast_node::node_kind_is(arg, lower_kinds::NK_FLOAT_LIT()) || ast_node::node_kind_is(arg, lower_kinds::NK_UNARY())
+    let mut needs_convert = ast_node::node_kind_is(arg, lower_kinds::NK_INT_LIT()) ||
+    ast_node::node_kind_is(arg, lower_kinds::NK_BOOL_LIT()) ||
+    ast_node::node_kind_is(arg, lower_kinds::NK_CHAR_LIT()) ||
+    ast_node::node_kind_is(arg, lower_kinds::NK_FLOAT_LIT()) ||
+    ast_node::node_kind_is(arg, lower_kinds::NK_UNARY())
     if !needs_convert {
         let lt = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
         if mir_print_arg_local_type_needs_string_conversion(lt) {
@@ -55,17 +60,46 @@ fn mir_print_arg_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i
 }
 
 fn mir_print_arg_local_type_needs_string_conversion(lt: String) -> bool {
-    eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "u64") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") || eq(clone(lt), "f64")
+    eq(clone(lt), "char") ||
+    eq(clone(lt), "u8") ||
+    eq(clone(lt), "u16") ||
+    eq(clone(lt), "u32") ||
+    eq(clone(lt), "u64") ||
+    eq(clone(lt), "i16") ||
+    eq(clone(lt), "i32") ||
+    eq(clone(lt), "i64") ||
+    eq(clone(lt), "bool") ||
+    eq(clone(lt), "f64")
 }
 
 fn mir_print_call_result_needs_string_conversion(ctx: LowerCtx, arg: AstNode, arg_idx: i32) -> bool {
     let call_callee = ast_node::node_child_at(arg, 0)
     let cn = ast_node::node_text(call_callee)
-    if eq(clone(cn), "contains_i32") || eq(clone(cn), "contains_string") || eq(clone(cn), "contains_String") || eq(clone(cn), "contains") || eq(clone(cn), "is_empty") || eq(clone(cn), "is_some") || eq(clone(cn), "is_none") || eq(clone(cn), "starts_with") || eq(clone(cn), "ends_with") {
+    if eq(clone(cn), "contains_i32") ||
+    eq(clone(cn), "contains_string") ||
+    eq(clone(cn), "contains_String") ||
+    eq(clone(cn), "contains") ||
+    eq(clone(cn), "is_empty") ||
+    eq(clone(cn), "is_some") ||
+    eq(clone(cn), "is_none") ||
+    eq(clone(cn), "starts_with") ||
+    eq(clone(cn), "ends_with") {
         ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("bool"))
         return true
     }
-    if eq(clone(cn), "len") || eq(clone(cn), "parse_i32") || eq(clone(cn), "abs") || eq(clone(cn), "min") || eq(clone(cn), "max") || eq(clone(cn), "sum_i32") || eq(clone(cn), "product_i32") || eq(clone(cn), "index_of") || eq(clone(cn), "clamp_i32") || eq(clone(cn), "get_unchecked") || eq(clone(cn), "vec_get_unchecked_i32") || eq(clone(cn), "bytes_get") || eq(clone(cn), "bytes_len") {
+    if eq(clone(cn), "len") ||
+    eq(clone(cn), "parse_i32") ||
+    eq(clone(cn), "abs") ||
+    eq(clone(cn), "min") ||
+    eq(clone(cn), "max") ||
+    eq(clone(cn), "sum_i32") ||
+    eq(clone(cn), "product_i32") ||
+    eq(clone(cn), "index_of") ||
+    eq(clone(cn), "clamp_i32") ||
+    eq(clone(cn), "get_unchecked") ||
+    eq(clone(cn), "vec_get_unchecked_i32") ||
+    eq(clone(cn), "bytes_get") ||
+    eq(clone(cn), "bytes_len") {
         ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
         return true
     }

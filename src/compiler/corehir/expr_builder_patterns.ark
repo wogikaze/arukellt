@@ -1,7 +1,5 @@
 use corehir::expr_factory
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR pattern expression constructors.
-
 use corehir::value_types
 
 fn corehir_expr_pat_ident(text: String, span_start: i32) -> CoreHirExpr {

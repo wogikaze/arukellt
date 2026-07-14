@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - compound punctuation and operator facade
-
 use lexer::cursor
 use lexer::punct_compound_compare
 use lexer::punct_compound_delim

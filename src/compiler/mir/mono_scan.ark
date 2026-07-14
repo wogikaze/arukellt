@@ -1,5 +1,3 @@
-// Arukellt Selfhost - monomorphization instance scanning
-
 use mir::mono_instance_shape
 use mir::type_contracts
 

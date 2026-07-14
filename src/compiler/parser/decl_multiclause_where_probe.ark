@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - multi-clause where binding lookahead.
-
 use parser::core_api_cursor
 
 fn next_token_starts_where_binding(p: Parser) -> bool {

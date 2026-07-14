@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WIT core/component function type encoders
-
 use component::constants_sections_linkage
 use component::writer_core
 

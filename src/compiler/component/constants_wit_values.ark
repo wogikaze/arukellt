@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WIT value and type tag encodings.
-
 fn WIT_VAL_BOOL() -> i32 { 0x7f }
 fn WIT_VAL_CHAR() -> i32 { 0x74 }
 fn WIT_VAL_STRING() -> i32 { 0x73 }

@@ -1,9 +1,7 @@
-// Arukellt Resolver - resolver diagnostic collection.
-
 use diagnostics::codes
-use diagnostics::mod as diag_mod
 use diagnostics::record
 use resolver::ctx_record
+use diagnostics::mod as diag_mod
 
 fn resolve_diagnostic(ctx: ResolveCtx, code: String, msg: String, span_start: i32, span_end: i32) {
     ctx_record::resolve_ctx_push_error(ctx, clone(msg))
@@ -25,6 +23,6 @@ fn resolve_duplicate_symbol(ctx: ResolveCtx, name: String, span_start: i32, span
 }
 
 fn resolve_target_gated_module(ctx: ResolveCtx, module_path: String, span_start: i32, span_end: i32) {
-    let msg = concat(String_from("module `"), concat(module_path, String_from("` requires target wasm32-wasi-p2 (T3); use `--target wasm32-wasi-p2` to enable this module")))
+    let msg = concat(String_from("module `"), concat(module_path, String_from("` requires target wasm32-gc with host profile wasi-p2")))
     resolve_diagnostic(ctx, codes::DIAG_EMIT_FAILED(), msg, span_start, span_end)
 }

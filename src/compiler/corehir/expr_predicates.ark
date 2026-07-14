@@ -1,7 +1,5 @@
 use corehir::expr_access_identity
 use corehir::kinds
-// Arukellt Selfhost - CoreHIR expression predicates.
-
 
 fn expr_kind_is(expr: CoreHirExpr, kind: i32) -> bool {
     expr_access_identity::expr_kind(expr) == kind

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering fallback source.
-
 use mir::lower::entry_fallback_body
 use mir::lower::legacy_decl
 

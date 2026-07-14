@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component option declaration scan.
 use component::contract_collection_fn
 use component::contract_helpers
 
@@ -12,8 +11,24 @@ pub struct ComponentCollectionOptionScan {
     export_count: i32,
 }
 
-fn ComponentCollectionOptionScan_new(has_i32_to_option_i32: bool, has_bool_to_option_bool: bool, has_bool_to_option_i64: bool, has_option_i64_to_i64: bool, has_option_i32_to_i32: bool, has_option_i32_to_option_i32: bool, export_count: i32) -> ComponentCollectionOptionScan {
-    ComponentCollectionOptionScan { has_i32_to_option_i32: has_i32_to_option_i32, has_bool_to_option_bool: has_bool_to_option_bool, has_bool_to_option_i64: has_bool_to_option_i64, has_option_i64_to_i64: has_option_i64_to_i64, has_option_i32_to_i32: has_option_i32_to_i32, has_option_i32_to_option_i32: has_option_i32_to_option_i32, export_count: export_count }
+fn ComponentCollectionOptionScan_new(
+    has_i32_to_option_i32: bool,
+    has_bool_to_option_bool: bool,
+    has_bool_to_option_i64: bool,
+    has_option_i64_to_i64: bool,
+    has_option_i32_to_i32: bool,
+    has_option_i32_to_option_i32: bool,
+    export_count: i32
+) -> ComponentCollectionOptionScan {
+    ComponentCollectionOptionScan {
+        has_i32_to_option_i32: has_i32_to_option_i32,
+        has_bool_to_option_bool: has_bool_to_option_bool,
+        has_bool_to_option_i64: has_bool_to_option_i64,
+        has_option_i64_to_i64: has_option_i64_to_i64,
+        has_option_i32_to_i32: has_option_i32_to_i32,
+        has_option_i32_to_option_i32: has_option_i32_to_option_i32,
+        export_count: export_count
+    }
 }
 
 fn ComponentCollectionOptionScan_empty() -> ComponentCollectionOptionScan {

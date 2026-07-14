@@ -1,5 +1,3 @@
-// Arukellt Selfhost - local module declaration registration.
-
 use loader::module_state_errors
 use loader::module_state_loading
 use loader::module_state_modules

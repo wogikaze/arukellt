@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR integer literal atom helpers.
-
 use corehir::body_int_decimal
 use corehir::body_int_suffix
 use corehir::expr_builder_atoms
@@ -15,12 +13,26 @@ fn corehir_int_lit_expr_from_node(node: AstNode) -> CoreHirExpr {
     let text = expr_node_atom_access::expr_text(node)
     let n = len(text)
     if body_int_suffix::corehir_int_lit_has_64_suffix(text, n) {
-        return expr_builder_atoms::corehir_expr_int_typed(text, expr_node_atom_access::expr_int_val(node), value_types::VT_I64(), body_int_suffix::corehir_int_lit_64_type_name(text, n), expr_node_atom_access::expr_span_start(node))
+        return expr_builder_atoms::corehir_expr_int_typed(
+            text,
+            expr_node_atom_access::expr_int_val(node),
+            value_types::VT_I64(),
+            body_int_suffix::corehir_int_lit_64_type_name(text, n),
+            expr_node_atom_access::expr_span_start(node)
+        )
     }
     if body_int_suffix::corehir_int_lit_has_small_suffix(text, n) {
-        return expr_builder_atoms::corehir_expr_int_typed(text, expr_node_atom_access::expr_int_val(node), value_types::VT_I32(), body_int_suffix::corehir_int_lit_small_type_name(text, n), expr_node_atom_access::expr_span_start(node))
+        return expr_builder_atoms::corehir_expr_int_typed(
+            text,
+            expr_node_atom_access::expr_int_val(node),
+            value_types::VT_I32(),
+            body_int_suffix::corehir_int_lit_small_type_name(text, n),
+            expr_node_atom_access::expr_span_start(node)
+        )
     }
-    if body_int_decimal::corehir_int_lit_is_simple_i32(text) || body_int_decimal::corehir_int_lit_is_decimal_i32_with_separators(text, n) || body_int_decimal::corehir_int_lit_is_base_prefixed(text, n) {
+    if body_int_decimal::corehir_int_lit_is_simple_i32(text) ||
+    body_int_decimal::corehir_int_lit_is_decimal_i32_with_separators(text, n) ||
+    body_int_decimal::corehir_int_lit_is_base_prefixed(text, n) {
         return expr_builder_atoms::corehir_expr_int(text, expr_node_atom_access::expr_int_val(node), expr_node_atom_access::expr_span_start(node))
     }
     expr_factory::CoreHirExpr_unsupported(expr_node_atom_access::expr_span_start(node))

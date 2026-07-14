@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR if expression lowering.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::if
 

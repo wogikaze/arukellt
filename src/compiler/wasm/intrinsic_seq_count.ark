@@ -1,4 +1,3 @@
-// Arukellt Selfhost - sequence count intrinsic handlers
 // Extracted from emit_intrinsic_seq_search.ark
 
 use wasm::opcodes

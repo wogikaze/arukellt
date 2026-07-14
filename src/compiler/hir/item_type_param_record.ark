@@ -1,5 +1,3 @@
-// Arukellt HIR - trait bound and type parameter records.
-
 use hir::type_contracts_record
 
 struct HirTraitBound {

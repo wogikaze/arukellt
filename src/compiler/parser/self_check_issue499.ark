@@ -1,5 +1,3 @@
-// Arukellt Parser self-check facade for issue 499.
-
 use parser::self_check_issue499_block
 use parser::self_check_issue499_closure
 use parser::self_check_issue499_lexer

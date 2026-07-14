@@ -55,7 +55,7 @@ fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
     FsError::IoError(concat(concat(op, ": "), raw))
 }
 
-// ─── Whole-file read / write (T1 + T3) ─────────────────────────────────────
+// ─── Whole-file read / write (wasm32 + wasm32-gc) ──────────────────────────
 
 /// Reads a UTF-8 text file into memory.
 ///
@@ -160,7 +160,7 @@ pub fn metadata(path: String) -> Result<FsMetadata, FsError> {
     Result::Err(FsError::IoError(concat("metadata not yet supported: ", path)))
 }
 
-// ─── Raw fd helpers (experimental, T1 only) ───────────────────────────────
+// ─── Raw fd helpers (experimental, wasm32 + wasi-p1 only) ──────────────────
 
 /// Seeks within an open file descriptor.
 /// `whence`: 0 = SET (from start), 1 = CUR (from current), 2 = END (from end).

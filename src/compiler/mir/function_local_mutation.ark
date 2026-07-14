@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR function local mutation API.
-
 use mir::function_locals_record
 
 fn MirFunction_push_local(f: MirFunction, local: MirLocal) {

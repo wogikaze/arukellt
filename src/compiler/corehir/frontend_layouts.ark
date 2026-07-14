@@ -1,5 +1,3 @@
-// Arukellt Selfhost - frontend declaration layouts to CoreHIR facts.
-
 use corehir::decl_layout_shape
 use corehir::decl_node
 use corehir::kinds

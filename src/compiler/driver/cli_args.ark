@@ -1,5 +1,3 @@
-// Arukellt Selfhost - legacy standalone driver CLI argument parsing.
-
 use driver::cli_arg_options
 use driver::cli_arg_position
 
@@ -25,7 +23,12 @@ fn has_min_compile_args(argc: i32, arg_start: i32) -> bool {
 fn parse_legacy_compile_args(args: Vec<String>, argc: i32, arg_start: i32, config: DriverConfig) -> LegacyCompileArgs {
     let input_path = get_unchecked(args, arg_start + 1)
     let options = cli_arg_options::parse_legacy_compile_options(args, argc, arg_start + 2, config)
-    LegacyCompileArgs_new(input_path, cli_arg_options::legacy_compile_options_output_path(options), cli_arg_options::legacy_compile_options_has_output(options), cli_arg_options::legacy_compile_options_config(options))
+    LegacyCompileArgs_new(
+        input_path,
+        cli_arg_options::legacy_compile_options_output_path(options),
+        cli_arg_options::legacy_compile_options_has_output(options),
+        cli_arg_options::legacy_compile_options_config(options)
+    )
 }
 
 fn legacy_compile_args_input_path(parsed: LegacyCompileArgs) -> String {

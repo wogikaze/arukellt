@@ -1,5 +1,3 @@
-// Arukellt Selfhost - legacy driver CLI compile options.
-
 use driver::config_record
 
 struct LegacyCompileOptions {

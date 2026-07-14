@@ -1,4 +1,3 @@
-// Arukellt Selfhost - function body instruction emission helpers.
 // Extracted from code_body.ark
 
 use wasm::opcodes
@@ -28,7 +27,20 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
             let prev = emit_prev_inst_info(f, block, bi, ii)
             let next = emit_next_inst_info(f, block, block_count, bi, ii, inst_count)
             let next2_op = emit_next2_op(f, block, block_count, bi, ii, inst_count)
-            inst_dispatch::emit_mir_inst_ctx(body, inst, ctx, EmitNeighborInfo_op(prev), EmitNeighborInfo_arg0(prev), EmitNeighborInfo_arg1(prev), EmitNeighborInfo_str_val(prev), EmitNeighborInfo_op(next), EmitNeighborInfo_arg0(next), EmitNeighborInfo_arg1(next), next2_op, bindings)
+            inst_dispatch::emit_mir_inst_ctx(
+                body,
+                inst,
+                ctx,
+                EmitNeighborInfo_op(prev),
+                EmitNeighborInfo_arg0(prev),
+                EmitNeighborInfo_arg1(prev),
+                EmitNeighborInfo_str_val(prev),
+                EmitNeighborInfo_op(next),
+                EmitNeighborInfo_arg0(next),
+                EmitNeighborInfo_arg1(next),
+                next2_op,
+                bindings
+            )
             ii = ii + 1
         }
         bi = bi + 1

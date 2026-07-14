@@ -4,7 +4,7 @@ Created: 2026-06-15
 ID: 660
 Track: component-model
 Parent: 648
-Depends on: 121, 074
+Depends on: 121
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none

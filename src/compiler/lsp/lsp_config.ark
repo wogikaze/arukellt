@@ -1,5 +1,3 @@
-// Arukellt LSP - client configuration from initialize params.
-
 use lsp::json_fields
 use lsp::state_record
 

@@ -5,7 +5,7 @@
 #   Canonical stages are fixed slots; behavior is implemented here (not no-op stubs).
 #
 #   Stage 0 — Trusted base: Rust-hosted `arukellt` compiles `src/compiler/main.ark`
-#             to a single wasm artifact (wasm32-wasi-p1).
+#             to a single wasm artifact (wasm32 with wasi-p1 host profile).
 #   Stage 1 — First self-compile: run Stage 0 output under wasmtime with the repo
 #             root mounted; compile the same `main.ark` to a second wasm artifact.
 #   Stage 2 — Fixpoint gate: run s2 to produce s3, then check sha256(s2)==sha256(s3).
@@ -215,7 +215,7 @@ echo
 stage0() {
     echo -e "  Compiling main.ark → arukellt-s1.wasm (unified binary)..."
     local stderr_file="${BUILD_DIR}/stage0.stderr"
-    if "$COMPILER" compile "${MAIN_SRC}" --target wasm32-wasi-p1 -o "$S1_WASM" 2>"$stderr_file"; then
+    if "$COMPILER" compile "${MAIN_SRC}" --target wasm32 --wasi-version wasi-p1 -o "$S1_WASM" 2>"$stderr_file"; then
         local size
         size=$(wc -c < "$S1_WASM")
         echo -e "  ${GREEN}OK${NC}  arukellt-s1.wasm (${size} bytes)"
@@ -276,7 +276,7 @@ stage1() {
     fi
     if timeout 120 wasmtime run --wasm gc --wasm function-references --dir="${REPO_ROOT}" \
         "${wt_env[@]}" \
-        "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
+        "$S1_WASM" -- compile "$rel_src" --target wasm32 --wasi-version wasi-p1 \
         -o "$rel_out" 2>"$stderr_file"; then
         local size
         size=$(wc -c < "$S2_WASM")
@@ -322,7 +322,7 @@ stage2() {
         wt_env+=(--env "MIR_LOWER_TRACE=${MIR_LOWER_TRACE}")
     fi
     echo -e "  Compiling main.ark → arukellt-s3.wasm (via s2)..."
-    if ! timeout 120 wasmtime run --wasm gc --wasm function-references --dir="${REPO_ROOT}"         "${wt_env[@]}"         "$S2_WASM" -- compile "$rel_src" --target wasm32-wasi-p1         -o "$rel_out" 2>"$stderr_file"; then
+    if ! timeout 120 wasmtime run --wasm gc --wasm function-references --dir="${REPO_ROOT}"         "${wt_env[@]}"         "$S2_WASM" -- compile "$rel_src" --target wasm32 --wasi-version wasi-p1         -o "$rel_out" 2>"$stderr_file"; then
         local exit_code=$?
         echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s2 (exit ${exit_code})" >&2
         if [[ -s "$stderr_file" ]]; then

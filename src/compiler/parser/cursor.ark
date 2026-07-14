@@ -1,5 +1,3 @@
-// Arukellt Parser - parser cursor facade.
-
 use parser::cursor_advance
 use parser::cursor_read
 

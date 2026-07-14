@@ -1,5 +1,3 @@
-// Arukellt Selfhost - numeric cast intrinsic facade.
-
 use mir::inst_accessors_literals
 use wasm::intrinsics::helpers_numeric_f64
 use wasm::intrinsics::helpers_numeric_sign_extend

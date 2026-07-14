@@ -1,5 +1,3 @@
-// Arukellt Parser - Pratt token to AST operator mapping.
-
 use parser::pratt_binops
 use parser::pratt_unops
 

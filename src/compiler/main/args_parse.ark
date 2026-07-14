@@ -1,4 +1,4 @@
-// Arukellt Selfhost - main namespace: args_parse
+use std::host::stdio
 use main::args_parse_flags
 use main::args_parse_opts
 use main::args_parse_opts_cache
@@ -6,6 +6,7 @@ use main::args_parse_opts_lint
 use main::args_record
 use main::commands
 use main::kinds
+use main::target_contract_generated
 
 fn parse_args(argv: Vec<String>) -> CliOptions {
     let opts = args_record::CliOptions_default()
@@ -24,10 +25,34 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
     parse_option_args(argv, argc, opts, component_option_start(argv, argc, opts))
+    canonicalize_target_input(opts)
     opts
 }
 
-// Arukellt Selfhost - CLI initial command parsing.
+fn canonicalize_target_input(opts: CliOptions) {
+    let input = args_record::cli_target(opts)
+    let policy = target_contract_generated::target_alias_policy(clone(input))
+    if eq(clone(policy), String_from("error")) {
+        args_record::cli_set_error(opts, target_contract_generated::target_alias_message(input))
+        return
+    }
+    if eq(clone(policy), String_from("warning")) {
+        stdio::eprintln(target_contract_generated::target_alias_message(clone(input)))
+        args_record::cli_set_target(opts, target_contract_generated::target_alias_canonical_target(clone(input)))
+        if !args_record::cli_has_wasi_version(opts) {
+            args_record::cli_set_wasi_version(opts, target_contract_generated::target_alias_host_profile(input))
+        }
+        return
+    }
+    if !target_contract_generated::target_is_canonical(clone(input)) {
+        args_record::cli_set_error(opts, concat(String_from("unknown target: "), input))
+        return
+    }
+    if !args_record::cli_has_wasi_version(opts) {
+        args_record::cli_set_wasi_version(opts, target_contract_generated::target_default_host_profile(input))
+    }
+}
+
 fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {
     let cmd_str = get_unchecked(argv, 1)
     let cmd_is_check = arg_is_check_command(clone(cmd_str))
@@ -61,7 +86,6 @@ fn parse_initial_command(argv: Vec<String>, opts: CliOptions) {
     }
 }
 
-// Arukellt Selfhost - CLI flag and command spelling helpers.
 fn arg_is_check_command(arg: String) -> bool {
     if len(clone(arg)) != 5 {
         return false
@@ -73,11 +97,23 @@ fn arg_is_compile_command(arg: String) -> bool {
     if len(clone(arg)) != 7 {
         return false
     }
-    char_at(clone(arg), 0) == 99 && char_at(clone(arg), 1) == 111 && char_at(clone(arg), 2) == 109 && char_at(clone(arg), 3) == 112 && char_at(clone(arg), 4) == 105 && char_at(clone(arg), 5) == 108 && char_at(clone(arg), 6) == 101
+    char_at(clone(arg), 0) == 99 &&
+    char_at(clone(arg), 1) == 111 &&
+    char_at(clone(arg), 2) == 109 &&
+    char_at(clone(arg), 3) == 112 &&
+    char_at(clone(arg), 4) == 105 &&
+    char_at(clone(arg), 5) == 108 &&
+    char_at(clone(arg), 6) == 101
 }
 
 fn arg_is_help(arg: String) -> bool {
-    if len(clone(arg)) == 6 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 45 && char_at(clone(arg), 2) == 104 && char_at(clone(arg), 3) == 101 && char_at(clone(arg), 4) == 108 && char_at(clone(arg), 5) == 112 {
+    if len(clone(arg)) == 6 &&
+    char_at(clone(arg), 0) == 45 &&
+    char_at(clone(arg), 1) == 45 &&
+    char_at(clone(arg), 2) == 104 &&
+    char_at(clone(arg), 3) == 101 &&
+    char_at(clone(arg), 4) == 108 &&
+    char_at(clone(arg), 5) == 112 {
         return true
     }
     len(clone(arg)) == 2 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 104
@@ -145,7 +181,16 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, opts: CliOptions) {
 }
 
 fn arg_is_version(arg: String) -> bool {
-    if len(clone(arg)) == 9 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 45 && char_at(clone(arg), 2) == 118 && char_at(clone(arg), 3) == 101 && char_at(clone(arg), 4) == 114 && char_at(clone(arg), 5) == 115 && char_at(clone(arg), 6) == 105 && char_at(clone(arg), 7) == 111 && char_at(clone(arg), 8) == 110 {
+    if len(clone(arg)) == 9 &&
+    char_at(clone(arg), 0) == 45 &&
+    char_at(clone(arg), 1) == 45 &&
+    char_at(clone(arg), 2) == 118 &&
+    char_at(clone(arg), 3) == 101 &&
+    char_at(clone(arg), 4) == 114 &&
+    char_at(clone(arg), 5) == 115 &&
+    char_at(clone(arg), 6) == 105 &&
+    char_at(clone(arg), 7) == 111 &&
+    char_at(clone(arg), 8) == 110 {
         return true
     }
     len(clone(arg)) == 2 && char_at(clone(arg), 0) == 45 && char_at(clone(arg), 1) == 86
@@ -221,10 +266,13 @@ fn parse_world_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) ->
 }
 
 fn parse_input_or_error(opts: CliOptions, arg: String) {
+    if args_record::cli_command(opts) == kinds::CMD_FMT() {
+        args_record::cli_add_fmt_input(opts, arg)
+        return
+    }
     if args_record::cli_input_file_len(opts) == 0 {
         args_record::cli_set_input_file(opts, clone(arg))
     } else {
         args_record::cli_set_error(opts, concat(String_from("unexpected argument: "), clone(arg)))
     }
 }
-// Arukellt Selfhost - CLI argument parser.

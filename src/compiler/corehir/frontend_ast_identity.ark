@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR frontend AST identity accessors.
-
 use parser::ast_node_record
 
 fn corehir_node_kind(node: AstNode) -> i32 {

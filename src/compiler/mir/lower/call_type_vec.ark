@@ -5,8 +5,6 @@ use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_struct_layout
 use mir::lower::call_type_fallback
 use mir::value_types
-// Arukellt Selfhost - MIR call result type propagation for vec-producing calls.
-
 
 fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     if starts_with(clone(callee_name), "Vec_new_") {
@@ -154,7 +152,16 @@ fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if !eq(clone(elem_ty), String_from("i32")) && !eq(clone(elem_ty), String_from("I32")) && !eq(clone(elem_ty), String_from("i64")) && !eq(clone(elem_ty), String_from("I64")) && !eq(clone(elem_ty), String_from("f64")) && !eq(clone(elem_ty), String_from("F64")) && !eq(clone(elem_ty), String_from("String")) && !eq(clone(elem_ty), String_from("string")) && !eq(clone(elem_ty), String_from("bool")) && !eq(clone(elem_ty), String_from("char")) {
+    if !eq(clone(elem_ty), String_from("i32")) &&
+    !eq(clone(elem_ty), String_from("I32")) &&
+    !eq(clone(elem_ty), String_from("i64")) &&
+    !eq(clone(elem_ty), String_from("I64")) &&
+    !eq(clone(elem_ty), String_from("f64")) &&
+    !eq(clone(elem_ty), String_from("F64")) &&
+    !eq(clone(elem_ty), String_from("String")) &&
+    !eq(clone(elem_ty), String_from("string")) &&
+    !eq(clone(elem_ty), String_from("bool")) &&
+    !eq(clone(elem_ty), String_from("char")) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
@@ -175,7 +182,12 @@ fn is_vec_string_producer_callee(callee_name: String) -> bool {
 }
 
 fn vec_string_producer_base_matches(name: String) -> bool {
-    if eq(clone(name), "text::chars") || eq(clone(name), "chars") || eq(clone(name), "split") || eq(clone(name), "text::split") || eq(clone(name), "string::split") || eq(clone(name), "__intrinsic_split") {
+    if eq(clone(name), "text::chars") ||
+    eq(clone(name), "chars") ||
+    eq(clone(name), "split") ||
+    eq(clone(name), "text::split") ||
+    eq(clone(name), "string::split") ||
+    eq(clone(name), "__intrinsic_split") {
         return true
     }
     if ends_with(clone(name), String_from("::split")) || ends_with(clone(name), String_from("::chars")) {

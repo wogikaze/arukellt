@@ -1,9 +1,7 @@
-// Arukellt Selfhost - main namespace: project_run
 use std::host::fs
 use std::host::process
 use std::host::stdio
 use std::toml
-
 use compiler::session_parse
 use driver::config_record
 use driver::file
@@ -77,7 +75,6 @@ pub fn cmd_run(opts: CliOptions) {
     write_run_output(input_file, out_path, result_record::compile_result_output_bytes(result))
 }
 
-// Arukellt Selfhost - CLI test command implementation
 fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
     config_record::config_set_target(config, args_record::cli_target(opts))
@@ -145,7 +142,6 @@ pub fn cmd_test(opts: CliOptions) {
     }
 }
 
-// Arukellt Selfhost - test declaration discovery (ADR-041).
 // Parses the source file and prints discovered `test` declarations.
 // Returns the number of discovered tests.
 fn discover_and_print_tests(input_file: String) -> i32 {
@@ -211,10 +207,8 @@ fn print_test_entry(prefix: String, name: String) {
     stdio::eprintln(concat(String_from("  test  "), concat(prefix, concat(String_from("::"), name))))
 }
 
-// Arukellt Selfhost - minimal TOML value extraction for CLI project metadata
 // ── TOML Value Extraction ────────────────────────────────────────────────────
 fn find_toml_value(content: String, key: String) -> String {
     toml::toml_find_value(content, key)
 }
-// Arukellt Selfhost - CLI run command implementation
 // ADR-041 Phase 1: in-file test adoption should not fail on pre-existing stdlib lint.

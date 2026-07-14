@@ -7,8 +7,6 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_fn_return_vt
 use mir::lower_kinds
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - closure calls
-
 use mir::inst_call
 use mir::value_types
 

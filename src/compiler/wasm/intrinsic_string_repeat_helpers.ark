@@ -1,4 +1,3 @@
-// Arukellt Selfhost - string repeat non-GC init/finish helpers.
 // Extracted from intrinsic_string_repeat.ark
 
 use wasm::intrinsics::helpers_core

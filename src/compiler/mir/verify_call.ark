@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR verifier CALL checks (W002, W003, W007 INV-8).
-
 use mir::function_identity
 use mir::host_intrinsic_stub_names
 use mir::module_functions

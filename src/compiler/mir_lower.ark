@@ -1,11 +1,11 @@
-// Arukellt Selfhost - MIR lowering compatibility facade.
-
 use mir
 
+/// Lowers typed input to MIR and removes unreachable functions from the result.
 pub fn lower_to_mir(input: MirLowerInput) -> MirModule {
     mir::lower_to_mir(input)
 }
 
+/// Lowers typed input to MIR while retaining functions that are not reachable from an entry point.
 pub fn lower_to_mir_no_prune(input: MirLowerInput) -> MirModule {
     mir::lower_to_mir_no_prune(input)
 }

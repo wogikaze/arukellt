@@ -1,4 +1,3 @@
-// Arukellt Selfhost - GC string emission helper utilities.
 //
 // Provides compact GC loop/compare primitives to reduce per-file import fan-out.
 

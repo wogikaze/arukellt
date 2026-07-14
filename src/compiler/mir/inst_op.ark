@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR arithmetic/logical instruction constructors.
-
 use mir::inst_factory
 use mir::types
 use mir::value_types

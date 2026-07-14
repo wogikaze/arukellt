@@ -1,5 +1,3 @@
-// Arukellt HIR - type equality helpers.
-
 use hir::type_contracts
 use hir::kinds
 

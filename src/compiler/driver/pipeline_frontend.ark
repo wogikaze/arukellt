@@ -1,8 +1,6 @@
-// Arukellt Selfhost - driver namespace: pipeline_frontend
-
+use std::host::clock
 use compiler::phases
 use driver::result_record
-use std::host::clock
 use driver::config_record
 use compiler::session_frontend_query
 use compiler::session_lex_query
@@ -10,8 +8,6 @@ use compiler::session_parse_tokens
 use driver::debug
 use driver::errors
 use component
-
-// Arukellt Selfhost - driver preflight, lex, and parse stages.
 
 fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
     let t0 = clock::monotonic_now()
@@ -30,8 +26,6 @@ fn run_frontend(source: String, config: DriverConfig) -> DriverFrontendResult {
     }
     frontend_continue(frontend_result_decls(parsed), t0, frontend_result_t_lex(parsed), frontend_result_t_parse(parsed))
 }
-
-// Arukellt Selfhost - frontend lex and parse stages.
 
 fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFrontendResult {
     let parsed_source = session_frontend_query::session_parse_source(clone(source))
@@ -55,8 +49,6 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
     }
     frontend_continue(decls, t0, t_lex, clock::monotonic_now())
 }
-
-// Arukellt Selfhost - frontend pipeline result contract.
 
 struct DriverFrontendResult {
     should_return: bool,

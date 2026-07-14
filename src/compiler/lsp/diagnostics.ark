@@ -19,4 +19,3 @@ pub fn build_publish_diagnostics(uri: String, text: String, snap: AnalysisSnapsh
     body = concat(body, String_from("]}}"))
     body
 }
-// Arukellt Selfhost - LSP diagnostic notification builders

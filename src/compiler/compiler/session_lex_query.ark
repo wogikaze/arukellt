@@ -1,36 +1,34 @@
-// Arukellt Selfhost - compiler lex session query.
-
 use lexer::program
 use lexer::result_state
 
 fn session_lex(text: String) -> LexResult {
-program::lex_program(text)
+    program::lex_program(text)
 }
 
 fn session_lex_tokens(result: LexResult) -> Vec<Token> {
-result_state::LexResult_tokens(result)
+    result_state::LexResult_tokens(result)
 }
 
 fn session_lex_diagnostic_count(result: LexResult) -> i32 {
-result_state::LexResult_diagnostic_count(result)
+    result_state::LexResult_diagnostic_count(result)
 }
 
 fn session_lex_diagnostic_at(result: LexResult, index: i32) -> LexDiagnostic {
-result_state::LexResult_diagnostic_at(result, index)
+    result_state::LexResult_diagnostic_at(result, index)
 }
 
 fn session_lex_diagnostic_code(diag: LexDiagnostic) -> i32 {
-result_state::LexDiagnostic_code(diag)
+    result_state::LexDiagnostic_code(diag)
 }
 
 fn session_lex_diagnostic_message(diag: LexDiagnostic) -> String {
-result_state::LexDiagnostic_message(diag)
+    result_state::LexDiagnostic_message(diag)
 }
 
 fn session_lex_diagnostic_start(diag: LexDiagnostic) -> i32 {
-result_state::LexDiagnostic_start(diag)
+    result_state::LexDiagnostic_start(diag)
 }
 
 fn session_lex_diagnostic_end(diag: LexDiagnostic) -> i32 {
-result_state::LexDiagnostic_end(diag)
+    result_state::LexDiagnostic_end(diag)
 }

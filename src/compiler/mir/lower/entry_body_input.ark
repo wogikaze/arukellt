@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry body lowering input adapter.
-
 struct MirLowerEntryBodyInput {
     fallback_body: MirLowerEntryFallbackBody,
     fallback_has_body: bool,

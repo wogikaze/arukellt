@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering entry view data contract.
-
 struct MirLowerEntryView {
     signature_source: CoreHirMirSignatureSource,
     type_source: CoreHirMirTypeSource,

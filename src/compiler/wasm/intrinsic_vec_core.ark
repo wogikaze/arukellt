@@ -1,4 +1,3 @@
-// Arukellt Selfhost - vec allocation/length intrinsic handlers
 //
 // GC target: Vec<T> = (struct (field (mut (ref null (array (mut i32))))
 //                              (field (mut i32)))
@@ -22,7 +21,6 @@ fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
     return true
 }
-
 
 // Handler for: vec_len
 fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

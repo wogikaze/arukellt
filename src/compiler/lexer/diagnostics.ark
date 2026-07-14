@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - diagnostic result assembly.
-
 use lexer::errors
 use lexer::token_state
 

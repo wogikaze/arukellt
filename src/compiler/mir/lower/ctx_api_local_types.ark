@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering local type API.
-
 use mir::lower::ctx_locals_type
 use mir::lower::ctx_typed_mir_sync
 

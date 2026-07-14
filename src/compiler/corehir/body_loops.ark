@@ -1,7 +1,5 @@
 use corehir::expr_builder_control_loop
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR body builder for loop expressions.
-
 use corehir::expr_predicates
 use corehir::expr_node_access
 

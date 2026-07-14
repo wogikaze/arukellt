@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared string adapter body emission
-
 use component::writer_core
 
 fn comp_emit_adapter_string_input_copy(body: writer_core::ComponentWriter) {

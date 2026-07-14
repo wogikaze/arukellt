@@ -1,6 +1,4 @@
 use mir::lower::ast_node
-// Arukellt MIR lowering body - if expressions.
-
 use mir::lower::if
 
 fn lower_if_expr(ctx: LowerCtx, node: AstNode) -> i32 {

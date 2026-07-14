@@ -1,5 +1,3 @@
-// Arukellt Lexer - keyword token display names.
-
 use lexer::name_keywords_control
 use lexer::name_keywords_decl
 use lexer::name_keywords_module

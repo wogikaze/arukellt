@@ -1,5 +1,3 @@
-// Arukellt Parser - AST node display names facade
-
 use parser::kinds
 use parser::name_decl
 use parser::name_expr

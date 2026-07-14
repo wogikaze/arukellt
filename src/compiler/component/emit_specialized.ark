@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component specialized export-shape dispatch facade
 use component::emit_list
 use component::emit_numeric
 use component::emit_option
@@ -7,11 +6,11 @@ use component::emit_shape
 use component::emit_specialized_record
 use component::emit_specialized_string_basic
 use component::emit_string_numeric
-use component::emit_tier3_roundtrip as tier3_roundtrip
 use component::emit_tuple
 use component::export_shapes_presence
 use component::export_shapes_scan
 use component::export_shapes_shape_scan
+use component::emit_tier3_roundtrip as tier3_roundtrip
 
 fn emit_specialized_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
     let record_component = specialized_record::try_emit_record_or_color_component(clone(core_wasm), mir, export_names)

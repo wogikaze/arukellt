@@ -1,8 +1,6 @@
 use parser::ast_kind_fields
 use parser::core_ast_text_fields
 use parser::core_ast_type_ann
-// Arukellt Parser self-checks for issue 504.
-
 use lexer::scan
 use parser::core_api_token
 use parser::decl

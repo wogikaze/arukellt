@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parser NK kind constants for CoreHIR frontend enclave.
-
 use parser::kinds
 
 fn nk_int_lit() -> i32 { kinds::NK_INT_LIT() }

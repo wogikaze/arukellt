@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Native SIMD emission (T2/T3/T5).
 // Emits Wasm SIMD instructions (0xFD prefix + LEB128 sub-opcode).
 
 use mir::inst_accessors_operands
@@ -63,8 +62,14 @@ fn try_emit_simd_native_f32x4(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_f32x4_sqrt")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F32X4_SQRT(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f32x4_abs")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F32X4_ABS(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f32x4_splat")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F32X4_SPLAT(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_extract_lane")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F32X4_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_replace_lane")) { call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F32X4_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_f32x4_extract_lane")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F32X4_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_f32x4_replace_lane")) {
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F32X4_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if eq(clone(callee), String_from("__simd_f32x4_eq")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F32X4_EQ(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f32x4_ne")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F32X4_NE(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f32x4_lt")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F32X4_LT(), next_op, next_arg0, next_arg1, next2_op); return true }
@@ -89,8 +94,14 @@ fn try_emit_simd_native_f64x2(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_f64x2_sqrt")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_SQRT(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f64x2_abs")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_ABS(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f64x2_splat")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_SPLAT(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_extract_lane")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F64X2_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_replace_lane")) { call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F64X2_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_extract_lane")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_F64X2_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_f64x2_replace_lane")) {
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_F64X2_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if eq(clone(callee), String_from("__simd_f64x2_eq")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_EQ(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f64x2_ne")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_NE(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f64x2_lt")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_F64X2_LT(), next_op, next_arg0, next_arg1, next2_op); return true }
@@ -101,9 +112,18 @@ fn try_emit_simd_native_f64x2(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_f64x2_floor")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_FLOOR(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f64x2_trunc")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_TRUNC(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_f64x2_nearest")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_NEAREST(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_promote_low_f32x4")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_PROMOTE_LOW_F32X4(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_convert_low_i32x4_s")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_CONVERT_LOW_I32X4_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_convert_low_i32x4_u")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_CONVERT_LOW_I32X4_U(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_f64x2_promote_low_f32x4")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_PROMOTE_LOW_F32X4(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_f64x2_convert_low_i32x4_s")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_CONVERT_LOW_I32X4_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_f64x2_convert_low_i32x4_u")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_F64X2_CONVERT_LOW_I32X4_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     false
 }
 
@@ -114,8 +134,14 @@ fn try_emit_simd_native_i32x4(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_i32x4_neg")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I32X4_NEG(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i32x4_abs")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I32X4_ABS(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i32x4_splat")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I32X4_SPLAT(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_extract_lane")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I32X4_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_replace_lane")) { call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I32X4_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_i32x4_extract_lane")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I32X4_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i32x4_replace_lane")) {
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I32X4_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if eq(clone(callee), String_from("__simd_i32x4_eq")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I32X4_EQ(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i32x4_ne")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I32X4_NE(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i32x4_lt_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I32X4_LT_S(), next_op, next_arg0, next_arg1, next2_op); return true }
@@ -142,8 +168,14 @@ fn try_emit_simd_native_i64x2(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_i64x2_neg")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I64X2_NEG(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i64x2_abs")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I64X2_ABS(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i64x2_splat")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I64X2_SPLAT(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_extract_lane")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I64X2_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_replace_lane")) { call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I64X2_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_i64x2_extract_lane")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I64X2_EXTRACT_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i64x2_replace_lane")) {
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I64X2_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if eq(clone(callee), String_from("__simd_i64x2_eq")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_EQ(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i64x2_ne")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_NE(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i64x2_lt_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I64X2_LT_S(), next_op, next_arg0, next_arg1, next2_op); return true }
@@ -162,9 +194,18 @@ fn try_emit_simd_native_i8x16(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_i8x16_neg")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I8X16_NEG(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i8x16_abs")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I8X16_ABS(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i8x16_splat")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I8X16_SPLAT(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_s")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_u")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_U(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_replace_lane")) { call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I8X16_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_s")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_u")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I8X16_EXTRACT_LANE_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i8x16_replace_lane")) {
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I8X16_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if eq(clone(callee), String_from("__simd_i8x16_eq")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_EQ(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i8x16_ne")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_NE(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i8x16_lt_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_LT_S(), next_op, next_arg0, next_arg1, next2_op); return true }
@@ -182,8 +223,14 @@ fn try_emit_simd_native_i8x16(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_i8x16_add_sat_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_ADD_SAT_U(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i8x16_sub_sat_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_SUB_SAT_S(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i8x16_sub_sat_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_SUB_SAT_U(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_narrow_i16x8_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_NARROW_I16X8_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_narrow_i16x8_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_NARROW_I16X8_U(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_i8x16_narrow_i16x8_s")) {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_NARROW_I16X8_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i8x16_narrow_i16x8_u")) {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I8X16_NARROW_I16X8_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     false
 }
 
@@ -194,9 +241,18 @@ fn try_emit_simd_native_i16x8(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_i16x8_neg")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_NEG(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i16x8_abs")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_ABS(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i16x8_splat")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_SPLAT(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_s")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_u")) { call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_U(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_replace_lane")) { call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I16X8_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_s")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_u")) {
+        call_simd_emit::emit_simd_extract_lane(w, inst, opcodes::SIMD_I16X8_EXTRACT_LANE_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_replace_lane")) {
+        call_simd_emit::emit_simd_replace_lane(w, inst, opcodes::SIMD_I16X8_REPLACE_LANE(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     if eq(clone(callee), String_from("__simd_i16x8_ge_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_GE_U(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i16x8_min_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_MIN_S(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i16x8_min_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_MIN_U(), next_op, next_arg0, next_arg1, next2_op); return true }
@@ -209,13 +265,34 @@ fn try_emit_simd_native_i16x8(w: WasmWriter, callee: String, inst: MirInst, dest
     if eq(clone(callee), String_from("__simd_i16x8_add_sat_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_ADD_SAT_U(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i16x8_sub_sat_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_SUB_SAT_S(), next_op, next_arg0, next_arg1, next2_op); return true }
     if eq(clone(callee), String_from("__simd_i16x8_sub_sat_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_SUB_SAT_U(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_narrow_i32x4_s")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_NARROW_I32X4_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_narrow_i32x4_u")) { call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_NARROW_I32X4_U(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extadd_pairwise_i8x16_s")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTADD_PAIRWISE_I8X16_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extadd_pairwise_i8x16_u")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTADD_PAIRWISE_I8X16_U(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extend_low_i8x16_s")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_LOW_I8X16_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extend_high_i8x16_s")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_S(), next_op, next_arg0, next_arg1, next2_op); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extend_high_i8x16_u")) { call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_U(), next_op, next_arg0, next_arg1, next2_op); return true }
+    if eq(clone(callee), String_from("__simd_i16x8_narrow_i32x4_s")) {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_NARROW_I32X4_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_narrow_i32x4_u")) {
+        call_simd_emit::emit_simd_binary(w, inst, opcodes::SIMD_I16X8_NARROW_I32X4_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_extadd_pairwise_i8x16_s")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTADD_PAIRWISE_I8X16_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_extadd_pairwise_i8x16_u")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTADD_PAIRWISE_I8X16_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_extend_low_i8x16_s")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_LOW_I8X16_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_extend_high_i8x16_s")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_S(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), String_from("__simd_i16x8_extend_high_i8x16_u")) {
+        call_simd_emit::emit_simd_unary(w, inst, opcodes::SIMD_I16X8_EXTEND_HIGH_I8X16_U(), next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
     false
 }
 

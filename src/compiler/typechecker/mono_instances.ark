@@ -1,9 +1,7 @@
-// Arukellt Typechecker - monomorphization instance registry.
-
+use std::text
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::mono_key
-use std::text
 
 fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) -> String {
     let mut mangled = clone(fn_name)

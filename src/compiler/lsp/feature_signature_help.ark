@@ -1,5 +1,3 @@
-// Arukellt LSP - signature help request handling.
-
 use lsp::feature_request
 use lsp::framing
 use lsp::qualified_name
@@ -55,5 +53,14 @@ pub fn handle_signature_help(state: LspState, body: String) {
     } else {
         0
     }
-    framing::append_framed(state, responses_signature::build_signature_help_response(req_id, signature_help_resolve::resolved_signature_label(sig), signature_help_resolve::resolved_signature_doc(sig), signature_help_resolve::resolved_signature_params(sig), active))
+    framing::append_framed(
+        state,
+        responses_signature::build_signature_help_response(
+            req_id,
+            signature_help_resolve::resolved_signature_label(sig),
+            signature_help_resolve::resolved_signature_doc(sig),
+            signature_help_resolve::resolved_signature_params(sig),
+            active
+        )
+    )
 }

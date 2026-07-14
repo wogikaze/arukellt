@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR value type to Wasm valtype mapping.
-
 use wasm::constants
 use mir::value_types
 

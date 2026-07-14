@@ -4,7 +4,7 @@ Created: 2026-06-15
 ID: 655
 Track: wasi-feature
 Parent: 077
-Depends on: 074, 137
+Depends on: 137
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none

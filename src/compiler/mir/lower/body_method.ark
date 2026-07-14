@@ -1,6 +1,4 @@
 use mir::lower::ast_node
-// Arukellt MIR lowering body - method call expressions
-
 use mir::lower::method
 
 fn lower_method_call_expr(ctx: LowerCtx, node: AstNode) -> i32 {

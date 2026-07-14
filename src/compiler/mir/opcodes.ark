@@ -1,5 +1,3 @@
-// Arukellt MIR - opcode constants and predicates.
-
 // Constant opcodes.
 fn MIR_CONST_I32() -> i32 { 1 }
 fn MIR_CONST_I64() -> i32 { 2 }

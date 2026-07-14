@@ -4,19 +4,17 @@ use parser::core_ast_literal_fields
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_literal_factory
-// Arukellt Parser - literal prefix expression parsing.
-
 use parser::core_api_expect
 use parser::fstring
 use parser::token_state
 
 fn is_literal_prefix(kind: i32) -> bool {
     kind == tokens::TK_INT()
-        || kind == tokens::TK_FLOAT()
-        || kind == tokens::TK_STRING()
-        || kind == tokens::TK_FSTRING()
-        || kind == tokens::TK_BOOL()
-        || kind == tokens::TK_CHAR()
+    || kind == tokens::TK_FLOAT()
+    || kind == tokens::TK_STRING()
+    || kind == tokens::TK_FSTRING()
+    || kind == tokens::TK_BOOL()
+    || kind == tokens::TK_CHAR()
 }
 
 fn parse_literal_prefix(p: Parser, t: Token) -> AstNode {

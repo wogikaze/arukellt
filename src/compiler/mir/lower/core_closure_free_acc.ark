@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR closure free-variable accumulator.
-
 fn core_closure_push_unique_cap(acc: Vec<String>, name: String) {
     let mut j = len(acc) - 1
     let mut dup = false

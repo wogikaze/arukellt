@@ -1,8 +1,6 @@
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - synthetic multi-clause match scrutinee construction.
-
 
 fn build_multiclause_scrutinee(param_names: Vec<String>, param_count: i32, fn_span: Span) -> AstNode {
     if param_count == 1 {

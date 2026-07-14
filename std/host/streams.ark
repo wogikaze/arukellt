@@ -3,8 +3,9 @@
 //! Stream handles are opaque i32 values obtained from WASI or host-linker.
 //! Read returns a Vec<i32> of byte values; write accepts the same.
 //!
-//! **Availability:** T3 (`wasm32-wasi-p2`) only via host-linker (#474).
-//! Importing on T1 emits E0500.
+//! **Availability:** `wasm32-gc` with host profile `wasi-p2` only via
+//! host-linker (#474). Importing on `wasm32` with host profile `wasi-p1`
+//! emits E0500.
 
 /// Reads up to `max_len` bytes from an input stream handle.
 pub fn read(stream: i32, max_len: i32) -> Result<Vec<i32>, String> {

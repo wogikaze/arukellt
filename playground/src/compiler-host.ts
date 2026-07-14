@@ -11,7 +11,7 @@ import {
   WasiExit,
 } from "./wasi/minimal-host.js";
 
-const DEFAULT_TARGET = "wasm32-freestanding";
+const DEFAULT_TARGET = "wasm32-gc";
 const DEFAULT_INPUT = "/work/main.ark";
 const DEFAULT_OUTPUT = "/work/out.wasm";
 const DEFAULT_TIMEOUT_MS = 60_000;

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block-id set helpers.
-
 use mir::dom_set_collect
 use mir::dom_set_intersect
 use mir::dom_set_mutate

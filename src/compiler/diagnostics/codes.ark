@@ -1,5 +1,3 @@
-// Arukellt Selfhost - diagnostic code table.
-
 fn DIAG_BACKEND_VALIDATE() -> String { String_from("E0400") }
 fn DIAG_COMPONENT_CANONICAL_ABI() -> String { String_from("E0401") }
 fn DIAG_COMPONENT_RESOURCE_UNSUPPORTED() -> String { String_from("E0402") }

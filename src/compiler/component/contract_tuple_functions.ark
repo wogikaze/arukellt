@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component tuple function predicates
 use component::contract_helpers
 use component::contract_tuple_types
 
@@ -11,11 +10,17 @@ fn component_return_type_is_tuple_i64_i64(f: ComponentExportFunc) -> bool {
 }
 
 fn component_fn_is_i32_i32_to_tuple_i32_i32(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i32")) && component_return_type_is_tuple_i32_i32(f)
+    contract_helpers::component_export_param_count_is(f, 2) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i32")) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i32")) &&
+    component_return_type_is_tuple_i32_i32(f)
 }
 
 fn component_fn_is_i64_i64_to_tuple_i64_i64(f: ComponentExportFunc) -> bool {
-    contract_helpers::component_export_param_count_is(f, 2) && eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i64")) && eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i64")) && component_return_type_is_tuple_i64_i64(f)
+    contract_helpers::component_export_param_count_is(f, 2) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 0), String_from("i64")) &&
+    eq(contract_helpers::component_export_param_type_name_at(f, 1), String_from("i64")) &&
+    component_return_type_is_tuple_i64_i64(f)
 }
 
 fn component_fn_is_tuple_i32_i32_to_i32(f: ComponentExportFunc) -> bool {

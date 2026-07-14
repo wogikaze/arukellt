@@ -3,8 +3,6 @@ use wasm::intrinsics::helpers_io_calls
 use wasm::intrinsics::helpers_io_memory
 use wasm::intrinsics::helpers_io_layout
 use wasm::constants
-// Arukellt Selfhost - Wasm intrinsic fd_write recipes.
-
 use wasm::intrinsics::helpers_io_iov
 
 fn emit_fd_write_call(w: WasmWriter, fd: i32) {

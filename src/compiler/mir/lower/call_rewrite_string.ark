@@ -2,7 +2,6 @@ use mir::lower::call_rewrite_method
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::value_types
-// Arukellt Selfhost - MIR call rewrite rules for to_string.
 
 struct MirStringCallRewrite {
     callee_name: String,
@@ -50,4 +49,3 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
     }
     mir_string_call_rewrite_new(rewritten, return_local)
 }
-

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR declaration annotation name predicates.
-
 use corehir::type_ann_node
 
 fn decl_ann_name(ann: AstNode) -> String {

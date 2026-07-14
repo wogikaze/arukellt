@@ -1,4 +1,3 @@
-// Arukellt Selfhost - CLI lint command implementation.
 use std::host::stdio
 use lint::registry
 use main::args_record

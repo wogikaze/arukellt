@@ -2,8 +2,6 @@ use parser::ast_kind_fields
 use parser::core_ast_literal_fields
 use parser::kinds
 use parser::core_ast_children
-// Arukellt Parser self-checks for issue 499 empty closure parsing.
-
 use lexer::scan
 use parser::core_api_token
 use parser::decl

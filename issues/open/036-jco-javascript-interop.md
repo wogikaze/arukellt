@@ -2,9 +2,9 @@
 Status: open
 Created: 2026-03-28
 Updated: 2026-04-13
-ID: 30
+ID: 036
 Track: component-model
-Depends on: 27
+Depends on: "27, 037"
 Orchestration class: partially-blocked
 Orchestration upstream: "#037 jco GC upstream"
 Blocks v{N}: none

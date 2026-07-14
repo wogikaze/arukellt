@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR return annotation index type names.
-
 use corehir::decl_ann_children
 use corehir::decl_ann_name
 use corehir::return_ann_shape
@@ -20,7 +18,12 @@ fn return_index_type_name(node: AstNode) -> String {
     if eq(clone(name), String_from("void")) || eq(clone(name), String_from("()")) {
         return String_from("")
     }
-    if eq(clone(name), String_from("i32")) || eq(clone(name), String_from("u32")) || eq(clone(name), String_from("u8")) || eq(clone(name), String_from("u16")) || eq(clone(name), String_from("i16")) || eq(clone(name), String_from("i8")) {
+    if eq(clone(name), String_from("i32")) ||
+    eq(clone(name), String_from("u32")) ||
+    eq(clone(name), String_from("u8")) ||
+    eq(clone(name), String_from("u16")) ||
+    eq(clone(name), String_from("i16")) ||
+    eq(clone(name), String_from("i8")) {
         return String_from("i32")
     }
     if eq(clone(name), String_from("bool")) {

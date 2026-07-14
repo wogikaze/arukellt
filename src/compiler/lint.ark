@@ -1,4 +1,3 @@
-// Arukellt lint namespace root.
 //
 // Lint rule registry and severity management live in lint/* sub-modules.
 use lint::checks

@@ -1,4 +1,3 @@
-// Arukellt Typechecker - trait method signature record.
 //
 // Stores (trait_name, method_name) -> FnSig mapping so that generic
 // functions with `<T: Trait>` bounds can resolve `x.method()` calls

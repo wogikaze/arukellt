@@ -1,5 +1,3 @@
-// Arukellt MIR lowering - AST node kind constants.
-
 // Atom node kinds.
 fn NK_INT_LIT() -> i32 { 1 }
 fn NK_FLOAT_LIT() -> i32 { 2 }

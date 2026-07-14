@@ -1,8 +1,8 @@
 /// Rope — large text editing buffer (Experimental).
-/// 
+///
 /// Stub implementation backed by a flat String.
 /// Provides O(n) insert/delete; a balanced tree implementation is planned.
-/// 
+///
 /// All APIs are Experimental and may change in v4+.
 /// Create a new empty Rope.
 pub fn rope_new() -> String {
@@ -85,7 +85,6 @@ pub fn rope_line_count(r: String) -> i32 {
     }
     count
 }
-// issue #715 in-file tests
 test mod "rope" {
     test "new" { assert(rope_len(rope_new()) == 0) }
     test "from" { assert(eq(rope_to_string(rope_from_string("hi")), "hi")) }

@@ -51,12 +51,12 @@ def rewrite_calls(text: str, call_map: dict[str, str]) -> str:
     """Rewrite bare function calls with module prefix.
 
     call_map: {func_name: "module_prefix"}
-    
+
     Handles edge cases: don't rewrite after '::' or 'fn ' or '.' or in comments.
     """
     # Sort by length descending to match longer names first
     items = sorted(call_map.items(), key=lambda x: -len(x[0]))
-    
+
     result = text
     for func_name, module_name in items:
         # Match func_name( but not ::func_name( or fn func_name( or .func_name(
@@ -70,14 +70,14 @@ def write_section_file(sname: str, mname: str, text: str, use_imports: list[str]
     """Build and write a section file with header, use imports, and content."""
     new_lines = text.split('\n')
     out_lines = []
-    
+
     # Header
     title = sname.replace('_', ' ').title()
     out_lines.append(f"// Arukellt Selfhost — MIR {title}")
     out_lines.append("//")
     out_lines.append("// Extracted from mir.ark for module-level organization.")
     out_lines.append("")
-    
+
     # Use imports (std::host)
     existing_uses = set()
     for l in new_lines:
@@ -87,7 +87,7 @@ def write_section_file(sname: str, mname: str, text: str, use_imports: list[str]
     for imp in use_imports:
         if imp not in existing_uses:
             out_lines.append(imp)
-    
+
     # Module use imports
     existing_module_uses = set()
     for l in new_lines:
@@ -97,11 +97,11 @@ def write_section_file(sname: str, mname: str, text: str, use_imports: list[str]
     for mod in sorted(needed_modules):
         if mod != mname and f"use {mod}" not in existing_module_uses:
             out_lines.append(f"use {mod}")
-    
+
     # Blank line after uses
     if len(out_lines) > 5:
         out_lines.append("")
-    
+
     # Add content, skipping original use std:: lines near the top
     for i, l in enumerate(new_lines):
         stripped = l.strip()
@@ -110,11 +110,11 @@ def write_section_file(sname: str, mname: str, text: str, use_imports: list[str]
         if stripped.startswith("use ") and not stripped.startswith("use std") and i < 10:
             continue  # Module use lines already added
         out_lines.append(l)
-    
+
     if is_dry_run:
         print(f"  Would write {mname}.ark ({len(out_lines)} lines)")
         return
-    
+
     write_path = Path("src/compiler") / f"{mname}.ark"
     write_path.write_text('\n'.join(out_lines))
     print(f"  Wrote {write_path.name} ({len(out_lines)} lines)")
@@ -122,61 +122,61 @@ def write_section_file(sname: str, mname: str, text: str, use_imports: list[str]
 
 def main():
     dry_run = "--dry-run" in sys.argv
-    
+
     lines = SRC.read_text().splitlines(keepends=False)
     total_lines = len(lines)
     print(f"mir.ark: {total_lines} lines total")
-    
+
     # Separate lines into sections
     sections_data = {}
     for sname, start, end, _, _ in SECTIONS:
         sections_data[sname] = lines[start:end]
-    
+
     # Get function names defined in each section
     section_fns = {}
     for sname, _, _, mname, _ in SECTIONS:
         section_fns[sname] = function_names_in_section(sections_data[sname])
         print(f"  {sname} ({mname}): {len(section_fns[sname])} functions")
-    
+
     # Build global function→module mapping
     func_to_module = {}
     for sname, _, _, mname, _ in SECTIONS:
         for fn in section_fns[sname]:
             func_to_module[fn] = mname
-    
+
     # For each section, identify calls to other-section functions
     all_fns = set(func_to_module.keys())
-    
+
     for sname, _, _, mname, use_imports in SECTIONS:
         text = '\n'.join(sections_data[sname])
         my_fns = section_fns[sname]
         other_fns = all_fns - my_fns
         calls = find_calls(text, other_fns)
-        
+
         # Build call map
         call_map = {}
         for fn in calls:
             call_map[fn] = func_to_module[fn]
-        
+
         # Determine needed module imports
         needed_modules = set(call_map.values())
         needed_modules.discard(mname)
-        
+
         if calls and not dry_run:
             # Rewrite calls
             rewritten = rewrite_calls(text, call_map)
         else:
             rewritten = text
-        
+
         if dry_run:
             if calls:
                 print(f"  {mname}: {len(calls)} cross-module calls to rewrite")
             else:
                 print(f"  {mname}: no cross-module calls → clean")
             continue
-        
+
         write_section_file(sname, mname, rewritten, use_imports, needed_modules, False, call_map)
-    
+
     if dry_run:
         print(f"\nDry-run complete. Run without --dry-run to write files.")
 

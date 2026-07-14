@@ -134,10 +134,10 @@ pub fn assert_msg(cond: bool, message: String) {
 
 // === bench-lite ===
 /// Run `f` exactly `iterations` times and write a timing summary to stderr.
-/// 
+///
 /// Outputs a line of the form:
 /// bench: <name>: total=<ns>ns iters=<n>
-/// 
+///
 /// Timing uses the monotonic clock intrinsic. Output goes to stderr so that
 /// fixture stdout remains deterministic.
 pub fn bench(name: String, iterations: i32, f: fn() -> ()) {

@@ -3,8 +3,6 @@ use mir::ssa_state_values
 use mir::block_phi_access
 use mir::function_locals_view
 use mir::local_access
-// Arukellt Selfhost - MIR SSA phi renaming.
-
 use mir::phi_access
 use mir::phi_mutation
 use mir::ssa_state_types

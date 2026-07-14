@@ -1,8 +1,8 @@
 {
-  "description": "Binary size baseline for hello.ark (wasm32-wasi-p2, GC-native)",
+  "description": "Binary size baseline for hello.ark (wasm32-gc, GC-native)",
   "generated_at": "2026-03-28",
   "fixture": "tests/fixtures/hello/hello.ark",
-  "target": "wasm32-wasi-p2",
+  "target": "wasm32-gc",
   "note": "Superseded by baselines.json for perf-gate regression checks",
   "thresholds": {
     "hello_wasm_max_bytes": 5120,

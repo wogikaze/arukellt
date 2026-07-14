@@ -1,7 +1,5 @@
-use lexer::tokens
-// Arukellt Lexer standalone self-check.
 use std::host::stdio
-
+use lexer::tokens
 use lexer::names
 use lexer::scan
 use lexer::token_state

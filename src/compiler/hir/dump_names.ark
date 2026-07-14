@@ -1,5 +1,3 @@
-// Arukellt HIR - dump tag names.
-
 use hir::dump_names_expr
 use hir::dump_names_stmt
 

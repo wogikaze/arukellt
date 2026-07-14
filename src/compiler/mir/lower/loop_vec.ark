@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR lowering helpers for Vec-backed loops.
-
 use mir::inst_call
 use mir::inst_local_get
 use mir::lower::loop_conditions

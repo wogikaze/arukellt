@@ -1,11 +1,8 @@
 use mir::function_emit_inst
-// Arukellt MIR lowering context - instruction and block emission.
-
 use mir::block_alloc
 use mir::block_factory
 use mir::function_block_mutation
 use mir::lower::ctx_current_storage
-
 use mir::lower::ctx_typed_mir_sync
 
 fn ctx_emit(ctx: LowerCtx, inst: MirInst) {

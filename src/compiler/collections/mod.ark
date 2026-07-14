@@ -1,5 +1,3 @@
-// Arukellt Selfhost - collections public boundary.
-
 use collections::vec_extend
 
 pub fn Vec_extend_i32(dst: Vec<i32>, src: Vec<i32>) {
@@ -33,4 +31,3 @@ pub fn Vec_extend_EnumInfo(dst: Vec<EnumInfo>, src: Vec<EnumInfo>) {
 pub fn Vec_extend_AstNode(dst: Vec<AstNode>, src: Vec<AstNode>) {
     vec_extend::Vec_extend_AstNode(dst, src)
 }
-

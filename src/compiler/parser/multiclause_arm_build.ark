@@ -1,8 +1,6 @@
 use parser::kinds
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - multi-clause match arm assembly.
-
 use parser::multiclause_arm_guard
 use parser::multiclause_arm_pattern
 

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - fs byte write GC path and path-open helper.
 // Extracted from intrinsic_fs_write_bytes.ark to reduce import fan-out.
 
 use wasm::constants

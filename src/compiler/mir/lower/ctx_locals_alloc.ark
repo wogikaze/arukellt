@@ -1,6 +1,4 @@
 use mir::function_local_alloc
-// Arukellt MIR lowering context - local allocation and lookup.
-
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_index_storage
 

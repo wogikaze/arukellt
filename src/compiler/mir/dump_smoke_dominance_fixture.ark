@@ -1,5 +1,3 @@
-// Arukellt Selfhost - shared dominance CFG fixture for MIR dump smoke tests.
-
 use mir::dump_smoke_dominance_fixture_build
 use mir::dump_smoke_dominance_fixture_record
 use mir::dump_smoke_dominance_string_interns

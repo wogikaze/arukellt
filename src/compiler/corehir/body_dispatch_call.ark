@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR call-like expression dispatch.
-
 use corehir::body_call
 use corehir::expr_node_predicates
 

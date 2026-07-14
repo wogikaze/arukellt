@@ -2,8 +2,6 @@ use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_factory
 use parser::core_ast_children
-// Arukellt Parser - while, loop, and for statements.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds

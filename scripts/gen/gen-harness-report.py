@@ -62,7 +62,7 @@ def parse_harness_report(content, baseline_file=None, text_output=False):
     if m:
         arukellt_bin = m.group(1).strip()
 
-    # Target filter: Target: wasm32-wasi-p2
+    # Target filter: Target: wasm32-gc
     m = re.search(r'^Target:\s*(\S+)', content, re.MULTILINE)
     if m:
         target = m.group(1).strip()
@@ -156,7 +156,7 @@ def format_text_report(report):
         lines.append(f"Target : {report['target']}")
     lines.append(f"Summary: PASS={s['pass']}  FAIL={s['fail']}  SKIP={s['skip']}"
                  f"  (scheduled={s['scheduled']}, total={s['total']})")
-    
+
     if report["failures"]:
         lines.append("\nFailures by kind:")
         for kind, count in sorted(report["failures_by_kind"].items()):
@@ -167,7 +167,7 @@ def format_text_report(report):
             lines.append(f"  [{f['kind']}] {f['path']}{msg}")
     else:
         lines.append("\nAll scheduled fixtures passed.")
-    
+
     if "baseline_comparison" in report:
         bc = report["baseline_comparison"]
         lines.append(f"\nRegression vs baseline ({bc['baseline_generated_at']}):")
@@ -176,7 +176,7 @@ def format_text_report(report):
             lines.append(f"  REGRESSED : [{r['kind']}] {r['path']}")
         for r in bc["recoveries"]:
             lines.append(f"  RECOVERED : [{r['kind']}] {r['path']}")
-    
+
     return "\n".join(lines)
 
 
@@ -200,9 +200,9 @@ def main():
         action="store_true",
         help="Output plain text report instead of JSON."
     )
-    
+
     args = parser.parse_args()
-    
+
     # Read input
     if args.input_file:
         with open(args.input_file) as f:
@@ -213,10 +213,10 @@ def main():
             parser.print_help()
             sys.exit(0)
         content = sys.stdin.read()
-    
+
     # Parse and generate report
     report = parse_harness_report(content, args.baseline, args.text)
-    
+
     # Output
     if args.text:
         print(format_text_report(report))

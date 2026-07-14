@@ -25,7 +25,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_COMPILER = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 DEFAULT_SOURCE = "src/compiler/main.ark"
-DEFAULT_TARGET = "wasm32-wasi-p1"
+DEFAULT_TARGET = "wasm32"
 PHASE_RE = re.compile(r"\[phase:(\w+)\]")
 
 

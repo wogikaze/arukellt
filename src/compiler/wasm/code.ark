@@ -1,12 +1,9 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm code section emission facade.
-
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::code_body
 use wasm::function_indices
 use wasm::ctx_record
-
 use mir::module_wit_imports
 
 fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, main_idx: i32, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
@@ -37,7 +34,17 @@ fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i3
     let wrapper_body = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(wrapper_body, 0)
     writer_core::emit_byte(wrapper_body, opcodes::OP_CALL())
-    writer_core::emit_leb128_u(wrapper_body, function_indices::defined_function_index(main_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    writer_core::emit_leb128_u(
+        wrapper_body,
+        function_indices::defined_function_index(
+            main_idx,
+            ctx_record::SelfEmitCtx_target(ctx),
+            ctx_record::SelfEmitCtx_wasi_version(ctx),
+            ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+            ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+            wit_import_count
+        )
+    )
     writer_core::emit_byte(wrapper_body, opcodes::OP_DROP())
     writer_core::emit_byte(wrapper_body, opcodes::OP_END())
     wrapper_body

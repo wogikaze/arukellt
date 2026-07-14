@@ -1,5 +1,3 @@
-// Arukellt Parser - AST span record.
-
 pub struct Span {
     start: i32,
     end: i32,

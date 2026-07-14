@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - decimal number token construction.
-
 
 fn finish_decimal_number(lex: Lexer, start: i32, val: i32, is_float: bool, suffix_len: i32) -> Token {
     let text = substring(lex.src, start, lex.pos)

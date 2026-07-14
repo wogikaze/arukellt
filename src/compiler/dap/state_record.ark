@@ -1,5 +1,3 @@
-// Arukellt Selfhost - DAP session state data record.
-
 struct DapState {
     initialized: bool,
     launched: bool,

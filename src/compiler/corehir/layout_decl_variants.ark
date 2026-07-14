@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout declaration variant projection.
-
 use corehir::layout_decl_record
 
 fn layout_decl_variant_count(decl: CoreHirLayoutDecl) -> i32 {

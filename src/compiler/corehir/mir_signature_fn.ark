@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR MIR signature projection for functions.
-
 use corehir::fn_info
 use corehir::mir_signature_source_record
 

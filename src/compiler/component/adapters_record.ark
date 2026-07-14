@@ -1,5 +1,3 @@
-// Arukellt Selfhost - record component adapter core module facade
-
 use component::adapter_body
 use component::adapter_memory
 use component::adapters_record_body

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - vec pop intrinsic handler.
 //
 // GC target delegated to intrinsic_vec_pop_gc.ark.
 

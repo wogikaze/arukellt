@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry CoreHIR body adapter.
-
 use corehir::body
 
 struct MirLowerEntryCoreBody {

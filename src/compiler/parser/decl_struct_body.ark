@@ -1,7 +1,4 @@
 use lexer::tokens
-
-// Arukellt Parser - struct declaration body syntax.
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::decl_struct_fields

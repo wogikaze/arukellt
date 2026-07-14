@@ -1,5 +1,3 @@
-// Arukellt Lexer - prefixed integer literals
-
 use lexer::number_binary
 use lexer::number_hex
 

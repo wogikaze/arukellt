@@ -1,8 +1,6 @@
-// Arukellt Selfhost - AST-based signature rendering for hover.
-
+use std::text
 use parser::ast
 use parser::kinds
-use std::text
 
 fn AT_NK_FN_DECL() -> i32 { kinds::NK_FN_DECL() }
 fn AT_NK_LET() -> i32 { kinds::NK_LET() }

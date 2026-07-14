@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR value opcode display names.
-
 use mir::opcodes
 
 fn mir_value_op_name(op: i32) -> String {

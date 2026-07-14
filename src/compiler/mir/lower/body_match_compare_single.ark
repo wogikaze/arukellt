@@ -3,8 +3,6 @@ use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_local_alloc
 use mir::lower_kinds
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - single-pattern match comparison prefix.
-
 use mir::inst_structured_control
 use mir::inst_local_get
 use mir::inst_op

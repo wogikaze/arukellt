@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm i32 comparison helper recipes.
-
 use wasm::writer_core
 
 fn emit_i32_eq(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQ()) }

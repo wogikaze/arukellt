@@ -1,14 +1,12 @@
 use lexer::tokens
-// Arukellt Parser - atomic prefix expression parsing.
-
 use parser::core_types
 use parser::expr_prefix
 use parser::token_state
 
 pub fn is_atom_prefix(kind: i32) -> bool {
     kind == tokens::TK_IDENT()
-        || kind == tokens::TK_LPAREN()
-        || kind == tokens::TK_LBRACKET()
+    || kind == tokens::TK_LPAREN()
+    || kind == tokens::TK_LBRACKET()
 }
 
 pub fn parse_atom_prefix(p: Parser, t: Token) -> AstNode {

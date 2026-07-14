@@ -91,7 +91,7 @@ def main() -> int:
         check_path = f"{rel}/main.ark"
         check_args = ["check", check_path]
         if template == "wasi-host":
-            check_args.extend(["--target", "wasm32-wasi-p2"])
+            check_args.extend(["--target", "wasm32-gc"])
         r_check = _run(compiler, root, check_args)
         if r_check.returncode != 0:
             print(f"FAIL check after {template}: {(r_check.stdout + r_check.stderr)[:300]!r}",

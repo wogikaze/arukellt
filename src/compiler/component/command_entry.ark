@@ -1,5 +1,3 @@
-// Arukellt Selfhost - detect CLI command entry (main/_start) for P2 component worlds.
-
 use mir::function_identity
 use mir::module_functions
 

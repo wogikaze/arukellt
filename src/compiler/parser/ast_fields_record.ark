@@ -1,5 +1,3 @@
-// Arukellt Parser - AST scalar field accessors.
-
 use parser::ast_node_record
 use parser::ast_span_record
 

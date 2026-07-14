@@ -1,5 +1,3 @@
-// Arukellt LSP - extract top-level symbols from parsed declarations.
-
 use lsp::kinds
 use lsp::symbol_index_record
 use parser::ast
@@ -92,7 +90,10 @@ fn push_decl_symbol(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, n
             }
         }
     }
-    push(out, symbol_index_record::IndexedSymbol_new(uri, name, kinds::lsp_kind_for_nk(node_kind(node), is_method), node_decl_name_span_start(node), node_decl_name_span_end(node), detail, String_new()))
+    push(
+        out,
+        symbol_index_record::IndexedSymbol_new(uri, name, kinds::lsp_kind_for_nk(node_kind(node), is_method), node_decl_name_span_start(node), node_decl_name_span_end(node), detail, String_new())
+    )
 }
 
 fn push_impl_methods(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, node: AstNode) {

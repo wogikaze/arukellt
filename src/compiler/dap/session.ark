@@ -1,5 +1,3 @@
-// Arukellt Selfhost - DAP session loop.
-
 use dap::framing
 use dap::handlers
 use dap::state

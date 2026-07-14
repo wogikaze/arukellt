@@ -1,5 +1,3 @@
-// Arukellt Parser - control-flow statement facade.
-
 use parser::stmt_loop
 use parser::stmt_transfer
 

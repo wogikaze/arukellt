@@ -1,12 +1,9 @@
-// Arukellt LSP - document formatting responses (#216).
-
+use std::text
 use fmt
 use lsp::json_escape
 use lsp::json_fields
 use lsp::positions
 use lsp::source_text
-use std::text
-
 
 fn extract_section_line(body: String, section: String) -> i32 {
     let marker = concat(section, String_from("\"line\""))

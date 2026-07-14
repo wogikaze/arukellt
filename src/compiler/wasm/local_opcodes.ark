@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm local opcode facade.
-
 use wasm::opcodes
 
 fn WASM_OP_LOCAL_GET() -> i32 { opcodes::OP_LOCAL_GET() }

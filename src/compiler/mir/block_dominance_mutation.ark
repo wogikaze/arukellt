@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block dominance mutation API.
-
 use mir::types_block
 
 fn MirBlock_set_idom(block: MirBlock, idom: i32) {

@@ -1,7 +1,5 @@
 use mir::lower::closure_capture_args
 use mir::lower::closure_registry
-// Arukellt Selfhost - MIR lowering for CoreHIR closure expressions.
-
 use mir::lower::core_closure_emit
 use mir::lower::core_closure_free
 

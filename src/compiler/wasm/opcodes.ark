@@ -1,5 +1,3 @@
-// Arukellt Wasm - opcode and section ID constants.
-
 // GC prefix byte and sub-opcodes (0xfb + sub).
 fn GC_PREFIX() -> i32 { 251 }
 fn GC_STRUCT_NEW() -> i32 { 0 }

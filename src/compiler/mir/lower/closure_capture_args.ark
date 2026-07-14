@@ -1,5 +1,3 @@
-// Arukellt Selfhost - closure capture argument emission.
-
 use mir::lower::closure_capture_args_pack
 use mir::lower::closure_capture_args_segment
 

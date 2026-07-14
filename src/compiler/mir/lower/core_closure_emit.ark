@@ -2,8 +2,6 @@ use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_types
 use mir::function_return_mutation
 use mir::function_factory
-// Arukellt Selfhost - CoreHIR closure synthetic function emission facade.
-
 use mir::lower::core_closure_emit_capture
 use mir::lower::core_closure_emit_params
 use mir::lower::core_closure_emit_return

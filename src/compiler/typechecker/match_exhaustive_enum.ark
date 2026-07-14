@@ -1,5 +1,3 @@
-// Arukellt Typechecker - enum match exhaustiveness diagnostics
-
 use typechecker::contract_enum_info
 use typechecker::contract_type_access
 use typechecker::match_exhaustive_covered
@@ -30,7 +28,7 @@ fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, 
         let vname = contract_enum_info::EnumInfo_variant_at(edef, v)
         if !match_exhaustive_covered::is_variant_covered(coverage, vname) {
             unify::type_error(env, concat(String_from("non-exhaustive match: missing "),
-                concat(clone(enum_name), concat(String_from("::"), clone(vname)))))
+                    concat(clone(enum_name), concat(String_from("::"), clone(vname)))))
         }
         v = v + 1
     }

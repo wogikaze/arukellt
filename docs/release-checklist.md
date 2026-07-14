@@ -28,10 +28,11 @@ not individual checks.
 - [ ] **CI `check_cli_init`** — `python3 scripts/check/check-init-templates.py` (job: `verification`)
 - [ ] **CI `check_cli_doc`** — `python3 scripts/check/check-manifest-doc.py` (job: `verification`)
 - [ ] **CI `check_cli_help`** — `python3 scripts/check/check-cli-guarantees.py help` (job: `verification`)
-- [ ] **CI `check_close_gate_076`** [FAIL] — `python3 scripts/check/check-false-done-close-gates.py` (job: `verification`)
+- [ ] **CI `check_close_gate_076`** — `python3 scripts/check/check-false-done-close-gates.py` (job: `verification`)
+- [ ] **CI `check_t3_wasm_validate`** [FAIL] — `python3 scripts/check/check-t3-wasm-validate.py` (job: `verification`)
 - [ ] **CI `check_selfhost_fixpoint`** [FAIL] — `python3 scripts/manager.py selfhost fixpoint --build` (job: `verification`)
 - [ ] **CI `check_selfhost_cli_parity`** [FAIL] — `python3 scripts/manager.py selfhost parity --mode --cli` (job: `verification`)
-- [ ] **CI `check_selfhost_diag_parity`** — `python3 scripts/manager.py selfhost diag-parity` (job: `verification`)
+- [ ] **CI `check_selfhost_diag_parity`** [FAIL] — `python3 scripts/manager.py selfhost diag-parity` (job: `verification`)
 - [ ] **CI `check_wat_roundtrip`** [FAIL] — `bash scripts/run/wat-roundtrip.sh` (job: `verification`)
 - [ ] **CI `check_component_interop_wasmtime`** [FAIL] — `python3 scripts/manager.py verify component-interop` (job: `verification`)
 <!-- END GENERATED:release-blockers -->

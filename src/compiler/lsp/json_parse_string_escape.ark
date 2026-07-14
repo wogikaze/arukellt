@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LSP JSON string escape decoding.
-
 use lsp::json_parse_string_unicode
 
 fn json_escape_char(s: String, pos: i32) -> String {

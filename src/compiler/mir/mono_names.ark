@@ -1,4 +1,3 @@
-// Arukellt Selfhost - monomorphization name normalization
 use std::text
 
 fn mono_safe_name(name: String) -> String {

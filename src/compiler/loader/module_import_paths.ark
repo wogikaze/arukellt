@@ -1,5 +1,3 @@
-// Arukellt Selfhost - import path extraction from parsed module declarations.
-
 use resolver::ast_access
 use resolver::ast_decl_predicates
 

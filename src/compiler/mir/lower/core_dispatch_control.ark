@@ -2,8 +2,6 @@ use corehir::expr_predicates
 use corehir::kinds
 use mir::lower::core_expr_shape_control_transfer
 use mir::lower::core_expr_shape_control_loop
-// Arukellt Selfhost - CoreHIR control-flow lowering dispatch.
-
 use mir::lower::core_control
 use mir::lower::core_expr_shape_calls
 use mir::lower::core_for

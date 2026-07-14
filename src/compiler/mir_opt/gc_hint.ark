@@ -1,5 +1,3 @@
-// Arukellt Selfhost - GC hint pass facade.
-
 use mir::types
 use mir_opt::gc_hint_core
 use mir_opt::summary_record

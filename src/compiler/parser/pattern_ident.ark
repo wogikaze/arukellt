@@ -2,8 +2,6 @@ use lexer::tokens
 use parser::core_ast_children
 use parser::core_ast_text_fields
 use parser::core_ast_factory
-// Arukellt Parser - identifier and enum variant patterns
-
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds

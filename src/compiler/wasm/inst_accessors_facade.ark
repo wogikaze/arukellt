@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Mir inst accessors facade bundling operands/shape/literals.
-
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals

@@ -1,6 +1,4 @@
 use wasm::opcodes
-// Arukellt Selfhost - Wasm intrinsic block/loop helper recipes.
-
 use wasm::writer_core
 
 fn emit_block_loop_header(w: WasmWriter) {

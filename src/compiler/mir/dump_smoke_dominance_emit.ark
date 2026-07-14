@@ -1,5 +1,3 @@
-// Arukellt Selfhost - dominance smoke fixture instruction emission.
-
 use mir::function_emit_inst
 use mir::inst_factory
 use mir::inst_op

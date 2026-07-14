@@ -1,4 +1,3 @@
-// Arukellt Selfhost - CoreHIR match payload field bind emission.
 // Extracted from core_match_payload_bind_core.ark to reduce import fan-out.
 
 use mir::lower::ctx_api_emit
@@ -52,7 +51,18 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
         return
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))
-    ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_idx(scrut_idx, clone(variant_name), ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), bi + 1), bi + 1, ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name)), field_vt, bind_local))
+    ctx_api_emit::ctx_emit(
+        ctx,
+        inst_struct_get::MirInst_struct_get_field_idx(
+            scrut_idx,
+            clone(variant_name),
+            ctx_struct_layout::ctx_struct_field_offset(ctx, clone(variant_name), bi + 1),
+            bi + 1,
+            ctx_struct_layout::ctx_struct_byte_size(ctx, clone(variant_name)),
+            field_vt,
+            bind_local
+        )
+    )
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(bind_local))
 }
 
@@ -64,7 +74,13 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
     let mut eff_vt = effective_vt
     if bi == 0 {
         let bind_type_name = emit_payload_field_bind_gc_resolve_type(ctx, clone(variant_name), bi, bind_local)
-        if starts_with(clone(bind_type_name), String_from("vec:")) || starts_with(clone(bind_type_name), String_from("Vec")) || starts_with(clone(bind_type_name), String_from("enum:")) || starts_with(clone(bind_type_name), String_from("result:")) || starts_with(clone(bind_type_name), String_from("option:")) || eq(clone(bind_type_name), String_from("string")) || eq(clone(bind_type_name), String_from("String")) {
+        if starts_with(clone(bind_type_name), String_from("vec:")) ||
+        starts_with(clone(bind_type_name), String_from("Vec")) ||
+        starts_with(clone(bind_type_name), String_from("enum:")) ||
+        starts_with(clone(bind_type_name), String_from("result:")) ||
+        starts_with(clone(bind_type_name), String_from("option:")) ||
+        eq(clone(bind_type_name), String_from("string")) ||
+        eq(clone(bind_type_name), String_from("String")) {
             eff_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
@@ -76,7 +92,10 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
         }
     }
     let bind_ty_for_slot = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-    if eff_vt == value_types::VT_GC_REF() && type_slot >= 0 && !starts_with(clone(bind_ty_for_slot), String_from("enum:")) && core_match_payload_bind_types::payload_bind_needs_variant_slot(clone(bind_ty_for_slot), clone(variant_name)) {
+    if eff_vt == value_types::VT_GC_REF() &&
+    type_slot >= 0 &&
+    !starts_with(clone(bind_ty_for_slot), String_from("enum:")) &&
+    core_match_payload_bind_types::payload_bind_needs_variant_slot(clone(bind_ty_for_slot), clone(variant_name)) {
         ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
     }
     ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))

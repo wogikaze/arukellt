@@ -1,4 +1,3 @@
-// Arukellt Selfhost - T1 scalar expansion helper functions.
 // v128 is 4 consecutive i32 locals: [base, base+1, base+2, base+3]
 
 use wasm::opcodes

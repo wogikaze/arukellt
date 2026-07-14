@@ -1,5 +1,3 @@
-// Arukellt Selfhost - stdin read intrinsic handlers.
-
 use wasm::emit_target
 use wasm::intrinsic_stdio_read_buffer
 use wasm::intrinsic_stdio_read_gc
@@ -12,11 +10,7 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         intrinsic_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)
     } else {
-        if emit_target::is_freestanding_target(ctx_record::SelfEmitCtx_target(ctx)) {
-            emit_t2_read_stdin_string(w)
-        } else {
-            emit_wasi_read_stdin_string(w)
-        }
+        emit_wasi_read_stdin_string(w)
     }
     return true
 }
@@ -42,21 +36,6 @@ fn emit_wasi_read_stdin_string(w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
     helpers_core::emit_call(w, 4)
     helpers_core::emit_drop(w)
-    intrinsic_stdio_read_buffer::emit_advance_stdin_buffer_or_break(w)
-    helpers_control::emit_br(w, 0)
-    helpers_control::emit_end(w)
-    helpers_control::emit_end(w)
-    emit_finish_stdin_string_buffer(w)
-}
-
-fn emit_t2_read_stdin_string(w: WasmWriter) {
-    intrinsic_stdio_read_buffer::emit_begin_stdin_string_buffer(w)
-    helpers_control::emit_block_loop_header(w)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
-    helpers_core::emit_heap_get(w)
-    helpers_numeric_i32::emit_i32_const(w, constants::FS_BUF_SIZE())
-    helpers_core::emit_call(w, constants::T2_IMPORT_READ())
-    helpers_memory::emit_i32_store_default(w)
     intrinsic_stdio_read_buffer::emit_advance_stdin_buffer_or_break(w)
     helpers_control::emit_br(w, 0)
     helpers_control::emit_end(w)

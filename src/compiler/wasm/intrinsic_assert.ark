@@ -1,8 +1,6 @@
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_compare
-// Arukellt Selfhost - assert intrinsic handlers.
-
 use mir::inst_accessors_operands
 use wasm::ctx_record
 use wasm::ctx_scratch

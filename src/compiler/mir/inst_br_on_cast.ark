@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR br_on_cast / br_on_cast_fail instruction constructors.
 //
 // Arguments:
 //   arg0: GC type index to cast the scrutinee to (variant subtype index)

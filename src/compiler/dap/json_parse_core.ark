@@ -1,9 +1,7 @@
-// Arukellt Selfhost - DAP JSON low-level parsing helpers.
 //
 // Delegates to std::json (issue #704). The local DapStrResult struct is
 // retained for API compatibility with existing DAP callers.
 use std::json
-
 use dap::json_parse_int
 use dap::json_parse_key
 use dap::json_parse_ws

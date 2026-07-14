@@ -1,4 +1,3 @@
-// Arukellt Selfhost - GC vec push intrinsic handler.
 //
 // GC target: Vec<T> = (struct (field (mut (ref null (array (mut i32))))
 //                              (field (mut i32)))
@@ -14,8 +13,8 @@ use wasm::ctx_gc_type_locals
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
-use mir::opcodes as mir_opcodes
 use mir::inst_accessors_literals
+use mir::opcodes as mir_opcodes
 
 fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -84,7 +83,12 @@ fn push_gc_element_is_gc_ref(ctx: SelfEmitCtx, inst: MirInst, is_vec_string: boo
 }
 
 fn push_gc_primitive_vec_elem(elem: String) -> bool {
-    eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("f32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))
+    eq(clone(elem), String_from("i32")) ||
+    eq(clone(elem), String_from("i64")) ||
+    eq(clone(elem), String_from("f64")) ||
+    eq(clone(elem), String_from("f32")) ||
+    eq(clone(elem), String_from("bool")) ||
+    eq(clone(elem), String_from("char"))
 }
 
 // Array scratch locals must match the vec's element array type.
@@ -116,7 +120,19 @@ fn emit_gc_push_setup(w: WasmWriter, s_val: i32, s_vec: i32, vec_type: i32, arr_
     helpers_core::emit_local_set(w, arr_tmp)
 }
 
-fn emit_gc_push_store_finish(w: WasmWriter, ctx: SelfEmitCtx, arr_tmp: i32, s_len: i32, s_val: i32, i32_array_type: i32, vec_local: i32, vec_type: i32, is_void_push: bool, next_op: i32, element_is_gc_ref: bool) {
+fn emit_gc_push_store_finish(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    arr_tmp: i32,
+    s_len: i32,
+    s_val: i32,
+    i32_array_type: i32,
+    vec_local: i32,
+    vec_type: i32,
+    is_void_push: bool,
+    next_op: i32,
+    element_is_gc_ref: bool
+) {
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_get(w, s_len)
     helpers_core::emit_local_get(w, s_val)

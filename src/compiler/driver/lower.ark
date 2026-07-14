@@ -1,12 +1,8 @@
-// Arukellt Selfhost - driver namespace: lower
-
 use compiler::session
 use corehir::export_surface
 use corehir::raw_record
 use driver::checked_program
 use driver::config_record
-
-// Arukellt Selfhost - driver CoreHIR to MIR lowering phase.
 
 fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
     let emit_mode = config_record::config_emit_mode(config)

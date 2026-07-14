@@ -39,5 +39,4 @@ fn emit_f64_bits_hi(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, 0)
     return true
 }
-// Arukellt Selfhost - f64 bit intrinsic handlers
 // Handler for: f64_bits_lo

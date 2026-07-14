@@ -1,5 +1,3 @@
-// Arukellt Selfhost - main namespace: compile_core
-
 use std::host::stdio
 use std::host::fs
 use std::host::process
@@ -12,8 +10,6 @@ use driver::result_record
 use main::output
 use driver::file
 use diagnostics::mod as diag_mod
-
-// Arukellt Selfhost - CLI compile DriverConfig builders
 
 pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
     let config = config_record::DriverConfig_default()
@@ -52,8 +48,6 @@ pub fn build_command_config(opts: CliOptions) -> DriverConfig {
     config
 }
 
-// Arukellt Selfhost - CLI compile dump phase matching
-
 fn should_dump(opts: CliOptions, phase: String) -> bool {
     if len(args_record::cli_dump_phases(opts)) == 0 {
         return false
@@ -78,8 +72,6 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
     false
 }
 
-// Arukellt Selfhost - CLI compile error reporting
-
 fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mode: bool) {
     if json_mode {
         stdio::println(output::format_error_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_diagnostics(result)))
@@ -103,8 +95,6 @@ fn print_compile_diagnostics(input_file: String, result: CompileResult, json_mod
     }
 }
 
-// Arukellt Selfhost - CLI compile output file writing
-
 fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool {
     let write_result = fs::write_bytes(clone(path), bytes)
     match write_result {
@@ -120,8 +110,6 @@ fn write_compile_output(path: String, bytes: Vec<i32>, json_mode: bool) -> bool 
         },
     }
 }
-
-// Arukellt Selfhost - CLI compile output path helpers
 
 fn stem_from_input(path: String) -> String {
     let n = len(clone(path))
@@ -156,8 +144,6 @@ fn component_path_for_all(opts: CliOptions) -> String {
     concat(stem_from_input(args_record::cli_input_file(opts)), String_from(".component.wasm"))
 }
 
-// Arukellt Selfhost - CLI single compile/check/parse implementation.
-
 pub fn cmd_compile_single(opts: CliOptions) {
     if !validate_wit_paths(opts) {
         process::exit(1)
@@ -182,8 +168,6 @@ pub fn cmd_compile_single(opts: CliOptions) {
     handle_single_compile_success(opts, clone(input_file), result, json_mode)
 }
 
-// Arukellt Selfhost - CLI single compile success handling.
-
 fn print_compile_success(input_file: String, result: CompileResult, json_mode: bool) {
     if json_mode {
         stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(result), result_record::compile_result_output_byte_count(result)))
@@ -204,8 +188,6 @@ fn handle_single_compile_success(opts: CliOptions, input_file: String, result: C
         stdio::println(concat(String_from("ok: "), concat(to_string(result_record::compile_result_output_byte_count(result)), String_from(" bytes"))))
     }
 }
-
-// Arukellt Selfhost - CLI compile WIT input validation
 
 fn validate_wit_paths(opts: CliOptions) -> bool {
     let mut i = 0

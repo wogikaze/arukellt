@@ -1,5 +1,3 @@
-// Arukellt Selfhost - fuzzy symbol matching for manifest doc (#456).
-
 use main::manifest_doc_record
 
 fn doc_qualified_name(module: String, name: String) -> String {

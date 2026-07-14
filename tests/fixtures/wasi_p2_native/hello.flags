@@ -1,1 +1,1 @@
---target wasm32-wasi-p2 --wasi-version p2 --emit component
+--target wasm32-gc --wasi-version p2 --emit component

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - flat overlay entry for MIR optimization.
-
 use mir::types
 use mir_opt::orchestrate
 

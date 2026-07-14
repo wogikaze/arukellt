@@ -1,5 +1,3 @@
-// Arukellt Selfhost - short-lived struct GC hint annotation.
-
 use mir::block_inst_access
 use mir::block_inst_mutation
 use mir::function_block_mutation

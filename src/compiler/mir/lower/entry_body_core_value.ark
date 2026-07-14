@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR entry body CoreHIR value lowering.
-
 use mir::lower::core_body
 use mir::lower::entry_core_body
 

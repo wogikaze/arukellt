@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR control expression dispatch.
-
 use corehir::body_assign
 use corehir::body_closure
 use corehir::body_control

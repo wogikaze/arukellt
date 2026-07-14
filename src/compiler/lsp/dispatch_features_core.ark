@@ -1,5 +1,3 @@
-// Arukellt LSP - core language feature dispatch.
-
 use lsp::feature_code_action
 use lsp::feature_completion
 use lsp::feature_formatting

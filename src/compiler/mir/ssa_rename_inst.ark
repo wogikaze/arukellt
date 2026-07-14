@@ -3,8 +3,6 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_mutation
 use mir::ssa_state_slots
 use mir::opcodes
-// Arukellt Selfhost - MIR SSA instruction use/def policy.
-
 use mir::value_types
 use mir::ssa_state_types
 

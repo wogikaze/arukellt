@@ -1,4 +1,3 @@
-// Arukellt Selfhost - compile session CoreHIR queries.
 //
 // The single query route for building, validating, and lowering the CoreHIR
 // program. Both the driver pipeline and LSP analysis go through these

@@ -4,8 +4,6 @@ use mir::lower::binary_type_names
 use mir::lower::binary_emit
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR overloaded binary MIR lowering.
-
 use mir::lower::core_expr_shape_accessors
 
 fn try_lower_overloaded_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, mir_op: i32, l_idx: i32) -> i32 {

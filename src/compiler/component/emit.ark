@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component emission entrypoint.
-
 use component::component_base
 use component::export_plan
 use component::export_sections

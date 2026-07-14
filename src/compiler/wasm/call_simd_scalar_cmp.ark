@@ -1,5 +1,3 @@
-// Arukellt Selfhost - T1 scalar expansion: comparison/min/max/shift/all_true/bitmask/saturating.
-
 use wasm::call_simd_scalar_ops
 use wasm::opcodes
 use wasm::writer_core

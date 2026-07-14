@@ -13,7 +13,8 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 COMPILER_WASM="${ARUKELLT_PINNED_WASM:-$REPO_ROOT/bootstrap/arukellt-selfhost.wasm}"
-TARGET="wasm32-wasi-p1"
+TARGET="wasm32"
+WASI_VERSION="wasi-p1"
 OUT_DIR="$REPO_ROOT/.ark-opt-equiv-tmp"
 MANIFEST="$REPO_ROOT/tests/fixtures/manifest.txt"
 HOSTED_RUN="$REPO_ROOT/scripts/run/arukellt-run-hosted.sh"
@@ -155,7 +156,7 @@ compile_fixture() {
     timeout "$COMPILE_TIMEOUT" "$WASMTIME_BIN" run \
         --dir "$REPO_ROOT" \
         "$COMPILER_WASM" -- \
-        compile "$src_rel" --target "$TARGET" --opt-level "$opt_level" -o "$out_rel"
+        compile "$src_rel" --target "$TARGET" --wasi-version "$WASI_VERSION" --opt-level "$opt_level" -o "$out_rel"
 }
 
 run_wasm() {

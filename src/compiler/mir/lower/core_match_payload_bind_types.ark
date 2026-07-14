@@ -237,7 +237,10 @@ fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("enum:")) || starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("enum:")) ||
+    starts_with(clone(type_name), String_from("struct:")) {
         return true
     }
     false

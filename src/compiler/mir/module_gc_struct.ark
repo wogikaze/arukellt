@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR module GC struct metadata accessors.
-
 use mir::module_record
 
 fn MirModule_gc_struct_sig_count(m: MirModule) -> i32 {

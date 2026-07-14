@@ -1,4 +1,3 @@
-// Arukellt Selfhost - string ASCII case non-GC setup/finish helpers.
 // Extracted from intrinsic_string_case.ark
 
 use wasm::intrinsics::helpers_core

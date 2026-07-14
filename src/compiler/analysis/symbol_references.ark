@@ -1,5 +1,3 @@
-// Arukellt Selfhost - semantic symbol references from resolver (#338).
-
 use compiler::session_parse
 use compiler::session_resolve_query
 use resolver::ref_record

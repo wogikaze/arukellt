@@ -1,5 +1,3 @@
-// Arukellt Selfhost - general multi-export f32 component wrapper emission.
-
 use component::adapters_f32_general
 use component::component_base
 use component::constants_sections_linkage

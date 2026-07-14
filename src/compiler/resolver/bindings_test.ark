@@ -1,4 +1,3 @@
-// Arukellt Resolver - `test` declaration binding rules (ADR-041).
 //
 // Test declarations resolve their body block in a fresh child scope that
 // inherits the enclosing file scope (non-pub items visible). Test names are

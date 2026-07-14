@@ -1,5 +1,3 @@
-// Arukellt Parser - core AST/token/parser data contracts.
-
 use parser::ast
 use parser::token_record
 use parser::state_record

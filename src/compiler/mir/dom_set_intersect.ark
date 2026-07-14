@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block-id set intersection helpers.
-
 use mir::dom_set_query
 
 fn mir_intersect_block_id_sets(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {

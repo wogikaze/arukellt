@@ -1,5 +1,3 @@
-// Arukellt Parser - public expectation and error facade.
-
 use parser::expect
 
 fn consume_closing_gt(p: Parser) { expect::consume_closing_gt(p) }

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR access expression dispatch.
-
 use corehir::body_access
 use corehir::expr_node_predicates
 

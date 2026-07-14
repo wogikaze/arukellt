@@ -1,12 +1,9 @@
-// Arukellt Selfhost - MIR lowering for f64 higher-order sequence helpers.
-
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::hof_loop
 use mir::lower::hof_loop_steps
 use mir::lower::hof_results
 use mir::value_types
-
 use mir::inst_local_set
 
 fn mir_lower_hof_f64(ctx: LowerCtx, hof_f64_fn_name: String, hof_f64_vec_local: i32, hof_f64_init_idx: i32, is_map_f64_f64: bool, is_filter_f64: bool, is_fold_f64_f64: bool) -> i32 {

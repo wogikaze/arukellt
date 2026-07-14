@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Lexer - identifier and f-string lexing
-
 use lexer::char_class
 use lexer::keywords
 

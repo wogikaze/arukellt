@@ -1,5 +1,3 @@
-// Arukellt Parser - function clause signature header.
-
 use lexer::tokens
 use parser::core_ast_text_fields
 use parser::core_ast_span_fields

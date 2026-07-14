@@ -1,9 +1,7 @@
+use std::text
 use typechecker::kinds
-// Arukellt Typechecker - monomorphization type keys.
-
 use typechecker::contract_type_access
 use typechecker::names
-use std::text
 
 fn mono_type_key(ty: TypeInfo) -> String {
     let tag = contract_type_access::TypeInfo_tag(ty)

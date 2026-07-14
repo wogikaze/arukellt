@@ -1,5 +1,3 @@
-// Arukellt Selfhost - PR-4-wide-audit: registry vs legacy VT observation (emit unchanged).
-
 use mir::legacy_vt_compat
 use wasm::ctx_record
 use wasm::registry_return_guard
@@ -38,7 +36,16 @@ fn registry_audit_print_summary(ctx: SelfEmitCtx) {
     if c <= 0 {
         return
     }
-    let line = concat(String_from("reg-vt-audit: summary candidates="), concat(i32_to_string(c), concat(String_from(" matched="), concat(i32_to_string(ctx_record::SelfEmitCtx_registry_audit_matched(ctx)), concat(String_from(" mismatched="), i32_to_string(ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx)))))))
+    let line = concat(
+        String_from("reg-vt-audit: summary candidates="),
+        concat(
+            i32_to_string(c),
+            concat(
+                String_from(" matched="),
+                concat(i32_to_string(ctx_record::SelfEmitCtx_registry_audit_matched(ctx)), concat(String_from(" mismatched="), i32_to_string(ctx_record::SelfEmitCtx_registry_audit_mismatched(ctx))))
+            )
+        )
+    )
     stdio::eprintln(line)
 }
 
@@ -57,7 +64,6 @@ fn registry_audit_candidate_count(ctx: SelfEmitCtx) -> i32 {
 // ---- emit switch (merged from registry_return_switch) ----
 //
 // Wired only from PR-4-switch. PR-4-wide-audit keeps emit on legacy path.
-
 
 fn registry_switch_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
     if registry_return_resolve::registry_should_use_matched_path(ctx, inst, callee, fn_legacy_vt) {

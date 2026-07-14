@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 semantic type identifier.
-
 struct TypeId {
     raw: i32,
 }

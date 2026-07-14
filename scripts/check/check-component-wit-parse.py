@@ -117,7 +117,7 @@ def _try_emit_wit(
         "compile",
         fixture_rel,
         "--target",
-        "wasm32-wasi-p2",
+        "wasm32-gc",
         "--emit",
         "wit",
         "-o",

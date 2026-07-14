@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR type-fact source over MIR-facing program views.
-
 struct CoreHirMirTypeSource {
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,

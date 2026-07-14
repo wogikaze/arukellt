@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR aggregate lowering dispatch.
-
 use mir::lower::core_access
 use mir::lower::core_assign
 use mir::lower::core_collections

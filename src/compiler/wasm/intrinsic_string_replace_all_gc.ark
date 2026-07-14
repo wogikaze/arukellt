@@ -1,4 +1,3 @@
-// Arukellt Selfhost - string replace GC-target handler.
 // Extracted from intrinsic_string_replace_all.ark
 
 use wasm::ctx_scratch
@@ -114,7 +113,21 @@ fn emit_replace_gc_count_loop(w: WasmWriter, g_src: i32, g_pat: i32, s_src_len: 
     helpers_control::emit_end(w)
 }
 
-fn emit_replace_gc_copy_loop(w: WasmWriter, g_src: i32, g_pat: i32, g_rep: i32, g_result: i32, s_src_len: i32, s_pat_len: i32, s_rep_len: i32, s_pos: i32, s_dst: i32, s_matched: i32, s_j: i32, string_type: i32) {
+fn emit_replace_gc_copy_loop(
+    w: WasmWriter,
+    g_src: i32,
+    g_pat: i32,
+    g_rep: i32,
+    g_result: i32,
+    s_src_len: i32,
+    s_pat_len: i32,
+    s_rep_len: i32,
+    s_pos: i32,
+    s_dst: i32,
+    s_matched: i32,
+    s_j: i32,
+    string_type: i32
+) {
     helpers_control::emit_block_loop_header(w)
     // if s_pos + s_pat_len > s_src_len: break (copy remaining suffix)
     helpers_core::emit_local_get(w, s_pos)

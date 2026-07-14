@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm Binary Emitter: comparison instruction handlers.
-
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::value_types

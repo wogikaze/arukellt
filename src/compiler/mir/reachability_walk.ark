@@ -1,8 +1,6 @@
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::block_inst_access
-// Arukellt Selfhost - MIR reachability call graph walk
-
 use mir::opcodes
 use mir::function_block_queries
 use mir::reachability_names

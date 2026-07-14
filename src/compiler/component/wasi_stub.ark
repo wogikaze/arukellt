@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WASI Preview 1 stub core module encoding
-
 use component::sections
 use component::writer_core
 

@@ -5,8 +5,6 @@ use mir::lower::binary_cast
 use mir::lower::binary_emit
 use mir::opcodes
 use mir::lower::ctx_types
-// Arukellt Selfhost - CoreHIR binary expression MIR lowering.
-
 use mir::lower::core_binary_overload
 use mir::lower::core_binary_short_circuit
 use mir::lower::core_expr_shape_accessors

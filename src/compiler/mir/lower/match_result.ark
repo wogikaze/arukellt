@@ -1,8 +1,6 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt Selfhost - MIR match result storage helpers.
-
 use mir::inst_local_set
 use mir::value_types
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dump smoke expectation facade
-
 use mir::dump_expect_dominance
 use mir::dump_expect_local
 use mir::dump_expect_phi

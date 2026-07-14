@@ -1,7 +1,5 @@
 use corehir::expr_builder_control_block
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR branch expression builder.
-
 use corehir::body_control_children
 use corehir::expr_node_access
 

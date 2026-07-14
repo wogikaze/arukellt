@@ -1,8 +1,6 @@
 use mir::block_phi_access
 use mir::block_pred_access
 use mir::function_emit_phi
-// Arukellt Selfhost - MIR SSA simple join phi insertion.
-
 use mir::block_dominance_access
 use mir::function_block_queries
 use mir::function_local_queries

@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Vec contains intrinsic handlers
 // Extracted from emit_intrinsic_vec_collection.ark
 // GC target: full scan implementation (issue #716)
 

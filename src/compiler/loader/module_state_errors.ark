@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module loading error state.
-
 fn LoadState_error_count(state: LoadState) -> i32 {
     len(state.errors)
 }

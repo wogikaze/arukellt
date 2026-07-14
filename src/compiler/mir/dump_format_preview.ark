@@ -1,10 +1,8 @@
+use std::host::stdio
+use std::text
 use mir::block_phi_access
 use mir::function_locals_view
 use mir::local_access
-// Arukellt Selfhost - MIR dump phi elimination preview formatting
-
-use std::host::stdio
-use std::text
 use mir::dump_format_local
 use mir::dump_format_phi
 use mir::function_block_queries

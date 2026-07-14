@@ -8,35 +8,45 @@ Workflow: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
 
 | Job | Command | Purpose |
 |-----|---------|---------|
-| `quality-format` | `python3 scripts/manager.py fmt --check` and editorconfig basics | Stage A format |
+| `quality-format` | `python3 scripts/manager.py fmt --check` | Canonical Ark format |
 | `quality-lint` | `python3 scripts/manager.py lint` | Correctness lint / smoke |
-| `verification` | `python3 scripts/manager.py verify` | Existing harness (includes quick quality checks) |
+| `verify-quick` | `python3 scripts/manager.py verify quick` | PR-required quick verification |
+| `verification` | `python3 scripts/manager.py verify` | Existing harness (includes `quality quick`) |
 | `selfhost` | selfhost fixpoint / parity | Compiler bootstrap |
 | `docs` | docs consistency | Docs hard gates |
 | `verify` | aggregator | Needs the above |
 
 Local and CI must call the same `manager.py` implementations.
+EditorConfig, generated-output, SSOT, and boundary policy is reached through
+`quality quick` / `quality structure`; workflow YAML does not copy those checks.
 
-## Recommended GitHub ruleset (manual)
+## GitHub ruleset contract
 
-Require status checks before merge to `master`:
+The `master` ruleset must require these status checks before merge:
 
 1. `quality-format`
 2. `quality-lint`
-3. `verify` (aggregator) or `verification`
+3. `verify-quick`
+4. `Final gate` (aggregator)
 
-Configure via repository Settings → Rules → Rulesets, or:
+The canonical API payload is
+[`master-quality.json`](../../.github/rulesets/master-quality.json). Audit or
+configure through repository Settings → Rules → Rulesets, or the GitHub API.
+The status contexts must exactly match the Actions job names.
 
 ```bash
-# Example only — requires admin; adjust check names to match Actions.
-gh api repos/{owner}/{repo}/rulesets --method POST --input ruleset.json
+# Requires repository administration permission.
+gh api repos/wogikaze/arukellt/rulesets \
+  --method POST \
+  --input .github/rulesets/master-quality.json
 ```
 
-If the operator lacks admin rights, leave this as an open ops task on issue
-# 790 and treat in-repo job presence as the CQ-11 acceptance bar.
+In-repo job presence is not evidence that the ruleset is active. Record the API
+readback (ruleset id, enforcement state, target branch, required contexts) when
+closing issue #790. Lack of admin permission leaves CQ-11 incomplete.
 
 ## CODEOWNERS
 
-Path ownership candidates live in
-[`docs/process/codeowners-plan.md`](codeowners-plan.md). Do not commit an empty
-`CODEOWNERS` file.
+`.github/CODEOWNERS` assigns `src/compiler/`, `std/`, `docs/data/`, and
+`scripts/gen/` to `@wogikaze`. Ruleset review requirements should use this
+file rather than duplicating path ownership in workflow conditions.

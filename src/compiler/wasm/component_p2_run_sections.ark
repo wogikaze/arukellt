@@ -1,5 +1,3 @@
-// Arukellt Selfhost - wasi:cli/run wrapper section emitters for P2 command components.
-
 use wasm::component_p2_run_tail
 use wasm::writer_core
 use wasm::writer_string

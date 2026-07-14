@@ -1,5 +1,3 @@
-// Arukellt Resolver - lexical scope DTO record.
-
 use resolver::symbol_record
 
 struct Scope {

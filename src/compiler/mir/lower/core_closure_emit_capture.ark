@@ -7,8 +7,6 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
-// Arukellt Selfhost - CoreHIR closure capture parameter emission.
-
 use mir::value_types
 
 fn core_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {
@@ -45,7 +43,13 @@ fn core_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
         if cli >= 0 {
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
             let cap_type = core_closure_lookup_capture_type(ctx, cli)
-            if starts_with(clone(cap_type), String_from("struct:")) || eq(clone(cap_type), String_from("String")) || eq(clone(cap_type), String_from("string")) || starts_with(clone(cap_type), String_from("enum:")) || starts_with(clone(cap_type), String_from("vec:")) || starts_with(clone(cap_type), String_from("Option_")) || starts_with(clone(cap_type), String_from("Result_")) {
+            if starts_with(clone(cap_type), String_from("struct:")) ||
+            eq(clone(cap_type), String_from("String")) ||
+            eq(clone(cap_type), String_from("string")) ||
+            starts_with(clone(cap_type), String_from("enum:")) ||
+            starts_with(clone(cap_type), String_from("vec:")) ||
+            starts_with(clone(cap_type), String_from("Option_")) ||
+            starts_with(clone(cap_type), String_from("Result_")) {
                 pvt = value_types::VT_GC_REF()
             }
         }

@@ -4,8 +4,6 @@ use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_gc_enum_sig
-// Arukellt Selfhost - MIR lowering enum and variant layout registration.
-
 use corehir::layout_decl_name
 use corehir::layout_decl_variants
 use corehir::layout_variant

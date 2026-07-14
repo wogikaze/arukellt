@@ -1,5 +1,3 @@
-// Arukellt LSP - session lifecycle state data record.
-
 use lsp::state_docs
 use lsp::symbol_index_record
 

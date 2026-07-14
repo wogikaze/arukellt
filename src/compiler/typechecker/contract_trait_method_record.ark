@@ -1,5 +1,3 @@
-// Arukellt Typechecker - trait method entry contract API.
-
 use typechecker::trait_method_record
 
 fn TraitMethodEntry_new(trait_name: String, method_name: String, sig: FnSig) -> TraitMethodEntry {

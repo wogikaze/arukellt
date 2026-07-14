@@ -1,4 +1,3 @@
-// Arukellt Selfhost - monomorphized parameter type substitution (#707).
 //
 // After mono type params are set up, re-substitute type-variable param
 // locals with the concrete monomorphized type.

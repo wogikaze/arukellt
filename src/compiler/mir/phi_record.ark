@@ -1,6 +1,4 @@
 use mir::opcodes
-// Arukellt Selfhost - MIR phi data record.
-
 
 pub struct MirPhiArg {
     pred_block: i32,

@@ -1,5 +1,3 @@
-// Arukellt Selfhost — T4 native scaffold emitter (#641).
-
 fn string_to_bytes(text: String) -> Vec<i32> {
     let out = Vec_new_i32()
     let text_len = len(text)

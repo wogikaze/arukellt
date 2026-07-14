@@ -1,5 +1,5 @@
-// Arukellt LSP - semantic references and document highlights (#338).
-
+use std::host::fs
+use std::text
 use analysis::symbol_references
 use analysis::symbols
 use lsp::feature_request
@@ -8,8 +8,6 @@ use lsp::responses_navigation
 use lsp::state_record
 use lsp::symbol_index_lookup
 use lsp::symbol_index_paths
-use std::host::fs
-use std::text
 
 fn read_uri_text(uri: String) -> String {
     let path = symbol_index_paths::uri_to_file_path(uri)

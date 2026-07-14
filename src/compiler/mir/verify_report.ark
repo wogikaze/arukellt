@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR verifier warning report (aggregate counts).
-
 struct MirVerifyReport {
     w001: i32,
     w002: i32,
@@ -66,7 +64,22 @@ fn mir_verify_report_print_summary(report: MirVerifyReport) {
         return
     }
     // Split concat depth: deep nesting breaks selfhost wasm emission (s2 load).
-    let head = concat(String_from("mir-verify: W001="), concat(i32_to_string(report.w001), concat(String_from(" W002="), concat(i32_to_string(report.w002), concat(String_from(" W003="), concat(i32_to_string(report.w003), concat(String_from(" W004="), concat(i32_to_string(report.w004), concat(String_from(" W005="), i32_to_string(report.w005))))))))))
+    let head = concat(
+        String_from("mir-verify: W001="),
+        concat(
+            i32_to_string(report.w001),
+            concat(
+                String_from(" W002="),
+                concat(
+                    i32_to_string(report.w002),
+                    concat(
+                        String_from(" W003="),
+                        concat(i32_to_string(report.w003), concat(String_from(" W004="), concat(i32_to_string(report.w004), concat(String_from(" W005="), i32_to_string(report.w005)))))
+                    )
+                )
+            )
+        )
+    )
     let tail = concat(String_from(" W006="), concat(i32_to_string(report.w006), concat(String_from(" W007="), i32_to_string(report.w007))))
     stdio::eprintln(concat(head, tail))
 }

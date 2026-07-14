@@ -1,5 +1,3 @@
-// Arukellt Selfhost - component record/variant declaration shape predicates.
-
 use component::type_node
 use component::wit_decl
 
@@ -9,8 +7,12 @@ fn component_decl_is_point_shape(d: AstNode) -> bool {
         if wit_decl::wit_decl_member_count(decl) == 2 {
             let f0 = wit_decl::wit_decl_member_at(decl, 0)
             let f1 = wit_decl::wit_decl_member_at(decl, 1)
-            if eq(wit_decl::wit_decl_member_name(f0), String_from("x")) && eq(wit_decl::wit_decl_member_name(f1), String_from("y")) && wit_decl::wit_decl_member_has_type(f0) && wit_decl::wit_decl_member_has_type(f1) {
-                if type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f0), String_from("i32")) && type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f1), String_from("i32")) {
+            if eq(wit_decl::wit_decl_member_name(f0), String_from("x")) &&
+            eq(wit_decl::wit_decl_member_name(f1), String_from("y")) &&
+            wit_decl::wit_decl_member_has_type(f0) &&
+            wit_decl::wit_decl_member_has_type(f1) {
+                if type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f0), String_from("i32")) &&
+                type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(f1), String_from("i32")) {
                     return true
                 }
             }
@@ -26,7 +28,12 @@ fn component_decl_is_color_shape(d: AstNode) -> bool {
             let v0 = wit_decl::wit_decl_member_at(decl, 0)
             let v1 = wit_decl::wit_decl_member_at(decl, 1)
             let v2 = wit_decl::wit_decl_member_at(decl, 2)
-            if eq(wit_decl::wit_decl_member_name(v0), String_from("Red")) && eq(wit_decl::wit_decl_member_name(v1), String_from("Green")) && eq(wit_decl::wit_decl_member_name(v2), String_from("Blue")) && wit_decl::wit_decl_member_type_count(v0) == 0 && wit_decl::wit_decl_member_type_count(v1) == 0 && wit_decl::wit_decl_member_type_count(v2) == 0 {
+            if eq(wit_decl::wit_decl_member_name(v0), String_from("Red")) &&
+            eq(wit_decl::wit_decl_member_name(v1), String_from("Green")) &&
+            eq(wit_decl::wit_decl_member_name(v2), String_from("Blue")) &&
+            wit_decl::wit_decl_member_type_count(v0) == 0 &&
+            wit_decl::wit_decl_member_type_count(v1) == 0 &&
+            wit_decl::wit_decl_member_type_count(v2) == 0 {
                 return true
             }
         }
@@ -40,8 +47,12 @@ fn component_decl_is_shape_variant(d: AstNode) -> bool {
         if wit_decl::wit_decl_member_count(decl) == 2 {
             let v0 = wit_decl::wit_decl_member_at(decl, 0)
             let v1 = wit_decl::wit_decl_member_at(decl, 1)
-            if eq(wit_decl::wit_decl_member_name(v0), String_from("Circle")) && eq(wit_decl::wit_decl_member_name(v1), String_from("Square")) && wit_decl::wit_decl_member_type_count(v0) == 1 && wit_decl::wit_decl_member_type_count(v1) == 1 {
-                if type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(v0), String_from("f64")) && type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(v1), String_from("f64")) {
+            if eq(wit_decl::wit_decl_member_name(v0), String_from("Circle")) &&
+            eq(wit_decl::wit_decl_member_name(v1), String_from("Square")) &&
+            wit_decl::wit_decl_member_type_count(v0) == 1 &&
+            wit_decl::wit_decl_member_type_count(v1) == 1 {
+                if type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(v0), String_from("f64")) &&
+                type_node::type_node_is_named(wit_decl::wit_decl_member_type_view(v1), String_from("f64")) {
                     return true
                 }
             }

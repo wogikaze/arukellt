@@ -1,5 +1,3 @@
-// Arukellt Selfhost - extended string intrinsic handler facade
-
 use wasm::intrinsic_string_affix
 use wasm::intrinsic_string_contains
 use wasm::intrinsic_string_reverse

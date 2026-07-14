@@ -37,7 +37,7 @@ if out_path.exists():
     out_path.unlink()
 cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
        "--dir", f"{overlay}::.", str(s3_runtime), "--",
-       "compile", "src/compiler/main.ark", "--target", "wasm32-wasi-p1",
+       "compile", "src/compiler/main.ark", "--target", "wasm32", "--wasi-version", "wasi-p1",
        "-o", out_name]
 r = subprocess.run(cmd, cwd=str(overlay), capture_output=True, text=True, timeout=180)
 if out_path.exists() and out_path.stat().st_size > 0:

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR raw program body views.
-
 use corehir::raw_record
 
 fn program_body_table(program: CoreHirRawProgram) -> CoreHirBodyTable {

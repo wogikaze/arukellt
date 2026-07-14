@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm Component section IDs.
 fn COMP_CANON_LIFT() -> i32 {
     0
 }

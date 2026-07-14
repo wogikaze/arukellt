@@ -1,5 +1,3 @@
-// Arukellt Typechecker - enum signature contract.
-
 struct EnumInfo {
     name: String,
     variant_names: Vec<String>,

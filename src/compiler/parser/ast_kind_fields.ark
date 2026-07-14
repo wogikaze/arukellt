@@ -1,5 +1,3 @@
-// Arukellt Parser - public AST kind field API.
-
 use parser::ast_fields_record
 
 fn AstNode_kind(node: AstNode) -> i32 { ast_fields_record::ast_node_kind(node) }

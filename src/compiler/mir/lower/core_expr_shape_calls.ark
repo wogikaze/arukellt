@@ -1,6 +1,4 @@
 use corehir::kinds
-// Arukellt Selfhost - MIR lowering CoreHIR call and match shape predicates.
-
 use corehir::expr_predicates
 
 fn mir_core_expr_is_call(expr: CoreHirExpr) -> bool {

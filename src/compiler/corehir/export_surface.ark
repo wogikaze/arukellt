@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR component export surface DTO.
-
 struct CoreHirExportSurface {
     export_names: Vec<String>,
 }

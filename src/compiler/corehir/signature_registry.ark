@@ -1,5 +1,3 @@
-// Arukellt Selfhost - ADR-040 central function signature registry.
-
 use corehir::kinds
 use corehir::mir_value_type
 use corehir::signature_entry
@@ -52,7 +50,18 @@ fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) 
     if raw >= 0 && raw < len(registry.entries) {
         return get_unchecked(registry.entries, raw)
     }
-    signature_entry::SignatureEntry_new(FUNCTION_ID_INVALID(), String_new(), Vec_new_MirValueType(), Vec_new_MirValueType(), false, mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0), 0 - 1, 0 - 1, 0 - 1, kinds::ABI_KIND_NORMAL())
+    signature_entry::SignatureEntry_new(
+        FUNCTION_ID_INVALID(),
+        String_new(),
+        Vec_new_MirValueType(),
+        Vec_new_MirValueType(),
+        false,
+        mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0),
+        0 - 1,
+        0 - 1,
+        0 - 1,
+        kinds::ABI_KIND_NORMAL()
+    )
 }
 
 fn signature_registry_host_intrinsic_count(registry: SignatureRegistry) -> i32 {

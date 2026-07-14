@@ -1,9 +1,5 @@
-// Arukellt Selfhost - main namespace: output
-
 use diagnostics::record
 use main::output_json
-
-// Arukellt Selfhost - CLI output formatting
 
 pub fn phase_error_tag(phase: i32) -> String {
     if phase == 1 {

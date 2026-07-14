@@ -1,5 +1,3 @@
-// Arukellt Lexer - decimal integer literal scanning.
-
 use lexer::char_class
 
 fn scan_decimal_integer(lex: Lexer) -> i32 {

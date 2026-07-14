@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering impl method index prepass.
-
 use mir::lower::fn_index_mono
 use mir::lower::fn_index_method_return_type
 use mir::lower::fn_index_source
@@ -7,7 +5,16 @@ use mir::mono
 use mir::type_contracts
 use mir::value_types
 
-fn mir_index_impl_methods(fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>, impl_decl_index: i32, struct_name: String, fn_index: i32, source: MirLowerFnIndexSource, midx: MonoIndex) -> i32 {
+fn mir_index_impl_methods(
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    impl_decl_index: i32,
+    struct_name: String,
+    fn_index: i32,
+    source: MirLowerFnIndexSource,
+    midx: MonoIndex
+) -> i32 {
     let mut next_fn_index = fn_index
     let method_count = fn_index_source::mir_fn_index_source_method_count_for_impl(source, impl_decl_index)
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)

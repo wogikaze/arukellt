@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering public facade.
-
 use mir::lower::entry
 
 fn lower_to_mir(input: MirLowerInput) -> MirModule {

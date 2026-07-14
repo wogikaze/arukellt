@@ -5,8 +5,6 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
-// Arukellt MIR lowering - infer closure return type from body result local.
-
 use mir::value_types
 
 fn mir_set_closure_return_from_local(ctx: LowerCtx, f: MirFunction, res_idx: i32) {
@@ -31,7 +29,13 @@ fn mir_set_closure_return_from_local(ctx: LowerCtx, f: MirFunction, res_idx: i32
             ret_type = String_from("String")
         }
     }
-    if starts_with(clone(ret_type), String_from("struct:")) || eq(clone(ret_type), String_from("String")) || eq(clone(ret_type), String_from("string")) || starts_with(clone(ret_type), String_from("enum:")) || starts_with(clone(ret_type), String_from("vec:")) || starts_with(clone(ret_type), String_from("Option_")) || starts_with(clone(ret_type), String_from("Result_")) {
+    if starts_with(clone(ret_type), String_from("struct:")) ||
+    eq(clone(ret_type), String_from("String")) ||
+    eq(clone(ret_type), String_from("string")) ||
+    starts_with(clone(ret_type), String_from("enum:")) ||
+    starts_with(clone(ret_type), String_from("vec:")) ||
+    starts_with(clone(ret_type), String_from("Option_")) ||
+    starts_with(clone(ret_type), String_from("Result_")) {
         ret_vt = value_types::VT_GC_REF()
     }
     function_return_mutation::MirFunction_set_return_type(f, ret_vt)

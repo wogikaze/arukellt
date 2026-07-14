@@ -5,8 +5,6 @@ use mir::lower::hof_call_classify
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
-// Arukellt MIR lowering body - higher-order function calls
-
 use mir::inst_local_set
 use mir::lower::hof
 
@@ -37,13 +35,38 @@ fn try_lower_hof_call(ctx: LowerCtx, node: AstNode, callee: AstNode, child_count
         hof_init_idx = lower_expr(ctx, hof_init_child)
     }
     if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_I64()) {
-        return hof::mir_lower_hof_i64(ctx, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+        return hof::mir_lower_hof_i64(
+            ctx,
+            hof_fn_name,
+            hof_vec_local,
+            hof_init_idx,
+            hof_call_plan::mir_hof_call_plan_is_map(hof_plan),
+            hof_call_plan::mir_hof_call_plan_is_filter(hof_plan),
+            hof_call_plan::mir_hof_call_plan_is_fold(hof_plan)
+        )
     }
     if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_I32()) {
-        return hof::mir_lower_hof_i32(ctx, hof_callee_text, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+        return hof::mir_lower_hof_i32(
+            ctx,
+            hof_callee_text,
+            hof_fn_name,
+            hof_vec_local,
+            hof_init_idx,
+            hof_call_plan::mir_hof_call_plan_is_map(hof_plan),
+            hof_call_plan::mir_hof_call_plan_is_filter(hof_plan),
+            hof_call_plan::mir_hof_call_plan_is_fold(hof_plan)
+        )
     }
     if hof_call_plan::mir_hof_call_plan_is_kind(hof_plan, lower_kinds::MIR_HOF_KIND_F64()) {
-        return hof::mir_lower_hof_f64(ctx, hof_fn_name, hof_vec_local, hof_init_idx, hof_call_plan::mir_hof_call_plan_is_map(hof_plan), hof_call_plan::mir_hof_call_plan_is_filter(hof_plan), hof_call_plan::mir_hof_call_plan_is_fold(hof_plan))
+        return hof::mir_lower_hof_f64(
+            ctx,
+            hof_fn_name,
+            hof_vec_local,
+            hof_init_idx,
+            hof_call_plan::mir_hof_call_plan_is_map(hof_plan),
+            hof_call_plan::mir_hof_call_plan_is_filter(hof_plan),
+            hof_call_plan::mir_hof_call_plan_is_fold(hof_plan)
+        )
     }
     0 - 1
 }

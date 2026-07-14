@@ -1,4 +1,3 @@
-// Arukellt diagnostics namespace root.
 //
 // Diagnostic data/API helpers live in diagnostics_api_* modules. This root
 // anchors diagnostics::source_map_* helpers.

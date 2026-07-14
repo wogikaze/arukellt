@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR layout variant helpers.
-
 struct CoreHirLayoutVariant {
     name: String,
     payload_type_names: Vec<String>,

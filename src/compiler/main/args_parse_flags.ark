@@ -1,4 +1,3 @@
-// Arukellt Selfhost - CLI boolean flag parsing.
 use main::args_record
 use main::commands
 

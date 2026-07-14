@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR view consumed by MIR lowering.
-
 use corehir::mir_decl_source
 use corehir::mir_body_source
 use corehir::mir_layout_source

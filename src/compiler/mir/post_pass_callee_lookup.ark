@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 Phase 5e Step 1: callee return type lookup.
 //
 // Extracted from post_pass_type_propagate.ark to reduce import fan-out.
 

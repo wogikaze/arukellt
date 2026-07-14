@@ -2,7 +2,7 @@
 name = "Arukellt"
 version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-07-11"
+updated = "2026-07-15"
 verification_command = "python3 scripts/manager.py verify quick"
 current_state_doc = "docs/current-state.md"
 
@@ -41,7 +41,9 @@ support_tier = "supported"
 implementation_state = "complete"
 contract_stability = "stable"
 run_supported = true
-role = "Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1)"
+default_host_profile = "wasi-p1"
+role = "Supported: AtCoder / linear-memory competition path"
+display = "WebAssembly linear-memory target (WASI P1)"
 
 [[target_profiles]]
 id = "wasm32-gc"
@@ -49,7 +51,9 @@ support_tier = "primary"
 implementation_state = "partial"
 contract_stability = "stable"
 run_supported = true
+default_host_profile = "wasi-p2"
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
+display = "WebAssembly GC target (WASI P2, default)"
 
 [[target_profiles]]
 id = "native-cpp"
@@ -58,6 +62,7 @@ implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
 role = "Scaffold C99 emit path"
+display = "Native C++ backend scaffold"
 
 [[target_profiles]]
 id = "native-llvm"
@@ -66,6 +71,76 @@ implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
 role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
+display = "Native LLVM backend scaffold"
+
+# User input spellings are canonicalized once at the CLI/config boundary. These
+# entries are the only product-contract owner for deprecated aliases and rejected
+# legacy target names. Compiler and extension views are generated from this table.
+[[target_aliases]]
+input = "wasm32-wasi-p1"
+canonical_target = "wasm32"
+host_profile = "wasi-p1"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32 --wasi-version wasi-p1"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm32-wasi"
+canonical_target = "wasm32"
+host_profile = "wasi-p1"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32 --wasi-version wasi-p1"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm32-wasi-p2"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p2"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p2"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm-gc"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p2"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p2"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm-gc-wasi-p2"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p2"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p2"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm32-wasi-p3"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p3"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p3"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "native"
+policy = "error"
+replacement = "use --target native-cpp or --target native-llvm"
+compatibility_status = "rejected-ambiguous"
+
+[[target_aliases]]
+input = "wasm32-freestanding"
+policy = "error"
+replacement = "choose a canonical target; freestanding is not supported"
+compatibility_status = "rejected"
 
 [[legacy_gaps]]
 id = "wasm32-freestanding"
@@ -104,28 +179,28 @@ contract_stability = "experimental"
 role = "Future WASI Preview 3 host profile on wasm32-gc; not a separate language target"
 
 [verification]
-last_verified_at = "2026-07-11"
+last_verified_at = "2026-07-15"
 # Commit separation — each axis has its own commit to avoid conflating
 # documentation edits with implementation verification:
 #   implementation_commit — the code commit that was verified
 #   documentation_commit  — the last commit that edited this SSOT
 #   fixture_snapshot_commit — the commit where the fixture harness was last run
-implementation_commit = "a80b4181"
-documentation_commit = "b68fc393"
-fixture_snapshot_commit = "89eb5eb4"
+implementation_commit = "2cd10f16"
+documentation_commit = "148c1184"
+fixture_snapshot_commit = "2cd10f16"
 # Legacy field kept for backward compat — same as implementation_commit
-source_commit = "a80b4181"
-fixture_passed = 796
+source_commit = "2cd10f16"
+fixture_passed = 804
 fixture_skipped = 417
 fixture_failures = 367
-fixture_manifest_count = 2691
+fixture_manifest_count = 2693
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
-fixture_harness_observed = 1580
-fixture_not_in_last_harness_snapshot = 1111
-fixture_accounting_note = "796+367+417=1580 outcomes from the 2026-07-11 selfhost fixture-parity run; 2691 is tests/fixtures/manifest.txt registry size. The 1111 remainder were not part of that run (not proof they fail)."
-checks_passed = 175
-checks_total = 176
+fixture_harness_observed = 1588
+fixture_not_in_last_harness_snapshot = 1105
+fixture_accounting_note = "804+367+417=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 2cd10f16; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail)."
+checks_passed = 165
+checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
 # Release blockers are owned by docs/data/release-guarantees.toml (the check
@@ -134,9 +209,9 @@ unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.
 # copies. The generated current-state.md pulls blocker rows from the catalogue.
 #
 # Blocker check IDs (for reference; canonical data is in release-guarantees.toml):
-#   check_fixture_harness, check_close_gate_076, check_wat_roundtrip,
+#   check_fixture_harness, check_t3_wasm_validate, check_wat_roundtrip,
 #   check_component_interop_wasmtime, check_selfhost_cli_parity,
-#   check_selfhost_fixpoint
+#   check_selfhost_diag_parity, check_selfhost_fixpoint
 
 [contract_audit]
 component_emit_tier = "smoke"

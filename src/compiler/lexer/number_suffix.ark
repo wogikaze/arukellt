@@ -1,5 +1,3 @@
-// Arukellt Lexer - numeric literal type suffixes
-
 use lexer::char_class
 
 fn try_eat_type_suffix(lex: Lexer) -> i32 {

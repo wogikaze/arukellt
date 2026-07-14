@@ -1,7 +1,5 @@
 use lexer::tokens
 use parser::core_ast_children
-// Arukellt Parser - call suffix arguments
-
 
 fn parse_call_args(p: Parser, node: AstNode) {
     let mut first = true

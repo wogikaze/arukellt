@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm Binary Emitter constant instruction facade.
 //
 // Extracted from emitter.ark for module-level organization and indentation control.
 // Handles MIR_CONST_I32/I64/F64/STRING opcode emission.

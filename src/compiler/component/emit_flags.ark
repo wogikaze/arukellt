@@ -1,5 +1,3 @@
-// Arukellt Selfhost - WIT flags component wrappers (#651).
-
 use component::component_base
 use component::constants_sections_linkage
 use component::export_sections

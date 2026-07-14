@@ -1,5 +1,3 @@
-// Arukellt Selfhost - LICM hoistability predicates.
-
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::opcodes

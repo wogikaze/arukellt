@@ -1,5 +1,3 @@
-// Arukellt Selfhost - diagnostics public boundary.
-
 use diagnostics::format
 use diagnostics::json
 use diagnostics::record

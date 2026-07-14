@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-03-28
 Updated: 2026-04-15
-ID: 54
+ID: 066
 Track: wasm-feature
 Depends on: —
 Orchestration class: implementation-ready

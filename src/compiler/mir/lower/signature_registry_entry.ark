@@ -1,5 +1,3 @@
-// Arukellt Selfhost - signature registry entry construction (fn/method params, returns).
-
 use corehir::kinds
 use corehir::function_id
 use corehir::mir_signature_fn
@@ -12,7 +10,18 @@ use corehir::param
 use corehir::type_info_to_mir_value
 use mir::lower::fn_index_source
 
-fn sig_reg_register_fn(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, fn_info_index: i32, typed_index: i32, mangled: String, impl_id: i32, mono_id: i32, abi: i32) {
+fn sig_reg_register_fn(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    source: MirLowerFnIndexSource,
+    sig_source: CoreHirMirSignatureSource,
+    fn_info_index: i32,
+    typed_index: i32,
+    mangled: String,
+    impl_id: i32,
+    mono_id: i32,
+    abi: i32
+) {
     let params = sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
     let return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
@@ -21,7 +30,15 @@ fn sig_reg_register_fn(table: TypeTable, registry: SignatureRegistry, source: Mi
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 
-fn sig_reg_register_method(table: TypeTable, registry: SignatureRegistry, source: MirLowerFnIndexSource, sig_source: CoreHirMirSignatureSource, method_info_index: i32, mangled: String, impl_decl_index: i32) {
+fn sig_reg_register_method(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    source: MirLowerFnIndexSource,
+    sig_source: CoreHirMirSignatureSource,
+    method_info_index: i32,
+    mangled: String,
+    impl_decl_index: i32
+) {
     let params = sig_reg_params_from_method_info(sig_source, method_info_index, table)
     let returns = Vec_new_MirValueType()
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, String_from(""))

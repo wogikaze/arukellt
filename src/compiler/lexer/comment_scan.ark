@@ -1,5 +1,3 @@
-// Arukellt Lexer - comment scanning.
-
 use lexer::char_skip
 
 fn skip_comment_if_present(lex: Lexer, c: i32) -> bool {

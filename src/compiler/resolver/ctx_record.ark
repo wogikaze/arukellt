@@ -1,5 +1,3 @@
-// Arukellt Resolver - resolver context DTO record.
-
 use resolver::ref_index
 use resolver::scope_record
 
@@ -11,13 +9,26 @@ struct ResolveCtx {
     diagnostics: Vec<Diagnostic>,
     next_decl_index: i32,
     target: String,
+    host_profile: String,
     ref_index: RefIndex,
     use_alias_shorts: Vec<String>,
     use_alias_targets: Vec<String>,
 }
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
-    ResolveCtx { scopes: Vec_new_Scope(), current_depth: 0, error_count: 0, errors: Vec_new_String(), diagnostics: Vec_new_Diagnostic(), next_decl_index: 0, target: String_from("wasm32-wasi-p2"), ref_index: ref_index::RefIndex_new(), use_alias_shorts: Vec_new_String(), use_alias_targets: Vec_new_String() }
+    ResolveCtx {
+        scopes: Vec_new_Scope(),
+        current_depth: 0,
+        error_count: 0,
+        errors: Vec_new_String(),
+        diagnostics: Vec_new_Diagnostic(),
+        next_decl_index: 0,
+        target: String_from("wasm32-gc"),
+        host_profile: String_from("wasi-p2"),
+        ref_index: ref_index::RefIndex_new(),
+        use_alias_shorts: Vec_new_String(),
+        use_alias_targets: Vec_new_String()
+    }
 }
 
 fn resolve_ctx_ref_index(ctx: ResolveCtx) -> RefIndex {
@@ -52,6 +63,14 @@ fn resolve_ctx_target(ctx: ResolveCtx) -> String {
 
 fn resolve_ctx_set_target(ctx: ResolveCtx, target: String) {
     ctx.target = target
+}
+
+fn resolve_ctx_has_target_and_host_profile(ctx: ResolveCtx, target: String, host_profile: String) -> bool {
+    eq(clone(ctx.target), target) && eq(clone(ctx.host_profile), host_profile)
+}
+
+fn resolve_ctx_set_host_profile(ctx: ResolveCtx, host_profile: String) {
+    ctx.host_profile = host_profile
 }
 
 fn resolve_ctx_push_depth(ctx: ResolveCtx) {

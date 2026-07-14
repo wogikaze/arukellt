@@ -1,5 +1,3 @@
-// Arukellt Lexer - character classification.
-
 fn is_alpha(c: i32) -> bool {
     c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95
 }

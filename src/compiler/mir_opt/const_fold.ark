@@ -1,5 +1,3 @@
-// Arukellt Selfhost - post-unroll const folding for MIR opt passes.
-
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_const_i32

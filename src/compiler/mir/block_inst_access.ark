@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR block instruction query API.
-
 use mir::types
 
 fn MirBlock_inst_count(block: MirBlock) -> i32 {

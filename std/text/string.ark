@@ -1,7 +1,6 @@
-/// String sub-module — qualified string operations under `std::text::string`.
-/// 
-/// Contains relocated prelude string functions and new string APIs.
-/// Prefer using these via `use std::text` and calling `text::split(...)` etc.
+//! Qualified string operations under `std::text::string`.
+//!
+//! Prefer importing `std::text` and calling these operations through that boundary.
 // --- Relocated from prelude ---
 /// Splits `s` on `sep` and returns the resulting parts.
 pub fn split(s: String, sep: String) -> Vec<String> {

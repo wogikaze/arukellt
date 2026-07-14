@@ -4,7 +4,7 @@ Created: 2026-04-03
 Updated: 2026-06-14
 ID: 476
 Track: wasm-feature
-Depends on: "035 (v2-verification-cleanup, done), 074 (wasi-p2-native-component)"
+Depends on: 035
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no

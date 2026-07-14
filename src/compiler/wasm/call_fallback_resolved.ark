@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Wasm call fallback: resolved call emission.
 // Extracted from call_fallback.ark to reduce import fan-out.
 // Opcode constants inlined to avoid extra import (values from mir::opcodes).
 
@@ -16,7 +15,20 @@ use wasm::registry_return_audit
 use wasm::registry_return_resolve
 use wasm::inst_locals
 
-fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) -> bool {
+fn try_emit_resolved_fallback_call(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32,
+    wit_import_count: i32
+) -> bool {
     let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
     if fn_idx < 0 {
         return false
@@ -40,7 +52,17 @@ fn try_emit_resolved_fallback_call(w: WasmWriter, callee: String, inst: MirInst,
         }
     }
     writer_core::emit_byte(w, opcodes::OP_CALL())
-    writer_core::emit_leb128_u(w, function_indices::defined_function_index(fn_idx, ctx_record::SelfEmitCtx_target(ctx), ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx), ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx), wit_import_count))
+    writer_core::emit_leb128_u(
+        w,
+        function_indices::defined_function_index(
+            fn_idx,
+            ctx_record::SelfEmitCtx_target(ctx),
+            ctx_record::SelfEmitCtx_wasi_version(ctx),
+            ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+            ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+            wit_import_count
+        )
+    )
     let fn_ret_vt = registry_return_resolve::resolve_call_fn_ret_vt(ctx, inst, called)
     registry_return_audit::registry_audit_observe_call(ctx, inst, callee, fn_ret_vt)
     if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, callee, fn_ret_vt) {

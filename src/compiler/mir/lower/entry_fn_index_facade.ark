@@ -1,5 +1,3 @@
-// Arukellt Selfhost - fn_index facade for entry.ark.
-
 use mir::lower::fn_index
 use mir::lower::fn_index_view
 

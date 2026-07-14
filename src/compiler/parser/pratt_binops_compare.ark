@@ -1,7 +1,5 @@
 use lexer::tokens
 use parser::kinds
-// Arukellt Parser - Pratt comparison binary operator mapping.
-
 
 fn token_to_compare_binop(kind: i32) -> i32 {
     if kind == tokens::TK_EQEQ() { return kinds::OP_EQ() }

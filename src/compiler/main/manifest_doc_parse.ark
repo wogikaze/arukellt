@@ -1,5 +1,3 @@
-// Arukellt Selfhost - parse std/manifest.toml for doc lookup (#456).
-
 use lsp::symbol_index_paths
 use lsp::symbol_index_stdlib
 use main::manifest_doc_record
@@ -20,7 +18,20 @@ struct DocParseFnState {
 }
 
 fn DocParseFnState_new() -> DocParseFnState {
-    DocParseFnState { name: String_new(), module: String_new(), params: String_new(), returns: String_new(), stability: String_new(), doc: String_new(), errors: String_new(), target: String_new(), avail_t1: 1, avail_t3: 1, avail_note: String_new(), kind: String_new() }
+    DocParseFnState {
+        name: String_new(),
+        module: String_new(),
+        params: String_new(),
+        returns: String_new(),
+        stability: String_new(),
+        doc: String_new(),
+        errors: String_new(),
+        target: String_new(),
+        avail_t1: 1,
+        avail_t3: 1,
+        avail_note: String_new(),
+        kind: String_new()
+    }
 }
 
 struct DocParseModState {
@@ -86,7 +97,22 @@ fn doc_flush_fn(out: Vec<manifest_doc_record::DocFnEntry>, state: DocParseFnStat
     if eq(clone(state.kind), String_from("intrinsic")) {
         return
     }
-    push(out, manifest_doc_record::DocFnEntry_new(state.name, state.module, state.params, state.returns, state.stability, state.doc, state.errors, state.target, state.avail_t1, state.avail_t3, state.avail_note))
+    push(
+        out,
+        manifest_doc_record::DocFnEntry_new(
+            state.name,
+            state.module,
+            state.params,
+            state.returns,
+            state.stability,
+            state.doc,
+            state.errors,
+            state.target,
+            state.avail_t1,
+            state.avail_t3,
+            state.avail_note
+        )
+    )
 }
 
 fn doc_apply_mod_fields(state: DocParseModState, line: String) -> DocParseModState {

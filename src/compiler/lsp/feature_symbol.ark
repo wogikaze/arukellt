@@ -1,5 +1,3 @@
-// Arukellt LSP - shared symbol request resolution.
-
 use analysis::symbols
 use analysis::symbol_types
 use lsp::feature_request
@@ -45,12 +43,26 @@ pub fn symbol_request_end(sym: LspSymbolRequest) -> LspPosition {
 fn resolve_symbol_request(state: LspState, body: String) -> LspSymbolRequest {
     let req = feature_request::read_text_position_request(state, body)
     if !feature_request::text_position_request_has_text(req) {
-        return LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), false, symbol_types::SymbolInfo_none(), positions::LspPosition_new(0, 0), positions::LspPosition_new(0, 0))
+        return LspSymbolRequest_new(
+            feature_request::text_position_request_id(req),
+            feature_request::text_position_request_uri(req),
+            false,
+            symbol_types::SymbolInfo_none(),
+            positions::LspPosition_new(0, 0),
+            positions::LspPosition_new(0, 0)
+        )
     }
     let req_text = feature_request::text_position_request_text(req)
     let info = symbols::symbol_at(clone(req_text), feature_request::text_position_request_offset(req))
     if !symbol_types::symbol_info_found(info) {
-        return LspSymbolRequest_new(feature_request::text_position_request_id(req), feature_request::text_position_request_uri(req), false, info, positions::LspPosition_new(0, 0), positions::LspPosition_new(0, 0))
+        return LspSymbolRequest_new(
+            feature_request::text_position_request_id(req),
+            feature_request::text_position_request_uri(req),
+            false,
+            info,
+            positions::LspPosition_new(0, 0),
+            positions::LspPosition_new(0, 0)
+        )
     }
     let decl_start = symbol_types::symbol_info_decl_start(info)
     let decl_end = symbol_types::symbol_info_decl_end(info)

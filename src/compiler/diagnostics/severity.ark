@@ -1,26 +1,24 @@
-// Arukellt Selfhost - diagnostic severity contract.
-
 fn SEV_ERROR() -> i32 {
-1
+    1
 }
 
 fn SEV_WARNING() -> i32 {
-2
+    2
 }
 
 fn SEV_NOTE() -> i32 {
-3
+    3
 }
 
 fn severity_name(sev: i32) -> String {
-if sev == SEV_ERROR() {
-return String_from("error")
-}
-if sev == SEV_WARNING() {
-return String_from("warning")
-}
-if sev == SEV_NOTE() {
-return String_from("note")
-}
-String_from("unknown")
+    if sev == SEV_ERROR() {
+        return String_from("error")
+    }
+    if sev == SEV_WARNING() {
+        return String_from("warning")
+    }
+    if sev == SEV_NOTE() {
+        return String_from("note")
+    }
+    String_from("unknown")
 }

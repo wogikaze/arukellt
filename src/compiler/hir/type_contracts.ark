@@ -1,5 +1,3 @@
-// Arukellt HIR - type representation contract and constructors.
-
 use hir::type_contracts_record
 
 fn HirType_simple(tag: i32) -> HirType {

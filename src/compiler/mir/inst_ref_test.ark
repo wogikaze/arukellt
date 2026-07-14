@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR ref.test / ref.cast instruction constructors.
 //
 // ref.test: test if a GC ref is instance of a given type, pushes i32
 // Arguments:

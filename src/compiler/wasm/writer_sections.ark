@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm section writer helpers.
-
 use wasm::writer_core
 
 fn emit_section(out: writer_core::WasmWriter, section_id: i32, contents: writer_core::WasmWriter) {

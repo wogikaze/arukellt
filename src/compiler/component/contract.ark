@@ -1,4 +1,3 @@
-// Arukellt Selfhost - component export contract
 //
 // Owns component-mode export shape validation. Keep this module independent
 // from driver orchestration and component byte emission.

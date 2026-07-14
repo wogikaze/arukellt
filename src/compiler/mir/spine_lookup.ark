@@ -1,4 +1,3 @@
-// Arukellt Selfhost - ADR-040 spine lookup facade.
 // Centralizes signature-registry / mono-instance-table / type-table lookups
 // so that callers (ctx_typed_mir_sync, verify_call, call_fallback) stay under
 // the direct import fan-out limit (13).

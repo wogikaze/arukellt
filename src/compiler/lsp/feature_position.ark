@@ -1,5 +1,3 @@
-// Arukellt LSP - request position field extraction.
-
 use lsp::json_parse_core
 
 fn extract_position_field(body: String, key: String) -> i32 {

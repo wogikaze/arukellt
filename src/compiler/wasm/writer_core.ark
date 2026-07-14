@@ -1,5 +1,3 @@
-// Arukellt Selfhost - core Wasm binary writer.
-
 pub struct WasmWriter {
     bytes: Vec<i32>,
 }

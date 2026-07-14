@@ -1,5 +1,3 @@
-// Arukellt Selfhost - result/string component adapter core module facade
-
 use component::adapter_memory
 use component::adapters_result_string_input_body
 use component::adapters_result_string_output_body

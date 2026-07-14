@@ -1,5 +1,3 @@
-// Arukellt Parser - Pratt infix expression helpers.
-
 use parser::expr_infix_assignment
 use parser::expr_infix_binary
 use parser::expr_infix_range

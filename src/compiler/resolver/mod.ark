@@ -1,5 +1,3 @@
-// Arukellt Selfhost - resolver public boundary.
-
 use resolver::modules
 use resolver::paths
 use resolver::program

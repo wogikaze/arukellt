@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - struct field index lookup.
-
 use mir::lower::ctx_struct_storage
 
 fn ctx_field_index(ctx: LowerCtx, struct_name: String, field_name: String) -> i32 {

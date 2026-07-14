@@ -1,5 +1,3 @@
-// Arukellt MIR lowering context - monomorphized call rewrite storage.
-
 fn ctx_mono_span_rewrite_count(ctx: LowerCtx) -> i32 {
     len(ctx.mono_call_starts)
 }

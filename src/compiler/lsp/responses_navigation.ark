@@ -1,6 +1,4 @@
-// Arukellt Selfhost - LSP hover and definition response builders.
 use std::text
-
 use lsp::positions
 use lsp::responses_json
 

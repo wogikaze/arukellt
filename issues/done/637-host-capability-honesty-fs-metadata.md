@@ -4,7 +4,7 @@ Created: 2026-06-12
 Updated: 2026-06-15
 ID: 637
 Track: stdlib
-Depends on: 051, 076
+Depends on: 051
 Orchestration class: implementation-ready
 Blocks v1 exit: none
 Source: docs-to-issues audit — docs/process/docs-gap-inventory-2026-06-12.md

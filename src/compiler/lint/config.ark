@@ -1,4 +1,3 @@
-// Arukellt Selfhost - lint configuration from ark.toml [lint] section.
 //
 // Reads the `[lint]` section from ark.toml and provides allow/deny lists
 // that are merged with CLI --allow/--deny flags.
@@ -8,9 +7,9 @@
 //   allow = ["W0007", "unused-binding"]
 //   deny = ["W0004"]
 
-use collections::vec_extend
 use std::host::fs
 use std::toml
+use collections::vec_extend
 
 struct LintConfig {
     allow: Vec<String>,

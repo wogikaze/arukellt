@@ -1,5 +1,3 @@
-// Arukellt Selfhost - TypeInfo display names.
-
 use typechecker::contract_type_access
 use typechecker::name_tags
 

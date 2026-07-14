@@ -53,7 +53,14 @@ fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) || eq(clone(key), String_from("i64")) || eq(clone(key), String_from("f64")) || eq(clone(key), String_from("f32")) || eq(clone(key), String_from("bool")) || eq(clone(key), String_from("char")) || eq(clone(key), String_from("String")) || eq(clone(key), String_from("string")) {
+    if eq(clone(key), String_from("i32")) ||
+    eq(clone(key), String_from("i64")) ||
+    eq(clone(key), String_from("f64")) ||
+    eq(clone(key), String_from("f32")) ||
+    eq(clone(key), String_from("bool")) ||
+    eq(clone(key), String_from("char")) ||
+    eq(clone(key), String_from("String")) ||
+    eq(clone(key), String_from("string")) {
         return true
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)

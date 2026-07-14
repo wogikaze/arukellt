@@ -1,14 +1,12 @@
 use typechecker::kinds
-// Arukellt Typechecker - inference environment helpers
-
 use diagnostics::codes
-use diagnostics::mod as diag_mod
 use diagnostics::record
 use typechecker::contract_type_constructors
 use typechecker::contract_type_mutation
 use typechecker::contract_typevar
 use typechecker::contract_env_record
 use typechecker::contract_env_vars_record
+use diagnostics::mod as diag_mod
 
 fn fresh_var(env: TypeEnv) -> TypeInfo {
     let id = contract_env_vars_record::type_env_take_next_var_id(env)

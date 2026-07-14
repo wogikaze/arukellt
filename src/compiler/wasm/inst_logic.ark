@@ -1,8 +1,6 @@
 use mir::inst_accessors_shape
 use mir::value_types
 use wasm::opcodes
-// Arukellt Selfhost - logical, bitwise, and shift instruction handlers.
-
 use wasm::writer_core
 
 fn emit_and(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

@@ -1,12 +1,10 @@
+use std::host::env
+use std::host::stdio
+use std::text
 use mir::lower::ctx_api_local_frame
 use mir::function_return_view
 use mir::function_param_view
 use mir::function_locals_view
-// Arukellt Selfhost - MIR Lowering Trace Helpers
-
-use std::host::env
-use std::host::stdio
-use std::text
 use mir::function_block_queries
 use mir::lower::ctx_types
 
@@ -50,5 +48,12 @@ fn mir_lower_trace_ctx(on: i32, ctx: LowerCtx, phase: i32) {
         return
     }
     let f = ctx_api_local_frame::ctx_current_function(ctx)
-    mir_lower_trace_line(on, phase, function_param_view::MirFunction_param_count(f), function_locals_view::MirFunction_local_count(f), function_block_queries::MirFunction_block_count(f), function_return_view::MirFunction_return_type(f))
+    mir_lower_trace_line(
+        on,
+        phase,
+        function_param_view::MirFunction_param_count(f),
+        function_locals_view::MirFunction_local_count(f),
+        function_block_queries::MirFunction_block_count(f),
+        function_return_view::MirFunction_return_type(f)
+    )
 }

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA rename state type.
-
 use mir::ssa_state_record
 use mir::ssa_state_current_record
 use mir::ssa_state_exit_record

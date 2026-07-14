@@ -1,8 +1,6 @@
 use parser::core_ast_text_fields
 use parser::core_ast_flag_fields
 use parser::core_ast_factory
-// Arukellt Parser - multi-clause function shell construction.
-
 use parser::kinds
 use parser::multiclause_base_annotations
 

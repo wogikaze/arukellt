@@ -1,5 +1,3 @@
-// Arukellt Selfhost - struct iterator loop local setup.
-
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_types

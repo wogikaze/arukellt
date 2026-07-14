@@ -5,6 +5,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_f64
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::emit_target
 // Handler for: f64_to_string, text::format_f64, convert::f64_to_string, __intrinsic_f64_to_string
 //
 // Emits a *shortest round-trip* decimal representation of the f64 argument
@@ -40,7 +41,7 @@ fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_zero)
     intrinsic_string_format_f64_assemble::emit_f64_assemble(w, s_pos, s_neg, s_k, s_di, s_j, s_wpos, s_zero, digit_buf, out_buf)
-    if contains(clone(ctx.target), String_from("freestanding")) || contains(clone(ctx.target), String_from("-p2")) || contains(clone(ctx.target), String_from("-p3")) {
+    if emit_target::is_gc_target(clone(ctx.target)) {
         intrinsic_string_format_f64_assemble::emit_f64_alloc_string_gc(w, s_wpos, s_len, s_pos, ctx.gc_type_base, ctx)
     } else {
         let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)

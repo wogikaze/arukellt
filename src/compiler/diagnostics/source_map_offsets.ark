@@ -1,7 +1,5 @@
-// Arukellt Selfhost - diagnostic source offset/position mapping.
-
-use diagnostics::record
 use std::text
+use diagnostics::record
 
 pub fn offset_to_line(source: String, offset: i32) -> i32 {
     let n = len(source)

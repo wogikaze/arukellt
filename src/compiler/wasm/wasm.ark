@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm module emission entrypoint.
-
 use wasm::writer_core
 use wasm::wasm_sections
 

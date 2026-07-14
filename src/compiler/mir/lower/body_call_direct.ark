@@ -1,7 +1,5 @@
 use mir::lower::ast_node
 use mir::lower_kinds
-// Arukellt MIR lowering body - direct function calls
-
 use mir::lower::call_args
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit
@@ -34,7 +32,10 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             a = a + 1
             continue
         }
-        let needs_print_convert = is_println && a == 1 && ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) && call_args::mir_print_arg_needs_string_conversion(ctx, arg, ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(arg)))
+        let needs_print_convert = is_println &&
+        a == 1 &&
+        ast_node::node_kind_is(arg, lower_kinds::NK_IDENT()) &&
+        call_args::mir_print_arg_needs_string_conversion(ctx, arg, ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(arg)))
         if needs_print_convert {
             arg_idx = ctx_api_local_alloc::ctx_lookup_local(ctx, ast_node::node_text(arg))
         } else if callee_expects_i64 && ast_node::node_kind_is(arg, lower_kinds::NK_INT_LIT()) {

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - driver module loading phase.
-
 use loader::module_graph
 use loader::module_state
 use loader::module_state_modules
@@ -19,7 +17,11 @@ fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverCo
     if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {
         module_graph::load_stdlib_module(String_from("std::collections::hash"), load_state)
     }
-    if contains(clone(source), String_from("HashMap_String")) || contains(clone(source), String_from("HashMap_new_String")) || contains(clone(source), String_from("HashMap_i32_String")) || contains(clone(source), String_from("HashMap_new_i32_String")) || contains(clone(source), String_from("HashSet_String")) {
+    if contains(clone(source), String_from("HashMap_String")) ||
+    contains(clone(source), String_from("HashMap_new_String")) ||
+    contains(clone(source), String_from("HashMap_i32_String")) ||
+    contains(clone(source), String_from("HashMap_new_i32_String")) ||
+    contains(clone(source), String_from("HashSet_String")) {
         module_graph::load_stdlib_module(String_from("std::collections::hash_string"), load_state)
     }
     load_state

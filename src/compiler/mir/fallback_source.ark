@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lower fallback-source facade.
-
 use mir::lower::fallback_source
 
 fn mir_fallback_source_from_decls(decls: Vec<MirLowerLegacyDecl>) -> MirLowerFallbackSource {

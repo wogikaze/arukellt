@@ -66,16 +66,16 @@ def split_file():
         content = f.read()
 
     lines = content.split('\n')
-    
+
     # First pass: find all function start lines and their function names
     func_starts = []  # list of (line_index, func_name)
     for i, line in enumerate(lines):
         m = FUNC_PATTERN.match(line)
         if m:
             func_starts.append((i, m.group(1)))
-    
+
     print(f"Found {len(func_starts)} functions in {SRC_FILE}")
-    
+
     # Verify all functions have a mapping
     unmapped = []
     for _, fname in func_starts:
@@ -84,18 +84,18 @@ def split_file():
     if unmapped:
         print(f"ERROR: Unmapped functions: {unmapped}")
         return False
-    
+
     # Verify no duplicate mappings to different modules
     for _, fname in func_starts:
         mod = MODULE_MAP[fname]
-    
+
     # Group start indices by module
     # We need to find the body end for each function
     # Strategy: for each function, track brace depth from its pub fn line
-    
+
     module_funcs = {"emit_intrinsic_string": [], "emit_intrinsic_math": [],
                     "emit_intrinsic_vec": [], "emit_intrinsic_io": []}
-    
+
     for i, (line_idx, fname) in enumerate(func_starts):
         mod = MODULE_MAP[fname]
         # Find the end of this function
@@ -114,13 +114,13 @@ def split_file():
             if started and depth == 0:
                 end_idx = j
                 break
-        
+
         # Extract the function text (including the surrounding blank lines for separation)
         # We'll extract from the line before the function to the line after its closing brace
         func_text_lines = []
         start_incl = line_idx
         end_incl = end_idx
-        
+
         # Include comments/blank lines before the function
         k = line_idx - 1
         while k >= 0:
@@ -130,14 +130,14 @@ def split_file():
                 k -= 1
             else:
                 break
-        
+
         # Include blank line after the function
         if end_idx + 1 < len(lines) and lines[end_idx + 1].strip() == '':
             end_incl = end_idx + 1
-        
+
         func_text = '\n'.join(lines[start_incl:end_incl + 1])
         module_funcs[mod].append((start_incl, end_incl, fname, func_text))
-    
+
     # Write output files
     headers = {
         "emit_intrinsic_string": "// Arukellt Selfhost — Wasm Binary Emitter: String Intrinsic Handlers\n// Extracted from emit_intrinsic.ark\n\nuse emit_inst_ctx\n\n",
@@ -145,32 +145,32 @@ def split_file():
         "emit_intrinsic_vec": "// Arukellt Selfhost — Wasm Binary Emitter: Vec Intrinsic Handlers\n// Extracted from emit_intrinsic.ark\n\nuse emit_inst_ctx\n\n",
         "emit_intrinsic_io": "// Arukellt Selfhost — Wasm Binary Emitter: I/O and Misc Intrinsic Handlers\n// Extracted from emit_intrinsic.ark\n\nuse emit_inst_ctx\n\n",
     }
-    
+
     total_funcs = 0
     for mod_name in ["emit_intrinsic_string", "emit_intrinsic_math", "emit_intrinsic_vec", "emit_intrinsic_io"]:
         funcs = module_funcs[mod_name]
         # Sort by original line position to maintain order
         funcs.sort(key=lambda x: x[0])
-        
+
         out_path = os.path.join(OUT_DIR, f"{mod_name}.ark")
         with open(out_path, 'w') as f:
             f.write(headers[mod_name])
             for _, _, fname, text in funcs:
                 f.write(text)
                 f.write('\n')
-        
+
         line_count = sum(len(text.split('\n')) for _, _, _, text in funcs)
         print(f"Wrote {len(funcs)} functions ({line_count} lines) to {mod_name}.ark")
         total_funcs += len(funcs)
-    
+
     print(f"\nTotal: {total_funcs} functions split across 4 files")
-    
+
     # Verify: check that all functions across modules cover all original functions
     all_split_funcs = set()
     for mod_funcs in module_funcs.values():
         for _, _, fname, _ in mod_funcs:
             all_split_funcs.add(fname)
-    
+
     original_funcs = set(fname for _, fname in func_starts)
     missing = original_funcs - all_split_funcs
     extra = all_split_funcs - original_funcs
@@ -179,7 +179,7 @@ def split_file():
         return False
     if extra:
         print(f"WARNING: Extra functions in output (possibly duplicates): {extra}")
-    
+
     return True
 
 

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR arukellt_host callee name predicates.
-
 fn mir_call_is_wasi_http_outgoing(callee: String) -> bool {
     if eq(clone(callee), String_from("http_get")) { return true }
     if eq(clone(callee), String_from("__intrinsic_http_get")) { return true }

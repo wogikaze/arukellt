@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR expression AST atom literal access.
-
 use corehir::frontend_ast_identity
 use corehir::frontend_ast_literals
 use corehir::frontend_ast_span

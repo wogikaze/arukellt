@@ -1,5 +1,3 @@
-// Arukellt Selfhost - DAP session state helpers.
-
 use dap::framing
 use dap::state_record
 

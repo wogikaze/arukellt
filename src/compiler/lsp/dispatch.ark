@@ -1,5 +1,3 @@
-// Arukellt LSP - method dispatch.
-
 use lsp::dispatch_documents
 use lsp::dispatch_features
 use lsp::dispatch_lifecycle

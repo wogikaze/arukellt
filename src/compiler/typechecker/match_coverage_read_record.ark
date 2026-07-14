@@ -1,5 +1,3 @@
-// Arukellt Typechecker - match coverage read helpers.
-
 use typechecker::match_coverage_record
 
 fn MatchCoverage_has_wildcard(coverage: MatchCoverage) -> bool {

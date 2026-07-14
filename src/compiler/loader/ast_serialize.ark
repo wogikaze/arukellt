@@ -1,4 +1,3 @@
-// Arukellt Selfhost - AST binary serialization for per-module parse cache.
 //
 // Format (all integers little-endian):
 //   Header: magic[4] = "ASTC", version:i32 = 1
@@ -15,7 +14,6 @@
 //     flags:u8 (is_mut | is_pub<<1 | is_async<<2)
 
 use std::host::fs
-
 use loader::ast_serialize_parse
 
 // ── Byte buffer helpers ──────────────────────────────────────────────

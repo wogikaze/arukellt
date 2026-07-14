@@ -1,5 +1,3 @@
-// Arukellt HIR - trait and impl records.
-
 use hir::item_function_core_record
 use hir::item_type_param_record
 use hir::type_contracts_record

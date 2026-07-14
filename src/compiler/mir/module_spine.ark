@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MirModule ADR-040 spine accessors (emit-unused until PR-4).
-
 use corehir::signature_registry
 use corehir::type_table
 use mir::lower::mono_instance_table

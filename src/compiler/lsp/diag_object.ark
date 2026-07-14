@@ -1,5 +1,4 @@
 use std::text
-
 use analysis
 use analysis::diagnostic_record
 use lsp::diag_position
@@ -49,5 +48,4 @@ fn build_diagnostic_object(text: String, diag: AnalysisDiagnostic) -> String {
     out = text::builder_append(out, String_from("}"))
     out
 }
-// Arukellt Selfhost - LSP diagnostic JSON object builder.
 // Lint diagnostics are warnings (severity 2), others are errors (severity 1)

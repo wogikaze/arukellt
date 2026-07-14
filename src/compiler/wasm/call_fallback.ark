@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm call namespace: call_fallback
-
 use wasm::opcodes
 use wasm::inst_ctx
 use wasm::inst_store
@@ -9,7 +7,21 @@ use wasm::call_fallback_resolved
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 
-fn emit_fallback_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, prev_arg1: i32, prev_callee: String, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) {
+fn emit_fallback_call(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    prev_op: i32,
+    prev_arg0: i32,
+    prev_arg1: i32,
+    prev_callee: String,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32,
+    wit_import_count: i32
+) {
     if starts_with(clone(callee), String_from("Vec_new_")) {
         emit_vec_new_fallback_call(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
         return

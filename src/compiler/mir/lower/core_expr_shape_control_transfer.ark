@@ -1,6 +1,4 @@
 use corehir::kinds
-// Arukellt Selfhost - MIR lowering CoreHIR control-transfer shape predicates.
-
 use corehir::expr_predicates
 
 fn mir_core_expr_is_return(expr: CoreHirExpr) -> bool {

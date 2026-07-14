@@ -1,5 +1,3 @@
-// Arukellt Selfhost - frontend method metadata to CoreHIR facts.
-
 use corehir::decl_impl_target
 use corehir::decl_member_collections
 use corehir::decl_node

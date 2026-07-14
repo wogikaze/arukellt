@@ -1,5 +1,4 @@
-// Arukellt Selfhost - minimal scalar library component emitter (bootstrap-safe).
-
+use std::text
 use mir::function_identity
 use mir::function_param_view
 use mir::function_return_view
@@ -9,7 +8,6 @@ use wasm::constants
 use wasm::wasi_p1_component_stub
 use wasm::writer_core
 use wasm::writer_string
-use std::text
 
 fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     let out = lib_comp_new_component_writer()

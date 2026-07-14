@@ -1,4 +1,3 @@
-// Arukellt Selfhost - MIR data contract.
 //
 // This module exposes MIR shape without depending on MIR builders, opcodes, or
 // lowering helpers.

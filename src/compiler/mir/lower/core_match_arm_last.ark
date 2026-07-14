@@ -1,5 +1,3 @@
-// Arukellt Selfhost - CoreHIR final match arm MIR lowering.
-
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_patterns
 use mir::lower::ctx_api_emit
@@ -13,7 +11,17 @@ fn core_match_arm_has_guard(arm: CoreHirExpr) -> bool {
     core_expr_shape_accessors::mir_core_expr_child_count(arm) == 3
 }
 
-fn lower_core_match_last_arm(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, arm_node: CoreHirExpr, pat: CoreHirExpr, body: i32, scrut_idx: i32, result: i32, payload_info: CoreMatchPayloadInfo, if_depth: i32) -> i32 {
+fn lower_core_match_last_arm(
+    ctx: LowerCtx,
+    exprs: Vec<CoreHirExpr>,
+    arm_node: CoreHirExpr,
+    pat: CoreHirExpr,
+    body: i32,
+    scrut_idx: i32,
+    result: i32,
+    payload_info: CoreMatchPayloadInfo,
+    if_depth: i32
+) -> i32 {
     let mut next_if_depth = if_depth
     if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {
         core_match_patterns::core_emit_match_ident_bind(ctx, pat, scrut_idx)

@@ -5,8 +5,6 @@ use mir::lower::ctx_api_emit
 use mir::lower_kinds
 use mir::lower::ctx_gc_enum
 use mir::lower::call_type_fallback
-// Arukellt Selfhost - MIR match payload preparation
-
 use mir::inst_struct_get
 use mir::inst_gc_struct
 use mir::inst_local_get
@@ -49,9 +47,21 @@ fn mir_prepare_match_payload(ctx: LowerCtx, node: AstNode, child_count: i32, scr
     let is_payload_match = mir_match_has_payload_pattern(node, child_count)
     let has_variant_arm = mir_match_has_variant_pattern(node, child_count)
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
-    let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64") || eq(clone(scrut_type), "option:f64") || starts_with(clone(scrut_type), String_from("Result_f64_")) || starts_with(clone(scrut_type), String_from("result:f64:"))
-    let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") || eq(clone(scrut_type), "Option_i64") || eq(clone(scrut_type), "option:i64") || starts_with(clone(scrut_type), String_from("Result_i64_")) || starts_with(clone(scrut_type), String_from("result:i64:"))
-    let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") || eq(clone(scrut_type), "Result_i32") || eq(clone(scrut_type), "option:i32") || starts_with(clone(scrut_type), String_from("Result_i32_")) || starts_with(clone(scrut_type), String_from("result:i32:"))
+    let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") ||
+    eq(clone(scrut_type), "Option_f64") ||
+    eq(clone(scrut_type), "option:f64") ||
+    starts_with(clone(scrut_type), String_from("Result_f64_")) ||
+    starts_with(clone(scrut_type), String_from("result:f64:"))
+    let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") ||
+    eq(clone(scrut_type), "Option_i64") ||
+    eq(clone(scrut_type), "option:i64") ||
+    starts_with(clone(scrut_type), String_from("Result_i64_")) ||
+    starts_with(clone(scrut_type), String_from("result:i64:"))
+    let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") ||
+    eq(clone(scrut_type), "Result_i32") ||
+    eq(clone(scrut_type), "option:i32") ||
+    starts_with(clone(scrut_type), String_from("Result_i32_")) ||
+    starts_with(clone(scrut_type), String_from("result:i32:"))
     let mut compare_idx = scrut_idx
     if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
         call_type_fallback::mir_promote_gc_enum_container_vt(ctx, scrut_idx)

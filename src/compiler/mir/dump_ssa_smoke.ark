@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR SSA smoke check facade
-
 use mir::dump_ssa_smoke_elim
 use mir::dump_ssa_smoke_rename
 use mir::dump_ssa_smoke_seq

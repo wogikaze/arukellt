@@ -2,8 +2,6 @@ use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::constants
 use wasm::intrinsics::helpers_numeric_i64_const
-// Arukellt Selfhost - fs exists intrinsic handler.
-
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core

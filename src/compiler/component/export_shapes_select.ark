@@ -1,4 +1,3 @@
-// Arukellt Selfhost - Component single export selection
 use component::export_function_view
 use component::export_shapes_match
 use component::naming

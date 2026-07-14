@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - parser cursor read operations.
-
 use parser::core_types
 use parser::state_record
 use parser::token_state

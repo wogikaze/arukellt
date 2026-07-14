@@ -1,9 +1,8 @@
-// Arukellt Selfhost - GC shape registry: collects struct/array shapes from MIR
 // and builds GC type definitions for the type section.
 // Field types are encoded as strings: 'i'=i32, 'l'=i64, 'd'=f64.
 
-use mir::value_types
 use std::text
+use mir::value_types
 
 pub struct GcShapeRegistry {
     struct_names: Vec<String>,

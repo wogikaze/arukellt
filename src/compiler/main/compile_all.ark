@@ -1,7 +1,5 @@
-// Arukellt Selfhost - main namespace: compile_all
 use std::host::process
 use std::host::stdio
-
 use driver::file
 use driver::result_record
 use main::args_record
@@ -41,4 +39,3 @@ fn cmd_compile_all(opts: CliOptions) {
         stdio::println(output::format_success_json(clone(input_file), result_record::compile_result_phase_reached(comp_result), result_record::compile_result_output_byte_count(comp_result)))
     }
 }
-// Arukellt Selfhost - CLI compile --emit all implementation.

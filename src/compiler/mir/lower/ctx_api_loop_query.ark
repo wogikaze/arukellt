@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering loop jump query API.
-
 use mir::lower::ctx_control
 
 fn ctx_loop_break_available(ctx: LowerCtx) -> bool { ctx_control::ctx_loop_break_available(ctx) }

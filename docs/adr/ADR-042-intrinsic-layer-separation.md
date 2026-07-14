@@ -12,7 +12,7 @@
 
 intrinsic 周辺の構造には以下の問題がある:
 
-1. **callee 文字列による dispatch**: `call_dispatch.ark` が MIR に保存された
+1. **callee 文字列による dispatch**: `call_dispatch_table.ark` 等が MIR に保存された
    callee 文字列を見て `host → seq → text → scalar → parse → vec → simd` の
    順で振り分ける。各層で `eq(clone(callee), "starts_with")` のような文字列比較を
    行っている。`func_id_raw` が既に存在するにもかかわらず、intrinsic 判定
@@ -71,7 +71,7 @@ fixed SIMD arithmetic（例: `I32x4` add）は target intrinsic ではなく por
 Swift が Array、String、Dictionary を Swift 標準ライブラリ自身で実装しつつ
 `@_semantics("array.count")` のような意味タグを付けるのと同様に、
 Arukellt でも `Vec.len` は Ark 関数として本体を持たせながら、
-SignatureRegistry 上では `SemanticId::VecLen` を持たせる。
+SignatureRegistry 上では `CoreOpId::VecLen` を持たせる。
 
 通常時は普通に Ark 関数を呼ぶ。最適化時だけ意味に基づく変換・置換を行う。
 「std に実装がある」と「コンパイラが意味を知っている」を両立する。
@@ -119,32 +119,156 @@ stdlib 専用の sealed raw API からのみ触れるようにする。
 
 `len`/`push`/`get` そのものを言語構文や真の primitive にはしない。
 
-### D5: SignatureEntry の拡張
+### D5: CoreOpRegistry と SignatureEntry
 
-ADR-040 の SignatureEntry に以下を追加する:
+`data/core-ops.toml` は **CoreOpRegistry** として `CoreOpId` → metadata の
+正本を持つ。`SignatureEntry` は `FunctionId` ごとに、対応する `CoreOpId`
+（存在する場合）と function signature のみを持つ。metadata の複製は行わない。
 
-| 情報 | 例 |
-|------|-----|
-| semantic ID | `VecLen`, `VecGetUnchecked`, `StringByteLen` |
-| effect | pure, read, write, allocate, IO, noreturn |
-| may trap | bounds check, parse 等 |
-| const evaluable | 可否 |
-| inline policy | never, hint, always |
-| lowering policy | normal call, MIR op, runtime call, target intrinsic |
-| fallback body | 安定 symbol path / DefKey（名前解決後に FunctionId へ変換。FunctionId は永続化しない） |
+core-ops 操作の metadata は次からなる:
 
-**宣言の単一正本（SSOT）:** `docs/data/core-ops.toml`（GHC `primops.txt.pp` 方式）。
+| 情報 | 例 | 説明 |
+|------|-----|------|
+| `id` | `string.starts_with`, `vec.len`, `simd.i32x4.add` | canonical `CoreOpId` |
+| `visibility` | `public` / `internal` | 公開性 |
+| `classification` | `primitive` / `runtime` / `semantic_stdlib` / `normal_stdlib` / `target_raw` | 5 層のどれに属するか |
+| `binding` | `policy = "required"` / `optional` / `forbidden` | manifest binding の必須性 |
+| `signature` | `inputs`/`receiver_index`/`outputs`/`generic_params`/`constraints` | receiver 非依存の型式 |
+| `semantics` | 定数評価可否、overflow/NaN/trap 規則、equivalence 戦略 | |
+| `effect` | memory / allocates / may_trap / noreturn / external_io / nondeterminism / atomic / volatile | 直交属性セット |
+| `inline` | `never` / `hint` / `always` | `always` は強い hint、semantic guarantee ではない |
+| `lowering` | `normal_call` / `mir_op` / `runtime_call` / `target_intrinsic` | variant ごとの payload |
+| `specializations` | priority / when / lowering | portable operation の target 特殊化 |
+| `fallback` | 内部 implementation symbol path | public path ではない |
+
+**宣言の単一正本（designated SSOT）:** `data/core-ops.toml`（GHC `primops.txt.pp` 方式）。
 人間向け概要は [`docs/compiler/core-ops-registry.md`](../compiler/core-ops-registry.md)。
 
-- **core-ops.toml** が semantic types / SemanticId / effect / lowering policy / fallback symbol の正本。
-- **std/manifest.toml** は公開 path・docs・stability・deprecation の正本であり、
-  `semantic_id` / `type_id` で core-ops を **参照**する（manifest 全体を core-ops から生成しない）。
+- `data/core-ops.toml` は **将来の authoritative 正本**であり、現状では `status = "scaffold"`。
+  ADR-042 採択後、#798 で compiler との統合が完了するまで authoritative 入力ではない。
+- `data/core-ops.toml` が semantic types / `CoreOpId` / visibility / classification /
+  binding / effect / lowering / fallback / inline policy / signature / equivalence の正本となる。
+- `std/manifest.toml` は公開 path・docs・stability・deprecation の正本であり、
+  `core_op_id` / `type_id` で `data/core-ops.toml` を **参照**する（manifest 全体を core-ops から生成しない）。
 - 一つの semantic operation を複数の公開 API から参照してよい
   （例: `i32.popcount()` と `std::bits::popcount(i32)` が同じ `bits.popcount.i32`）。
-- **public path を core-ops と manifest の両方に書かない。**
-- generator / checker は参照先の存在・signature 互換・effect/lowering 整合・
-  未参照 semantic op・重複 public binding を検査する。
-- resolver / typechecker / MIR / docs は core-ops（および検査済み参照）から読む。手作業二重登録禁止。
+  各公開 binding の `core_op_id` は同じ値を持つ。
+- **public path を core-ops の fallback として書かない。**
+  fallback は内部実装 symbol または primary public binding 用の専用 ID に向ける。
+  public path は `std/manifest.toml` のみが持つ。
+- generator / checker は `data/core-ops.toml` と `std/manifest.toml` の
+  参照存在、signature 互換、effect/lowering 整合、
+  binding policy 違反、specialization ambiguity、fallback 条件を検査する。
+- resolver / typechecker / MIR / docs / runtime ABI 表は将来、
+  検査済み `data/core-ops.toml`（および検査済み参照）から読む。手作業二重登録禁止。
+
+**signature の統一形式:**
+
+`data/core-ops.toml` の `signature` は receiver 非依存の `inputs` 列に統一する。
+`receiver_index`（0-based）でどの input が receiver かを示す。
+各型は `TypeExpr` として `kind` discriminator で表す。
+
+```toml
+[operations.signature]
+inputs = [
+  { name = "s", type = { kind = "ref", name = "string" } },
+  { name = "prefix", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
+```
+
+`std/manifest.toml` の `params` は `inputs` と位置・型が対応するように書く。
+`String` は `type_id = "string"` に、`()` は `unit` primitive に正規化する。
+raw `std::wasm` の `v128` は `type_id = "wasm.v128"` に正規化する。
+
+**effect モデルは単一 enum にしない。**
+`pure` は memory=none / allocates=false / may_trap=false / noreturn=false / external_io=false / nondeterminism=deterministic 等の導出値である。
+最低限必要な直交属性は:
+
+- `memory`: `none` / `read` / `write` / `read-write`
+- `allocates`: bool
+- `may_trap`: bool
+- `noreturn`: bool
+- `external_io`: bool
+- `nondeterminism`: `deterministic` / `clock` / `random` / `external`
+- `atomic`: bool
+- `volatile`: bool
+
+`pure` と `readnone` や `may_trap` と別 `may_trap` フラグを併存させるような
+重複表現は避ける。
+
+**lowering variant の payload:**
+
+| `lowering.kind` | 必要な情報 |
+|-----------------|------------|
+| `normal_call` | `[fallback]` の `implementation_symbol` |
+| `mir_op` | `[lowering.mir]` の `opcode` / `operation` |
+| `runtime_call` | `[lowering.runtime]` の `function` / `abi` / `interface` / `version` |
+| `target_intrinsic` | `[lowering.target]` の `target_family` / `target_id` / `required_capabilities` / `required_target_features` |
+
+**specialization:**
+
+portable `std::simd` 操作の `lowering.kind` は `normal_call` とする。
+scalar フォールバックを `[fallback]` に置き、
+ネイティブ SIMD 特殊化は `[[operations.specializations]]` で表す。
+各 specialization は `priority`、`when` 条件、完全な `lowering` variant を持つ。
+選択は最も高い一意な priority を選び、同じ priority で複数一致した場合は
+schema error とする。
+
+```toml
+[operations.lowering]
+kind = "normal_call"
+
+[[operations.specializations]]
+priority = 100
+[operations.specializations.when]
+backend = "wasm"
+portable_simd_lowering = "NativeSimd"
+[operations.specializations.lowering]
+kind = "target_intrinsic"
+[operations.specializations.lowering.target]
+target_family = "wasm"
+target_id = "i32x4.add"
+required_target_features = ["simd128"]
+
+[operations.fallback]
+implementation_symbol = "example.invalid.fallback.simd_i32x4_add"
+required = true
+```
+
+旧文字列 dispatch との shadow 比較は、capability 解決後の正規化された
+`EffectiveLoweringDecision` 同士を比較する。`lowering.kind` のまま比較すると
+portable SIMD が `normal_call` と `target_intrinsic` の差を含むため一致しない。
+
+**differential equivalence:**
+
+CoreOp ごとに differential test の比較方法を `semantics.equivalence` で指定する。
+
+| 値 | 意味 |
+|-----|------|
+| `exact_bool` | 真偽値が一致 |
+| `exact_bitwise` | ビット列が一致 |
+| `float_value_nan_payload_ignored` | NaN payload 以外で浮動小数値が一致 |
+| `noreturn` | 制御が到達しない（abort/trap） |
+| `set_order_agnostic` | 集合として一致（順序無視） |
+
+`simd.f32x4.add` のような浮動小数 SIMD 算術は `nan = "preserve_nan_class_payload_unspecified"`、
+`equivalence = "float_value_nan_payload_ignored"` とする。
+
+**validation ルール:**
+
+`[validation]` でチェックを有効化する。
+各 checker は `visibility` / `classification` / `binding` を見て条件を変える。
+
+- `check_unreferenced_required_bindings` — `visibility = "public"` かつ
+  `binding.policy = "required"` の operation が `std/manifest.toml` から `core_op_id` で参照される。
+- `check_public_binding_collisions` — 同じ public symbol が複数の `CoreOpId` に対応しない。
+- `check_signature_compat` — `core_op_id` 経由で結ばれた manifest entry の `params` / `returns` が
+  `data/core-ops.toml` の `signature` と位置・型で対応する。
+- `check_effect_lowering_consistency` — `lowering.kind` と `effect` が矛盾しない。
+- `check_fallback_resolvable` — `fallback.required = true` な operation に `fallback.implementation_symbol` が設定されている。
+- `check_specialization_ambiguity` — 同じ conditions に複数の specialization が最も高い priority で一致しない。
 
 移行中は既存 manifest を拡張してよいが、実装開始前に core-ops 参照モデルへ切り替える（本 ADR の D5 決定）。
 
@@ -154,10 +278,30 @@ resolver、typechecker、MIR、docs、runtime ABI 表は SSOT から生成する
 
 ### D6: callee 文字列 dispatch の廃止
 
-intrinsic 判定を callee 名から `func_id_raw` + `SemanticId` へ移行する。
-`SemanticId` は FunctionId から取得し、名前は診断表示にだけ使う。
+intrinsic 判定を callee 名から MIR に保存された `FunctionId` による
+`SignatureRegistry` 参照へ移行する。
+`SignatureRegistry` から `CoreOpId` / `LoweringKind` を取得し、
+それによって dispatch する。
 
-### D7: target intrinsic の名前空間
+`SignatureEntry` は `FunctionId` ごとに function signature と optional な
+`CoreOpId` リンクのみを持つ。effect / lowering / fallback / inline 等の
+metadata は `CoreOpRegistry` から `CoreOpId` で引く。
+
+`func_id_raw` は `FunctionId` を `MirInst` 内に保存するための物理表現にすぎない。
+backend が raw な `FunctionId` 値を意味キーとして扱うと、
+登録順・monomorphization・module 結合順に依存する暗黙 ABI になるため禁止する。
+名前は診断表示にだけ使う。
+
+close gate はファイル名や特定の構文ではなく、次の semantic invariant を検査する:
+
+- call lowering が診断用途以外で callee 文字列を参照しない
+- 全 CALL の `FunctionId` が `SignatureRegistry` entry へ解決される
+- non-normal lowering が必ず一意な `CoreOpId` を持つ
+- host operation の lowering owner が runtime ABI 層である
+- public binding と semantic signature が整合する
+- fallback と specialized lowering の differential test が通る
+
+### D7: target intrinsic の名前空間と raw V128 型
 
 target-specific intrinsic の公開場所は **`std::wasm`** とする（ADR-037 と整合）。
 
@@ -166,8 +310,20 @@ target-specific intrinsic の公開場所は **`std::wasm`** とする（ADR-037
 - **raw / Wasm-specific**: `std::wasm`（`std::wasm::V128`、`v128.load` / `v128.store`、
   Wasm linear-memory アドレス空間の露出、relaxed SIMD、Wasm 固有 trap/value category）
 
-portable nominal SIMD は `portable_simd_lowering = Scalar` で scalar lowering してよい。
-raw `std::wasm::V128` は `wasm_raw_v128 = Enabled` 必須で ScalarEmulation 不可（詳細は ADR-037）。
+portable nominal SIMD は `normal_call` lowering + `specializations` として実現する。
+raw `std::wasm::V128` は `target_intrinsic` lowering とする。
+raw V128 型は `core-ops.toml` の `[[types]]` に `wasm.v128` として登録し、
+`std::wasm` の `v128` 戻り値は `type_id = "wasm.v128"` へ正規化する。
+
+| 概念 | `lowering.kind` | 条件 |
+|------|----------------|------|
+| portable `std::simd` | `normal_call` + `specializations` | `portable_simd_lowering = NativeSimd` |
+| raw `std::wasm` | `target_intrinsic` | `wasm_raw_v128` capability |
+| relaxed SIMD | `target_intrinsic` | `wasm_relaxed_simd` capability |
+
+`required_capabilities` と `required_target_features` は別々に記述する。
+例えば `wasm.v128.load` は `required_capabilities = ["wasm_raw_v128"]`、
+`required_target_features = ["simd128"]` とする。
 
 一般的な `Vec::push` や `String::split` が Wasm API に依存してはならない。
 `std::arch::wasm` は採用しない（`std::wasm` に統一）。
@@ -198,7 +354,6 @@ linear-memory 規則を直接露出する場合に限る。
   廃止と prelude 本体の backend 通過。型チェック専用スタブからの移行は
   破壊的変更を伴うため、専用 ADR / RFC が必要。
 - **sealed raw API のモジュール名と公開面**（D4 候補の最終決定）
-- **semantic 宣言 SSOT**: `docs/data/core-ops.toml`（D5 で決定）。manifest は `semantic_id` で参照する公開面。
 
 ## 等価性検証
 
@@ -206,6 +361,13 @@ semantic lowering には必ず Ark fallback body を残す。
 最適化 ON/OFF、GC/LM、各 target について、Ark fallback 版と
 optimized lowering 版を同じ入力で実行し、結果と副作用が一致する
 differential test を置く。compiler 特殊化が std の意味から乖離するのを防ぐ。
+
+各 CoreOp は `semantics.equivalence` で比較方法を指定する。
+浮動小数 SIMD では NaN payload 一致を要求せず、NaN class 保存を確認する。
+
+旧文字列 dispatch から新 `SignatureRegistry` dispatch への移行には、
+切り替え前に shadow mode で両者の結果を比較し、一致率 100% を gate とする。
+比較対象は capability 解決後の正規化された `EffectiveLoweringDecision` とする。
 
 ## ADR-040 との関係
 

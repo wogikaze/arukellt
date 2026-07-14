@@ -1,8 +1,8 @@
 // GC enum variant signature helpers.
+use std::text
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_struct_field_type
 use mir::value_types
-use std::text
 
 fn gc_enum_field_sig_for_vt(vt: i32) -> String {
     if vt == value_types::VT_F64() {
@@ -29,7 +29,18 @@ fn ctx_gc_enum_payload_field_sigs_typed(ctx: LowerCtx, payload_vts: Vec<i32>, ty
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
         let vt = get_unchecked(payload_vts, i)
-        if i == 0 && len(type_name) > 0 && (vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() || eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) || starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Option_"))) {
+        if i == 0 &&
+        len(type_name) > 0 &&
+        (vt == value_types::VT_GC_REF() ||
+            vt == value_types::VT_REF() ||
+            eq(clone(type_name), String_from("String")) ||
+            eq(clone(type_name), String_from("string")) ||
+            starts_with(clone(type_name), String_from("vec:")) ||
+            starts_with(clone(type_name), String_from("hashmap:")) ||
+            starts_with(clone(type_name), String_from("option:")) ||
+            starts_with(clone(type_name), String_from("result:")) ||
+            starts_with(clone(type_name), String_from("Result_")) ||
+            starts_with(clone(type_name), String_from("Option_"))) {
             sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(type_name)))
         } else {
             sig = text::builder_append(sig, gc_enum_field_sig_for_vt(vt))
@@ -139,7 +150,10 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
         return String_from("_f1_i32")
     }
     // Vec types: pick the concrete GC vec slot (String→ref19, i32→ref10).
-    if eq(clone(type_name), String_from("Vec")) || starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("Vec_")) || starts_with(clone(type_name), String_from("Vec<")) {
+    if eq(clone(type_name), String_from("Vec")) ||
+    starts_with(clone(type_name), String_from("vec:")) ||
+    starts_with(clone(type_name), String_from("Vec_")) ||
+    starts_with(clone(type_name), String_from("Vec<")) {
         return concat(String_from("_f1"), ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
     }
     // HashMap types map to specific hashmap struct types.
@@ -147,10 +161,16 @@ fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> S
         return concat(String_from("_f1"), ctx_gc_struct::gc_struct_container_ref_suffix(clone(type_name)))
     }
     // Result/Option are GC enum-open payloads (#726 json JsonParseStep.value).
-    if starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("Result<")) || starts_with(clone(type_name), String_from("Result:")) {
+    if starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("Result<")) ||
+    starts_with(clone(type_name), String_from("Result:")) {
         return String_from("_f1_ref14")
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("Option<")) || starts_with(clone(type_name), String_from("Option:")) {
+    if starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("Option<")) ||
+    starts_with(clone(type_name), String_from("Option:")) {
         return String_from("_f1_ref14")
     }
     if struct_slot >= 0 {

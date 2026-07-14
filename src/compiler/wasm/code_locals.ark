@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm function local declarations.
-
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals

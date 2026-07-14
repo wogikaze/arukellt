@@ -1,7 +1,16 @@
 use wasm::opcodes
-// Arukellt Selfhost - sequence unique duplicate detection loop.
 
-fn emit_seq_unique_loop(w: WasmWriter, outer_index_local: i32, src_len_local: i32, src_data_local: i32, cur_value_local: i32, inner_index_local: i32, result_len_local: i32, result_data_local: i32, found_local: i32) {
+fn emit_seq_unique_loop(
+    w: WasmWriter,
+    outer_index_local: i32,
+    src_len_local: i32,
+    src_data_local: i32,
+    cur_value_local: i32,
+    inner_index_local: i32,
+    result_len_local: i32,
+    result_data_local: i32,
+    found_local: i32
+) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())

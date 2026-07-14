@@ -1,6 +1,4 @@
 use corehir::expr_factory
-// Arukellt Selfhost - CoreHIR body builder for atomic expressions.
-
 use corehir::body_atom_int
 use corehir::body_atom_kind
 use corehir::body_atom_literals

@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering context data contract.
-
 use mir::types
 
 pub struct LowerCtx {

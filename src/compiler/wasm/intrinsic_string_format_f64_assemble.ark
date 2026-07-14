@@ -4,7 +4,6 @@ use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
-// Arukellt Selfhost - f64_to_string digit assembly and string allocation.
 
 // Copy digit_buf[s_j down to s_bound] (inclusive) to the output at s_pos,
 // advancing s_pos and decrementing s_j.  Used for both integer and fraction

@@ -1,6 +1,4 @@
 use lexer::tokens
-// Arukellt Parser - Pratt loop postfix suffix step.
-
 use parser::expr_infix_result
 use parser::expr_suffix
 

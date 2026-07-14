@@ -1,5 +1,3 @@
-// Arukellt Selfhost - Wasm public boundary.
-
 use wasm::component_p2_emit
 use wasm::component_p2_run_sections
 use wasm::component_p2_stubs

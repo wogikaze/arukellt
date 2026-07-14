@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR dominance smoke checks
-
 use std::host::process
 use std::host::stdio
 use mir::dominance

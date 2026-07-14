@@ -157,7 +157,7 @@
       },
       {
         "command": "arukellt.buildComponent",
-        "title": "Arukellt: Build Component (wasm32-wasi-p2, all outputs)"
+        "title": "Arukellt: Build Component (wasm32-gc, all outputs)"
       },
       {
         "command": "arukellt.buildComponentWit",
@@ -165,7 +165,7 @@
       },
       {
         "command": "arukellt.runComponent",
-        "title": "Arukellt: Run Component (wasm32-wasi-p2)"
+        "title": "Arukellt: Run Component (wasm32-gc)"
       },
       {
         "command": "arukellt.openInPlayground",
@@ -207,10 +207,12 @@
         },
         "arukellt.target": {
           "type": ["string", "null"],
-          "enum": ["wasm32-wasi-p1", "wasm32-wasi-p2", null],
+          "enum": ["wasm32", "wasm32-gc", "native-cpp", "native-llvm", null],
           "enumDescriptions": [
-            "WASI Preview 1 target (T1) — broadest compatibility.",
-            "WASI Preview 2 / Component Model target (T3) — full component support.",
+            "Linear-memory WebAssembly target with WASI P1.",
+            "WebAssembly GC target with WASI P2 (default).",
+            "Native C++ backend scaffold.",
+            "Native LLVM backend scaffold.",
             "Auto-detect from ark.toml (default)."
           ],
           "default": null,
@@ -296,7 +298,7 @@
               "target": {
                 "type": "string",
                 "description": "Compilation target.",
-                "default": "wasm32-wasi-p1"
+                "default": "wasm32-gc"
               },
               "stopOnEntry": {
                 "type": "boolean",

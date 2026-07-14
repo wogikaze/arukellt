@@ -1,5 +1,3 @@
-// Arukellt Selfhost - MIR lowering monomorphization view over CoreHIR facts.
-
 use corehir::mir_type_source
 use corehir::mod
 use mir::mono

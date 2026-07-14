@@ -51,7 +51,7 @@ interop_compile_component() {
     shift 2 || true
     bash "$ARUKELLT" compile \
         --emit component \
-        --target wasm32-wasi-p2 \
+        --target wasm32-gc \
         "$@" \
         "$source_rel" \
         -o "$out_rel"
@@ -62,7 +62,7 @@ interop_compile_wit() {
     local out_rel="$2"
     shift 2 || true
     bash "$ARUKELLT" compile \
-        --target wasm32-wasi-p2 \
+        --target wasm32-gc \
         --emit wit \
         "$@" \
         "$source_rel" \

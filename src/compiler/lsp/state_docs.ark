@@ -1,5 +1,3 @@
-// Arukellt LSP - open text document store.
-
 pub struct LspDoc {
     uri: String,
     text: String,
