@@ -1,5 +1,5 @@
 ---
-Status: done
+Status: open
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 793
@@ -33,6 +33,14 @@ not as an absolute code-quality score.
 - [x] Collector, determinism, fallback, and baseline roundtrip tests pass
 
 ## Completion evidence
+
+### Reopened by closure regression audit (2026-07-14)
+
+`python3 scripts/check/check-ark-code-quality.py` raises `ValueError` while
+parsing string metrics metadata as an inventory integer. Inventory and metrics
+writers also do not share a section-preserving TOML model. The prior completion
+evidence is retained below as history, but CQ-13 remains open until regression
+tests and all canonical commands pass again.
 
 - `scripts/quality/metrics.py` provides the sanitized scanner, deterministic distributions, git fallback, hotspot model, JSON output, and explicit baseline writer.
 - `docs/data/ark-code-quality-baseline.toml` retains `lines_ge_200 = 437` and `thin_wrappers = 1733` while adding all CQ-13 distribution keys with issue #793 metadata.
