@@ -120,10 +120,16 @@ Priority modules where in-file tests add the most value:
    `assert(true)` patterns removed from `std/core/default.ark`.
 3. **~~Removal required~~** (RESOLVED): All probe_N, sanity, and trivial-assert
    tests removed. `append-issue-715-tests.py` bulk-fill logic removed.
-4. **Recount required**: After removal, coverage remeasured:
-   - std: 29 meaningful tests (target: 180) — BELOW THRESHOLD
-   - compiler: 71 meaningful tests (target: 60) — MET
-   Issue stays open until std reaches 180 meaningful tests.
+4. **Recount required**: After removal, coverage remeasured using
+   `check-infile-test-adoption.py` (rewritten to separate test modules,
+   test cases, and meaningful tests by Phase 1/2 target directories):
+   - Phase 1 (std/core, std/collections, std/text, std/bytes):
+     34 meaningful tests (target: 180) — BELOW THRESHOLD
+   - Phase 2 (lexer, parser, resolver, typechecker, mir, diagnostics):
+     13 meaningful tests (target: 60) — BELOW THRESHOLD
+   - Out-of-scope: src/compiler/analysis has 2 test cases (should be
+     fixture-only)
+   Issue stays open until both Phase 1 and Phase 2 reach targets.
 5. **~~Lint prevention~~** (RESOLVED): `check-trivial-tests.py` added to
    detect and reject future `probe_N`, `sanity` with trivial asserts,
    `assert(literal >= 0)`, `assert(x == x)` patterns. 7 unit tests added
