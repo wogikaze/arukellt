@@ -9,6 +9,8 @@
 # Format: path | generator-script | regenerate-command
 
 # docs landing pages (generate-docs.py)
+src/compiler/main/target_contract_generated.ark | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+extensions/arukellt-all-in-one/src/target-contract.generated.js | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/adr/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/compiler/README.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py

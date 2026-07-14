@@ -41,7 +41,8 @@ support_tier = "supported"
 implementation_state = "complete"
 contract_stability = "stable"
 run_supported = true
-role = "Supported: AtCoder / linear-memory competition path (was wasm32-wasi-p1)"
+default_host_profile = "wasi-p1"
+role = "Supported: AtCoder / linear-memory competition path"
 
 [[target_profiles]]
 id = "wasm32-gc"
@@ -49,6 +50,7 @@ support_tier = "primary"
 implementation_state = "partial"
 contract_stability = "stable"
 run_supported = true
+default_host_profile = "wasi-p2"
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
 
 [[target_profiles]]
@@ -66,6 +68,75 @@ implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
 role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
+
+# User input spellings are canonicalized once at the CLI/config boundary. These
+# entries are the only product-contract owner for deprecated aliases and rejected
+# legacy target names. Compiler and extension views are generated from this table.
+[[target_aliases]]
+input = "wasm32-wasi-p1"
+canonical_target = "wasm32"
+host_profile = "wasi-p1"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32 --wasi-version wasi-p1"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm32-wasi"
+canonical_target = "wasm32"
+host_profile = "wasi-p1"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32 --wasi-version wasi-p1"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm32-wasi-p2"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p2"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p2"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm-gc"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p2"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p2"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm-gc-wasi-p2"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p2"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p2"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "wasm32-wasi-p3"
+canonical_target = "wasm32-gc"
+host_profile = "wasi-p3"
+policy = "warning"
+warning_id = "W0002"
+replacement = "--target wasm32-gc --wasi-version wasi-p3"
+compatibility_status = "deprecated"
+
+[[target_aliases]]
+input = "native"
+policy = "error"
+replacement = "use --target native-cpp or --target native-llvm"
+compatibility_status = "rejected-ambiguous"
+
+[[target_aliases]]
+input = "wasm32-freestanding"
+policy = "error"
+replacement = "choose a canonical target; freestanding is not supported"
+compatibility_status = "rejected"
 
 [[legacy_gaps]]
 id = "wasm32-freestanding"

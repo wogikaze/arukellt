@@ -1,0 +1,118 @@
+// Generated from docs/data/project-state.toml by scripts/gen/generate-docs.py.
+// Do not edit by hand.
+
+fn target_is_canonical(input: String) -> bool {
+    if eq(clone(input), String_from("wasm32")) {
+        return true
+    }
+    if eq(clone(input), String_from("wasm32-gc")) {
+        return true
+    }
+    if eq(clone(input), String_from("native-cpp")) {
+        return true
+    }
+    if eq(clone(input), String_from("native-llvm")) {
+        return true
+    }
+    false
+}
+
+fn target_alias_policy(input: String) -> String {
+    if eq(clone(input), String_from("wasm32-wasi-p1")) {
+        return String_from("warning")
+    }
+    if eq(clone(input), String_from("wasm32-wasi")) {
+        return String_from("warning")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p2")) {
+        return String_from("warning")
+    }
+    if eq(clone(input), String_from("wasm-gc")) {
+        return String_from("warning")
+    }
+    if eq(clone(input), String_from("wasm-gc-wasi-p2")) {
+        return String_from("warning")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p3")) {
+        return String_from("warning")
+    }
+    if eq(clone(input), String_from("native")) {
+        return String_from("error")
+    }
+    if eq(clone(input), String_from("wasm32-freestanding")) {
+        return String_from("error")
+    }
+    String_new()
+}
+
+fn target_alias_canonical_target(input: String) -> String {
+    if eq(clone(input), String_from("wasm32-wasi-p1")) {
+        return String_from("wasm32")
+    }
+    if eq(clone(input), String_from("wasm32-wasi")) {
+        return String_from("wasm32")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p2")) {
+        return String_from("wasm32-gc")
+    }
+    if eq(clone(input), String_from("wasm-gc")) {
+        return String_from("wasm32-gc")
+    }
+    if eq(clone(input), String_from("wasm-gc-wasi-p2")) {
+        return String_from("wasm32-gc")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p3")) {
+        return String_from("wasm32-gc")
+    }
+    input
+}
+
+fn target_alias_host_profile(input: String) -> String {
+    if eq(clone(input), String_from("wasm32-wasi-p1")) {
+        return String_from("wasi-p1")
+    }
+    if eq(clone(input), String_from("wasm32-wasi")) {
+        return String_from("wasi-p1")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p2")) {
+        return String_from("wasi-p2")
+    }
+    if eq(clone(input), String_from("wasm-gc")) {
+        return String_from("wasi-p2")
+    }
+    if eq(clone(input), String_from("wasm-gc-wasi-p2")) {
+        return String_from("wasi-p2")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p3")) {
+        return String_from("wasi-p3")
+    }
+    String_new()
+}
+
+fn target_alias_message(input: String) -> String {
+    if eq(clone(input), String_from("wasm32-wasi-p1")) {
+        return String_from("W0002: target `wasm32-wasi-p1` is deprecated; use `--target wasm32 --wasi-version wasi-p1`")
+    }
+    if eq(clone(input), String_from("wasm32-wasi")) {
+        return String_from("W0002: target `wasm32-wasi` is deprecated; use `--target wasm32 --wasi-version wasi-p1`")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p2")) {
+        return String_from("W0002: target `wasm32-wasi-p2` is deprecated; use `--target wasm32-gc --wasi-version wasi-p2`")
+    }
+    if eq(clone(input), String_from("wasm-gc")) {
+        return String_from("W0002: target `wasm-gc` is deprecated; use `--target wasm32-gc --wasi-version wasi-p2`")
+    }
+    if eq(clone(input), String_from("wasm-gc-wasi-p2")) {
+        return String_from("W0002: target `wasm-gc-wasi-p2` is deprecated; use `--target wasm32-gc --wasi-version wasi-p2`")
+    }
+    if eq(clone(input), String_from("wasm32-wasi-p3")) {
+        return String_from("W0002: target `wasm32-wasi-p3` is deprecated; use `--target wasm32-gc --wasi-version wasi-p3`")
+    }
+    if eq(clone(input), String_from("native")) {
+        return String_from("target `native` is not accepted; use --target native-cpp or --target native-llvm")
+    }
+    if eq(clone(input), String_from("wasm32-freestanding")) {
+        return String_from("target `wasm32-freestanding` is not accepted; choose a canonical target; freestanding is not supported")
+    }
+    String_new()
+}
