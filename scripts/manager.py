@@ -4270,6 +4270,12 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             patched = _ensure_bootstrap_compiler_wasm(root, pinned)
             if patched is not None and patched.is_file():
                 os.environ["ARUKELLT_SELFHOST_WASM"] = str(patched)
+                print(f"{YELLOW}[bootstrap] heap-patched wasm ready: {patched}{NC}")
+            else:
+                print(f"{RED}[bootstrap] WARNING: heap-patched wasm not available, "
+                      f"lint may OOM with unpatched pinned wasm (512 MiB){NC}")
+        else:
+            print(f"{RED}[bootstrap] WARNING: pinned wasm not found{NC}")
 
     # ── Fixture manifest completeness check ──────────────────────────────────
     print(f"\n{YELLOW}[manifest] Checking fixture manifest completeness...{NC}")
