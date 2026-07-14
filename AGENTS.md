@@ -59,7 +59,7 @@
 
 - `.ark` ファイルはプロジェクトの formatter を通し、formatter 適用後の差分を確認する。
 - インデントはスペース 4 個とする。タブ、タブとスペースの混在、桁合わせのための大量の空白を追加しない。
-- `verify quick` は `scripts/check/check-ark-code-quality.py` でタブ禁止・極端インデント禁止・200 文字超行 / 薄い転送 / 1 関数ファイルの件数 ratchet を検査する（天井は `docs/data/ark-code-quality-baseline.toml`）。
+- `verify quick` は `scripts/check/check-ark-code-quality.py` でタブ禁止・極端インデント禁止・200 文字超行の件数 ratchet と、高信頼な未正当化 pure forwarder / wrapper-only file の新規混入を検査する（正本は `docs/data/ark-code-quality-baseline.toml`）。
 - pre-commit は staged `.ark` に `fmt --check` のあと lint を走らせる。`src/compiler/` / `std/` は `lint --local`（parse＋AST ローカル規則）、それ以外はフル lint。W0011 は基準版からの件数増加を禁止する。通常の warning は exit 0、ratchet 増加 / `--deny` / エラーのみ失敗。`verify quick` に `scripts/check/check-ark-lint-smoke.py` がある。
 - 1 行は原則 120 文字以内にする。長い関数宣言、呼び出し、record literal、条件式は意味のまとまりごとに複数行へ分ける。
 - 複数フィールドを持つ record literal は、原則として 1 フィールド 1 行で記述する。
@@ -110,6 +110,9 @@
 - 数行の重複を消すために、引数が多く分岐だらけの汎用 helper を作らない。
 
 ### コメント
+
+- 公開面は、`std/manifest.toml` 登録 API（A）、`src/compiler/*.ark` の安定 subsystem boundary（B）、module 可視性のための内部 `pub`（C）へ分類する。C へ一律に doc comment を要求しない。
+- `python3 scripts/check/check-comment-policy.py` は structured TODO/FIXME、issue-only marker、明確な commented-out code、A/B documentation contract、doc comment attachment を検査する。
 
 - コメントは「何をしているか」ではなく、「なぜこの形が必要か」「どの不変条件を守るか」「直感的でない制約は何か」を説明する。
 - 関数名を言い換えるだけの `Handler for:` や、ファイル名から分かる `Arukellt Selfhost - ...` を機械的に追加しない。

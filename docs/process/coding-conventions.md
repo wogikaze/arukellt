@@ -65,10 +65,14 @@ absolute design limits.
 | implementation comment | コードで表せない理由、不変条件、順序制約、互換性上の罠 | 直後の処理の実況 |
 | TODO / FIXME | issue ID、残る制約、owner、削除条件、再評価期限 | 所有者不明の「後で直す」 |
 
-内部関数すべてへコメントを要求しない。機械検査は公開 API doc の有無、
-構造化 TODO / FIXME、commented-out code、禁止された曖昧タグに限定する。
+公開面は `std/manifest.toml` 登録 API（A）、`src/compiler/*.ark` の安定 subsystem
+boundary（B）、内部 cross-module visibility（C）から導出する。C の全関数へコメントを
+要求しない。機械検査は A/B の documentation contract、構造化 TODO / FIXME、
+issue-only marker、high-confidence commented-out code、doc comment attachment に限定する。
 parser recovery、resolver 探索順、type inference の停止条件、MIR 表現不変条件、
 ABI / scratch memory / target 互換分岐など、削除すると判断を再発明する制約を優先して残す。
+判定入口は `python3 scripts/check/check-comment-policy.py` で、`--json` も text と同じ
+finding modelを使用する。
 
 ## 互換性と現行名
 

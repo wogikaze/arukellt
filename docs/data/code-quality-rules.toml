@@ -263,3 +263,68 @@ rationale = "Public Ark API doc coverage is reported without forcing blanket int
 exception_policy = "Coverage is a hotspot signal; individual contracts are reviewed by API stability"
 owner = "docs"
 adr = "ADR-047"
+
+[[rules]]
+id = "CQ-API-001"
+scope = "ark"
+category = "api"
+enforcer = "custom-check"
+severity = "error"
+gate = "full"
+autofix = false
+rationale = "Manifest-backed external APIs and root subsystem boundaries require an attached documentation contract"
+exception_policy = "Internal cross-module visibility is classification C and does not require blanket documentation"
+owner = "compiler-api"
+adr = "ADR-048"
+
+[[rules]]
+id = "CQ-DOC-003"
+scope = "ark"
+category = "docs"
+enforcer = "custom-check"
+severity = "error"
+gate = "full"
+autofix = false
+rationale = "Issue-only comments do not explain a current invariant or removal condition"
+exception_policy = "Structured TODO/FIXME metadata is governed by CQ-DOC-001"
+owner = "docs"
+adr = "ADR-048"
+
+[[rules]]
+id = "CQ-DOC-004"
+scope = "ark"
+category = "docs"
+enforcer = "custom-check"
+severity = "error"
+gate = "full"
+autofix = false
+rationale = "High-confidence commented-out production statements must be deleted or restored as code"
+exception_policy = "Natural-language examples and uncertain candidates are not hard findings"
+owner = "docs"
+adr = "ADR-048"
+
+[[rules]]
+id = "CQ-DOC-005"
+scope = "ark"
+category = "docs"
+enforcer = "custom-check"
+severity = "advisory"
+gate = "full"
+autofix = false
+rationale = "Filename-restating Arukellt headers are review noise"
+exception_policy = "Module invariants may use meaningful module documentation without the boilerplate prefix"
+owner = "docs"
+adr = "ADR-048"
+
+[[rules]]
+id = "CQ-DOC-006"
+scope = "ark"
+category = "docs"
+enforcer = "custom-check"
+severity = "error"
+gate = "full"
+autofix = false
+rationale = "A doc comment must attach directly to the item whose contract it describes"
+exception_policy = "Module documentation uses //!"
+owner = "docs"
+adr = "ADR-048"

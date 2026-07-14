@@ -65,6 +65,14 @@ purpose = "Print advisory code-quality hotspot inventory"
 coverage = ["quality-metrics"]
 
 [[commands]]
+id = "comment_policy"
+canonical = "python3 scripts/check/check-comment-policy.py"
+aliases = []
+alias_status = "none"
+purpose = "Check structured comments and derived A/B public API documentation contracts"
+coverage = ["CQ-API-001", "CQ-DOC-001", "CQ-DOC-003", "CQ-DOC-004", "CQ-DOC-005", "CQ-DOC-006"]
+
+[[commands]]
 id = "verify_quick"
 canonical = "python3 scripts/manager.py verify quick"
 aliases = ["python3 scripts/manager.py verify --quick"]

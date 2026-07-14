@@ -143,9 +143,13 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
   quality scores. `quality quick` applies the touched-file ratchet and hard
   structure checks; repository-wide format/lint and churn analysis belong to
   `quality full`.
-- **Canonical parser migration boundary:** 26 compiler/stdlib files are
+- **Comment/API policy:** `python3 scripts/check/check-comment-policy.py` derives
+  manifest API (A), root compiler boundary (B), and internal visibility (C), and
+  enforces A/B documentation plus structured temporary comments. `--json` uses
+  the same finding model as text output.
+- **Canonical parser migration boundary:** 23 compiler/stdlib files are
   content-addressed in `docs/data/ark-formatter-baseline.toml`. Only their exact
-  current hashes may skip a formatter parse failure (24 also skip lint parse);
+  current hashes may skip a formatter parse failure;
   any edit fails closed. Issue #791,
   owner `compiler-tooling`, removal condition, and 2026-08-31 re-evaluation are
   mandatory. This is an implementation gap, not canonical formatting.
