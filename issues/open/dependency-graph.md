@@ -48,7 +48,6 @@ graph LR
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
-  I797["797 797 — CQ-17: public API and comment audit"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
@@ -148,7 +147,6 @@ graph LR
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: none
-- **797** depends on: 796; blocks: none
 - **798** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **699** depends on: 649, 698; blocks: none

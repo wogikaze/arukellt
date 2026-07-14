@@ -1,12 +1,12 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-14
 ID: 797
 Track: code-quality
 Depends on: "796"
-Orchestration class: blocked
-Orchestration upstream: 796
+Orchestration class: completed
+Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
 Source: CQ closed-loop plan CQ-17
@@ -88,8 +88,24 @@ and commented-code true/false positives. Text and JSON share one finding model.
 Rules `CQ-API-001` and `CQ-DOC-003..006` are registered. Relevant commits:
 `138197de`, `89748d10`.
 
-Implementation acceptance is satisfied, but the issue remains open because its
-declared dependency CQ-16 is not complete.
+CQ-16 closed at commit `9f771087`. Target canonicalization removed three
+obsolete public lint alias helpers, so the dependency re-review reports
+A=755/755, B=36/36, and C=657 (advisory only). This is a public-surface reduction,
+not a blanket documentation failure.
+
+Dependency re-review on 2026-07-14:
+
+- `python3 scripts/check/check-comment-policy.py` — PASS
+- `python3 scripts/check/check-comment-policy.py --json` — PASS; 0 errors,
+  0 warnings, no findings, A=755/755, B=36/36, C=657
+- `python3 scripts/manager.py quality quick` — PASS
+- `python3 scripts/manager.py docs check` — PASS (4/4)
+- `python3 scripts/manager.py verify quick` — PASS
+
+The compiler, generated target view, extension configuration, commands, and
+README use canonical target names. Deprecated spellings remain only in the
+alias contract/warnings, compatibility evidence, migration text, changelog, and
+historical material; docs checks find no user-facing regression.
 
 ## Primary artifacts
 
@@ -102,7 +118,8 @@ declared dependency CQ-16 is not complete.
 
 - Ark `pub` can mean module visibility rather than external contract.
 - Export reachability and dynamic CLI dispatch require characterization evidence.
-- CQ-16 remains open; do not move this issue to done until the dependency closes.
+- Natural-language quality remains advisory by design; hard findings are limited
+  to mechanically testable contracts.
 
 ## References
 
