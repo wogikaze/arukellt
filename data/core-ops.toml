@@ -11195,8 +11195,8 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → String_new (aliases: 1; String_new)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = []
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
