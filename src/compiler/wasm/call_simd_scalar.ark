@@ -10,196 +10,592 @@ use wasm::call_simd_scalar_cmp
 use wasm::call_simd_scalar_ops
 use wasm::opcodes
 
-fn try_emit_simd_scalar(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+fn try_emit_simd_scalar(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     let arg1 = inst_accessors_operands::MirInst_arg1(inst)
-    if try_emit_simd_scalar_splat_zero(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_extract(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_replace(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_binary(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_unary(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_comparison(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_minmax(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_rounding(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_shift(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_alltrue_bitmask(w, clone(callee), dest, arg0, arg1) { return true }
-    if try_emit_simd_scalar_saturating(w, clone(callee), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_splat_zero(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_extract(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_replace(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_binary(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_unary(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_comparison(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_minmax(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_rounding(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_shift(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_alltrue_bitmask(w, clone(handler_id), dest, arg0, arg1) { return true }
+    if try_emit_simd_scalar_saturating(w, clone(handler_id), dest, arg0, arg1) { return true }
     false
 }
 
-fn try_emit_simd_scalar_splat_zero(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_f32x4_splat")) { call_simd_scalar_ops::emit_scalar_splat_f32(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_splat")) { call_simd_scalar_ops::emit_scalar_splat_i32(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_splat")) { call_simd_scalar_ops::emit_scalar_splat_i32(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_splat")) { call_simd_scalar_ops::emit_scalar_splat_i32(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_splat")) { call_simd_scalar_ops::emit_scalar_splat_f64(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_splat")) { call_simd_scalar_ops::emit_scalar_splat_i64(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_v128_const")) { call_simd_scalar_ops::emit_scalar_zero(w, dest); return true }
+fn try_emit_simd_scalar_splat_zero(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_splat() {
+        call_simd_scalar_ops::emit_scalar_splat_f32(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_splat() {
+        call_simd_scalar_ops::emit_scalar_splat_i32(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_splat() {
+        call_simd_scalar_ops::emit_scalar_splat_i32(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_splat() {
+        call_simd_scalar_ops::emit_scalar_splat_i32(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_splat() {
+        call_simd_scalar_ops::emit_scalar_splat_f64(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_splat() {
+        call_simd_scalar_ops::emit_scalar_splat_i64(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_const() {
+        call_simd_scalar_ops::emit_scalar_zero(w, dest)
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_extract(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_f32x4_extract_lane")) { call_simd_scalar_ops::emit_scalar_extract_f32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_extract_lane")) { call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_s")) { call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_extract_lane_u")) { call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_s")) { call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_extract_lane_u")) { call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_extract_lane")) { call_simd_scalar_ops::emit_scalar_extract_f64(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_extract_lane")) { call_simd_scalar_ops::emit_scalar_extract_i64(w, arg0, arg1, dest); return true }
+fn try_emit_simd_scalar_extract(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_extract_lane() {
+        call_simd_scalar_ops::emit_scalar_extract_f32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_extract_lane() {
+        call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_extract_lane_s() {
+        call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_extract_lane_u() {
+        call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_extract_lane_s() {
+        call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_extract_lane_u() {
+        call_simd_scalar_ops::emit_scalar_extract_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_extract_lane() {
+        call_simd_scalar_ops::emit_scalar_extract_f64(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_extract_lane() {
+        call_simd_scalar_ops::emit_scalar_extract_i64(w, arg0, arg1, dest)
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_replace(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_f32x4_replace_lane")) { call_simd_scalar_ops::emit_scalar_replace_f32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_replace_lane")) { call_simd_scalar_ops::emit_scalar_replace_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_replace_lane")) { call_simd_scalar_ops::emit_scalar_replace_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_replace_lane")) { call_simd_scalar_ops::emit_scalar_replace_i32(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_replace_lane")) { call_simd_scalar_ops::emit_scalar_replace_f64(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_replace_lane")) { call_simd_scalar_ops::emit_scalar_replace_i64(w, arg0, arg1, dest); return true }
+fn try_emit_simd_scalar_replace(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_replace_lane() {
+        call_simd_scalar_ops::emit_scalar_replace_f32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_replace_lane() {
+        call_simd_scalar_ops::emit_scalar_replace_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_replace_lane() {
+        call_simd_scalar_ops::emit_scalar_replace_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_replace_lane() {
+        call_simd_scalar_ops::emit_scalar_replace_i32(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_replace_lane() {
+        call_simd_scalar_ops::emit_scalar_replace_f64(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_replace_lane() {
+        call_simd_scalar_ops::emit_scalar_replace_i64(w, arg0, arg1, dest)
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_binary(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_f32x4_add")) { call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_ADD()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_sub")) { call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_SUB()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_mul")) { call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_MUL()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_div")) { call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_DIV()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_add")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_ADD()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_sub")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_SUB()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_mul")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_MUL()); return true }
-    if eq(clone(callee), String_from("__simd_v128_and")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_AND()); return true }
-    if eq(clone(callee), String_from("__simd_v128_or")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_OR()); return true }
-    if eq(clone(callee), String_from("__simd_v128_xor")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_XOR()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_add")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_ADD()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_sub")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_SUB()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_mul")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_MUL()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_add")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_ADD()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_sub")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_SUB()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_mul")) { call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_MUL()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_add")) { call_simd_scalar_ops::emit_scalar_i64x2_binary(w, arg0, arg1, dest, opcodes::OP_I64_ADD()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_sub")) { call_simd_scalar_ops::emit_scalar_i64x2_binary(w, arg0, arg1, dest, opcodes::OP_I64_SUB()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_mul")) { call_simd_scalar_ops::emit_scalar_i64x2_binary(w, arg0, arg1, dest, opcodes::OP_I64_MUL()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_add")) { call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_ADD()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_sub")) { call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_SUB()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_mul")) { call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_MUL()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_div")) { call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_DIV()); return true }
+fn try_emit_simd_scalar_binary(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_add() {
+        call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_ADD())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_sub() {
+        call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_SUB())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_mul() {
+        call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_MUL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_div() {
+        call_simd_scalar_ops::emit_scalar_f32x4_binary(w, arg0, arg1, dest, opcodes::OP_F32_DIV())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_add() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_ADD())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_sub() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_SUB())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_mul() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_MUL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_and() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_AND())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_or() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_OR())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_xor() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_XOR())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_add() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_ADD())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_sub() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_SUB())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_mul() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_MUL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_add() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_ADD())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_sub() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_SUB())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_mul() {
+        call_simd_scalar_ops::emit_scalar_i32x4_binary(w, arg0, arg1, dest, opcodes::OP_I32_MUL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_add() {
+        call_simd_scalar_ops::emit_scalar_i64x2_binary(w, arg0, arg1, dest, opcodes::OP_I64_ADD())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_sub() {
+        call_simd_scalar_ops::emit_scalar_i64x2_binary(w, arg0, arg1, dest, opcodes::OP_I64_SUB())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_mul() {
+        call_simd_scalar_ops::emit_scalar_i64x2_binary(w, arg0, arg1, dest, opcodes::OP_I64_MUL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_add() {
+        call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_ADD())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_sub() {
+        call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_SUB())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_mul() {
+        call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_MUL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_div() {
+        call_simd_scalar_ops::emit_scalar_f64x2_binary(w, arg0, arg1, dest, opcodes::OP_F64_DIV())
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_unary(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_f32x4_neg")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_NEG()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_sqrt")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_SQRT()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_abs")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F64_ABS()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_neg")) { call_simd_scalar_ops::emit_scalar_i32x4_neg(w, arg0, dest); return true }
+fn try_emit_simd_scalar_unary(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_neg() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_NEG())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_sqrt() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_SQRT())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_abs() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F64_ABS())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_neg() {
+        call_simd_scalar_ops::emit_scalar_i32x4_neg(w, arg0, dest)
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_comparison(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_i32x4_eq")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_EQ()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_ne")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_NE()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_lt_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_lt_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_gt_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_gt_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_le_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LE_S()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_le_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LE_U()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_ge_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GE_S()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_ge_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GE_U()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_eq")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_EQ()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_ne")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_NE()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_lt_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_lt_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_gt_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_gt_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_ge_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GE_U()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_eq")) { call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_EQ()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_ne")) { call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_NE()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_lt")) { call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_LT()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_gt")) { call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_GT()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_le")) { call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_LE()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_ge")) { call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_GE()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_eq")) { call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_EQ()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_ne")) { call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_NE()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_lt")) { call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_LT()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_gt")) { call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_GT()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_le")) { call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_LE()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_ge")) { call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_GE()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_eq")) { call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_EQ()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_ne")) { call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_NE()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_lt_s")) { call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_LT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_le_s")) { call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_LE_S()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_ge_s")) { call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_GE_S()); return true }
+fn try_emit_simd_scalar_comparison(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_eq() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_EQ())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_ne() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_NE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_lt_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_lt_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_gt_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_gt_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_le_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LE_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_le_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LE_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_ge_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GE_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_ge_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GE_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_eq() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_EQ())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_ne() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_NE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_lt_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_lt_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_LT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_gt_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_gt_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_ge_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_cmp(w, arg0, arg1, dest, opcodes::OP_I32_GE_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_eq() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_EQ())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_ne() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_NE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_lt() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_LT())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_gt() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_GT())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_le() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_LE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_ge() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_cmp(w, arg0, arg1, dest, opcodes::OP_F32_GE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_eq() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_EQ())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_ne() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_NE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_lt() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_LT())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_gt() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_GT())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_le() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_LE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_ge() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_cmp(w, arg0, arg1, dest, opcodes::OP_F64_GE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_eq() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_EQ())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_ne() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_NE())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_lt_s() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_LT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_le_s() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_LE_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_ge_s() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_cmp(w, arg0, arg1, dest, opcodes::OP_I64_GE_S())
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_minmax(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_i32x4_min_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_min_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_max_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_min_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_min_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_max_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_max_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_min_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_min_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_U()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_max_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_S()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_max_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_U()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_min")) { call_simd_scalar_cmp::emit_scalar_f32x4_minmax(w, arg0, arg1, dest, opcodes::OP_F32_LT()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_max")) { call_simd_scalar_cmp::emit_scalar_f32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_F32_GT()); return true }
+fn try_emit_simd_scalar_minmax(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_min_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_min_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_max_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_min_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_min_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_max_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_max_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_min_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_min_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_minmax(w, arg0, arg1, dest, opcodes::OP_I32_LT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_max_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_max_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_I32_GT_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_min() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_minmax(w, arg0, arg1, dest, opcodes::OP_F32_LT())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_max() {
+        call_simd_scalar_cmp::emit_scalar_f32x4_maxmax(w, arg0, arg1, dest, opcodes::OP_F32_GT())
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_rounding(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_f32x4_ceil")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_CEIL()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_floor")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_FLOOR()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_trunc")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_TRUNC()); return true }
-    if eq(clone(callee), String_from("__simd_f32x4_nearest")) { call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_NEAREST()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_ceil")) { call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_CEIL()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_floor")) { call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_FLOOR()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_trunc")) { call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_TRUNC()); return true }
-    if eq(clone(callee), String_from("__simd_f64x2_nearest")) { call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_NEAREST()); return true }
+fn try_emit_simd_scalar_rounding(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_ceil() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_CEIL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_floor() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_FLOOR())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_trunc() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_TRUNC())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f32x4_nearest() {
+        call_simd_scalar_ops::emit_scalar_f32x4_unary(w, arg0, dest, opcodes::OP_F32_NEAREST())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_ceil() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_CEIL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_floor() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_FLOOR())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_trunc() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_TRUNC())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_f64x2_nearest() {
+        call_simd_scalar_cmp::emit_scalar_f64x2_unary(w, arg0, dest, opcodes::OP_F64_NEAREST())
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_shift(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_i32x4_shl")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_shr_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_S()); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_shr_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_U()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_shl")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_shr_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_S()); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_shr_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_U()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_shl")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_shr_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_S()); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_shr_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_U()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_shl")) { call_simd_scalar_cmp::emit_scalar_i64x2_shift(w, arg0, arg1, dest, opcodes::OP_I64_SHL()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_shr_s")) { call_simd_scalar_cmp::emit_scalar_i64x2_shift(w, arg0, arg1, dest, opcodes::OP_I64_SHR_S()); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_shr_u")) { call_simd_scalar_cmp::emit_scalar_i64x2_shift(w, arg0, arg1, dest, opcodes::OP_I64_SHR_U()); return true }
+fn try_emit_simd_scalar_shift(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_shl() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_shr_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_shr_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_shl() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_shr_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_shr_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_shl() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_shr_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_shr_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_shift(w, arg0, arg1, dest, opcodes::OP_I32_SHR_U())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_shl() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_shift(w, arg0, arg1, dest, opcodes::OP_I64_SHL())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_shr_s() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_shift(w, arg0, arg1, dest, opcodes::OP_I64_SHR_S())
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_shr_u() {
+        call_simd_scalar_cmp::emit_scalar_i64x2_shift(w, arg0, arg1, dest, opcodes::OP_I64_SHR_U())
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_alltrue_bitmask(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_v128_any_true")) { call_simd_scalar_ops::emit_scalar_any_true(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_all_true")) { call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_all_true")) { call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_all_true")) { call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_all_true")) { call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_bitmask")) { call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 4); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_bitmask")) { call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 4); return true }
-    if eq(clone(callee), String_from("__simd_i32x4_bitmask")) { call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 4); return true }
-    if eq(clone(callee), String_from("__simd_i64x2_bitmask")) { call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 2); return true }
+fn try_emit_simd_scalar_alltrue_bitmask(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_v128_any_true() {
+        call_simd_scalar_ops::emit_scalar_any_true(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_all_true() {
+        call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_all_true() {
+        call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_all_true() {
+        call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_all_true() {
+        call_simd_scalar_cmp::emit_scalar_all_true(w, arg0, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_bitmask() {
+        call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 4)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_bitmask() {
+        call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 4)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i32x4_bitmask() {
+        call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 4)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i64x2_bitmask() {
+        call_simd_scalar_cmp::emit_scalar_bitmask(w, arg0, dest, 2)
+        return true
+    }
     false
 }
 
-fn try_emit_simd_scalar_saturating(w: WasmWriter, callee: String, dest: i32, arg0: i32, arg1: i32) -> bool {
-    if eq(clone(callee), String_from("__simd_i8x16_add_sat_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_add_sat_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_sub_sat_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i8x16_sub_sat_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_add_sat_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_add_sat_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_sub_sat_s")) { call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest); return true }
-    if eq(clone(callee), String_from("__simd_i16x8_sub_sat_u")) { call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest); return true }
+fn try_emit_simd_scalar_saturating(w: WasmWriter, handler_id: i32, dest: i32, arg0: i32, arg1: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_add_sat_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_add_sat_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_sub_sat_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i8x16_sub_sat_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_add_sat_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_add_sat_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_add_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_sub_sat_s() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_simd_i16x8_sub_sat_u() {
+        call_simd_scalar_cmp::emit_scalar_i32x4_sub_sat(w, arg0, arg1, dest)
+        return true
+    }
     false
 }

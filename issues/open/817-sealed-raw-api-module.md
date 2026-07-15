@@ -3,9 +3,10 @@ Status: open
 Created: 2026-07-15
 Updated: 2026-07-15
 ID: 817
+Parent: 729
 Track: compiler-internal
 Depends on: "798"
-Related: "729, ADR-042, docs/plans/intrinsic-layer-separation"
+Related: "729, 818, ADR-042, docs/plans/intrinsic-layer-separation"
 Orchestration class: blocked
 Orchestration upstream: "sealed-raw-api-rfc"
 Blocks v{N}: none
@@ -19,8 +20,8 @@ Source: ADR-042 out-of-scope item
 
 Define a sealed raw API module that exposes the internal representation of
 `Vec` and `String` only to the standard library, as required by ADR-042. This
-work is intentionally out of scope for the main #729 epic until a separate RFC
-selects the module name and surface.
+is a separate child of #729, outside #798's dispatch-spine scope, and
+remains blocked until a dedicated RFC selects the module name and surface.
 
 ## Scope
 
@@ -64,7 +65,7 @@ selects the module name and surface.
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
 - `docs/plans/intrinsic-layer-separation.md`
 - `issues/open/729-intrinsic-layer-separation.md`
-- `issues/open/798-adr-042-semantic-operation-registry-migration.md`
+- `issues/done/798-adr-042-semantic-operation-registry-migration.md`
 - `std/collections/vec.ark`
 - `std/text/string.ark`
 - `src/compiler/wasm/intrinsic_*_gc.ark`

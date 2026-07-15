@@ -8,6 +8,6 @@ last_update_issue = 798
 description = "Legacy MIR call lowering uses callee string matching; no new patterns until cutover."
 
 [counts]
-eq_clone_callee_patterns = 548
+eq_clone_callee_patterns = 0
 unique_callee_literal_keys = 158
 dispatch_source_files = 14

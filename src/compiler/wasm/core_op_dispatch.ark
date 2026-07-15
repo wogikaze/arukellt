@@ -1,36 +1,19 @@
 use corehir::core_op_id
-use corehir::core_op_registry
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::function_id
-use corehir::core_op_binding_generated
 use mir::inst_record
 use wasm::ctx_record
 use wasm::call_host
 use wasm::call_seq
 use wasm::call_text
 use wasm::call_scalar
-use wasm::call_hash
 use wasm::call_parse
 use wasm::call_vec
 use wasm::call_simd
-use wasm::call_fallback
 
 fn core_op_dispatch_use_registry() -> bool {
     true
-}
-
-fn core_op_registry_handler_key_for_id(coid: CoreOpId) -> String {
-    let raw = core_op_id::CoreOpId_raw(coid)
-    if raw < 0 {
-        return String_new()
-    }
-    let canonical = core_op_registry::CoreOpRegistry_canonical_id_at(raw)
-    let handler = core_op_binding_generated::core_op_handler_key_for_core_op_id(clone(canonical))
-    if len(handler) > 0 {
-        return handler
-    }
-    return String_new()
 }
 
 fn try_emit_call_via_core_op_registry(
@@ -40,7 +23,7 @@ fn try_emit_call_via_core_op_registry(
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,
-    prev_callee: String,
+    prev_func_id_raw: i32,
     next_op: i32,
     next_arg0: i32,
     next_arg1: i32,
@@ -63,35 +46,39 @@ fn try_emit_call_via_core_op_registry(
     if !core_op_id::core_op_id_is_some(coid) {
         return false
     }
-    let handler_key = core_op_registry_handler_key_for_id(coid)
-    if len(handler_key) == 0 {
-        stdio::eprintln(String_from("core-op-dispatch: missing legacy handler key for CoreOpId"))
-        return false
-    }
-    if call_host::try_emit_host_call(w, handler_key, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
+    let handler_id = core_op_id::CoreOpId_raw(coid)
+    let prev_handler_id = handler_id_for_function_id_raw(registry, prev_func_id_raw)
+    if call_host::try_emit_host_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_handler_id, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_seq::try_emit_seq_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if call_seq::try_emit_seq_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_text::try_emit_text_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if call_text::try_emit_text_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_scalar::try_emit_scalar_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if call_scalar::try_emit_scalar_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_hash::try_emit_hash_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op, bindings_len) {
+    if call_parse::try_emit_parse_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_parse::try_emit_parse_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if call_vec::try_emit_vec_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_vec::try_emit_vec_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if call_simd::try_emit_simd_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if call_simd::try_emit_simd_call(w, handler_key, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-        return true
+    false
+}
+
+fn handler_id_for_function_id_raw(registry: SignatureRegistry, func_id_raw: i32) -> i32 {
+    if func_id_raw < 0 {
+        return 0 - 1
     }
-    call_fallback::emit_fallback_call(w, handler_key, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op, bindings_len)
-    true
+    let sig = signature_registry::signature_registry_lookup_by_id(
+        registry,
+        function_id::FunctionId_new(func_id_raw)
+    )
+    core_op_id::CoreOpId_raw(signature_entry::signature_entry_core_op_id(sig))
 }

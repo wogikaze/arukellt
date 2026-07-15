@@ -7,7 +7,7 @@ use wasm::intrinsics::helpers_core
 
 fn try_emit_option_assert_call(
     w: WasmWriter,
-    callee: String,
+    handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,
     prev_op: i32,
@@ -18,18 +18,18 @@ fn try_emit_option_assert_call(
     next_arg1: i32,
     next2_op: i32
 ) -> bool {
-    if try_emit_option_result_call(w, clone(callee), inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_option_result_call(w, clone(handler_id), inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_assert_call(w, clone(callee), inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_assert_call(w, clone(handler_id), inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    call_host_io::try_emit_process_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+    call_host_io::try_emit_process_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
 }
 
 fn try_emit_option_result_call(
     w: WasmWriter,
-    callee: String,
+    handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,
     prev_op: i32,
@@ -40,10 +40,10 @@ fn try_emit_option_result_call(
     next_arg1: i32,
     next2_op: i32
 ) -> bool {
-    if try_emit_option_unwrap_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_option_unwrap_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_option_status_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_option_status_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
@@ -68,7 +68,7 @@ fn emit_option_receiver_if_needed(w: WasmWriter, prev_op: i32, prev_arg0: i32, p
 
 fn try_emit_option_status_call(
     w: WasmWriter,
-    callee: String,
+    handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,
     prev_op: i32,
@@ -79,13 +79,13 @@ fn try_emit_option_status_call(
     next_arg1: i32,
     next2_op: i32
 ) -> bool {
-    if eq(clone(callee), "is_some") || eq(clone(callee), "is_ok") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_is_ok(){
         emit_option_receiver_if_needed(w, prev_op, prev_arg0, prev_arg1)
         let _result_on_stack = intrinsic_option_result::emit_is_ok(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "is_none") || eq(clone(callee), "is_err") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_is_err(){
         emit_option_receiver_if_needed(w, prev_op, prev_arg0, prev_arg1)
         let _result_on_stack = intrinsic_option_result::emit_is_err(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -96,7 +96,7 @@ fn try_emit_option_status_call(
 
 fn try_emit_option_unwrap_call(
     w: WasmWriter,
-    callee: String,
+    handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,
     prev_op: i32,
@@ -107,13 +107,13 @@ fn try_emit_option_unwrap_call(
     next_arg1: i32,
     next2_op: i32
 ) -> bool {
-    if eq(clone(callee), "unwrap") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_unwrap(){
         emit_option_receiver_if_needed(w, prev_op, prev_arg0, prev_arg1)
         let _result_on_stack = intrinsic_option_result::emit_unwrap_l4771(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "unwrap_or") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_unwrap_or(){
         emit_option_receiver_if_needed(w, prev_op, prev_arg0, prev_arg1)
         let _result_on_stack = intrinsic_option_result::emit_unwrap_or_l4779(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -122,28 +122,28 @@ fn try_emit_option_unwrap_call(
     false
 }
 
-fn try_emit_assert_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "assert") {
+fn try_emit_assert_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_assert(){
         let _result_on_stack = intrinsic_assert::emit_assert(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "assert_eq") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_assert_eq(){
         let _result_on_stack = intrinsic_assert::emit_assert_eq(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "assert_eq_i64") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_assert_eq_i64(){
         let _result_on_stack = intrinsic_assert::emit_assert_eq_i64(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "assert_ne") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_assert_ne(){
         let _result_on_stack = intrinsic_assert::emit_assert_ne(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "assert_eq_str") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_assert_eq_str(){
         let _result_on_stack = intrinsic_assert::emit_assert_eq_str(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-15T00:33:52Z",
+  "generated_at": "2026-07-15T05:45:47Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -768,8 +768,7 @@
       "depends_on": [],
       "blocks_issue_ids": [
         "726",
-        "729",
-        "798"
+        "729"
       ],
       "acceptance": {
         "checked": 10,
@@ -978,6 +977,48 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "816",
+      "path": "816-prelude-compilation-restoration.md",
+      "title": "816 — Prelude compilation restoration",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "prelude-restoration-rfc"
+      }
+    },
+    {
+      "id": "817",
+      "path": "817-sealed-raw-api-module.md",
+      "title": "817 — Sealed raw API module for Vec/String internal representation",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "sealed-raw-api-rfc"
       }
     },
     {
@@ -1261,8 +1302,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 11,
-        "unchecked": 0
+        "checked": 10,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "blocked",
@@ -1302,32 +1343,10 @@
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 10
+        "unchecked": 11
       },
       "orchestration": {
         "class": "unblocked",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "798",
-      "path": "798-adr-042-semantic-operation-registry-migration.md",
-      "title": "798 — ADR-042 semantic operation registry migration",
-      "track": "architecture",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [
-        "816",
-        "817"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "ready",
         "upstream_notes": "none"
       }
     },
@@ -1367,6 +1386,27 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "818",
+      "path": "818-core-op-production-scaffold-exit.md",
+      "title": "818 — CoreOpRegistry production scaffold exit",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "817"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "798, 816, 817"
       }
     },
     {
@@ -1453,44 +1493,6 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "816",
-      "path": "816-prelude-compilation-restoration.md",
-      "title": "816 — Prelude compilation restoration",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "prelude-restoration-rfc"
-      }
-    },
-    {
-      "id": "817",
-      "path": "817-sealed-raw-api-module.md",
-      "title": "817 — Sealed raw API module for Vec/String internal representation",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "sealed-raw-api-rfc"
       }
     },
     {

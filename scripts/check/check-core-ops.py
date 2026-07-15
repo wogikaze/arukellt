@@ -29,7 +29,13 @@ VALID_VISIBILITY = {"public", "internal"}
 VALID_CLASSIFICATION = {"primitive", "runtime", "semantic_stdlib", "target_raw"}
 VALID_BINDING_POLICY = {"required", "optional", "forbidden"}
 VALID_INLINE_POLICY = {"never", "hint", "always"}
-VALID_LOWERING_KIND = {"normal_call", "mir_op", "runtime_call", "target_intrinsic"}
+VALID_LOWERING_KIND = {
+    "normal_call",
+    "mir_op",
+    "runtime_call",
+    "target_intrinsic",
+    "legacy_emitter",
+}
 VALID_RUNTIME_KIND = {"internal", "wit", "native"}
 VALID_WHEN_KEYS = {"backend", "target_family", "portable_simd_lowering", "wasm_raw_v128", "wasm_relaxed_simd"}
 VALID_PRIMITIVE_NAMES = {
@@ -505,7 +511,7 @@ def validate_target_payload(op_id: str, target: dict, errors: list[str]) -> None
                 errors.append(f"{op_id}: required_target_features[{i}] {f!r} is not a known target feature")
 
 
-def validate_lowering(op: dict, errors: list[str]) -> None:
+def validate_lowering(op: dict, status: str, errors: list[str]) -> None:
     lowering = op.get("lowering", {})
     if not _type_guard_dict(lowering, f"{op['id']}.lowering", errors):
         return
@@ -514,7 +520,13 @@ def validate_lowering(op: dict, errors: list[str]) -> None:
         errors.append(f"{op['id']}: lowering.kind {kind!r} is invalid")
         return
 
-    allowed_sub = {"normal_call": set(), "mir_op": {"mir"}, "runtime_call": {"runtime"}, "target_intrinsic": {"target"}}[kind]
+    allowed_sub = {
+        "normal_call": set(),
+        "mir_op": {"mir"},
+        "runtime_call": {"runtime"},
+        "target_intrinsic": {"target"},
+        "legacy_emitter": {"legacy"},
+    }[kind]
     for key in lowering:
         if key == "kind":
             continue
@@ -539,6 +551,29 @@ def validate_lowering(op: dict, errors: list[str]) -> None:
             pass
         else:
             validate_target_payload(op["id"], target, errors)
+    elif kind == "legacy_emitter":
+        legacy = lowering.get("legacy", {})
+        if not _type_guard_dict(legacy, f"{op['id']}.lowering.legacy", errors):
+            pass
+        else:
+            unknown = set(legacy) - {"handler_id", "tracking_issue"}
+            if unknown:
+                errors.append(
+                    f"{op['id']}: lowering.legacy has unknown fields {sorted(unknown)}"
+                )
+            if not isinstance(legacy.get("handler_id"), str) or not legacy.get("handler_id"):
+                errors.append(f"{op['id']}: legacy_emitter requires non-empty handler_id")
+            if not isinstance(legacy.get("tracking_issue"), str) or not legacy.get("tracking_issue"):
+                errors.append(f"{op['id']}: legacy_emitter requires tracking_issue")
+        if status != "migration":
+            errors.append(
+                f"{op['id']}: legacy_emitter is allowed only when status = migration"
+            )
+        fallback = op.get("fallback")
+        if isinstance(fallback, dict) and (
+            fallback.get("required") or fallback.get("implementation_symbol") is not None
+        ):
+            errors.append(f"{op['id']}: legacy_emitter must not define a fallback")
 
     if kind == "normal_call":
         fallback = op.get("fallback", {})
@@ -606,7 +641,7 @@ def validate_specialization(op: dict, spec: dict, index: int, errors: list[str])
     if not _type_guard_dict(lowering, f"{prefix}.lowering", errors):
         return
     fake_op = {"id": prefix, "lowering": lowering}
-    validate_lowering(fake_op, errors)
+    validate_lowering(fake_op, "production", errors)
 
 
 def _when_domains(specs: list[dict]) -> dict[str, set[str]]:
@@ -764,7 +799,7 @@ def validate_operation(
         errors.append(f"{op_id}: binding.policy {policy!r} is invalid")
 
     validate_signature(op, type_entries, primitive_names, errors)
-    validate_lowering(op, errors)
+    validate_lowering(op, status, errors)
     validate_fallback(op, status, strict, public_symbols, errors, warnings)
     validate_binding_and_lowering(op, manifest_refs, errors)
 
@@ -937,7 +972,7 @@ def validate_core_ops_and_manifest(
     if schema_version != EXPECTED_SCHEMA_VERSION:
         errors.append(f"schema_version is {schema_version!r}, expected {EXPECTED_SCHEMA_VERSION}")
 
-    if status not in {"scaffold", "production"}:
+    if status not in {"scaffold", "migration", "production"}:
         errors.append(f"status {status!r} is invalid")
 
     types = core_ops.get("types", [])

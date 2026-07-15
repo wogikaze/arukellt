@@ -55,6 +55,8 @@ graph LR
   I812["812 812 — Selfhost diagnostic parity drift"]
   I813["813 813 — Selfhost fixpoint not reached"]
   I815["815 815 — Diagnostic/T3 compile skips"]
+  I816["816 816 — Prelude compilation restoration"]
+  I817["817 817 — Sealed raw API module for Vec/String internal representation"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -71,15 +73,13 @@ graph LR
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
-  I798["798 798 — ADR-042 semantic operation registry migration"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
+  I818["818 818 — CoreOpRegistry production scaffold exit"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
-  I816["816 816 — Prelude compilation restoration"]
-  I817["817 817 — Sealed raw API module for Vec/String internal representation"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -105,9 +105,10 @@ graph LR
   I715 --> I799
   I724 --> I726
   I724 --> I729
-  I724 --> I798
   I791 --> I800
   I791 --> I814
+  I816 --> I818
+  I817 --> I818
   I682 --> I683
   I649 --> I699
   I698 --> I699
@@ -116,8 +117,6 @@ graph LR
   I697 --> I709
   I703 --> I709
   I726 --> I730
-  I798 --> I816
-  I798 --> I817
   I691 --> I710
   I697 --> I710
   I709 --> I710
@@ -171,7 +170,7 @@ graph LR
 - **721** depends on: none; blocks: none
 - **722** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
-- **724** depends on: none; blocks: 726, 729, 798
+- **724** depends on: none; blocks: 726, 729
 - **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
@@ -183,6 +182,8 @@ graph LR
 - **812** depends on: none; blocks: none
 - **813** depends on: 459, framework); blocks: none
 - **815** depends on: none; blocks: none
+- **816** depends on: 798; blocks: 818
+- **817** depends on: 798; blocks: 818
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
@@ -199,15 +200,13 @@ graph LR
 - **799** depends on: 715, 796, 797; blocks: none
 - **726** depends on: 724; blocks: 730
 - **729** depends on: 724; blocks: none
-- **798** depends on: 724; blocks: 816, 817
 - **800** depends on: 791; blocks: none
 - **814** depends on: 791; blocks: none
+- **818** depends on: 798, 816, 817; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **730** depends on: 726; blocks: none
-- **816** depends on: 798; blocks: none
-- **817** depends on: 798; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713

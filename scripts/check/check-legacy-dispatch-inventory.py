@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""Compare legacy handler-branch inventory against CoreOp registry coverage.
-
-Inventory unit is a handler branch (OR'd aliases), not each callee string.
-"""
+"""Validate the frozen migration alias inventory and absence of string dispatch."""
 from __future__ import annotations
 
 import argparse
 import json
-import sys
+import re
 from pathlib import Path
 
 try:
@@ -18,15 +15,7 @@ except ModuleNotFoundError:
 ROOT = Path(__file__).resolve().parents[2]
 CORE_OPS = ROOT / "data" / "core-ops.toml"
 WASM_DIR = ROOT / "src" / "compiler" / "wasm"
-GEN_DIR = ROOT / "scripts" / "gen"
-
-sys.path.insert(0, str(GEN_DIR))
-from core_op_mapping_common import extract_handler_branches  # noqa: E402
-
-
-def load_core_op_ids() -> set[str]:
-    data = tomllib.loads(CORE_OPS.read_text(encoding="utf-8"))
-    return {op["id"] for op in data.get("operations", []) if isinstance(op, dict) and "id" in op}
+LEGACY_COMPARISON = re.compile(r"\beq\s*\(\s*clone\s*\(\s*callee\s*\)")
 
 
 def main() -> int:
@@ -34,54 +23,63 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    branches = extract_handler_branches(WASM_DIR)
-    core_ops = load_core_op_ids()
-
-    mapped = 0
-    unmapped = []
-    for branch in branches:
-        if branch.core_op_id in core_ops:
-            mapped += 1
-        else:
-            unmapped.append(
-                {
-                    "core_op_id": branch.core_op_id,
-                    "handler_key": branch.handler_key,
-                    "aliases": list(branch.aliases),
-                    "owner": branch.owner,
-                    "source": branch.source_file,
-                }
-            )
-
-    alias_count = sum(len(b.aliases) for b in branches)
-    report = {
-        "handler_branches": len(branches),
-        "legacy_alias_literals": alias_count,
-        "core_op_entries": len(core_ops),
-        "mapped_branches": mapped,
-        "unmapped_branches": len(unmapped),
-        "unmapped_samples": unmapped[:20],
+    data = tomllib.loads(CORE_OPS.read_text(encoding="utf-8"))
+    core_op_ids = {
+        op["id"] for op in data.get("operations", [])
+        if isinstance(op, dict) and isinstance(op.get("id"), str)
     }
+    aliases: dict[str, str] = {}
+    conflicts: list[str] = []
+    missing_core_ops: list[dict[str, str]] = []
+    for binding in data.get("legacy_bindings", []):
+        if not isinstance(binding, dict):
+            continue
+        alias = binding.get("alias")
+        core_op_id = binding.get("core_op_id")
+        if not isinstance(alias, str) or not isinstance(core_op_id, str):
+            conflicts.append("legacy binding must contain string alias and core_op_id")
+            continue
+        previous = aliases.get(alias)
+        if previous is not None and previous != core_op_id:
+            conflicts.append(f"{alias}: {previous} vs {core_op_id}")
+        aliases[alias] = core_op_id
+        if core_op_id not in core_op_ids:
+            missing_core_ops.append({"alias": alias, "core_op_id": core_op_id})
 
+    string_dispatch: list[str] = []
+    for source in sorted(WASM_DIR.glob("call_*.ark")):
+        for line_number, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
+            if LEGACY_COMPARISON.search(line):
+                string_dispatch.append(f"{source.relative_to(ROOT)}:{line_number}")
+
+    report = {
+        "legacy_aliases": len(aliases),
+        "mapped_core_ops": len(set(aliases.values())),
+        "core_op_entries": len(core_op_ids),
+        "conflicts": conflicts,
+        "missing_core_ops": missing_core_ops,
+        "callee_string_dispatch": string_dispatch,
+    }
+    failed = bool(conflicts or missing_core_ops or string_dispatch or not aliases)
     if args.json:
         print(json.dumps(report, indent=2))
-        return 0 if not unmapped else 1
+        return 1 if failed else 0
 
     print(
-        f"legacy inventory: {len(branches)} handler branches "
-        f"({alias_count} aliases), mapped={mapped}, unmapped={len(unmapped)}, "
-        f"core_ops={len(core_ops)}"
+        f"migration aliases={len(aliases)}, mapped_core_ops={len(set(aliases.values()))}, "
+        f"callee_string_dispatch={len(string_dispatch)}"
     )
-    if unmapped:
-        print("FAIL: unmapped handler branches (first 20):", file=sys.stderr)
-        for item in unmapped[:20]:
-            print(
-                f"  {item['core_op_id']} handler={item['handler_key']} "
-                f"aliases={item['aliases']} ({item['source']})",
-                file=sys.stderr,
-            )
+    if failed:
+        for problem in conflicts:
+            print(f"FAIL: conflicting binding: {problem}")
+        for problem in missing_core_ops:
+            print(f"FAIL: unknown CoreOpId: {problem['alias']} -> {problem['core_op_id']}")
+        for location in string_dispatch:
+            print(f"FAIL: callee string dispatch remains at {location}")
+        if not aliases:
+            print("FAIL: frozen legacy binding inventory is empty")
         return 1
-    print("PASS: all legacy handler branches have CoreOp coverage")
+    print("PASS: frozen aliases are valid and helper dispatch uses typed handler IDs")
     return 0
 
 

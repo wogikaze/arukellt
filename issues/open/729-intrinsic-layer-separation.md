@@ -5,7 +5,7 @@ Updated: 2026-07-15
 ID: 729
 Track: compiler-internal
 Depends on: "724"
-Related: "718, 709, 727, 798, 808, 816, 817, ADR-040, ADR-036, ADR-042"
+Related: "718, 709, 727, 798, 808, 816, 817, 818, ADR-040, ADR-036, ADR-042"
 Orchestration class: unblocked
 Orchestration upstream: none
 Blocks v{N}: none
@@ -32,10 +32,11 @@ establishes the core-ops registry and `SignatureEntry` schema.
 - Moving pure and allocation-dependent operations to Ark stdlib.
 - Introducing a limited stdlib-only inliner.
 
-## Out of scope (separate RFC / child issues)
+## Separately scoped children
 
-- **Prelude compilation restoration** — requires a separate RFC; tracked as **#816**.
-- **Sealed raw API module name and surface** — requires a separate RFC; tracked as **#817**.
+- **Prelude compilation restoration** — separate RFC and child **#816**.
+- **Sealed raw API module name and surface** — separate RFC and child **#817**.
+- **Production scaffold exit** — production lowerings and differential proof in **#818**.
 
 ## Architecture
 
@@ -50,6 +51,9 @@ ADR-042 defines five layers:
 ## Child issues
 
 - **#798** — ADR-042 semantic operation registry migration (first implementation child)
+- **#816** — Prelude compilation restoration (RFC-gated)
+- **#817** — Sealed raw API for Vec/String representation (RFC-gated)
+- **#818** — CoreOpRegistry production scaffold exit
 
 Additional implementation children (host ABI separation, stdlib inliner,
 pure stdlib migration, allocation-dependent stdlib migration) will be filed
@@ -57,8 +61,9 @@ under this epic as the registry work in #798 completes.
 
 ## Related issues
 
-- **#816** — Prelude compilation restoration (RFC dependency, out of scope)
-- **#817** — Sealed raw API module for Vec/String internal representation (RFC dependency, out of scope)
+- **#816** — Prelude compilation restoration (outside #798 scope)
+- **#817** — Sealed raw API module for Vec/String internal representation (outside #798 scope)
+- **#818** — Production lowerings, fallback bodies, differential proof, and `status = "production"`
 - **#808** — T3/Wasm validation failures (global `verify quick` gate blocker)
 
 ## Acceptance
@@ -72,6 +77,7 @@ under this epic as the registry work in #798 completes.
 - [ ] `std/manifest.toml` remains the SSOT for public path / docs / stability / deprecation, referencing `core-ops.toml` via `core_op_id` / `type_id`
 - [ ] stdlib-only inliner is operational
 - [ ] Migrated operations have Ark fallback bodies and pass differential tests
+- [ ] `data/core-ops.toml` has `status = "production"` and no migration-only lowerings or aliases
 - [ ] Global `python3 scripts/manager.py verify quick` exits 0 (blocked by #808 until fixed)
 
 ## Close gate
@@ -85,15 +91,16 @@ specific file names or syntax:
 4. Host operations are lowered through the runtime ABI layer, not through `intrinsic_*.ark` files in the emitter.
 5. Public `std/manifest.toml` bindings are consistent with `data/core-ops.toml` `signature` and `effect`.
 6. Differential tests pass between Ark fallback and optimized lowering for all migrated operations.
-7. `python3 scripts/manager.py verify quick` passes (requires #808 closed).
+7. The #818 production scaffold-exit gates pass and `status = "production"`.
+8. `python3 scripts/manager.py verify quick` passes (requires #808 closed).
 
 ## Notes
 
 - The detailed phase order is canonicalized in [`docs/plans/intrinsic-layer-separation.md`](../../docs/plans/intrinsic-layer-separation.md).
 - This issue is intentionally **not** a checklist of phases; phase-level
 checklists belong in child issues and the plan document.
-- #816 and #817 are **out of scope** for this epic. They are tracked as
-  separate RFC dependencies and are listed under Related issues only.
+- #816 and #817 are children of this epic but remain outside #798's bounded
+  dispatch-spine migration. #818 consumes their required outputs for final production exit.
 
 ## Dependency Notes
 
@@ -126,7 +133,7 @@ checklists belong in child issues and the plan document.
 - `docs/adr/ADR-036-trait-stdlib-redesign.md` — trait-based stdlib
 - `data/core-ops.toml` — semantic registry SSOT
 - `std/manifest.toml` — public API / docs / stability / deprecation SSOT
-- `src/compiler/wasm/call_dispatch_table.ark` — current string-based dispatch
+- `src/compiler/wasm/inst_dispatch.ark` — FunctionId/CoreOp call dispatch owner
 - `src/compiler/wasm/intrinsic_*.ark` — intrinsic files
 - `src/compiler/corehir/signature_entry.ark` — SignatureEntry
 - `src/compiler/mir/inst_record.ark` — `func_id_raw` field

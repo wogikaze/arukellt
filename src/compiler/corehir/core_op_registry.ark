@@ -10,6 +10,7 @@ struct CoreOpEntry {
     target_id: String,
     runtime_symbol: String,
     mir_operation: String,
+    legacy_handler_id: String,
 }
 
 fn CoreOpRegistry_entry_count() -> i32 {
@@ -37,6 +38,7 @@ fn CoreOpRegistry_entry_at(index: i32) -> CoreOpEntry {
         target_id: core_op_registry_generated::core_op_registry_target_id_at(index),
         runtime_symbol: core_op_registry_generated::core_op_registry_runtime_symbol_at(index),
         mir_operation: core_op_registry_generated::core_op_registry_mir_operation_at(index),
+        legacy_handler_id: core_op_registry_generated::core_op_registry_legacy_handler_id_at(index),
     }
 }
 
@@ -52,6 +54,7 @@ fn CoreOpRegistry_lookup_entry(canonical_id: String) -> CoreOpEntry {
             target_id: String_new(),
             runtime_symbol: String_new(),
             mir_operation: String_new(),
+            legacy_handler_id: String_new(),
         }
     }
     CoreOpRegistry_entry_at(raw)
@@ -73,6 +76,9 @@ fn core_op_lowering_kind_name(kind: i32) -> String {
     }
     if kind == kinds::CORE_OP_LOWERING_TARGET_INTRINSIC() {
         return String_from("target_intrinsic")
+    }
+    if kind == kinds::CORE_OP_LOWERING_LEGACY_EMITTER() {
+        return String_from("legacy_emitter")
     }
     return String_from("unknown")
 }

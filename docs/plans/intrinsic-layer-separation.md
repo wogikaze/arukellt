@@ -12,6 +12,10 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 
 ## 移行段階
 
+#798 は第 0〜5 段階の dispatch spine を担当する。第 6〜7 段階の production
+lowering、Ark fallback、differential proof、`status = "production"` は #818 が担当する。
+#816 と #817 は #729 の別 child であり、#798 の完了条件には含めない。
+
 ### 第 0 段階: 新しい callee 文字列 dispatch の凍結
 
 - 移行開始後、新しい callee 文字列 dispatch を追加しない。
@@ -76,7 +80,7 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 
 ### 第 4 段階: emitter を FunctionId 経由の CoreOpRegistry lookup へ切り替える
 
-- `call_dispatch_table.ark` / `inst_dispatch.ark` を、MIR に保存された `FunctionId`
+- `inst_dispatch.ark` を、MIR に保存された `FunctionId`
   から `SignatureRegistry` を参照する形に書き換える。
 - `CoreOpId` / `LoweringKind` によって dispatch する。
 - `func_id_raw` は `FunctionId` の物理表現にすぎず、raw 値そのものを
@@ -88,8 +92,12 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 - `eq(clone(callee), "...")` 比較を `call_*.ark` から完全に削除する。
 - `normalize_callee_name`、callee 別名処理、`__intrinsic_` prefix stripping を削除する。
 - この時点まで intrinsic 追加は凍結する（新規操作は `data/core-ops.toml` へ追加する）。
+- resolver 境界で必要な互換 alias は `legacy_bindings` として固定し、backend
+  dispatch から分離する。削除は production exit の #818 で行う。
 
 ### 第 6 段階: runtime ABI 分離、inliner、stdlib 移行
+
+実装 owner: #818（#816 と #817 の必要成果に依存）。
 
 - host intrinsic（HTTP、fs、sockets、clock、random、process、stdio、env）を
   emitter から外し、runtime ABI / WIT import lowering へ統合する。
@@ -183,10 +191,10 @@ portable `std::simd` の固定 SIMD 算術（`I32x4.add` 等）は `normal_call`
 
 ---
 
-## 本計画のスコープ外
+## #798 のスコープ外
 
-以下は ADR-042 で「別 ADR / RFC が必要」とされているため、
-本計画の各段階に含めない。
+以下は ADR-042 で「別 ADR / RFC が必要」とされているため、#729 の
+別 child として進め、#798 の dispatch-spine 完了条件には含めない。
 
 - **prelude のコンパイル対象復帰**: `combine_loaded_and_main_decls_skip_prelude` の
   廃止と prelude 本体の backend 通過。専用 RFC 依存の子 issue として追跡する。

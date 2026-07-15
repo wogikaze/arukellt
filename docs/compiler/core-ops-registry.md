@@ -1,24 +1,25 @@
 # Core Ops Registry
 
 > Registry path: [`data/core-ops.toml`](../../data/core-ops.toml)
-> Status: designated future SSOT; currently `status = "scaffold"` and not consumed by the compiler
-> Proposed design: [ADR-042](../adr/ADR-042-intrinsic-layer-separation.md) D5
-> Migration owner: [issue #798](../../issues/open/798-adr-042-semantic-operation-registry-migration.md)
+> Status: compiler-consumed SSOT; currently `status = "migration"`
+> Accepted design: [ADR-042](../adr/ADR-042-intrinsic-layer-separation.md) D5
+> Migration owner: [issue #798](../../issues/done/798-adr-042-semantic-operation-registry-migration.md)
 
 ## Role
 
-`data/core-ops.toml` is the **designated future single source of truth** for
+`data/core-ops.toml` is the **single source of truth** for
 semantic types, `CoreOpId`, visibility, classification, binding policy, effect,
 inline policy, lowering, fallback, and differential equivalence.
 
-`status = "scaffold"` means the compiler does not consume it as an authoritative
-input today. Issue #798 owns adoption after ADR-042 acceptance.
+`status = "migration"` means the compiler consumes the registry and dispatches
+through `FunctionId → SignatureEntry → CoreOpId`, while explicitly tracked
+`legacy_emitter` lowerings remain. Issue #818 owns their production replacement.
 
 | Concern | Owner |
 |---------|-------|
-| Current semantic registration and lowering | resolver / typechecker / MIR / emitter code |
+| Semantic registration and lowering metadata | `data/core-ops.toml` |
 | Public path, docs, stability, deprecation | `std/manifest.toml` |
-| Future semantic metadata | `data/core-ops.toml` (ADR-042) |
+| Migration compatibility aliases | `data/core-ops.toml` `legacy_bindings` (resolver boundary only; removal #818) |
 
 `std/manifest.toml` entries may reference `core-ops.toml` via `core_op_id`
 (for `[[functions]]`) and `type_id` (for `[[types]]`). Example:
@@ -43,9 +44,9 @@ core_op_id = "string.starts_with"
 stability = "stable"
 ```
 
-The `core_op_id` / `type_id` references shown above are syntactically accepted
-and used by the example entries, but `core-ops.toml` is not yet consumed by the
-compiler. Issue #798 owns adoption after ADR-042 acceptance.
+The compiler consumes `core_op_id` / `type_id` references and attaches the
+resolved `CoreOpId` to `SignatureEntry`. Backend helpers receive generated
+integer handler IDs and do not interpret alias strings.
 
 A single `CoreOpId` may be referenced by multiple public bindings (e.g.
 `prelude::starts_with` and `std::text::starts_with`). All public bindings of
@@ -73,7 +74,8 @@ reference entries. Each operation has:
   `noreturn`, `external_io`, `nondeterminism`, `atomic`, `volatile`).
 - `inline` — `policy` (`never`, `hint`, `always`). `always` is a strong hint,
   not a semantic guarantee.
-- `lowering` — `kind` (`normal_call`, `mir_op`, `runtime_call`, `target_intrinsic`)
+- `lowering` — `kind` (`normal_call`, `mir_op`, `runtime_call`, `target_intrinsic`,
+  or migration-only `legacy_emitter`)
   plus variant-specific payload.
   - `normal_call` uses `[fallback]` with `implementation_symbol`.
   - `mir_op` uses `[lowering.mir]` with `opcode` / `operation`.
@@ -86,6 +88,8 @@ reference entries. Each operation has:
     `target_id` is a **backend-owned handler key**, not a literal opcode.
     The handler owns the argument interpretation (e.g. `wasm.v128.load` adds
     `address` and `offset` to form an effective linear-memory address).
+  - `legacy_emitter` uses `[lowering.legacy]` with a generated `handler_id` and
+    `tracking_issue = "818"`. It is valid only while top-level `status = "migration"`.
 - `specializations` — optional `[[operations.specializations]]` array. Each
   specialization has `priority`, `when` (condition table), and a full `lowering`
   variant. Selection is highest unique priority; ambiguity is a schema error.
@@ -236,9 +240,9 @@ always runs them and the file must contain exactly the expected keys set to
 - `backend` = `wasm` | `native` | `llvm` | `interpreter`
 - `target_family` = `wasm` | `native` | `llvm`
 
-### Scaffold-exit criteria
+### Production-exit criteria
 
-`data/core-ops.toml` が `status = "scaffold"` から production 状態へ移行する前に
+`data/core-ops.toml` が `status = "migration"` から production 状態へ移行する前に
 次を満たす:
 
 - `example.invalid.*` fallback シンボルが 0 件である
@@ -246,12 +250,14 @@ always runs them and the file must contain exactly the expected keys set to
 - compiler-aware validator により全 `required` fallback が解決可能
 - `std/manifest.toml` の全 `core_op_id` / `type_id` 参照が有効
 - compiler が `CoreOpRegistry` を消費する
+- `legacy_emitter` と `legacy_bindings` が 0 件である
+- #816 と #817 の必要部分を取り込み、全 migration operation に production lowering がある
+- differential test と compiler-aware validator receipt が揃う
 - `python3 scripts/check/check-core-ops.py --production-structural-readiness` が PASS
 
 ### Checker commands
 
-- `python3 scripts/check/check-core-ops.py` — structural + manifest-semantic check
-  (allows `example.invalid.*` placeholders when `status = "scaffold"`).
+- `python3 scripts/check/check-core-ops.py` — structural + manifest-semantic check.
 - `python3 scripts/check/check-core-ops.py --strict` — structural + manifest-semantic check
   that rejects `example.invalid.*` placeholders.
 - `python3 scripts/check/check-core-ops.py --production-structural-readiness` — strict check plus
@@ -260,7 +266,7 @@ always runs them and the file must contain exactly the expected keys set to
 
 ## Status
 
-Current `schema_version = 4` entries are **scaffold** examples covering
-`string.starts_with`, `string.ends_with`, `panic`, portable SIMD, and a raw
-`std::wasm` load. ADR-042 is ACCEPTED; compiler registry consumption and full
-operation mapping are tracked in issue #798.
+Current `schema_version = 4`, `status = "migration"` entries cover the frozen
+legacy operation inventory. Compiler registry consumption and typed dispatch
+are implemented by #798. Production Ark fallbacks, runtime/WIT/MIR/target
+lowerings, alias-bridge removal, and `status = "production"` are tracked by #818.

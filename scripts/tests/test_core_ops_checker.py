@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import io
+import re
 import sys
 import tempfile
 import unittest
@@ -46,13 +47,21 @@ class CoreOpsCheckerTest(unittest.TestCase):
         check_core_ops.validate_core_ops_and_manifest(co, ma, st, strict, errors, warnings)
         return errors
 
+    def _op(self, op_id: str) -> dict:
+        return next(op for op in self.core_ops["operations"] if op["id"] == op_id)
+
     def test_pass_scaffold_default(self) -> None:
         self.assertEqual(self._run(), [])
 
-    def test_strict_rejects_placeholders(self) -> None:
+    def test_strict_rejects_placeholder(self) -> None:
+        op = self._op("string.starts_with")
+        op["lowering"] = {"kind": "normal_call"}
+        op["fallback"] = {
+            "required": True,
+            "implementation_symbol": "example.invalid.fallback.string_starts_with",
+        }
         errors = self._run(strict=True)
-        self.assertEqual(len(errors), 5)
-        self.assertTrue(all("example.invalid" in e for e in errors))
+        self.assertTrue(any("example.invalid" in error for error in errors))
 
     def test_generic_params_must_be_list(self) -> None:
         self.core_ops["operations"][0]["signature"]["generic_params"] = "T"
@@ -75,7 +84,7 @@ class CoreOpsCheckerTest(unittest.TestCase):
                 ],
             },
             "lowering": {"kind": "normal_call"},
-            "fallback": {"required": True, "implementation_symbol": "example.invalid.fallback.vec_identity"},
+            "fallback": {"required": True, "implementation_symbol": "core.impl.vec_identity"},
             "semantics": {
                 "const_evaluable": True, "overflow": "none", "nan": "none", "trap": "none", "equivalence": "exact_bitwise"
             },
@@ -111,7 +120,7 @@ class CoreOpsCheckerTest(unittest.TestCase):
                 ],
             },
             "lowering": {"kind": "normal_call"},
-            "fallback": {"required": True, "implementation_symbol": "example.invalid.fallback.vec_identity"},
+            "fallback": {"required": True, "implementation_symbol": "core.impl.vec_identity"},
             "semantics": {
                 "const_evaluable": True, "overflow": "none", "nan": "none", "trap": "none", "equivalence": "exact_bitwise"
             },
@@ -161,7 +170,9 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("internal operation cannot have binding.policy = required" in e for e in errors))
 
     def test_fallback_public_path_is_error(self) -> None:
-        self.core_ops["operations"][0]["fallback"]["implementation_symbol"] = "std::text::starts_with"
+        op = self._op("string.starts_with")
+        op["lowering"] = {"kind": "normal_call"}
+        op["fallback"] = {"required": True, "implementation_symbol": "std::text::starts_with"}
         errors = self._run()
         self.assertTrue(any("must not be a public path" in e for e in errors))
 
@@ -196,7 +207,7 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("ScalarFallback" in e or "portable_simd_lowering" in e for e in errors))
 
     def test_required_capabilities_not_enum(self) -> None:
-        self.core_ops["operations"][-1]["lowering"]["target"]["required_capabilities"].append("portable_simd_lowering")
+        self._op("wasm.v128.load")["lowering"]["target"]["required_capabilities"].append("portable_simd_lowering")
         errors = self._run()
         self.assertTrue(any("portable_simd_lowering" in e and "capability" in e for e in errors))
 
@@ -353,7 +364,7 @@ class CoreOpsCheckerTest(unittest.TestCase):
         self.assertTrue(any("classification has unknown fields" in e for e in errors))
 
     def test_target_unknown_feature(self) -> None:
-        self.core_ops["operations"][-1]["lowering"]["target"]["required_target_features"].append("bulk-memory")
+        self._op("wasm.v128.load")["lowering"]["target"]["required_target_features"].append("bulk-memory")
         errors = self._run()
         self.assertTrue(any("bulk-memory" in e for e in errors))
 
@@ -362,7 +373,8 @@ class CoreOpsCheckerMainTest(unittest.TestCase):
     @staticmethod
     def _core_ops_text(status: str, placeholder_prefix: str = "example.invalid") -> str:
         text = CORE_OPS_PATH.read_text(encoding="utf-8")
-        return text.replace('status = "scaffold"', f'status = "{status}"').replace("example.invalid", placeholder_prefix)
+        text = re.sub(r'^status = "[^"]+"', f'status = "{status}"', text, count=1, flags=re.MULTILINE)
+        return text.replace("example.invalid", placeholder_prefix)
 
     def _temp_core_ops(self, status: str, placeholder_prefix: str = "example.invalid") -> Path:
         tmp = Path(tempfile.mkdtemp()) / "core-ops.toml"
@@ -381,16 +393,16 @@ class CoreOpsCheckerMainTest(unittest.TestCase):
     def test_main_default_passes(self) -> None:
         self.assertEqual(self._run_main(), 0)
 
-    def test_main_strict_fails_on_placeholders(self) -> None:
-        self.assertEqual(self._run_main("--strict"), 1)
+    def test_main_strict_passes_without_placeholders(self) -> None:
+        self.assertEqual(self._run_main("--strict"), 0)
 
     def test_main_production_status_scaffold_fails(self) -> None:
         tmp = self._temp_core_ops("scaffold", "core.invalid")
         self.assertEqual(self._run_main("--production-structural-readiness", core_ops_path=tmp), 1)
 
-    def test_main_production_status_production_passes(self) -> None:
+    def test_main_production_rejects_legacy_emitters(self) -> None:
         tmp = self._temp_core_ops("production", "core.invalid")
-        self.assertEqual(self._run_main("--production-structural-readiness", core_ops_path=tmp), 0)
+        self.assertEqual(self._run_main("--production-structural-readiness", core_ops_path=tmp), 1)
 
 
 if __name__ == "__main__":

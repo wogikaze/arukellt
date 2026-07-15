@@ -270,8 +270,6 @@ def extract_handler_branches(wasm_dir: Path) -> list[HandlerBranch]:
     for path in sorted(wasm_dir.glob("call_*.ark")):
         # Skip pure routers / facades that only forward without leaf callee compares.
         if path.name in {
-            "call_dispatch.ark",
-            "call_dispatch_table.ark",
             "call_host.ark",
             "call_simd.ark",
             "call_hash.ark",

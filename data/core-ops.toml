@@ -1,13 +1,14 @@
 # Core semantic operations registry — ADR-042 (ACCEPTED) D5
 # Human-readable overview: docs/compiler/core-ops-registry.md
 #
-# Canonical semantic operation registry. Compiler consumption is in progress (#798).
+# Canonical semantic operation registry consumed by the compiler. Production
+# lowering replacement and migration alias removal are tracked by #818.
 #
 # Fallback values are stable implementation symbol paths (or DefKey after name
 # resolution). Do not store compile-local FunctionId here.
 
 schema_version = 4
-status = "scaffold"
+status = "migration"
 
 [registry]
 description = "Core semantic operations registry"
@@ -36,6 +37,1722 @@ check_specialization_ambiguity = true
 [validation.compiler]
 check_fallback_no_cycle = true
 check_fallback_signature_compat = true
+
+# Frozen compatibility aliases consumed only while building SignatureRegistry.
+# Backend lowering dispatch must use CoreOpId/handler IDs, never these strings.
+# Removal is tracked by #818.
+
+[[legacy_bindings]]
+alias = "String_from"
+core_op_id = "text.clone"
+
+[[legacy_bindings]]
+alias = "String_new"
+core_op_id = "text.String_new"
+
+[[legacy_bindings]]
+alias = "Vec_new_f64"
+core_op_id = "vec.Vec_new_f64"
+
+[[legacy_bindings]]
+alias = "Vec_new_i64"
+core_op_id = "vec.Vec_new_f64"
+
+[[legacy_bindings]]
+alias = "Vec_new_i32"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "Vec_new_String"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "Vec_new_i32_with_cap"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "Vec_new_i64_with_cap"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "Vec_new_f64_with_cap"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "__intrinsic_Vec_new_i32"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "__intrinsic_Vec_new_String"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "__intrinsic_Vec_new_i32_with_cap"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "__intrinsic_Vec_new_i64_with_cap"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "__intrinsic_Vec_new_f64_with_cap"
+core_op_id = "vec.Vec_new_fallback"
+
+[[legacy_bindings]]
+alias = "Vec_new_v128"
+core_op_id = "vec.Vec_new_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_bool_to_string"
+core_op_id = "text.format_bool"
+
+[[legacy_bindings]]
+alias = "__intrinsic_char_to_string"
+core_op_id = "text.char_to_string"
+
+[[legacy_bindings]]
+alias = "__intrinsic_clock_now"
+core_op_id = "runtime.clock_now"
+
+[[legacy_bindings]]
+alias = "__intrinsic_clock_now_ms"
+core_op_id = "runtime.clock_now_ms"
+
+[[legacy_bindings]]
+alias = "__intrinsic_ends_with"
+core_op_id = "string.ends_with"
+
+[[legacy_bindings]]
+alias = "__intrinsic_env_get_var"
+core_op_id = "runtime.get_var"
+
+[[legacy_bindings]]
+alias = "__intrinsic_env_var"
+core_op_id = "runtime.var"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f32_to_f64"
+core_op_id = "runtime.f32_to_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f64_to_f32"
+core_op_id = "runtime.f32_to_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f64_to_string"
+core_op_id = "text.format_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_fs_read_file"
+core_op_id = "runtime.fs_read_file"
+
+[[legacy_bindings]]
+alias = "__intrinsic_fs_write_bytes"
+core_op_id = "runtime.write_bytes"
+
+[[legacy_bindings]]
+alias = "__intrinsic_fs_write_file"
+core_op_id = "runtime.write_string"
+
+[[legacy_bindings]]
+alias = "__intrinsic_http_get"
+core_op_id = "runtime.get"
+
+[[legacy_bindings]]
+alias = "__intrinsic_http_request"
+core_op_id = "runtime.request"
+
+[[legacy_bindings]]
+alias = "__intrinsic_http_serve"
+core_op_id = "runtime.serve"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i32_to_string"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "__intrinsic_i64_to_string"
+core_op_id = "text.format_i64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_panic"
+core_op_id = "panic"
+
+[[legacy_bindings]]
+alias = "__intrinsic_println"
+core_op_id = "runtime.println"
+
+[[legacy_bindings]]
+alias = "__intrinsic_process_abort"
+core_op_id = "runtime.process.abort"
+
+[[legacy_bindings]]
+alias = "__intrinsic_process_exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "__intrinsic_random_i32"
+core_op_id = "runtime.random_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_sockets_accept"
+core_op_id = "runtime.accept"
+
+[[legacy_bindings]]
+alias = "__intrinsic_sockets_connect"
+core_op_id = "runtime.connect"
+
+[[legacy_bindings]]
+alias = "__intrinsic_sockets_listen"
+core_op_id = "runtime.listen"
+
+[[legacy_bindings]]
+alias = "__intrinsic_sockets_read"
+core_op_id = "runtime.read"
+
+[[legacy_bindings]]
+alias = "__intrinsic_sockets_write"
+core_op_id = "runtime.write"
+
+[[legacy_bindings]]
+alias = "__intrinsic_starts_with"
+core_op_id = "string.starts_with"
+
+[[legacy_bindings]]
+alias = "__intrinsic_stdin_read_to_string"
+core_op_id = "runtime.read_stdin"
+
+[[legacy_bindings]]
+alias = "__intrinsic_string_from_bytes"
+core_op_id = "text.string_from_bytes"
+
+[[legacy_bindings]]
+alias = "__intrinsic_string_slice"
+core_op_id = "string.slice"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_abs"
+core_op_id = "simd.f32x4.abs"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_add"
+core_op_id = "simd.f32x4.add"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_ceil"
+core_op_id = "simd.f32x4.ceil"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_div"
+core_op_id = "simd.f32x4.div"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_eq"
+core_op_id = "simd.f32x4.eq"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_extract_lane"
+core_op_id = "simd.f32x4.extract.lane"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_floor"
+core_op_id = "simd.f32x4.floor"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_ge"
+core_op_id = "simd.f32x4.ge"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_gt"
+core_op_id = "simd.f32x4.gt"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_le"
+core_op_id = "simd.f32x4.le"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_lt"
+core_op_id = "simd.f32x4.lt"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_max"
+core_op_id = "simd.f32x4.max"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_min"
+core_op_id = "simd.f32x4.min"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_mul"
+core_op_id = "simd.f32x4.mul"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_ne"
+core_op_id = "simd.f32x4.ne"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_nearest"
+core_op_id = "simd.f32x4.nearest"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_neg"
+core_op_id = "simd.f32x4.neg"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_replace_lane"
+core_op_id = "simd.f32x4.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_splat"
+core_op_id = "simd.f32x4.splat"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_sqrt"
+core_op_id = "simd.f32x4.sqrt"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_sub"
+core_op_id = "simd.f32x4.sub"
+
+[[legacy_bindings]]
+alias = "__simd_f32x4_trunc"
+core_op_id = "simd.f32x4.trunc"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_abs"
+core_op_id = "simd.f64x2.abs"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_add"
+core_op_id = "simd.f64x2.add"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_ceil"
+core_op_id = "simd.f64x2.ceil"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_convert_low_i32x4_s"
+core_op_id = "simd.f64x2.convert.low.i32x4.s"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_convert_low_i32x4_u"
+core_op_id = "simd.f64x2.convert.low.i32x4.u"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_div"
+core_op_id = "simd.f64x2.div"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_eq"
+core_op_id = "simd.f64x2.eq"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_extract_lane"
+core_op_id = "simd.f64x2.extract.lane"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_floor"
+core_op_id = "simd.f64x2.floor"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_ge"
+core_op_id = "simd.f64x2.ge"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_gt"
+core_op_id = "simd.f64x2.gt"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_le"
+core_op_id = "simd.f64x2.le"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_lt"
+core_op_id = "simd.f64x2.lt"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_mul"
+core_op_id = "simd.f64x2.mul"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_ne"
+core_op_id = "simd.f64x2.ne"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_nearest"
+core_op_id = "simd.f64x2.nearest"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_neg"
+core_op_id = "simd.f64x2.neg"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_promote_low_f32x4"
+core_op_id = "simd.f64x2.promote.low.f32x4"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_replace_lane"
+core_op_id = "simd.f64x2.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_splat"
+core_op_id = "simd.f64x2.splat"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_sqrt"
+core_op_id = "simd.f64x2.sqrt"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_sub"
+core_op_id = "simd.f64x2.sub"
+
+[[legacy_bindings]]
+alias = "__simd_f64x2_trunc"
+core_op_id = "simd.f64x2.trunc"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_abs"
+core_op_id = "simd.i16x8.abs"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_add"
+core_op_id = "simd.i16x8.add"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_add_sat_s"
+core_op_id = "simd.i16x8.add.sat.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_add_sat_u"
+core_op_id = "simd.i16x8.add.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_all_true"
+core_op_id = "simd.i16x8.all.true"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_bitmask"
+core_op_id = "simd.i16x8.bitmask"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extadd_pairwise_i8x16_s"
+core_op_id = "simd.i16x8.extadd.pairwise.i8x16.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extadd_pairwise_i8x16_u"
+core_op_id = "simd.i16x8.extadd.pairwise.i8x16.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extend_high_i8x16_s"
+core_op_id = "simd.i16x8.extend.high.i8x16.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extend_high_i8x16_u"
+core_op_id = "simd.i16x8.extend.high.i8x16.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extend_low_i8x16_s"
+core_op_id = "simd.i16x8.extend.low.i8x16.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extract_lane_s"
+core_op_id = "simd.i16x8.extract.lane.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_extract_lane_u"
+core_op_id = "simd.i16x8.extract.lane.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_ge_u"
+core_op_id = "simd.i16x8.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_max_s"
+core_op_id = "simd.i16x8.max.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_max_u"
+core_op_id = "simd.i16x8.max.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_min_s"
+core_op_id = "simd.i16x8.min.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_min_u"
+core_op_id = "simd.i16x8.min.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_mul"
+core_op_id = "simd.i16x8.mul"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_narrow_i32x4_s"
+core_op_id = "simd.i16x8.narrow.i32x4.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_narrow_i32x4_u"
+core_op_id = "simd.i16x8.narrow.i32x4.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_neg"
+core_op_id = "simd.i16x8.neg"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_replace_lane"
+core_op_id = "simd.i16x8.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_shl"
+core_op_id = "simd.i16x8.shl"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_shr_s"
+core_op_id = "simd.i16x8.shr.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_shr_u"
+core_op_id = "simd.i16x8.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_splat"
+core_op_id = "simd.i16x8.splat"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_sub"
+core_op_id = "simd.i16x8.sub"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_sub_sat_s"
+core_op_id = "simd.i16x8.sub.sat.s"
+
+[[legacy_bindings]]
+alias = "__simd_i16x8_sub_sat_u"
+core_op_id = "simd.i16x8.sub.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_abs"
+core_op_id = "simd.i32x4.abs"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_add"
+core_op_id = "simd.i32x4.add"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_all_true"
+core_op_id = "simd.i32x4.all.true"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_bitmask"
+core_op_id = "simd.i32x4.bitmask"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_eq"
+core_op_id = "simd.i32x4.eq"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_extract_lane"
+core_op_id = "simd.i32x4.extract.lane"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_ge_s"
+core_op_id = "simd.i32x4.ge.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_ge_u"
+core_op_id = "simd.i32x4.ge.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_gt_s"
+core_op_id = "simd.i32x4.gt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_gt_u"
+core_op_id = "simd.i32x4.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_le_s"
+core_op_id = "simd.i32x4.le.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_le_u"
+core_op_id = "simd.i32x4.le.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_lt_s"
+core_op_id = "simd.i32x4.lt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_lt_u"
+core_op_id = "simd.i32x4.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_max_s"
+core_op_id = "simd.i32x4.max.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_min_s"
+core_op_id = "simd.i32x4.min.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_min_u"
+core_op_id = "simd.i32x4.min.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_mul"
+core_op_id = "simd.i32x4.mul"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_ne"
+core_op_id = "simd.i32x4.ne"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_neg"
+core_op_id = "simd.i32x4.neg"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_replace_lane"
+core_op_id = "simd.i32x4.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_shl"
+core_op_id = "simd.i32x4.shl"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_shr_s"
+core_op_id = "simd.i32x4.shr.s"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_shr_u"
+core_op_id = "simd.i32x4.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_splat"
+core_op_id = "simd.i32x4.splat"
+
+[[legacy_bindings]]
+alias = "__simd_i32x4_sub"
+core_op_id = "simd.i32x4.sub"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_abs"
+core_op_id = "simd.i64x2.abs"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_add"
+core_op_id = "simd.i64x2.add"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_all_true"
+core_op_id = "simd.i64x2.all.true"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_bitmask"
+core_op_id = "simd.i64x2.bitmask"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_eq"
+core_op_id = "simd.i64x2.eq"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_extract_lane"
+core_op_id = "simd.i64x2.extract.lane"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_ge_s"
+core_op_id = "simd.i64x2.ge.s"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_le_s"
+core_op_id = "simd.i64x2.le.s"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_lt_s"
+core_op_id = "simd.i64x2.lt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_mul"
+core_op_id = "simd.i64x2.mul"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_ne"
+core_op_id = "simd.i64x2.ne"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_neg"
+core_op_id = "simd.i64x2.neg"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_replace_lane"
+core_op_id = "simd.i64x2.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_shl"
+core_op_id = "simd.i64x2.shl"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_shr_s"
+core_op_id = "simd.i64x2.shr.s"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_shr_u"
+core_op_id = "simd.i64x2.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_splat"
+core_op_id = "simd.i64x2.splat"
+
+[[legacy_bindings]]
+alias = "__simd_i64x2_sub"
+core_op_id = "simd.i64x2.sub"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_abs"
+core_op_id = "simd.i8x16.abs"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_add"
+core_op_id = "simd.i8x16.add"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_add_sat_s"
+core_op_id = "simd.i8x16.add.sat.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_add_sat_u"
+core_op_id = "simd.i8x16.add.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_all_true"
+core_op_id = "simd.i8x16.all.true"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_bitmask"
+core_op_id = "simd.i8x16.bitmask"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_eq"
+core_op_id = "simd.i8x16.eq"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_extract_lane_s"
+core_op_id = "simd.i8x16.extract.lane.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_extract_lane_u"
+core_op_id = "simd.i8x16.extract.lane.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_gt_s"
+core_op_id = "simd.i8x16.gt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_gt_u"
+core_op_id = "simd.i8x16.gt.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_lt_s"
+core_op_id = "simd.i8x16.lt.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_lt_u"
+core_op_id = "simd.i8x16.lt.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_max_s"
+core_op_id = "simd.i8x16.max.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_max_u"
+core_op_id = "simd.i8x16.max.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_min_s"
+core_op_id = "simd.i8x16.min.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_min_u"
+core_op_id = "simd.i8x16.min.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_mul"
+core_op_id = "simd.i8x16.mul"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_narrow_i16x8_s"
+core_op_id = "simd.i8x16.narrow.i16x8.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_narrow_i16x8_u"
+core_op_id = "simd.i8x16.narrow.i16x8.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_ne"
+core_op_id = "simd.i8x16.ne"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_neg"
+core_op_id = "simd.i8x16.neg"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_replace_lane"
+core_op_id = "simd.i8x16.replace.lane"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_shl"
+core_op_id = "simd.i8x16.shl"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_shr_s"
+core_op_id = "simd.i8x16.shr.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_shr_u"
+core_op_id = "simd.i8x16.shr.u"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_splat"
+core_op_id = "simd.i8x16.splat"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_sub"
+core_op_id = "simd.i8x16.sub"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_sub_sat_s"
+core_op_id = "simd.i8x16.sub.sat.s"
+
+[[legacy_bindings]]
+alias = "__simd_i8x16_sub_sat_u"
+core_op_id = "simd.i8x16.sub.sat.u"
+
+[[legacy_bindings]]
+alias = "__simd_v128_and"
+core_op_id = "simd.v128.and"
+
+[[legacy_bindings]]
+alias = "__simd_v128_andnot"
+core_op_id = "simd.v128.andnot"
+
+[[legacy_bindings]]
+alias = "__simd_v128_any_true"
+core_op_id = "simd.v128.any.true"
+
+[[legacy_bindings]]
+alias = "__simd_v128_bitselect"
+core_op_id = "simd.v128.bitselect"
+
+[[legacy_bindings]]
+alias = "__simd_v128_const"
+core_op_id = "simd.v128.const"
+
+[[legacy_bindings]]
+alias = "__simd_v128_not"
+core_op_id = "simd.v128.not"
+
+[[legacy_bindings]]
+alias = "__simd_v128_or"
+core_op_id = "simd.v128.or"
+
+[[legacy_bindings]]
+alias = "__simd_v128_xor"
+core_op_id = "simd.v128.xor"
+
+[[legacy_bindings]]
+alias = "abs"
+core_op_id = "math.abs"
+
+[[legacy_bindings]]
+alias = "abs_i32"
+core_op_id = "math.abs"
+
+[[legacy_bindings]]
+alias = "arg_at"
+core_op_id = "runtime.arg_at"
+
+[[legacy_bindings]]
+alias = "arg_count"
+core_op_id = "runtime.arg_count"
+
+[[legacy_bindings]]
+alias = "args"
+core_op_id = "runtime.args"
+
+[[legacy_bindings]]
+alias = "assert"
+core_op_id = "runtime.assert"
+
+[[legacy_bindings]]
+alias = "assert_eq"
+core_op_id = "runtime.assert_eq"
+
+[[legacy_bindings]]
+alias = "assert_eq_i64"
+core_op_id = "runtime.assert_eq_i64"
+
+[[legacy_bindings]]
+alias = "assert_eq_str"
+core_op_id = "runtime.assert_eq_str"
+
+[[legacy_bindings]]
+alias = "assert_ne"
+core_op_id = "runtime.assert_ne"
+
+[[legacy_bindings]]
+alias = "bool_to_string"
+core_op_id = "text.format_bool"
+
+[[legacy_bindings]]
+alias = "char_at"
+core_op_id = "string.char_at"
+
+[[legacy_bindings]]
+alias = "char_to_string"
+core_op_id = "text.char_to_string"
+
+[[legacy_bindings]]
+alias = "clamp"
+core_op_id = "math.clamp"
+
+[[legacy_bindings]]
+alias = "clamp_i32"
+core_op_id = "math.clamp"
+
+[[legacy_bindings]]
+alias = "clock_now"
+core_op_id = "runtime.clock_now"
+
+[[legacy_bindings]]
+alias = "clock_now_ms"
+core_op_id = "runtime.clock_now_ms"
+
+[[legacy_bindings]]
+alias = "clone"
+core_op_id = "text.clone"
+
+[[legacy_bindings]]
+alias = "concat"
+core_op_id = "string.concat"
+
+[[legacy_bindings]]
+alias = "convert::bool_to_string"
+core_op_id = "text.format_bool"
+
+[[legacy_bindings]]
+alias = "convert::f64_to_string"
+core_op_id = "text.format_f64"
+
+[[legacy_bindings]]
+alias = "convert::i32_to_string"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "convert::i64_to_string"
+core_op_id = "text.format_i64"
+
+[[legacy_bindings]]
+alias = "convert::parse_i32"
+core_op_id = "parse.parse_i32"
+
+[[legacy_bindings]]
+alias = "convert::parse_i64"
+core_op_id = "parse.parse_i64"
+
+[[legacy_bindings]]
+alias = "core::range_contains"
+core_op_id = "core.range_contains"
+
+[[legacy_bindings]]
+alias = "core::range_len"
+core_op_id = "core.range_len"
+
+[[legacy_bindings]]
+alias = "core::range_new"
+core_op_id = "core.range_new"
+
+[[legacy_bindings]]
+alias = "ends_with"
+core_op_id = "string.ends_with"
+
+[[legacy_bindings]]
+alias = "env::arg_at"
+core_op_id = "runtime.arg_at"
+
+[[legacy_bindings]]
+alias = "env::arg_count"
+core_op_id = "runtime.arg_count"
+
+[[legacy_bindings]]
+alias = "env::args"
+core_op_id = "runtime.args"
+
+[[legacy_bindings]]
+alias = "env::get_var"
+core_op_id = "runtime.get_var"
+
+[[legacy_bindings]]
+alias = "env::has_flag"
+core_op_id = "runtime.has_flag"
+
+[[legacy_bindings]]
+alias = "env::var"
+core_op_id = "runtime.var"
+
+[[legacy_bindings]]
+alias = "env::var_or_default"
+core_op_id = "runtime.var_or_default"
+
+[[legacy_bindings]]
+alias = "env_get_var"
+core_op_id = "runtime.get_var"
+
+[[legacy_bindings]]
+alias = "env_var"
+core_op_id = "runtime.var"
+
+[[legacy_bindings]]
+alias = "env_var_or_default"
+core_op_id = "runtime.var_or_default"
+
+[[legacy_bindings]]
+alias = "eprintln"
+core_op_id = "runtime.eprintln"
+
+[[legacy_bindings]]
+alias = "exists"
+core_op_id = "runtime.exists"
+
+[[legacy_bindings]]
+alias = "f32_to_f64"
+core_op_id = "runtime.f32_to_f64"
+
+[[legacy_bindings]]
+alias = "f32_to_string"
+core_op_id = "text.f32_to_string"
+
+[[legacy_bindings]]
+alias = "f64_bits_hi"
+core_op_id = "scalar.f64_bits_hi"
+
+[[legacy_bindings]]
+alias = "f64_bits_lo"
+core_op_id = "scalar.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "f64_to_f32"
+core_op_id = "runtime.f32_to_f64"
+
+[[legacy_bindings]]
+alias = "f64_to_string"
+core_op_id = "text.format_f64"
+
+[[legacy_bindings]]
+alias = "fs::exists"
+core_op_id = "runtime.exists"
+
+[[legacy_bindings]]
+alias = "fs::read_to_string"
+core_op_id = "runtime.fs_read_file"
+
+[[legacy_bindings]]
+alias = "fs::write_bytes"
+core_op_id = "runtime.write_bytes"
+
+[[legacy_bindings]]
+alias = "fs::write_string"
+core_op_id = "runtime.write_string"
+
+[[legacy_bindings]]
+alias = "fs_read_file"
+core_op_id = "runtime.fs_read_file"
+
+[[legacy_bindings]]
+alias = "fs_write_bytes"
+core_op_id = "runtime.write_bytes"
+
+[[legacy_bindings]]
+alias = "fs_write_file"
+core_op_id = "runtime.write_string"
+
+[[legacy_bindings]]
+alias = "gcd"
+core_op_id = "math.gcd"
+
+[[legacy_bindings]]
+alias = "get_unchecked"
+core_op_id = "vec.get_unchecked"
+
+[[legacy_bindings]]
+alias = "has_flag"
+core_op_id = "runtime.has_flag"
+
+[[legacy_bindings]]
+alias = "host::process::abort"
+core_op_id = "runtime.process.abort"
+
+[[legacy_bindings]]
+alias = "host::process::exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "http::get"
+core_op_id = "runtime.get"
+
+[[legacy_bindings]]
+alias = "http::request"
+core_op_id = "runtime.request"
+
+[[legacy_bindings]]
+alias = "http::serve"
+core_op_id = "runtime.serve"
+
+[[legacy_bindings]]
+alias = "http_get"
+core_op_id = "runtime.get"
+
+[[legacy_bindings]]
+alias = "http_request"
+core_op_id = "runtime.request"
+
+[[legacy_bindings]]
+alias = "http_serve"
+core_op_id = "runtime.serve"
+
+[[legacy_bindings]]
+alias = "i16_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "i32_to_i64"
+core_op_id = "runtime.i32_to_i64"
+
+[[legacy_bindings]]
+alias = "i32_to_i8"
+core_op_id = "runtime.i32_to_i8"
+
+[[legacy_bindings]]
+alias = "i32_to_string"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "i32_to_u32"
+core_op_id = "runtime.i32_to_u32"
+
+[[legacy_bindings]]
+alias = "i32_to_u8"
+core_op_id = "runtime.i32_to_i8"
+
+[[legacy_bindings]]
+alias = "i64_to_i32"
+core_op_id = "runtime.i64_to_i32"
+
+[[legacy_bindings]]
+alias = "i64_to_string"
+core_op_id = "text.format_i64"
+
+[[legacy_bindings]]
+alias = "i8_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "index_of"
+core_op_id = "string.index_of"
+
+[[legacy_bindings]]
+alias = "is_empty"
+core_op_id = "vec.is_empty"
+
+[[legacy_bindings]]
+alias = "is_err"
+core_op_id = "runtime.is_err"
+
+[[legacy_bindings]]
+alias = "is_none"
+core_op_id = "runtime.is_err"
+
+[[legacy_bindings]]
+alias = "is_ok"
+core_op_id = "runtime.is_ok"
+
+[[legacy_bindings]]
+alias = "is_some"
+core_op_id = "runtime.is_ok"
+
+[[legacy_bindings]]
+alias = "join"
+core_op_id = "string.join"
+
+[[legacy_bindings]]
+alias = "len"
+core_op_id = "string.len"
+
+[[legacy_bindings]]
+alias = "math::abs"
+core_op_id = "math.abs"
+
+[[legacy_bindings]]
+alias = "math::abs_i32"
+core_op_id = "math.abs"
+
+[[legacy_bindings]]
+alias = "math::clamp"
+core_op_id = "math.clamp"
+
+[[legacy_bindings]]
+alias = "math::gcd"
+core_op_id = "math.gcd"
+
+[[legacy_bindings]]
+alias = "math::max"
+core_op_id = "math.max"
+
+[[legacy_bindings]]
+alias = "math::max_i32"
+core_op_id = "math.max"
+
+[[legacy_bindings]]
+alias = "math::min"
+core_op_id = "math.min"
+
+[[legacy_bindings]]
+alias = "math::min_i32"
+core_op_id = "math.min"
+
+[[legacy_bindings]]
+alias = "math::pow_i32"
+core_op_id = "math.pow_i32"
+
+[[legacy_bindings]]
+alias = "math::sqrt"
+core_op_id = "math.sqrt"
+
+[[legacy_bindings]]
+alias = "max"
+core_op_id = "math.max"
+
+[[legacy_bindings]]
+alias = "max_i32"
+core_op_id = "math.max"
+
+[[legacy_bindings]]
+alias = "memory_copy"
+core_op_id = "primitive.memory_copy"
+
+[[legacy_bindings]]
+alias = "memory_fill"
+core_op_id = "primitive.memory_fill"
+
+[[legacy_bindings]]
+alias = "min"
+core_op_id = "math.min"
+
+[[legacy_bindings]]
+alias = "min_i32"
+core_op_id = "math.min"
+
+[[legacy_bindings]]
+alias = "pad_left"
+core_op_id = "string.pad_left"
+
+[[legacy_bindings]]
+alias = "pad_right"
+core_op_id = "string.pad_right"
+
+[[legacy_bindings]]
+alias = "panic"
+core_op_id = "panic"
+
+[[legacy_bindings]]
+alias = "parse_f64"
+core_op_id = "parse.parse_f64"
+
+[[legacy_bindings]]
+alias = "parse_i32"
+core_op_id = "parse.parse_i32"
+
+[[legacy_bindings]]
+alias = "parse_i64"
+core_op_id = "parse.parse_i64"
+
+[[legacy_bindings]]
+alias = "pow_i32"
+core_op_id = "math.pow_i32"
+
+[[legacy_bindings]]
+alias = "print"
+core_op_id = "runtime.print"
+
+[[legacy_bindings]]
+alias = "println"
+core_op_id = "runtime.println"
+
+[[legacy_bindings]]
+alias = "process::abort"
+core_op_id = "runtime.process.abort"
+
+[[legacy_bindings]]
+alias = "process::exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "process_abort"
+core_op_id = "runtime.process.abort"
+
+[[legacy_bindings]]
+alias = "process_exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "product_i32"
+core_op_id = "seq.product_i32"
+
+[[legacy_bindings]]
+alias = "push"
+core_op_id = "vec.push"
+
+[[legacy_bindings]]
+alias = "push_char"
+core_op_id = "text.push_char"
+
+[[legacy_bindings]]
+alias = "push_f64"
+core_op_id = "vec.push_f64"
+
+[[legacy_bindings]]
+alias = "push_i64"
+core_op_id = "vec.push_i64"
+
+[[legacy_bindings]]
+alias = "random_i32"
+core_op_id = "runtime.random_i32"
+
+[[legacy_bindings]]
+alias = "range_contains"
+core_op_id = "core.range_contains"
+
+[[legacy_bindings]]
+alias = "range_len"
+core_op_id = "core.range_len"
+
+[[legacy_bindings]]
+alias = "range_new"
+core_op_id = "core.range_new"
+
+[[legacy_bindings]]
+alias = "read_to_string"
+core_op_id = "runtime.fs_read_file"
+
+[[legacy_bindings]]
+alias = "remove_i32"
+core_op_id = "vec.remove_i32"
+
+[[legacy_bindings]]
+alias = "repeat"
+core_op_id = "string.repeat"
+
+[[legacy_bindings]]
+alias = "replace"
+core_op_id = "string.replace"
+
+[[legacy_bindings]]
+alias = "reverse_String"
+core_op_id = "string.reverse"
+
+[[legacy_bindings]]
+alias = "reverse_i32"
+core_op_id = "vec.reverse_i32"
+
+[[legacy_bindings]]
+alias = "seq::binary_search"
+core_op_id = "seq.binary_search"
+
+[[legacy_bindings]]
+alias = "seq::count_eq"
+core_op_id = "seq.count_eq"
+
+[[legacy_bindings]]
+alias = "seq::max_i32"
+core_op_id = "seq.max_i32"
+
+[[legacy_bindings]]
+alias = "seq::min_i32"
+core_op_id = "seq.min_i32"
+
+[[legacy_bindings]]
+alias = "seq::skip_i32"
+core_op_id = "seq.skip_i32"
+
+[[legacy_bindings]]
+alias = "seq::sum_i32"
+core_op_id = "seq.sum_i32"
+
+[[legacy_bindings]]
+alias = "seq::take_i32"
+core_op_id = "seq.take_i32"
+
+[[legacy_bindings]]
+alias = "seq::unique"
+core_op_id = "seq.unique"
+
+[[legacy_bindings]]
+alias = "slice"
+core_op_id = "string.slice"
+
+[[legacy_bindings]]
+alias = "sockets::accept"
+core_op_id = "runtime.accept"
+
+[[legacy_bindings]]
+alias = "sockets::connect"
+core_op_id = "runtime.connect"
+
+[[legacy_bindings]]
+alias = "sockets::listen"
+core_op_id = "runtime.listen"
+
+[[legacy_bindings]]
+alias = "sockets::read"
+core_op_id = "runtime.read"
+
+[[legacy_bindings]]
+alias = "sockets::write"
+core_op_id = "runtime.write"
+
+[[legacy_bindings]]
+alias = "sockets_accept"
+core_op_id = "runtime.accept"
+
+[[legacy_bindings]]
+alias = "sockets_connect"
+core_op_id = "runtime.connect"
+
+[[legacy_bindings]]
+alias = "sockets_listen"
+core_op_id = "runtime.listen"
+
+[[legacy_bindings]]
+alias = "sockets_read"
+core_op_id = "runtime.read"
+
+[[legacy_bindings]]
+alias = "sockets_write"
+core_op_id = "runtime.write"
+
+[[legacy_bindings]]
+alias = "sort_f64"
+core_op_id = "seq.sort_f64"
+
+[[legacy_bindings]]
+alias = "sort_i32"
+core_op_id = "seq.sort_i32"
+
+[[legacy_bindings]]
+alias = "sort_i64"
+core_op_id = "seq.sort_i64"
+
+[[legacy_bindings]]
+alias = "split"
+core_op_id = "string.split"
+
+[[legacy_bindings]]
+alias = "sqrt"
+core_op_id = "math.sqrt"
+
+[[legacy_bindings]]
+alias = "starts_with"
+core_op_id = "string.starts_with"
+
+[[legacy_bindings]]
+alias = "std::host::http::get"
+core_op_id = "runtime.get"
+
+[[legacy_bindings]]
+alias = "std::host::http::request"
+core_op_id = "runtime.request"
+
+[[legacy_bindings]]
+alias = "std::host::http::serve"
+core_op_id = "runtime.serve"
+
+[[legacy_bindings]]
+alias = "std::host::sockets::accept"
+core_op_id = "runtime.accept"
+
+[[legacy_bindings]]
+alias = "std::host::sockets::connect"
+core_op_id = "runtime.connect"
+
+[[legacy_bindings]]
+alias = "std::host::sockets::listen"
+core_op_id = "runtime.listen"
+
+[[legacy_bindings]]
+alias = "std::host::sockets::read"
+core_op_id = "runtime.read"
+
+[[legacy_bindings]]
+alias = "std::host::sockets::write"
+core_op_id = "runtime.write"
+
+[[legacy_bindings]]
+alias = "std::text::builder_append"
+core_op_id = "string.concat"
+
+[[legacy_bindings]]
+alias = "stdin_read_to_string"
+core_op_id = "runtime.read_stdin"
+
+[[legacy_bindings]]
+alias = "stdio::eprintln"
+core_op_id = "runtime.eprintln"
+
+[[legacy_bindings]]
+alias = "stdio::print"
+core_op_id = "runtime.print"
+
+[[legacy_bindings]]
+alias = "stdio::println"
+core_op_id = "runtime.println"
+
+[[legacy_bindings]]
+alias = "stdio::read_stdin"
+core_op_id = "runtime.read_stdin"
+
+[[legacy_bindings]]
+alias = "string::repeat"
+core_op_id = "string.repeat"
+
+[[legacy_bindings]]
+alias = "string::split"
+core_op_id = "string.split"
+
+[[legacy_bindings]]
+alias = "string_eq"
+core_op_id = "text.string_eq"
+
+[[legacy_bindings]]
+alias = "string_from_bytes"
+core_op_id = "text.string_from_bytes"
+
+[[legacy_bindings]]
+alias = "string_slice"
+core_op_id = "string.slice"
+
+[[legacy_bindings]]
+alias = "substring"
+core_op_id = "string.slice"
+
+[[legacy_bindings]]
+alias = "sum_i32"
+core_op_id = "seq.sum_i32"
+
+[[legacy_bindings]]
+alias = "text::builder_append"
+core_op_id = "string.concat"
+
+[[legacy_bindings]]
+alias = "text::chars"
+core_op_id = "text.chars"
+
+[[legacy_bindings]]
+alias = "text::concat"
+core_op_id = "string.concat"
+
+[[legacy_bindings]]
+alias = "text::contains"
+core_op_id = "string.contains"
+
+[[legacy_bindings]]
+alias = "text::ends_with"
+core_op_id = "string.ends_with"
+
+[[legacy_bindings]]
+alias = "text::format_bool"
+core_op_id = "text.format_bool"
+
+[[legacy_bindings]]
+alias = "text::format_f64"
+core_op_id = "text.format_f64"
+
+[[legacy_bindings]]
+alias = "text::format_i32"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "text::format_i64"
+core_op_id = "text.format_i64"
+
+[[legacy_bindings]]
+alias = "text::index_of"
+core_op_id = "string.index_of"
+
+[[legacy_bindings]]
+alias = "text::is_empty"
+core_op_id = "text.is_empty"
+
+[[legacy_bindings]]
+alias = "text::join"
+core_op_id = "string.join"
+
+[[legacy_bindings]]
+alias = "text::len_bytes"
+core_op_id = "text.len_bytes"
+
+[[legacy_bindings]]
+alias = "text::pad_left"
+core_op_id = "string.pad_left"
+
+[[legacy_bindings]]
+alias = "text::pad_right"
+core_op_id = "string.pad_right"
+
+[[legacy_bindings]]
+alias = "text::parse_f64"
+core_op_id = "parse.parse_f64"
+
+[[legacy_bindings]]
+alias = "text::repeat"
+core_op_id = "string.repeat"
+
+[[legacy_bindings]]
+alias = "text::replace"
+core_op_id = "string.replace"
+
+[[legacy_bindings]]
+alias = "text::slice_bytes"
+core_op_id = "string.slice"
+
+[[legacy_bindings]]
+alias = "text::split"
+core_op_id = "string.split"
+
+[[legacy_bindings]]
+alias = "text::starts_with"
+core_op_id = "string.starts_with"
+
+[[legacy_bindings]]
+alias = "text::to_lower"
+core_op_id = "string.to_lowercase"
+
+[[legacy_bindings]]
+alias = "text::to_lowercase"
+core_op_id = "string.to_lowercase"
+
+[[legacy_bindings]]
+alias = "text::to_upper"
+core_op_id = "string.to_uppercase"
+
+[[legacy_bindings]]
+alias = "text::to_uppercase"
+core_op_id = "string.to_uppercase"
+
+[[legacy_bindings]]
+alias = "text::trim"
+core_op_id = "string.trim"
+
+[[legacy_bindings]]
+alias = "text::trim_end"
+core_op_id = "string.trim_end"
+
+[[legacy_bindings]]
+alias = "text::trim_start"
+core_op_id = "string.trim_start"
+
+[[legacy_bindings]]
+alias = "to_lower"
+core_op_id = "string.to_lowercase"
+
+[[legacy_bindings]]
+alias = "to_lowercase"
+core_op_id = "string.to_lowercase"
+
+[[legacy_bindings]]
+alias = "to_string"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "to_upper"
+core_op_id = "string.to_uppercase"
+
+[[legacy_bindings]]
+alias = "to_uppercase"
+core_op_id = "string.to_uppercase"
+
+[[legacy_bindings]]
+alias = "trim"
+core_op_id = "string.trim"
+
+[[legacy_bindings]]
+alias = "trim_end"
+core_op_id = "string.trim_end"
+
+[[legacy_bindings]]
+alias = "trim_start"
+core_op_id = "string.trim_start"
+
+[[legacy_bindings]]
+alias = "u16_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "u32_to_u64"
+core_op_id = "runtime.u32_to_u64"
+
+[[legacy_bindings]]
+alias = "u8_to_i32"
+core_op_id = "runtime.i8_to_i32"
+
+[[legacy_bindings]]
+alias = "unwrap"
+core_op_id = "runtime.unwrap"
+
+[[legacy_bindings]]
+alias = "unwrap_or"
+core_op_id = "runtime.unwrap_or"
+
+[[legacy_bindings]]
+alias = "vec_get"
+core_op_id = "vec.get"
+
+[[legacy_bindings]]
+alias = "vec_get_unchecked"
+core_op_id = "vec.get_unchecked"
+
+[[legacy_bindings]]
+alias = "vec_get_unchecked_f64"
+core_op_id = "vec.get_unchecked_f64"
+
+[[legacy_bindings]]
+alias = "vec_get_unchecked_i64"
+core_op_id = "vec.get_unchecked_i64"
+
+[[legacy_bindings]]
+alias = "vec_len"
+core_op_id = "vec.len"
+
+[[legacy_bindings]]
+alias = "vec_pop"
+core_op_id = "vec.pop"
+
+[[legacy_bindings]]
+alias = "vec_push"
+core_op_id = "vec.push"
+
+[[legacy_bindings]]
+alias = "vec_push_i64"
+core_op_id = "vec.push_i64"
+
+[[legacy_bindings]]
+alias = "vec_set"
+core_op_id = "vec.set"
+
+[[legacy_bindings]]
+alias = "write_bytes"
+core_op_id = "runtime.write_bytes"
+
+[[legacy_bindings]]
+alias = "write_string"
+core_op_id = "runtime.write_string"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types
@@ -76,9 +1793,6 @@ kind = "wasm_v128"
 # Operations
 # ─────────────────────────────────────────────────────────────────────────────
 # id is the canonical CoreOpId. std/manifest.toml references it via core_op_id.
-# Example fallback values that do not yet resolve to a real implementation symbol
-# are prefixed with example.invalid so a future checker can reject them mechanically.
-#
 # visibility: public / internal
 # classification.layer: primitive / runtime / semantic_stdlib / target_raw
 # binding.policy: required / optional / forbidden
@@ -120,10 +1834,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string.starts_with_impl"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.starts_with"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.ends_with"
@@ -158,10 +1872,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string.ends_with_impl"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.ends_with"
+tracking_issue = "818"
 
 [[operations]]
 id = "panic"
@@ -232,10 +1946,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.simd_i32x4_add"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "simd.i32x4.add"
+tracking_issue = "818"
 [[operations.specializations]]
 priority = 100
 [operations.specializations.when]
@@ -281,10 +1995,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.simd_i32x4_sub"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "simd.i32x4.sub"
+tracking_issue = "818"
 [[operations.specializations]]
 priority = 100
 [operations.specializations.when]
@@ -330,10 +2044,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.simd_f32x4_add"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "simd.f32x4.add"
+tracking_issue = "818"
 [[operations.specializations]]
 priority = 100
 [operations.specializations.when]
@@ -421,10 +2135,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.core_range_contains"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "core.range_contains"
+tracking_issue = "818"
 
 [[operations]]
 id = "core.range_len"
@@ -455,10 +2169,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.core_range_len"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "core.range_len"
+tracking_issue = "818"
 
 [[operations]]
 id = "core.range_new"
@@ -489,10 +2203,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.core_range_new"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "core.range_new"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.abs"
@@ -523,10 +2237,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_abs"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.abs"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.clamp"
@@ -557,10 +2271,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_clamp"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.clamp"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.gcd"
@@ -591,10 +2305,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_gcd"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.gcd"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.max"
@@ -625,10 +2339,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_max"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.max"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.min"
@@ -659,10 +2373,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_min"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.min"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.pow_i32"
@@ -693,10 +2407,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_pow_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.pow_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "math.sqrt"
@@ -727,10 +2441,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.math_sqrt"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "math.sqrt"
+tracking_issue = "818"
 
 [[operations]]
 id = "parse.parse_f64"
@@ -761,10 +2475,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.parse_parse_f64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "parse.parse_f64"
+tracking_issue = "818"
 
 [[operations]]
 id = "parse.parse_i32"
@@ -795,10 +2509,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.parse_parse_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "parse.parse_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "parse.parse_i64"
@@ -829,10 +2543,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.parse_parse_i64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "parse.parse_i64"
+tracking_issue = "818"
 
 [[operations]]
 id = "primitive.memory_copy"
@@ -2563,10 +4277,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.scalar_f64_bits_hi"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "scalar.f64_bits_hi"
+tracking_issue = "818"
 
 [[operations]]
 id = "scalar.f64_bits_lo"
@@ -2597,10 +4311,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.scalar_f64_bits_lo"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "scalar.f64_bits_lo"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.binary_search"
@@ -2631,10 +4345,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_binary_search"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.binary_search"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.count_eq"
@@ -2665,10 +4379,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_count_eq"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.count_eq"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.max_i32"
@@ -2699,10 +4413,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_max_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.max_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.min_i32"
@@ -2733,10 +4447,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_min_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.min_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.product_i32"
@@ -2767,10 +4481,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_product_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.product_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.skip_i32"
@@ -2801,10 +4515,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_skip_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.skip_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.sort_f64"
@@ -2835,10 +4549,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_sort_f64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.sort_f64"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.sort_i32"
@@ -2869,10 +4583,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_sort_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.sort_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.sort_i64"
@@ -2903,10 +4617,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_sort_i64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.sort_i64"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.sum_i32"
@@ -2937,10 +4651,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_sum_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.sum_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.take_i32"
@@ -2971,10 +4685,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_take_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.take_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "seq.unique"
@@ -3005,10 +4719,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.seq_unique"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "seq.unique"
+tracking_issue = "818"
 
 [[operations]]
 id = "simd.f32x4.abs"
@@ -8891,10 +10605,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_char_at"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.char_at"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.concat"
@@ -8925,10 +10639,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_concat"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.concat"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.contains"
@@ -8959,10 +10673,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_contains"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.contains"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.index_of"
@@ -8993,10 +10707,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_index_of"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.index_of"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.join"
@@ -9027,10 +10741,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_join"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.join"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.len"
@@ -9061,10 +10775,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_len"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.len"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.pad_left"
@@ -9095,10 +10809,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_pad_left"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.pad_left"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.pad_right"
@@ -9129,10 +10843,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_pad_right"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.pad_right"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.repeat"
@@ -9163,10 +10877,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_repeat"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.repeat"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.replace"
@@ -9197,10 +10911,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_replace"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.replace"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.reverse"
@@ -9231,10 +10945,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_reverse"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.reverse"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.slice"
@@ -9265,10 +10979,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_slice"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.slice"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.split"
@@ -9299,10 +11013,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_split"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.split"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.to_lowercase"
@@ -9333,10 +11047,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_to_lowercase"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.to_lowercase"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.to_uppercase"
@@ -9367,10 +11081,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_to_uppercase"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.to_uppercase"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.trim"
@@ -9401,10 +11115,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_trim"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.trim"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.trim_end"
@@ -9435,10 +11149,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_trim_end"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.trim_end"
+tracking_issue = "818"
 
 [[operations]]
 id = "string.trim_start"
@@ -9469,10 +11183,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.string_trim_start"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "string.trim_start"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.String_new"
@@ -9503,10 +11217,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_String_new"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.String_new"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.char_to_string"
@@ -9537,10 +11251,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_char_to_string"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.char_to_string"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.chars"
@@ -9571,10 +11285,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_chars"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.chars"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.clone"
@@ -9605,10 +11319,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_clone"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.clone"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.f32_to_string"
@@ -9639,10 +11353,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_f32_to_string"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.f32_to_string"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.format_bool"
@@ -9673,10 +11387,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_format_bool"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.format_bool"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.format_f64"
@@ -9707,10 +11421,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_format_f64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.format_f64"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.format_i64"
@@ -9741,10 +11455,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_format_i64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.format_i64"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.is_empty"
@@ -9775,10 +11489,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_is_empty"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.is_empty"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.len_bytes"
@@ -9809,10 +11523,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_len_bytes"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.len_bytes"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.push_char"
@@ -9843,10 +11557,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_push_char"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.push_char"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.string_eq"
@@ -9877,10 +11591,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_string_eq"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.string_eq"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.string_from_bytes"
@@ -9911,10 +11625,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_string_from_bytes"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.string_from_bytes"
+tracking_issue = "818"
 
 [[operations]]
 id = "text.to_string"
@@ -9945,10 +11659,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.text_to_string"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "text.to_string"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.Vec_new_f64"
@@ -9979,17 +11693,51 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_Vec_new_f64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.Vec_new_f64"
+tracking_issue = "818"
+
+[[operations]]
+id = "vec.Vec_new_fallback"
+visibility = "internal"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "forbidden" }
+description = "Migration handler for Vec constructors formerly selected by a callee prefix."
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.Vec_new_fallback"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.contains_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::seq_contains (aliases: 2; contains_i32, seq::seq_contains)"
+description = "Migration handler for the concrete i32 Vec contains operation."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -10013,10 +11761,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_contains_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.contains_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.get"
@@ -10047,10 +11795,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_get"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.get"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.get_unchecked"
@@ -10081,10 +11829,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_get_unchecked"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.get_unchecked"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.get_unchecked_f64"
@@ -10115,10 +11863,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_get_unchecked_f64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.get_unchecked_f64"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.get_unchecked_i64"
@@ -10149,10 +11897,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_get_unchecked_i64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.get_unchecked_i64"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.is_empty"
@@ -10183,10 +11931,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_is_empty"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.is_empty"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.len"
@@ -10217,10 +11965,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_len"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.len"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.pop"
@@ -10251,10 +11999,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_pop"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.pop"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.push"
@@ -10285,10 +12033,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_push"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.push"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.push_f64"
@@ -10319,10 +12067,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_push_f64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.push_f64"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.push_i64"
@@ -10353,10 +12101,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_push_i64"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.push_i64"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.remove_i32"
@@ -10387,10 +12135,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_remove_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.remove_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.reverse_i32"
@@ -10421,10 +12169,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_reverse_i32"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.reverse_i32"
+tracking_issue = "818"
 
 [[operations]]
 id = "vec.set"
@@ -10455,7 +12203,7 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "example.invalid.fallback.vec_set"
-required = true
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "vec.set"
+tracking_issue = "818"

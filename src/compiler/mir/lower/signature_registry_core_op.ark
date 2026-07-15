@@ -7,11 +7,10 @@ fn signature_registry_apply_core_op_bindings(registry: SignatureRegistry) {
     let count = signature_registry::signature_registry_entry_count(registry)
     let mut i = 0
     while i < count {
-        let entry = signature_registry::signature_registry_entry_at(registry, i)
         let mangled = signature_registry::signature_registry_mangled_at(registry, i)
         let coid = core_op_binding::core_op_binding_lookup_for_mangled(clone(mangled))
         if core_op_id::core_op_id_is_some(coid) {
-            signature_entry::signature_entry_set_core_op_id(entry, coid)
+            signature_registry::signature_registry_set_core_op_id_at(registry, i, coid)
         }
         i = i + 1
     }

@@ -5,7 +5,6 @@ use mir::inst_call
 use mir::lower::call_args
 use mir::lower::call_emit_dest
 use mir::lower::call_emit_staged
-use mir::lower::call_func_id
 use mir::lower::call_rewrite
 use mir::lower::call_types
 use mir::value_types
@@ -49,11 +48,11 @@ fn mir_emit_direct_call(
         call_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite))
     }
     if first_arg_idx >= 0 && call_args::mir_is_printlike_callee(clone(callee_name)) {
-        ctx_api_emit::ctx_emit(ctx, call_func_id::mir_call_inst_attach_func_id(ctx, inst_call::MirInst_call_with_first_arg(clone(callee_name), arg_count, dest, first_arg_idx), clone(callee_name)))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg(clone(callee_name), arg_count, dest, first_arg_idx))
     } else if lane_immediate >= 0 && mir_is_simd_lane_immediate_callee(clone(callee_name)) {
-        ctx_api_emit::ctx_emit(ctx, call_func_id::mir_call_inst_attach_func_id(ctx, inst_call::MirInst_call_with_lane(clone(callee_name), arg_count, dest, lane_immediate), clone(callee_name)))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane(clone(callee_name), arg_count, dest, lane_immediate))
     } else {
-        ctx_api_emit::ctx_emit(ctx, call_func_id::mir_call_inst_attach_func_id(ctx, inst_call::MirInst_call(clone(callee_name), arg_count, dest), clone(callee_name)))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(callee_name), arg_count, dest))
     }
     if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name)) == value_types::VT_VOID() {
         return 0 - 1

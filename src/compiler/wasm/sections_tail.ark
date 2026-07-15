@@ -4,7 +4,6 @@ use wasm::sections_gc_hint
 use wasm::sections_i31ref_hint
 use wasm::sections_name
 use wasm::strings
-use wasm::registry_return_audit
 
 fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32) {
     sections_gc_hint::emit_gc_hint_custom_section(out, ctx)
@@ -12,5 +11,4 @@ fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTabl
     sections_i31ref_hint::emit_i31ref_hint_custom_section(out)
     sections_name::emit_name_custom_section(out, opt_level)
     sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))
-    registry_return_audit::registry_audit_print_summary(ctx)
 }

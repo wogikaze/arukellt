@@ -1,11 +1,7 @@
 use wasm::opcodes
-use wasm::inst_ctx
-use wasm::inst_store
 use wasm::writer_core
-use wasm::intrinsic_vec_new_layout
 use wasm::call_fallback_resolved
 use mir::inst_accessors_literals
-use mir::inst_accessors_operands
 
 fn emit_fallback_call(
     w: WasmWriter,
@@ -15,18 +11,13 @@ fn emit_fallback_call(
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,
-    prev_callee: String,
     next_op: i32,
     next_arg0: i32,
     next_arg1: i32,
     next2_op: i32,
     wit_import_count: i32
 ) {
-    if starts_with(clone(callee), String_from("Vec_new_")) {
-        emit_vec_new_fallback_call(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
-        return
-    }
-    if call_fallback_resolved::try_emit_resolved_fallback_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
+    if call_fallback_resolved::try_emit_resolved_fallback_call(w, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
         return
     }
     emit_unresolved_fallback_call(w, inst)
@@ -40,10 +31,4 @@ fn emit_unresolved_fallback_call(w: WasmWriter, inst: MirInst) {
         drop_i = drop_i + 1
     }
     writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
-}
-
-fn emit_vec_new_fallback_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
-    intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
-    inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
-    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }

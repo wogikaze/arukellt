@@ -8,8 +8,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ROUTERS = [
-    ROOT / "src/compiler/wasm/call_dispatch_table.ark",
-    ROOT / "src/compiler/wasm/call_dispatch.ark",
     ROOT / "src/compiler/wasm/inst_dispatch.ark",
 ]
 PATTERN = re.compile(r"eq\(clone\(callee\)")

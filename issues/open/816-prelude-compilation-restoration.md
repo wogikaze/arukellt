@@ -3,9 +3,10 @@ Status: open
 Created: 2026-07-15
 Updated: 2026-07-15
 ID: 816
+Parent: 729
 Track: compiler-internal
 Depends on: "798"
-Related: "729, ADR-042, docs/plans/intrinsic-layer-separation"
+Related: "729, 818, ADR-042, docs/plans/intrinsic-layer-separation"
 Orchestration class: blocked
 Orchestration upstream: "prelude-restoration-rfc"
 Blocks v{N}: none
@@ -19,8 +20,8 @@ Source: ADR-042 out-of-scope item
 
 Remove `combine_loaded_and_main_decls_skip_prelude` and make `std/prelude.ark`
 bodies real compilable Ark code, as required by the 5-layer separation in
-ADR-042. This work is intentionally out of scope for the main #729 epic until a
-separate RFC is accepted.
+ADR-042. This is a separate child of #729, outside #798's dispatch-spine scope,
+and remains blocked until a dedicated RFC is accepted.
 
 ## Scope
 
@@ -58,6 +59,6 @@ separate RFC is accepted.
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
 - `docs/plans/intrinsic-layer-separation.md`
 - `issues/open/729-intrinsic-layer-separation.md`
-- `issues/open/798-adr-042-semantic-operation-registry-migration.md`
+- `issues/done/798-adr-042-semantic-operation-registry-migration.md`
 - `std/prelude.ark`
 - `src/compiler/driver/pipeline_backend.ark`

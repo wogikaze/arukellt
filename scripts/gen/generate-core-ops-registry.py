@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 import sys
 from pathlib import Path
 
@@ -21,6 +22,7 @@ LOWERING_KIND_TO_INT = {
     "mir_op": 2,
     "runtime_call": 3,
     "target_intrinsic": 4,
+    "legacy_emitter": 5,
 }
 
 LAYER_TO_INT = {
@@ -34,6 +36,10 @@ LAYER_TO_INT = {
 def _ark_string(s: str) -> str:
     escaped = s.replace("\\", "\\\\").replace('"', '\\"')
     return f'String_from("{escaped}")'
+
+
+def _handler_symbol(op_id: str) -> str:
+    return "core_op_handler_" + re.sub(r"[^a-zA-Z0-9]+", "_", op_id).strip("_")
 
 
 def render(ops: list[dict]) -> str:
@@ -75,6 +81,7 @@ def render(ops: list[dict]) -> str:
     target_ids: list[str] = []
     runtime_symbols: list[str] = []
     mir_ops: list[str] = []
+    legacy_handler_ids: list[str] = []
     for op in ops:
         lowering_kind = op.get("lowering", {}).get("kind", "normal_call")
         if lowering_kind == "target_intrinsic":
@@ -92,6 +99,11 @@ def render(ops: list[dict]) -> str:
             mir_ops.append(mir.get("operation", mir.get("opcode", "")))
         else:
             mir_ops.append("")
+        if lowering_kind == "legacy_emitter":
+            legacy = op.get("lowering", {}).get("legacy", {})
+            legacy_handler_ids.append(legacy.get("handler_id", ""))
+        else:
+            legacy_handler_ids.append("")
 
     emit_string_table("core_op_registry_canonical_id", ids)
     emit_i32_table("core_op_registry_lowering_kind", lowering)
@@ -99,6 +111,13 @@ def render(ops: list[dict]) -> str:
     emit_string_table("core_op_registry_target_id", target_ids)
     emit_string_table("core_op_registry_runtime_symbol", runtime_symbols)
     emit_string_table("core_op_registry_mir_operation", mir_ops)
+    emit_string_table("core_op_registry_legacy_handler_id", legacy_handler_ids)
+
+    for index, op_id in enumerate(ids):
+        lines.append(f"fn {_handler_symbol(op_id)}() -> i32 {{")
+        lines.append(f"    {index}")
+        lines.append("}")
+        lines.append("")
 
     lines.extend(
         [

@@ -2,43 +2,43 @@ use wasm::inst_store
 use wasm::intrinsic_http
 use wasm::intrinsic_sockets
 
-fn try_emit_network_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "http_get") || eq(clone(callee), "__intrinsic_http_get") || eq(clone(callee), "http::get") || eq(clone(callee), "std::host::http::get") {
+fn try_emit_network_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_get(){
         let _result_on_stack = intrinsic_http::emit_http_get(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "http_request") || eq(clone(callee), "__intrinsic_http_request") || eq(clone(callee), "http::request") || eq(clone(callee), "std::host::http::request") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_request(){
         let _result_on_stack = intrinsic_http::emit_http_request(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "http_serve") || eq(clone(callee), "__intrinsic_http_serve") || eq(clone(callee), "http::serve") || eq(clone(callee), "std::host::http::serve") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_serve(){
         let _result_on_stack = intrinsic_http::emit_http_serve(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "sockets_connect") || eq(clone(callee), "__intrinsic_sockets_connect") || eq(clone(callee), "sockets::connect") || eq(clone(callee), "std::host::sockets::connect") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_connect(){
         let _result_on_stack = intrinsic_sockets::emit_sockets_connect(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "sockets_read") || eq(clone(callee), "__intrinsic_sockets_read") || eq(clone(callee), "sockets::read") || eq(clone(callee), "std::host::sockets::read") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_read(){
         let _result_on_stack = intrinsic_sockets::emit_sockets_read(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "sockets_write") || eq(clone(callee), "__intrinsic_sockets_write") || eq(clone(callee), "sockets::write") || eq(clone(callee), "std::host::sockets::write") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_write(){
         let _result_on_stack = intrinsic_sockets::emit_sockets_write(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "sockets_listen") || eq(clone(callee), "__intrinsic_sockets_listen") || eq(clone(callee), "sockets::listen") || eq(clone(callee), "std::host::sockets::listen") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_listen(){
         let _result_on_stack = intrinsic_sockets::emit_sockets_listen(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "sockets_accept") || eq(clone(callee), "__intrinsic_sockets_accept") || eq(clone(callee), "sockets::accept") || eq(clone(callee), "std::host::sockets::accept") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_accept(){
         let _result_on_stack = intrinsic_sockets::emit_sockets_accept(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

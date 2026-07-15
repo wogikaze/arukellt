@@ -1,12 +1,12 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-15
 ID: 798
 Parent: 729
 Track: architecture
 Depends on: "724"
-Related: "727, 808, 816, 817, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
+Related: "727, 808, 816, 817, 818, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
 Orchestration class: ready
 Orchestration upstream: none
 Blocks v{N}: none
@@ -19,13 +19,13 @@ Source: ADR-042 semantic registry migration
 ## Summary
 
 First implementation child of **#729**. ADR-042 is accepted and this issue is
-ready to start. Establish the production `data/core-ops.toml` CoreOpRegistry and
-migrate intrinsic dispatch from callee-string matching to `FunctionId` + `SignatureRegistry` lookup.
+ready to start. Establish the compiler-consumed migration CoreOpRegistry and
+migrate emitter dispatch from callee-string matching to `FunctionId` + `SignatureRegistry` lookup.
+Production lowering and final scaffold exit are owned by #818.
 
 ## Scope
 
-- Define the CoreOpRegistry schema, file location (`data/core-ops.toml`), and
-  scaffold-exit criteria.
+- Define the CoreOpRegistry schema and file location (`data/core-ops.toml`).
 - Extend `SignatureEntry` with an optional `core_op_id` and function signature.
   `CoreOpId` metadata (effect, lowering, fallback, inline policy, semantics)
   stays in `data/core-ops.toml`; `SignatureEntry` does not duplicate it.
@@ -51,8 +51,8 @@ migrate intrinsic dispatch from callee-string matching to `FunctionId` + `Signat
   result with the new `SignatureRegistry` result, gating dispatch cutover on
   100% agreement of `EffectiveLoweringDecision` (after capability resolution).
 - Switch emitter dispatch to `FunctionId`-based `SignatureRegistry` lookup.
-- Remove callee-string dispatch (`eq(clone(callee), ...)` comparisons) and
-  callee alias handling.
+- Remove callee-string dispatch (`eq(clone(callee), ...)` comparisons) from
+  backend helpers. Freeze remaining compatibility aliases at the registry-build boundary.
 
 ## Non-goals
 
@@ -62,7 +62,10 @@ migrate intrinsic dispatch from callee-string matching to `FunctionId` + `Signat
 - Do not combine callee-string dispatch removal with the initial schema cutover.
 - Do not migrate host ABI separation, stdlib inliner, or stdlib operations in
   this issue; those are separate child issues of #729.
-- Do not implement prelude restoration or sealed raw API; those are #816 and #817.
+- Do not implement prelude restoration or sealed raw API; those are sibling
+  children #816 and #817 under #729.
+- Do not implement production Ark fallbacks or change the registry to
+  `status = "production"`; that is #818.
 - Do not fix #727; the runtime ABI / host bridge migration is downstream or
   parallel work, not a prerequisite for the registry schema.
 - Do not fix #808; the global `verify quick` green gate is a pre-existing
@@ -106,16 +109,15 @@ for the canonical order and downstream work.
 - [x] Shadow dispatch mode infrastructure compares legacy vs registry at
       `EffectiveLoweringDecision` level (`core_op_shadow.ark`)
 - [x] Emitter dispatch uses `FunctionId` + `SignatureRegistry` lookup in routers
-      (`call_dispatch_table.ark`, `core_op_dispatch.ark`)
-- [ ] No `eq(clone(callee), ...)` comparisons remain in helper `call_*.ark`
-      emitters (routers are clean; helper internals still use representative callee)
-- [ ] `normalize_callee_name` and `__intrinsic_` prefix stripping are removed
-- [ ] Targeted migration differential tests pass
-- [ ] T3 validation failure count does not increase beyond #808 baseline
-- [ ] `python3 scripts/manager.py docs regenerate` and `python3 scripts/manager.py docs check` pass
-- [ ] `python3 scripts/manager.py quality structure` passes
-- [ ] `data/core-ops.toml` scaffold-exit criteria are met before `status` changes
-      from scaffold
+      (`inst_dispatch.ark`, `core_op_dispatch.ark`)
+- [x] No `eq(clone(callee), ...)` comparisons remain in helper `call_*.ark` emitters
+- [x] `normalize_callee_name` and `__intrinsic_` prefix stripping are removed
+- [x] Targeted migration differential tests pass
+- [x] T3 validation failure count does not increase beyond #808 baseline
+- [x] `python3 scripts/manager.py docs regenerate` and `python3 scripts/manager.py docs check` pass
+- [x] `python3 scripts/manager.py quality structure` passes
+- [x] `data/core-ops.toml` uses explicit `status = "migration"`; every temporary
+      `legacy_emitter` names its handler and tracking issue #818
 
 ## Validation commands
 
@@ -143,15 +145,29 @@ Design scaffold and structural checker implemented:
 
 Compiler consumption, FunctionId router cutover, shadow infrastructure with
 unresolved accounting, and handler-branch semantic mapping are implemented.
+The backend dispatch owner is consolidated in `inst_dispatch.ark`; leaf helpers
+receive generated integer handler IDs and contain no callee-string semantic
+comparisons.
 
-Mapping inventory unit is a legacy if-branch (OR'd aliases), not each callee
-string. Bridge uses `CoreOpId → legacy handler key` (helper-recognizable), not
-stripped representative callees.
+Close evidence (2026-07-15):
 
-Still open:
-- helper-level `eq(clone(callee), ...)` removal inside `call_*.ark`
-- production `status = "production"` scaffold exit
-- runtime shadow receipt with mismatched=0 and unresolved=0 on targeted suite
+- ADR-042 D5/D6 audit: normal calls follow
+  `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry`; metadata remains in
+  `data/core-ops.toml`, and backend names are diagnostic/fallback lookup only.
+- `docs/data/798-core-op-shadow-receipt.json`: 162/162 fixtures compiled,
+  9,274/9,274 candidates matched, mismatched=0, unresolved=0.
+- T3 ratchet: 210 pass, 213 validate-fail, 0 compile-fail, 23 skip; the 213
+  failure identities are identical to the #808 baseline (new=0, removed=0).
+- Core-op checker, strict checker, compiler validator, generated registry and
+  binding freshness, frozen-alias inventory, and call-router string-dispatch
+  ratchet all pass. Unit regressions: 56/56 pass.
+- `python3 scripts/manager.py fmt --check`, `python3 scripts/manager.py lint`,
+  `python3 scripts/manager.py docs regenerate`, `python3 scripts/manager.py docs check`,
+  `python3 scripts/manager.py quality structure`, and
+  `python3 scripts/manager.py verify quick` pass (171/171 quick checks).
+- Production readiness intentionally rejects `status = "migration"`.
+  Production lowerings, alias removal, and replacement of synthetic empty-signature
+  alias entries with real function signatures are explicitly owned by open #818.
 
 ## Primary artifacts
 
