@@ -7,7 +7,7 @@
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
 - Fixture registry: 2693 manifest entries (`docs/data/project-state.toml`).
-- Last observed harness: 1588 outcomes (passed: 804, failed: 367, skipped: 417).
+- Last observed harness: 1588 outcomes (passed: 57, failed: 1089, skipped: 442).
 - Not included in last snapshot: 1105 registry entries (not proof they fail).
 - Canonical target for current docs: `wasm32-gc`
 

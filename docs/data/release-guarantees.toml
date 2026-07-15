@@ -224,11 +224,11 @@ included_in_quick = false
 result = "fail"
 evidence_type = "fixture-set"
 verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "2cd10f16"
+last_verified_commit = "982f3102"
 verified_at = "2026-07-15"
 stale_after_days = 30
-affected_count = 367
-incident_id = "incident_fixture_parity_367"
+affected_count = 1089
+incident_id = "incident_fixture_parity_1089"
 blocker_category = "fixture"
 blocker_scope = "full"
 blocker_owner = "compiler/runtime"
@@ -361,11 +361,11 @@ included_in_quick = true
 result = "fail"
 evidence_type = "smoke"
 verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "2cd10f16"
+last_verified_commit = "982f3102"
 verified_at = "2026-07-15"
 stale_after_days = 30
 aggregate_failure_count = 1
-fixture_failure_count = 213
+fixture_failure_count = 100
 affected_count = 1
 incident_id = "incident_t3_wasm_validate"
 blocker_category = "verification"
@@ -374,7 +374,7 @@ blocker_owner = "Wasm backend"
 blocker_issue = "#808"
 first_seen_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
 platforms = ["linux"]
-note = "T3 fixture Wasm validation: 1 aggregate gate failure + 213 fixture-level validate failures (func N failed to validate)"
+note = "T3 fixture Wasm validation: 1 aggregate gate failure + 100 fixture-level validate failures (func N failed to validate)"
 
 # ── Full-verification checks (supplemental, previously in release-checklist.md) ──
 

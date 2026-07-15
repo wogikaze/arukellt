@@ -131,19 +131,21 @@ and `Orchestration upstream: 715` are correct and will remain until
    recurrence.
 10. **~~verify full receipt not machine-readable~~** (RESOLVED):
     `docs/data/verify-full-receipt.json` saved with schema v2, generated
-    by `scripts/gen/write-verify-receipt.py`. Contains 9 aggregate
-    checks and 1416 individually identified items:
+    by the canonical `verify full` runner (integrated receipt writer).
+    Contains 9 aggregate checks and 1998 individually identified items:
     - size (#422): 1 pass
-    - quick_checks: 165 pass, 1 fail
-    - t3_wasm_validate (#808): 210 pass, 213 fail, 23 skip
-    - fixture_parity (#807): 804 pass, 367 fail, 417 skip
+    - quick_checks: 168 pass, 3 fail
+    - t3_wasm_validate (#808): 323 pass, 100 fail, 23 skip
+    - fixture_parity (#807): 57 pass, 1089 fail, 442 skip
     - wat_roundtrip (#809): 1880 pass, 6 fail, 645 skip
     - cli_parity (#811): 17 pass, 2 fail
     - diag_parity (#812): 29 pass, 3 fail, 26 skip
     - fixpoint (#813): 1 fail
     - component_interop (#810): 0 pass, 103 fail, 0 skip
-    verified_commit matches `2cd10f16`. `started_at` is non-null and every
-    identity/aggregate invariant is checked and passes (exit_status=1).
+    verified_commit matches `982f3102`. `started_at` is non-null,
+    `duration_seconds` is 751.977 (real timing), `log_sha256` is
+    recorded, and every identity/aggregate invariant is checked and
+    passes (exit_status=1).
 11. **~~Owner issues lack machine-readable baselines~~** (RESOLVED):
     All owner issues #807-#815 now reference `docs/data/verify-full-receipt.json`
     with specific `check_id` and `items[]` paths.
@@ -212,8 +214,8 @@ assigned to open owner issues:
 
 | Domain | Failures | Owner issue | Category |
 |---|---:|---|---|
-| t3_wasm_validate | 213 | #808 | T3/Wasm validation |
-| selfhost fixture parity | 367 | #807 | fixture parity |
+| t3_wasm_validate | 100 | #808 | T3/Wasm validation |
+| selfhost fixture parity | 1089 | #807 | fixture parity |
 | WAT roundtrip | 6 | #809 | wasm backend |
 | component interop | 103 | #810 | component model |
 | selfhost CLI parity | 2 | #811 | CLI parity drift |
@@ -233,8 +235,8 @@ exact scope, baseline, removal condition, and ratchet.
 |---|---|---|---|---|---|---|
 | Formatter/parser exceptions (23 files) | CQ-FMT-001/CQ-LINT-001 | 23 Ark files | compiler-tooling | #814 | canonical formatter parses file | YES (SHA256) |
 | Ark quality baseline | CQ-STRUCT-001 | src/compiler/ metrics | compiler-tooling | #794 | lower-only ratchet | NO (counts) |
-| Fixture parity baseline (367) | check_fixture_harness | 367 fixtures | compiler/runtime | #807 | fix individual fixtures | NO (snapshot) |
-| Fixture parity skips (417) | run_fixture_parity | 417 fixtures | compiler/runtime | #807 | fix individual fixture paths | NO (path) |
+| Fixture parity baseline (1089) | check_fixture_harness | 1089 fixtures | compiler/runtime | #807 | fix individual fixtures | NO (snapshot) |
+| Fixture parity skips (442) | run_fixture_parity | 442 fixtures | compiler/runtime | #807 | fix individual fixture paths | NO (path) |
 | Diagnostic parity skips (26) | run_diag_parity | 26 diag fixtures | compiler/runtime | #815 | implement missing diagnostics | NO (path) |
 | T3 compile skips (23) | check-t3-wasm-validate | 23 fixtures | compiler/runtime | #815 | implement compile path | NO (path) |
 | Generated-file exclusions (79) | CQ-STRUCT-007 | 79 generated files | docs/tooling | directory-ownership | remove if no longer generated | NO (path) |

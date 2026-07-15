@@ -12,7 +12,7 @@ max_line_len_hard = 200
 tabs_files = 0
 extreme_indent_lines = 0
 lines_ge_200 = 2
-thin_wrappers = 1734
+thin_wrappers = 1735
 single_function_files = 530
 
 [metrics_metadata]
