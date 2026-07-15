@@ -364,6 +364,8 @@ verification_environment = "linux; repository verification toolchain"
 last_verified_commit = "2cd10f16"
 verified_at = "2026-07-15"
 stale_after_days = 30
+aggregate_failure_count = 1
+fixture_failure_count = 213
 affected_count = 1
 incident_id = "incident_t3_wasm_validate"
 blocker_category = "verification"
@@ -372,7 +374,7 @@ blocker_owner = "Wasm backend"
 blocker_issue = "#808"
 first_seen_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
 platforms = ["linux"]
-note = "T3 fixture Wasm validation fails for 213 run fixtures (func N failed to validate)"
+note = "T3 fixture Wasm validation: 1 aggregate gate failure + 213 fixture-level validate failures (func N failed to validate)"
 
 # ── Full-verification checks (supplemental, previously in release-checklist.md) ──
 

@@ -290,6 +290,29 @@ class VerifyReceiptTest(unittest.TestCase):
             self.assertEqual(rc, 1)
             self.assertTrue(output_path.is_file())
 
+    def test_normalize_includes_log_sha256_and_duration(self) -> None:
+        """The normalized receipt should include log_sha256 and
+        duration_seconds when present."""
+        receipt = {
+            "schema_version": 2,
+            "generated_at": "2026-07-15T00:00:00+00:00",
+            "started_at": "2026-07-15T00:00:00+00:00",
+            "finished_at": "2026-07-15T00:01:00+00:00",
+            "duration_seconds": 60.0,
+            "verified_commit": "testabc1",
+            "exit_status": 0,
+            "status": "pass",
+            "log_sha256": "abc123",
+            "summary": {"incidents": []},
+            "checks": [],
+        }
+        normalized = write_receipt._normalize_receipt(receipt)
+        self.assertIn("log_sha256", normalized)
+        self.assertIn("duration_seconds", normalized)
+        # Check ordering: log_sha256 should come after status
+        keys = list(normalized.keys())
+        self.assertLess(keys.index("status"), keys.index("log_sha256"))
+
 
 if __name__ == "__main__":
     unittest.main()

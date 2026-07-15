@@ -72,7 +72,7 @@ a new refactor wave.
 - [x] `verify full` completes once and all failures are identity-classified
 - [x] Docs regenerate without drift and issue indexes are generated
 - [x] Manual samples and ambiguity/false-positive/false-negative results are recorded
-- [x] Worktree is clean at a committed final HEAD
+- [ ] Worktree is clean at a committed final HEAD
 
 ## Reopened blocking findings (2026-07-14 external audit)
 
@@ -104,7 +104,7 @@ and `Orchestration upstream: 715` are correct and will remain until
    - A API: 20/20 (was 5/20)
    - B API: all 36 required, 36 actual (OK)
    - C API: 20/20 (was 5/20)
-   All samples verified correct. No false positives or negatives.
+   All samples verified correct (174/174 reviewed). No false positives or negatives.
 3. **~~Unresolved failure owners are invalid~~** (RESOLVED): `verify full`
    failures were assigned to done issues (#287, #459, #529) or labeled
    `known`/`various`/`dynamic` without a tracking issue. Created 9 open
@@ -142,7 +142,7 @@ and `Orchestration upstream: 715` are correct and will remain until
     - diag_parity (#812): 29 pass, 3 fail, 26 skip
     - fixpoint (#813): 1 fail
     - component_interop (#810): 0 pass, 103 fail, 0 skip
-    verified_commit matches `2b37c3bb`. `started_at` is non-null and every
+    verified_commit matches `2cd10f16`. `started_at` is non-null and every
     identity/aggregate invariant is checked and passes (exit_status=1).
 11. **~~Owner issues lack machine-readable baselines~~** (RESOLVED):
     All owner issues #807-#815 now reference `docs/data/verify-full-receipt.json`
@@ -160,14 +160,19 @@ and `Orchestration upstream: 715` are correct and will remain until
     bodies, support function-bound tests, and ignore comments/strings.
     Phase 1: 34/180 meaningful (below-target). Phase 2: 10/60 meaningful
     (below-target). Unit tests added. #715 remains open as hard dependency.
+    `src/compiler/analysis` has 2 in-file test cases for pure IdentSpan
+    constructors/accessors, allowed as explicit exception
+    (ALLOWED_INFILE_EXCEPTIONS).
 15. **~~Manual samples not saved as machine-readable~~** (RESOLVED):
     `docs/data/cq18-manual-sample.json` saved with 174 samples (50
     wrapper + 20 hotspot + 20 A API + 20 C API + 36 B API + 8 target
     aliases + 4 generated views + 4 comment policy fixtures + 12 SSOT
-    knowledge categories). 110 are reviewed `correct` (wrapper/hotspot/A
-    API/C API); 64 new categories are `pending` human review. The generator
-    fills expected/evidence/selection metadata but does not auto-approve
-    `actual` or `judgment`.
+    knowledge categories). All 174 reviewed `correct` by cq18-audit.
+    The generator fills expected/evidence/selection metadata and
+    records `source_fingerprint` (SHA-256 of path/symbol/expected/evidence)
+    to invalidate reviews only when inputs change. `check-cq18-manual-sample.py`
+    validates summary consistency, required review fields, and rejects
+    auto-approved entries without a real `reviewed_by`.
 
 ## Validation commands
 

@@ -126,9 +126,10 @@ Priority modules where in-file tests add the most value:
    - Phase 1 (std/core, std/collections, std/text, std/bytes):
      34 meaningful tests (target: 180) — BELOW THRESHOLD
    - Phase 2 (lexer, parser, resolver, typechecker, mir, diagnostics):
-     13 meaningful tests (target: 60) — BELOW THRESHOLD
-   - Out-of-scope: src/compiler/analysis has 2 test cases (should be
-     fixture-only)
+     10 meaningful tests (target: 60) — BELOW THRESHOLD
+   - Out-of-scope: src/compiler/analysis has 2 test cases (explicit
+     exception: pure IdentSpan constructors/accessors, allowed in
+     ALLOWED_INFILE_EXCEPTIONS)
    Issue stays open until both Phase 1 and Phase 2 reach targets.
 5. **~~Lint prevention~~** (RESOLVED): `check-trivial-tests.py` added to
    detect and reject future `probe_N`, `sanity` with trivial asserts,
