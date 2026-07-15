@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-14T20:19:34Z",
+  "generated_at": "2026-07-15T12:14:28Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -768,8 +768,7 @@
       "depends_on": [],
       "blocks_issue_ids": [
         "726",
-        "729",
-        "798"
+        "729"
       ],
       "acceptance": {
         "checked": 10,
@@ -978,6 +977,52 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "816",
+      "path": "816-prelude-compilation-restoration.md",
+      "title": "816 — Prelude compilation restoration",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818",
+        "820",
+        "821",
+        "822"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "prelude-restoration-rfc"
+      }
+    },
+    {
+      "id": "817",
+      "path": "817-sealed-raw-api-module.md",
+      "title": "817 — Sealed raw API module for Vec/String internal representation",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818",
+        "822"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "sealed-raw-api-rfc"
       }
     },
     {
@@ -1220,8 +1265,7 @@
         "675"
       ],
       "blocks_issue_ids": [
-        "729",
-        "798"
+        "819"
       ],
       "acceptance": {
         "checked": 0,
@@ -1264,8 +1308,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 11,
-        "unchecked": 0
+        "checked": 10,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "blocked",
@@ -1291,6 +1335,25 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation (unblocked epic)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "unblocked",
+        "upstream_notes": "none"
       }
     },
     {
@@ -1329,6 +1392,30 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "820",
+      "path": "820-stdlib-only-inliner.md",
+      "title": "820 — Bounded stdlib-only inliner",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816"
+      ],
+      "blocks_issue_ids": [
+        "818",
+        "821",
+        "822"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816"
       }
     },
     {
@@ -1399,46 +1486,25 @@
       }
     },
     {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (blocked epic)",
+      "id": "819",
+      "path": "819-runtime-abi-core-op-lowering.md",
+      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
-        "724",
-        "727"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
-      }
-    },
-    {
-      "id": "798",
-      "path": "798-adr-042-semantic-operation-registry-migration.md",
-      "title": "798 — ADR-042 semantic operation registry migration",
-      "track": "architecture",
-      "status": "open",
-      "depends_on": [
-        "724",
-        "727"
+        "727",
+        "798"
       ],
       "blocks_issue_ids": [
-        "816",
-        "817"
+        "818"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 14
+        "unchecked": 6
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
+        "upstream_notes": "727"
       }
     },
     {
@@ -1458,6 +1524,53 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "821",
+      "path": "821-pure-semantic-stdlib-migration.md",
+      "title": "821 — Pure semantic stdlib migration",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "820"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 820"
+      }
+    },
+    {
+      "id": "822",
+      "path": "822-representation-dependent-stdlib-migration.md",
+      "title": "822 — Representation-dependent and allocating stdlib migration",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "817",
+        "820"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 817, 820"
       }
     },
     {
@@ -1486,41 +1599,28 @@
       }
     },
     {
-      "id": "816",
-      "path": "816-prelude-compilation-restoration.md",
-      "title": "816 — Prelude compilation restoration",
+      "id": "818",
+      "path": "818-core-op-production-scaffold-exit.md",
+      "title": "818 — CoreOpRegistry production scaffold exit",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
-        "798"
+        "798",
+        "816",
+        "817",
+        "819",
+        "820",
+        "821",
+        "822"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 6
+        "unchecked": 11
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "prelude-restoration-rfc"
-      }
-    },
-    {
-      "id": "817",
-      "path": "817-sealed-raw-api-module.md",
-      "title": "817 — Sealed raw API module for Vec/String internal representation",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "sealed-raw-api-rfc"
+        "upstream_notes": "816, 817, 819, 820, 821, 822"
       }
     },
     {

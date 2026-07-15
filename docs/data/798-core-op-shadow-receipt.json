@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "issue": 798,
+  "suite": "targeted T3 prefixes: host/, integration/, stdlib_host/, stdlib_io/, stdlib_string/, stdlib_vec/, stdlib_vec_ops/",
+  "fixtures_selected": 162,
+  "fixtures_compiled": 162,
+  "compile_failures": [],
+  "fixtures_without_candidates": [],
+  "nonmatching_fixtures": [],
+  "totals": {
+    "candidates": 9274,
+    "matched": 9274,
+    "mismatched": 0,
+    "unresolved": 0
+  },
+  "match_rate_percent": 100.0
+}

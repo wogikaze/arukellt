@@ -3,16 +3,16 @@
 use wasm::opcodes
 use mir::block_inst_access
 use mir::function_block_queries
-use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_record
 use wasm::inst_dispatch
 
 struct EmitNeighborInfo {
     op: i32,
     arg0: i32,
     arg1: i32,
-    str_val: String,
+    func_id_raw: i32,
 }
 
 fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
@@ -34,7 +34,7 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
                 EmitNeighborInfo_op(prev),
                 EmitNeighborInfo_arg0(prev),
                 EmitNeighborInfo_arg1(prev),
-                EmitNeighborInfo_str_val(prev),
+                EmitNeighborInfo_func_id_raw(prev),
                 EmitNeighborInfo_op(next),
                 EmitNeighborInfo_arg0(next),
                 EmitNeighborInfo_arg1(next),
@@ -47,22 +47,22 @@ fn emit_function_instructions(body: WasmWriter, f: MirFunction, ctx: SelfEmitCtx
     }
 }
 
-fn EmitNeighborInfo_new(op: i32, arg0: i32, arg1: i32, str_val: String) -> EmitNeighborInfo {
-    EmitNeighborInfo { op: op, arg0: arg0, arg1: arg1, str_val: str_val }
+fn EmitNeighborInfo_new(op: i32, arg0: i32, arg1: i32, func_id_raw: i32) -> EmitNeighborInfo {
+    EmitNeighborInfo { op: op, arg0: arg0, arg1: arg1, func_id_raw: func_id_raw }
 }
 
 fn emit_prev_inst_info(f: MirFunction, block: MirBlock, bi: i32, ii: i32) -> EmitNeighborInfo {
     let mut prev_op = 0 - 1
     let mut prev_arg0 = 0 - 1
     let mut prev_arg1 = 0 - 1
-    let mut prev_str = String_from("")
+    let mut prev_func_id_raw = 0 - 1
     if ii > 0 {
         let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
         prev_op = inst_accessors_shape::MirInst_op(prev)
         prev_arg0 = inst_accessors_operands::MirInst_arg0(prev)
         prev_arg1 = inst_accessors_operands::MirInst_arg1(prev)
         if prev_op == opcodes::MIR_CALL() {
-            prev_str = clone(inst_accessors_literals::MirInst_str_val(prev))
+            prev_func_id_raw = inst_record::mir_inst_func_id_raw(prev)
         }
     } else {
         if bi > 0 {
@@ -74,12 +74,12 @@ fn emit_prev_inst_info(f: MirFunction, block: MirBlock, bi: i32, ii: i32) -> Emi
                 prev_arg0 = inst_accessors_operands::MirInst_arg0(prev)
                 prev_arg1 = inst_accessors_operands::MirInst_arg1(prev)
                 if prev_op == opcodes::MIR_CALL() {
-                    prev_str = clone(inst_accessors_literals::MirInst_str_val(prev))
+                    prev_func_id_raw = inst_record::mir_inst_func_id_raw(prev)
                 }
             }
         }
     }
-    EmitNeighborInfo_new(prev_op, prev_arg0, prev_arg1, prev_str)
+    EmitNeighborInfo_new(prev_op, prev_arg0, prev_arg1, prev_func_id_raw)
 }
 
 fn emit_next_inst_info(f: MirFunction, block: MirBlock, block_count: i32, bi: i32, ii: i32, inst_count: i32) -> EmitNeighborInfo {
@@ -102,7 +102,7 @@ fn emit_next_inst_info(f: MirFunction, block: MirBlock, block_count: i32, bi: i3
             }
         }
     }
-    EmitNeighborInfo_new(next_op, next_arg0, next_arg1, String_from(""))
+    EmitNeighborInfo_new(next_op, next_arg0, next_arg1, 0 - 1)
 }
 
 fn emit_next2_op(f: MirFunction, block: MirBlock, block_count: i32, bi: i32, ii: i32, inst_count: i32) -> i32 {
@@ -142,6 +142,6 @@ fn EmitNeighborInfo_arg1(info: EmitNeighborInfo) -> i32 {
     info.arg1
 }
 
-fn EmitNeighborInfo_str_val(info: EmitNeighborInfo) -> String {
-    clone(info.str_val)
+fn EmitNeighborInfo_func_id_raw(info: EmitNeighborInfo) -> i32 {
+    info.func_id_raw
 }

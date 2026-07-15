@@ -2,18 +2,18 @@ use wasm::inst_store
 use wasm::intrinsic_clock
 use wasm::intrinsic_random
 
-fn try_emit_clock_random_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "__intrinsic_clock_now") || eq(clone(callee), "clock_now") {
+fn try_emit_clock_random_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_clock_now(){
         let _result_on_stack = intrinsic_clock::emit_clock_now(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "__intrinsic_clock_now_ms") || eq(clone(callee), "clock_now_ms") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_clock_now_ms(){
         let _result_on_stack = intrinsic_clock::emit_clock_now_ms(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "__intrinsic_random_i32") || eq(clone(callee), "random_i32") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_random_i32(){
         let _result_on_stack = intrinsic_random::emit_random_i32(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

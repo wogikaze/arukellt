@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-14T15:14:45.035938+00:00",
+  "generated_at": "2026-07-15T01:37:33.657386+00:00",
   "samples": {
     "wrapper_classification": [
       {
@@ -14,7 +14,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.079986+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.079986+00:00",
+        "source_fingerprint": "ac4b17f1a015b793"
       },
       {
         "index": 2,
@@ -27,7 +28,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.079995+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.079995+00:00",
+        "source_fingerprint": "f70668ae0e40fb9a"
       },
       {
         "index": 3,
@@ -40,7 +42,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.079997+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.079997+00:00",
+        "source_fingerprint": "91ba6365dad143fb"
       },
       {
         "index": 4,
@@ -53,7 +56,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.079999+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.079999+00:00",
+        "source_fingerprint": "3444a4249029d6f5"
       },
       {
         "index": 5,
@@ -66,7 +70,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080001+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080001+00:00",
+        "source_fingerprint": "67cec40a1d95ed3f"
       },
       {
         "index": 6,
@@ -79,7 +84,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080003+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080003+00:00",
+        "source_fingerprint": "6da908507dd81286"
       },
       {
         "index": 7,
@@ -92,7 +98,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080004+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080004+00:00",
+        "source_fingerprint": "eca0abb656368b65"
       },
       {
         "index": 8,
@@ -105,7 +112,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080006+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080006+00:00",
+        "source_fingerprint": "d20bfd9b12f6b73c"
       },
       {
         "index": 9,
@@ -118,7 +126,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080008+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080008+00:00",
+        "source_fingerprint": "68888da7fbd44346"
       },
       {
         "index": 10,
@@ -131,7 +140,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080009+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080009+00:00",
+        "source_fingerprint": "5e6223ac712ba4a9"
       },
       {
         "index": 11,
@@ -144,7 +154,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080011+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080011+00:00",
+        "source_fingerprint": "1421ee101baefb22"
       },
       {
         "index": 12,
@@ -157,7 +168,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080013+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080013+00:00",
+        "source_fingerprint": "bf845fcb5baa37c4"
       },
       {
         "index": 13,
@@ -170,7 +182,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080015+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080015+00:00",
+        "source_fingerprint": "305c597e4646d723"
       },
       {
         "index": 14,
@@ -183,7 +196,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080016+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080016+00:00",
+        "source_fingerprint": "8ff2b0caf52b5462"
       },
       {
         "index": 15,
@@ -196,7 +210,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080018+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080018+00:00",
+        "source_fingerprint": "88e7a68b96c3d144"
       },
       {
         "index": 16,
@@ -209,7 +224,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080020+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080020+00:00",
+        "source_fingerprint": "9c9ed5358178172a"
       },
       {
         "index": 17,
@@ -222,7 +238,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080022+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080022+00:00",
+        "source_fingerprint": "cc39d3c615d830d2"
       },
       {
         "index": 18,
@@ -235,7 +252,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080023+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080023+00:00",
+        "source_fingerprint": "a82d0314558c5867"
       },
       {
         "index": 19,
@@ -248,7 +266,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080025+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080025+00:00",
+        "source_fingerprint": "91d48492ec1004ea"
       },
       {
         "index": 20,
@@ -261,7 +280,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080027+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080027+00:00",
+        "source_fingerprint": "8412f268c7797160"
       },
       {
         "index": 21,
@@ -274,7 +294,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080029+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080029+00:00",
+        "source_fingerprint": "59a94cce6354f7d5"
       },
       {
         "index": 22,
@@ -287,7 +308,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080031+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080031+00:00",
+        "source_fingerprint": "dea9e171a4ddacb7"
       },
       {
         "index": 23,
@@ -300,7 +322,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080032+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080032+00:00",
+        "source_fingerprint": "637bfdb2ada260cc"
       },
       {
         "index": 24,
@@ -313,7 +336,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080034+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080034+00:00",
+        "source_fingerprint": "a9b7a7f5ba010e06"
       },
       {
         "index": 25,
@@ -326,7 +350,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080036+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080036+00:00",
+        "source_fingerprint": "19bb4daa60e3ac41"
       },
       {
         "index": 26,
@@ -339,7 +364,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080037+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080037+00:00",
+        "source_fingerprint": "6b61eb01fa21ea08"
       },
       {
         "index": 27,
@@ -352,7 +378,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080039+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080039+00:00",
+        "source_fingerprint": "5554e10c3d8b6a62"
       },
       {
         "index": 28,
@@ -365,7 +392,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080041+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080041+00:00",
+        "source_fingerprint": "05e21a24466fb8c5"
       },
       {
         "index": 29,
@@ -378,7 +406,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080043+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080043+00:00",
+        "source_fingerprint": "a9206647ee4c6f8c"
       },
       {
         "index": 30,
@@ -391,7 +420,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080044+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080044+00:00",
+        "source_fingerprint": "eca3d5574052d507"
       },
       {
         "index": 31,
@@ -404,7 +434,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080046+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080046+00:00",
+        "source_fingerprint": "ec166f41562473ad"
       },
       {
         "index": 32,
@@ -417,7 +448,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080048+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080048+00:00",
+        "source_fingerprint": "25ed29fd77093e9c"
       },
       {
         "index": 33,
@@ -430,7 +462,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080050+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080050+00:00",
+        "source_fingerprint": "1eeb7bc2c4fe4afc"
       },
       {
         "index": 34,
@@ -443,7 +476,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080051+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080051+00:00",
+        "source_fingerprint": "368cdae37b1d3c29"
       },
       {
         "index": 35,
@@ -456,7 +490,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080053+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080053+00:00",
+        "source_fingerprint": "8402f9c27788869d"
       },
       {
         "index": 36,
@@ -469,7 +504,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080055+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080055+00:00",
+        "source_fingerprint": "ab39d4bbcc8bc4fd"
       },
       {
         "index": 37,
@@ -482,7 +518,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080057+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080057+00:00",
+        "source_fingerprint": "fdcdf849ba6e8ca6"
       },
       {
         "index": 38,
@@ -495,7 +532,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080060+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080060+00:00",
+        "source_fingerprint": "f070d8f656520c85"
       },
       {
         "index": 39,
@@ -508,7 +546,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080064+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080064+00:00",
+        "source_fingerprint": "544a81f25d7510bd"
       },
       {
         "index": 40,
@@ -521,7 +560,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080068+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080068+00:00",
+        "source_fingerprint": "3afcb1e2dbb314a2"
       },
       {
         "index": 41,
@@ -534,7 +574,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080072+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080072+00:00",
+        "source_fingerprint": "2413f01fa93ccc06"
       },
       {
         "index": 42,
@@ -547,7 +588,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080074+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080074+00:00",
+        "source_fingerprint": "35b228267cea107c"
       },
       {
         "index": 43,
@@ -560,7 +602,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080076+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080076+00:00",
+        "source_fingerprint": "05a542f3722b2e8e"
       },
       {
         "index": 44,
@@ -573,7 +616,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080078+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080078+00:00",
+        "source_fingerprint": "7a50a616aeddb672"
       },
       {
         "index": 45,
@@ -586,7 +630,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080080+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080080+00:00",
+        "source_fingerprint": "2a12a3f4006d1871"
       },
       {
         "index": 46,
@@ -599,7 +644,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080082+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080082+00:00",
+        "source_fingerprint": "04b63d1b79b7a290"
       },
       {
         "index": 47,
@@ -612,7 +658,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080083+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080083+00:00",
+        "source_fingerprint": "27c21988faea5f8c"
       },
       {
         "index": 48,
@@ -625,7 +672,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080085+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080085+00:00",
+        "source_fingerprint": "5ff8af5e98f8c9fe"
       },
       {
         "index": 49,
@@ -638,7 +686,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080087+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080087+00:00",
+        "source_fingerprint": "06691d64cfc9186c"
       },
       {
         "index": 50,
@@ -651,7 +700,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080089+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080089+00:00",
+        "source_fingerprint": "76b8fdd779182107"
       }
     ],
     "hotspot_top20": [
@@ -674,7 +724,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080091+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080091+00:00",
+        "source_fingerprint": "1ea065ff3f661f6b"
       },
       {
         "index": 2,
@@ -693,7 +744,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080093+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080093+00:00",
+        "source_fingerprint": "47c77fdd0551b3fc"
       },
       {
         "index": 3,
@@ -712,7 +764,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080095+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080095+00:00",
+        "source_fingerprint": "4dff0c79773c5e57"
       },
       {
         "index": 4,
@@ -731,7 +784,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080097+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080097+00:00",
+        "source_fingerprint": "ee9ca07f8489c57f"
       },
       {
         "index": 5,
@@ -749,7 +803,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080098+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080098+00:00",
+        "source_fingerprint": "bdb57b46ae320bc2"
       },
       {
         "index": 6,
@@ -767,7 +822,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080100+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080100+00:00",
+        "source_fingerprint": "ce63cbfc6094f426"
       },
       {
         "index": 7,
@@ -786,7 +842,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080102+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080102+00:00",
+        "source_fingerprint": "0fad6b1e986d1f81"
       },
       {
         "index": 8,
@@ -806,7 +863,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080104+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080104+00:00",
+        "source_fingerprint": "5602a454dbdde1be"
       },
       {
         "index": 9,
@@ -824,7 +882,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080105+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080105+00:00",
+        "source_fingerprint": "dd85e0237bf4ad9f"
       },
       {
         "index": 10,
@@ -843,7 +902,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080107+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080107+00:00",
+        "source_fingerprint": "0b62f901195fc0f4"
       },
       {
         "index": 11,
@@ -863,7 +923,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080109+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080109+00:00",
+        "source_fingerprint": "9c7ed3fe9c97e039"
       },
       {
         "index": 12,
@@ -883,7 +944,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080110+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080110+00:00",
+        "source_fingerprint": "e6ee8ced549196bf"
       },
       {
         "index": 13,
@@ -902,7 +964,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080112+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080112+00:00",
+        "source_fingerprint": "6fe0ea32d281ba83"
       },
       {
         "index": 14,
@@ -922,7 +985,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080113+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080113+00:00",
+        "source_fingerprint": "6373e1d926bb1a60"
       },
       {
         "index": 15,
@@ -940,7 +1004,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080115+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080115+00:00",
+        "source_fingerprint": "9bb740ae839a09ca"
       },
       {
         "index": 16,
@@ -960,7 +1025,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080117+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080117+00:00",
+        "source_fingerprint": "5f6c43fdd9ce10fc"
       },
       {
         "index": 17,
@@ -979,7 +1045,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080118+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080118+00:00",
+        "source_fingerprint": "e3968fa3baa71fbc"
       },
       {
         "index": 18,
@@ -999,7 +1066,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080120+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080120+00:00",
+        "source_fingerprint": "91a5c08d1fd8404c"
       },
       {
         "index": 19,
@@ -1017,7 +1085,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080121+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080121+00:00",
+        "source_fingerprint": "8d7da23a4af00aa0"
       },
       {
         "index": 20,
@@ -1036,7 +1105,8 @@
         "selected_by": "generator",
         "selection_rule": "historical",
         "reviewed_by": "cq18-audit",
-        "reviewed_at": "2026-07-14T14:49:35.080123+00:00"
+        "reviewed_at": "2026-07-14T14:49:35.080123+00:00",
+        "source_fingerprint": "b2e989d485261f29"
       }
     ],
     "a_api": [
@@ -1051,8 +1121,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "d4a58e93d6f4ef6b"
       },
       {
         "index": 2,
@@ -1065,8 +1136,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "4eb0bb0434806fa2"
       },
       {
         "index": 3,
@@ -1079,8 +1151,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "9a72c88ee6ecbb4c"
       },
       {
         "index": 4,
@@ -1093,8 +1166,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "72a1bcaa22d45f5c"
       },
       {
         "index": 5,
@@ -1107,8 +1181,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "7e05e009419d441d"
       },
       {
         "index": 6,
@@ -1121,8 +1196,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "f7154f4d6b3cfe2b"
       },
       {
         "index": 7,
@@ -1135,8 +1211,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "951e8f819d002418"
       },
       {
         "index": 8,
@@ -1149,8 +1226,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "277cb14936855e8a"
       },
       {
         "index": 9,
@@ -1163,8 +1241,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "3864b63bec35a5fa"
       },
       {
         "index": 10,
@@ -1177,8 +1256,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "f7539ac9c8564655"
       },
       {
         "index": 11,
@@ -1191,8 +1271,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "b8b5e8410be6f26a"
       },
       {
         "index": 12,
@@ -1205,8 +1286,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "997ab2d389501aee"
       },
       {
         "index": 13,
@@ -1219,8 +1301,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "f8e1b07f4be906a3"
       },
       {
         "index": 14,
@@ -1233,8 +1316,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "587b1b216018483f"
       },
       {
         "index": 15,
@@ -1247,8 +1331,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "b20b837393b3e2ca"
       },
       {
         "index": 16,
@@ -1261,8 +1346,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "c5f1160814320154"
       },
       {
         "index": 17,
@@ -1275,8 +1361,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "188b26d6fd131bdf"
       },
       {
         "index": 18,
@@ -1289,8 +1376,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "907dae92ac06e2b0"
       },
       {
         "index": 19,
@@ -1303,8 +1391,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "920f067b222acbfd"
       },
       {
         "index": 20,
@@ -1317,8 +1406,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "5e3c2566da7e54b0"
       }
     ],
     "c_api": [
@@ -1332,8 +1422,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "f82ff66cea49e012"
       },
       {
         "index": 2,
@@ -1345,8 +1436,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "e0351b3cbbbb37c1"
       },
       {
         "index": 3,
@@ -1358,8 +1450,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "61929df89eac1150"
       },
       {
         "index": 4,
@@ -1371,8 +1464,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "ae4dc79ebe3a70ce"
       },
       {
         "index": 5,
@@ -1384,8 +1478,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "9195b3817bdf3c86"
       },
       {
         "index": 6,
@@ -1397,8 +1492,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "4987f509007e8e4a"
       },
       {
         "index": 7,
@@ -1410,8 +1506,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "eea192aaf3be9a61"
       },
       {
         "index": 8,
@@ -1423,8 +1520,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "04a0a9830d756d7f"
       },
       {
         "index": 9,
@@ -1436,8 +1534,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "252304d5d317e6fe"
       },
       {
         "index": 10,
@@ -1449,8 +1548,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "79dd5cbc201ad4dc"
       },
       {
         "index": 11,
@@ -1462,8 +1562,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "3cc167117ad3dba1"
       },
       {
         "index": 12,
@@ -1475,8 +1576,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "bd7dd502550f80e6"
       },
       {
         "index": 13,
@@ -1488,8 +1590,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "2113c64400d8aed6"
       },
       {
         "index": 14,
@@ -1501,8 +1604,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "cd54204c3b05ace4"
       },
       {
         "index": 15,
@@ -1514,8 +1618,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "291c2516c912500e"
       },
       {
         "index": 16,
@@ -1527,8 +1632,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "1557a83fd315dc0e"
       },
       {
         "index": 17,
@@ -1540,8 +1646,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "f8ce8ed833d2ef64"
       },
       {
         "index": 18,
@@ -1553,8 +1660,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "79131398e124a134"
       },
       {
         "index": 19,
@@ -1566,8 +1674,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "b475a07211712d3e"
       },
       {
         "index": 20,
@@ -1579,8 +1688,9 @@
         "judgment": "correct",
         "selected_by": "generator",
         "selection_rule": "historical",
-        "reviewed_by": null,
-        "reviewed_at": null
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "source_fingerprint": "0effbc9e1d6cea16"
       }
     ],
     "B API": [
@@ -1589,468 +1699,504 @@
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_LEX",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "13d3b9e2ee3bec4a",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 2,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_PARSE",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "3d9185d22b74f119",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 3,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_RESOLVE",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "98c179ba1c3a337c",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 4,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_TYPECHECK",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "605f5658c2e22562",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 5,
         "path": "src/compiler/analysis.ark",
         "symbol": "PHASE_LINT",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "e573916b7c553bf6",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 6,
         "path": "src/compiler/analysis.ark",
         "symbol": "analyze",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "a43d36e2f3e36bc3",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 7,
         "path": "src/compiler/analysis.ark",
         "symbol": "analyze_with_modules",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "859ff7e160842a69",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 8,
         "path": "src/compiler/analysis.ark",
         "symbol": "snapshot_summary",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "17326790a2dd49f4",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 9,
         "path": "src/compiler/component_emit.ark",
         "symbol": "emit_component",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "6b325b33bfa87488",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 10,
         "path": "src/compiler/component_emitter.ark",
         "symbol": "emit_component",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "b959e367000317be",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 11,
         "path": "src/compiler/dap.ark",
         "symbol": "run_dap_session",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "f2be11ab67b00ed2",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 12,
         "path": "src/compiler/driver.ark",
         "symbol": "DriverConfig_default",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "28b4a6067300604a",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 13,
         "path": "src/compiler/driver.ark",
         "symbol": "compile_source",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "c0f74698cd240cb7",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 14,
         "path": "src/compiler/driver.ark",
         "symbol": "compile_file",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "85bf1492b72c1da9",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 15,
         "path": "src/compiler/emit_wat.ark",
         "symbol": "emit_wat",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "ee5cfdad26aefb3f",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 16,
         "path": "src/compiler/emitter.ark",
         "symbol": "emit_wasm",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "6625d7a74904b256",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 17,
         "path": "src/compiler/hir.ark",
         "symbol": "trait_hir_self_check",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "a8c614bc37a650f0",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 18,
         "path": "src/compiler/lsp.ark",
         "symbol": "run_session",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "7fbe19e2d4448788",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 19,
         "path": "src/compiler/mir_dump.ark",
         "symbol": "dump_mir",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "43d70b7c6c1ac89c",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 20,
         "path": "src/compiler/mir_lower.ark",
         "symbol": "lower_to_mir",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "060a9487fb480eb1",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 21,
         "path": "src/compiler/mir_lower.ark",
         "symbol": "lower_to_mir_no_prune",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "4db9f7ca662525f3",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 22,
         "path": "src/compiler/parser.ark",
         "symbol": "parse_program",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "ce9fc09848bd4e57",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 23,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_decls",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "690251dd6f646e83",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 24,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_decl_count",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "bb5bf0dfd44a1f13",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 25,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_error_count",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "e9ff8a80e4666509",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 26,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_error_at",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "7ed87704ceccdb31",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 27,
         "path": "src/compiler/parser.ark",
         "symbol": "ParseResult_errors",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "58f29848ce9ac71c",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 28,
         "path": "src/compiler/parser.ark",
         "symbol": "parse_module",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "b425d2a19a496411",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 29,
         "path": "src/compiler/resolver.ark",
         "symbol": "use_module_short_name",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "3be4582b48bd0349",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 30,
         "path": "src/compiler/resolver.ark",
         "symbol": "register_module_export",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "fb76116c093c2f06",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 31,
         "path": "src/compiler/resolver.ark",
         "symbol": "ModuleDecls_new",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "f4848a34b0f55bcd",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 32,
         "path": "src/compiler/resolver.ark",
         "symbol": "resolve_module",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "2f4cd3c7214903ee",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 33,
         "path": "src/compiler/resolver.ark",
         "symbol": "resolve_program",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "eb2e3911524d9551",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 34,
         "path": "src/compiler/resolver.ark",
         "symbol": "resolve_program_for_target",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "604ed9bc3730a391",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 35,
         "path": "src/compiler/resolver.ark",
         "symbol": "count_user_symbols",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "fec7bc12935585ec",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 36,
         "path": "src/compiler/typechecker.ark",
         "symbol": "typecheck_module",
         "expected_classification": "B API",
-        "actual_classification": null,
+        "actual_classification": "B API",
         "evidence": "pub fn in src/compiler direct-child file; boundary doc present",
         "selected_by": "generator",
         "selection_rule": "all pub fn in src/compiler/*.ark",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "c98531e58e2638a5",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       }
     ],
     "target_alias": [
@@ -2059,104 +2205,112 @@
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi-p1",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=wasm32, policy=warning, compatibility_status=deprecated",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "d5dbf34c0d384def",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 2,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=wasm32, policy=warning, compatibility_status=deprecated",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "e557460f9e5bb47c",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 3,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi-p2",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "373d6edd832bc700",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 4,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm-gc",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "537c94e598639f8c",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 5,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm-gc-wasi-p2",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "f669e34f4ce8656e",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 6,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-wasi-p3",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=wasm32-gc, policy=warning, compatibility_status=deprecated",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "ee42853965170d1f",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 7,
         "path": "docs/data/project-state.toml",
         "symbol": "native",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=n/a, policy=error, compatibility_status=rejected-ambiguous",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "c8fe89c07a7d61dc",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 8,
         "path": "docs/data/project-state.toml",
         "symbol": "wasm32-freestanding",
         "expected_classification": "target alias",
-        "actual_classification": null,
+        "actual_classification": "target alias",
         "evidence": "canonical_target=n/a, policy=error, compatibility_status=rejected",
         "selected_by": "generator",
         "selection_rule": "all entries in project-state.toml [[target_aliases]]",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "727d62bcdbe82297",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       }
     ],
     "generated_view": [
@@ -2165,52 +2319,56 @@
         "path": "src/compiler/main/target_contract_generated.ark",
         "symbol": "target_contract_generated.ark",
         "expected_classification": "generated view",
-        "actual_classification": null,
+        "actual_classification": "generated view",
         "evidence": "whole-file generated view; registered in .generated-files; file exists",
         "selected_by": "generator",
         "selection_rule": "whole-file target-contract views from .generated-files",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "4894ff4e385b2603",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 2,
         "path": "extensions/arukellt-all-in-one/src/target-contract.generated.js",
         "symbol": "target-contract.generated.js",
         "expected_classification": "generated view",
-        "actual_classification": null,
+        "actual_classification": "generated view",
         "evidence": "whole-file generated view; registered in .generated-files; file exists",
         "selected_by": "generator",
         "selection_rule": "whole-file target-contract views from .generated-files",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "3b6bc1030c725845",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 3,
         "path": "docs/data/target-contract-summary.md",
         "symbol": "target-contract-summary.md",
         "expected_classification": "generated view",
-        "actual_classification": null,
+        "actual_classification": "generated view",
         "evidence": "whole-file generated view; registered in .generated-files; file exists",
         "selected_by": "generator",
         "selection_rule": "whole-file target-contract views from .generated-files",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "cc5a359b33a662ee",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 4,
         "path": "docs/current-state.md",
         "symbol": "current-state.md target table",
         "expected_classification": "generated view",
-        "actual_classification": null,
+        "actual_classification": "generated view",
         "evidence": "partial generated section tracked by generate-docs.py --check (BEGIN/END GENERATED:CURRENT_STATE_TARGETS markers present)",
         "selected_by": "generator",
         "selection_rule": "partial generated section in docs/current-state.md",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "1bbad47a2ed14750",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       }
     ],
     "comment_policy_fixture": [
@@ -2219,52 +2377,56 @@
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_api_classification_and_boundary_doc_contract",
         "expected_classification": "comment policy fixture",
-        "actual_classification": null,
+        "actual_classification": "comment policy fixture",
         "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers API classification and boundary doc contract",
         "selected_by": "generator",
         "selection_rule": "representative test_comment_policy.py test methods",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "32d731c744a8725f",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 2,
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_missing_boundary_doc_is_error_but_internal_pub_is_not",
         "expected_classification": "comment policy fixture",
-        "actual_classification": null,
+        "actual_classification": "comment policy fixture",
         "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers missing boundary doc is error but internal pub is not",
         "selected_by": "generator",
         "selection_rule": "representative test_comment_policy.py test methods",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "6693f4cdcb426257",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 3,
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_comment_findings_distinguish_hard_and_advisory_cases",
         "expected_classification": "comment policy fixture",
-        "actual_classification": null,
+        "actual_classification": "comment policy fixture",
         "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers comment findings distinguish hard and advisory cases",
         "selected_by": "generator",
         "selection_rule": "representative test_comment_policy.py test methods",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "ee311d371dc76cf4",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 4,
         "path": "scripts/tests/test_comment_policy.py",
         "symbol": "test_structured_todo_allows_descriptive_quoted_removal_condition",
         "expected_classification": "comment policy fixture",
-        "actual_classification": null,
+        "actual_classification": "comment policy fixture",
         "evidence": "test method exists in scripts/tests/test_comment_policy.py; covers structured TODO allows descriptive quoted removal condition",
         "selected_by": "generator",
         "selection_rule": "representative test_comment_policy.py test methods",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "6b5d34e0a0b9d1e7",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       }
     ],
     "ssot_12": [
@@ -2273,156 +2435,168 @@
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "compiler phases/numbers",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "`compiler/phases.ark`; six unused `driver.ark` copies removed",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "d375716767b44691",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 2,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "phase display tags",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "`compiler/phase_tags.ark`; derived locally from phase IDs",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "01779c882c4321a6",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 3,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "target/profile/capability",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "`project-state.toml` uniquely owns target profiles, host profiles, alias input/policy/replacement; `capabilities.toml` owns host capabilities",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "5d1d94a209ca9ef5",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 4,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "builtin/intrinsic/stdlib symbols",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "current public-path/docs/stability/deprecation owner is `std/manifest.toml`; compiler-local semantic registration remains migration debt; `core-ops.toml` is only the proposed ADR-042 scaffold tracked by #798",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "509bad989ae59c3d",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 5,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "primitive/vec/GC type spelling",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "compatibility aliases stay at input predicates; exact duplicate Vec GC resolver removed from `ctx_gc_type_locals.ark`, owner is `ctx_gc_type.ark`",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "9c26246af718c7ee",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 6,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "MIR/CoreHIR/Wasm opcode and tags",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "subsystem-local `kinds`/`opcodes`; coincidental numeric similarity not centralized",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "2b83492bfea37dc9",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 7,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "diagnostics/warnings",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "existing diagnostics/warnings registries; no new registry",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "655918c3ca595923",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 8,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "scratch/local/GC offsets",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "subsystem-local layout constants; not moved to a mega-registry",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "6eb321adf08d26b1",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 9,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "WIT canonical ABI",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "component/WIT subsystem and existing manifests",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "859edbe2a05a3435",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 10,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "CLI options/subcommands",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "`docs/data/cli-surface.toml` and generated views",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "f7e0669a898fd71f",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 11,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "parser token/precedence",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "parser-local tables; not globalized",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "385d116a4e766616",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       },
       {
         "index": 12,
         "path": "issues/done/796-cq-16-duplicated-knowledge-and-ssot-consolidation.md",
         "symbol": "public exports/docs lists",
         "expected_classification": "SSOT knowledge category",
-        "actual_classification": null,
+        "actual_classification": "SSOT knowledge category",
         "evidence": "`std/manifest.toml`; publication checks remain canonical",
         "selected_by": "generator",
         "selection_rule": "12 knowledge categories from CQ-16 completion evidence",
-        "reviewed_by": null,
-        "reviewed_at": null,
-        "judgment": "pending"
+        "source_fingerprint": "9c1a997190bef659",
+        "reviewed_by": "cq18-audit",
+        "reviewed_at": "2026-07-15T01:38:26.394020+00:00",
+        "judgment": "correct"
       }
     ]
   },
@@ -2440,8 +2614,7 @@
       "ssot_12": 12
     },
     "by_judgment": {
-      "correct": 110,
-      "pending": 64
+      "correct": 174
     }
   }
 }

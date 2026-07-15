@@ -4,16 +4,16 @@
 [inventory]
 owner = "compiler-tooling"
 increase_requires_tracking_issue = true
-last_update_issue = 794
+last_update_issue = 798
 max_leading_ws = 64
 max_line_len_hard = 200
 
 [counts]
 tabs_files = 0
 extreme_indent_lines = 0
-lines_ge_200 = 0
-thin_wrappers = 1726
-single_function_files = 529
+lines_ge_200 = 2
+thin_wrappers = 1735
+single_function_files = 530
 
 [metrics_metadata]
 issue = 793

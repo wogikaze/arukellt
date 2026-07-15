@@ -1,0 +1,19 @@
+struct CoreOpId {
+    raw: i32,
+}
+
+fn CoreOpId_new(raw: i32) -> CoreOpId {
+    CoreOpId { raw: raw }
+}
+
+fn CoreOpId_raw(id: CoreOpId) -> i32 {
+    id.raw
+}
+
+fn CORE_OP_ID_NONE() -> CoreOpId {
+    CoreOpId_new(0 - 1)
+}
+
+fn core_op_id_is_some(id: CoreOpId) -> bool {
+    CoreOpId_raw(id) >= 0
+}

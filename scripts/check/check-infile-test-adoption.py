@@ -48,9 +48,15 @@ OUT_OF_SCOPE_DIRS = {
     "std/component",
     "src/compiler/lsp",
     "src/compiler/dap",
-    "src/compiler/analysis",
     "src/compiler/wasm",
     "src/compiler/simd",
+}
+
+# Modules allowed to have in-file tests despite not being in Phase 1 or
+# Phase 2 target directories.  These contain pure functions (constructors,
+# accessors) that benefit from white-box in-file tests.
+ALLOWED_INFILE_EXCEPTIONS = {
+    "src/compiler/analysis",
 }
 
 # Trivial assert patterns (same as check-trivial-tests.py)
@@ -375,6 +381,11 @@ def main() -> int:
             print(f"  WARNING: {dir_rel}: {cases} test cases (should be fixture-only)")
         else:
             print(f"  {dir_rel}: 0 (ok)")
+    print()
+    print("Allowed in-file exceptions (pure functions, not Phase 1/2 targets):")
+    for dir_rel in sorted(ALLOWED_INFILE_EXCEPTIONS):
+        mods, cases, meaningful = count_tests_in_dir(dir_rel)
+        print(f"  {dir_rel}: {mods} test mods, {cases} test cases, {meaningful} meaningful")
 
     if invariant_failed:
         print("\nADOPTION_INVARIANT_FAILED: meaningful_count > test_case_count")

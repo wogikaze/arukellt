@@ -4,25 +4,25 @@ Created: 2026-07-10
 Updated: 2026-07-15
 ID: 729
 Track: compiler-internal
-Depends on: "724, 727"
-Related: "718, 709, 798, 808, 816, 817, ADR-040, ADR-036, ADR-042"
-Orchestration class: blocked
-Orchestration upstream: ADR-042 acceptance
+Depends on: "724"
+Related: "718, 709, 727, 798, 808, 816, 817, 818, 819, 820, 821, 822, ADR-040, ADR-036, ADR-042"
+Orchestration class: unblocked
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 1
 Source: ADR-042 — intrinsic layer separation design
 ---
 
-# 729 — Intrinsic layer separation (blocked epic)
+# 729 — Intrinsic layer separation (unblocked epic)
 
 ## Summary
 
-This issue is the **blocked epic** for the 5-layer intrinsic separation defined
+This issue is the **unblocked epic** for the 5-layer intrinsic separation defined
 in ADR-042. It does **not** contain detailed implementation checklists; those
 live in the child issues and in [`docs/plans/intrinsic-layer-separation.md`](../../docs/plans/intrinsic-layer-separation.md).
 
-The epic is blocked until ADR-042 is accepted. The first implementation child
-is **#798**, which establishes the core-ops registry and `SignatureEntry` schema.
+ADR-042 is now accepted. The first implementation child is **#798**, which
+establishes the core-ops registry and `SignatureEntry` schema.
 
 ## Scope
 
@@ -32,10 +32,16 @@ is **#798**, which establishes the core-ops registry and `SignatureEntry` schema
 - Moving pure and allocation-dependent operations to Ark stdlib.
 - Introducing a limited stdlib-only inliner.
 
-## Out of scope (separate RFC / child issues)
+## Separately scoped children
 
-- **Prelude compilation restoration** — requires a separate RFC; tracked as **#816**.
-- **Sealed raw API module name and surface** — requires a separate RFC; tracked as **#817**.
+- **Prelude compilation restoration** — separate RFC and child **#816**.
+- **Sealed raw API module name and surface** — separate RFC and child **#817**.
+- **Runtime ABI lowering** — emitter host-operation removal in **#819**.
+- **Stdlib-only inliner** — bounded Ark fallback inlining in **#820**.
+- **Pure stdlib migration** — non-allocating operation bodies in **#821**.
+- **Representation-dependent stdlib migration** — allocating and Vec/String
+  operation bodies in **#822**.
+- **Production scaffold exit** — final integration gate in **#818**.
 
 ## Architecture
 
@@ -50,15 +56,23 @@ ADR-042 defines five layers:
 ## Child issues
 
 - **#798** — ADR-042 semantic operation registry migration (first implementation child)
-
-Additional implementation children (host ABI separation, stdlib inliner,
-pure stdlib migration, allocation-dependent stdlib migration) will be filed
-under this epic as the registry work in #798 completes.
+- **#816** — Prelude compilation restoration (RFC-gated)
+- **#817** — Sealed raw API for Vec/String representation (RFC-gated)
+- **#819** — Runtime ABI CoreOp lowering and emitter host-operation removal
+- **#820** — Bounded stdlib-only inliner
+- **#821** — Pure semantic stdlib migration
+- **#822** — Representation-dependent and allocating stdlib migration
+- **#818** — CoreOpRegistry production scaffold exit after all migration children
 
 ## Related issues
 
-- **#816** — Prelude compilation restoration (RFC dependency, out of scope)
-- **#817** — Sealed raw API module for Vec/String internal representation (RFC dependency, out of scope)
+- **#816** — Prelude compilation restoration (outside #798 scope)
+- **#817** — Sealed raw API module for Vec/String internal representation (outside #798 scope)
+- **#819** — Runtime/WIT lowering for all host CoreOps; consumes #727's HTTP/sockets migration
+- **#820** — Bounded stdlib-only inliner
+- **#821** — Pure semantic stdlib Ark fallbacks and differential proof
+- **#822** — Representation-dependent/allocating stdlib Ark fallbacks and differential proof
+- **#818** — Final production readiness proof, migration cleanup, and `status = "production"`
 - **#808** — T3/Wasm validation failures (global `verify quick` gate blocker)
 
 ## Acceptance
@@ -72,6 +86,7 @@ under this epic as the registry work in #798 completes.
 - [ ] `std/manifest.toml` remains the SSOT for public path / docs / stability / deprecation, referencing `core-ops.toml` via `core_op_id` / `type_id`
 - [ ] stdlib-only inliner is operational
 - [ ] Migrated operations have Ark fallback bodies and pass differential tests
+- [ ] `data/core-ops.toml` has `status = "production"` and no migration-only lowerings or aliases
 - [ ] Global `python3 scripts/manager.py verify quick` exits 0 (blocked by #808 until fixed)
 
 ## Close gate
@@ -85,25 +100,26 @@ specific file names or syntax:
 4. Host operations are lowered through the runtime ABI layer, not through `intrinsic_*.ark` files in the emitter.
 5. Public `std/manifest.toml` bindings are consistent with `data/core-ops.toml` `signature` and `effect`.
 6. Differential tests pass between Ark fallback and optimized lowering for all migrated operations.
-7. `python3 scripts/manager.py verify quick` passes (requires #808 closed).
+7. The #818 production scaffold-exit gates pass and `status = "production"`.
+8. `python3 scripts/manager.py verify quick` passes (requires #808 closed).
 
 ## Notes
 
 - The detailed phase order is canonicalized in [`docs/plans/intrinsic-layer-separation.md`](../../docs/plans/intrinsic-layer-separation.md).
 - This issue is intentionally **not** a checklist of phases; phase-level
 checklists belong in child issues and the plan document.
-- #816 and #817 are **out of scope** for this epic. They are tracked as
-  separate RFC dependencies and are listed under Related issues only.
+- #816 and #817 are children of this epic but remain outside #798's bounded
+  dispatch-spine migration. #819–#822 own implementation migration; #818 only
+  consumes their verified outputs for final production exit.
 
 ## Dependency Notes
 
 - Depends on **#724** (ADR-040 Phase 5-7 remaining work) — the semantic
   spine must be complete before extending it with effect/inline/lowering
   policy.
-- Depends on **#727** (host bridge retirement + wasm-heap-grow-patcher
-  retirement) — `verify quick` must pass before intrinsic dispatch refactoring
-  begins. Host intrinsic removal is shared scope with the child migration
-  issues.
+- Related: **#727** (host bridge retirement) — runtime ABI / host bridge
+  migration is downstream of the registry work; host intrinsic removal is
+  shared scope with the child migration issues.
 - Related: **#798** — registry schema and `SignatureEntry` extension.
 - Related: **#808** — T3/Wasm validation failures (global `verify quick` blocker).
 - Related: **#816** — prelude compilation restoration (RFC dependency, out of scope).
@@ -127,7 +143,7 @@ checklists belong in child issues and the plan document.
 - `docs/adr/ADR-036-trait-stdlib-redesign.md` — trait-based stdlib
 - `data/core-ops.toml` — semantic registry SSOT
 - `std/manifest.toml` — public API / docs / stability / deprecation SSOT
-- `src/compiler/wasm/call_dispatch_table.ark` — current string-based dispatch
+- `src/compiler/wasm/inst_dispatch.ark` — FunctionId/CoreOp call dispatch owner
 - `src/compiler/wasm/intrinsic_*.ark` — intrinsic files
 - `src/compiler/corehir/signature_entry.ark` — SignatureEntry
 - `src/compiler/mir/inst_record.ark` — `func_id_raw` field

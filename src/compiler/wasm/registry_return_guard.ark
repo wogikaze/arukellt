@@ -1,13 +1,13 @@
 use corehir::kinds
 use corehir::function_id
+use corehir::core_op_id
 use corehir::signature_entry
 use corehir::signature_registry
-use mir::host_intrinsic_stub_names
 use mir::inst_record
 use wasm::ctx_record
 
-fn registry_guard_is_normal_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) -> bool {
-    if !registry_guard_is_registry_candidate(ctx, inst, callee) {
+fn registry_guard_is_normal_call(ctx: SelfEmitCtx, inst: MirInst) -> bool {
+    if !registry_guard_is_registry_candidate(ctx, inst) {
         return false
     }
     let entry = registry_guard_signature_entry(ctx, inst)
@@ -20,8 +20,8 @@ fn registry_guard_is_normal_call(ctx: SelfEmitCtx, inst: MirInst, callee: String
     true
 }
 
-fn registry_guard_is_registry_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) -> bool {
-    if !registry_guard_is_registry_candidate(ctx, inst, callee) {
+fn registry_guard_is_registry_call(ctx: SelfEmitCtx, inst: MirInst) -> bool {
+    if !registry_guard_is_registry_candidate(ctx, inst) {
         return false
     }
     let entry = registry_guard_signature_entry(ctx, inst)
@@ -41,14 +41,15 @@ fn registry_guard_is_registry_call(ctx: SelfEmitCtx, inst: MirInst, callee: Stri
     false
 }
 
-fn registry_guard_is_registry_candidate(ctx: SelfEmitCtx, inst: MirInst, callee: String) -> bool {
+fn registry_guard_is_registry_candidate(ctx: SelfEmitCtx, inst: MirInst) -> bool {
     if !ctx_record::SelfEmitCtx_spine_populated(ctx) {
         return false
     }
     if inst_record::mir_inst_func_id_raw(inst) < 0 {
         return false
     }
-    if registry_guard_is_excluded_callee(callee) {
+    let entry = registry_guard_signature_entry(ctx, inst)
+    if core_op_id::core_op_id_is_some(signature_entry::signature_entry_core_op_id(entry)) {
         return false
     }
     true
@@ -57,17 +58,4 @@ fn registry_guard_is_registry_candidate(ctx: SelfEmitCtx, inst: MirInst, callee:
 fn registry_guard_signature_entry(ctx: SelfEmitCtx, inst: MirInst) -> SignatureEntry {
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(inst_record::mir_inst_func_id_raw(inst)))
-}
-
-fn registry_guard_is_excluded_callee(callee: String) -> bool {
-    if host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(callee)) {
-        return true
-    }
-    if starts_with(clone(callee), String_from("__intrinsic_")) {
-        return true
-    }
-    if starts_with(clone(callee), String_from("__simd_")) {
-        return true
-    }
-    false
 }

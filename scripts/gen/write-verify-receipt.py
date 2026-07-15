@@ -860,9 +860,11 @@ def _normalize_receipt(receipt: dict) -> dict:
         "generated_at",
         "started_at",
         "finished_at",
+        "duration_seconds",
         "verified_commit",
         "exit_status",
         "status",
+        "log_sha256",
         "summary",
         "checks",
     ]

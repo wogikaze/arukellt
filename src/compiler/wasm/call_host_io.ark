@@ -5,33 +5,33 @@ use wasm::intrinsic_fs
 use wasm::intrinsic_process
 use wasm::intrinsic_stdio
 
-fn try_emit_env_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_env_var_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+fn try_emit_env_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_env_var_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_env_arg_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_env_arg_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
 }
 
-fn try_emit_env_arg_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "env::arg_count") || eq(clone(callee), "arg_count") {
+fn try_emit_env_arg_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_arg_count(){
         let _result_on_stack = intrinsic_env_args::emit_env_arg_count(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::args") || eq(clone(callee), "args") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_args(){
         let _result_on_stack = intrinsic_env_args::emit_env_args(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::has_flag") || eq(clone(callee), "has_flag") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_has_flag(){
         let _result_on_stack = intrinsic_env_args::emit_env_has_flag(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::arg_at") || eq(clone(callee), "arg_at") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_arg_at(){
         let _result_on_stack = intrinsic_env_args::emit_env_arg_at(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -39,18 +39,18 @@ fn try_emit_env_arg_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
     false
 }
 
-fn try_emit_env_var_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "env::var") || eq(clone(callee), "env_var") || eq(clone(callee), "__intrinsic_env_var") {
+fn try_emit_env_var_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_var(){
         let _result_on_stack = intrinsic_env_args::emit_env_var(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::get_var") || eq(clone(callee), "__intrinsic_env_get_var") || eq(clone(callee), "env_get_var") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_get_var(){
         let _result_on_stack = intrinsic_env_args::emit_env_get_var(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "env::var_or_default") || eq(clone(callee), "env_var_or_default") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_var_or_default(){
         let _result_on_stack = intrinsic_env_args::emit_env_var_or_default(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -58,21 +58,21 @@ fn try_emit_env_var_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
     false
 }
 
-fn try_emit_fs_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_fs_query_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+fn try_emit_fs_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_fs_query_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_fs_read_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_fs_read_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_fs_write_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_fs_write_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
 }
 
-fn try_emit_fs_query_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "fs::exists") || eq(clone(callee), "exists") {
+fn try_emit_fs_query_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_exists(){
         let _result_on_stack = intrinsic_fs::emit_fs_exists(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -80,9 +80,8 @@ fn try_emit_fs_query_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Sel
     false
 }
 
-fn try_emit_fs_read_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    // normalize_callee_name strips `__intrinsic_`, so match `fs_read_file`.
-    if eq(clone(callee), "fs::read_to_string") || eq(clone(callee), "read_to_string") || eq(clone(callee), "fs_read_file") || eq(clone(callee), "__intrinsic_fs_read_file") {
+fn try_emit_fs_read_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_fs_read_file(){
         let _result_on_stack = intrinsic_fs::emit_fs_read_to_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -90,13 +89,13 @@ fn try_emit_fs_read_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
     false
 }
 
-fn try_emit_fs_write_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "fs::write_string") || eq(clone(callee), "write_string") || eq(clone(callee), "fs_write_file") || eq(clone(callee), "__intrinsic_fs_write_file") {
+fn try_emit_fs_write_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_write_string(){
         let _result_on_stack = intrinsic_fs::emit_fs_write_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "fs::write_bytes") || eq(clone(callee), "write_bytes") || eq(clone(callee), "fs_write_bytes") || eq(clone(callee), "__intrinsic_fs_write_bytes") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_write_bytes(){
         let _result_on_stack = intrinsic_fs::emit_fs_write_bytes(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -104,13 +103,13 @@ fn try_emit_fs_write_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Sel
     false
 }
 
-fn try_emit_process_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "process::exit") || eq(clone(callee), "host::process::exit") || eq(clone(callee), "__intrinsic_process_exit") {
+fn try_emit_process_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_process_exit(){
         let _result_on_stack = intrinsic_process::emit_process_exit(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "process::abort") || eq(clone(callee), "host::process::abort") || eq(clone(callee), "__intrinsic_process_abort") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_process_abort(){
         let _result_on_stack = intrinsic_process::emit_process_abort(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -120,77 +119,64 @@ fn try_emit_process_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
 
 fn try_emit_stdio_call(
     w: WasmWriter,
-    callee: String,
+    handler_id: i32,
     inst: MirInst,
     ctx: SelfEmitCtx,
     prev_op: i32,
     prev_arg0: i32,
     prev_arg1: i32,
-    prev_callee: String,
+    prev_handler_id: i32,
     next_op: i32,
     next_arg0: i32,
     next_arg1: i32,
     next2_op: i32
 ) -> bool {
-    if eq(clone(callee), "stdio::read_stdin") || eq(clone(callee), "stdin_read_to_string") || eq(clone(callee), "__intrinsic_stdin_read_to_string") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_read_stdin(){
         let _result_on_stack = intrinsic_stdio::emit_read_stdin_to_string(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") || eq(clone(callee), "__intrinsic_println") {
-        let drop_stray_text_ref = gc_println_should_drop_stray_text_ref(prev_op, prev_callee)
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_println(){
+        let drop_stray_text_ref = gc_println_should_drop_stray_text_ref(prev_op, prev_handler_id)
         let _result_on_stack = intrinsic_stdio::emit_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "stdio::print") || eq(clone(callee), "print") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_print(){
         let _result_on_stack = intrinsic_stdio::emit_print(w, inst, ctx, prev_op)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "stdio::eprintln") || eq(clone(callee), "eprintln") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_eprintln(){
         let _result_on_stack = intrinsic_stdio::emit_eprintln(w, inst, ctx, prev_op)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "panic") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_panic(){
         let _exited = intrinsic_assert::emit_panic_message_exit(w, inst, ctx, prev_op, prev_arg0)
         return true
     }
     false
 }
 
-fn gc_println_should_drop_stray_text_ref(prev_op: i32, prev_callee: String) -> bool {
+fn gc_println_should_drop_stray_text_ref(prev_op: i32, prev_handler_id: i32) -> bool {
     if prev_op != mir::opcodes::MIR_CALL() {
         return false
     }
-    let name = normalize_gc_println_prev_callee(clone(prev_callee))
-    if eq(clone(name), "to_string") ||
-    eq(clone(name), "i32_to_string") ||
-    eq(clone(name), "text::format_i32") ||
-    eq(clone(name), "convert::i32_to_string") ||
-    eq(clone(name), "__intrinsic_i32_to_string") {
+    if prev_handler_id == corehir::core_op_registry_generated::core_op_handler_text_to_string() {
         return true
     }
-    if eq(clone(name), "i64_to_string") || eq(clone(name), "text::format_i64") || eq(clone(name), "convert::i64_to_string") {
+    if prev_handler_id == corehir::core_op_registry_generated::core_op_handler_text_format_i64() {
         return true
     }
-    if eq(clone(name), "f64_to_string") || eq(clone(name), "text::format_f64") || eq(clone(name), "convert::f64_to_string") || eq(clone(name), "__intrinsic_f64_to_string") {
+    if prev_handler_id == corehir::core_op_registry_generated::core_op_handler_text_format_f64() {
         return true
     }
-    if eq(clone(name), "bool_to_string") || eq(clone(name), "text::format_bool") || eq(clone(name), "convert::bool_to_string") {
+    if prev_handler_id == corehir::core_op_registry_generated::core_op_handler_text_format_bool() {
         return true
     }
-    if eq(clone(name), "char_to_string") {
+    if prev_handler_id == corehir::core_op_registry_generated::core_op_handler_text_char_to_string() {
         return true
     }
     false
-}
-
-fn normalize_gc_println_prev_callee(raw_callee: String) -> String {
-    let callee_n = len(raw_callee)
-    if callee_n > 12 && starts_with(clone(raw_callee), String_from("__intrinsic_")) {
-        return substring(clone(raw_callee), 12, callee_n)
-    }
-    raw_callee
 }

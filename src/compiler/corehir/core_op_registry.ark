@@ -1,0 +1,52 @@
+use corehir::core_op_id
+use corehir::core_op_registry_generated
+
+struct CoreOpEntry {
+    id: CoreOpId,
+    canonical_id: String,
+    lowering_kind: i32,
+    layer: i32,
+    target_id: String,
+    runtime_symbol: String,
+    mir_operation: String,
+    legacy_handler_id: String,
+}
+
+fn CoreOpRegistry_lookup_by_canonical(canonical_id: String) -> CoreOpId {
+    let index = core_op_registry_generated::core_op_registry_lookup_index(clone(canonical_id))
+    if index < 0 {
+        return core_op_id::CORE_OP_ID_NONE()
+    }
+    core_op_id::CoreOpId_new(index)
+}
+
+fn CoreOpRegistry_entry_at(index: i32) -> CoreOpEntry {
+    CoreOpEntry {
+        id: core_op_id::CoreOpId_new(index),
+        canonical_id: core_op_registry_generated::core_op_registry_canonical_id_at(index),
+        lowering_kind: core_op_registry_generated::core_op_registry_lowering_kind_at(index),
+        layer: core_op_registry_generated::core_op_registry_layer_at(index),
+        target_id: core_op_registry_generated::core_op_registry_target_id_at(index),
+        runtime_symbol: core_op_registry_generated::core_op_registry_runtime_symbol_at(index),
+        mir_operation: core_op_registry_generated::core_op_registry_mir_operation_at(index),
+        legacy_handler_id: core_op_registry_generated::core_op_registry_legacy_handler_id_at(index),
+    }
+}
+
+fn CoreOpRegistry_lookup_entry(canonical_id: String) -> CoreOpEntry {
+    let id = CoreOpRegistry_lookup_by_canonical(clone(canonical_id))
+    let raw = core_op_id::CoreOpId_raw(id)
+    if raw < 0 {
+        return CoreOpEntry {
+            id: core_op_id::CORE_OP_ID_NONE(),
+            canonical_id: String_new(),
+            lowering_kind: 0,
+            layer: 0,
+            target_id: String_new(),
+            runtime_symbol: String_new(),
+            mir_operation: String_new(),
+            legacy_handler_id: String_new(),
+        }
+    }
+    CoreOpRegistry_entry_at(raw)
+}

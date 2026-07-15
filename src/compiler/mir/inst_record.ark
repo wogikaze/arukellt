@@ -93,6 +93,17 @@ fn mir_inst_func_id_raw(inst: MirInst) -> i32 {
     inst.func_id_raw
 }
 
-fn mir_inst_set_func_id_raw(inst: MirInst, func_id_raw: i32) {
-    inst.func_id_raw = func_id_raw
+fn mir_inst_with_func_id_raw(inst: MirInst, func_id_raw: i32) -> MirInst {
+    MirInst {
+        op: inst.op,
+        dest: inst.dest,
+        arg0: inst.arg0,
+        arg1: inst.arg1,
+        int_val: inst.int_val,
+        float_val: inst.float_val,
+        str_val: clone(inst.str_val),
+        val_type: inst.val_type,
+        result_types: clone(inst.result_types),
+        func_id_raw: func_id_raw,
+    }
 }

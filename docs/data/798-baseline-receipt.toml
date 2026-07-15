@@ -1,0 +1,18 @@
+# #798 migration gate receipt — T3 Wasm validation baseline from #808.
+# Do not increase t3_validate_fail beyond this count during #798 work.
+
+[receipt]
+issue = 798
+owner_issue = 808
+verified_commit = "2cd10f16"
+recorded_at = "2026-07-15"
+
+[summary]
+t3_pass = 210
+t3_validate_fail = 213
+t3_skip = 23
+
+[gate]
+allow_increase_t3_validate_fail = false
+require_798_targeted_tests_pass = true
+require_new_validate_fail_zero = true

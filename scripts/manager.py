@@ -4517,6 +4517,26 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-ark-code-quality.py",
         ),
         (
+            "core-ops registry schema (#798)",
+            "python3 scripts/check/check-core-ops.py",
+        ),
+        (
+            "core-op compiler validator (#798)",
+            "python3 scripts/check/check-core-op-compiler-validator.py",
+        ),
+        (
+            "callee-string dispatch freeze (#798)",
+            "python3 scripts/check/check-no-new-callee-string-dispatch.py",
+        ),
+        (
+            "legacy dispatch inventory (#798)",
+            "python3 scripts/check/check-legacy-dispatch-inventory.py",
+        ),
+        (
+            "call router semantic dispatch (#798)",
+            "python3 scripts/check/check-call-router-semantic-dispatch.py",
+        ),
+        (
             "orphan/stale file inventory (advisory, #418)",
             "bash scripts/check/check-orphan-inventory.sh",
         ),
@@ -6767,6 +6787,14 @@ def main() -> int:
         if not steps and not docs_requested:
             return cmd_verify_quick(args)
 
+        # When running --full, capture output and write a machine-readable
+        # receipt. The runner itself obtains verified_commit, started_at,
+        # finished_at, exit_status, and stdout/stderr — not from external
+        # arguments — to prevent spoofing.
+        is_full_run = getattr(args, "full", False)
+        if is_full_run and not dry_run:
+            return _run_verify_full_with_receipt(args, steps, docs_requested, dry_run)
+
         overall_rc = 0
         if getattr(args, "release", False):
             overall_rc = run_quality(
@@ -6889,6 +6917,123 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
     print(f"Skipped: {YELLOW}{skipped}{NC}")
     print(f"Failed: {RED}{failed}{NC}")
     return h.exit_code()
+
+
+class _Tee:
+    """Capture stdout/stderr while still displaying it to the user."""
+
+    def __init__(self, stream, capture: list[str]):
+        self._stream = stream
+        self._capture = capture
+
+    def write(self, data: str) -> int:
+        self._capture.append(data)
+        return self._stream.write(data)
+
+    def flush(self) -> None:
+        self._stream.flush()
+
+    def __getattr__(self, name: str):
+        return getattr(self._stream, name)
+
+
+def _run_verify_full_with_receipt(
+    args: argparse.Namespace,
+    steps: list[tuple[str, object]],
+    docs_requested: bool,
+    dry_run: bool,
+) -> int:
+    """Run verify full with canonical receipt generation.
+
+    The runner itself captures stdout/stderr, records started_at/finished_at,
+    obtains the verified commit from git, and writes a machine-readable
+    receipt with a SHA-256 of the log. No external arguments can spoof
+    these values.
+    """
+    import datetime
+    import importlib.util
+
+    # Import the receipt writer from scripts/gen/ (file has hyphens so
+    # we use importlib to load it).
+    receipt_script = _SCRIPTS_DIR / "gen" / "write-verify-receipt.py"
+    spec = importlib.util.spec_from_file_location("write_verify_receipt", receipt_script)
+    assert spec and spec.loader
+    _receipt_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(_receipt_mod)
+
+    started_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    captured: list[str] = []
+
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = _Tee(old_stdout, captured)  # type: ignore[assignment]
+    sys.stderr = _Tee(old_stderr, captured)  # type: ignore[assignment]
+
+    overall_rc = 0
+    try:
+        if getattr(args, "release", False):
+            overall_rc = run_quality(
+                _repo_root(), "full", dry_run, getattr(args, "json", False),
+            )
+        for flag, fn in steps:
+            rc = fn(args)  # type: ignore[operator]
+            if rc != 0:
+                overall_rc = rc
+
+        if docs_requested:
+            print("[verify docs] skipped — not yet migrated (see Issue #534)")
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
+    finished_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    # Get verified commit from git (not from external args).
+    try:
+        verified_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=_repo_root(), text=True
+        ).strip()[:8]
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        verified_commit = "unknown"
+
+    log_text = "".join(captured)
+    log_sha256 = hashlib.sha256(log_text.encode("utf-8")).hexdigest()
+
+    # Build the receipt using the receipt writer module.
+    receipt = _receipt_mod.build_receipt(
+        log_text,
+        started_at=started_at,
+        exit_status=overall_rc,
+        verified_commit=verified_commit,
+    )
+    receipt["finished_at"] = finished_at
+    receipt["log_sha256"] = log_sha256
+
+    # Validate finished_at - started_at > 0.
+    started_dt = datetime.datetime.fromisoformat(started_at)
+    finished_dt = datetime.datetime.fromisoformat(finished_at)
+    duration_seconds = (finished_dt - started_dt).total_seconds()
+    receipt["duration_seconds"] = round(duration_seconds, 3)
+    if duration_seconds <= 0:
+        print(f"{RED}ERROR: receipt duration is non-positive ({duration_seconds}s){NC}", file=sys.stderr)
+        # Still write the receipt but mark it invalid.
+
+    # Normalize and write the receipt.
+    receipt = _receipt_mod._normalize_receipt(receipt)
+    receipt_path = _repo_root() / "docs" / "data" / "verify-full-receipt.json"
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(
+        json.dumps(receipt, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"\n{YELLOW}verify-full receipt written to {receipt_path.relative_to(_repo_root())}{NC}")
+    print(f"  verified_commit: {verified_commit}")
+    print(f"  duration: {duration_seconds:.3f}s")
+    print(f"  log_sha256: {log_sha256[:16]}...")
+    if receipt["summary"]["incidents"]:
+        print(f"  incidents: {len(receipt['summary']['incidents'])}")
+
+    return overall_rc
 
 
 def cmd_verify_full_fixpoint(args: argparse.Namespace) -> int:

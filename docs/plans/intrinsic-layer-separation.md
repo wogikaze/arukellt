@@ -12,6 +12,11 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 
 ## 移行段階
 
+#798 は第 0〜5 段階の dispatch spine を担当する。第 6 段階の production
+lowering、Ark fallback、differential proof は #819〜#822 が担当し、第 7 段階の
+production readiness と `status = "production"` gate は #818 が担当する。
+#816 と #817 は #729 の別 child であり、#798 の完了条件には含めない。
+
 ### 第 0 段階: 新しい callee 文字列 dispatch の凍結
 
 - 移行開始後、新しい callee 文字列 dispatch を追加しない。
@@ -29,7 +34,8 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
   ビューであり、authoritative データではない。
 - `exposure` を三軸に分離する:
   - `visibility` (`public` / `internal`)
-  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `normal_stdlib` / `target_raw`)
+  - `classification` (`layer` = `primitive` / `runtime` / `semantic_stdlib` / `target_raw`)
+    `normal_stdlib` は CoreOpRegistry には登録せず、移行後に `core_op_id` を削除する。
   - `binding` (`policy` = `required` / `optional` / `forbidden`)
 - `signature` は receiver 非依存の `inputs` 列に統一し、`receiver_index` で receiver を示す。
 - 型式は `TypeExpr` として `kind` discriminator で表す。`String` → `type_id = "string"`、
@@ -37,8 +43,11 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 - lowering variant ごとに必要な payload を定義する:
   - `normal_call` — `[fallback]` の `implementation_symbol`
   - `mir_op` — `[lowering.mir]` の `opcode` / `operation`
-  - `runtime_call` — `[lowering.runtime]` の `function` / `abi` / `interface` / `version`
-  - `target_intrinsic` — `[lowering.target]` の `target_family` / `target_id` / `required_capabilities` / `required_target_features`
+  - `runtime_call` — `[lowering.runtime]` の discriminated union:
+    - `kind = "internal"` — `symbol` + `abi_version`
+    - `kind = "wit"` — `package` + `interface` + `function` + `version`
+    - `kind = "native"` — `backend` + `symbol` + `abi_version`
+  - `target_intrinsic` — `[lowering.target]` の `target_family` / `target_id` / `required_capabilities` / `required_target_features`。`target_id` は backend-owned handler key
 - portable `std::simd` 操作は `target_intrinsic` ではなく `normal_call` + `specializations` とする。
 - specialization は `priority`、`when` 条件、完全な `lowering` variant を含む。
 - この段階では既存の callee 文字列 dispatch をそのままにしておく。
@@ -72,7 +81,7 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 
 ### 第 4 段階: emitter を FunctionId 経由の CoreOpRegistry lookup へ切り替える
 
-- `call_dispatch_table.ark` / `inst_dispatch.ark` を、MIR に保存された `FunctionId`
+- `inst_dispatch.ark` を、MIR に保存された `FunctionId`
   から `SignatureRegistry` を参照する形に書き換える。
 - `CoreOpId` / `LoweringKind` によって dispatch する。
 - `func_id_raw` は `FunctionId` の物理表現にすぎず、raw 値そのものを
@@ -84,8 +93,17 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 - `eq(clone(callee), "...")` 比較を `call_*.ark` から完全に削除する。
 - `normalize_callee_name`、callee 別名処理、`__intrinsic_` prefix stripping を削除する。
 - この時点まで intrinsic 追加は凍結する（新規操作は `data/core-ops.toml` へ追加する）。
+- resolver 境界で必要な互換 alias は `legacy_bindings` として固定し、backend
+  dispatch から分離する。削除は production exit の #818 で行う。
 
 ### 第 6 段階: runtime ABI 分離、inliner、stdlib 移行
+
+実装 owner:
+
+- runtime ABI / WIT lowering: #819（HTTP/sockets の標準化は #727 の成果を利用）
+- stdlib-only inliner: #820（#816 の compiled prelude を利用）
+- pure operation の Ark stdlib 移行: #821
+- allocation / Vec / String representation 依存 operation の Ark stdlib 移行: #822（#817 を利用）
 
 - host intrinsic（HTTP、fs、sockets、clock、random、process、stdio、env）を
   emitter から外し、runtime ABI / WIT import lowering へ統合する。
@@ -99,6 +117,8 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 - 各移行には differential test（Ark fallback vs 旧 intrinsic）を伴う。
 
 ### 第 7 段階: 検証と cleanup
+
+最終 gate owner: #818。#819〜#822 の実装を #818 へ再集約しない。
 
 - `data/core-ops.toml` / `std/manifest.toml` / `docs/current-state.md` の整合を再確認する。
 - 移行対象の targeted tests が pass し、T3 validation 失敗数が #808 baseline を
@@ -179,10 +199,10 @@ portable `std::simd` の固定 SIMD 算術（`I32x4.add` 等）は `normal_call`
 
 ---
 
-## 本計画のスコープ外
+## #798 のスコープ外
 
-以下は ADR-042 で「別 ADR / RFC が必要」とされているため、
-本計画の各段階に含めない。
+以下は ADR-042 で「別 ADR / RFC が必要」とされているため、#729 の
+別 child として進め、#798 の dispatch-spine 完了条件には含めない。
 
 - **prelude のコンパイル対象復帰**: `combine_loaded_and_main_decls_skip_prelude` の
   廃止と prelude 本体の backend 通過。専用 RFC 依存の子 issue として追跡する。

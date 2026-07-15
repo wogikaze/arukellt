@@ -32,8 +32,8 @@ fn registry_resolve_call_has_void_return(ctx: SelfEmitCtx, inst: MirInst) -> boo
     legacy_vt_compat::legacy_vt_is_void(registry_resolve_legacy_return_vt(ctx, inst))
 }
 
-fn registry_should_use_matched_path(ctx: SelfEmitCtx, inst: MirInst, callee: String, fn_legacy_vt: i32) -> bool {
-    if !registry_return_guard::registry_guard_is_registry_call(ctx, inst, callee) {
+fn registry_should_use_matched_path(ctx: SelfEmitCtx, inst: MirInst, fn_legacy_vt: i32) -> bool {
+    if !registry_return_guard::registry_guard_is_registry_call(ctx, inst) {
         return false
     }
     let reg_vt = registry_resolve_legacy_return_vt(ctx, inst)

@@ -3,6 +3,8 @@ use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_table
+use corehir::core_op_binding
+use corehir::core_op_id
 use mir::host_intrinsic_stub_names
 
 fn sig_reg_register_host_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
@@ -44,7 +46,19 @@ fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, na
         kinds::VALUE_REPR_SCALAR(),
         kinds::NULLABILITY_NOT_REF()
     )
-    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(name), params, returns, false, receiver, 0 - 1, 0 - 1, 0 - 1, kinds::ABI_KIND_HOST_INTRINSIC())
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(name),
+        params,
+        returns,
+        false,
+        receiver,
+        0 - 1,
+        0 - 1,
+        0 - 1,
+        kinds::ABI_KIND_HOST_INTRINSIC(),
+        core_op_binding::core_op_binding_lookup_for_mangled(clone(name))
+    )
     signature_registry::signature_registry_register(registry, entry, name)
 }
 

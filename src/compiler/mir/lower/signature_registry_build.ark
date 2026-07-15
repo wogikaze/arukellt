@@ -2,6 +2,8 @@ use corehir::kinds
 use corehir::mir_signature_method
 use corehir::signature_registry
 use corehir::type_table
+use corehir::core_op_binding
+use corehir::core_op_id
 use mir::lower::decl_source
 use mir::lower::fn_index_source
 use mir::lower::mono_instance_table
@@ -31,8 +33,22 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
         d = d + 1
     }
     signature_registry_host::sig_reg_register_host_intrinsics(table, registry)
+    signature_registry_apply_core_op_bindings(registry)
     sig_reg_log_count_match(expected_fn_names, registry)
     signature_spine::MirSignatureSpine_new(table, registry, mono_table)
+}
+
+fn signature_registry_apply_core_op_bindings(registry: SignatureRegistry) {
+    let count = signature_registry::signature_registry_entry_count(registry)
+    let mut i = 0
+    while i < count {
+        let mangled = signature_registry::signature_registry_mangled_at(registry, i)
+        let coid = core_op_binding::core_op_binding_lookup_for_mangled(clone(mangled))
+        if core_op_id::core_op_id_is_some(coid) {
+            signature_registry::signature_registry_set_core_op_id_at(registry, i, coid)
+        }
+        i = i + 1
+    }
 }
 
 fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRegistry) {

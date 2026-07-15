@@ -6,29 +6,29 @@ use wasm::intrinsic_scalar_loop_math
 use wasm::intrinsic_memory
 use wasm::intrinsic_range
 
-fn try_emit_scalar_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_scalar_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+fn try_emit_scalar_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_scalar_math_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_scalar_bits_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_scalar_bits_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_range_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_range_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_scalar_memory_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_scalar_memory_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
 }
 
-fn try_emit_scalar_bits_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "f64_bits_lo") {
+fn try_emit_scalar_bits_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_scalar_f64_bits_lo(){
         let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_lo(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "f64_bits_hi") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_scalar_f64_bits_hi(){
         let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_hi(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -36,21 +36,21 @@ fn try_emit_scalar_bits_call(w: WasmWriter, callee: String, inst: MirInst, ctx: 
     false
 }
 
-fn try_emit_scalar_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_scalar_float_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+fn try_emit_scalar_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_scalar_float_math_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_scalar_i32_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_scalar_i32_math_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_scalar_loop_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_scalar_loop_math_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
 }
 
-fn try_emit_scalar_float_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "sqrt") || eq(clone(callee), "math::sqrt") {
+fn try_emit_scalar_float_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_sqrt(){
         let _result_on_stack = intrinsic_math::emit_sqrt(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -58,28 +58,28 @@ fn try_emit_scalar_float_math_call(w: WasmWriter, callee: String, inst: MirInst,
     false
 }
 
-fn try_emit_scalar_i32_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_scalar_i32_unary_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+fn try_emit_scalar_i32_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_scalar_i32_unary_math_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_scalar_i32_bounds_math_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_scalar_i32_bounds_math_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
 }
 
-fn try_emit_scalar_i32_bounds_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "min") || eq(clone(callee), "math::min") || eq(clone(callee), "math::min_i32") || eq(clone(callee), "min_i32") {
+fn try_emit_scalar_i32_bounds_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_min(){
         let _result_on_stack = intrinsic_scalar_i32::emit_min(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "max") || eq(clone(callee), "math::max") || eq(clone(callee), "math::max_i32") || eq(clone(callee), "max_i32") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_max(){
         let _result_on_stack = intrinsic_scalar_i32::emit_max(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "clamp_i32") || eq(clone(callee), "math::clamp") || eq(clone(callee), "clamp") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_clamp(){
         let _result_on_stack = intrinsic_scalar_i32::emit_clamp(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -87,8 +87,8 @@ fn try_emit_scalar_i32_bounds_math_call(w: WasmWriter, callee: String, inst: Mir
     false
 }
 
-fn try_emit_scalar_i32_unary_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "abs") || eq(clone(callee), "math::abs") || eq(clone(callee), "math::abs_i32") || eq(clone(callee), "abs_i32") {
+fn try_emit_scalar_i32_unary_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_abs(){
         let _result_on_stack = intrinsic_scalar_i32::emit_abs(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -96,13 +96,13 @@ fn try_emit_scalar_i32_unary_math_call(w: WasmWriter, callee: String, inst: MirI
     false
 }
 
-fn try_emit_scalar_loop_math_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "pow_i32") || eq(clone(callee), "math::pow_i32") {
+fn try_emit_scalar_loop_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_pow_i32(){
         let _result_on_stack = intrinsic_scalar_loop_math::emit_pow_i32(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "gcd") || eq(clone(callee), "math::gcd") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_gcd(){
         let _result_on_stack = intrinsic_scalar_loop_math::emit_gcd(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -110,13 +110,13 @@ fn try_emit_scalar_loop_math_call(w: WasmWriter, callee: String, inst: MirInst, 
     false
 }
 
-fn try_emit_scalar_memory_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "memory_copy") {
+fn try_emit_scalar_memory_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_primitive_memory_copy(){
         let _result_on_stack = intrinsic_memory::emit_memory_copy(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "memory_fill") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_primitive_memory_fill(){
         let _result_on_stack = intrinsic_memory::emit_memory_fill(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -124,18 +124,18 @@ fn try_emit_scalar_memory_call(w: WasmWriter, callee: String, inst: MirInst, ctx
     false
 }
 
-fn try_emit_range_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if try_emit_range_new_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+fn try_emit_range_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if try_emit_range_new_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    if try_emit_range_query_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+    if try_emit_range_query_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     false
 }
 
-fn try_emit_range_new_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "core::range_new") || eq(clone(callee), "range_new") {
+fn try_emit_range_new_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_core_range_new(){
         let _result_on_stack = intrinsic_range::emit_range_new(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -143,13 +143,13 @@ fn try_emit_range_new_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Se
     false
 }
 
-fn try_emit_range_query_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if eq(clone(callee), "core::range_contains") || eq(clone(callee), "range_contains") {
+fn try_emit_range_query_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_core_range_contains(){
         let _result_on_stack = intrinsic_range::emit_range_contains(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if eq(clone(callee), "core::range_len") || eq(clone(callee), "range_len") {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_core_range_len(){
         let _result_on_stack = intrinsic_range::emit_range_len(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

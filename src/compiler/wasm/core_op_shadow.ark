@@ -1,0 +1,116 @@
+use wasm::effective_lowering_decision
+use wasm::ctx_record
+use mir::inst_record
+
+fn core_op_shadow_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) {
+    let legacy = effective_lowering_decision::effective_lowering_from_callee(clone(callee))
+    if !effective_lowering_decision::effective_lowering_is_resolved(legacy) {
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_inc_candidates(ctx)
+    if !ctx_record::SelfEmitCtx_spine_populated(ctx) {
+        ctx_record::SelfEmitCtx_core_op_shadow_inc_unresolved(ctx)
+        return
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        ctx_record::SelfEmitCtx_core_op_shadow_inc_unresolved(ctx)
+        core_op_shadow_log_unresolved(ctx, callee, fid_raw)
+        return
+    }
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    let modern = effective_lowering_decision::effective_lowering_from_function_id(inst, registry)
+    if !effective_lowering_decision::effective_lowering_is_resolved(modern) {
+        ctx_record::SelfEmitCtx_core_op_shadow_inc_unresolved(ctx)
+        core_op_shadow_log_unresolved(ctx, callee, fid_raw)
+        return
+    }
+    if effective_lowering_decision::effective_lowering_decisions_match(legacy, modern) {
+        ctx_record::SelfEmitCtx_core_op_shadow_inc_matched(ctx)
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_inc_mismatched(ctx)
+    core_op_shadow_log_mismatch(ctx, callee, legacy, modern)
+}
+
+fn core_op_shadow_log_unresolved(ctx: SelfEmitCtx, callee: String, func_id_raw: i32) {
+    if ctx_record::SelfEmitCtx_core_op_shadow_mismatch_budget(ctx) <= 0 {
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
+    stdio::eprintln(
+        concat(
+            String_from("core-op-shadow unresolved callee="),
+            concat(callee, concat(String_from(" function_id="), i32_to_string(func_id_raw)))
+        )
+    )
+}
+
+fn core_op_shadow_log_mismatch(
+    ctx: SelfEmitCtx,
+    callee: String,
+    legacy: EffectiveLoweringDecision,
+    modern: EffectiveLoweringDecision
+) {
+    if ctx_record::SelfEmitCtx_core_op_shadow_mismatch_budget(ctx) <= 0 {
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
+    stdio::eprintln(
+        concat(
+            String_from("core-op-shadow mismatch callee="),
+            concat(
+                clone(callee),
+                concat(
+                    String_from(" legacy_handler="),
+                    concat(
+                        clone(legacy.handler_id),
+                        concat(
+                            String_from(" modern_handler="),
+                            clone(modern.handler_id)
+                        )
+                    )
+                )
+            )
+        )
+    )
+}
+
+fn core_op_shadow_receipt_ok(ctx: SelfEmitCtx) -> bool {
+    let candidates = ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
+    let matched = ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
+    let mismatched = ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
+    let unresolved = ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
+    candidates == matched + mismatched + unresolved && mismatched == 0 && unresolved == 0
+}
+
+fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
+    let candidates = ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
+    let matched = ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
+    let mismatched = ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
+    let unresolved = ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
+    let line = concat(
+        String_from("core-op-shadow: summary candidates="),
+        concat(
+            i32_to_string(candidates),
+            concat(
+                String_from(" matched="),
+                concat(
+                    i32_to_string(matched),
+                    concat(
+                        String_from(" mismatched="),
+                        concat(
+                            i32_to_string(mismatched),
+                            concat(
+                                String_from(" unresolved="),
+                                i32_to_string(unresolved)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+    let spine = if ctx_record::SelfEmitCtx_spine_populated(ctx) { String_from("1") } else { String_from("0") }
+    stdio::eprintln(concat(line, concat(String_from(" spine="), spine)))
+}

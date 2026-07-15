@@ -17,10 +17,20 @@ Sample categories:
 - generated_view (4)
 - comment_policy_fixture (4)
 - ssot_12 (12 knowledge categories)
+
+Review preservation:
+- Existing reviews are keyed by (path, symbol) and preserved across
+  regeneration unless the source_fingerprint changes.
+- source_fingerprint is a SHA-256 hash of the inputs that determine the
+  sample (path, symbol, expected_classification, evidence). If the
+  fingerprint changes, the review is invalidated (reset to pending).
+- The unconditional pending reset for non-reviewed categories has been
+  removed; reviews persist unless the fingerprint changes.
 """
 from __future__ import annotations
 
 import datetime
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -48,6 +58,13 @@ def _now() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
+def _source_fingerprint(path: str, symbol: str, expected: str, evidence: str) -> str:
+    """Compute a SHA-256 fingerprint of the sample's source-determining fields."""
+    h = hashlib.sha256()
+    h.update(f"{path}\0{symbol}\0{expected}\0{evidence}".encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
 def _normalize_generated_files() -> set[str]:
     """Return the set of whole-file generated paths from .generated-files."""
     generated = set()
@@ -72,6 +89,7 @@ def _make_entry(
     """Build a manual sample entry with review fields left pending unless
     it is a historically reviewed category.
     """
+    fingerprint = _source_fingerprint(path, symbol, expected, evidence)
     if reviewed:
         return {
             "index": index,
@@ -82,6 +100,7 @@ def _make_entry(
             "evidence": evidence,
             "selected_by": "generator",
             "selection_rule": selection_rule,
+            "source_fingerprint": fingerprint,
             "reviewed_by": "cq18-audit",
             "reviewed_at": _now(),
             "judgment": "correct",
@@ -95,6 +114,7 @@ def _make_entry(
         "evidence": evidence,
         "selected_by": "generator",
         "selection_rule": selection_rule,
+        "source_fingerprint": fingerprint,
         "reviewed_by": None,
         "reviewed_at": None,
         "judgment": "pending",
@@ -293,7 +313,9 @@ def _merge_category(existing: list[dict] | None, new_items: list[dict], reviewed
     """Merge newly generated items with existing reviewed entries.
 
     Existing entries keep their `actual`, `judgment`, `reviewed_by`, and
-    `reviewed_at` values. New entries get pending review state.
+    `reviewed_at` values as long as the source_fingerprint is unchanged.
+    If the fingerprint changed (input/evidence modified), the review is
+    invalidated and reset to pending. New entries get pending review state.
     """
     if not existing:
         return new_items
@@ -303,9 +325,15 @@ def _merge_category(existing: list[dict] | None, new_items: list[dict], reviewed
     merged = []
     for item in new_items:
         key = (item["path"], item["symbol"])
+        new_fp = item.get("source_fingerprint")
         if key in existing_by_key:
             old = existing_by_key[key]
-            # Preserve review outcome but add required fields.
+            old_fp = old.get("source_fingerprint")
+            # Invalidate review if fingerprint changed.
+            if old_fp and new_fp and old_fp != new_fp:
+                merged.append(item)
+                continue
+            # Preserve review outcome but update metadata fields.
             merged.append({
                 "index": item["index"],
                 "path": item["path"],
@@ -315,6 +343,7 @@ def _merge_category(existing: list[dict] | None, new_items: list[dict], reviewed
                 "evidence": item["evidence"],
                 "selected_by": item["selected_by"],
                 "selection_rule": item["selection_rule"],
+                "source_fingerprint": new_fp or old_fp,
                 "reviewed_by": old.get("reviewed_by") if not reviewed else old.get("reviewed_by", "cq18-audit"),
                 "reviewed_at": old.get("reviewed_at") if not reviewed else old.get("reviewed_at", _now()),
                 "judgment": old.get("judgment", "pending"),
@@ -368,23 +397,17 @@ def main() -> int:
         _extract_ssot_categories(),
     )
 
-    # Reset any unreviewed categories to pending state. Existing reviewed
-    # categories keep their judgment; new categories are not auto-correct.
-    for category, entries in data["samples"].items():
-        if category not in reviewed:
-            for entry in entries:
-                entry["actual_classification"] = None
-                entry["reviewed_by"] = None
-                entry["reviewed_at"] = None
-                entry["judgment"] = "pending"
-
     # Normalize existing categories with review fields if missing.
+    # Note: the unconditional pending reset for non-reviewed categories
+    # has been removed. Reviews persist across regeneration unless the
+    # source_fingerprint changes (handled in _merge_category).
     for category, entries in data["samples"].items():
         is_reviewed = category in reviewed
         for i, entry in enumerate(entries, 1):
             entry["index"] = i
             entry.setdefault("selected_by", "generator")
             entry.setdefault("selection_rule", "historical")
+            entry.setdefault("source_fingerprint", None)
             if is_reviewed:
                 entry.setdefault("reviewed_by", "cq18-audit")
                 entry.setdefault("reviewed_at", _now())

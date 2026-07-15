@@ -51,19 +51,14 @@ def main() -> int:
     clock_emitter = (REPO_ROOT / "src/compiler/wasm/call_host_time.ark").read_text(
         encoding="utf-8"
     )
-    for intrinsic in ("__intrinsic_clock_now", "__intrinsic_clock_now_ms"):
-        if intrinsic not in clock_emitter:
-            failures.append(f"call_host_time.ark lacks {intrinsic} dispatch")
-
-    random_emitter = (REPO_ROOT / "src/compiler/wasm").glob("*.ark")
-    random_found = False
-    for path in random_emitter:
-        text = path.read_text(encoding="utf-8", errors="replace")
-        if "__intrinsic_random_i32" in text:
-            random_found = True
-            break
-    if not random_found:
-        failures.append("no wasm emitter dispatch for __intrinsic_random_i32")
+    required_handlers = (
+        "core_op_handler_runtime_clock_now()",
+        "core_op_handler_runtime_clock_now_ms()",
+        "core_op_handler_runtime_random_i32()",
+    )
+    for handler in required_handlers:
+        if handler not in clock_emitter:
+            failures.append(f"call_host_time.ark lacks typed {handler} dispatch")
 
     if failures:
         print("gate-051-std-time-random: FAIL", file=sys.stderr)

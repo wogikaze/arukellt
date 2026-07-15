@@ -4,6 +4,8 @@ use wasm::wasm_start
 use wasm::strings
 use wasm::wasm_sections_facade
 use wasm::gc_layout_table_build
+use wasm::registry_return_audit
+use wasm::core_op_shadow
 use mir::module_functions
 use mir::module_wit_imports
 use mir::module_gc_struct
@@ -64,4 +66,6 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
     wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level)
+    registry_return_audit::registry_audit_print_summary(ctx)
+    core_op_shadow::core_op_shadow_print_summary(ctx)
 }

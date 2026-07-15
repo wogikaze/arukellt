@@ -15,7 +15,7 @@
 | `compile_wasm32_gc` | `guaranteed` | `every-pr` | arukellt compile --target wasm32-gc produces valid Wasm (CLI default) | `docs/examples/hello.ark`, `target:wasm32-gc`, `wasm-validation` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | — |
 | `compile_wasm32` | `guaranteed` | `every-pr` | arukellt compile --target wasm32 produces valid Wasm (supported / AtCoder path) | `docs/examples/hello.ark`, `target:wasm32`, `wasm-validation` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | Not the primary CI emphasis; still contract-stable |
 | `run_wasmtime` | `guaranteed` | `every-pr` | arukellt run executes via wasmtime | `tests/fixtures/hello_world.ark`, `default-target`, `wasmtime` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | — |
-| `fixture_harness` | `guaranteed` | `every-pr` | Fixture harness passes for the current observed harness snapshot | `tests/fixtures/manifest.txt`, `registered-harness-cases` | ❌ fail | 🟢 fresh | fixture-set | `2cd10f16` | See fixture accounting: observed harness ≠ full manifest expansion |
+| `fixture_harness` | `guaranteed` | `every-pr` | Fixture harness passes for the current observed harness snapshot | `tests/fixtures/manifest.txt`, `registered-harness-cases` | ❌ fail | 🟢 fresh | fixture-set | `982f3102` | See fixture accounting: observed harness ≠ full manifest expansion |
 | `determinism` | `guaranteed` | `every-pr` | Same input → identical Wasm bytes | `scripts/check/check-release-determinism.sh::declared-corpus` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | — |
 | `no_panic_user_paths` | `guaranteed` | `every-pr` | No panic on user-reachable CLI paths | `scripts/check/check-panic-audit.sh::user-reachable-scan` | ✅ pass | 🟢 fresh | static-scan | `a80b4181` | — |
 | `cli_check` | `guaranteed` | `every-pr` | The check command rejects an invalid source without producing Wasm | `tests/fixtures/diagnostics/type_mismatch.ark`, `diagnostic-exit-status` | ✅ pass | 🟢 fresh | smoke | `a80b4181` | Guarantee is command behavior, not acceptance of every valid program |
@@ -45,7 +45,7 @@ incidents, not by individual checks.
 | `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
 | `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
 | `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
-| `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 367 | `incident_fixture_parity_367` | `2cd10f16` | `python3 scripts/manager.py verify fixtures` |
+| `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 1089 | `incident_fixture_parity_1089` | `982f3102` | `python3 scripts/manager.py verify fixtures` |
 | `check_determinism` | `determinism` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `bash scripts/check/check-release-determinism.sh` |
 | `check_no_panic` | `no_panic_user_paths` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `static-scan` | — | — | `a80b4181` | `bash scripts/check/check-panic-audit.sh` |
 | `check_cli_check` | `cli_check` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py check` |
@@ -53,7 +53,7 @@ incidents, not by individual checks.
 | `check_cli_doc` | `cli_doc` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-manifest-doc.py` |
 | `check_cli_help` | `cli_help` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py help` |
 | `check_close_gate_076` | — | 🔴 yes | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `fd14539c23288d3ed993c03600aeed36cd478d06` | `python3 scripts/check/check-false-done-close-gates.py` |
-| `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_t3_wasm_validate` | `2cd10f16` | `python3 scripts/check/check-t3-wasm-validate.py` |
+| `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_t3_wasm_validate` | `982f3102` | `python3 scripts/check/check-t3-wasm-validate.py` |
 | `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `exhaustive` | 1 | `incident_selfhost_fixpoint` | `2cd10f16` | `python3 scripts/manager.py selfhost fixpoint --build` |
 | `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 2 | `incident_selfhost_cli_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost parity --mode --cli` |
 | `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_diag_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost diag-parity` |
