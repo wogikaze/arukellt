@@ -50,7 +50,7 @@ fn config_target(config: DriverConfig) -> String { clone(config.target) }
 fn config_wasi_version(config: DriverConfig) -> String { clone(config.wasi_version) }
 fn config_opt_level(config: DriverConfig) -> i32 { config.opt_level }
 fn config_emit_mode(config: DriverConfig) -> String { clone(config.emit_mode) }
-fn config_wit_paths(config: DriverConfig) -> Vec<String> { clone(config.wit_paths) }
+fn config_wit_paths(config: DriverConfig) -> Vec<String> { config.wit_paths }
 fn config_dump_tokens(config: DriverConfig) -> bool { config.dump_tokens }
 fn config_dump_ast(config: DriverConfig) -> bool { config.dump_ast }
 fn config_dump_hir(config: DriverConfig) -> bool { config.dump_hir }
@@ -78,8 +78,8 @@ fn config_set_source_dir(config: DriverConfig, source_dir: String) { config.sour
 fn config_set_source_file(config: DriverConfig, source_file: String) { config.source_file = source_file }
 fn config_world(config: DriverConfig) -> String { clone(config.world) }
 fn config_set_world(config: DriverConfig, world: String) { config.world = world }
-fn config_lint_allow(config: DriverConfig) -> Vec<String> { clone(config.lint_allow) }
-fn config_lint_deny(config: DriverConfig) -> Vec<String> { clone(config.lint_deny) }
+fn config_lint_allow(config: DriverConfig) -> Vec<String> { config.lint_allow }
+fn config_lint_deny(config: DriverConfig) -> Vec<String> { config.lint_deny }
 fn config_set_lint_allow(config: DriverConfig, lint_allow: Vec<String>) { config.lint_allow = lint_allow }
 fn config_set_lint_deny(config: DriverConfig, lint_deny: Vec<String>) { config.lint_deny = lint_deny }
 fn config_lint_local_only(config: DriverConfig) -> bool { config.lint_local_only }

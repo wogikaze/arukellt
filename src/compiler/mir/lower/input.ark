@@ -18,7 +18,7 @@ fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSo
 }
 
 fn mir_lower_input_wit_paths(input: MirLowerInput) -> Vec<String> {
-    clone(input.wit_paths)
+    input.wit_paths
 }
 
 fn mir_lower_input_decl_nodes(input: MirLowerInput) -> Vec<AstNode> {

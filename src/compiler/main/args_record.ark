@@ -77,7 +77,7 @@ fn cli_error_msg(opts: CliOptions) -> String { clone(opts.error_msg) }
 fn cli_target(opts: CliOptions) -> String { clone(opts.target) }
 fn cli_wasi_version(opts: CliOptions) -> String { clone(opts.wasi_version) }
 fn cli_has_wasi_version(opts: CliOptions) -> bool { len(opts.wasi_version) > 0 }
-fn cli_wit_paths(opts: CliOptions) -> Vec<String> { clone(opts.wit_paths) }
+fn cli_wit_paths(opts: CliOptions) -> Vec<String> { opts.wit_paths }
 fn cli_wit_path_count(opts: CliOptions) -> i32 { len(opts.wit_paths) }
 fn cli_wit_path_at(opts: CliOptions, index: i32) -> String { clone(get_unchecked(opts.wit_paths, index)) }
 fn cli_opt_level(opts: CliOptions) -> i32 { opts.opt_level }
@@ -199,9 +199,9 @@ fn cli_lint_list(opts: CliOptions) -> bool { opts.lint_list }
 fn cli_set_lint_list(opts: CliOptions, lint_list: bool) { opts.lint_list = lint_list }
 fn cli_lint_local(opts: CliOptions) -> bool { opts.lint_local }
 fn cli_set_lint_local(opts: CliOptions, lint_local: bool) { opts.lint_local = lint_local }
-fn cli_lint_allow(opts: CliOptions) -> Vec<String> { clone(opts.lint_allow) }
+fn cli_lint_allow(opts: CliOptions) -> Vec<String> { opts.lint_allow }
 fn cli_lint_allow_count(opts: CliOptions) -> i32 { len(opts.lint_allow) }
-fn cli_lint_deny(opts: CliOptions) -> Vec<String> { clone(opts.lint_deny) }
+fn cli_lint_deny(opts: CliOptions) -> Vec<String> { opts.lint_deny }
 fn cli_lint_deny_count(opts: CliOptions) -> i32 { len(opts.lint_deny) }
 fn cli_add_lint_allow(opts: CliOptions, rule: String) { push(opts.lint_allow, rule) }
 fn cli_add_lint_deny(opts: CliOptions, rule: String) { push(opts.lint_deny, rule) }
