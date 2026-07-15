@@ -155,13 +155,16 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, ti
     if dry_run:
         return ToolResult(path, command, 0, "DRY-RUN: " + " ".join(command))
     env = os.environ.copy()
-    # Only set ARUKELLT_SELFHOST_WASM from s2 if the caller hasn't already
-    # provided one (e.g. the heap-patched bootstrap wasm from verify quick).
-    # The unpatched s2 wasm has a 512 MiB linear memory limit and OOMs when
-    # linting large file sets; the patched bootstrap wasm has 4 GiB.
+    # Prefer the heap-patched s2-runtime (4 GiB) when present. The unpatched
+    # s2 wasm is capped at 512 MiB and OOMs under parallel fmt batches once
+    # large generated sources (e.g. core_op_registry_generated) are in-tree.
+    # Callers may still override via ARUKELLT_SELFHOST_WASM.
     if "ARUKELLT_SELFHOST_WASM" not in env:
+        s2_runtime = root / ".build/selfhost/arukellt-s2-runtime.wasm"
         current_s2 = root / ".build/selfhost/arukellt-s2.wasm"
-        if current_s2.is_file():
+        if s2_runtime.is_file():
+            env["ARUKELLT_SELFHOST_WASM"] = str(s2_runtime)
+        elif current_s2.is_file():
             env["ARUKELLT_SELFHOST_WASM"] = str(current_s2)
     try:
         result = subprocess.run(
