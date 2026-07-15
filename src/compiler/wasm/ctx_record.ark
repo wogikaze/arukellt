@@ -41,6 +41,7 @@ pub struct SelfEmitCtx {
     core_op_shadow_candidates: i32,
     core_op_shadow_matched: i32,
     core_op_shadow_mismatched: i32,
+    core_op_shadow_unresolved: i32,
     core_op_shadow_mismatch_budget: i32,
     gc_layout_table: GcLayoutTable,
 }
@@ -114,6 +115,7 @@ fn SelfEmitCtx_new(
         core_op_shadow_candidates: 0,
         core_op_shadow_matched: 0,
         core_op_shadow_mismatched: 0,
+        core_op_shadow_unresolved: 0,
         core_op_shadow_mismatch_budget: 128,
         gc_layout_table: layout
     }
@@ -307,6 +309,10 @@ fn SelfEmitCtx_core_op_shadow_mismatched(ctx: SelfEmitCtx) -> i32 {
     ctx.core_op_shadow_mismatched
 }
 
+fn SelfEmitCtx_core_op_shadow_unresolved(ctx: SelfEmitCtx) -> i32 {
+    ctx.core_op_shadow_unresolved
+}
+
 fn SelfEmitCtx_core_op_shadow_mismatch_budget(ctx: SelfEmitCtx) -> i32 {
     ctx.core_op_shadow_mismatch_budget
 }
@@ -321,6 +327,10 @@ fn SelfEmitCtx_core_op_shadow_inc_matched(ctx: SelfEmitCtx) {
 
 fn SelfEmitCtx_core_op_shadow_inc_mismatched(ctx: SelfEmitCtx) {
     ctx.core_op_shadow_mismatched = ctx.core_op_shadow_mismatched + 1
+}
+
+fn SelfEmitCtx_core_op_shadow_inc_unresolved(ctx: SelfEmitCtx) {
+    ctx.core_op_shadow_unresolved = ctx.core_op_shadow_unresolved + 1
 }
 
 fn SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx: SelfEmitCtx) {

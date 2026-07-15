@@ -26,40 +26,11 @@ fn EffectiveLoweringDecision_empty() -> EffectiveLoweringDecision {
     }
 }
 
-fn effective_lowering_from_core_op_index(index: i32) -> EffectiveLoweringDecision {
-    let entry = core_op_registry::CoreOpRegistry_entry_at(index)
-    let canonical = clone(entry.canonical_id)
-    let handler = effective_lowering_handler_id(
-        clone(entry.target_id),
-        clone(entry.runtime_symbol),
-        clone(entry.mir_operation),
-        clone(canonical)
-    )
-    EffectiveLoweringDecision {
-        core_op_canonical_id: canonical,
-        lowering_kind: entry.lowering_kind,
-        handler_id: handler,
-        runtime_symbol: clone(entry.runtime_symbol),
-        target_id: clone(entry.target_id),
-        mir_operation: clone(entry.mir_operation),
-    }
+fn effective_lowering_is_resolved(decision: EffectiveLoweringDecision) -> bool {
+    len(decision.core_op_canonical_id) > 0 && len(decision.handler_id) > 0
 }
 
-fn effective_lowering_handler_id(target_id: String, runtime_symbol: String, mir_operation: String, canonical: String) -> String {
-    if len(target_id) > 0 {
-        return clone(target_id)
-    }
-    if len(runtime_symbol) > 0 {
-        return clone(runtime_symbol)
-    }
-    if len(mir_operation) > 0 {
-        return clone(mir_operation)
-    }
-    clone(canonical)
-}
-
-fn effective_lowering_from_callee(callee: String) -> EffectiveLoweringDecision {
-    let canonical_id = core_op_binding_generated::core_op_binding_core_op_id_for_callee(clone(callee))
+fn effective_lowering_from_core_op_canonical(canonical_id: String) -> EffectiveLoweringDecision {
     if len(canonical_id) == 0 {
         return EffectiveLoweringDecision_empty()
     }
@@ -68,7 +39,24 @@ fn effective_lowering_from_callee(callee: String) -> EffectiveLoweringDecision {
     if raw < 0 {
         return EffectiveLoweringDecision_empty()
     }
-    effective_lowering_from_core_op_index(raw)
+    let entry = core_op_registry::CoreOpRegistry_entry_at(raw)
+    let handler_id = core_op_binding_generated::core_op_legacy_handler_id_for_core_op_id(clone(canonical_id))
+    if len(handler_id) == 0 {
+        return EffectiveLoweringDecision_empty()
+    }
+    EffectiveLoweringDecision {
+        core_op_canonical_id: clone(canonical_id),
+        lowering_kind: entry.lowering_kind,
+        handler_id: handler_id,
+        runtime_symbol: clone(entry.runtime_symbol),
+        target_id: clone(entry.target_id),
+        mir_operation: clone(entry.mir_operation),
+    }
+}
+
+fn effective_lowering_from_callee(callee: String) -> EffectiveLoweringDecision {
+    let canonical_id = core_op_binding_generated::core_op_binding_core_op_id_for_callee(clone(callee))
+    effective_lowering_from_core_op_canonical(canonical_id)
 }
 
 fn effective_lowering_from_function_id(inst: MirInst, registry: SignatureRegistry) -> EffectiveLoweringDecision {
@@ -82,7 +70,8 @@ fn effective_lowering_from_function_id(inst: MirInst, registry: SignatureRegistr
     if raw < 0 {
         return EffectiveLoweringDecision_empty()
     }
-    effective_lowering_from_core_op_index(raw)
+    let canonical = core_op_registry::CoreOpRegistry_canonical_id_at(raw)
+    effective_lowering_from_core_op_canonical(canonical)
 }
 
 fn effective_lowering_decisions_match(a: EffectiveLoweringDecision, b: EffectiveLoweringDecision) -> bool {

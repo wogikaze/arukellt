@@ -14,7 +14,9 @@ fn core_op_shadow_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) 
     let legacy = effective_lowering_decision::effective_lowering_from_callee(clone(callee))
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let modern = effective_lowering_decision::effective_lowering_from_function_id(inst, registry)
-    if len(legacy.core_op_canonical_id) == 0 || len(modern.core_op_canonical_id) == 0 {
+    if !effective_lowering_decision::effective_lowering_is_resolved(legacy)
+    || !effective_lowering_decision::effective_lowering_is_resolved(modern) {
+        ctx_record::SelfEmitCtx_core_op_shadow_inc_unresolved(ctx)
         return
     }
     if effective_lowering_decision::effective_lowering_decisions_match(legacy, modern) {
@@ -41,12 +43,12 @@ fn core_op_shadow_log_mismatch(
             concat(
                 clone(callee),
                 concat(
-                    String_from(" legacy="),
+                    String_from(" legacy_handler="),
                     concat(
-                        clone(legacy.core_op_canonical_id),
+                        clone(legacy.handler_id),
                         concat(
-                            String_from(" modern="),
-                            clone(modern.core_op_canonical_id)
+                            String_from(" modern_handler="),
+                            clone(modern.handler_id)
                         )
                     )
                 )
@@ -63,6 +65,18 @@ fn core_op_shadow_mismatched_count(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
 }
 
+fn core_op_shadow_unresolved_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
+}
+
 fn core_op_shadow_candidate_count(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
+}
+
+fn core_op_shadow_receipt_ok(ctx: SelfEmitCtx) -> bool {
+    let candidates = core_op_shadow_candidate_count(ctx)
+    let matched = core_op_shadow_matched_count(ctx)
+    let mismatched = core_op_shadow_mismatched_count(ctx)
+    let unresolved = core_op_shadow_unresolved_count(ctx)
+    candidates == matched + mismatched + unresolved && mismatched == 0 && unresolved == 0
 }

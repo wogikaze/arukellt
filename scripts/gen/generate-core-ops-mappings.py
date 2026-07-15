@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Generate CoreOp registry entries from legacy callee-string dispatch inventory.
+"""Generate CoreOp registry entries from legacy handler-branch inventory.
 
-Reads src/compiler/wasm/call_*.ark dispatch keys and emits TOML operations for
-data/core-ops.toml. Does not replace hand-authored entries; merges by id.
+Inventory unit is a legacy if-branch (OR'd aliases), not each callee string.
+Hand-authored scaffold operations (before the migration marker) are preserved.
 """
 from __future__ import annotations
 
 import argparse
 import sys
-from collections import defaultdict
 from pathlib import Path
 
 try:
@@ -19,55 +18,40 @@ except ModuleNotFoundError:
 ROOT = Path(__file__).resolve().parents[2]
 CORE_OPS = ROOT / "data" / "core-ops.toml"
 WASM_DIR = ROOT / "src" / "compiler" / "wasm"
+MIGRATION_MARKER = "# ── #798 migrated legacy handler branches"
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from core_op_mapping_common import (  # noqa: E402
-    CALLEE_LITERAL,
-    INTRINSIC_PREFIX,
-    MIR_OP_KEYS,
-    RUNTIME_EXACT,
-    RUNTIME_PREFIXES,
-    intended_core_op_id,
-    normalize_key as _normalize,
-    owner_from_path as _owner,
+    HandlerBranch,
+    extract_handler_branches,
 )
 
 
-def classify_layer_and_lowering(op_id: str, norm: str) -> tuple[str, str, dict | None]:
-    if op_id.startswith("primitive."):
-        return "primitive", "mir_op", {"opcode": norm, "operation": norm}
-    if op_id.startswith("runtime."):
-        symbol = op_id.removeprefix("runtime.")
-        return (
-            "runtime",
-            "runtime_call",
-            {"kind": "internal", "symbol": symbol.replace(".", "_"), "abi_version": "0.1"},
-        )
-    if op_id.startswith("simd.") and norm.startswith("__simd_"):
-        target_id = norm.removeprefix("__simd_").replace("_", ".")
-        return (
-            "target_raw",
-            "target_intrinsic",
-            {
-                "target_family": "wasm",
-                "target_id": target_id,
-                "required_capabilities": [],
-                "required_target_features": ["simd128"],
-            },
-        )
-    if op_id.startswith("wasm."):
-        return "target_raw", "target_intrinsic", None
-    return "semantic_stdlib", "normal_call", None
+HAND_AUTHORED_IDS = {
+    "string.starts_with",
+    "string.ends_with",
+    "panic",
+    "simd.i32x4.add",
+    "simd.i32x4.sub",
+    "simd.f32x4.add",
+    "wasm.v128.load",
+}
 
 
-def emit_operation(op_id: str, norm: str, aliases: list[str]) -> str:
-    layer, lowering_kind, payload = classify_layer_and_lowering(op_id, norm)
-    visibility = "internal" if op_id.startswith(("primitive.", "simd.")) and not op_id.startswith(
-        "simd.i32x4"
-    ) else "public"
-    if op_id.startswith("simd.") and "__simd_" in norm:
+def emit_operation(branch: HandlerBranch) -> str:
+    op_id = branch.core_op_id
+    layer = branch.layer
+    lowering_kind = branch.lowering_kind
+
+    # Schema: internal → forbidden; public → optional (or required for hand-authored).
+    if op_id.startswith(("primitive.",)) or (
+        op_id.startswith("simd.") and branch.handler_key.startswith("__simd_")
+    ):
         visibility = "internal"
-    binding = "optional" if visibility == "internal" else "forbidden"
-    if op_id in {"string.starts_with", "string.ends_with", "panic", "wasm.v128.load"}:
-        binding = "required"
+        binding = "forbidden"
+    else:
+        visibility = "public"
+        binding = "optional"
 
     lines = [
         "",
@@ -81,8 +65,13 @@ def emit_operation(op_id: str, norm: str, aliases: list[str]) -> str:
             'binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }'
         )
     else:
-        lines.append(f'binding = {{ policy = "{binding}" }}')
-    lines.append(f'description = "Migrated legacy dispatch: {norm} (aliases: {len(aliases)})"')
+        lines.append('binding = { policy = "forbidden" }')
+
+    alias_list = ", ".join(branch.aliases)
+    lines.append(
+        f'description = "Legacy handler branch → {branch.handler_key} '
+        f'(aliases: {len(branch.aliases)}; {alias_list})"'
+    )
     lines.append("[operations.signature]")
     lines.append('inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]')
     lines.append('outputs = [{ type = { kind = "primitive", name = "i32" } }]')
@@ -107,26 +96,31 @@ def emit_operation(op_id: str, norm: str, aliases: list[str]) -> str:
     lines.append('policy = "never"')
     lines.append("[operations.lowering]")
     lines.append(f'kind = "{lowering_kind}"')
-    if lowering_kind == "mir_op" and payload:
+
+    if lowering_kind == "mir_op":
+        op_name = op_id.removeprefix("primitive.")
         lines.append("[operations.lowering.mir]")
-        lines.append(f'opcode = "{payload["opcode"]}"')
-        lines.append(f'operation = "{payload["operation"]}"')
-    if lowering_kind == "runtime_call" and payload:
+        lines.append(f'opcode = "{op_name}"')
+        lines.append(f'operation = "{op_name}"')
+    elif lowering_kind == "runtime_call":
+        symbol = branch.handler_key.replace("::", "_").removeprefix("__intrinsic_")
         lines.append("[operations.lowering.runtime]")
-        lines.append(f'kind = "{payload["kind"]}"')
-        lines.append(f'symbol = "{payload["symbol"]}"')
-        lines.append(f'abi_version = "{payload["abi_version"]}"')
-    if lowering_kind == "target_intrinsic" and payload:
+        lines.append('kind = "internal"')
+        lines.append(f'symbol = "{symbol}"')
+        lines.append('abi_version = "0.1"')
+    elif lowering_kind == "target_intrinsic":
+        target_id = branch.handler_key.removeprefix("__simd_").replace("_", ".")
         lines.append("[operations.lowering.target]")
-        for k, v in payload.items():
-            if isinstance(v, list):
-                inner = ", ".join(f'"{x}"' for x in v)
-                lines.append(f"{k} = [{inner}]")
-            else:
-                lines.append(f'{k} = "{v}"')
+        lines.append('target_family = "wasm"')
+        lines.append(f'target_id = "{target_id}"')
+        lines.append("required_capabilities = []")
+        lines.append('required_target_features = ["simd128"]')
+
     if lowering_kind == "normal_call":
         lines.append("[operations.fallback]")
-        lines.append(f'implementation_symbol = "example.invalid.fallback.{op_id.replace(".", "_")}"')
+        lines.append(
+            f'implementation_symbol = "example.invalid.fallback.{op_id.replace(".", "_")}"'
+        )
         lines.append("required = true")
     else:
         lines.append("[operations.fallback]")
@@ -134,59 +128,66 @@ def emit_operation(op_id: str, norm: str, aliases: list[str]) -> str:
     return "\n".join(lines)
 
 
-def collect_legacy_groups() -> dict[str, tuple[str, list[str]]]:
-    groups: dict[str, list[str]] = defaultdict(list)
-    owners: dict[str, str] = {}
-    for path in sorted(WASM_DIR.glob("call_*.ark")):
-        owner = _owner(path)
-        for m in CALLEE_LITERAL.finditer(path.read_text(encoding="utf-8")):
-            key = m.group(1) or m.group(2)
-            norm = _normalize(key)
-            groups[norm].append(key)
-            owners[norm] = owner
-    result: dict[str, tuple[str, list[str]]] = {}
-    for norm, aliases in groups.items():
-        op_id = intended_core_op_id(norm, owners[norm])
-        result[op_id] = (norm, sorted(set(aliases)))
-    return result
+def scaffold_prefix(text: str) -> str:
+    if MIGRATION_MARKER in text:
+        return text.split(MIGRATION_MARKER)[0].rstrip() + "\n"
+    # First migration used "Migrated legacy dispatch" descriptions.
+    lines = text.splitlines()
+    cut = None
+    for i, line in enumerate(lines):
+        if 'description = "Migrated legacy dispatch:' in line:
+            # back up to [[operations]]
+            for j in range(i, -1, -1):
+                if lines[j].startswith("[[operations]]"):
+                    cut = j
+                    break
+            break
+    if cut is None:
+        return text.rstrip() + "\n"
+    return "\n".join(lines[:cut]).rstrip() + "\n"
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--merge", action="store_true", help="merge into data/core-ops.toml")
+    parser.add_argument("--rewrite", action="store_true", help="rewrite migrated section in core-ops.toml")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    groups = collect_legacy_groups()
-    existing = tomllib.loads(CORE_OPS.read_text(encoding="utf-8"))
-    existing_ids = {op["id"] for op in existing.get("operations", [])}
+    branches = extract_handler_branches(WASM_DIR)
+    to_emit = [b for b in branches if b.core_op_id not in HAND_AUTHORED_IDS]
 
-    new_blocks: list[str] = []
-    for op_id in sorted(groups):
-        if op_id in existing_ids:
-            continue
-        norm, aliases = groups[op_id]
-        new_blocks.append(emit_operation(op_id, norm, aliases))
+    blocks = [emit_operation(b) for b in to_emit]
+    fragment = "\n".join(blocks)
 
-    if not new_blocks:
-        print("no new operations to generate")
-        return 0
+    print(
+        f"handler branches={len(branches)} emit={len(to_emit)} "
+        f"(hand-authored reserved={len(HAND_AUTHORED_IDS)})"
+    )
 
-    fragment = "\n".join(new_blocks)
     if args.dry_run:
-        print(fragment[:4000])
-        print(f"... ({len(new_blocks)} new operations)")
+        print(fragment[:3000])
+        print(f"... ({len(to_emit)} operations)")
         return 0
 
-    if args.merge:
-        text = CORE_OPS.read_text(encoding="utf-8").rstrip() + "\n" + fragment + "\n"
-        CORE_OPS.write_text(text, encoding="utf-8")
-        print(f"merged {len(new_blocks)} operations into {CORE_OPS}")
+    if not args.rewrite:
+        out = ROOT / "data" / "core-ops-generated-fragment.toml"
+        out.write_text(fragment + "\n", encoding="utf-8")
+        print(f"wrote {out}")
         return 0
 
-    out = ROOT / "data" / "core-ops-generated-fragment.toml"
-    out.write_text(fragment + "\n", encoding="utf-8")
-    print(f"wrote {len(new_blocks)} operations to {out}")
+    prefix = scaffold_prefix(CORE_OPS.read_text(encoding="utf-8"))
+    rebuilt = (
+        prefix
+        + "\n"
+        + MIGRATION_MARKER
+        + "\n"
+        + "# Generated by scripts/gen/generate-core-ops-mappings.py --rewrite\n"
+        + "# Do not hand-edit; regenerate from call_*.ark handler branches.\n"
+        + fragment
+        + "\n"
+    )
+    CORE_OPS.write_text(rebuilt, encoding="utf-8")
+    print(f"rewrote {CORE_OPS} with {len(to_emit)} migrated operations")
     return 0
 
 

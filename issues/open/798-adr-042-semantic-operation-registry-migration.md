@@ -141,9 +141,17 @@ Design scaffold and structural checker implemented:
 - `scripts/check/check-core-ops.py` (structural + manifest-semantic layer) PASS
 - `scripts/tests/test_core_ops_checker.py` regression tests (48 cases) PASS
 
-Compiler consumption, FunctionId router cutover, shadow infrastructure, and full
-legacy key mapping are implemented. Helper-level callee string compares and
-production `status = "production"` scaffold exit remain open.
+Compiler consumption, FunctionId router cutover, shadow infrastructure with
+unresolved accounting, and handler-branch semantic mapping are implemented.
+
+Mapping inventory unit is a legacy if-branch (OR'd aliases), not each callee
+string. Bridge uses `CoreOpId → legacy handler key` (helper-recognizable), not
+stripped representative callees.
+
+Still open:
+- helper-level `eq(clone(callee), ...)` removal inside `call_*.ark`
+- production `status = "production"` scaffold exit
+- runtime shadow receipt with mismatched=0 and unresolved=0 on targeted suite
 
 ## Primary artifacts
 

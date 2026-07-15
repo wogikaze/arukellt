@@ -67,6 +67,14 @@ def main() -> int:
     args = parser.parse_args()
     errors: list[str] = []
 
+    # Schema/manifest gate must pass before claiming compiler-aware readiness.
+    core_ops_proc = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "check" / "check-core-ops.py")],
+        cwd=ROOT,
+    )
+    if core_ops_proc.returncode != 0:
+        errors.append("check-core-ops.py failed")
+
     core_ops = load_core_op_ids()
     errors.extend(check_manifest_refs(core_ops))
     errors.extend(check_alias_consistency())
@@ -76,7 +84,10 @@ def main() -> int:
     if run_generator(GEN_BINDINGS) != 0:
         errors.append("stale core_op_binding_generated.ark")
 
-    proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "check" / "check-legacy-dispatch-inventory.py")], cwd=ROOT)
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "check" / "check-legacy-dispatch-inventory.py")],
+        cwd=ROOT,
+    )
     if proc.returncode != 0:
         errors.append("legacy dispatch inventory has unmapped keys")
 

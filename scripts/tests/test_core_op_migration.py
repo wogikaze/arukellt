@@ -33,6 +33,12 @@ class CoreOpMigrationChecks(unittest.TestCase):
     def test_compiler_validator(self) -> None:
         self.assertEqual(run([sys.executable, "scripts/check/check-core-op-compiler-validator.py"]), 0)
 
+    def test_alias_consolidation(self) -> None:
+        self.assertEqual(run([sys.executable, "scripts/tests/test_core_op_alias_consolidation.py"]), 0)
+
+    def test_router_semantic_dispatch(self) -> None:
+        self.assertEqual(run([sys.executable, "scripts/check/check-call-router-semantic-dispatch.py"]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
