@@ -54,7 +54,7 @@
 | `docs/data/release-guarantees.md` | generated | `scripts/gen/generate-structured-state-docs.py` | From release-guarantees.toml |
 | `docs/data/target-contract-summary.md` | generated | `scripts/gen/generate-docs.py` | Generated from project-state.toml |
 | `docs/data/verify-full-receipt.json` | internal (receipt) | hand-maintained via parser | Machine-readable verify full receipt with exact failure/skip identity set |
-| `data/core-ops.toml` | product (SSOT input) | hand-maintained | Future semantic registry SSOT for ADR-042 (PROPOSED). Not consumed authoritatively by compiler until ADR-042 is accepted and #798 completes. Current semantic registration owner is `std/manifest.toml` + compiler-local registration. Migration owner: #798. |
+| `data/core-ops.toml` | product (SSOT input) | hand-maintained | Future semantic registry SSOT for ADR-042 (ACCEPTED). Not consumed authoritatively by compiler until #798 completes. Current semantic registration owner is `std/manifest.toml` + compiler-local registration. Migration owner: #798. |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/adr/` | product | — | Architecture Decision Records |
 | `docs/rfcs/` | product | — | 詳細設計提案・仕様草案（ADR の長文側） |

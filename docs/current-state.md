@@ -37,6 +37,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
+| Intrinsic layer | ADR-042: ACCEPTED | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、#798 で移行中 |
 
 ### Proposed migration gaps（normative ではない）
 
@@ -45,7 +46,6 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | 項目 | 提案 ADR | 現行 |
 |------|----------|------|
 | Trait stdlib redesign | ADR-046 根絶 + ADR-036（D5 撤回）+ ADR-014 削除方針 | モノモルフィック / free 公開面が残存 → **移行前**（根絶方針は採択済み） |
-| Intrinsic layer | ADR-042（PROPOSED）が `data/core-ops.toml` owner を提案 | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、移行は #798 |
 | SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
 | SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
 | Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |

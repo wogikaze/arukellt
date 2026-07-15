@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-15T00:19:15Z",
+  "generated_at": "2026-07-15T00:33:52Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1293,7 +1293,7 @@
     {
       "id": "729",
       "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (blocked epic)",
+      "title": "729 — Intrinsic layer separation (unblocked epic)",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
@@ -1305,8 +1305,8 @@
         "unchecked": 10
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
+        "class": "unblocked",
+        "upstream_notes": "none"
       }
     },
     {
@@ -1327,8 +1327,8 @@
         "unchecked": 15
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "ADR-042 acceptance"
+        "class": "ready",
+        "upstream_notes": "none"
       }
     },
     {

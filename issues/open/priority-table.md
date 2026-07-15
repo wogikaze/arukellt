@@ -50,7 +50,7 @@ Scoring criteria (0-5 each, total 25):
 | 37 | 714 | 714 — Emitter-native WASI P2 component output without wrapper | component-model | 2 | 0 | 1 | 3 | 3 | 9 |
 | 38 | 721 | Final Types (`sub final`) を全 struct に適用 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
 | 39 | 722 | Typed Function References (`call_ref`) ベンチマーク計測 | wasm-feature | 0 | 0 | 1 | 5 | 3 | 9 |
-| 40 | 729 | 729 — Intrinsic layer separation (blocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
+| 40 | 729 | 729 — Intrinsic layer separation (unblocked epic) | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |
 | 41 | 807 | 807 — Fixture parity: 367 remaining failures | selfhost | 0 | 0 | 1 | 5 | 3 | 9 |
 | 42 | 813 | 813 — Selfhost fixpoint not reached | selfhost | 0 | 0 | 1 | 5 | 3 | 9 |
 | 43 | 816 | 816 — Prelude compilation restoration | compiler-internal | 0 | 0 | 1 | 5 | 3 | 9 |

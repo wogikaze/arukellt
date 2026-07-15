@@ -7,8 +7,8 @@ Parent: 729
 Track: architecture
 Depends on: "724"
 Related: "727, 808, 816, 817, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
-Orchestration class: blocked
-Orchestration upstream: ADR-042 acceptance
+Orchestration class: ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 2
 Source: ADR-042 semantic registry migration
@@ -18,9 +18,9 @@ Source: ADR-042 semantic registry migration
 
 ## Summary
 
-First implementation child of **#729**. After ADR-042 is accepted, establish
-the production `data/core-ops.toml` CoreOpRegistry and migrate intrinsic dispatch
-from callee-string matching to `FunctionId` + `SignatureRegistry` lookup.
+First implementation child of **#729**. ADR-042 is accepted and this issue is
+ready to start. Establish the production `data/core-ops.toml` CoreOpRegistry and
+migrate intrinsic dispatch from callee-string matching to `FunctionId` + `SignatureRegistry` lookup.
 
 ## Scope
 

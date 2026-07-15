@@ -163,7 +163,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 62. [719 — 719 — `arukellt test` execution harness (ADR-041 Phase 2)](719-test-execution-harness.md)
 63. [799 — 799 — CQ-18: code-quality closed-loop strict final audit](799-cq-18-code-quality-closed-loop-strict-final-audit.md)
 64. [726 — T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md)
-65. [729 — 729 — Intrinsic layer separation (blocked epic)](729-intrinsic-layer-separation.md)
+65. [729 — 729 — Intrinsic layer separation (unblocked epic)](729-intrinsic-layer-separation.md)
 66. [798 — 798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md)
 67. [800 — 800 — Batch multi-file fmt to amortize wasmtime cold-start](800-fmt-multi-file-batching.md)
 68. [814 — 814 — Formatter/parser exceptions (23 files)](814-formatter-parser-exceptions.md)
@@ -246,8 +246,8 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 719 | [719 — `arukellt test` execution harness (ADR-041 Phase 2)](719-test-execution-harness.md) | tooling | 715 | none | 0 checked / 0 open | implementation | None | |
 | 799 | [799 — CQ-18: code-quality closed-loop strict final audit](799-cq-18-code-quality-closed-loop-strict-final-audit.md) | code-quality | 715, 796, 797 | none | 11 checked / 0 open | blocked | 715 | |
 | 726 | [T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）](726-t3-wasm-validation-32-failures.md) | compiler-internal | 724 | 730 | 7 checked / 2 open | implementation-ready | — | |
-| 729 | [729 — Intrinsic layer separation (blocked epic)](729-intrinsic-layer-separation.md) | compiler-internal | 724 | none | 0 checked / 10 open | blocked | ADR-042 acceptance | |
-| 798 | [798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md) | architecture | 724 | 816, 817 | 0 checked / 15 open | blocked | ADR-042 acceptance | |
+| 729 | [729 — Intrinsic layer separation (unblocked epic)](729-intrinsic-layer-separation.md) | compiler-internal | 724 | none | 0 checked / 10 open | unblocked | none | |
+| 798 | [798 — ADR-042 semantic operation registry migration](798-adr-042-semantic-operation-registry-migration.md) | architecture | 724 | 816, 817 | 0 checked / 15 open | ready | none | |
 | 800 | [800 — Batch multi-file fmt to amortize wasmtime cold-start](800-fmt-multi-file-batching.md) | tooling-contract | 791 | none | 6 checked / 0 open | ready | None | |
 | 814 | [814 — Formatter/parser exceptions (23 files)](814-formatter-parser-exceptions.md) | code-quality | 791 | none | 0 checked / 0 open | ready | None | |
 | 683 | [683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md) | docs-audit | 679, 682 | none | 0 checked / 6 open | audit-ready | None | |

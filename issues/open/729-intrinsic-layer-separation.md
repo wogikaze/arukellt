@@ -6,23 +6,23 @@ ID: 729
 Track: compiler-internal
 Depends on: "724"
 Related: "718, 709, 727, 798, 808, 816, 817, ADR-040, ADR-036, ADR-042"
-Orchestration class: blocked
-Orchestration upstream: ADR-042 acceptance
+Orchestration class: unblocked
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 1
 Source: ADR-042 — intrinsic layer separation design
 ---
 
-# 729 — Intrinsic layer separation (blocked epic)
+# 729 — Intrinsic layer separation (unblocked epic)
 
 ## Summary
 
-This issue is the **blocked epic** for the 5-layer intrinsic separation defined
+This issue is the **unblocked epic** for the 5-layer intrinsic separation defined
 in ADR-042. It does **not** contain detailed implementation checklists; those
 live in the child issues and in [`docs/plans/intrinsic-layer-separation.md`](../../docs/plans/intrinsic-layer-separation.md).
 
-The epic is blocked until ADR-042 is accepted. The first implementation child
-is **#798**, which establishes the core-ops registry and `SignatureEntry` schema.
+ADR-042 is now accepted. The first implementation child is **#798**, which
+establishes the core-ops registry and `SignatureEntry` schema.
 
 ## Scope
 

@@ -70,7 +70,7 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
-  I729["729 729 — Intrinsic layer separation (blocked epic)"]
+  I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I798["798 798 — ADR-042 semantic operation registry migration"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]

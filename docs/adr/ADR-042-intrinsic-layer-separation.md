@@ -1,8 +1,9 @@
 # ADR-042: Intrinsic Layer Separation — 意味と実装の分離
 
-ステータス: **PROPOSED** — intrinsic を 5 層に分離し emitter から stdlib 実装を除去する方針を提案
+ステータス: **ACCEPTED** — intrinsic を 5 層に分離し emitter から stdlib 実装を除去する
 
 提案日: 2026-07-10
+決定日: 2026-07-15
 
 ---
 

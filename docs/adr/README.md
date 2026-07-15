@@ -42,6 +42,7 @@
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | Issue #443 は複数の Wasm Component を 1 つの実行単位に合成する linking モデルを求める。 前提として #442（WIT interop）と #476（wac plug / wasm-tools compose smoke）がある。 |
 | [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine | wasm32-gc の残存 validate-fail は局所修正の限界に出ている。根本原因は個別の型推論バグではなく、 コンパイルパイプライン各段で意味情報（型・シグネチャ・ABI）が失われ、emitter が 名前やスタックから型を掘り返していることである。 |
 | [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | Arukellt にはこれまで言語レベルのテスト構文がなく、arukellt test コマンドは check_only=true の型チェックラッパに過ぎなかった（src/compiler/main/project_run.ark cmd_test 参照）。テスト関数の検出は test_ / _test 命名規約のみ（Issue #458）で、 |
+| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | 提案日: 2026-07-10 |
 | [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | 旧番号メモ: 調査草稿は誤って ADR-008 として公開されたのち ADR-043 へ移した。 調査本文の正本は docs/research/wasm-gc-post-mvp.md。 |
 | [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | 廃止: ADR-004-method-syntax-evaluation.md |
 | [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md |
@@ -58,7 +59,6 @@
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
 | [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 提案日: 2026-06-26 |
-| [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | 提案日: 2026-07-10 |
 
 ## 後継済み
 
