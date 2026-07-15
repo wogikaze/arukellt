@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-15T05:45:47Z",
+  "generated_at": "2026-07-15T12:14:28Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -989,7 +989,10 @@
         "798"
       ],
       "blocks_issue_ids": [
-        "818"
+        "818",
+        "820",
+        "821",
+        "822"
       ],
       "acceptance": {
         "checked": 0,
@@ -1010,7 +1013,8 @@
         "798"
       ],
       "blocks_issue_ids": [
-        "818"
+        "818",
+        "822"
       ],
       "acceptance": {
         "checked": 0,
@@ -1260,7 +1264,9 @@
         "714",
         "675"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "819"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
@@ -1389,24 +1395,27 @@
       }
     },
     {
-      "id": "818",
-      "path": "818-core-op-production-scaffold-exit.md",
-      "title": "818 — CoreOpRegistry production scaffold exit",
+      "id": "820",
+      "path": "820-stdlib-only-inliner.md",
+      "title": "820 — Bounded stdlib-only inliner",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
         "798",
-        "816",
-        "817"
+        "816"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "818",
+        "821",
+        "822"
+      ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 8
+        "unchecked": 5
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "798, 816, 817"
+        "upstream_notes": "816"
       }
     },
     {
@@ -1477,6 +1486,28 @@
       }
     },
     {
+      "id": "819",
+      "path": "819-runtime-abi-core-op-lowering.md",
+      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "727",
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "727"
+      }
+    },
+    {
       "id": "730",
       "path": "730-bootstrap-wasm-4gb-memory-limit.md",
       "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
@@ -1493,6 +1524,53 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "821",
+      "path": "821-pure-semantic-stdlib-migration.md",
+      "title": "821 — Pure semantic stdlib migration",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "820"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 820"
+      }
+    },
+    {
+      "id": "822",
+      "path": "822-representation-dependent-stdlib-migration.md",
+      "title": "822 — Representation-dependent and allocating stdlib migration",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "817",
+        "820"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 817, 820"
       }
     },
     {
@@ -1518,6 +1596,31 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      }
+    },
+    {
+      "id": "818",
+      "path": "818-core-op-production-scaffold-exit.md",
+      "title": "818 — CoreOpRegistry production scaffold exit",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "817",
+        "819",
+        "820",
+        "821",
+        "822"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 817, 819, 820, 821, 822"
       }
     },
     {

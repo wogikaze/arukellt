@@ -5,7 +5,7 @@ Updated: 2026-07-15
 ID: 729
 Track: compiler-internal
 Depends on: "724"
-Related: "718, 709, 727, 798, 808, 816, 817, 818, ADR-040, ADR-036, ADR-042"
+Related: "718, 709, 727, 798, 808, 816, 817, 818, 819, 820, 821, 822, ADR-040, ADR-036, ADR-042"
 Orchestration class: unblocked
 Orchestration upstream: none
 Blocks v{N}: none
@@ -36,7 +36,12 @@ establishes the core-ops registry and `SignatureEntry` schema.
 
 - **Prelude compilation restoration** — separate RFC and child **#816**.
 - **Sealed raw API module name and surface** — separate RFC and child **#817**.
-- **Production scaffold exit** — production lowerings and differential proof in **#818**.
+- **Runtime ABI lowering** — emitter host-operation removal in **#819**.
+- **Stdlib-only inliner** — bounded Ark fallback inlining in **#820**.
+- **Pure stdlib migration** — non-allocating operation bodies in **#821**.
+- **Representation-dependent stdlib migration** — allocating and Vec/String
+  operation bodies in **#822**.
+- **Production scaffold exit** — final integration gate in **#818**.
 
 ## Architecture
 
@@ -53,17 +58,21 @@ ADR-042 defines five layers:
 - **#798** — ADR-042 semantic operation registry migration (first implementation child)
 - **#816** — Prelude compilation restoration (RFC-gated)
 - **#817** — Sealed raw API for Vec/String representation (RFC-gated)
-- **#818** — CoreOpRegistry production scaffold exit
-
-Additional implementation children (host ABI separation, stdlib inliner,
-pure stdlib migration, allocation-dependent stdlib migration) will be filed
-under this epic as the registry work in #798 completes.
+- **#819** — Runtime ABI CoreOp lowering and emitter host-operation removal
+- **#820** — Bounded stdlib-only inliner
+- **#821** — Pure semantic stdlib migration
+- **#822** — Representation-dependent and allocating stdlib migration
+- **#818** — CoreOpRegistry production scaffold exit after all migration children
 
 ## Related issues
 
 - **#816** — Prelude compilation restoration (outside #798 scope)
 - **#817** — Sealed raw API module for Vec/String internal representation (outside #798 scope)
-- **#818** — Production lowerings, fallback bodies, differential proof, and `status = "production"`
+- **#819** — Runtime/WIT lowering for all host CoreOps; consumes #727's HTTP/sockets migration
+- **#820** — Bounded stdlib-only inliner
+- **#821** — Pure semantic stdlib Ark fallbacks and differential proof
+- **#822** — Representation-dependent/allocating stdlib Ark fallbacks and differential proof
+- **#818** — Final production readiness proof, migration cleanup, and `status = "production"`
 - **#808** — T3/Wasm validation failures (global `verify quick` gate blocker)
 
 ## Acceptance
@@ -100,7 +109,8 @@ specific file names or syntax:
 - This issue is intentionally **not** a checklist of phases; phase-level
 checklists belong in child issues and the plan document.
 - #816 and #817 are children of this epic but remain outside #798's bounded
-  dispatch-spine migration. #818 consumes their required outputs for final production exit.
+  dispatch-spine migration. #819–#822 own implementation migration; #818 only
+  consumes their verified outputs for final production exit.
 
 ## Dependency Notes
 

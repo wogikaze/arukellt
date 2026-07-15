@@ -5,8 +5,8 @@ Updated: 2026-07-15
 ID: 798
 Parent: 729
 Track: architecture
-Depends on: "724"
-Related: "727, 808, 816, 817, 818, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
+Depends on: none
+Related: "724, 727, 808, 816, 817, 818, ADR-040, ADR-042, docs/plans/intrinsic-layer-separation"
 Orchestration class: ready
 Orchestration upstream: none
 Blocks v{N}: none
@@ -188,6 +188,14 @@ Close evidence (2026-07-15):
 - Rollback must restore the previous owner as a unit, not field by field.
 - `func_id_raw` is a compile-local physical `FunctionId` representation;
   using it as a semantic key would create a fragile implicit ABI.
+
+## Dependency Notes
+
+- #798 used the `SignatureRegistry` spine already completed within #724.
+  The type-inference removal and host-adapter work still open in #724 are not
+  prerequisites for the bounded dispatch-spine migration or its close evidence.
+- #724 remains related because its remaining semantic-spine cleanup can affect
+  later production work, but it is not a hard dependency of this done issue.
 
 ## References
 

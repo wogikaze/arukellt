@@ -145,8 +145,8 @@ core-ops 操作の metadata は次からなる:
 **宣言の単一正本（designated SSOT）:** `data/core-ops.toml`（GHC `primops.txt.pp` 方式）。
 人間向け概要は [`docs/compiler/core-ops-registry.md`](../compiler/core-ops-registry.md)。
 
-- `data/core-ops.toml` は **将来の authoritative 正本**であり、現状では `status = "scaffold"`。
-  ADR-042 採択後、#798 で compiler との統合が完了するまで authoritative 入力ではない。
+- `data/core-ops.toml` は CoreOpRegistry の authoritative input である。
+  移行状態と現在の compiler consumption 状況は `docs/current-state.md` を正とする。
 - `data/core-ops.toml` が semantic types / `CoreOpId` / visibility / classification /
   binding / effect / lowering / fallback / inline policy / signature / equivalence の正本となる。
 - `std/manifest.toml` は公開 path・docs・stability・deprecation の正本であり、

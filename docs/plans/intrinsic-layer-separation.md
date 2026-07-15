@@ -12,8 +12,9 @@ callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target 
 
 ## 移行段階
 
-#798 は第 0〜5 段階の dispatch spine を担当する。第 6〜7 段階の production
-lowering、Ark fallback、differential proof、`status = "production"` は #818 が担当する。
+#798 は第 0〜5 段階の dispatch spine を担当する。第 6 段階の production
+lowering、Ark fallback、differential proof は #819〜#822 が担当し、第 7 段階の
+production readiness と `status = "production"` gate は #818 が担当する。
 #816 と #817 は #729 の別 child であり、#798 の完了条件には含めない。
 
 ### 第 0 段階: 新しい callee 文字列 dispatch の凍結
@@ -97,7 +98,12 @@ lowering、Ark fallback、differential proof、`status = "production"` は #818 
 
 ### 第 6 段階: runtime ABI 分離、inliner、stdlib 移行
 
-実装 owner: #818（#816 と #817 の必要成果に依存）。
+実装 owner:
+
+- runtime ABI / WIT lowering: #819（HTTP/sockets の標準化は #727 の成果を利用）
+- stdlib-only inliner: #820（#816 の compiled prelude を利用）
+- pure operation の Ark stdlib 移行: #821
+- allocation / Vec / String representation 依存 operation の Ark stdlib 移行: #822（#817 を利用）
 
 - host intrinsic（HTTP、fs、sockets、clock、random、process、stdio、env）を
   emitter から外し、runtime ABI / WIT import lowering へ統合する。
@@ -111,6 +117,8 @@ lowering、Ark fallback、differential proof、`status = "production"` は #818 
 - 各移行には differential test（Ark fallback vs 旧 intrinsic）を伴う。
 
 ### 第 7 段階: 検証と cleanup
+
+最終 gate owner: #818。#819〜#822 の実装を #818 へ再集約しない。
 
 - `data/core-ops.toml` / `std/manifest.toml` / `docs/current-state.md` の整合を再確認する。
 - 移行対象の targeted tests が pass し、T3 validation 失敗数が #808 baseline を
